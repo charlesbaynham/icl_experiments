@@ -8,7 +8,16 @@
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
     in rec {
-      devShell.x86_64-linux = pkgs.mkShell {
+      # Define a default app, to be run by "nix run"
+      # This launches an artiq_master + artiq_controller session
+      apps.x86_64-linux.artiq = {
+        type = "app";
+        program = "${self.packages.x86_64-linux.blender_2_79}/bin/blender";
+      };
+
+      devShells.x86_64-linux.default = devShells.x86_64-linux.artiq;
+
+      devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = [
           (pkgs.python3.withPackages(ps: [
@@ -16,10 +25,10 @@
             ps.numpy ps.ipython ps.jupyter ps.pip
            ]))
         ];
-      };
+      # };
 
       devShells.x86_64-linux.flash = pkgs.mkShell {
-        name = "artiq-environment";
+        name = "artiq-flashing-environment";
         buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
         [
           artiq.packages.x86_64-linux.openocd-bscanspi
