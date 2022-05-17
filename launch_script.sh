@@ -8,5 +8,5 @@ concurrently \
   -n master,ctlmgr \
   --prefix "{name} {time}" \
   --timestamp-format "yyyy-MM-dd HH:mm:ss" \
-  "artiq_master -v --experiment-subdir experiments --git --repository . --log-file log/artiq.log" \
+  "artiq_master -v --git --repository . --experiment-subdir repository --log-file log/artiq.log" \
   "sleep 5 && artiq_ctlmgr -v"

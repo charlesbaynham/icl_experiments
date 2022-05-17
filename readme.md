@@ -21,4 +21,12 @@ This repository contains the Imperial ARTIQ experiments, and also defines the so
 
 7. Linting checks, documentation building and unit tests will be run automatically using Gitlab CI.
 
-8. __(Not implemented yet)__ _ARTIQ experiments are importable with absolute paths. Our ARTIQ fork includes an early merge of https://github.com/m-labs/artiq/pull/1805, enabling import of "experiments" folder in this repository, e.g. `from experiments.mot import Load2DMot`. This makes your code more explicit and allows IDEs to provide code suggestions automatically. _
+8. __(Not implemented yet)__ _ARTIQ experiments are importable with absolute paths. Our ARTIQ fork includes an early merge of https://github.com/m-labs/artiq/pull/1805, enabling import of "repository" folder in this repository, e.g. `from repository.mot import Load2DMot`. This makes your code more explicit and allows IDEs to provide code suggestions automatically. _
+
+
+Launching ARTIQ
+================
+
+To run ARTIQ in the recommended "repository" mode, just run `./run_artiq.sh` in this repository.
+
+To debug in ARTIQ's file mode, use `nix develop` and then launch `artiq_master` as you prefer, or use `nix develop -c artiq_master`.
