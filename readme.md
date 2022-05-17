@@ -5,6 +5,8 @@ __The Imperial ARTIQ experiments repository.__
 
 This repository contains the Imperial ARTIQ experiments, and also defines the software environment in which the Imperial ARTIQ system runs. It is a nix flake: to launch ARTIQ, run the script ./run_artiq.sh. This repository has an opinionated structure and provides the following features, in approximately descending order of importance:
 
+0. To run this environment, you need a working Nix installation in a Linux environment. Ideally, that means you're running Linux. If that's not possible, you can run Nix in a WSL installation (e.g. Ubuntu) on Windows. For the latter setup, you'll need to also have an `artiq_ctlmgr` running in Windows which handles local devices. Details t.b.d., but see [the PyAION documentation](https://aion-physics.gitlab.io/code/artiq/pyaion/) for more.
+
 1. This is one of several repositories that make up the complete Imperial ARTIQ installation. For the complete structure, see [the PyAION documentation](https://aion-physics.gitlab.io/code/artiq/pyaion/).
 
 2. This is a nix flake. That means that the build environment is fully defined, including versions of both python and system packages. Updates / additions are explicit and are recorded in the git history, a hash of which in included in the metadata of every dataset taken. For more information on how to add / update packages in your installation, see the Managing packages section below.
