@@ -19,3 +19,7 @@ class Tester(EnvExperiment):
             "Hello world! I'm an experiment running on ARTIQ version %s",
             artiq.__version__,
         )
+
+        logger.warning(
+            'Most experiments output print statements at the "INFO" level. To see this, set your log level to "INFO" or less'
+        )
