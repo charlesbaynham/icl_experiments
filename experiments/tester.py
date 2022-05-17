@@ -15,11 +15,21 @@ class Tester(EnvExperiment):
         pass
 
     def run(self):
+        logger.debug(
+            "This is a DEBUG message - you'll only see this level of detail if you select DEBUG as your logging level."
+        )
+
         logger.info(
             "Hello world! I'm an experiment running on ARTIQ version %s",
             artiq.__version__,
         )
 
         logger.warning(
-            'Most experiments output print statements at the "INFO" level. To see this, set your log level to "INFO" or less'
+            "This is a WARNING level message, visible for all log levels below WARNING."
         )
+
+        logger.error(
+            "This is an ERROR level message - these will almost always be visible"
+        )
+
+        logger.critical("This is a CRITICAL message - these cannot be hidden")

@@ -19,4 +19,4 @@ This repository contains the Imperial ARTIQ experiments, and also defines the so
 
 7. Linting checks, documentation building and unit tests will be run automatically using Gitlab CI.
 
-8. __(Not implemented yet)__ _ARTIQ experiments are importable with absolute paths. Our ARTIQ fork includes an early merge of https://github.com/m-labs/artiq/pull/1805, enabling import of "experiments" folder in this repository, e.g. `from experiments.mot import Load2DMot`. This makes your code more explicit and allows IDEs to provide code suggestions automatically. It has the unfortunate downside of making all experiments appear under an "experiments" top-level entry. If you agree with me that this is annoying, consider helping me argue the case in https://github.com/m-labs/artiq/issues/1543._
+8. __(Not implemented yet)__ _ARTIQ experiments are importable with absolute paths. Our ARTIQ fork includes an early merge of https://github.com/m-labs/artiq/pull/1805, enabling import of "experiments" folder in this repository, e.g. `from experiments.mot import Load2DMot`. This makes your code more explicit and allows IDEs to provide code suggestions automatically. _
