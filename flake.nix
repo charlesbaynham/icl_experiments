@@ -7,10 +7,10 @@
   outputs = { self, artiq, nixpkgs }:
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
-      
+
       # Define the requirements for the ARTIQ environment.
       # These are used to launch a devShell with these requirements present
-      # (launched with `nix develop`) which can then be used to launch an ARTIQ instance. 
+      # (launched with `nix develop`) which can then be used to launch an ARTIQ instance.
       # Alternatively, run the shell script "run_artiq.sh" to launch an artiq_master + artiq_ctlmgr session
       requirements = [
         (pkgs.python3.withPackages(ps: [
@@ -23,13 +23,13 @@
 
     in rec {
       # Define a devshell with the ARTIQ dependancies available.
-      # This is the environment used for running the ARTIQ session. 
+      # This is the environment used for running the ARTIQ session.
       devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = requirements;
       };
 
-      # An environment with the tools required for flashing gateware loaded. 
+      # An environment with the tools required for flashing gateware loaded.
       devShells.x86_64-linux.flash = pkgs.mkShell {
         name = "artiq-flashing-environment";
         buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
