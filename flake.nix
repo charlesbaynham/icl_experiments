@@ -16,7 +16,7 @@
         (pkgs.python3.withPackages(ps: [
           artiq.packages.x86_64-linux.artiq  # The main ARTIQ package
           ps.pip  # For convenient use of `pip freeze`
-          ps.numpy ps.ipython ps.jupyter
+          ps.numpy ps.ipython ps.jupyter ps.pre-commit
         ]))
         pkgs.concurrently  # For simultaneous launching of multiple processes
       ];
