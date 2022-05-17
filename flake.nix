@@ -6,26 +6,46 @@
 
   outputs = { self, artiq, nixpkgs }:
     let
-      pkgs = import nixpkgs { system = "x86_64-linux"; };
+      x = 123;
     in rec {
-      # # Define a default app, to be run by "nix run"
-      # # This launches an artiq_master + artiq_controller session
-      # apps.x86_64-linux.artiq = {
-      #   type = "app";
-      #   program = "${nixpkgs.legacyPackages.x86_64-linux.bash}/bin/bash";
-      # };
-      # apps.x86_64-linux.default = apps.x86_64-linux.artiq;
+      pkgs = import nixpkgs { system = "x86_64-linux"; };
+    
+
+      # Define the requirements for the ARTIQ environment.
+      # These are used both for the devShell (launched with `nix develop`)
+      # and the running app (launched with `nix run`)
+      requirements = [
+        (pkgs.python3.withPackages(ps: [
+          artiq.packages.x86_64-linux.artiq
+          ps.numpy ps.ipython ps.jupyter ps.pip
+        ]))
+        pkgs.concurrently
+      ];
+
+      # Define a default app, to be run by "nix run"
+      # We have to manually define the PATH variable
+      script = pkgs.writeShellScriptBin "artiq-launcher" ''
+          export PATH=${pkgs.lib.makeBinPath requirements}:$PATH
+
+          echo "Launching ARTIQ master + controller"
+          python --version
+          artiq_master --version
+          concurrently --kill-others -n master,ctlmgr artiq_master artiq_ctlmgr
+        '';
+    # in rec {
+      
+      # This launches an artiq_master + artiq_controller session
+      apps.x86_64-linux.artiq = {
+        type = "app";
+        program = "${script}/bin/artiq-launcher";
+      };
+      apps.x86_64-linux.default = apps.x86_64-linux.artiq;
 
       devShells.x86_64-linux.default = devShells.x86_64-linux.artiq;
 
       devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
-        buildInputs = [
-          (pkgs.python3.withPackages(ps: [
-            artiq.packages.x86_64-linux.artiq
-            ps.numpy ps.ipython ps.jupyter ps.pip
-           ]))
-        ];
+        buildInputs = requirements;
       };
 
       devShells.x86_64-linux.flash = pkgs.mkShell {
