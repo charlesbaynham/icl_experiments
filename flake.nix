@@ -6,48 +6,30 @@
 
   outputs = { self, artiq, nixpkgs }:
     let
-      x = 123;
-    in rec {
       pkgs = import nixpkgs { system = "x86_64-linux"; };
-    
-
+      
       # Define the requirements for the ARTIQ environment.
-      # These are used both for the devShell (launched with `nix develop`)
-      # and the running app (launched with `nix run`)
+      # These are used to launch a devShell with these requirements present
+      # (launched with `nix develop`) which can then be used to launch an ARTIQ instance. 
+      # Alternatively, run the shell script "run_artiq.sh" to launch an artiq_master + artiq_ctlmgr session
       requirements = [
         (pkgs.python3.withPackages(ps: [
-          artiq.packages.x86_64-linux.artiq
-          ps.numpy ps.ipython ps.jupyter ps.pip
+          artiq.packages.x86_64-linux.artiq  # The main ARTIQ package
+          ps.pip  # For convenient use of `pip freeze`
+          ps.numpy ps.ipython ps.jupyter
         ]))
-        pkgs.concurrently
+        pkgs.concurrently  # For simultaneous launching of multiple processes
       ];
 
-      # Define a default app, to be run by "nix run"
-      # We have to manually define the PATH variable
-      script = pkgs.writeShellScriptBin "artiq-launcher" ''
-          export PATH=${pkgs.lib.makeBinPath requirements}:$PATH
-
-          echo "Launching ARTIQ master + controller"
-          python --version
-          artiq_master --version
-          concurrently --kill-others -n master,ctlmgr artiq_master artiq_ctlmgr
-        '';
-    # in rec {
-      
-      # This launches an artiq_master + artiq_controller session
-      apps.x86_64-linux.artiq = {
-        type = "app";
-        program = "${script}/bin/artiq-launcher";
-      };
-      apps.x86_64-linux.default = apps.x86_64-linux.artiq;
-
-      devShells.x86_64-linux.default = devShells.x86_64-linux.artiq;
-
+    in rec {
+      # Define a devshell with the ARTIQ dependancies available.
+      # This is the environment used for running the ARTIQ session. 
       devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = requirements;
       };
 
+      # An environment with the tools required for flashing gateware loaded. 
       devShells.x86_64-linux.flash = pkgs.mkShell {
         name = "artiq-flashing-environment";
         buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
@@ -55,6 +37,9 @@
           artiq.packages.x86_64-linux.openocd-bscanspi
         ];
       };
+
+      # Set default devShell to the ARTIQ environment
+      devShells.x86_64-linux.default = devShells.x86_64-linux.artiq;
     };
 
   nixConfig = {

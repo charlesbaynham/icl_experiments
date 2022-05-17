@@ -1,0 +1,1 @@
+nix develop -c ./launch_script.sh
