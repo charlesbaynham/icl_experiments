@@ -15,13 +15,15 @@ This repository contains the Imperial ARTIQ experiments, and also defines the so
 
 4. Code in this repository can be automatically styled using pre-commit by running `pre-commit run --all`. Alternatively, use `pre-commit install` to enable automatic formatting on every commit.
 
-5. Documentation for this repository is build using Sphinx. It is also auto-generated from Experiment files, so write your docstrings in the Google format.
+5. This repository supports direnv, and uses its Nix / flake integration. This means that (if desired) you can automatically enter the ARTIQ environment every time you `cd` into this folder, or open Visual Studio Code in it (install the direnv extension). See https://direnv.net/ for details.
 
-6. Unit tests are enabled and highly recommended. Testing code that interacts with the ARTIQ kernel is still nigh-on impossible (though speak to Riverlane if you're interested in their early-access realtime simulator), but testing other utility functions is done via `pytest`.
+6. Documentation for this repository is build using Sphinx. It is also auto-generated from Experiment files, so write your docstrings in the Google format.
 
-7. Linting checks, documentation building and unit tests will be run automatically using Gitlab CI.
+7. Unit tests are enabled and highly recommended. Testing code that interacts with the ARTIQ kernel is still nigh-on impossible (though speak to Riverlane if you're interested in their early-access realtime simulator), but testing other utility functions is done via `pytest`.
 
-8. __(Not implemented yet)__ _ARTIQ experiments are importable with absolute paths. Our ARTIQ fork includes an early merge of https://github.com/m-labs/artiq/pull/1805, enabling import of "repository" folder in this repository, e.g. `from repository.mot import Load2DMot`. This makes your code more explicit and allows IDEs to provide code suggestions automatically. _
+8. Linting checks, documentation building and unit tests will be run automatically using Gitlab CI.
+
+9. __(Not implemented yet)__ _ARTIQ experiments are importable with absolute paths. Our ARTIQ fork includes an early merge of https://github.com/m-labs/artiq/pull/1805, enabling import of "repository" folder in this repository, e.g. `from repository.mot import Load2DMot`. This makes your code more explicit and allows IDEs to provide code suggestions automatically. _
 
 
 Launching ARTIQ
