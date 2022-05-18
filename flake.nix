@@ -13,15 +13,20 @@
       # (launched with `nix develop`) which can then be used to launch an ARTIQ instance.
       # Alternatively, run the shell script "run_artiq.sh" to launch an artiq_master + artiq_ctlmgr session
       requirements = [
-        (pkgs.python3.withPackages(ps: [
-          artiq.packages.x86_64-linux.artiq  # The main ARTIQ package
-          ps.pip  # For convenient use of `pip freeze`
-          ps.numpy ps.ipython ps.jupyter ps.pre-commit
+        (pkgs.python3.withPackages (ps: [
+          artiq.packages.x86_64-linux.artiq # The main ARTIQ package
+          # ps.pip  # For convenient use of `pip freeze`
+          ps.numpy
+          ps.ipython
+          ps.jupyter
+          ps.pre-commit
         ]))
-        pkgs.concurrently  # For simultaneous launching of multiple processes
+        pkgs.concurrently # For simultaneous launching of multiple processes
+        pkgs.nixpkgs-fmt # For formatting of Nix code
       ];
 
-    in rec {
+    in
+    rec {
       # Define a devshell with the ARTIQ dependancies available.
       # This is the environment used for running the ARTIQ session.
       devShells.x86_64-linux.artiq = pkgs.mkShell {
@@ -33,13 +38,16 @@
       devShells.x86_64-linux.flash = pkgs.mkShell {
         name = "artiq-flashing-environment";
         buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
-        [
-          artiq.packages.x86_64-linux.openocd-bscanspi
-        ];
+          [
+            artiq.packages.x86_64-linux.openocd-bscanspi
+          ];
       };
 
       # Set default devShell to the ARTIQ environment
       devShells.x86_64-linux.default = devShells.x86_64-linux.artiq;
+
+      # Specify a formatter for consistant formatting, via `nix fmt`
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
     };
 
   nixConfig = {
