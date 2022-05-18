@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class Tester(EnvExperiment):
+    """Say hello"""
+
     def build(self):
         pass
 

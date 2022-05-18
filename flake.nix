@@ -15,11 +15,11 @@
       requirements = [
         (pkgs.python3.withPackages (ps: [
           artiq.packages.x86_64-linux.artiq # The main ARTIQ package
-          # ps.pip  # For convenient use of `pip freeze`
           ps.numpy
           ps.ipython
           ps.jupyter
-          ps.pre-commit
+          ps.pre-commit # Code formatting on commits. More extensive / repeatable than just running black
+          ps.black # Code formatting within the IDE - pre-commit is the authority on which code style is enforced however
         ]))
         pkgs.concurrently # For simultaneous launching of multiple processes
         pkgs.nixpkgs-fmt # For formatting of Nix code
@@ -35,13 +35,13 @@
       };
 
       # An environment with the tools required for flashing gateware loaded.
-      devShells.x86_64-linux.flash = pkgs.mkShell {
-        name = "artiq-flashing-environment";
-        buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
-          [
-            artiq.packages.x86_64-linux.openocd-bscanspi
-          ];
-      };
+      # devShells.x86_64-linux.flash = pkgs.mkShell {
+      #   name = "artiq-flashing-environment";
+      #   buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
+      #     [
+      #       artiq.packages.x86_64-linux.openocd-bscanspi
+      #     ];
+      # };
 
       # Set default devShell to the ARTIQ environment
       devShells.x86_64-linux.default = devShells.x86_64-linux.artiq;
