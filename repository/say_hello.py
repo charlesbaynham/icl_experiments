@@ -1,4 +1,5 @@
 import logging
+from tokenize import String
 
 import artiq
 from artiq.experiment import delay
@@ -6,6 +7,7 @@ from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import ms
 from artiq.experiment import NumberValue
+from artiq.experiment import StringValue
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,9 @@ class Tester(EnvExperiment):
     """Say hello"""
 
     def build(self):
-        pass
+        self.setattr_device("core")
+
+        self.setattr_argument("message", StringValue())
 
     def run(self):
         logger.debug(
@@ -35,3 +39,19 @@ class Tester(EnvExperiment):
         )
 
         logger.critical("This is a CRITICAL message - these cannot be hidden")
+
+        self.say_hello()
+
+    @kernel
+    def say_hello(self):
+        print(
+            """
+This is a message from the core itself. Seeing this confirms that core communications
+are working correctly. These are much more limited than the logging facilities available in plain python.
+
+However, you still do have access to the logging library, like so
+            """
+        )
+
+        logger.info('My message is "%s"', self.message)
+        logger.warning('Or it could be a warning, like this: "%s"', self.message)
