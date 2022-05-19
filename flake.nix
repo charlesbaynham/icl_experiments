@@ -35,13 +35,13 @@
       };
 
       # An environment with the tools required for flashing gateware loaded.
-      # devShells.x86_64-linux.flash = pkgs.mkShell {
-      #   name = "artiq-flashing-environment";
-      #   buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
-      #     [
-      #       artiq.packages.x86_64-linux.openocd-bscanspi
-      #     ];
-      # };
+      devShells.x86_64-linux.flash = pkgs.mkShell {
+        name = "artiq-flashing-environment";
+        buildInputs = artiq.devShell.x86_64-linux.buildInputs ++
+          [
+            artiq.packages.x86_64-linux.openocd-bscanspi
+          ];
+      };
 
       # Set default devShell to the ARTIQ environment
       devShells.x86_64-linux.default = devShells.x86_64-linux.artiq;
