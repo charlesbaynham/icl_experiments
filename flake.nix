@@ -54,6 +54,6 @@
     extra-trusted-public-keys = "nixbld.m-labs.hk-1:5aSRVA5b320xbNvu30tqxVPXpld73bhtOeH6uAjRyHc=";
     extra-substituters = "https://nixbld.m-labs.hk";
     extra-sandbox-paths = "/opt";
-    bash-prompt = "\\e[1m\\e[32mICL ARTIQ \\e[0m\\e[94m(\\w)\\e[0m $ ";
+    bash-prompt = "\\[\\e[1m\\e[32m\\]ICL ARTIQ \\[\\e[0m\\e[94m\\](\\w)\\[\\e[0m\\] $ ";
   };
 }
