@@ -1,6 +1,6 @@
 {
   inputs = {
-    artiq.url = "git+ssh://git@gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
+    artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
     nixpkgs.follows = "artiq/nixpkgs";
   };
 

@@ -17,11 +17,11 @@
         "rev": "cf8e5838474ed1c6f9252ad0caa0f2773c7e0565",
         "revCount": 8053,
         "type": "git",
-        "url": "ssh://git@gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
       "original": {
         "type": "git",
-        "url": "ssh://git@gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       }
     },
     "artiq-comtools": {
