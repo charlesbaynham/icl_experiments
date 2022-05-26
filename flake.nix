@@ -31,7 +31,7 @@
       # (launched with `nix develop`) which can then be used to launch an ARTIQ instance.
       # Alternatively, run the shell script "run_artiq.sh" to launch an artiq_master + artiq_ctlmgr session
       nonPyPIPackages = [
-          artiq.packages.x86_64-linux.artiq # The main ARTIQ package
+          # artiq.packages.x86_64-linux.artiq # The main ARTIQ package
           icl_aion.packages.x86_64-linux.icl_aion # Our supporting, system-specific package
           pyaion.defaultPackage.x86_64-linux # The shared AION package
         ];

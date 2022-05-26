@@ -3,3 +3,4 @@ ipython
 jupyter
 black # Code formatting within the IDE - pre-commit is the authority on which code style is enforced however
 pip # For debugging
+pre-commit
