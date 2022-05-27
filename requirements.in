@@ -1,6 +1,6 @@
 numpy
-ipython
-notebook
-black # Code formatting within the IDE - pre-commit is the authority on which code style is enforced however
+# ipython
+# notebook
+# black # Code formatting within the IDE - pre-commit is the authority on which code style is enforced however
 pip # For debugging
-pre-commit
+# pre-commit

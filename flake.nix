@@ -1,18 +1,27 @@
 {
   inputs = {
-    nixpkgs.follows = "icl_aion/nixpkgs";
+    nixpkgs.follows = "artiq/nixpkgs";
 
     artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
-    artiq.inputs.nixpkgst.follows = "nixpkgs";
+    # artiq.inputs.nixpkgs.follows = "nixpkgs";
 
     mach-nix.url = "mach-nix/3.4.0";
     mach-nix.inputs.nixpkgs.follows = "nixpkgs";
+    mach-nix.inputs.pypi-deps-db.follows = "pypi-deps-db";
+
+    pypi-deps-db = {
+      url = "github:DavHau/pypi-deps-db";
+      flake = false;
+    };
 
     icl_aion.url = "git+https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git";
     icl_aion.inputs.pyaion.follows = "pyaion";
+    icl_aion.inputs.nixpkgs.follows = "nixpkgs";
+    icl_aion.inputs.mach-nix.follows = "mach-nix";
 
     pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
     pyaion.inputs.nixpkgs.follows = "nixpkgs";
+    pyaion.inputs.mach-nix.follows = "mach-nix";
   };
 
   outputs =
@@ -20,21 +29,40 @@
       , artiq
     , nixpkgs
     , mach-nix
+    , pypi-deps-db
     , icl_aion
     , pyaion
     }:
     let
-      pkgs = import nixpkgs { system = "x86_64-linux"; };
+      artiq_overlay = self: super:
+        # Within the overlay we use a recursive set, though I think we can use `self` as well.
+        rec {
+          python = super.python.override {
+            # Careful, we're using a different self and super here!
+            packageOverrides = self: super: {
+              artiq = artiq.packages.x86_64-linux.artiq;
+            };
+          };
+          # nix-shell -p pythonPackages.my_stuff
+          pythonPackages = python.pkgs;
+
+          # nix-shell -p my_stuff
+          artiq = artiq.packages.x86_64-linux.artiq;
+        };
+
+      pkgs = import nixpkgs { system = "x86_64-linux"; overlays = [ artiq_overlay ]; };
 
       # Define the requirements for the ARTIQ environment.
       # These are used to launch a devShell with these requirements present
       # (launched with `nix develop`) which can then be used to launch an ARTIQ instance.
       # Alternatively, run the shell script "run_artiq.sh" to launch an artiq_master + artiq_ctlmgr session
+      MachNixPackages = [
+        icl_aion.packages.x86_64-linux.icl_aion # Our supporting, system-specific package
+        pyaion.defaultPackage.x86_64-linux # The shared AION package
+      ];
       nonPyPIPackages = [
-          # artiq.packages.x86_64-linux.artiq # The main ARTIQ package
-          icl_aion.packages.x86_64-linux.icl_aion # Our supporting, system-specific package
-          pyaion.defaultPackage.x86_64-linux # The shared AION package
-        ];
+        artiq.packages.x86_64-linux.artiq # The main ARTIQ package
+      ];
       nonPythonDeps = [
         pkgs.concurrently # For simultaneous launching of multiple processes
         pkgs.nixpkgs-fmt # For formatting of Nix code
@@ -59,16 +87,40 @@
       # Define a devshell with the ARTIQ dependancies available.
       # This is the environment used for running the ARTIQ session.
       # devShells.x86_64-linux.artiq = pkgs.mkShell {
-        # name = "icl-artiq-environment";
-        # buildInputs = requirements;
+      #   name = "icl-artiq-environment";
+      #   buildInputs = requirements;
+      # };
+
+
+
+      # machnixystuff = (mach-nix.lib.x86_64-linux.mkOverlay {
+      #   # machnixystuff = (mach-nix.lib.x86_64-linux.mkPython {
+      #       # src = self;
+      #       # pname = "machnixystuff";
+      #       # version = "0.0";
+      #       requirements = builtins.readFile ./requirements.in;
+      #       packagesExtra = nonPyPIPackages;
+      #     });
+
+      # devShells.x86_64-linux.artiq = pkgs.mkShell {
+      #   name = "icl-artiq-environment";
+      #   buildInputs = [
+      #     (pkgs.python3.withPackages( ps: [
+      #       machnixystuff
+      #       artiq.packages.x86_64-linux.artiq
+      #       ps.pip
+      #     ])
+      #     )
+      #   ];
       # };
 
       devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = [
-          (mach-nix.lib.x86_64-linux.mkPython {
+          (
+            mach-nix.lib.x86_64-linux.mkPython {
             requirements = builtins.readFile ./requirements.in;
-            packagesExtra = nonPyPIPackages;
+            packagesExtra = MachNixPackages;
           })
         ] ++ nonPythonDeps;
       };
