@@ -116,7 +116,7 @@
       devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = [
-          (mach-nix-lib.mkPython {
+          (mach-nix.lib.x86_64-linux.mkPython {
             requirements = builtins.readFile ./requirements.in + ''
               artiq
             '';
