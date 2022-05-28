@@ -33,29 +33,45 @@
     , pyaion
     }:
     let
-      artiq_overlay = self: super:
-        {
-          python3 = super.python3.override {
-            packageOverrides = self: super: {
-              artiq = artiq.packages.x86_64-linux.artiq;
-            };
-          };
-          python3Packages = self.python3.pkgs;
 
-          artiq = artiq.packages.x86_64-linux.artiq;
-        };
+    # TODO: for artiq: 
+    #   * Overlay into nixpkgs DONE
+    #   * Get the requirements into mach-nix. This might require it to be build
+    #     by mach-nix... :( Although I might be able to avoid this by passing a
+    #     "requirements" key in the overlay so that mach-nix thinks it's a
+    #     mach-nix package
+    #   * Ensure that the right version of llmvlite is getting included
+
+      pkgs = import nixpkgs { system = "x86_64-linux"; };
+
+      extract_requirements = ((import "${mach-nix}/mach_nix/nix/lib.nix") { inherit pkgs; }).extract_requirements;
+      artiq_requirements = extract_requirements pkgs.python3 artiq "artiq" [];
+
+      # artiq_overlay = self: super:
+      #   {
+      #     python3 = super.python3.override {
+      #       packageOverrides = self: super: {
+      #         artiq = artiq.packages.x86_64-linux.artiq;
+      #         artiq.requirements = artiq_requirements;
+      #       };
+      #     };
+      #     python3Packages = self.python3.pkgs;
+
+      #     artiq = artiq.packages.x86_64-linux.artiq;
+      #   };
       artiq_override = self: super: {
-              artiq = artiq.packages.x86_64-linux.artiq;
-            };
+        artiq = artiq.packages.x86_64-linux.artiq;
+        artiq.requirements = artiq_requirements;
+      };
 
-      pkgs = import nixpkgs { system = "x86_64-linux"; overlays = [ artiq_overlay ]; };
+      # pkgs_overlaid = import nixpkgs { system = "x86_64-linux"; overlays = [ artiq_overlay ]; };
 
-      mach-nix-lib = (import mach-nix {
-            inherit pkgs;
-            dataOutdated = false;
-            pypiData = pypi-deps-db;
-            python = "python3";
-      });
+      # mach-nix-lib = (import mach-nix {
+      #       inherit pkgs;
+      #       dataOutdated = false;
+      #       pypiData = pypi-deps-db;
+      #       python = "python3";
+      # });
 
       # Define the requirements for the ARTIQ environment.
       # These are used to launch a devShell with these requirements present
@@ -106,11 +122,7 @@
               artiq
             '';
             packagesExtra = machnixPackages;
-            overridesPre = [(
-             pySelf: pySuper: {
-               artiq = artiq.packages.x86_64-linux.artiq;
-             }
-            )];
+            overridesPre = [ artiq_override ];
             providers = {
               artiq = "nixpkgs";
             };
