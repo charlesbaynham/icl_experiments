@@ -60,8 +60,7 @@
       #     artiq = artiq.packages.x86_64-linux.artiq;
       #   };
       artiq_override = self: super: {
-        artiq = artiq.packages.x86_64-linux.artiq;
-        artiq.requirements = artiq_requirements;
+        artiq = artiq.packages.x86_64-linux.artiq // {requirements = artiq_requirements;};
       };
 
       # pkgs_overlaid = import nixpkgs { system = "x86_64-linux"; overlays = [ artiq_overlay ]; };
