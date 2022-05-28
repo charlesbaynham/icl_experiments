@@ -104,7 +104,7 @@
 
     in
     rec {
-      inherit pkgs mach-nix-lib;
+      inherit pkgs;
 
       # Define a devshell with the ARTIQ dependancies available.
       # This is the environment used for running the ARTIQ session.
