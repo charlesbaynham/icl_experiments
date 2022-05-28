@@ -1,13 +1,12 @@
 {
   inputs = {
-    nixpkgs.follows = "icl_aion/nixpkgs";
+    nixpkgs.follows = "artiq/nixpkgs";
 
     artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
-    artiq.inputs.nixpkgs.follows = "nixpkgs";
 
-    mach-nix.url = "mach-nix/3.4.0";
+    mach-nix.url = "mach-nix";
     mach-nix.inputs.nixpkgs.follows = "nixpkgs";
-    mach-nix.inputs.pypi-deps-db .follows = "pypi-deps-db";
+    mach-nix.inputs.pypi-deps-db.follows = "pypi-deps-db";
 
     pypi-deps-db = {
       url = "github:DavHau/pypi-deps-db";
@@ -16,6 +15,7 @@
 
     icl_aion.url = "git+https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git";
     icl_aion.inputs.pyaion.follows = "pyaion";
+    icl_aion.inputs.nixpkgs.follows = "nixpkgs";
     icl_aion.inputs.mach-nix.follows = "mach-nix";
 
     pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
@@ -28,11 +28,34 @@
       , artiq
     , nixpkgs
     , mach-nix
+    , pypi-deps-db
     , icl_aion
     , pyaion
     }:
     let
-      pkgs = import nixpkgs { system = "x86_64-linux"; };
+      artiq_overlay = self: super:
+        {
+          python3 = super.python3.override {
+            packageOverrides = self: super: {
+              artiq = artiq.packages.x86_64-linux.artiq;
+            };
+          };
+          python3Packages = self.python3.pkgs;
+
+          artiq = artiq.packages.x86_64-linux.artiq;
+        };
+      artiq_override = self: super: {
+              artiq = artiq.packages.x86_64-linux.artiq;
+            };
+
+      pkgs = import nixpkgs { system = "x86_64-linux"; overlays = [ artiq_overlay ]; };
+
+      mach-nix-lib = (import mach-nix {
+            inherit pkgs;
+            dataOutdated = false;
+            pypiData = pypi-deps-db;
+            python = "python3";
+      });
 
       # Define the requirements for the ARTIQ environment.
       # These are used to launch a devShell with these requirements present
@@ -40,6 +63,8 @@
       # Alternatively, run the shell script "run_artiq.sh" to launch an artiq_master + artiq_ctlmgr session
       nonPyPIPackages = [
           # artiq.packages.x86_64-linux.artiq # The main ARTIQ package
+      ];
+      machnixPackages = [
           icl_aion.packages.x86_64-linux.icl_aion # Our supporting, system-specific package
           pyaion.defaultPackage.x86_64-linux # The shared AION package
         ];
@@ -64,6 +89,8 @@
 
     in
     rec {
+      inherit pkgs mach-nix-lib;
+
       # Define a devshell with the ARTIQ dependancies available.
       # This is the environment used for running the ARTIQ session.
       # devShells.x86_64-linux.artiq = pkgs.mkShell {
@@ -74,11 +101,21 @@
       devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = [
-          (mach-nix.lib.x86_64-linux.mkPython {
-            requirements = builtins.readFile ./requirements.in;
-            packagesExtra = nonPyPIPackages;
+          (mach-nix-lib.mkPython {
+            requirements = builtins.readFile ./requirements.in + ''
+              artiq
+            '';
+            packagesExtra = machnixPackages;
+            overridesPre = [(
+             pySelf: pySuper: {
+               artiq = artiq.packages.x86_64-linux.artiq;
+             }
+            )];
+            providers = {
+              artiq = "nixpkgs";
+            };
           })
-        ] ++ nonPythonDeps;
+        ];# ++ nonPythonDeps;
       };
 
       # An environment with the tools required for flashing gateware loaded.
