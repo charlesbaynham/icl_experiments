@@ -7,12 +7,20 @@
 
     mach-nix.url = "mach-nix/3.4.0";
     mach-nix.inputs.nixpkgs.follows = "nixpkgs";
+    mach-nix.inputs.pypi-deps-db .follows = "pypi-deps-db";
+
+    pypi-deps-db = {
+      url = "github:DavHau/pypi-deps-db";
+      flake = false;
+    };
 
     icl_aion.url = "git+https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git";
     icl_aion.inputs.pyaion.follows = "pyaion";
+    icl_aion.inputs.mach-nix.follows = "mach-nix";
 
     pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
     pyaion.inputs.nixpkgs.follows = "nixpkgs";
+    pyaion.inputs.mach-nix.follows = "mach-nix";
   };
 
   outputs =
