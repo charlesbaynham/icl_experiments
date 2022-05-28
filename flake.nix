@@ -3,7 +3,7 @@
     nixpkgs.follows = "icl_aion/nixpkgs";
 
     artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
-    artiq.inputs.nixpkgst.follows = "nixpkgs";
+    artiq.inputs.nixpkgs.follows = "nixpkgs";
 
     mach-nix.url = "mach-nix/3.4.0";
     mach-nix.inputs.nixpkgs.follows = "nixpkgs";

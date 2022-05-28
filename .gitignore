@@ -1,4 +1,5 @@
 ## added by CFAB:
+*.swp
 results
 *.pyon
 .vscode
