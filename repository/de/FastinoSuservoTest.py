@@ -7,6 +7,7 @@ from artiq.coredevice.spi2 import SPIMaster
 
 
 class fastino_test(EnvExperiment):
+    """Testing Fastino-SU Servo connection"""
     def build(self):
         self.setattr_device("core")
         self.setattr_device("suservo0"); self.setattr_device("suservo0_ch0")
