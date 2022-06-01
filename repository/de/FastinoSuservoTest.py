@@ -57,10 +57,10 @@ class fastino_test(EnvExperiment):
             delay=0.  # no IIR update delay after enabling
         )
         self.suservo0_ch0.set_dds(
-            profile=0,
-            offset=-.5,  # 5 V with above PGIA settings
-            frequency = self.freq,
-            phase=self.phase)
+            profile = 0,
+            offset = -.5,  # 5 V with above PGIA settings
+            frequency = 0,
+            phase = 0)
         # enable RF, IIR updates and profile 0
         self.suservo0_ch0.set(en_out=0, en_iir=1, profile=0)
         # enable global servo iterations
