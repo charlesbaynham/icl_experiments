@@ -64,7 +64,7 @@ class fastino_test(EnvExperiment):
         # enable RF, IIR updates and profile 0
         self.suservo0_ch0.set(en_out=0, en_iir=1, profile=0)
         # enable global servo iterations
-        self.suservo0_ch0.set_config(enable=1)
+        self.suservo0.set_config(enable=1)
         
         self.core.break_realtime()
         self.fastino0.init()
