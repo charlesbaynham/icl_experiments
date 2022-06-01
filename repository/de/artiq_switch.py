@@ -89,7 +89,6 @@ class Urukul_Programmable(EnvExperiment):
         # type:(Channel) -> None
 
         cpld = self.suservo0.cplds[0]
-        print(cpld)
         self.core.reset()
 
         self.suservo0.init()
@@ -135,6 +134,7 @@ class Urukul_Programmable(EnvExperiment):
         self.suservo0.set_config(enable=1)
         #dds.set_dds(profile, frequency, offset, phase)
 
+    @kernel
     def kernel_run_F(self, dds):
         # type:(Fastino) -> None
         print("yo")
