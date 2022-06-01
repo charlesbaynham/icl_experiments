@@ -56,15 +56,15 @@ class fastino_test(EnvExperiment):
             g=0.,  # no integrator gain limit
             delay=0.  # no IIR update delay after enabling
         )
-        self.suservo0.set_dds(
+        self.suservo0_ch0.set_dds(
             profile=0,
             offset=-.5,  # 5 V with above PGIA settings
             frequency = self.freq,
             phase=self.phase)
         # enable RF, IIR updates and profile 0
-        self.suservo0.set(en_out=0, en_iir=1, profile=0)
+        self.suservo0_ch0.set(en_out=0, en_iir=1, profile=0)
         # enable global servo iterations
-        self.suservo0.set_config(enable=1)
+        self.suservo0_ch0.set_config(enable=1)
         
         self.core.break_realtime()
         self.fastino0.init()
