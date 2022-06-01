@@ -63,7 +63,7 @@ class Urukul_Programmable(EnvExperiment):
         
         else:
             print("Fastino")
-            #self.kernel_run_F(dds)
+            self.kernel_run_F(dds)
 
     @kernel
     def kernel_run_U(self, dds):
