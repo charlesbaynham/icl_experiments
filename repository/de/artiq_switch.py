@@ -139,6 +139,7 @@ class Urukul_Programmable(EnvExperiment):
         # type:(Fastino) -> None
         print("yo")
         self.core.reset()
+        self.core.break_realtime()
         delay(250 * us)
         dds.init()
         
