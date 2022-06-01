@@ -139,5 +139,5 @@ class Urukul_Programmable(EnvExperiment):
         # type:(Fastino) -> None
         print("yo")
         self.core.reset()
-        dds.int()
+        dds.init()
         
