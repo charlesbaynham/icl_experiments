@@ -62,7 +62,7 @@ class fastino_test(EnvExperiment):
             frequency = self.freq,
             phase=self.phase)
         # enable RF, IIR updates and profile 0
-        dds.set(en_out=0, en_iir=1, profile=0)
+        self.suservo0.set(en_out=0, en_iir=1, profile=0)
         # enable global servo iterations
         self.suservo0.set_config(enable=1)
         
