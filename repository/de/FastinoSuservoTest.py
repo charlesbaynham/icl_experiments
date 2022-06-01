@@ -13,67 +13,67 @@ class fastino_test(EnvExperiment):
         self.setattr_device("suservo0"); self.setattr_device("suservo0_ch0")
         self.setattr_device("fastino0")
 
-def run(self):
-    n_steps = 100
-    voltages = [(10/n_steps) * i 
-        for i in range(n_steps + 1)]
-    voltages = [y for x in [voltages, voltages[::-1]] for y in x]
+    def run(self):
+        n_steps = 100
+        voltages = [(10/n_steps) * i 
+            for i in range(n_steps + 1)]
+        voltages = [y for x in [voltages, voltages[::-1]] for y in x]
 
-    self.pass_Voltage(voltages)
+        self.pass_Voltage(voltages)
 
 
-@kernel
-def pass_Voltage(self, voltage):
-    cpld = self.suservo0.cplds[0]
-    self.core.reset()
+    @kernel
+    def pass_Voltage(self, voltage):
+        cpld = self.suservo0.cplds[0]
+        self.core.reset()
 
-    self.suservo0.init()
-    delay(1*us)
-    
-    # ADC PGIA gain
-    for i in range(8):
-        self.suservo0.set_pgia_mu(i, 0)
-        delay(10*us)
-    
-    # DDS attenuator
-    cpld.set_att(0, 10.)
-    delay(1*us)
-    
-    # Servo is done and disabled
-    assert self.suservo0.get_status() & 0xff == 2
+        self.suservo0.init()
+        delay(1*us)
+        
+        # ADC PGIA gain
+        for i in range(8):
+            self.suservo0.set_pgia_mu(i, 0)
+            delay(10*us)
+        
+        # DDS attenuator
+        cpld.set_att(0, 10.)
+        delay(1*us)
+        
+        # Servo is done and disabled
+        assert self.suservo0.get_status() & 0xff == 2
 
-    # set up profile 0 on channel 0:
-    delay(120*us)
-    self.suservo0_ch0.set_y(
-        profile=0,
-        y=0.  # clear integrator
-    )
-    self.suservo0_ch0.set_iir(
-        profile=0,
-        adc=0,  # take data from Sampler channel 0
-        kp=-.1,  # -0.1 P gain
-        ki=-300./s,  # low integrator gain
-        g=0.,  # no integrator gain limit
-        delay=0.  # no IIR update delay after enabling
-    )
-    dds.set_dds(
-        profile=0,
-        offset=-.5,  # 5 V with above PGIA settings
-        frequency = self.freq,
-        phase=self.phase)
-    # enable RF, IIR updates and profile 0
-    dds.set(en_out=0, en_iir=1, profile=0)
-    # enable global servo iterations
-    self.suservo0.set_config(enable=1)
-    
-    self.core.break_realtime()
-    self.fastino0.init()
+        # set up profile 0 on channel 0:
+        delay(120*us)
+        self.suservo0_ch0.set_y(
+            profile=0,
+            y=0.  # clear integrator
+        )
+        self.suservo0_ch0.set_iir(
+            profile=0,
+            adc=0,  # take data from Sampler channel 0
+            kp=-.1,  # -0.1 P gain
+            ki=-300./s,  # low integrator gain
+            g=0.,  # no integrator gain limit
+            delay=0.  # no IIR update delay after enabling
+        )
+        dds.set_dds(
+            profile=0,
+            offset=-.5,  # 5 V with above PGIA settings
+            frequency = self.freq,
+            phase=self.phase)
+        # enable RF, IIR updates and profile 0
+        dds.set(en_out=0, en_iir=1, profile=0)
+        # enable global servo iterations
+        self.suservo0.set_config(enable=1)
+        
+        self.core.break_realtime()
+        self.fastino0.init()
 
-    self.fastino0.set_dac(0, 5)
-    self.fastino0.load()
+        self.fastino0.set_dac(0, 5)
+        self.fastino0.load()
 
-    delay(7 * us)
+        delay(7 * us)
 
-    print(self.suservo0.get_adc(0))
+        print(self.suservo0.get_adc(0))
 
-    self.core.break_realtime()
+        self.core.break_realtime()
