@@ -70,7 +70,7 @@ class fastino_test(EnvExperiment):
         self.fastino0.init()
 
         self.fastino0.set_dac(0, 5)
-        self.fastino0.load()
+        #self.fastino0.load()
 
         delay(7 * us)
 
