@@ -1,0 +1,106 @@
+2022-05-25 10:25:57,382 INFO:worker(34,artiq_switch.py):print:suservo0_ch0
+2022-05-25 10:25:57,390 INFO:worker(34,artiq_switch.py):print:Yes it is
+2022-05-25 10:25:57,500 WARNING:worker(34,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 10:25:57,544 INFO:worker(34,artiq_switch.py):print:suservo0_ch0
+2022-05-25 10:46:49,164 INFO:worker(35,artiq_switch.py):print:suservo0_ch0
+2022-05-25 10:46:49,172 INFO:worker(35,artiq_switch.py):print:Yes it is
+2022-05-25 10:46:49,283 WARNING:worker(35,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 10:46:49,326 INFO:worker(35,artiq_switch.py):print:suservo0_ch0
+2022-05-25 17:43:13,412 INFO:worker(36,artiq_switch.py):print:Yes it is
+2022-05-25 17:43:13,440 ERROR:worker(36,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:1-1:62: error: host object does not have an attribute 'cpld0'; did you mean 'cplds'?
+`<artiq.coredevice.suservo.SUServo object at 0x7f33b1b9cdf0>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<repository>/repository/de/artiq_switch.py:79:1: note: expanded from here
+def kernel_run_S(self, dds):
+^                           
+<repository>/repository/de/artiq_switch.py:92:9-92:28: note: attribute accessed here
+        self.suservo0.cpld0.set_att(0, 10.)
+        ^^^^^^^^^^^^^^^^^^^                
+2022-05-25 17:43:13,444 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 36
+2022-05-25 17:57:33,608 INFO:worker(37,artiq_switch.py):print:Yes it is
+2022-05-25 17:57:35,124 WARNING:worker(37,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 17:57:35,173 INFO:worker(37,artiq_switch.py):print:<artiq.coredevice.urukul.CPLD object at 0x7f8a81391fd0>
+2022-05-25 17:57:35,268 ERROR:worker(37,artiq_switch.py):root:Terminating with exception (RTIODestinationUnreachable: RTIO destination unreachable, output, at 519018384308056 mu, channel 65544)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 74, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/suservo.py", line 129, in ... artiq.coredevice.suservo.SUServo.write<artiq.coredevice.suservo.SUServo>(...) (RA=+0x270)
+    rtio_output((self.channel << 8) | addr, value)
+  File "<artiq>/coredevice/suservo.py", line 161, in ... artiq.coredevice.suservo.SUServo.set_config<artiq.coredevice.suservo.SUServo>(...) (inlined)
+    self.write(CONFIG_ADDR, enable)
+  File "<artiq>/coredevice/suservo.py", line 99, in ... artiq.coredevice.suservo.SUServo.init<artiq.coredevice.suservo.SUServo>(...) (inlined)
+    self.set_config(enable=0)
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 86, in artiq_worker_artiq_switch.Urukul_Programmable.kernel_run_S(..., ...) (inlined)
+    self.suservo0.init()
+artiq.coredevice.exceptions.RTIODestinationUnreachable(0): RTIO destination unreachable, output, at 519018384308056 mu, channel 65544
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 53, in run
+    self.kernel_run_S(dds)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIODestinationUnreachable: RTIO destination unreachable, output, at 519018384308056 mu, channel 65544
+2022-05-25 17:57:35,269 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 37
+2022-05-25 17:58:50,219 INFO:worker(38,artiq_switch.py):print:No it's not
+2022-05-25 17:58:50,689 WARNING:worker(38,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 17:58:50,784 INFO:worker(38,artiq_switch.py):print:Done!
+2022-05-25 17:58:57,070 INFO:worker(39,artiq_switch.py):print:No it's not
+2022-05-25 17:58:57,545 WARNING:worker(39,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 17:58:57,641 INFO:worker(39,artiq_switch.py):print:Done!
+2022-05-25 17:59:08,569 INFO:worker(40,artiq_switch.py):print:Yes it is
+2022-05-25 17:59:10,094 WARNING:worker(40,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 17:59:10,145 INFO:worker(40,artiq_switch.py):print:<artiq.coredevice.urukul.CPLD object at 0x7fd60191c820>
+2022-05-25 17:59:10,224 ERROR:worker(40,artiq_switch.py):root:Terminating with exception (RTIODestinationUnreachable: RTIO destination unreachable, output, at 519113355589528 mu, channel 65544)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 74, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/suservo.py", line 129, in ... artiq.coredevice.suservo.SUServo.write<artiq.coredevice.suservo.SUServo>(...) (RA=+0x270)
+    rtio_output((self.channel << 8) | addr, value)
+  File "<artiq>/coredevice/suservo.py", line 161, in ... artiq.coredevice.suservo.SUServo.set_config<artiq.coredevice.suservo.SUServo>(...) (inlined)
+    self.write(CONFIG_ADDR, enable)
+  File "<artiq>/coredevice/suservo.py", line 99, in ... artiq.coredevice.suservo.SUServo.init<artiq.coredevice.suservo.SUServo>(...) (inlined)
+    self.set_config(enable=0)
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 86, in artiq_worker_artiq_switch.Urukul_Programmable.kernel_run_S(..., ...) (inlined)
+    self.suservo0.init()
+artiq.coredevice.exceptions.RTIODestinationUnreachable(0): RTIO destination unreachable, output, at 519113355589528 mu, channel 65544
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 53, in run
+    self.kernel_run_S(dds)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIODestinationUnreachable: RTIO destination unreachable, output, at 519113355589528 mu, channel 65544
+2022-05-25 17:59:10,225 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 40
+2022-05-25 18:17:49,973 INFO:worker(41,artiq_switch.py):print:Yes it is
+2022-05-25 18:17:51,515 WARNING:worker(41,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 18:17:51,564 INFO:worker(41,artiq_switch.py):print:<artiq.coredevice.urukul.CPLD object at 0x7f986b6a4820>
+2022-05-25 18:19:45,728 INFO:worker(42,artiq_switch.py):print:Yes it is
+2022-05-25 18:19:47,269 WARNING:worker(42,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-25 18:19:47,317 INFO:worker(42,artiq_switch.py):print:<artiq.coredevice.urukul.CPLD object at 0x7fd0b3120820>

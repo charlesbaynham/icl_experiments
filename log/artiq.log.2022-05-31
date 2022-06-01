@@ -1,0 +1,48 @@
+2022-05-31 10:06:16,996 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.RkBNvi/tmpc7wkj805
+2022-05-31 10:06:21,749 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-31 10:06:23,022 INFO:master:artiq.master.experiments:repository scan took 5 seconds
+2022-05-31 14:48:02,032 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.x4uiVL/tmpniwt6n46
+2022-05-31 14:48:08,077 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-31 14:48:22,097 ERROR:master:artiq.master.worker:worker exception details
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 208, in _handle_worker_requests
+    obj = await self._recv(self.watchdog_time())
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 185, in _recv
+    raise WorkerTimeout(
+artiq.master.worker.WorkerTimeout: Timeout receiving data from worker (RID scan)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/experiments.py", line 26, in process_file
+    description = await self.worker.examine(
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 307, in examine
+    await self._worker_action({"action": "examine", "file": file},
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 252, in _worker_action
+    completed = await self._handle_worker_requests()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 212, in _handle_worker_requests
+    raise WorkerWatchdogTimeout
+artiq.master.worker.WorkerWatchdogTimeout
+2022-05-31 14:48:22,098 WARNING:master:artiq.master.experiments:Skipping file 'repository/set_dds.py'
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 208, in _handle_worker_requests
+    obj = await self._recv(self.watchdog_time())
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 185, in _recv
+    raise WorkerTimeout(
+artiq.master.worker.WorkerTimeout: Timeout receiving data from worker (RID scan)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/experiments.py", line 63, in _scan
+    await self.process_file(entry_dict, root, filename)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/experiments.py", line 26, in process_file
+    description = await self.worker.examine(
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 307, in examine
+    await self._worker_action({"action": "examine", "file": file},
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 252, in _worker_action
+    completed = await self._handle_worker_requests()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker.py", line 212, in _handle_worker_requests
+    raise WorkerWatchdogTimeout
+artiq.master.worker.WorkerWatchdogTimeout
+2022-05-31 14:48:27,690 INFO:master:artiq.master.experiments:repository scan took 25 seconds

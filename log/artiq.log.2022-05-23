@@ -1,0 +1,154 @@
+2022-05-23 17:49:41,858 INFO:master:artiq.master.experiments:checked out revision 2ac1445c95dd476ba315def36b46e6582dbbd249 into /tmp/nix-shell.Piwf5V/tmpvox3mtlq
+2022-05-23 17:49:44,638 INFO:master:artiq.master.experiments:repository scan took 2 seconds
+2022-05-23 17:49:46,684 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-23 17:50:58,255 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.Piwf5V/tmpvox3mtlq
+2022-05-23 17:51:01,583 INFO:master:artiq.master.experiments:checked out revision 2ac1445c95dd476ba315def36b46e6582dbbd249 into /tmp/nix-shell.1y381a/tmph4juy92j
+2022-05-23 17:51:01,882 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-05-23 17:51:06,573 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-23 17:58:10,311 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.1y381a/tmph4juy92j
+2022-05-23 18:06:23,724 INFO:master:artiq.master.experiments:checked out revision 2ac1445c95dd476ba315def36b46e6582dbbd249 into /tmp/nix-shell.jGA5G6/tmpygn2eczr
+2022-05-23 18:06:24,018 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-05-23 18:06:28,714 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-23 18:06:38,567 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-05-23 18:07:02,164 DEBUG:worker(0,say_hello.py):artiq.compiler.import_cache:hook installed
+2022-05-23 18:07:02,164 DEBUG:worker(0,say_hello.py):artiq.compiler.import_cache:added '/tmp/nix-shell.jGA5G6/tmpygn2eczr/repository/say_hello.py' to cache
+2022-05-23 18:07:02,166 DEBUG:worker(0,say_hello.py):artiq_worker_say_hello:This is a DEBUG message - you'll only see this level of detail if you select DEBUG as your logging level.
+2022-05-23 18:07:02,166 INFO:worker(0,say_hello.py):artiq_worker_say_hello:Hello world! I'm an experiment running on ARTIQ version 7.7999.71e8b49.beta
+2022-05-23 18:07:02,166 WARNING:worker(0,say_hello.py):artiq_worker_say_hello:This is a WARNING level message, visible for all log levels below WARNING.
+2022-05-23 18:07:02,166 ERROR:worker(0,say_hello.py):artiq_worker_say_hello:This is an ERROR level message - these will almost always be visible
+2022-05-23 18:07:02,167 CRITICAL:worker(0,say_hello.py):artiq_worker_say_hello:This is a CRITICAL message - these cannot be hidden
+2022-05-23 18:07:02,763 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm:connected to 192.168.1.75:1381
+2022-05-23 18:07:02,780 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.SystemInfo: 3>
+2022-05-23 18:07:02,821 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.SystemInfo: 2>
+2022-05-23 18:07:02,821 WARNING:worker(0,say_hello.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.7999.71e8b49.beta) versions
+2022-05-23 18:07:02,821 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.LoadKernel: 5>
+2022-05-23 18:07:02,861 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.LoadCompleted: 5>
+2022-05-23 18:07:02,862 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RunKernel: 6>
+2022-05-23 18:07:02,863 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:running kernel
+2022-05-23 18:07:02,864 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:07:02,865 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [2]<built-in function print> ['\nThis is a message from the core itself. Seeing this confirms that core communications\nare working correctly. These are much more limited than the logging facilities available in plain python.\n\nHowever, you still do have access to the logging library, like so\n            '] {} -> bytearray(b'n')
+2022-05-23 18:07:02,866 INFO:worker(0,say_hello.py):print:
+2022-05-23 18:07:02,867 INFO:worker(0,say_hello.py):print:This is a message from the core itself. Seeing this confirms that core communications
+2022-05-23 18:07:02,867 INFO:worker(0,say_hello.py):print:are working correctly. These are much more limited than the logging facilities available in plain python.
+2022-05-23 18:07:02,867 INFO:worker(0,say_hello.py):print:
+2022-05-23 18:07:02,867 INFO:worker(0,say_hello.py):print:However, you still do have access to the logging library, like so
+2022-05-23 18:07:02,867 INFO:worker(0,say_hello.py):print:            
+2022-05-23 18:07:02,867 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 2 ['\nThis is a message from the core itself. Seeing this confirms that core communications\nare working correctly. These are much more limited than the logging facilities available in plain python.\n\nHowever, you still do have access to the logging library, like so\n            '] {} = None
+2022-05-23 18:07:02,867 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:07:02,868 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:07:02,869 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [3]<function Logger.info at 0x7f68782a3310> [<Logger artiq_worker_say_hello (DEBUG)>, 'My message is "%s"', 'hello'] {} -> bytearray(b'n')
+2022-05-23 18:07:02,869 INFO:worker(0,say_hello.py):artiq_worker_say_hello:My message is "hello"
+2022-05-23 18:07:02,869 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 3 [<Logger artiq_worker_say_hello (DEBUG)>, 'My message is "%s"', 'hello'] {} = None
+2022-05-23 18:07:02,869 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:07:02,871 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:07:02,871 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [4]<function Logger.warning at 0x7f68782a33a0> [<Logger artiq_worker_say_hello (DEBUG)>, 'Or it could be a warning, like this: "%s"', 'hello'] {} -> bytearray(b'n')
+2022-05-23 18:07:02,872 WARNING:worker(0,say_hello.py):artiq_worker_say_hello:Or it could be a warning, like this: "hello"
+2022-05-23 18:07:02,872 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 4 [<Logger artiq_worker_say_hello (DEBUG)>, 'Or it could be a warning, like this: "%s"', 'hello'] {} = None
+2022-05-23 18:07:02,872 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:07:02,874 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:07:02,874 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [1]<function Core.run.<locals>.set_result at 0x7f67c7fe81f0> (async) [None] {} -> bytearray(b'n')
+2022-05-23 18:07:02,875 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.KernelFinished: 7>
+2022-05-23 18:07:02,889 DEBUG:worker(0,say_hello.py):h5py._conv:Creating converter from 5 to 3
+2022-05-23 18:07:02,892 DEBUG:worker(0,say_hello.py):artiq.coredevice.comm_kernel:disconnected
+2022-05-23 18:11:42,714 INFO:master:artiq.master.experiments:checked out revision f94c29582788a2a83171253a650c31f1d9439ed6 into /tmp/nix-shell.jGA5G6/tmpqecgqpnk
+2022-05-23 18:11:42,714 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.jGA5G6/tmpygn2eczr
+2022-05-23 18:11:43,013 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-05-23 18:12:04,599 INFO:worker(1,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-23 18:12:04,600 INFO:worker(1,artiq_switch.py):print:No it's not
+2022-05-23 18:13:27,689 INFO:worker(2,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-23 18:13:27,690 INFO:worker(2,artiq_switch.py):print:No it's not
+2022-05-23 18:15:54,976 DEBUG:worker(3,say_hello.py):artiq.compiler.import_cache:hook installed
+2022-05-23 18:15:54,977 DEBUG:worker(3,say_hello.py):artiq.compiler.import_cache:added '/tmp/nix-shell.jGA5G6/tmpqecgqpnk/repository/say_hello.py' to cache
+2022-05-23 18:15:54,978 DEBUG:worker(3,say_hello.py):artiq_worker_say_hello:This is a DEBUG message - you'll only see this level of detail if you select DEBUG as your logging level.
+2022-05-23 18:15:54,979 INFO:worker(3,say_hello.py):artiq_worker_say_hello:Hello world! I'm an experiment running on ARTIQ version 7.7999.71e8b49.beta
+2022-05-23 18:15:54,979 WARNING:worker(3,say_hello.py):artiq_worker_say_hello:This is a WARNING level message, visible for all log levels below WARNING.
+2022-05-23 18:15:54,979 ERROR:worker(3,say_hello.py):artiq_worker_say_hello:This is an ERROR level message - these will almost always be visible
+2022-05-23 18:15:54,979 CRITICAL:worker(3,say_hello.py):artiq_worker_say_hello:This is a CRITICAL message - these cannot be hidden
+2022-05-23 18:15:55,030 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm:connected to 192.168.1.75:1381
+2022-05-23 18:15:55,046 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.SystemInfo: 3>
+2022-05-23 18:15:55,087 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.SystemInfo: 2>
+2022-05-23 18:15:55,087 WARNING:worker(3,say_hello.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.7999.71e8b49.beta) versions
+2022-05-23 18:15:55,087 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.LoadKernel: 5>
+2022-05-23 18:15:55,126 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.LoadCompleted: 5>
+2022-05-23 18:15:55,126 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RunKernel: 6>
+2022-05-23 18:15:55,126 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:running kernel
+2022-05-23 18:15:55,128 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:15:55,128 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [2]<built-in function print> ['\nThis is a message from the core itself. Seeing this confirms that core communications\nare working correctly. These are much more limited than the logging facilities available in plain python.\n\nHowever, you still do have access to the logging library, like so\n            '] {} -> bytearray(b'n')
+2022-05-23 18:15:55,128 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 2 ['\nThis is a message from the core itself. Seeing this confirms that core communications\nare working correctly. These are much more limited than the logging facilities available in plain python.\n\nHowever, you still do have access to the logging library, like so\n            '] {} = None
+2022-05-23 18:15:55,129 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:15:55,129 INFO:worker(3,say_hello.py):print:
+2022-05-23 18:15:55,129 INFO:worker(3,say_hello.py):print:This is a message from the core itself. Seeing this confirms that core communications
+2022-05-23 18:15:55,129 INFO:worker(3,say_hello.py):print:are working correctly. These are much more limited than the logging facilities available in plain python.
+2022-05-23 18:15:55,129 INFO:worker(3,say_hello.py):print:
+2022-05-23 18:15:55,129 INFO:worker(3,say_hello.py):print:However, you still do have access to the logging library, like so
+2022-05-23 18:15:55,129 INFO:worker(3,say_hello.py):print:            
+2022-05-23 18:15:55,131 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:15:55,131 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [3]<function Logger.info at 0x7fc539782310> [<Logger artiq_worker_say_hello (DEBUG)>, 'My message is "%s"', 'hello'] {} -> bytearray(b'n')
+2022-05-23 18:15:55,131 INFO:worker(3,say_hello.py):artiq_worker_say_hello:My message is "hello"
+2022-05-23 18:15:55,132 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 3 [<Logger artiq_worker_say_hello (DEBUG)>, 'My message is "%s"', 'hello'] {} = None
+2022-05-23 18:15:55,132 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:15:55,134 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:15:55,134 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [4]<function Logger.warning at 0x7fc5397823a0> [<Logger artiq_worker_say_hello (DEBUG)>, 'Or it could be a warning, like this: "%s"', 'hello'] {} -> bytearray(b'n')
+2022-05-23 18:15:55,134 WARNING:worker(3,say_hello.py):artiq_worker_say_hello:Or it could be a warning, like this: "hello"
+2022-05-23 18:15:55,134 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 4 [<Logger artiq_worker_say_hello (DEBUG)>, 'Or it could be a warning, like this: "%s"', 'hello'] {} = None
+2022-05-23 18:15:55,135 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:15:55,136 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:15:55,137 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [1]<function Core.run.<locals>.set_result at 0x7fc4894c7280> (async) [None] {} -> bytearray(b'n')
+2022-05-23 18:15:55,138 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.KernelFinished: 7>
+2022-05-23 18:15:55,139 DEBUG:worker(3,say_hello.py):h5py._conv:Creating converter from 5 to 3
+2022-05-23 18:15:55,141 DEBUG:worker(3,say_hello.py):artiq.coredevice.comm_kernel:disconnected
+2022-05-23 18:16:04,720 WARNING:worker(4,say_hello.py):artiq_worker_say_hello:This is a WARNING level message, visible for all log levels below WARNING.
+2022-05-23 18:16:04,720 ERROR:worker(4,say_hello.py):artiq_worker_say_hello:This is an ERROR level message - these will almost always be visible
+2022-05-23 18:16:04,721 CRITICAL:worker(4,say_hello.py):artiq_worker_say_hello:This is a CRITICAL message - these cannot be hidden
+2022-05-23 18:16:04,827 WARNING:worker(4,say_hello.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.7999.71e8b49.beta) versions
+2022-05-23 18:16:04,871 INFO:worker(4,say_hello.py):print:
+2022-05-23 18:16:04,871 INFO:worker(4,say_hello.py):print:This is a message from the core itself. Seeing this confirms that core communications
+2022-05-23 18:16:04,872 INFO:worker(4,say_hello.py):print:are working correctly. These are much more limited than the logging facilities available in plain python.
+2022-05-23 18:16:04,873 INFO:worker(4,say_hello.py):print:
+2022-05-23 18:16:04,873 INFO:worker(4,say_hello.py):print:However, you still do have access to the logging library, like so
+2022-05-23 18:16:04,874 INFO:worker(4,say_hello.py):print:            
+2022-05-23 18:16:04,880 WARNING:worker(4,say_hello.py):artiq_worker_say_hello:Or it could be a warning, like this: "hello"
+2022-05-23 18:16:11,600 DEBUG:worker(5,say_hello.py):artiq.compiler.import_cache:hook installed
+2022-05-23 18:16:11,601 DEBUG:worker(5,say_hello.py):artiq.compiler.import_cache:added '/tmp/nix-shell.jGA5G6/tmpqecgqpnk/repository/say_hello.py' to cache
+2022-05-23 18:16:11,602 DEBUG:worker(5,say_hello.py):artiq_worker_say_hello:This is a DEBUG message - you'll only see this level of detail if you select DEBUG as your logging level.
+2022-05-23 18:16:11,602 INFO:worker(5,say_hello.py):artiq_worker_say_hello:Hello world! I'm an experiment running on ARTIQ version 7.7999.71e8b49.beta
+2022-05-23 18:16:11,603 WARNING:worker(5,say_hello.py):artiq_worker_say_hello:This is a WARNING level message, visible for all log levels below WARNING.
+2022-05-23 18:16:11,603 ERROR:worker(5,say_hello.py):artiq_worker_say_hello:This is an ERROR level message - these will almost always be visible
+2022-05-23 18:16:11,603 CRITICAL:worker(5,say_hello.py):artiq_worker_say_hello:This is a CRITICAL message - these cannot be hidden
+2022-05-23 18:16:11,652 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm:connected to 192.168.1.75:1381
+2022-05-23 18:16:11,667 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.SystemInfo: 3>
+2022-05-23 18:16:11,709 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.SystemInfo: 2>
+2022-05-23 18:16:11,710 WARNING:worker(5,say_hello.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.7999.71e8b49.beta) versions
+2022-05-23 18:16:11,710 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.LoadKernel: 5>
+2022-05-23 18:16:11,748 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.LoadCompleted: 5>
+2022-05-23 18:16:11,748 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RunKernel: 6>
+2022-05-23 18:16:11,748 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:running kernel
+2022-05-23 18:16:11,751 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:16:11,751 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [2]<built-in function print> ['\nThis is a message from the core itself. Seeing this confirms that core communications\nare working correctly. These are much more limited than the logging facilities available in plain python.\n\nHowever, you still do have access to the logging library, like so\n            '] {} -> bytearray(b'n')
+2022-05-23 18:16:11,751 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 2 ['\nThis is a message from the core itself. Seeing this confirms that core communications\nare working correctly. These are much more limited than the logging facilities available in plain python.\n\nHowever, you still do have access to the logging library, like so\n            '] {} = None
+2022-05-23 18:16:11,751 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:16:11,751 INFO:worker(5,say_hello.py):print:
+2022-05-23 18:16:11,751 INFO:worker(5,say_hello.py):print:This is a message from the core itself. Seeing this confirms that core communications
+2022-05-23 18:16:11,752 INFO:worker(5,say_hello.py):print:are working correctly. These are much more limited than the logging facilities available in plain python.
+2022-05-23 18:16:11,752 INFO:worker(5,say_hello.py):print:
+2022-05-23 18:16:11,752 INFO:worker(5,say_hello.py):print:However, you still do have access to the logging library, like so
+2022-05-23 18:16:11,752 INFO:worker(5,say_hello.py):print:            
+2022-05-23 18:16:11,754 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:16:11,754 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [3]<function Logger.info at 0x7f7a4833f310> [<Logger artiq_worker_say_hello (DEBUG)>, 'My message is "%s"', 'hello'] {} -> bytearray(b'n')
+2022-05-23 18:16:11,754 INFO:worker(5,say_hello.py):artiq_worker_say_hello:My message is "hello"
+2022-05-23 18:16:11,754 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 3 [<Logger artiq_worker_say_hello (DEBUG)>, 'My message is "%s"', 'hello'] {} = None
+2022-05-23 18:16:11,754 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:16:11,757 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:16:11,757 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [4]<function Logger.warning at 0x7f7a4833f3a0> [<Logger artiq_worker_say_hello (DEBUG)>, 'Or it could be a warning, like this: "%s"', 'hello'] {} -> bytearray(b'n')
+2022-05-23 18:16:11,757 WARNING:worker(5,say_hello.py):artiq_worker_say_hello:Or it could be a warning, like this: "hello"
+2022-05-23 18:16:11,757 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:rpc service: 4 [<Logger artiq_worker_say_hello (DEBUG)>, 'Or it could be a warning, like this: "%s"', 'hello'] {} = None
+2022-05-23 18:16:11,757 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:sending message: type=<Request.RPCReply: 7>
+2022-05-23 18:16:11,759 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.RPCRequest: 10>
+2022-05-23 18:16:11,759 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:rpc service: [1]<function Core.run.<locals>.set_result at 0x7f7998084280> (async) [None] {} -> bytearray(b'n')
+2022-05-23 18:16:11,760 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:receiving message: type=<Reply.KernelFinished: 7>
+2022-05-23 18:16:11,762 DEBUG:worker(5,say_hello.py):h5py._conv:Creating converter from 5 to 3
+2022-05-23 18:16:11,764 DEBUG:worker(5,say_hello.py):artiq.coredevice.comm_kernel:disconnected
+2022-05-23 18:20:33,693 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.jGA5G6/tmpqecgqpnk
+2022-05-23 18:21:03,814 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-05-23 18:21:08,527 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-23 18:22:12,884 INFO:master:artiq.master.experiments:repository scan took 0 seconds

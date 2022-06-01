@@ -1,0 +1,294 @@
+2022-05-24 09:54:25,616 INFO:worker(6,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 09:54:25,617 INFO:worker(6,artiq_switch.py):print:No it's not
+2022-05-24 10:23:32,349 INFO:worker(7,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:23:32,349 INFO:worker(7,artiq_switch.py):print:No it's not
+2022-05-24 10:24:16,963 INFO:worker(8,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:24:16,964 INFO:worker(8,artiq_switch.py):print:<artiq.coredevice.suservo.Channel object at 0x7f1c94356a90>
+2022-05-24 10:24:16,964 INFO:worker(8,artiq_switch.py):print:No it's not
+2022-05-24 10:24:35,064 INFO:worker(9,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:24:35,064 INFO:worker(9,artiq_switch.py):print:suservo0_ch1
+2022-05-24 10:24:35,065 INFO:worker(9,artiq_switch.py):print:No it's not
+2022-05-24 10:25:49,752 INFO:worker(10,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:25:49,752 INFO:worker(10,artiq_switch.py):print:suservo0_ch1
+2022-05-24 10:25:49,753 INFO:worker(10,artiq_switch.py):print:No it's not
+2022-05-24 10:26:21,993 INFO:worker(11,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:26:21,993 INFO:worker(11,artiq_switch.py):print:suservo0_ch1
+2022-05-24 10:26:21,998 ERROR:worker(11,artiq_switch.py):root:Terminating with exception (DeviceError: Failed to get description of device ''suservo0_ch1'')
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 78, in get
+    desc = self.get_desc(name)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 69, in get_desc
+    return self.ddb.get(name, resolve_alias=True)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 62, in parent_action
+    raise_packed_exc(reply["exception"])
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/sipyco/packed_exceptions.py", line 42, in raise_packed_exc
+    raise exc
+KeyError: '"\'suservo0_ch1\'"'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 300, in main
+    exp_inst.run()
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 47, in run
+    if self.get_device("'{x}'".format(x = self.DDS)) in check_array == True:
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/language/environment.py", line 320, in get_device
+    return self.__device_mgr.get(key)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 80, in get
+    raise DeviceError("Failed to get description of device '{}'"
+artiq.master.worker_db.DeviceError: Failed to get description of device ''suservo0_ch1''
+2022-05-24 10:26:21,998 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 11
+2022-05-24 10:27:11,592 INFO:worker(12,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:27:11,593 INFO:worker(12,artiq_switch.py):print:'suservo0_ch1'
+2022-05-24 10:27:11,593 INFO:worker(12,artiq_switch.py):print:No it's not
+2022-05-24 10:28:07,119 INFO:worker(13,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:28:07,119 INFO:worker(13,artiq_switch.py):print:'suservo0_ch1'
+2022-05-24 10:28:07,124 ERROR:worker(13,artiq_switch.py):root:Terminating with exception (DeviceError: Failed to get description of device ''suservo0_ch1'')
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 78, in get
+    desc = self.get_desc(name)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 69, in get_desc
+    return self.ddb.get(name, resolve_alias=True)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 62, in parent_action
+    raise_packed_exc(reply["exception"])
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/sipyco/packed_exceptions.py", line 42, in raise_packed_exc
+    raise exc
+KeyError: '"\'suservo0_ch1\'"'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 300, in main
+    exp_inst.run()
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 48, in run
+    if self.get_device(check_string) in check_array == True:
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/language/environment.py", line 320, in get_device
+    return self.__device_mgr.get(key)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 80, in get
+    raise DeviceError("Failed to get description of device '{}'"
+artiq.master.worker_db.DeviceError: Failed to get description of device ''suservo0_ch1''
+2022-05-24 10:28:07,124 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 13
+2022-05-24 10:29:35,822 INFO:worker(14,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:29:35,823 INFO:worker(14,artiq_switch.py):print:'suservo0_ch1'
+2022-05-24 10:29:35,823 INFO:worker(14,artiq_switch.py):print:[1]
+2022-05-24 10:29:35,827 ERROR:worker(14,artiq_switch.py):root:Terminating with exception (DeviceError: Failed to get description of device ''suservo0_ch1'')
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 78, in get
+    desc = self.get_desc(name)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 69, in get_desc
+    return self.ddb.get(name, resolve_alias=True)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 62, in parent_action
+    raise_packed_exc(reply["exception"])
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/sipyco/packed_exceptions.py", line 42, in raise_packed_exc
+    raise exc
+KeyError: '"\'suservo0_ch1\'"'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 300, in main
+    exp_inst.run()
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 51, in run
+    if self.get_device(check_string) in check_array == True:
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/language/environment.py", line 320, in get_device
+    return self.__device_mgr.get(key)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 80, in get
+    raise DeviceError("Failed to get description of device '{}'"
+artiq.master.worker_db.DeviceError: Failed to get description of device ''suservo0_ch1''
+2022-05-24 10:29:35,827 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 14
+2022-05-24 10:29:56,656 INFO:worker(15,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:29:56,656 INFO:worker(15,artiq_switch.py):print:'suservo0_ch1'
+2022-05-24 10:29:56,656 INFO:worker(15,artiq_switch.py):print:[]
+2022-05-24 10:29:56,660 ERROR:worker(15,artiq_switch.py):root:Terminating with exception (DeviceError: Failed to get description of device ''suservo0_ch1'')
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 78, in get
+    desc = self.get_desc(name)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 69, in get_desc
+    return self.ddb.get(name, resolve_alias=True)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 62, in parent_action
+    raise_packed_exc(reply["exception"])
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/sipyco/packed_exceptions.py", line 42, in raise_packed_exc
+    raise exc
+KeyError: '"\'suservo0_ch1\'"'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 300, in main
+    exp_inst.run()
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 51, in run
+    if self.get_device(check_string) in check_array == True:
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/language/environment.py", line 320, in get_device
+    return self.__device_mgr.get(key)
+  File "/nix/store/c0nlw502f59aq35jpq3gsgid1lb8h76x-python3-3.9.6-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 80, in get
+    raise DeviceError("Failed to get description of device '{}'"
+artiq.master.worker_db.DeviceError: Failed to get description of device ''suservo0_ch1''
+2022-05-24 10:29:56,661 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 15
+2022-05-24 10:30:50,811 INFO:worker(16,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:30:50,811 INFO:worker(16,artiq_switch.py):print:Yes it is
+2022-05-24 10:30:58,810 INFO:worker(17,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:30:58,810 INFO:worker(17,artiq_switch.py):print:No it's not
+2022-05-24 10:31:02,193 INFO:worker(18,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-05-24 10:31:02,193 INFO:worker(18,artiq_switch.py):print:Yes it is
+2022-05-24 14:09:20,054 INFO:worker(19,artiq_switch.py):print:Yes it is
+2022-05-24 14:09:20,068 ERROR:worker(19,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:199-1:260: error: host object does not have an attribute 'cpld'
+`<function Core.run.<locals>.set_result at 0x7f45e2fb15e0>`(`<function Urukul_Programmable.kernel_run at 0x7f45e2fc5700>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7f45e307fa60>`, `<artiq.coredevice.suservo.Channel object at 0x7f45e306ff10>`, 's'))
+                                                                                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^       
+<repository>/repository/de/artiq_switch.py:54:1: note: expanded from here
+def kernel_run(self, dds, us):
+^                             
+<repository>/repository/de/artiq_switch.py:62:13-62:21: note: attribute accessed here
+            dds.cpld.init()                            #initialises CPLD on channel 1
+            ^^^^^^^^                                                                 
+2022-05-24 14:09:20,071 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 19
+2022-05-24 14:09:50,857 INFO:worker(20,artiq_switch.py):print:Yes it is
+2022-05-24 14:09:50,867 ERROR:worker(20,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:202-1:263: error: host object does not have an attribute 'init'; did you mean '__init__'?
+`<function Core.run.<locals>.set_result at 0x7f9798c798b0>`(`<function Urukul_Programmable.kernel_run_S1 at 0x7f9798c5e670>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7f9798d2ff10>`, `<artiq.coredevice.suservo.Channel object at 0x7f9798c55b50>`))
+                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+<repository>/repository/de/artiq_switch.py:76:1: note: expanded from here
+def kernel_run_S1(self, dds):
+^                            
+<repository>/repository/de/artiq_switch.py:80:9-80:17: note: attribute accessed here
+        dds.init()
+        ^^^^^^^^  
+2022-05-24 14:09:50,870 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 20
+2022-05-24 14:57:11,313 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-05-24 14:57:16,005 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-24 14:57:42,963 INFO:worker(21,artiq_switch.py):print:Yes it is
+2022-05-24 14:57:42,974 ERROR:worker(21,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:202-1:263: error: host object does not have an attribute 'init'; did you mean '__init__'?
+`<function Core.run.<locals>.set_result at 0x7f0cf56433a0>`(`<function Urukul_Programmable.kernel_run_S1 at 0x7f0cf56ab160>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7f0cf56ca310>`, `<artiq.coredevice.suservo.Channel object at 0x7f0cf56414c0>`))
+                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+<repository>/repository/de/artiq_switch.py:76:1: note: expanded from here
+def kernel_run_S1(self, dds):
+^                            
+<repository>/repository/de/artiq_switch.py:80:9-80:17: note: attribute accessed here
+        dds.init()
+        ^^^^^^^^  
+2022-05-24 14:57:42,977 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 21
+2022-05-24 15:55:51,784 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-05-24 15:55:56,510 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-05-24 15:56:27,819 INFO:worker(22,artiq_switch.py):print:No it's not
+2022-05-24 15:56:27,822 ERROR:worker(22,artiq_switch.py):root:Terminating with exception (AttributeError: 'Urukul_Programmable' object has no attribute 'kernel_run')
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/home/stronlab/icl_experiments/repository/de/artiq_switch.py", line 54, in run
+    self.kernel_run(dds, "u")
+AttributeError: 'Urukul_Programmable' object has no attribute 'kernel_run'
+2022-05-24 15:56:27,822 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 22
+2022-05-24 15:56:59,011 INFO:worker(23,artiq_switch.py):print:No it's not
+2022-05-24 15:56:59,022 ERROR:worker(23,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:61-1:124: error: this function of type (self:'a, dds:'b)->NoneType delay('c) accepts at most 2 arguments
+`<function Core.run.<locals>.set_result at 0x7ff6e578c3a0>`(`<function Urukul_Programmable.kernel_run_U at 0x7ff6e57f4040>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7ff6e58123d0>`, `<artiq.coredevice.ad9912.AD9912 object at 0x7ff6e57dcee0>`, 'u'))
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                                                                                                               
+<repository>/repository/de/artiq_switch.py:57:1: note: expanded from here
+def kernel_run_U(self, dds):
+^                           
+<synthesized>:1:262-1:265: note: extraneous argument(s)
+`<function Core.run.<locals>.set_result at 0x7ff6e578c3a0>`(`<function Urukul_Programmable.kernel_run_U at 0x7ff6e57f4040>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7ff6e58123d0>`, `<artiq.coredevice.ad9912.AD9912 object at 0x7ff6e57dcee0>`, 'u'))
+                                                                                                                                                                                                                                                                     ^^^  
+2022-05-24 15:56:59,026 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 23
+2022-05-24 15:57:32,857 INFO:worker(24,artiq_switch.py):print:No it's not
+2022-05-24 15:57:33,331 WARNING:worker(24,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-24 15:57:33,425 INFO:worker(24,artiq_switch.py):print:Done!
+2022-05-24 15:58:29,711 INFO:worker(25,artiq_switch.py):print:Yes it is
+2022-05-24 15:58:29,722 ERROR:worker(25,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:202-1:263: error: host object does not have an attribute 'init'; did you mean '__init__'?
+`<function Core.run.<locals>.set_result at 0x7fbb0b5cf3a0>`(`<function Urukul_Programmable.kernel_run_S1 at 0x7fbb0b637160>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7fbb0b656310>`, `<artiq.coredevice.suservo.Channel object at 0x7fbb0b5cddc0>`))
+                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+<repository>/repository/de/artiq_switch.py:76:1: note: expanded from here
+def kernel_run_S1(self, dds):
+^                            
+<repository>/repository/de/artiq_switch.py:80:9-80:17: note: attribute accessed here
+        dds.init()
+        ^^^^^^^^  
+2022-05-24 15:58:29,725 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 25
+2022-05-24 16:11:21,231 INFO:worker(26,artiq_switch.py):print:No it's not
+2022-05-24 16:11:21,701 WARNING:worker(26,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-24 16:11:21,795 INFO:worker(26,artiq_switch.py):print:Done!
+2022-05-24 16:12:50,014 INFO:worker(27,artiq_switch.py):print:Yes it is
+2022-05-24 16:12:50,025 ERROR:worker(27,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:202-1:263: error: host object does not have an attribute 'init'; did you mean '__init__'?
+`<function Core.run.<locals>.set_result at 0x7f368fabd3a0>`(`<function Urukul_Programmable.kernel_run_S1 at 0x7f368fb25160>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7f368fb44310>`, `<artiq.coredevice.suservo.Channel object at 0x7f368fabbdc0>`))
+                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+<repository>/repository/de/artiq_switch.py:76:1: note: expanded from here
+def kernel_run_S1(self, dds):
+^                            
+<repository>/repository/de/artiq_switch.py:80:9-80:17: note: attribute accessed here
+        dds.init()
+        ^^^^^^^^  
+2022-05-24 16:12:50,028 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 27
+2022-05-24 16:15:37,868 INFO:worker(28,artiq_switch.py):print:Yes it is
+2022-05-24 16:15:37,879 ERROR:worker(28,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:202-1:263: error: host object does not have an attribute 'init'; did you mean '__init__'?
+`<function Core.run.<locals>.set_result at 0x7fb0078723a0>`(`<function Urukul_Programmable.kernel_run_S1 at 0x7fb0078da160>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7fb0078f9310>`, `<artiq.coredevice.suservo.Channel object at 0x7fb007870dc0>`))
+                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+<repository>/repository/de/artiq_switch.py:76:1: note: expanded from here
+def kernel_run_S1(self, dds):
+^                            
+<repository>/repository/de/artiq_switch.py:80:9-80:17: note: attribute accessed here
+        dds.init()
+        ^^^^^^^^  
+2022-05-24 16:15:37,882 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 28
+2022-05-24 16:16:18,362 INFO:worker(29,artiq_switch.py):print:Yes it is
+2022-05-24 16:16:18,373 ERROR:worker(29,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:202-1:263: error: host object does not have an attribute 'init'; did you mean '__init__'?
+`<function Core.run.<locals>.set_result at 0x7f5fb87253a0>`(`<function Urukul_Programmable.kernel_run_S1 at 0x7f5fb878d160>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7f5fb87ab3d0>`, `<artiq.coredevice.suservo.Channel object at 0x7f5fb87236d0>`))
+                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+<repository>/repository/de/artiq_switch.py:76:1: note: expanded from here
+def kernel_run_S1(self, dds):
+^                            
+<repository>/repository/de/artiq_switch.py:80:9-80:17: note: attribute accessed here
+        dds.init()
+        ^^^^^^^^  
+2022-05-24 16:16:18,376 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 29
+2022-05-24 16:16:53,154 INFO:worker(30,artiq_switch.py):print:suservo0_ch0
+2022-05-24 16:16:53,163 INFO:worker(30,artiq_switch.py):print:Yes it is
+2022-05-24 16:16:53,174 ERROR:worker(30,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:202-1:263: error: host object does not have an attribute 'init'; did you mean '__init__'?
+`<function Core.run.<locals>.set_result at 0x7f6b970743a0>`(`<function Urukul_Programmable.kernel_run_S1 at 0x7f6b970db160>`(`<artiq_worker_artiq_switch.Urukul_Programmable object at 0x7f6b970fa3d0>`, `<artiq.coredevice.suservo.Channel object at 0x7f6b97072430>`))
+                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+<repository>/repository/de/artiq_switch.py:77:1: note: expanded from here
+def kernel_run_S1(self, dds):
+^                            
+<repository>/repository/de/artiq_switch.py:81:9-81:17: note: attribute accessed here
+        dds.init()
+        ^^^^^^^^  
+2022-05-24 16:16:53,177 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 30
+2022-05-24 16:45:57,097 INFO:worker(31,artiq_switch.py):print:suservo0_ch0
+2022-05-24 16:45:57,105 INFO:worker(31,artiq_switch.py):print:Yes it is
+2022-05-24 16:45:57,215 WARNING:worker(31,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-24 16:45:57,257 INFO:worker(31,artiq_switch.py):print:suservo0_ch0
+2022-05-24 16:45:57,468 ERROR:worker(31,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:107-1:170: error: mandatory argument 'profile' is not passed
+`<function Core.run.<locals>.set_result at 0x7f70c1b671f0>`(`<function Channel.set_dds at 0x7f70c1c77ee0>`(`<artiq.coredevice.suservo.Channel object at 0x7f70c1c24430>`))
+                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+<artiq>/coredevice/suservo.py:295:1: note: expanded from here
+def set_dds(self, profile, frequency, offset, phase=0.):
+^                                                       
+<synthesized>:1:61-1:107: note: the called function is of type (self:<instance artiq.coredevice.suservo.Channel>, profile:'a, frequency:'b, offset:'c, ?phase:float)->NoneType delay('d)
+`<function Core.run.<locals>.set_result at 0x7f70c1b671f0>`(`<function Channel.set_dds at 0x7f70c1c77ee0>`(`<artiq.coredevice.suservo.Channel object at 0x7f70c1c24430>`))
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                                
+2022-05-24 16:45:57,475 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 31
+2022-05-24 16:46:47,308 INFO:worker(32,artiq_switch.py):print:suservo0_ch0
+2022-05-24 16:46:47,316 INFO:worker(32,artiq_switch.py):print:Yes it is
+2022-05-24 16:46:47,426 WARNING:worker(32,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-24 16:46:47,468 INFO:worker(32,artiq_switch.py):print:suservo0_ch0
+2022-05-24 16:46:47,646 ERROR:worker(32,artiq_switch.py):root:While compiling <repository>/repository/de/artiq_switch.py
+<synthesized>:1:107-1:170: error: mandatory argument 'profile' is not passed
+`<function Core.run.<locals>.set_result at 0x7f32e7bfa1f0>`(`<function Channel.set_dds at 0x7f32e7d09ee0>`(`<artiq.coredevice.suservo.Channel object at 0x7f32e7cb6490>`))
+                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+<artiq>/coredevice/suservo.py:295:1: note: expanded from here
+def set_dds(self, profile, frequency, offset, phase=0.):
+^                                                       
+<synthesized>:1:61-1:107: note: the called function is of type (self:<instance artiq.coredevice.suservo.Channel>, profile:'a, frequency:'b, offset:'c, ?phase:float)->NoneType delay('d)
+`<function Core.run.<locals>.set_result at 0x7f32e7bfa1f0>`(`<function Channel.set_dds at 0x7f32e7d09ee0>`(`<artiq.coredevice.suservo.Channel object at 0x7f32e7cb6490>`))
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                                
+2022-05-24 16:46:47,649 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 32
+2022-05-24 16:46:57,077 INFO:worker(33,artiq_switch.py):print:suservo0_ch0
+2022-05-24 16:46:57,085 INFO:worker(33,artiq_switch.py):print:Yes it is
+2022-05-24 16:46:57,196 WARNING:worker(33,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-05-24 16:46:57,239 INFO:worker(33,artiq_switch.py):print:suservo0_ch0
