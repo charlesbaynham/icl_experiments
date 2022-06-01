@@ -56,7 +56,7 @@ class fastino_test(EnvExperiment):
             g=0.,  # no integrator gain limit
             delay=0.  # no IIR update delay after enabling
         )
-        dds.set_dds(
+        self.suservo0.set_dds(
             profile=0,
             offset=-.5,  # 5 V with above PGIA settings
             frequency = self.freq,
