@@ -11,7 +11,7 @@ class fastino_test(EnvExperiment):
     def build(self):
         self.setattr_device("core")
         self.setattr_device("suservo0"); self.setattr_device("suservo0_ch0")
-        self.setattr_device("fastino")
+        self.setattr_device("fastino0")
 
 def run(self):
     n_steps = 100
