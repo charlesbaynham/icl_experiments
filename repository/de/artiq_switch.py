@@ -55,11 +55,11 @@ class Urukul_Programmable(EnvExperiment):
     
         if len([i for i, val in enumerate(check_array) if val == self.DDS]) > 0:
             print("SU Servo")
-            #self.kernel_run_S(dds)
+            self.kernel_run_S(dds)
 
         elif len([i for i, val in enumerate(check_2) if val == self.DDS]) > 0:    
             print("Urukul")
-            #self.kernel_run_U(dds)
+            self.kernel_run_U(dds)
         
         else:
             print("Fastino")
