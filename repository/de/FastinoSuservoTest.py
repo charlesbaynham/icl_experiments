@@ -18,16 +18,19 @@ class fastino_test(EnvExperiment):
         self.setattr_argument("att", NumberValue(default = 0, unit = "dB", min = 0, max = 31.5, ndecimals = 1))                  #instructs dashboard to take input and set it as an attribute called amp
         self.setattr_argument("phase", NumberValue(default = 0, min = 0, max = 1, ndecimals = 2))
         self.setattr_argument("offset", NumberValue(default = 0, unit = "V", min = 0, max = 1., ndecimals = 1))
-        self.setattr_argument("runs", NumberValue(default = 1, min = 1, max = 5, ndecimals = 0))
+        #self.setattr_argument("runs", NumberValue(default = 1, min = 1, max = 5, ndecimals = 0))
 
     def run(self):
         n_steps = 100
         voltages = [(5/n_steps) * i 
             for i in range(n_steps + 1)]
-        voltages = [y for x in [voltages, voltages[::-1]] for y in x]
-        empty = np.zeros(len(voltages) * int(self.runs))
+        voltages = [y for x in [voltages, voltages[::-1]] for y in x]  ## Builds an array of Voltages based on the number of input steps
 
-        sampler_values = self.pass_Voltage(voltages, empty, int(self.runs))
+        runs = 3  #(self.freq * 200)**-1                                ## Converts frequency into a number of iterations of the triangle wave
+
+        empty = np.zeros(len(voltages) * runs)                          ## Allocates memory for an appropriately lengthed array
+
+        sampler_values = self.pass_Voltage(voltages, empty, runs)       ## Passes values into the function.
         print(sampler_values)
         plt.plot(sampler_values)
 
@@ -77,17 +80,16 @@ class fastino_test(EnvExperiment):
         self.core.break_realtime()
         self.fastino0.init()
 
-        i = 0
+        #i = 0
         for j in range(n):
             
             for value in voltage:
-                with parallel:
-                    with sequential:
-                        self.fastino0.set_dac(0, value)
+
+                self.fastino0.set_dac(0, value)
                 #self.fastino0.load()
-                        delay(1 * ns)
-                    empty[i] = self.suservo0.get_adc(0)
-                    i += 1
+                delay(50 * us)
+                #empty[i] = self.suservo0.get_adc(0)
+                #i += 1
                 #self.core.break_realtime()
                 
             
