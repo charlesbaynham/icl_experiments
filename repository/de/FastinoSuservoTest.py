@@ -82,9 +82,10 @@ class fastino_test(EnvExperiment):
             
             for value in voltage:
                 with parallel:
-                    self.fastino0.set_dac(0, value)
+                    with sequential:
+                        self.fastino0.set_dac(0, value)
                 #self.fastino0.load()
-                    delay(1 * ns)
+                        delay(1 * ns)
                     empty[i] = self.suservo0.get_adc(0)
                     i += 1
                 #self.core.break_realtime()
