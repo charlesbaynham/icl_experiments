@@ -62,8 +62,8 @@ class fastino_test(EnvExperiment):
         )
         self.suservo0_ch0.set_dds(profile = int(0),
             offset = -.5,  # 5 V with above PGIA settings
-            frequency = int(1),
-            phase = int(0))
+            frequency = self.freq,
+            phase = self.phase)
         # enable RF, IIR updates and profile 0
         self.suservo0_ch0.set(en_out=0, en_iir=1, profile=0)
         # enable global servo iterations
