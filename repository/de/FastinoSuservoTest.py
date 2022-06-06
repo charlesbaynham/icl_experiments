@@ -87,7 +87,9 @@ class fastino_test(EnvExperiment):
                 delay(7 * us)
 
                 empty[i] = self.suservo0.get_adc(0)
+                print(i)
                 i += 1
+                
             
         return empty
             
