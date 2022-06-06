@@ -25,7 +25,7 @@ class fastino_test(EnvExperiment):
         voltages = [(5/n_steps) * i 
             for i in range(n_steps + 1)]
         voltages = [y for x in [voltages, voltages[::-1]] for y in x]
-        empty = np.zeros(len(voltages) * self.runs)
+        empty = np.zeros(len(voltages) * int(self.runs))
 
         sampler_values = self.pass_Voltage(voltages, empty)
         print(sampler_values)
