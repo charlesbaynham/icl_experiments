@@ -4,7 +4,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.suservo import SUServo, Channel
 from artiq.coredevice.fastino import Fastino
 from artiq.coredevice.spi2 import SPIMaster
-import numpy as np
+import numpy as np; import matplotlib.pyplot as plt
 
 
 class fastino_test(EnvExperiment):
@@ -18,16 +18,18 @@ class fastino_test(EnvExperiment):
         self.setattr_argument("att", NumberValue(default = 0, unit = "dB", min = 0, max = 31.5, ndecimals = 1))                  #instructs dashboard to take input and set it as an attribute called amp
         self.setattr_argument("phase", NumberValue(default = 0, min = 0, max = 1, ndecimals = 2))
         self.setattr_argument("offset", NumberValue(default = 0, unit = "V", min = 0, max = 1., ndecimals = 1))
+        self.setattr_argument("runs", NumberValue(default = 1, min = 1, max = 5, ndecimals = 0))
 
     def run(self):
         n_steps = 100
         voltages = [(5/n_steps) * i 
             for i in range(n_steps + 1)]
         voltages = [y for x in [voltages, voltages[::-1]] for y in x]
-        empty = np.zeros(len(voltages))
+        empty = np.zeros(len(voltages) * self.runs)
 
         sampler_values = self.pass_Voltage(voltages, empty)
         print(sampler_values)
+        plt.plot(sampler_values)
 
 
     @kernel
