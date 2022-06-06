@@ -27,13 +27,13 @@ class fastino_test(EnvExperiment):
         voltages = [y for x in [voltages, voltages[::-1]] for y in x]
         empty = np.zeros(len(voltages) * int(self.runs))
 
-        sampler_values = self.pass_Voltage(voltages, empty)
+        sampler_values = self.pass_Voltage(voltages, empty, int(self.runs))
         print(sampler_values)
         plt.plot(sampler_values)
 
 
     @kernel
-    def pass_Voltage(self, voltage, empty):
+    def pass_Voltage(self, voltage, empty, n):
         cpld = self.suservo0.cplds[0]
         self.core.reset()
 
@@ -78,16 +78,16 @@ class fastino_test(EnvExperiment):
         self.fastino0.init()
 
         i = 0
-        
-        for value in voltage:
-            self.core.break_realtime()
-            self.fastino0.set_dac(0, value)
-        #self.fastino0.load()
+        for j in range(n):
+            for value in voltage:
+                self.core.break_realtime()
+                self.fastino0.set_dac(0, value)
+            #self.fastino0.load()
 
-            delay(7 * us)
+                delay(7 * us)
 
-            empty[i] = self.suservo0.get_adc(0)
-            i += 1
+                empty[i] = self.suservo0.get_adc(0)
+                i += 1
             
         return empty
             
