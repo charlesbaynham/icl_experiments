@@ -13,6 +13,11 @@ class fastino_test(EnvExperiment):
         self.setattr_device("suservo0"); self.setattr_device("suservo0_ch0")
         self.setattr_device("fastino0")
 
+        self.setattr_argument("freq", NumberValue(default = 0, unit = "MHz", step = 1, ndecimals = 0,))     #instructs dashboard to take input in MHz and set it as an attribute called freq
+        self.setattr_argument("att", NumberValue(default = 0, unit = "dB", min = 0, max = 31.5, ndecimals = 1))                  #instructs dashboard to take input and set it as an attribute called amp
+        self.setattr_argument("phase", NumberValue(default = 0, min = 0, max = 1, ndecimals = 2))
+        self.setattr_argument("offset", NumberValue(default = 0, unit = "V", min = 0, max = 1., ndecimals = 1))
+
     def run(self):
         n_steps = 100
         voltages = [(10/n_steps) * i 
@@ -48,19 +53,17 @@ class fastino_test(EnvExperiment):
             profile=0,
             y=0.  # clear integrator
         )
-        self.suservo0_ch0.set_iir(
-            profile=0,
+        self.suservo0_ch0.set_iir(profile=0,
             adc=0,  # take data from Sampler channel 0
             kp=-.1,  # -0.1 P gain
             ki=-300./s,  # low integrator gain
             g=0.,  # no integrator gain limit
             delay=0.  # no IIR update delay after enabling
         )
-        self.suservo0_ch0.set_dds(
-            profile = 0,
+        self.suservo0_ch0.set_dds(profile = int(0),
             offset = -.5,  # 5 V with above PGIA settings
-            frequency = 0,
-            phase = 0)
+            frequency = int(1),
+            phase = int(0))
         # enable RF, IIR updates and profile 0
         self.suservo0_ch0.set(en_out=0, en_iir=1, profile=0)
         # enable global servo iterations

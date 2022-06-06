@@ -1,0 +1,885 @@
+2022-06-01 09:17:19,122 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.x4uiVL/tmpniwt6n46
+2022-06-01 09:55:46,466 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.WHa7Xn/tmprhc4uakz
+2022-06-01 09:55:50,744 INFO:master:artiq.master.experiments:repository scan took 4 seconds
+2022-06-01 09:55:51,308 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 10:10:35,444 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 10:11:36,895 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 10:11:41,880 INFO:worker(43,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-06-01 10:11:41,881 INFO:worker(43,artiq_switch.py):print:No it's not
+2022-06-01 10:14:37,647 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 10:23:29,892 INFO:worker(44,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-06-01 10:23:29,893 INFO:worker(44,artiq_switch.py):print:No it's not
+2022-06-01 10:23:34,505 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 10:23:42,029 INFO:worker(45,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-06-01 10:23:42,030 INFO:worker(45,artiq_switch.py):print:No it's not
+2022-06-01 10:27:47,387 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.WHa7Xn/tmprhc4uakz
+2022-06-01 10:27:59,021 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.SIMjdT/tmpcyh0xwwv
+2022-06-01 10:27:59,312 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 10:28:04,008 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 10:28:14,116 INFO:worker(46,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-06-01 10:28:14,117 INFO:worker(46,artiq_switch.py):print:No it's not
+2022-06-01 10:28:41,601 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 10:28:46,287 INFO:worker(47,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-06-01 10:28:46,287 INFO:worker(47,artiq_switch.py):print:No it's not
+2022-06-01 10:29:46,001 INFO:worker(48,artiq_switch.py):print:['suservo0_ch0', 'suservo0_ch1', 'suservo0_ch2', 'suservo0_ch3', 'suservo0_ch4', 'suservo0_ch5', 'suservo0_ch6', 'suservo0_ch7', 'suservo1_ch0', 'suservo1_ch1', 'suservo1_ch2', 'suservo1_ch3', 'suservo1_ch4', 'suservo1_ch5', 'suservo1_ch6', 'suservo1_ch7']
+2022-06-01 10:29:46,002 INFO:worker(48,artiq_switch.py):print:No it's not
+2022-06-01 11:26:01,149 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.qL2ckG/tmpomrjetfn
+2022-06-01 11:26:01,437 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:26:06,144 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:06,256 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:06,257 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:06,258 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:06,258 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:06,258 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:06,258 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:06,258 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:26:06,268 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:06,268 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 5.0 seconds
+2022-06-01 11:26:11,276 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:11,392 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:11,392 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:11,392 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:11,392 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:11,392 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:11,392 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:11,392 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:11,393 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:11,393 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:11,393 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:11,393 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:11,393 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:11,393 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:11,393 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:26:11,404 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:11,404 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 5.5 seconds
+2022-06-01 11:26:16,912 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:17,027 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:17,027 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:17,027 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:17,027 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:17,028 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:26:17,040 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:17,040 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 6.1 seconds
+2022-06-01 11:26:23,102 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:23,217 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:23,217 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:23,217 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:23,217 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:23,217 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:23,218 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('::1', 1068, 0, 0): address already in use
+2022-06-01 11:26:23,229 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:23,230 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 6.7 seconds
+2022-06-01 11:26:29,898 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:30,011 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:30,011 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:30,011 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:30,011 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:30,012 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:26:30,023 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:30,023 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 7.3 seconds
+2022-06-01 11:26:37,349 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:37,462 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:37,463 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:37,464 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:37,464 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:37,464 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:37,464 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('::1', 1068, 0, 0): address already in use
+2022-06-01 11:26:37,474 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:37,474 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 8.1 seconds
+2022-06-01 11:26:45,544 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:45,660 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:45,660 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:45,660 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:45,660 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:45,660 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:45,660 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:45,661 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:26:45,671 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:45,672 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 8.9 seconds
+2022-06-01 11:26:54,540 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:26:54,656 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:26:54,656 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:26:54,656 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:26:54,657 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:26:54,658 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('::1', 1068, 0, 0): address already in use
+2022-06-01 11:26:54,670 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:26:54,670 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 9.7 seconds
+2022-06-01 11:27:04,429 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:27:04,543 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:27:04,543 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:27:04,543 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:27:04,544 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:27:04,545 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:27:04,555 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:27:04,555 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 10.7 seconds
+2022-06-01 11:27:15,290 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:27:15,404 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:27:15,404 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:27:15,404 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:27:15,404 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:27:15,404 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:27:15,404 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:27:15,405 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('::1', 1068, 0, 0): address already in use
+2022-06-01 11:27:15,416 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:27:15,416 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 11.8 seconds
+2022-06-01 11:27:16,069 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.qL2ckG/tmpomrjetfn
+2022-06-01 11:27:19,842 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.YuURnE/tmp74pxxx80
+2022-06-01 11:27:20,132 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:27:24,834 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:27:24,947 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:27:24,947 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:27:24,947 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:27:24,947 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:27:24,947 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:27:24,947 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:27:24,947 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:27:24,948 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:27:24,948 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:27:24,948 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:27:24,948 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:27:24,948 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:27:24,948 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:27:24,948 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('::1', 1068, 0, 0): address already in use
+2022-06-01 11:27:24,959 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:27:24,959 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 5.0 seconds
+2022-06-01 11:27:29,970 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:27:30,085 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:27:30,086 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:27:30,086 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:27:30,086 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:27:30,086 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:27:30,086 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:27:30,086 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('::1', 1068, 0, 0): address already in use
+2022-06-01 11:27:30,096 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:27:30,096 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 5.5 seconds
+2022-06-01 11:27:41,498 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.pcJhUo/tmph6p8m9bw
+2022-06-01 11:27:41,788 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:27:46,491 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:27:46,604 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:27:46,604 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:27:46,604 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:27:46,604 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:27:46,604 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:27:46,605 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:27:46,615 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:27:46,615 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 5.0 seconds
+2022-06-01 11:27:51,626 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:27:51,739 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:27:51,739 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:27:51,739 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:27:51,739 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:27:51,739 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:27:51,740 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:27:51,751 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:27:51,751 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 5.5 seconds
+2022-06-01 11:27:57,259 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:27:57,375 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:27:57,375 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:27:57,375 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:27:57,375 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:27:57,375 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:27:57,375 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:27:57,376 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:27:57,389 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:27:57,389 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 6.1 seconds
+2022-06-01 11:29:02,887 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.PAtVCY/tmpy6xfm4_r
+2022-06-01 11:29:03,178 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:29:07,873 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:29:07,989 INFO:controller(core_log):print:Traceback (most recent call last):
+2022-06-01 11:29:07,989 INFO:controller(core_log):print:  File "/nix/store/1mh9nxi6hfyvpkk9ip3v4mqdns4a8gnf-python3.9-artiq-7.8053.cf8e583.beta/bin/.aqctl_corelog-wrapped", line 9, in <module>
+2022-06-01 11:29:07,989 INFO:controller(core_log):print:    sys.exit(main())
+2022-06-01 11:29:07,989 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/frontend/aqctl_corelog.py", line 84, in main
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:    loop.run_until_complete(server.start(common_args.bind_address_from_args(args), args.port))
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:    return future.result()
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/asyncio_tools.py", line 59, in start
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:    self.server = await asyncio.start_server(self._handle_connection,
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/streams.py", line 94, in start_server
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:    return await loop.create_server(factory, host, port, **kwds)
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:  File "/nix/store/nvxp3xmlrxj9sw66dk7l0grz9m4889jn-python3-3.9.12/lib/python3.9/asyncio/base_events.py", line 1506, in create_server
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:    raise OSError(err.errno, 'error while attempting '
+2022-06-01 11:29:07,990 INFO:controller(core_log):print:OSError: [Errno 98] error while attempting to bind on address ('127.0.0.1', 1068): address already in use
+2022-06-01 11:29:08,002 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Controller core_log exited
+2022-06-01 11:29:08,002 WARNING:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Restarting in 5.0 seconds
+2022-06-01 11:29:10,011 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.PAtVCY/tmpy6xfm4_r
+2022-06-01 11:35:54,486 INFO:master:artiq.master.experiments:checked out revision 8153413a44b9d8db1cc9f82d99b34107ff89815d into /tmp/nix-shell.GSmGG1/tmpslmmhzq7
+2022-06-01 11:35:59,136 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 11:35:59,687 INFO:master:artiq.master.experiments:repository scan took 5 seconds
+2022-06-01 11:39:04,025 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:39:23,951 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:47:24,225 INFO:master:artiq.master.experiments:checked out revision 1152c62b58502a258229a58c0fedc81c58314714 into /tmp/nix-shell.GSmGG1/tmpio2x63ef
+2022-06-01 11:47:24,225 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmpslmmhzq7
+2022-06-01 11:47:24,524 WARNING:master:artiq.master.experiments:Duplicate experiment name: 'Urukul Selectable Frequency, Amplitude, Attenuation and Pulse Length'
+Renaming class 'Urukul_Programmable' in 'repository/de/2ndtry.py' to 'Urukul Selectable Frequency, Amplitude, Attenuation and Pulse Length1'
+2022-06-01 11:47:24,558 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:48:22,813 INFO:worker(49,artiq_switch.py):print:Fastino
+2022-06-01 11:48:25,821 INFO:worker(50,artiq_switch.py):print:Fastino
+2022-06-01 11:49:01,237 INFO:worker(51,artiq_switch.py):print:Fastino
+2022-06-01 11:49:58,101 INFO:master:artiq.master.experiments:checked out revision 778b2acd9dfd4fb8293afd0e0ef11281bc58f9ca into /tmp/nix-shell.GSmGG1/tmp1baqki2e
+2022-06-01 11:49:58,101 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmpio2x63ef
+2022-06-01 11:49:58,375 WARNING:master:artiq.master.experiments:Duplicate experiment name: 'Urukul Selectable Frequency, Amplitude, Attenuation and Pulse Length'
+Renaming class 'Urukul_Programmable' in 'repository/de/2ndtry.py' to 'Urukul Selectable Frequency, Amplitude, Attenuation and Pulse Length1'
+2022-06-01 11:49:58,411 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:50:33,081 INFO:master:artiq.master.experiments:checked out revision e582600ca1c3f9f01f7b0eb006ef900af67ade39 into /tmp/nix-shell.GSmGG1/tmppyfch0xx
+2022-06-01 11:50:33,081 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmp1baqki2e
+2022-06-01 11:50:33,384 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:50:37,427 INFO:worker(52,artiq_switch.py):print:Fastino
+2022-06-01 11:50:37,427 INFO:worker(52,artiq_switch.py):print:yo
+2022-06-01 11:50:38,277 WARNING:worker(52,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 11:50:38,380 ERROR:worker(52,artiq_switch.py):root:Terminating with exception (AttributeError: 'Fastino' object has no attribute 'int')
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmppyfch0xx/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmppyfch0xx/repository/de/artiq_switch.py", line 142, in kernel_run_F
+    dds.int()
+AttributeError: 'Fastino' object has no attribute 'int'
+2022-06-01 11:50:38,380 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 52
+2022-06-01 11:52:12,198 INFO:master:artiq.master.experiments:checked out revision 572560dc24ed1986de39bc80e9337c2b9543e110 into /tmp/nix-shell.GSmGG1/tmp2ufmqogv
+2022-06-01 11:52:12,199 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmppyfch0xx
+2022-06-01 11:52:12,502 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:52:16,958 INFO:worker(53,artiq_switch.py):print:Fastino
+2022-06-01 11:52:16,959 INFO:worker(53,artiq_switch.py):print:yo
+2022-06-01 11:52:17,067 WARNING:worker(53,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 11:52:17,469 ERROR:worker(53,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1101900889638216 mu, channel 40, slack -258278664 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1101900889638216 mu, channel 40, slack -258278664 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmp2ufmqogv/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmp2ufmqogv/repository/de/artiq_switch.py", line 142, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1101900889638216 mu, channel 40, slack -258278664 mu
+2022-06-01 11:52:17,470 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 53
+2022-06-01 11:54:21,560 INFO:master:artiq.master.experiments:checked out revision 9f0a4be7dfc70c3e7a6beba7092710c9f69281b2 into /tmp/nix-shell.GSmGG1/tmpv8j7fcw7
+2022-06-01 11:54:21,561 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmp2ufmqogv
+2022-06-01 11:54:21,866 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:54:26,904 INFO:worker(54,artiq_switch.py):print:Fastino
+2022-06-01 11:54:26,904 INFO:worker(54,artiq_switch.py):print:yo
+2022-06-01 11:54:27,007 WARNING:worker(54,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 11:54:27,110 ERROR:worker(54,artiq_switch.py):root:Terminating with exception (NotImplementedError: Attempted to interpret kernel without a time manager)
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpv8j7fcw7/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpv8j7fcw7/repository/de/artiq_switch.py", line 142, in kernel_run_F
+    delay(250 * us)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 271, in delay
+    _time_manager.take_time(duration)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 198, in _not_implemented
+    raise NotImplementedError(
+NotImplementedError: Attempted to interpret kernel without a time manager
+2022-06-01 11:54:27,110 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 54
+2022-06-01 11:56:03,081 INFO:master:artiq.master.experiments:checked out revision c448dd4796df11aa58c431fe65f7232ac1416abc into /tmp/nix-shell.GSmGG1/tmp8i8t15tp
+2022-06-01 11:56:03,081 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmpv8j7fcw7
+2022-06-01 11:56:03,383 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 11:56:07,035 INFO:worker(55,artiq_switch.py):print:Fastino
+2022-06-01 11:56:07,035 INFO:worker(55,artiq_switch.py):print:yo
+2022-06-01 11:56:07,140 WARNING:worker(55,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 11:56:07,353 ERROR:worker(55,artiq_switch.py):root:Terminating with exception (NotImplementedError: Attempted to interpret kernel without a time manager)
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmp8i8t15tp/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmp8i8t15tp/repository/de/artiq_switch.py", line 143, in kernel_run_F
+    delay(250 * us)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 271, in delay
+    _time_manager.take_time(duration)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 198, in _not_implemented
+    raise NotImplementedError(
+NotImplementedError: Attempted to interpret kernel without a time manager
+2022-06-01 11:56:07,354 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 55
+2022-06-01 12:04:20,535 INFO:master:artiq.master.experiments:checked out revision f2b691cf66acacafca2c6fa5f2bc34c9e5b4e2cf into /tmp/nix-shell.GSmGG1/tmpyo5a6v8i
+2022-06-01 12:04:20,535 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmp8i8t15tp
+2022-06-01 12:04:20,839 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 12:04:23,652 INFO:worker(56,artiq_switch.py):print:Fastino
+2022-06-01 12:04:23,652 INFO:worker(56,artiq_switch.py):print:yo
+2022-06-01 12:04:23,756 WARNING:worker(56,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 12:04:24,071 ERROR:worker(56,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1102627575346352 mu, channel 40, slack -194090352 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1102627575346352 mu, channel 40, slack -194090352 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 144, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1102627575346352 mu, channel 40, slack -194090352 mu
+2022-06-01 12:04:24,072 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 56
+2022-06-01 13:52:27,574 INFO:worker(57,artiq_switch.py):print:Fastino
+2022-06-01 13:52:27,575 INFO:worker(57,artiq_switch.py):print:yo
+2022-06-01 13:52:27,679 WARNING:worker(57,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:52:27,999 ERROR:worker(57,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1109111702745472 mu, channel 40, slack -198340968 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1109111702745472 mu, channel 40, slack -198340968 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 144, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1109111702745472 mu, channel 40, slack -198340968 mu
+2022-06-01 13:52:28,000 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 57
+2022-06-01 13:52:42,228 INFO:worker(58,artiq_switch.py):print:Fastino
+2022-06-01 13:52:42,228 INFO:worker(58,artiq_switch.py):print:yo
+2022-06-01 13:52:42,282 WARNING:worker(58,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:52:42,563 ERROR:worker(58,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1109126257062016 mu, channel 40, slack -207582560 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1109126257062016 mu, channel 40, slack -207582560 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 144, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1109126257062016 mu, channel 40, slack -207582560 mu
+2022-06-01 13:52:42,564 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 58
+2022-06-01 13:52:49,436 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 13:52:54,236 INFO:worker(59,artiq_switch.py):print:Fastino
+2022-06-01 13:52:54,237 INFO:worker(59,artiq_switch.py):print:yo
+2022-06-01 13:52:54,290 WARNING:worker(59,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:52:54,554 ERROR:worker(59,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1109138264110536 mu, channel 40, slack -190823416 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1109138264110536 mu, channel 40, slack -190823416 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 144, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1109138264110536 mu, channel 40, slack -190823416 mu
+2022-06-01 13:52:54,554 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 59
+2022-06-01 13:52:59,670 INFO:worker(60,artiq_switch.py):print:Fastino
+2022-06-01 13:52:59,670 INFO:worker(60,artiq_switch.py):print:yo
+2022-06-01 13:52:59,724 WARNING:worker(60,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:52:59,983 ERROR:worker(60,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1109143697297800 mu, channel 40, slack -188183976 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1109143697297800 mu, channel 40, slack -188183976 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 144, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1109143697297800 mu, channel 40, slack -188183976 mu
+2022-06-01 13:52:59,983 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 60
+2022-06-01 13:53:04,466 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 13:53:18,981 INFO:worker(61,artiq_switch.py):print:Fastino
+2022-06-01 13:53:18,981 INFO:worker(61,artiq_switch.py):print:yo
+2022-06-01 13:53:19,035 WARNING:worker(61,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:53:19,327 ERROR:worker(61,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1109163008369752 mu, channel 40, slack -221026168 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1109163008369752 mu, channel 40, slack -221026168 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 144, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1109163008369752 mu, channel 40, slack -221026168 mu
+2022-06-01 13:53:19,328 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 61
+2022-06-01 13:53:52,371 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 13:54:03,218 INFO:worker(62,artiq_switch.py):print:Fastino
+2022-06-01 13:54:03,218 INFO:worker(62,artiq_switch.py):print:yo
+2022-06-01 13:54:03,271 WARNING:worker(62,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:54:03,551 ERROR:worker(62,artiq_switch.py):root:Terminating with exception (RTIOUnderflow: RTIO underflow at 1109207244397456 mu, channel 40, slack -207413728 mu)
+Core Device Traceback:
+Traceback (most recent call first):
+  File "ksupport/rtio.rs", line 69, column 14, in (Rust function)
+    <unknown>
+                 ^
+  File "<artiq>/coredevice/fastino.py", line 94, in ... artiq.coredevice.fastino.Fastino.write<artiq.coredevice.fastino.Fastino>(...) (RA=+0x118)
+    rtio_output(self.channel | addr, data)
+  File "<artiq>/coredevice/fastino.py", line 208, in ... artiq.coredevice.fastino.Fastino.set_cfg<artiq.coredevice.fastino.Fastino>(...) (inlined)
+    self.write(0x22, (reset << 0) | (afe_power_down << 1) |
+  File "<artiq>/coredevice/fastino.py", line 72, in artiq.coredevice.fastino.Fastino.init(..., ...) (inlined)
+    self.set_cfg(reset=0, afe_power_down=0, dac_clr=0, clr_err=1)
+artiq.coredevice.exceptions.RTIOUnderflow(0): RTIO underflow at 1109207244397456 mu, channel 40, slack -207413728 mu
+
+End of Core Device Traceback
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmpyo5a6v8i/repository/de/artiq_switch.py", line 144, in kernel_run_F
+    dds.init()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 54, in run_on_core
+    return getattr(self, arg).run(run_on_core, ((self,) + k_args), k_kwargs)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 140, in run
+    self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/core.py", line 130, in _run_compiled
+    self.comm.serve(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 707, in serve
+    self._serve_exception(embedding_map, symbolizer, demangler)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/coredevice/comm_kernel.py", line 689, in _serve_exception
+    raise python_exn
+artiq.coredevice.exceptions.RTIOUnderflow: RTIO underflow at 1109207244397456 mu, channel 40, slack -207413728 mu
+2022-06-01 13:54:03,552 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 62
+2022-06-01 13:56:02,495 INFO:master:artiq.master.experiments:checked out revision ea6ff0f721aa0f6cf9e03db2f413f5a00b261217 into /tmp/nix-shell.GSmGG1/tmp2x2xxzwd
+2022-06-01 13:56:02,496 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmpyo5a6v8i
+2022-06-01 13:56:02,796 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 13:56:06,555 INFO:worker(63,artiq_switch.py):print:Fastino
+2022-06-01 13:56:06,555 INFO:worker(63,artiq_switch.py):print:yo
+2022-06-01 13:56:06,610 WARNING:worker(63,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:56:06,672 ERROR:worker(63,artiq_switch.py):root:Terminating with exception (NotImplementedError: Attempted to interpret kernel without a time manager)
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.GSmGG1/tmp2x2xxzwd/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.GSmGG1/tmp2x2xxzwd/repository/de/artiq_switch.py", line 143, in kernel_run_F
+    delay(250 * us)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 271, in delay
+    _time_manager.take_time(duration)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 198, in _not_implemented
+    raise NotImplementedError(
+NotImplementedError: Attempted to interpret kernel without a time manager
+2022-06-01 13:56:06,674 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 63
+2022-06-01 13:57:31,304 INFO:master:artiq.master.experiments:checked out revision ea08b1b8fa080be828630124b2d0218bd1e3c91d into /tmp/nix-shell.GSmGG1/tmpqi6p9rrz
+2022-06-01 13:57:31,304 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmp2x2xxzwd
+2022-06-01 13:57:31,609 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 13:57:35,485 INFO:worker(64,artiq_switch.py):print:Urukul
+2022-06-01 13:57:35,907 WARNING:worker(64,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 13:57:35,959 INFO:worker(64,artiq_switch.py):print:Done!
+2022-06-01 14:09:22,249 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.GSmGG1/tmpqi6p9rrz
+2022-06-01 14:22:34,871 INFO:master:artiq.master.experiments:checked out revision ea08b1b8fa080be828630124b2d0218bd1e3c91d into /tmp/nix-shell.E5hh02/tmpcskrgvbd
+2022-06-01 14:22:35,176 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 14:22:39,861 INFO:ctlmgr(PH-CB24091):artiq_comtools.ctlmgr:Starting controller core_log with command: aqctl_corelog -p 1068 --bind ::1 192.168.1.75
+2022-06-01 14:32:52,155 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 14:32:58,409 INFO:worker(65,artiq_switch.py):print:Fastino
+2022-06-01 14:32:58,409 INFO:worker(65,artiq_switch.py):print:yo
+2022-06-01 14:32:58,471 WARNING:worker(65,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 14:32:58,521 ERROR:worker(65,artiq_switch.py):root:Terminating with exception (NotImplementedError: Attempted to interpret kernel without a time manager)
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/tmp/nix-shell.E5hh02/tmpcskrgvbd/repository/de/artiq_switch.py", line 66, in run
+    self.kernel_run_F(dds)
+  File "/tmp/nix-shell.E5hh02/tmpcskrgvbd/repository/de/artiq_switch.py", line 143, in kernel_run_F
+    delay(250 * us)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 271, in delay
+    _time_manager.take_time(duration)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/core.py", line 198, in _not_implemented
+    raise NotImplementedError(
+NotImplementedError: Attempted to interpret kernel without a time manager
+2022-06-01 14:32:58,521 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 65
+2022-06-01 14:34:01,981 INFO:master:artiq.master.experiments:checked out revision 936ac24e3dd261573d1743ea78bfd5876625aa30 into /tmp/nix-shell.E5hh02/tmpagg8f8b7
+2022-06-01 14:34:01,982 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpcskrgvbd
+2022-06-01 14:34:02,288 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 14:34:06,891 INFO:worker(66,artiq_switch.py):print:Fastino
+2022-06-01 14:34:07,075 WARNING:worker(66,artiq_switch.py):artiq.coredevice.comm_kernel:Mismatch between gateware (7.0.71e8b49.beta) and software (7.8053.cf8e583.beta) versions
+2022-06-01 14:34:07,117 INFO:worker(66,artiq_switch.py):print:yo
+2022-06-01 16:34:41,186 INFO:master:artiq.master.experiments:checked out revision fabceaa656e70483cda274977693275a7b69b2bd into /tmp/nix-shell.E5hh02/tmpe57qpuud
+2022-06-01 16:34:41,187 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpagg8f8b7
+2022-06-01 16:34:41,677 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:37:35,148 INFO:master:artiq.master.experiments:checked out revision 7659ba8ef7659b6236719097c967cf0f77760df4 into /tmp/nix-shell.E5hh02/tmpm2057htm
+2022-06-01 17:37:35,150 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpe57qpuud
+2022-06-01 17:37:35,728 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:41:46,135 ERROR:worker(67,FastinoSuservoTest.py):root:Terminating with exception (DeviceError: Failed to get description of device 'fastino')
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 78, in get
+    desc = self.get_desc(name)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 69, in get_desc
+    return self.ddb.get(name, resolve_alias=True)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 64, in parent_action
+    raise_packed_exc(reply["exception"])
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/sipyco/packed_exceptions.py", line 42, in raise_packed_exc
+    raise exc
+KeyError: "'fastino'"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 326, in main
+    exp_inst = exp((device_mgr, dataset_mgr, argument_mgr, {}))
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/environment.py", line 243, in __init__
+    self.build(*args, **kwargs)
+  File "/tmp/nix-shell.E5hh02/tmpm2057htm/repository/de/FastinoSuservoTest.py", line 14, in build
+    self.setattr_device("fastino")
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/environment.py", line 327, in setattr_device
+    setattr(self, key, self.get_device(key))
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/environment.py", line 320, in get_device
+    return self.__device_mgr.get(key)
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_db.py", line 80, in get
+    raise DeviceError("Failed to get description of device '{}'"
+artiq.master.worker_db.DeviceError: Failed to get description of device 'fastino'
+2022-06-01 17:41:46,136 ERROR:master:artiq.master.scheduler:got worker exception in prepare stage, deleting RID 67
+2022-06-01 17:42:51,226 INFO:master:artiq.master.experiments:checked out revision c2879387fbe9d7f815266887c0a81ff4ec2cc5c1 into /tmp/nix-shell.E5hh02/tmp6c63aati
+2022-06-01 17:42:51,226 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpm2057htm
+2022-06-01 17:42:51,551 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:43:00,461 ERROR:worker(68,FastinoSuservoTest.py):root:Terminating with exception (NotImplementedError)
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/environment.py", line 450, in run
+    raise NotImplementedError
+NotImplementedError
+2022-06-01 17:43:00,462 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 68
+2022-06-01 17:43:09,239 ERROR:worker(69,FastinoSuservoTest.py):root:Terminating with exception (NotImplementedError)
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/environment.py", line 450, in run
+    raise NotImplementedError
+NotImplementedError
+2022-06-01 17:43:09,239 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 69
+2022-06-01 17:54:11,630 ERROR:worker(70,FastinoSuservoTest.py):root:Terminating with exception (NotImplementedError)
+Traceback (most recent call last):
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/master/worker_impl.py", line 334, in main
+    exp_inst.run()
+  File "/nix/store/gmidxpc0sqq81w8zaacqh2wswrpqq0yy-python3-3.9.12-env/lib/python3.9/site-packages/artiq/language/environment.py", line 450, in run
+    raise NotImplementedError
+NotImplementedError
+2022-06-01 17:54:11,630 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 70
+2022-06-01 17:54:17,615 INFO:master:artiq.master.experiments:checked out revision 0638d8792aa5eb8c71044b8f7b7672ac5551fcac into /tmp/nix-shell.E5hh02/tmp8uq0qmip
+2022-06-01 17:54:17,615 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmp6c63aati
+2022-06-01 17:54:17,936 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:54:21,980 ERROR:worker(71,FastinoSuservoTest.py):root:While compiling <repository>/repository/de/FastinoSuservoTest.py
+<repository>/repository/de/FastinoSuservoTest.py:59:9-59:12: fatal: name 'dds' is not bound to anything
+        dds.set_dds(
+        ^^^         
+2022-06-01 17:54:21,983 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 71
+2022-06-01 17:54:55,563 INFO:master:artiq.master.experiments:checked out revision 2b6f6579baeb8987cb77be223b4dc4795f7f48c9 into /tmp/nix-shell.E5hh02/tmpmn3dfa04
+2022-06-01 17:54:55,563 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmp8uq0qmip
+2022-06-01 17:54:55,876 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:54:58,559 ERROR:worker(72,FastinoSuservoTest.py):root:While compiling <repository>/repository/de/FastinoSuservoTest.py
+<repository>/repository/de/FastinoSuservoTest.py:65:9-65:12: fatal: name 'dds' is not bound to anything
+        dds.set(en_out=0, en_iir=1, profile=0)
+        ^^^                                   
+2022-06-01 17:54:58,562 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 72
+2022-06-01 17:55:32,572 INFO:master:artiq.master.experiments:checked out revision 2c1a29da9fbcef0eacb421bebd6d50e28ec901c1 into /tmp/nix-shell.E5hh02/tmpeueoeyra
+2022-06-01 17:55:32,572 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpmn3dfa04
+2022-06-01 17:55:32,895 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:55:37,293 ERROR:worker(73,FastinoSuservoTest.py):root:While compiling <repository>/repository/de/FastinoSuservoTest.py
+<synthesized>:1:1-1:62: error: host object does not have an attribute 'set_dds'
+`<artiq.coredevice.suservo.SUServo object at 0x7f47ac51dbe0>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<repository>/repository/de/FastinoSuservoTest.py:26:1: note: expanded from here
+def pass_Voltage(self, voltage):
+^                               
+<repository>/repository/de/FastinoSuservoTest.py:59:9-59:30: note: attribute accessed here
+        self.suservo0.set_dds(
+        ^^^^^^^^^^^^^^^^^^^^^ 
+2022-06-01 17:55:37,296 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 73
+2022-06-01 17:56:29,617 INFO:master:artiq.master.experiments:checked out revision 437b215bebcfb3c1ca2aee639ea1ef66076c1a33 into /tmp/nix-shell.E5hh02/tmpfg0zqujn
+2022-06-01 17:56:29,617 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpeueoeyra
+2022-06-01 17:56:29,927 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:56:33,921 ERROR:worker(74,FastinoSuservoTest.py):root:While compiling <repository>/repository/de/FastinoSuservoTest.py
+<synthesized>:1:118-1:191: error: host object does not have an attribute 'freq'
+`<function Core.run.<locals>.set_result at 0x7f4e59b88af0>`(`<function fastino_test.pass_Voltage at 0x7f4e59b889d0>`(`<artiq_worker_FastinoSuservoTest.fastino_test object at 0x7f4e59c43b50>`, [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6000000000000001, 0.7000000000000001, 0.8, 0.9, 1.0, 1.1, 1.2000000000000002, 1.3, 1.4000000000000001, 1.5, 1.6, 1.7000000000000002, 1.8, 1.9000000000000001, 2.0, 2.1, 2.2, 2.3000000000000003, 2.4000000000000004, 2.5, 2.6, 2.7, 2.8000000000000003, 2.9000000000000004, 3.0, 3.1, 3.2, 3.3000000000000003, 3.4000000000000004, 3.5, 3.6, 3.7, 3.8000000000000003, 3.9000000000000004, 4.0, 4.1000000000000005, 4.2, 4.3, 4.4, 4.5, 4.6000000000000005, 4.7, 4.800000000000001, 4.9, 5.0, 5.1000000000000005, 5.2, 5.300000000000001, 5.4, 5.5, 5.6000000000000005, 5.7, 5.800000000000001, 5.9, 6.0, 6.1000000000000005, 6.2, 6.300000000000001, 6.4, 6.5, 6.6000000000000005, 6.7, 6.800000000000001, 6.9, 7.0, 7.1000000000000005, 7.2, 7.300000000000001, 7.4, 7.5, 7.6000000000000005, 7.7, 7.800000000000001, 7.9, 8.0, 8.1, 8.200000000000001, 8.3, 8.4, 8.5, 8.6, 8.700000000000001, 8.8, 8.9, 9.0, 9.1, 9.200000000000001, 9.3, 9.4, 9.5, 9.600000000000001, 9.700000000000001, 9.8, 9.9, 10.0, 10.0, 9.9, 9.8, 9.700000000000001, 9.600000000000001, 9.5, 9.4, 9.3, 9.200000000000001, 9.1, 9.0, 8.9, 8.8, 8.700000000000001, 8.6, 8.5, 8.4, 8.3, 8.200000000000001, 8.1, 8.0, 7.9, 7.800000000000001, 7.7, 7.6000000000000005, 7.5, 7.4, 7.300000000000001, 7.2, 7.1000000000000005, 7.0, 6.9, 6.800000000000001, 6.7, 6.6000000000000005, 6.5, 6.4, 6.300000000000001, 6.2, 6.1000000000000005, 6.0, 5.9, 5.800000000000001, 5.7, 5.6000000000000005, 5.5, 5.4, 5.300000000000001, 5.2, 5.1000000000000005, 5.0, 4.9, 4.800000000000001, 4.7, 4.6000000000000005, 4.5, 4.4, 4.3, 4.2, 4.1000000000000005, 4.0, 3.9000000000000004, 3.8000000000000003, 3.7, 3.6, 3.5, 3.4000000000000004, 3.3000000000000003, 3.2, 3.1, 3.0, 2.9000000000000004, 2.8000000000000003, 2.7, 2.6, 2.5, 2.4000000000000004, 2.3000000000000003, 2.2, 2.1, 2.0, 1.9000000000000001, 1.8, 1.7000000000000002, 1.6, 1.5, 1.4000000000000001, 1.3, 1.2000000000000002, 1.1, 1.0, 0.9, 0.8, 0.7000000000000001, 0.6000000000000001, 0.5, 0.4, 0.30000000000000004, 0.2, 0.1, 0.0]))
+                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+<repository>/repository/de/FastinoSuservoTest.py:26:1: note: expanded from here
+def pass_Voltage(self, voltage):
+^                               
+<repository>/repository/de/FastinoSuservoTest.py:62:25-62:34: note: attribute accessed here
+            frequency = self.freq,
+                        ^^^^^^^^^ 
+2022-06-01 17:56:33,923 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 74
+2022-06-01 17:57:39,667 INFO:master:artiq.master.experiments:checked out revision 4775c12671b585fc689a434330cd11c52b072e42 into /tmp/nix-shell.E5hh02/tmphzrn7snm
+2022-06-01 17:57:39,667 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpfg0zqujn
+2022-06-01 17:57:39,982 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:57:42,738 ERROR:worker(75,FastinoSuservoTest.py):root:While compiling <repository>/repository/de/FastinoSuservoTest.py
+<synthesized>:1:1-1:62: error: host object does not have an attribute 'set_config'; did you mean 'set_iir'?
+`<artiq.coredevice.suservo.Channel object at 0x7fed16d28a30>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<repository>/repository/de/FastinoSuservoTest.py:26:1: note: expanded from here
+def pass_Voltage(self, voltage):
+^                               
+<repository>/repository/de/FastinoSuservoTest.py:67:9-67:37: note: attribute accessed here
+        self.suservo0_ch0.set_config(enable=1)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^          
+2022-06-01 17:57:42,741 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 75
+2022-06-01 17:58:13,757 INFO:master:artiq.master.experiments:checked out revision cffa531a4319a88183035171965f0ae217e1acb6 into /tmp/nix-shell.E5hh02/tmpli9j2k_s
+2022-06-01 17:58:13,757 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmphzrn7snm
+2022-06-01 17:58:14,071 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:58:18,589 ERROR:worker(76,FastinoSuservoTest.py):root:While compiling <repository>/repository/de/FastinoSuservoTest.py
+<synthesized>:1:1-1:62: error: host object does not have an attribute 'load'
+`<artiq.coredevice.fastino.Fastino object at 0x7f8018f954c0>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<repository>/repository/de/FastinoSuservoTest.py:26:1: note: expanded from here
+def pass_Voltage(self, voltage):
+^                               
+<repository>/repository/de/FastinoSuservoTest.py:73:9-73:27: note: attribute accessed here
+        self.fastino0.load()
+        ^^^^^^^^^^^^^^^^^^  
+2022-06-01 17:58:18,592 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 76
+2022-06-01 17:59:23,212 INFO:master:artiq.master.experiments:checked out revision 52306a387d35a2f5f45836e370a06faddf5b4752 into /tmp/nix-shell.E5hh02/tmp91z7oulh
+2022-06-01 17:59:23,212 INFO:master:artiq.master.experiments:disposing of checkout in folder /tmp/nix-shell.E5hh02/tmpli9j2k_s
+2022-06-01 17:59:23,527 INFO:master:artiq.master.experiments:repository scan took 0 seconds
+2022-06-01 17:59:27,440 ERROR:worker(77,FastinoSuservoTest.py):root:While compiling <repository>/repository/de/FastinoSuservoTest.py
+<artiq>/coredevice/suservo.py:295:9-295:16: error: cannot unify (self:<instance artiq.coredevice.suservo.Channel>, profile:numpy.int?, frequency:numpy.int?, offset:float, ?phase:numpy.int?)->'a delay('b) with (self:<instance artiq.coredevice.suservo.Channel>, profile:numpy.int?, frequency:numpy.int?, offset:float, ?phase:float)->NoneType delay('c): numpy.int? is incompatible with float
+    def set_dds(self, profile, frequency, offset, phase=0.):
+        ^^^^^^^                                             
+<artiq>/coredevice/suservo.py:295:9-295:16: note: expression of type (self:<instance artiq.coredevice.suservo.Channel>, profile:numpy.int?, frequency:numpy.int?, offset:float, ?phase:numpy.int?)->'a delay('b)
+    def set_dds(self, profile, frequency, offset, phase=0.):
+        ^^^^^^^                                             
+2022-06-01 17:59:27,443 ERROR:master:artiq.master.scheduler:got worker exception in run stage, deleting RID 77
