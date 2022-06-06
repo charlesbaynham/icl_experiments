@@ -83,7 +83,7 @@ class fastino_test(EnvExperiment):
                 #
                 self.fastino0.set_dac(0, value)
             #self.fastino0.load()
-                delay(5 * ns)
+                delay(1 * ns)
                 empty[i] = self.suservo0.get_adc(0)
                 i += 1
                 self.core.break_realtime()
