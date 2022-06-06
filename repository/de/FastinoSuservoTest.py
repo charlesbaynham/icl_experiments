@@ -4,6 +4,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.suservo import SUServo, Channel
 from artiq.coredevice.fastino import Fastino
 from artiq.coredevice.spi2 import SPIMaster
+import numpy as np
 
 
 class fastino_test(EnvExperiment):
@@ -20,15 +21,17 @@ class fastino_test(EnvExperiment):
 
     def run(self):
         n_steps = 100
-        voltages = [(10/n_steps) * i 
+        voltages = [(5/n_steps) * i 
             for i in range(n_steps + 1)]
         voltages = [y for x in [voltages, voltages[::-1]] for y in x]
+        empty = np.zeros(len(voltages))
 
-        self.pass_Voltage(voltages)
+        sampler_values = self.pass_Voltage(voltages, empty)
+        print(sampler_values)
 
 
     @kernel
-    def pass_Voltage(self, voltage):
+    def pass_Voltage(self, voltage, empty):
         cpld = self.suservo0.cplds[0]
         self.core.reset()
 
@@ -72,11 +75,16 @@ class fastino_test(EnvExperiment):
         self.core.break_realtime()
         self.fastino0.init()
 
-        self.fastino0.set_dac(0, 0)
+        i = 0
+        
+        for value in voltage:
+            self.fastino0.set_dac(0, 0)
         #self.fastino0.load()
 
-        delay(7 * us)
+            delay(7 * us)
 
-        print(self.suservo0.get_adc(0))
-
-        self.core.break_realtime()
+            empty[i] = self.suservo0.get_adc(0)
+            i += 1
+            delay(7 * us)
+            
+            #self.core.break_realtime()
