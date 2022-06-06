@@ -78,7 +78,7 @@ class fastino_test(EnvExperiment):
         i = 0
         
         for value in voltage:
-            self.fastino0.set_dac(0, 0)
+            self.fastino0.set_dac(0, value)
         #self.fastino0.load()
 
             delay(7 * us)
