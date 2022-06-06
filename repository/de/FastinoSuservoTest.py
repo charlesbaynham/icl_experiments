@@ -77,14 +77,14 @@ class fastino_test(EnvExperiment):
         self.core.break_realtime()
         self.fastino0.init()
 
-        i = 0
+        #i = 0
         for j in range(n):
             for value in voltage:
                 #self.core.break_realtime()
                 self.fastino0.set_dac(0, value)
             #self.fastino0.load()
-                empty[i] = self.suservo0.get_adc(0)
-                i += 1
+                empty[voltage.index(value) + (1 * j)] = self.suservo0.get_adc(0)
+                
                 delay(7 * ns)
             
         return empty
