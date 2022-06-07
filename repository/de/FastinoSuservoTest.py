@@ -80,6 +80,8 @@ class fastino_test(EnvExperiment):
         self.core.break_realtime()
         self.fastino0.init()
 
+        delay(1*s)
+
         #i = 0
         for j in range(n):
             
