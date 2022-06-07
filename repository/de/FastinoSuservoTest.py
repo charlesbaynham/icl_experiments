@@ -26,7 +26,7 @@ class fastino_test(EnvExperiment):
             for i in range(n_steps + 1)]
         voltages = [y for x in [voltages, voltages[::-1]] for y in x]  ## Builds an array of Voltages based on the number of input steps
 
-        runs = 3  #(self.freq * 200)**-1                                ## Converts frequency into a number of iterations of the triangle wave
+        runs = 6000  #(self.freq * 200)**-1                                ## Converts frequency into a number of iterations of the triangle wave
 
         empty = np.zeros(len(voltages) * runs)                          ## Allocates memory for an appropriately lengthed array
 
