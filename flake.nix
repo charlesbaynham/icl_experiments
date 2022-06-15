@@ -5,7 +5,7 @@
     artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
     # artiq.inputs.nixpkgs.follows = "nixpkgs";
 
-    mach-nix.url = "mach-nix/3.4.0";
+    mach-nix.url = "mach-nix";
     mach-nix.inputs.nixpkgs.follows = "nixpkgs";
     mach-nix.inputs.pypi-deps-db.follows = "pypi-deps-db";
 
@@ -34,6 +34,15 @@
     , pyaion
     }:
     let
+
+    # TODO: for artiq:
+    #   * Overlay into nixpkgs DONE
+    #   * Get the requirements into mach-nix. This might require it to be build
+    #     by mach-nix... :( Although I might be able to avoid this by passing a
+    #     "requirements" key in the overlay so that mach-nix thinks it's a
+    #     mach-nix package
+    #   * Ensure that the right version of llmvlite is getting included
+
       artiq_overlay = self: super:
         # Within the overlay we use a recursive set, though I think we can use `self` as well.
         rec {
@@ -52,6 +61,34 @@
 
       pkgs = import nixpkgs { system = "x86_64-linux"; overlays = [ artiq_overlay ]; };
 
+      extract_requirements = ((import "${mach-nix}/mach_nix/nix/lib.nix") { inherit pkgs; }).extract_requirements;
+      artiq_requirements = extract_requirements pkgs.python3 artiq "artiq" [];
+
+      # artiq_overlay = self: super:
+      #   {
+      #     python3 = super.python3.override {
+      #       packageOverrides = self: super: {
+      #         artiq = artiq.packages.x86_64-linux.artiq;
+      #         artiq.requirements = artiq_requirements;
+      #       };
+      #     };
+      #     python3Packages = self.python3.pkgs;
+
+      #     artiq = artiq.packages.x86_64-linux.artiq;
+      #   };
+      artiq_override = self: super: {
+        artiq = artiq.packages.x86_64-linux.artiq // {requirements = artiq_requirements;};
+      };
+
+      # pkgs_overlaid = import nixpkgs { system = "x86_64-linux"; overlays = [ artiq_overlay ]; };
+
+      # mach-nix-lib = (import mach-nix {
+      #       inherit pkgs;
+      #       dataOutdated = false;
+      #       pypiData = pypi-deps-db;
+      #       python = "python3";
+      # });
+
       # Define the requirements for the ARTIQ environment.
       # These are used to launch a devShell with these requirements present
       # (launched with `nix develop`) which can then be used to launch an ARTIQ instance.
@@ -61,8 +98,12 @@
         pyaion.defaultPackage.x86_64-linux # The shared AION package
       ];
       nonPyPIPackages = [
-        artiq.packages.x86_64-linux.artiq # The main ARTIQ package
+          # artiq.packages.x86_64-linux.artiq # The main ARTIQ package
       ];
+      machnixPackages = [
+          icl_aion.packages.x86_64-linux.icl_aion # Our supporting, system-specific package
+          pyaion.defaultPackage.x86_64-linux # The shared AION package
+        ];
       nonPythonDeps = [
         pkgs.concurrently # For simultaneous launching of multiple processes
         pkgs.nixpkgs-fmt # For formatting of Nix code
@@ -84,6 +125,8 @@
 
     in
     rec {
+      inherit pkgs;
+
       # Define a devshell with the ARTIQ dependancies available.
       # This is the environment used for running the ARTIQ session.
       # devShells.x86_64-linux.artiq = pkgs.mkShell {
@@ -117,12 +160,17 @@
       devShells.x86_64-linux.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = [
-          (
-            mach-nix.lib.x86_64-linux.mkPython {
-            requirements = builtins.readFile ./requirements.in;
-            packagesExtra = MachNixPackages;
+          (mach-nix.lib.x86_64-linux.mkPython {
+            requirements = builtins.readFile ./requirements.in + ''
+              artiq
+            '';
+            packagesExtra = machnixPackages;
+            overridesPre = [ artiq_override ];
+            providers = {
+              artiq = "nixpkgs";
+            };
           })
-        ] ++ nonPythonDeps;
+        ];# ++ nonPythonDeps;
       };
 
       # An environment with the tools required for flashing gateware loaded.
