@@ -18,7 +18,8 @@
       pkgs = import nixpkgs { system = "x86_64-linux"; };
 
       artiq_override = self: super: {
-        artiq = artiq.packages.x86_64-linux.artiq;
+        # artiq = artiq.packages.x86_64-linux.artiq;
+        artiq = artiq.packages.x86_64-linux.artiq  // { "version" = "1.2.3"; };
       };
 
     in
@@ -32,7 +33,7 @@
             requirements = ''
               numpy  # (for example - I actually need more)
               pip
-              # artiq
+              artiq
             '';
             packagesExtra = [
               pyaion.packages.x86_64-linux.pyaion
