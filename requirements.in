@@ -1,7 +1,7 @@
-ipython
-notebook
-black # Code formatting within the IDE - pre-commit is the authority on which code style is enforced however
+# ipython
+# notebook
+# black # Code formatting within the IDE - pre-commit is the authority on which code style is enforced however
 pip # For debugging
-pre-commit
+# pre-commit
 
-bleach < 5.0  # Workaround bug in bleach specs, see https://github.com/mozilla/bleach/pull/655
+# bleach < 5.0  # Workaround bug in bleach specs, see https://github.com/mozilla/bleach/pull/655
