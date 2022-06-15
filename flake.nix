@@ -3,6 +3,8 @@
     nixpkgs.follows = "artiq/nixpkgs";
     artiq.url = "github:m-labs/artiq";
     mach-nix.url = "mach-nix";
+
+    pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   };
 
   outputs =
@@ -10,6 +12,7 @@
       , artiq
       , nixpkgs
       , mach-nix
+      , pyaion
     }:
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
@@ -29,8 +32,11 @@
             requirements = ''
               numpy  # (for example - I actually need more)
               pip
-              artiq
+              # artiq
             '';
+            packagesExtra = [
+              pyaion.packages.x86_64-linux.pyaion
+            ];
             overridesPre = [ artiq_override ];
             providers = {
               artiq = "nixpkgs";
