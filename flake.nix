@@ -24,6 +24,10 @@
         artiq = patched_artiq;
       };
 
+      pythonparser_override = self: super: {
+        artiq = artiq.packages.x86_64-linux.pythonparser;
+      };
+
       mnix = mach-nix.lib.x86_64-linux.mkPython {
             requirements = ''
               numpy  # (for example - I actually need more)
@@ -33,7 +37,7 @@
             packagesExtra = [
               pyaion.packages.x86_64-linux.pyaion
             ];
-            overridesPre = [ artiq_override ];
+            overridesPre = [ artiq_override pythonparser_override ];
             providers = {
               artiq = "nixpkgs";
             };
@@ -43,20 +47,21 @@
     rec {
       inherit pkgs mnix patched_artiq;
 
-      mnixPkgs  = mach-nix.lib.x86_64-linux.mkNixpkgs  {
-            requirements = ''
-              numpy  # (for example - I actually need more)
-              pip
-              artiq > 1.0
-            '';
-            packagesExtra = [
-              pyaion.packages.x86_64-linux.pyaion
-            ];
-            overridesPre = [ artiq_override ];
-            providers = {
-              artiq = "nixpkgs";
-            };
-          };
+      # mnixPkgs  = mach-nix.lib.x86_64-linux.mkNixpkgs  {
+      #       requirements = ''
+      #         numpy  # (for example - I actually need more)
+      #         pip
+      #         artiq > 1.0
+      #         pythonparser
+      #       '';
+      #       packagesExtra = [
+      #         pyaion.packages.x86_64-linux.pyaion
+      #       ];
+      #       overridesPre = [ artiq_override pythonparser_override ];
+      #       providers = {
+      #         artiq = "nixpkgs";
+      #       };
+      #     };
 
       devShells.x86_64-linux.default = pkgs.mkShell {
         name = "icl-artiq-environment";
