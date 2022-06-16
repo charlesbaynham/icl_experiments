@@ -17,6 +17,8 @@
 
     pyaion = {
       url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+      inputs.mach-nix.follows = "mach-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -46,11 +48,10 @@
             requirements = ''
               numpy  # (for example - I actually need more)
               pip
-              # artiq > 1.0
-              pythonparser
+              #artiq > 1.0
             '';
             packagesExtra = [
-              pyaion.packages.x86_64-linux.pyaion
+              # pyaion.packages.x86_64-linux.pyaion
             ];
             overridesPre = [ artiq_override pythonparser_override ];
             providers = {
