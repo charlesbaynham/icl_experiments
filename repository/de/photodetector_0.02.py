@@ -22,7 +22,7 @@ class Photodetector(EnvExperiment):
         self.set_dataset(
             "Photodetector_Data",
             np.full(5000,
-            np.nan ),
+            np.nan),
             broadcast = True
         )
         self.core_run()
@@ -70,6 +70,6 @@ class Photodetector(EnvExperiment):
         self.suservo0.set_config(enable=1)
 
         for i in range(5000):
-            self.mutate_dataset("Photodetector_Data", self.suservo0_ch0.get_adc(0), i)
+            self.mutate_dataset("Photodetector_Data", i, self.suservo0_ch0.get_adc(0))
             delay(50 * us)
 
