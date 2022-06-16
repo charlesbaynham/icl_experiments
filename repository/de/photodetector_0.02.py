@@ -21,8 +21,8 @@ class Photodetector(EnvExperiment):
     def run(self):
         self.set_dataset(
             "Photodetector_Data",
-            np.full(5000,
-            np.nan),
+            list(np.full(5000,
+            np.nan)),
             broadcast = True
         )
         self.core_run()
