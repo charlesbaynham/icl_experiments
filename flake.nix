@@ -25,14 +25,15 @@
       };
 
       pythonparser_override = self: super: {
-        artiq = artiq.packages.x86_64-linux.pythonparser;
+        pythonparser = artiq.packages.x86_64-linux.pythonparser;
       };
 
       mnix = mach-nix.lib.x86_64-linux.mkPython {
             requirements = ''
               numpy  # (for example - I actually need more)
               pip
-              artiq > 1.0
+              # artiq > 1.0
+              pythonparser
             '';
             packagesExtra = [
               pyaion.packages.x86_64-linux.pyaion
