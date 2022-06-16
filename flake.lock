@@ -11,17 +11,17 @@
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1655222929,
-        "narHash": "sha256-pcU/d68WIkebcDEWi5SsimmmC8iLt5kxEbXiaPv6qs8=",
-        "owner": "m-labs",
-        "repo": "artiq",
-        "rev": "69c4026d2b0d9d23701b856cad3c5e290cca400b",
-        "type": "github"
+        "lastModified": 1655374658,
+        "narHash": "sha256-KZraRLMJVbepMeLi9Xo+c3jVmtQINJP8GMyfVAWHuYM=",
+        "ref": "master",
+        "rev": "cf766db4bc79dbbc1d48c228a068675528464d0a",
+        "revCount": 8055,
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
       "original": {
-        "owner": "m-labs",
-        "repo": "artiq",
-        "type": "github"
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       }
     },
     "artiq-comtools": {
@@ -120,16 +120,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1653920503,
-        "narHash": "sha256-BBeCZwZImtjP3oYy4WogkQYy5OxNyfNciVSc1AfZgLQ=",
+        "lastModified": 1655200165,
+        "narHash": "sha256-6/RbS7g1iIsp5Naywv53SGtCPVW4flUOGDy2nm45D3E=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "a634c8f6c1fbf9b9730e01764999666f3436f10a",
+        "rev": "9227bbe43157225414e990b87587ccb1665225d9",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-22.05",
+        "ref": "nixos-21.11",
         "repo": "nixpkgs",
         "type": "github"
       }

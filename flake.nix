@@ -2,7 +2,7 @@
   inputs = {
     nixpkgs.follows = "artiq/nixpkgs";
 
-    artiq.url = "github:m-labs/artiq";
+    artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
 
     mach-nix = {
       url = "mach-nix";
@@ -33,29 +33,26 @@
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
 
-      patched_artiq = artiq.packages.x86_64-linux.artiq  // { "version" = "1.2.3"; };
+      patched_artiq = artiq.packages.x86_64-linux.artiq  // { "version" = "7.0"; };
 
       artiq_override = self: super: {
-        # artiq = artiq.packages.x86_64-linux.artiq;
         artiq = patched_artiq;
-      };
-
-      pythonparser_override = self: super: {
-        pythonparser = artiq.packages.x86_64-linux.pythonparser;
+        llvmlite = artiq.packages.x86_64-linux.llvmlite-new;
       };
 
       mnix = mach-nix.lib.x86_64-linux.mkPython {
             requirements = ''
               numpy  # (for example - I actually need more)
               pip
-              #artiq > 1.0
+              artiq > 1.0
             '';
             packagesExtra = [
               # pyaion.packages.x86_64-linux.pyaion
             ];
-            overridesPre = [ artiq_override pythonparser_override ];
+            overridesPre = [ artiq_override ];
             providers = {
               artiq = "nixpkgs";
+              llvmlite = "nixpkgs";
             };
           };
 
