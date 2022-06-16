@@ -71,5 +71,5 @@ class Photodetector(EnvExperiment):
 
         for i in range(5000):
             self.mutate_dataset("Photodetector_Data", i, self.suservo0.get_adc(0))
-            delay(50 * us)
+            delay(50 * ms)
 
