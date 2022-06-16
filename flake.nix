@@ -1,10 +1,23 @@
 {
   inputs = {
     nixpkgs.follows = "artiq/nixpkgs";
-    artiq.url = "github:m-labs/artiq";
-    mach-nix.url = "mach-nix";
 
-    pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+    artiq.url = "github:m-labs/artiq";
+
+    mach-nix = {
+      url = "mach-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.pypi-deps-db.follows = "pypi-deps-db";
+    };
+
+    pypi-deps-db = {
+      url = "github:DavHau/pypi-deps-db";
+      flake = false;
+    };
+
+    pyaion = {
+      url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+    };
   };
 
   outputs =
@@ -13,6 +26,7 @@
       , nixpkgs
       , mach-nix
       , pyaion
+      , ...
     }:
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };

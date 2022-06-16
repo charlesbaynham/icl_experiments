@@ -97,8 +97,12 @@
     "mach-nix": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs_2",
-        "pypi-deps-db": "pypi-deps-db"
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pypi-deps-db": [
+          "pypi-deps-db"
+        ]
       },
       "locked": {
         "lastModified": 1654084003,
@@ -116,8 +120,8 @@
     "mach-nix_2": {
       "inputs": {
         "flake-utils": "flake-utils_3",
-        "nixpkgs": "nixpkgs_3",
-        "pypi-deps-db": "pypi-deps-db_2"
+        "nixpkgs": "nixpkgs_2",
+        "pypi-deps-db": "pypi-deps-db"
       },
       "locked": {
         "lastModified": 1643953409,
@@ -180,21 +184,6 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_3": {
-      "locked": {
-        "lastModified": 1643805626,
-        "narHash": "sha256-AXLDVMG+UaAGsGSpOtQHPIKB+IZ0KSd9WS77aanGzgc=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "554d2d8aa25b6e583575459c297ec23750adb6cb",
-        "type": "github"
-      },
-      "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-unstable",
-        "type": "indirect"
-      }
-    },
     "pyaion": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -238,11 +227,11 @@
     "pypi-deps-db_2": {
       "flake": false,
       "locked": {
-        "lastModified": 1643877077,
-        "narHash": "sha256-jv8pIvRFTP919GybOxXE5TfOkrjTbdo9QiCO1TD3ZaY=",
+        "lastModified": 1655368378,
+        "narHash": "sha256-ljTZYps1B+x5FL9HnqM9094LEgY1aCaWPj0zzwbbilY=",
         "owner": "DavHau",
         "repo": "pypi-deps-db",
-        "rev": "da53397f0b782b0b18deb72ef8e0fb5aa7c98aa3",
+        "rev": "540ab97dc30e834c78f5231539bef5c169168ebe",
         "type": "github"
       },
       "original": {
@@ -259,7 +248,8 @@
           "artiq",
           "nixpkgs"
         ],
-        "pyaion": "pyaion"
+        "pyaion": "pyaion",
+        "pypi-deps-db": "pypi-deps-db_2"
       }
     },
     "sipyco": {
