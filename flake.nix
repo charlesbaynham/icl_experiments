@@ -3,83 +3,56 @@
     nixpkgs.follows = "artiq/nixpkgs";
 
     artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git";
-
-    mach-nix = {
-      url = "mach-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.pypi-deps-db.follows = "pypi-deps-db";
-    };
-
-    pypi-deps-db = {
-      url = "github:DavHau/pypi-deps-db";
-      flake = false;
-    };
-
-    pyaion = {
-      url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
-      inputs.mach-nix.follows = "mach-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
     { self
       , artiq
       , nixpkgs
-      , mach-nix
-      , pyaion
       , ...
     }:
     let
-      pkgs = import nixpkgs { system = "x86_64-linux"; };
+      pkgs = artiq.inputs.nixpkgs.legacyPackages.x86_64-linux;
+      aqmain = artiq.packages.x86_64-linux;
 
-      patched_artiq = artiq.packages.x86_64-linux.artiq  // { "version" = "7.0"; };
+    in {
+      defaultPackage.x86_64-linux = pkgs.buildEnv {
+        name = "artiq-env";
+        paths = [
+          # ========================================
+          # EDIT BELOW
+          # ========================================
+          (pkgs.python3.withPackages(ps: [
+            # List desired Python packages here.
+            aqmain.artiq
+            #ps.paramiko  # needed if and only if flashing boards remotely (artiq_flash -H)
+            #aqextra.flake8-artiq
 
-      artiq_override = self: super: {
-        artiq = patched_artiq;
-        llvmlite = artiq.packages.x86_64-linux.llvmlite-new;
-      };
-
-      mnix = mach-nix.lib.x86_64-linux.mkPython {
-            requirements = ''
-              numpy  # (for example - I actually need more)
-              pip
-              artiq > 1.0
-            '';
-            packagesExtra = [
-              # pyaion.packages.x86_64-linux.pyaion
-            ];
-            overridesPre = [ artiq_override ];
-            providers = {
-              artiq = "nixpkgs";
-              llvmlite = "nixpkgs";
-            };
-          };
-
-    in
-    rec {
-      inherit pkgs mnix patched_artiq;
-
-      # mnixPkgs  = mach-nix.lib.x86_64-linux.mkNixpkgs  {
-      #       requirements = ''
-      #         numpy  # (for example - I actually need more)
-      #         pip
-      #         artiq > 1.0
-      #         pythonparser
-      #       '';
-      #       packagesExtra = [
-      #         pyaion.packages.x86_64-linux.pyaion
-      #       ];
-      #       overridesPre = [ artiq_override pythonparser_override ];
-      #       providers = {
-      #         artiq = "nixpkgs";
-      #       };
-      #     };
-
-      devShells.x86_64-linux.default = pkgs.mkShell {
-        name = "icl-artiq-environment";
-        buildInputs = [
-          (mnix)
+            # The NixOS package collection contains many other packages that you may find
+            # interesting. Here are some examples:
+            #ps.pandas
+            #ps.numpy
+            #ps.scipy
+            #ps.numba
+            #ps.matplotlib
+            # or if you need Qt (will recompile):
+            #(ps.matplotlib.override { enableQt = true; })
+            #ps.bokeh
+            #ps.cirq
+            #ps.qiskit
+          ]))
+          #aqextra.korad_ka3005p
+          #aqextra.novatech409b
+          # List desired non-Python packages here
+          #aqmain.openocd-bscanspi  # needed if and only if flashing boards
+          # Other potentially interesting packages from the NixOS package collection:
+          #pkgs.gtkwave
+          #pkgs.spyder
+          #pkgs.R
+          #pkgs.julia
+          # ========================================
+          # EDIT ABOVE
+          # ========================================
         ];
       };
     };

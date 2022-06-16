@@ -49,59 +49,6 @@
         "type": "github"
       }
     },
-    "flake-utils": {
-      "locked": {
-        "lastModified": 1642700792,
-        "narHash": "sha256-XqHrk7hFb+zBvRg6Ghl+AZDq03ov6OshJLiSWOoX5es=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "846b2ae0fc4cc943637d3d1def4454213e203cba",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "flake-utils_2": {
-      "locked": {
-        "lastModified": 1652776076,
-        "narHash": "sha256-gzTw/v1vj4dOVbpBSJX4J0DwUR6LIyXo7/SuuTJp1kM=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "04c1b180862888302ddfb2e3ad9eaa63afc60cf8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "mach-nix": {
-      "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "pypi-deps-db": [
-          "pypi-deps-db"
-        ]
-      },
-      "locked": {
-        "lastModified": 1654084003,
-        "narHash": "sha256-j/XrVVistvM+Ua+0tNFvO5z83isL+LBgmBi9XppxuKA=",
-        "owner": "DavHau",
-        "repo": "mach-nix",
-        "rev": "7e14360bde07dcae32e5e24f366c83272f52923f",
-        "type": "github"
-      },
-      "original": {
-        "id": "mach-nix",
-        "type": "indirect"
-      }
-    },
     "mozilla-overlay": {
       "flake": false,
       "locked": {
@@ -134,56 +81,13 @@
         "type": "github"
       }
     },
-    "pyaion": {
-      "inputs": {
-        "flake-utils": "flake-utils_2",
-        "mach-nix": [
-          "mach-nix"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1653570889,
-        "narHash": "sha256-1dg2VieThVaFga1qsT8OQ9oSJETuLp3W/YKF53J8MbY=",
-        "ref": "master",
-        "rev": "80d3a064eea34b33907e8694573c6db31e9e1bb7",
-        "revCount": 13,
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-      }
-    },
-    "pypi-deps-db": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1655368378,
-        "narHash": "sha256-ljTZYps1B+x5FL9HnqM9094LEgY1aCaWPj0zzwbbilY=",
-        "owner": "DavHau",
-        "repo": "pypi-deps-db",
-        "rev": "540ab97dc30e834c78f5231539bef5c169168ebe",
-        "type": "github"
-      },
-      "original": {
-        "owner": "DavHau",
-        "repo": "pypi-deps-db",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "artiq": "artiq",
-        "mach-nix": "mach-nix",
         "nixpkgs": [
           "artiq",
           "nixpkgs"
-        ],
-        "pyaion": "pyaion",
-        "pypi-deps-db": "pypi-deps-db"
+        ]
       }
     },
     "sipyco": {
