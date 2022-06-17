@@ -16,6 +16,8 @@
       aqmain = artiq.packages.x86_64-linux;
 
     in {
+      artiq = aqmain.artiq;
+
       defaultPackage.x86_64-linux = pkgs.buildEnv {
         name = "artiq-env";
         paths = [
