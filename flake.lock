@@ -4,18 +4,20 @@
       "inputs": {
         "artiq-comtools": "artiq-comtools",
         "mozilla-overlay": "mozilla-overlay",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "sipyco": "sipyco",
         "src-migen": "src-migen",
         "src-misoc": "src-misoc",
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1652950139,
-        "narHash": "sha256-t+u0KQPnq+vGF9PhrGKMnj2BtknODijQYqAH9nufaSY=",
-        "ref": "master",
-        "rev": "cf8e5838474ed1c6f9252ad0caa0f2773c7e0565",
-        "revCount": 8053,
+        "lastModified": 1655374658,
+        "narHash": "sha256-KZraRLMJVbepMeLi9Xo+c3jVmtQINJP8GMyfVAWHuYM=",
+        "ref": "refs/heads/master",
+        "rev": "cf766db4bc79dbbc1d48c228a068675528464d0a",
+        "revCount": 8055,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
@@ -49,6 +51,115 @@
         "type": "github"
       }
     },
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1653893745,
+        "narHash": "sha256-0jntwV3Z8//YwuOjzhV2sgJJPt+HY6KhU7VZUL0fKZQ=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "1ed9fb1935d260de5fe1c2f7ee0ebaae17ed2fa1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_2": {
+      "locked": {
+        "lastModified": 1652776076,
+        "narHash": "sha256-gzTw/v1vj4dOVbpBSJX4J0DwUR6LIyXo7/SuuTJp1kM=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "04c1b180862888302ddfb2e3ad9eaa63afc60cf8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_3": {
+      "locked": {
+        "lastModified": 1642700792,
+        "narHash": "sha256-XqHrk7hFb+zBvRg6Ghl+AZDq03ov6OshJLiSWOoX5es=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "846b2ae0fc4cc943637d3d1def4454213e203cba",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_4": {
+      "locked": {
+        "lastModified": 1652776076,
+        "narHash": "sha256-gzTw/v1vj4dOVbpBSJX4J0DwUR6LIyXo7/SuuTJp1kM=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "04c1b180862888302ddfb2e3ad9eaa63afc60cf8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "icl_aion": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "mach-nix": [
+          "mach-nix"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pyaion": [
+          "pyaion"
+        ],
+        "sipyco": "sipyco_2"
+      },
+      "locked": {
+        "lastModified": 1653573017,
+        "narHash": "sha256-MK1iVv15oMENmk3iN3Ao9MchF078wXmYnrtqeFMqvsU=",
+        "ref": "refs/heads/master",
+        "rev": "39246c3eec91794e6812e8639a8be9dcbb42cbfb",
+        "revCount": 26,
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git"
+      }
+    },
+    "mach-nix": {
+      "inputs": {
+        "flake-utils": "flake-utils_3",
+        "nixpkgs": "nixpkgs",
+        "pypi-deps-db": [
+          "pypi-deps-db"
+        ]
+      },
+      "locked": {
+        "lastModified": 1654084003,
+        "narHash": "sha256-j/XrVVistvM+Ua+0tNFvO5z83isL+LBgmBi9XppxuKA=",
+        "owner": "DavHau",
+        "repo": "mach-nix",
+        "rev": "7e14360bde07dcae32e5e24f366c83272f52923f",
+        "type": "github"
+      },
+      "original": {
+        "id": "mach-nix",
+        "type": "indirect"
+      }
+    },
     "mozilla-overlay": {
       "flake": false,
       "locked": {
@@ -67,27 +178,71 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1652559422,
-        "narHash": "sha256-jPVTNImBTUIFdtur+d4IVot6eXmsvtOcBm0TzxmhWPk=",
+        "lastModified": 1643805626,
+        "narHash": "sha256-AXLDVMG+UaAGsGSpOtQHPIKB+IZ0KSd9WS77aanGzgc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "8b3398bc7587ebb79f93dfeea1b8c574d3c6dba1",
+        "rev": "554d2d8aa25b6e583575459c297ec23750adb6cb",
         "type": "github"
       },
       "original": {
-        "owner": "NixOS",
-        "ref": "nixos-21.11",
-        "repo": "nixpkgs",
+        "id": "nixpkgs",
+        "ref": "nixos-unstable",
+        "type": "indirect"
+      }
+    },
+    "pyaion": {
+      "inputs": {
+        "flake-utils": "flake-utils_4",
+        "mach-nix": [
+          "mach-nix"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1655551497,
+        "narHash": "sha256-dBgTIsWxHKo5/h/Gy9mMb8InCzL5QvSEMRPhUOB8Wno=",
+        "ref": "refs/heads/master",
+        "rev": "7ce89d7ad3861dc40d91aa0ae729342734db5675",
+        "revCount": 14,
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
+      }
+    },
+    "pypi-deps-db": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1655625722,
+        "narHash": "sha256-XZ/FgptQ2YL+qPIZj5bTiVedgTmBwZxWavO6RiCuiM4=",
+        "owner": "DavHau",
+        "repo": "pypi-deps-db",
+        "rev": "0ec260b4d0acf8641f12d423cd8aea664edd48ee",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DavHau",
+        "repo": "pypi-deps-db",
         "type": "github"
       }
     },
     "root": {
       "inputs": {
         "artiq": "artiq",
+        "flake-utils": "flake-utils",
+        "icl_aion": "icl_aion",
+        "mach-nix": "mach-nix",
         "nixpkgs": [
-          "artiq",
+          "mach-nix",
           "nixpkgs"
-        ]
+        ],
+        "pyaion": "pyaion",
+        "pypi-deps-db": "pypi-deps-db"
       }
     },
     "sipyco": {
@@ -109,6 +264,27 @@
         "owner": "m-labs",
         "repo": "sipyco",
         "type": "github"
+      }
+    },
+    "sipyco_2": {
+      "inputs": {
+        "nixpkgs": [
+          "icl_aion",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1651624017,
+        "narHash": "sha256-engReD8l4xzQQJP8BJ7gILUyA1KH5d60lexDVfnoiRM=",
+        "ref": "master",
+        "rev": "efda015e9994faf6cafc19b239d8e69ca4d26226",
+        "revCount": 44,
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/sipyco.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/sipyco.git"
       }
     },
     "src-migen": {
