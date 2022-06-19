@@ -1,0 +1,15 @@
+image:
+  file: .gitpod.Dockerfile
+tasks:
+  - init: >
+      nix develop -c echo devShell build successful &&
+      bash -c "nix-store --export \$(nix-store --query -R --include-outputs \$(nix path-info --all)) > /workspace/nix_export"
+  - command: >
+      bash -c "nix-store --import < /workspace/nix_export" &&
+      nix develop -c echo devShell build import successful &&
+      direnv allow
+
+vscode:
+  extensions:
+    - bbenoist.Nix
+    - mkhl.direnv
