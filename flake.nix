@@ -242,7 +242,7 @@
           '';
         in
         { type = "app"; program = "${script}/bin/pytest"; };
-      
+
       apps.run_artiq =
         let
           script = pkgs.writeShellScriptBin "run_artiq" ''
