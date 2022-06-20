@@ -252,6 +252,21 @@
           '';
         in
         { type = "app"; program = "${script}/bin/run_artiq"; };
+
+      
+      packages.dockerImage = 
+      let
+          script = pkgs.writeShellScriptBin "run_artiq" ''
+            export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
+
+            exec ./scripts/launch_script.sh "$@"
+          '';
+      in pkgs.dockerTools.buildImage {
+        name = "hello-docker";
+        config = {
+          Cmd = [ "${script}/bin/run_artiq" ];
+        };
+      };
     }
     );
 
