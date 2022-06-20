@@ -126,11 +126,11 @@
         "sipyco": "sipyco_2"
       },
       "locked": {
-        "lastModified": 1653573017,
-        "narHash": "sha256-MK1iVv15oMENmk3iN3Ao9MchF078wXmYnrtqeFMqvsU=",
+        "lastModified": 1655737676,
+        "narHash": "sha256-NxZQ2hMNu23bOGMa3sncLjytPU++wQyFOjurwweabsQ=",
         "ref": "refs/heads/master",
-        "rev": "39246c3eec91794e6812e8639a8be9dcbb42cbfb",
-        "revCount": 26,
+        "rev": "b40185fff927694c64e8cf84b9a86e7f00c8bb4e",
+        "revCount": 29,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git"
       },
@@ -202,11 +202,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1655551497,
-        "narHash": "sha256-dBgTIsWxHKo5/h/Gy9mMb8InCzL5QvSEMRPhUOB8Wno=",
+        "lastModified": 1655739355,
+        "narHash": "sha256-oEIiNoDRkP8QB+xtcqWgGiHscPOF2e0gu/4xG2Ftj9Y=",
         "ref": "refs/heads/master",
-        "rev": "7ce89d7ad3861dc40d91aa0ae729342734db5675",
-        "revCount": 14,
+        "rev": "2417d956755917cd448c8c033e67d3bcda5f5546",
+        "revCount": 16,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
