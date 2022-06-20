@@ -5,6 +5,7 @@ from artiq.experiment import kernel
 
 
 class SetDDS(EnvExperiment):
+    '''Set a DDS channel to 10 MHz as a very basic test'''
     def build(self):
         self.setattr_device("core")
 
