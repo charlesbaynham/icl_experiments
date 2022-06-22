@@ -6,6 +6,5 @@ Welcome to icl_experiments's documentation!
    :caption: Contents:
 
    readme
-   usage
 
    autogen/modules

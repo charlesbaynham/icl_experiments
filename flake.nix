@@ -252,12 +252,20 @@
           '';
         in
         { type = "app"; program = "${script}/bin/run_artiq"; };
+
+      apps.dashboard =
+        let
+          script = pkgs.writeShellScriptBin "run_artiq" ''
+            export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
+
+            exec artiq_dashboard "$@"
+          '';
+        in
+        { type = "app"; program = "${script}/bin/run_artiq"; };
     }
     );
 
   nixConfig = {
-    extra-trusted-public-keys = "nixbld.m-labs.hk-1:5aSRVA5b320xbNvu30tqxVPXpld73bhtOeH6uAjRyHc=";
-    extra-substituters = "https://nixbld.m-labs.hk";
     bash-prompt = "\\[\\e[1m\\e[32m\\]ICL ARTIQ \\[\\e[0m\\e[94m\\](\\w)\\[\\e[0m\\] $ ";
   };
 
