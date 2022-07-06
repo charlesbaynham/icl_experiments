@@ -42,14 +42,6 @@
       inputs.mach-nix.follows = "mach-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # Our internal ICL_AION package
-    icl_aion = {
-      url = "git+https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git";
-      inputs.mach-nix.follows = "mach-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.pyaion.follows = "pyaion";
-    };
   };
 
   outputs =
@@ -59,7 +51,6 @@
     , nixpkgs
     , mach-nix
     , pyaion
-    , icl_aion
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
