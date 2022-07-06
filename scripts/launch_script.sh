@@ -72,9 +72,9 @@ python --version
 artiq_master --version
 
 if $DEV; then
-  export MASTER_COMMAND="artiq_master -v --repository . --experiment-subdir repository --log-file log/artiq.log --name 'ICL ARTIQ Dev Mode'"
+  export MASTER_COMMAND="artiq_master -v --repository . --experiment-subdir repository --log-file log/artiq.log --bind \* --name 'ICL ARTIQ Dev Mode'"
 else
-  export MASTER_COMMAND="artiq_master -v --git --repository . --experiment-subdir repository --log-file log/artiq.log --name 'ICL ARTIQ'"
+  export MASTER_COMMAND="artiq_master -v --git --repository . --experiment-subdir repository --log-file log/artiq.log --bind \* --name 'ICL ARTIQ'"
 fi
 
 if $GUI; then
@@ -86,7 +86,7 @@ if $GUI; then
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
-    "sleep 5 && artiq_ctlmgr -v"
+    "sleep 5 && artiq_ctlmgr --bind \* -v"
     "sleep 2 && artiq_dashboard -v"
 else
   echo "Launching ARTIQ master + controller"
@@ -97,5 +97,5 @@ else
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
-    "sleep 5 && artiq_ctlmgr -v"
+    "sleep 5 && artiq_ctlmgr --bind \* -v"
 fi
