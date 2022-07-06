@@ -42,14 +42,6 @@
       inputs.mach-nix.follows = "mach-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # Our internal ICL_AION package
-    icl_aion = {
-      url = "git+https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion.git";
-      inputs.mach-nix.follows = "mach-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.pyaion.follows = "pyaion";
-    };
   };
 
   outputs =
@@ -59,7 +51,6 @@
     , nixpkgs
     , mach-nix
     , pyaion
-    , icl_aion
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -78,6 +69,12 @@
       # Define the requirements for the ARTIQ environment. These are used to
       # launch a devShell with these requirements present.
 
+      # A build of the drivers package within this repository
+      drivers = mach-nix.lib."${system}".buildPythonPackage {
+          src = "${self}/drivers";
+          version = "0.0.0";
+        };
+
       # Packages built with buildPythonPackage but which are not in nixpkgs already
       nonPyPIPackages = [
         patched_artiq
@@ -90,7 +87,7 @@
       ];
       # Packages which were built with mach-nix
       machnixPackages = [
-        icl_aion.packages.${system}.icl_aion # Our supporting, system-specific package
+        drivers # Our supporting, system-specific package
         pyaion.defaultPackage.${system} # The shared AION package
       ];
       # Non-python dependencies
@@ -187,7 +184,8 @@
           buildPhase = ''
             cp -r $src/* .
             chmod -R +w .
-            sphinx-apidoc -o docs/autogen repository
+            sphinx-apidoc -o docs/autogen/repo repository
+            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             sphinx-build docs html_out -b html
             mv html_out $out
           '';
@@ -204,7 +202,8 @@
           buildPhase = ''
             cp -r $src/* .
             chmod -R +w .
-            sphinx-apidoc -o docs/autogen repository
+            sphinx-apidoc -o docs/autogen/repo repository
+            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             sphinx-build docs latex -b latex
             mv latex $out
           '';
@@ -216,7 +215,8 @@
           script = pkgs.writeShellScriptBin "launch_server" ''
             export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
-            sphinx-apidoc -o docs/autogen repository
+            sphinx-apidoc -o docs/autogen/repo repository
+            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             exec sphinx-autobuild docs html_out
           '';
         in
@@ -238,7 +238,9 @@
             export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
             coverage run --omit "tests/*,*/_version.py,/nix/store/*" -m pytest --junitxml=report.xml $1
+            test_exit_code=$?
             coverage report
+            exit "$test_exit_code"
           '';
         in
         { type = "app"; program = "${script}/bin/pytest"; };

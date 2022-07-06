@@ -149,10 +149,6 @@ To update just our internal packages, use:
 
 or
 
-`nix flake lock --update-input icl_aion`
-
-or
-
 `nix flake lock --update-input artiq`
 
 for those respective packages.
@@ -168,3 +164,142 @@ This will be automatically compiled to a website on Gitlab Pages for each commit
 to `master`, as well as compiled into a pdf (downloadable from the pipeline).
 
 To preview documentation locally, run `nix run .#docs` to launch a webserver at http://127.0.0.1:8000.
+
+Other features
+==============
+
+This repository is set up with features to help you maintain a healthy codebase
+with a minimum of effort. The following features exist, and were set up
+automatically by `pypackage template
+<https://gitlab.com/aion-physics/code/pypackage-template>`_ (using this template
+to set up later packages, e.g. for specific device drivers, will ensure
+compatibility between all AION code, as well as encouraging some python best
+practices).
+
+This is an opinionated template - feel free to remove / change any of these
+features as you prefer!
+
+Version control
+---------------
+
+* **Your package will use git for version control**
+  You probably already agree that this is a good idea if you're reading this message.
+
+
+Virtual environment
+-------------------
+
+* **A Nix devShell is defined for you**
+  This is a much stronger form of dependency management than pip environments, which you should prefer over virtual environments if possible. To launch a shell with your defined packages in scope, use `nix develop`. To add packages to your environment, edit `requirements.txt` and restart the shell.
+
+* **This repository supports Nix + direnv**
+  To automatically activate the Nix devShell when entering this directory, use direnv. See
+  the `Nix documentation <https://nixos.wiki/wiki/Flakes#Direnv_integration>`_ for more information.
+
+README
+------
+
+* **README should use reStructuredText format**
+  This is the format used by most Python tools, is expected by
+  `setuptools <https://setuptools.readthedocs.io>`_, and can be used by
+  `Sphinx <http://sphinx-doc.org/>`_.
+
+* **As few README files as possible**
+  Additional README files (AUTHORS, CHANGELOG, etc) should be left to the user to create when necessary.
+
+LICENSE
+-------
+
+* **No license**
+  This template is aimed at projects which remain internal. If you later publish this code publicly, you should make sure to choose a license so others can use it legally.
+
+`setup.py`
+----------
+
+* **Use setuptools**
+  It's the standard packaging library for Python.
+  `distribute` has merged back into `setuptools`, and `distutils` is less
+  capable.
+* **setup.py should not import anything from the package**
+  When installing from source, the user may not have the packages dependencies installed, and importing the package is likely to raise an `ImportError`.
+* **Dependencies are specified in `requirements.in`**
+  This file specifies loose dependencies which are imported by `setup.py` when
+  your package is installed. `requirements.in` should contain dependencies which
+  are essential for your package to function. Note
+  that you should prefer Nix-based environment management via `nix develop`, but
+  setuptools-based installation is supported for e.g. Windows systems.
+
+* **Dependencies are frozen by Nix** While `requirements.in` contains the list
+  of dependencies for your project, this file should aim to be as
+  nonrestrictive as possible in terms of the versions of the packages it
+  requires. However, for reproducibility, it's useful to "freeze" the versions of
+  packages used once you've got a project working so that you can always revisit
+  a "known good" version. This template uses `nix flake` s for this purpose.
+  These are also the versions used for CI testing. To update this list, just add
+  a requirement to the `.in` file: it'll be resolved
+  deterministically against the PyPI packages available when this repository was
+  initiated. To include packages newer than this, run `nix flake update` to
+  fetch the newest list, and commit the changes this makes to `flake.lock`.
+
+Documentation
+-------------
+
+* **Use `sphinx <https://www.sphinx-doc.org/en/master/>`_**
+  Sphinx is a powerful documentation tool which can produce documentation in
+  many formats from the same input files. It can even be configured to parse
+  your project's code and extract documentation from specially formatted
+  comments, allowing you to keep the documentation right next to the code and
+  reducing the risk of them becoming out-of-sync.
+* **Use GitLab pages**
+  Gitlab Pages lets you host a static html website associated with your project.
+  This template will build your Sphinx documentation and host it at that
+  location. By default, the Gitlab Page associated with your project has the
+  same visibility as the project itself. The documentation will only be updated
+  when you push to the master branch or tag a commit.
+* **Compile to pdf**
+  Sometime it's useful to have a pdf document with all the documentation for a
+  project in it. The CI system will also compile your sphinx documentation to
+  latex, and then compile that to pdf. The pdf will be available for download as
+  an "artifact" for every commit.
+* **Use `nix run .#docs` for testing**
+  It's useful to quickly compile the documentation locally when you're writing
+  it. To do this, run `nix run .#docs`.
+
+Testing
+-------
+
+* **Uses** `pytest <https://docs.pytest.org>`_ **as the default test runner**
+  This can be changed easily, though pytest is a easier, more powerful test
+  library and runner than the standard library's unittest. Tests will be run
+  automatically in Gitlab CI.
+* **Define testing dependencies and `requirements.in`**
+* **Use** `coverage <https://coverage.readthedocs.io/>`_ **for test coverage calculation**
+  Receive a report of how much coverage your tests have in your codebase when
+  you run them. This will be detected by Gitlab and shown alongside your commit.
+* **Only run slow tests on the master branch or manually**
+  Some unit tests are really slow: you don't want to run these for every single
+  commit. You can mark your tests as slow using the decorator
+  `@pytest.mark.slow`. These will only be run for:
+
+  * Commits with a tag
+  * When the user manually clicks the run button on the CI page
+  * When a CI run is scheduled to be run repeatedly
+
+* **`tests` directory should not be a package**
+  The `tests` directory should not be a Python package unless you want to define
+  some fixtures. But the best practices are to use `PyTest fixtures
+  <https://docs.pytest.org/en/latest/fixture.html>`_ which provide a better
+  solution. Therefore, the `tests` directory has no `__init__.py` file.
+
+Linting
+-------
+
+* **Use** `black <https://black.readthedocs.io/en/stable/?badge=stable>`_ **for code styling**
+  Code style is important: it makes it much easier for others to read your code.
+  It's also boring and repetitive. `black` is a very opinionated code styler
+  which makes all the decisions regarding code style, allowing you to focus on
+  what you're actually writing. It will be run by the CI as a check stage.
+* **Use** `pre-commit <https://pre-commit.com/>`_ **for automated styling** To
+  prevent you from having to manually style your code, use `pre-commit` to
+  configure your system to automatically run `black` every time you commit. To
+  use it, run `pre-commit install`. This will also run automatically in the CI.
