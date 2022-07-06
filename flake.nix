@@ -267,7 +267,7 @@
         let
           script = pkgs.writeShellScriptBin "run" ''
             export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
-            export TIMEOUT=10
+            export TIMEOUT=60
 
             echo "Backup loop starting - scanning for results every $TIMEOUT seconds"
 
