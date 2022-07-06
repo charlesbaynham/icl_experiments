@@ -280,7 +280,18 @@
                 --progress \
                 --modify-window=2 \
                 ./results/ \
-                /mnt/RDS/artiq_datasets
+                /mnt/RDS/artiq_data/results
+
+              rsync \
+                --recursive \
+                --links \
+                --times \
+                --quiet \
+                --progress \
+                --modify-window=2 \
+                ./log/ \
+                /mnt/RDS/artiq_data/logs
+
               sleep $TIMEOUT
             }; done
 
