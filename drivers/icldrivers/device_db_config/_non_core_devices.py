@@ -39,17 +39,17 @@ def get_non_core_devices(simulation_mode=False):
         #     "target": "influx_logger",
         #     "command": "artiq_influx_generic --port {port} --bind {bind}",
         # },
-        # "influx_scheduler_logger": {
-        #     "type": "controller",
-        #     "host": "::1",
-        #     "port": "3275",
-        #     "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
-        # },
+        "influx_scheduler_logger": {
+            "type": "controller",
+            "host": "::1",
+            "port": "3275",
+            "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         "SomeCurrentDriver": {
             "type": "local",
-            "module": "icl_aion.peripherals.TTI_QL335TP",
+            "module": "icldrivers.peripherals.TTI_QL335TP",
             "class": "TTI_QL335TP",
             "arguments": {
                 "id": "USB VID:PID=103E:03E8 SER=TT29WXY4A",
@@ -69,7 +69,7 @@ def get_non_core_devices(simulation_mode=False):
         # An example of connecting to a Toptica DLC Pro
         "ATopticaDLCPro": {
             "type": "local",
-            "module": "icl_aion.peripherals.TopticaDLCPro",
+            "module": "icldrivers.peripherals.TopticaDLCPro",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "1.2.3.4",

@@ -15,7 +15,6 @@ def read(filename):
 setuptools.setup(
     version="0.0.0",
     name="icldrivers",
-    url="https://gitlab.com/aion-physics/code/artiq/device-packages/icl_aion",
     license="None",
     author="Charles Baynham",
     author_email="c.baynham@imperial.ac.uk",

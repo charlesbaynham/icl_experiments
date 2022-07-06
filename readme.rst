@@ -149,10 +149,6 @@ To update just our internal packages, use:
 
 or
 
-`nix flake lock --update-input icl_aion`
-
-or
-
 `nix flake lock --update-input artiq`
 
 for those respective packages.
