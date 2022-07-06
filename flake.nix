@@ -193,7 +193,8 @@
           buildPhase = ''
             cp -r $src/* .
             chmod -R +w .
-            sphinx-apidoc -o docs/autogen repository
+            sphinx-apidoc -o docs/autogen/repo repository
+            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             sphinx-build docs html_out -b html
             mv html_out $out
           '';
@@ -210,7 +211,8 @@
           buildPhase = ''
             cp -r $src/* .
             chmod -R +w .
-            sphinx-apidoc -o docs/autogen repository
+            sphinx-apidoc -o docs/autogen/repo repository
+            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             sphinx-build docs latex -b latex
             mv latex $out
           '';
@@ -222,7 +224,8 @@
           script = pkgs.writeShellScriptBin "launch_server" ''
             export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
-            sphinx-apidoc -o docs/autogen repository
+            sphinx-apidoc -o docs/autogen/repo repository
+            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             exec sphinx-autobuild docs html_out
           '';
         in

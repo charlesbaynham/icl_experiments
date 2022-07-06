@@ -7,4 +7,5 @@ Welcome to icl_experiments's documentation!
 
    readme
 
-   autogen/modules
+   autogen/repo/modules
+   autogen/drivers/modules
