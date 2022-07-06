@@ -262,6 +262,31 @@
           '';
         in
         { type = "app"; program = "${script}/bin/run_artiq"; };
+
+      apps.backup =
+        let
+          script = pkgs.writeShellScriptBin "run" ''
+            export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
+            export TIMEOUT=10
+
+            echo "Backup loop starting - scanning for results every $TIMEOUT seconds"
+
+            while true; do {
+              rsync \
+                --recursive \
+                --links \
+                --times \
+                --quiet \
+                --progress \
+                --modify-window=2 \
+                ./results/ \
+                /mnt/RDS/artiq_datasets
+              sleep $TIMEOUT
+            }; done
+
+          '';
+        in
+        { type = "app"; program = "${script}/bin/run"; };
     }
     );
 

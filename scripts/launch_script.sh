@@ -78,24 +78,26 @@ else
 fi
 
 if $GUI; then
-  echo "Launching ARTIQ master + controller + dashboard"
+  echo "Launching ARTIQ master + controller + dashboard + backup"
   concurrently \
-    -c "green.bold,red.bold,blue.bold" \
+    -c "green.bold,red.bold,blue.bold,cyan.bold" \
     --kill-others \
-    -n master,ctlmgr,dashboard \
+    -n master,ctlmgr,dashboard,backup \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v"
-    "sleep 2 && artiq_dashboard -v"
+    "sleep 2 && artiq_dashboard -v" \
+    "nix run .#backup"
 else
-  echo "Launching ARTIQ master + controller"
+  echo "Launching ARTIQ master + controller + backup"
   concurrently \
-    -c "green.bold,red.bold" \
+    -c "green.bold,red.bold,cyan.bold" \
     --kill-others \
-    -n master,ctlmgr \
+    -n master,ctlmgr,backup \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
-    "sleep 5 && artiq_ctlmgr --bind \* -v"
+    "sleep 5 && artiq_ctlmgr --bind \* -v" \
+    "nix run .#backup"
 fi
