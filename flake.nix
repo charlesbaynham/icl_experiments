@@ -78,6 +78,13 @@
       # Define the requirements for the ARTIQ environment. These are used to
       # launch a devShell with these requirements present.
 
+      # A build of the drivers package within this repository
+      drivers = mach-nix.lib."${system}".buildPythonPackage {
+          requirements = builtins.readFile ./requirements.in;
+          src = "${self}/drivers";
+          version = fullVersion;
+        };
+
       # Packages built with buildPythonPackage but which are not in nixpkgs already
       nonPyPIPackages = [
         patched_artiq
@@ -90,7 +97,7 @@
       ];
       # Packages which were built with mach-nix
       machnixPackages = [
-        icl_aion.packages.${system}.icl_aion # Our supporting, system-specific package
+        drivers # Our supporting, system-specific package
         pyaion.defaultPackage.${system} # The shared AION package
       ];
       # Non-python dependencies
