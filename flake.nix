@@ -80,9 +80,8 @@
 
       # A build of the drivers package within this repository
       drivers = mach-nix.lib."${system}".buildPythonPackage {
-          requirements = builtins.readFile ./requirements.in;
           src = "${self}/drivers";
-          version = fullVersion;
+          version = "0.0.0";
         };
 
       # Packages built with buildPythonPackage but which are not in nixpkgs already

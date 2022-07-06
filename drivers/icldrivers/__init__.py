@@ -237,8 +237,3 @@ The `pypackage template <https://gitlab.com/aion-physics/code/pypackage-template
 
 __author__ = "Charles Baynham <c.baynham@imperial.ac.uk>"
 __all__ = []
-
-from ._version import get_version
-
-__version__ = get_version()
-del get_version
