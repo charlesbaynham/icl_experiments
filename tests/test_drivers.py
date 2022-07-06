@@ -2,12 +2,12 @@
 import importlib
 import pkgutil
 
-import icl_aion
+import icldrivers
 import pytest
 
 
 def test_pass():
-    from icl_aion.hello import hello
+    from icldrivers.hello import hello
 
     hello()
 
@@ -17,7 +17,7 @@ def test_pass():
     [
         name
         for _, name, _ in pkgutil.walk_packages(
-            icl_aion.__path__, icl_aion.__name__ + "."
+            icldrivers.__path__, icldrivers.__name__ + "."
         )
     ],
 )

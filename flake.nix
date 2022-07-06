@@ -244,7 +244,9 @@
             export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
             coverage run --omit "tests/*,*/_version.py,/nix/store/*" -m pytest --junitxml=report.xml $1
+            test_exit_code=$?
             coverage report
+            exit "$test_exit_code"
           '';
         in
         { type = "app"; program = "${script}/bin/pytest"; };
