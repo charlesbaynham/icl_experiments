@@ -71,9 +71,9 @@
 
       # A build of the drivers package within this repository
       drivers = mach-nix.lib."${system}".buildPythonPackage {
-          src = "${self}/drivers";
-          version = "0.0.0";
-        };
+        src = "${self}/drivers";
+        version = "0.0.0";
+      };
 
       # Packages built with buildPythonPackage but which are not in nixpkgs already
       nonPyPIPackages = [
