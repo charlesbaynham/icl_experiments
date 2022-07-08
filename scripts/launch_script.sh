@@ -82,26 +82,28 @@ if $GUI; then
   concurrently \
     -c "green.bold,red.bold,blue.bold,cyan.bold,white.bold,yellow.bold" \
     --kill-others \
-    -n master,ctlmgr,dashboard,backup,database,grafana \
+    -n master,ctlmgr,dashboard,backup,database,grafana,ndscan \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v"
-    "sleep 2 && artiq_dashboard -v" \
+    "sleep 2 && artiq_dashboard -v -p ndscan.dashboard_plugin" \
     "nix run .#backup" \
     "nix run .#database" \
-    "nix run .#grafana"
+    "nix run .#grafana" \
+    "ndscan_dataset_janitor"
 else
   echo "Launching ARTIQ master + controller + backup + database + grafana"
   concurrently \
     -c "green.bold,red.bold,cyan.bold,white.bold,yellow.bold" \
     --kill-others \
-    -n master,ctlmgr,backup,database,grafana \
+    -n master,ctlmgr,backup,database,grafana,ndscan \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v" \
     "nix run .#backup" \
     "nix run .#database" \
-    "nix run .#grafana"
+    "nix run .#grafana" \
+    "ndscan_dataset_janitor"
 fi

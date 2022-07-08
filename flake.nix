@@ -56,6 +56,7 @@
     , nixpkgs
     , mach-nix
     , pyaion
+    , ndscan
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -94,6 +95,7 @@
       machnixPackages = [
         drivers # Our supporting, system-specific package
         pyaion.defaultPackage.${system} # The shared AION package
+        ndscan # Actually just the source of a package, but mach-nix will process it
       ];
       # Non-python dependencies
       nonPythonDeps = [
