@@ -26,6 +26,7 @@ class MonitorIonPump(EnvExperiment):
         self.setattr_argument(
             "delay", NumberValue(default=30, scale=1, step=1, ndecimals=0)
         )
+        self.setattr_argument("description", StringValue(default="chamber1"))
 
         self.setattr_device("influx_logger")
         self.influx_logger: InfluxController
@@ -74,7 +75,7 @@ class MonitorIonPump(EnvExperiment):
                     )
 
                     self.influx_logger.write(
-                        tags={"type": "ion_pump"},
+                        tags={"type": "ion_pump", "sensor": self.description},
                         fields={"pressure": pressure, "current": current},
                     )
 
