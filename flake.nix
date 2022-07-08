@@ -295,9 +295,34 @@
                 ./log/ \
                 /mnt/RDS/artiq_data/logs
 
+              echo "Data synchronized to RDS"
+
               sleep $TIMEOUT
             }; done
 
+          '';
+        in
+        { type = "app"; program = "${script}/bin/run"; };
+
+      apps.database =
+        let
+          script = pkgs.writeShellScriptBin "run" ''
+            export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
+
+            exec ${self}/scripts/launch_database.sh
+          '';
+        in
+        { type = "app"; program = "${script}/bin/run"; };
+
+      apps.grafana =
+        let
+          provisioning_dir = "${self}/scripts/provisioning";
+          script = pkgs.writeShellScriptBin "run" ''
+            export PATH=${pkgs.lib.makeBinPath [pkgs.grafana]}:$PATH
+            export GRAFANA_HOMEPATH=${pkgs.grafana}/share/grafana
+            export GF_PATHS_PROVISIONING=${provisioning_dir}
+
+            exec ${self}/scripts/launch_grafana.sh
           '';
         in
         { type = "app"; program = "${script}/bin/run"; };
