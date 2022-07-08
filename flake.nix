@@ -42,6 +42,12 @@
       inputs.mach-nix.follows = "mach-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Controller for quickly writing generic information to InfluxDB
+    artiq_influx_generic = {
+      url = "git+https://gitlab.com/charlesbaynham/artiq_influx_generic";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -51,6 +57,7 @@
     , nixpkgs
     , mach-nix
     , pyaion
+    , artiq_influx_generic
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -84,6 +91,8 @@
         artiq.packages.${system}.qasync
         artiq.inputs.sipyco.packages.${system}.sipyco
         artiq.inputs.artiq-comtools.packages.${system}.artiq-comtools
+
+        artiq_influx_generic.packages.${system}.artiq_influx_generic
       ];
       # Packages which were built with mach-nix
       machnixPackages = [
