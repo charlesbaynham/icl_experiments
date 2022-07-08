@@ -32,13 +32,13 @@ def get_non_core_devices(simulation_mode=False):
         # influx DB server running on this server. If you do, it should probably
         # also be managed by Nix - speak to Charles and tell him what you did so
         # we can compare notes!
-        # "influx_logger": {
-        #     "type": "controller",
-        #     "host": "::1",
-        #     "port": "3276",
-        #     "target": "influx_logger",
-        #     "command": "artiq_influx_generic --port {port} --bind {bind}",
-        # },
+        "influx_logger": {
+            "type": "controller",
+            "host": "::1",
+            "port": "3276",
+            "target": "influx_logger",
+            "command": "artiq_influx_generic --port {port} --bind {bind}",
+        },
         "influx_scheduler_logger": {
             "type": "controller",
             "host": "::1",
