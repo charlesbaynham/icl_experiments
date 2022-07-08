@@ -28,6 +28,7 @@ numpy
 
 # Code linting
 pre-commit
+black
 
 # Unit testing
 pytest
