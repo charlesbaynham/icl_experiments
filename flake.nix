@@ -17,6 +17,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    ndscan = {
+      url = "github:OxfordIonTrapGroup/ndscan";
+      flake = false;
+    };
+
     # Mach-nix is an extension to nix which allows you to build python
     # environments reproducably while still fetching packages from nixpkgs and
     # having fully-fledged dependency resolution.

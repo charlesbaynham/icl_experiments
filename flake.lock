@@ -133,6 +133,22 @@
         "type": "github"
       }
     },
+    "ndscan": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1657027583,
+        "narHash": "sha256-W1yahVaF7SxwBVp3s66uX6bQHteLRG/NdckgqikGqQk=",
+        "owner": "OxfordIonTrapGroup",
+        "repo": "ndscan",
+        "rev": "4fcbe3adf9e7dc2c78cfc071c777a3a68b4fa029",
+        "type": "github"
+      },
+      "original": {
+        "owner": "OxfordIonTrapGroup",
+        "repo": "ndscan",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1643805626,
@@ -193,6 +209,7 @@
         "artiq": "artiq",
         "flake-utils": "flake-utils",
         "mach-nix": "mach-nix",
+        "ndscan": "ndscan",
         "nixpkgs": [
           "mach-nix",
           "nixpkgs"
