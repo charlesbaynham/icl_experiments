@@ -23,6 +23,7 @@ class MonitorLabTemperature(EnvExperiment):
         self.setattr_argument(
             "monitor_url", StringValue(default="http://192.168.1.3/temp1.txt")
         )
+        self.setattr_argument("description", StringValue(default="above_chamber"))
         self.setattr_argument(
             "delay", NumberValue(default=30, scale=1, step=1, ndecimals=0)
         )
@@ -33,6 +34,8 @@ class MonitorLabTemperature(EnvExperiment):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
+        self.set_default_scheduling(pipeline_name=f"temperature_{self.description}")
+
     def run(self):
         while True:
             try:
@@ -42,7 +45,7 @@ class MonitorLabTemperature(EnvExperiment):
                 logger.debug('Temperature = %f ("%s")', temperature, temp_str)
 
                 self.influx_logger.write(
-                    tags={"type": "temperature", "sensor": "above_chamber"},
+                    tags={"type": "temperature", "sensor": self.description},
                     fields={"value": temperature},
                 )
 
