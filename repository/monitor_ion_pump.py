@@ -39,28 +39,45 @@ class MonitorIonPump(EnvExperiment):
 
             try:
                 with Telnet(self.ip, 23) as tn:
+                    logger.debug("Connected to ion pump at %s", self.ip)
+
                     tn.read_until(b">")
 
-                tn.write(COMMAND_PRESSURE)
-                response = tn.read_until(b">", 1)
+                    logger.debug("Querying ion pump pressure at %s", self.ip)
 
-                pressure = float(
-                    re.match(r"OK 00 ([\d\.E-]{7}) MBA.*", response.decode())[1]
-                )
+                    tn.write(COMMAND_PRESSURE)
+                    response = tn.read_until(b">", 1)
 
-                tn.write(COMMAND_CURRENT)
-                response = tn.read_until(b">", 1)
+                    logger.debug("Response = %s", response)
 
-                current = float(
-                    re.match(r"OK 00 ([\d\.E-]{7}) AMPS.*", response.decode())[1]
-                )
+                    pressure = float(
+                        re.match(r"OK 00 ([\d\.E-]{7}) MBA.*", response.decode())[1]
+                    )
 
-                self.influx_logger.write(
-                    tags={"type": "ion_pump"},
-                    fields={"pressure": pressure, "current": current},
-                )
+                    logger.debug("Querying ion pump current at %s", self.ip)
 
-                time.sleep(self.delay)
+                    tn.write(COMMAND_CURRENT)
+                    response = tn.read_until(b">", 1)
+
+                    logger.debug("Response = %s", response)
+
+                    current = float(
+                        re.match(r"OK 00 ([\d\.E-]{7}) AMPS.*", response.decode())[1]
+                    )
+
+                    self.debug(
+                        "Writing pressure = %s, current = %s to database",
+                        pressure,
+                        current,
+                    )
+
+                    self.influx_logger.write(
+                        tags={"type": "ion_pump"},
+                        fields={"pressure": pressure, "current": current},
+                    )
+
+                    self.scheduler.pause()
+                    time.sleep(self.delay)
 
             except Exception as e:
                 if isinstance(e, (KeyboardInterrupt, TerminationRequested)):
