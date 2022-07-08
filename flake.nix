@@ -326,7 +326,7 @@
 
         grafana =
           let
-            provisioning_dir = "${self}/scripts/provisioning";
+            provisioning_dir = "${self}/scripts/grafana_provisioning";
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.grafana]}:$PATH
               export GRAFANA_HOMEPATH=${pkgs.grafana}/share/grafana
