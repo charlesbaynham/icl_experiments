@@ -78,26 +78,30 @@ else
 fi
 
 if $GUI; then
-  echo "Launching ARTIQ master + controller + dashboard + backup"
+  echo "Launching ARTIQ master + controller + dashboard + backup + database + grafana"
   concurrently \
-    -c "green.bold,red.bold,blue.bold,cyan.bold" \
+    -c "green.bold,red.bold,blue.bold,cyan.bold,white.bold,yellow.bold" \
     --kill-others \
-    -n master,ctlmgr,dashboard,backup \
+    -n master,ctlmgr,dashboard,backup,database,grafana \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v"
     "sleep 2 && artiq_dashboard -v" \
-    "nix run .#backup"
+    "nix run .#backup" \
+    "nix run .#database" \
+    "nix run .#grafana"
 else
-  echo "Launching ARTIQ master + controller + backup"
+  echo "Launching ARTIQ master + controller + backup + database + grafana"
   concurrently \
-    -c "green.bold,red.bold,cyan.bold" \
+    -c "green.bold,red.bold,cyan.bold,white.bold,yellow.bold" \
     --kill-others \
-    -n master,ctlmgr,backup \
+    -n master,ctlmgr,backup,database,grafana \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v" \
-    "nix run .#backup"
+    "nix run .#backup" \
+    "nix run .#database" \
+    "nix run .#grafana"
 fi

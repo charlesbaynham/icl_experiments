@@ -5,4 +5,4 @@
 # You can also do "nix run .#run_artiq --help" to see more options than just the
 # default.
 
-nix run .#run_artiq
+exec nix run .#run_artiq
