@@ -18,7 +18,7 @@ COMMAND_CURRENT = b"spc 0a 1\r\n"
 
 class MonitorIonPump(EnvExperiment):
     """
-    Monitor the current / pressure of an ion pump
+    Monitor the current and pressure of an ion pump
     """
 
     def build(self):
