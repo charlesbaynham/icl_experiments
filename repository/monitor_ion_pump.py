@@ -34,7 +34,7 @@ class MonitorIonPump(EnvExperiment):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
-        self.set_default_scheduling(pipeline_name=f"ion_pump_{self.ip}")
+        self.set_default_scheduling(pipeline_name=f"ion_pump")
 
     def run(self):
 
