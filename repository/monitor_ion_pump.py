@@ -43,7 +43,7 @@ class MonitorIonPump(EnvExperiment):
                 with Telnet(self.ip, 23) as tn:
                     logger.debug("Connected to ion pump at %s", self.ip)
 
-                    tn.read_until(b">")
+                    tn.read_until(b">", timeout=1)
 
                     logger.debug("Querying ion pump pressure at %s", self.ip)
 
@@ -67,7 +67,7 @@ class MonitorIonPump(EnvExperiment):
                         re.match(r"OK 00 ([\d\.E-]{7}) AMPS.*", response.decode())[1]
                     )
 
-                    self.debug(
+                    logger.debug(
                         "Writing pressure = %s, current = %s to database",
                         pressure,
                         current,
@@ -83,6 +83,9 @@ class MonitorIonPump(EnvExperiment):
 
             except Exception as e:
                 if isinstance(e, (KeyboardInterrupt, TerminationRequested)):
-                    pass
+                    logger.debug("Exit request received - quitting")
+                    return
                 else:
                     logger.error("Error occured:", exc_info=e)
+                    if self.scheduler.check_pause():
+                        return

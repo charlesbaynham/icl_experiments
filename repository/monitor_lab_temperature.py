@@ -34,7 +34,7 @@ class MonitorLabTemperature(EnvExperiment):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
-        self.set_default_scheduling(pipeline_name=f"temperature_{self.description}")
+        self.set_default_scheduling(pipeline_name=f"temperature")
 
     def run(self):
         while True:
@@ -57,3 +57,5 @@ class MonitorLabTemperature(EnvExperiment):
                     break
                 else:
                     logger.error("Error occured:", exc_info=e)
+                    if self.scheduler.check_pause():
+                        return
