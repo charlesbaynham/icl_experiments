@@ -38,7 +38,7 @@ class MonitorWeather(EnvExperiment):
 
     def build(self):
         self.setattr_argument(
-            "delay", NumberValue(default=30, scale=1, step=1, ndecimals=0)
+            "delay", NumberValue(default=300, scale=1, step=1, ndecimals=0, min=300)
         )
 
         self.setattr_device("influx_logger")
