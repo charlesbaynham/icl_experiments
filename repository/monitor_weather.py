@@ -74,13 +74,19 @@ class MonitorWeather(EnvExperiment):
         }
 
     def run(self):
+        last_timestamp = None
+
         while True:
             try:
                 timestamp, weather_data = self.get_weather()
 
-                self.influx_logger.write(
-                    tags={"type": "weather"}, fields=weather_data, timestamp=timestamp
-                )
+                if timestamp != last_timestamp:
+                    last_timestamp = timestamp
+                    self.influx_logger.write(
+                        tags={"type": "weather"},
+                        fields=weather_data,
+                        timestamp=timestamp,
+                    )
 
                 self.scheduler.pause()
                 time.sleep(self.delay)
