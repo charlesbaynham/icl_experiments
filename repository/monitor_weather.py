@@ -70,7 +70,7 @@ class MonitorWeather(EnvExperiment):
             "solar_rad": float(data["solar_rad"]),
             "temperature": float(data["temp"]),
             "pressure": float(data["pres"]),
-            "relative_humidity": float(data["rh"]),
+            "relative_humidity": int(data["rh"]),
         }
 
     def run(self):
