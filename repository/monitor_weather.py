@@ -67,10 +67,10 @@ class MonitorWeather(EnvExperiment):
         measurement_timestamp = data["ts"]
 
         return measurement_timestamp, {
-            "solar_rad": data["solar_rad"],
-            "temperature": data["temp"],
-            "pressure": data["pres"],
-            "relative_humidity": data["rh"],
+            "solar_rad": float(data["solar_rad"]),
+            "temperature": float(data["temp"]),
+            "pressure": float(data["pres"]),
+            "relative_humidity": float(data["rh"]),
         }
 
     def run(self):
