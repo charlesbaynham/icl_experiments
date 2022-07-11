@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9912 import AD9912
