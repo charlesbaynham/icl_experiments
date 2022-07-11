@@ -117,7 +117,7 @@ class OvenSpectroscopy(EnvExperiment):
             phase=self.phase,
         )
 
-        self.suservo0_ch0.set_iir(profile=0, adc=0, kp=1, ki=1)  ### PID stuff
+        self.suservo0_ch0.set_iir(profile=0, adc=0, kp=1.0, ki=1.0)  ### PID stuff
 
         # enable RF, IIR updates and profile 0
         self.suservo0_ch0.set(en_out=1, en_iir=1, profile=0)
