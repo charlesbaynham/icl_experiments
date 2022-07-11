@@ -78,9 +78,11 @@ class SUServoTest(EnvExperiment):
 
         with parallel:
             for i in range(int(self.n)):
+                sampler1 = self.suservo0.get_adc(0)
                 delay(self.Delay)
-                self.mutate_dataset("Sampler_Data", i, self.suservo0.get_adc(0))
+                self.mutate_dataset("Sampler_Data", i, sampler1)
 
             for i in range(int(self.n)):
+                sampler2 = self.suservo0.get_adc(1)
                 delay(self.Delay)
-                self.mutate_dataset("Sampler2_Data", i, self.suservo0.get_adc(1))
+                self.mutate_dataset("Sampler2_Data", i, sampler2)
