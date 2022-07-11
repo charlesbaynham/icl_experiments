@@ -128,7 +128,7 @@ class OvenSpectroscopy(EnvExperiment):
         self.fastino0.init()
 
         with parallel:
-            for j in range():
+            for j in range(int(len(voltage))):
 
                 for (
                     value
