@@ -31,6 +31,10 @@ class SUServoTest(EnvExperiment):
             "Delay", NumberValue(default=5, unit="ms", min=0, ndecimals=4)
         )
 
+        self.setattr_argument("kp", NumberValue(default=-0.1, ndecumals=5))
+
+        self.setattr_argument("ki", NumberValue(default=-300.0, ndecimals=5))
+
     def run(self):
         self.set_dataset("Sampler_Data", np.full(int(self.n), np.nan), broadcast=True)
         self.set_dataset("Sampler2_Data", np.full(int(self.n), np.nan), broadcast=True)
@@ -60,8 +64,12 @@ class SUServoTest(EnvExperiment):
         self.suservo0_ch0.set_y(profile=0, y=0.0)
         self.suservo0_ch1.set_y(profile=0, y=0.0)
 
-        self.suservo0_ch0.set_iir(profile=0, adc=0, kp=0.1, ki=300.0, g=0.0, delay=0.0)
-        self.suservo0_ch1.set_iir(profile=0, adc=1, kp=0.1, ki=300.0, g=0.0, delay=0.0)
+        self.suservo0_ch0.set_iir(
+            profile=0, adc=0, kp=self.kp, ki=self.ki, g=0.0, delay=0.0
+        )
+        self.suservo0_ch1.set_iir(
+            profile=0, adc=1, kp=self.kp, ki=self.ki, g=0.0, delay=0.0
+        )
 
         self.suservo0_ch0.set_dds(
             profile=0, offset=self.Offset, frequency=self.Frequency, phase=self.Phase
