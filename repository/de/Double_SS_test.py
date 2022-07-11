@@ -76,15 +76,14 @@ class SUServoTest(EnvExperiment):
 
         self.core.break_realtime()
 
-        with parallel:
-            for i in range(int(self.n)):
-                sampler1 = self.suservo0.get_adc(0)
-                delay(self.Delay / 2)
-                self.mutate_dataset("Sampler_Data", i, sampler1)
-                delay(self.Delay / 2)
-
-            for i in range(int(self.n)):
-                sampler2 = self.suservo0.get_adc(1)
-                delay(self.Delay / 2)
-                self.mutate_dataset("Sampler2_Data", i, sampler2)
-                delay(self.Delay / 2)
+        # with parallel:
+        for i in range(int(self.n)):
+            sampler1 = self.suservo0.get_adc(0)
+            delay(self.Delay / 4)
+            self.mutate_dataset("Sampler_Data", i, sampler1)
+            delay(self.Delay / 4)
+            sampler2 = self.suservo0.get_adc(1)
+            delay(self.Delay / 4)
+            self.mutate_dataset("Sampler2_Data", i, sampler2)
+            delay(self.Delay / 4)
+            # for i in range(int(self.n)):
