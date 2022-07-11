@@ -143,13 +143,11 @@ class OvenSpectroscopy(EnvExperiment):
             for i in range(
                 int(self.samples)
             ):  ## Handling the data of the absorption photodetector
-                self.mutate_dataset("Photodetector_Data", i, self.suservo0.get_adc(0))
-
                 delay(self.Delay)
+                self.mutate_dataset("Photodetector_Data", i, self.suservo0.get_adc(0))
 
             for i in range(
                 int(self.samples)
-            ):  ## Handling the data of the stabilisation photodetector
-                self.mutate_dataset("Stabilisation_Data", i, self.suservo0.get_adc(1))
-
+            ):  ## Handling the data of the stabilisation photodetector#
                 delay(self.Delay)
+                self.mutate_dataset("Stabilisation_Data", i, self.suservo0.get_adc(1))
