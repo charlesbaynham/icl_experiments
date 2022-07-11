@@ -140,22 +140,16 @@ class OvenSpectroscopy(EnvExperiment):
                     self.fastino0.set_dac(0, value)
                     delay(50 * us)
 
-            with sequential:
-                for i in range(
-                    int(self.samples)
-                ):  ## Handling the data of the absorption photodetector
-                    self.mutate_dataset(
-                        "Photodetector_Data", i, self.suservo0.get_adc(0)
-                    )
+            for i in range(
+                int(self.samples)
+            ):  ## Handling the data of the absorption photodetector
+                self.mutate_dataset("Photodetector_Data", i, self.suservo0.get_adc(0))
 
-                    delay(self.Delay)
+                delay(self.Delay)
 
-            with sequential:
-                for i in range(
-                    int(self.samples)
-                ):  ## Handling the data of the stabilisation photodetector
-                    self.mutate_dataset(
-                        "Stabilisation_Data", i, self.suservo0.get_adc(1)
-                    )
+            for i in range(
+                int(self.samples)
+            ):  ## Handling the data of the stabilisation photodetector
+                self.mutate_dataset("Stabilisation_Data", i, self.suservo0.get_adc(1))
 
-                    delay(self.Delay)
+                delay(self.Delay)
