@@ -38,8 +38,8 @@ class OvenSpectroscopy(EnvExperiment):
             "samples", NumberValue(default=5000, step=5000, ndecimals=0)
         )
         self.setattr_argument("Delay", NumberValue(default=500, unit="us", ndecimals=0))
-        self.setattr_argument("kp", NumberValue(default=1, ndecimals=5))
-        self.setattr_argument("ki", NumberValue(default=1, ndecimals=5))
+        self.setattr_argument("kp", NumberValue(default=-0.1, ndecimals=5))
+        self.setattr_argument("ki", NumberValue(default=-300, ndecimals=5))
         # self.setattr_argument("runs", NumberValue(default = 1, min = 1, max = 5, ndecimals = 0))
 
     def run(self):
@@ -97,8 +97,8 @@ class OvenSpectroscopy(EnvExperiment):
         self.suservo0_ch1.set_iir(
             profile=0,
             adc=1,  # take data from Sampler channel 1
-            kp=-0.1,  # -0.1 P gain
-            ki=-300.0 / s,  # low integrator gain
+            kp=self.kp,  # -0.1 P gain
+            ki=self.ki / s,  # low integrator gain
             g=0.0,  # no integrator gain limit
             delay=0.0,  # no IIR update delay after enabling
         )
@@ -117,9 +117,7 @@ class OvenSpectroscopy(EnvExperiment):
             phase=self.phase,
         )
 
-        self.suservo0_ch0.set_iir(
-            profile=0, adc=0, kp=self.kp, ki=self.ki
-        )  ### PID stuff
+        self.suservo0_ch0.set_iir(profile=0, adc=0, kp=1, ki=1)  ### PID stuff
 
         # enable RF, IIR updates and profile 0
         self.suservo0_ch0.set(en_out=1, en_iir=1, profile=0)
