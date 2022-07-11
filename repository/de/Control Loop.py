@@ -34,6 +34,10 @@ class OvenSpectroscopy(EnvExperiment):
         self.setattr_argument(
             "offset", NumberValue(default=0, unit="V", min=0, max=1.0, ndecimals=1)
         )
+        self.setattr_argument(
+            "samples", NumberValue(default=5000, step=5000, ndecimals=0)
+        )
+        self.setattr_argument("Delay", NumberValue(default=500, unit="us", ndecimals=0))
         # self.setattr_argument("runs", NumberValue(default = 1, min = 1, max = 5, ndecimals = 0))
 
     def run(self):
@@ -44,10 +48,12 @@ class OvenSpectroscopy(EnvExperiment):
         ]  ## Builds an array of Voltages based on the number of input steps
 
         self.set_dataset(  ### Creates a dataset that will mutate elements to interpret and rework the output of the urukul
-            "Photodetector_Data", np.full(5000, np.nan), broadcast=True
+            "Photodetector_Data", np.full(self.samples, np.nan), broadcast=True
         )
 
-        self.set_dataset("Stabilisation_Data", np.full(5000, np.nan), broadcast=True)
+        self.set_dataset(
+            "Stabilisation_Data", np.full(self.samples, np.nan), broadcast=True
+        )
 
         self.pass_Voltage(voltages)  ## Passes values into the function.
 
@@ -122,7 +128,7 @@ class OvenSpectroscopy(EnvExperiment):
         self.fastino0.init()
 
         with parallel:
-            for j in range(n):
+            for j in range():
 
                 for (
                     value
@@ -134,20 +140,20 @@ class OvenSpectroscopy(EnvExperiment):
 
             with sequential:
                 for i in range(
-                    5000
+                    int(self.samples)
                 ):  ## Handling the data of the absorption photodetector
                     self.mutate_dataset(
                         "Photodetector_Data", i, self.suservo0.get_adc(0)
                     )
 
-                    delay(500 * us)
+                    delay(self.Delay)
 
             with sequential:
                 for i in range(
-                    5000
+                    int(self.samples)
                 ):  ## Handling the data of the stabilisation photodetector
                     self.mutate_dataset(
                         "Stabilisation_Data", i, self.suservo0.get_adc(1)
                     )
 
-                    delay(500 * us)
+                    delay(self.Delay)
