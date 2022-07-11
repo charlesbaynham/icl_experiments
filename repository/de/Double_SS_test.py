@@ -31,7 +31,7 @@ class SUServoTest(EnvExperiment):
             "Delay", NumberValue(default=5, unit="ms", min=0, ndecimals=4)
         )
 
-        self.setattr_argument("kp", NumberValue(default=-0.1, ndecumals=5))
+        self.setattr_argument("kp", NumberValue(default=-0.1, ndecimals=5))
 
         self.setattr_argument("ki", NumberValue(default=-300.0, ndecimals=5))
 
