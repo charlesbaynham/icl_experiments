@@ -36,6 +36,7 @@ class SUServoTest(EnvExperiment):
         self.set_dataset("Sampler2_Data", np.full(int(self.n), np.nan), broadcast=True)
 
         self.run_core()
+        print("done!")
 
     @kernel
     def run_core(self):
