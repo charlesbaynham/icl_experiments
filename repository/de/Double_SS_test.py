@@ -82,6 +82,7 @@ class SUServoTest(EnvExperiment):
                 delay(self.Delay / 2)
                 self.mutate_dataset("Sampler_Data", i, sampler1)
                 delay(self.Delay / 2)
+
             for i in range(int(self.n)):
                 sampler2 = self.suservo0.get_adc(1)
                 delay(self.Delay / 2)
