@@ -38,6 +38,8 @@ class OvenSpectroscopy(EnvExperiment):
             "samples", NumberValue(default=5000, step=5000, ndecimals=0)
         )
         self.setattr_argument("Delay", NumberValue(default=500, unit="us", ndecimals=0))
+        self.setattr_argument("kp", NumberValue(default=1, ndecimals=5))
+        self.setattr_argument("ki", NumberValue(default=1, ndecimals=5))
         # self.setattr_argument("runs", NumberValue(default = 1, min = 1, max = 5, ndecimals = 0))
 
     def run(self):
@@ -115,7 +117,9 @@ class OvenSpectroscopy(EnvExperiment):
             phase=self.phase,
         )
 
-        self.suservo0_ch0.set_iir(profile=0, adc=0, kp=1, ki=1)  ### PID stuff
+        self.suservo0_ch0.set_iir(
+            profile=0, adc=0, kp=self.kp, ki=self.ki
+        )  ### PID stuff
 
         # enable RF, IIR updates and profile 0
         self.suservo0_ch0.set(en_out=1, en_iir=1, profile=0)
