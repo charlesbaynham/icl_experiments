@@ -1,17 +1,18 @@
 # Backup the influx database to the Imperial RDS
-# and repeat with a timeout
-
-# Backup ARTIQ datasets to the Imperial RDS
+# ==============================================
+# This script backs up the influx database at midnight every night
 
 export BACKUP_PATH=/mnt/RDS/backups/influxdb
-export TIMEOUT=60
 
-echo "Backup loop starting - scanning for results every $TIMEOUT seconds"
+echo "Database backup monitor started - will backup at midnight nightly"
 
 while true; do {
-influxd backup -portable "$BACKUP_PATH"
+    # Wait until midnight
+    sleep $(( $(date -f - +%s- <<< "tomorrow 00:00"$'\nnow') 0 ))
 
-echo "Database backup to RDS completed"
+    export DIRNAME=`date +"%Y%m%d-%H%M%S"`
+    mkdir "$BACKUP_PATH/$DIRNAME"
+    influxd backup -portable "$BACKUP_PATH/$DIRNAME"
 
-sleep $TIMEOUT
+    echo "Database backup to RDS completed at DIRNAME=${DIRNAME}"
 }; done
