@@ -80,7 +80,8 @@ class MonitorWeather(EnvExperiment):
             try:
                 timestamp, weather_data = self.get_weather()
 
-                print(weather_data)
+                logger.info("weather_data = ")
+                logger.info(weather_data)
 
                 if timestamp != last_timestamp:
                     last_timestamp = timestamp
