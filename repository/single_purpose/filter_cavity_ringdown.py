@@ -76,7 +76,7 @@ class TTLRingdown(EnvExperiment):
         # Read the current value of the ttl
         self.ttl.input()
         delay(1 * ms)
-        ttl_state = bool(self.ttl.sample_get_nonrt())
+        ttl_state = not bool(self.ttl.sample_get_nonrt())
 
         # If the ttl is high, turn on the dds. Otherwise turn it off
         self.dds.sw.set_o(ttl_state)
