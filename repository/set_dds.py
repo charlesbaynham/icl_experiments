@@ -9,7 +9,7 @@ from artiq.experiment import NumberValue
 
 
 class SetDDS(EnvExperiment):
-    """Set a DDS channel to 10 MHz as a very basic test"""
+    """Set a DDS channel"""
 
     def build(self):
         self.setattr_device("core")
