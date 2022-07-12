@@ -276,40 +276,25 @@
           in
           { type = "app"; program = "${script}/bin/run_artiq"; };
 
-        backup =
+        backup_datasets =
           let
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
-              export TIMEOUT=60
 
-              echo "Backup loop starting - scanning for results every $TIMEOUT seconds"
+              # Unlike the other scripts, this one is launched w.r.t. the working directory
+              # so that if the working dir isn't correct, it'll fail with an error message
+              # rather than looking like it's working and then not actuall backing up the data.
+              exec ./scripts/backup_datasets.sh
+            '';
+          in
+          { type = "app"; program = "${script}/bin/run"; };
 
-              while true; do {
-                rsync \
-                  --recursive \
-                  --links \
-                  --times \
-                  --quiet \
-                  --progress \
-                  --modify-window=2 \
-                  ./results/ \
-                  /mnt/RDS/artiq_data/results
+        backup_database =
+          let
+            script = pkgs.writeShellScriptBin "run" ''
+              export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
 
-                rsync \
-                  --recursive \
-                  --links \
-                  --times \
-                  --quiet \
-                  --progress \
-                  --modify-window=2 \
-                  ./log/ \
-                  /mnt/RDS/artiq_data/logs
-
-                echo "Data synchronized to RDS"
-
-                sleep $TIMEOUT
-              }; done
-
+              exec ${self}/scripts/backup_database.sh
             '';
           in
           { type = "app"; program = "${script}/bin/run"; };
