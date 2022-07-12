@@ -33,7 +33,7 @@ class MonitorCOVID(EnvExperiment):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
-        self.set_default_scheduling(pipeline_name=f"weather")
+        self.set_default_scheduling(pipeline_name=f"covid")
 
         self.latest_datetime = None
 
