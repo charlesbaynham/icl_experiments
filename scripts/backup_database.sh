@@ -9,7 +9,7 @@ export TIMEOUT=60
 echo "Backup loop starting - scanning for results every $TIMEOUT seconds"
 
 while true; do {
-influxd backup -portable "$BACKUP_PATH%"
+influxd backup -portable "$BACKUP_PATH"
 
 echo "Database backup to RDS completed"
 
