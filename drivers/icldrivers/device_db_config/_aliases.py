@@ -3,7 +3,7 @@
 # These are just examples, add your own!
 aliases = {
     "dds_transfer_cavity_aom": "urukul0_ch2",
-    "ttl_transfer_cavity_trigger": "ttl13",
+    "ttl_transfer_cavity_trigger": "ttl0",
     # It's also possible to store generic information here about the hardware
     # configuration of your experiment. For example, let's imagine that I need
     # to record the polarity of a coil driver's connection to a coil, I could use:

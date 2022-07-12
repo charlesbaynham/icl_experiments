@@ -33,11 +33,14 @@ class TTLRingdown(EnvExperiment):
             NumberValue(default=0, unit="dB", step=0.1, ndecimals=1, min=0),
         )
         self.setattr_argument(
-            "runtime", NumberValue(default=60, unit="s", step=1, ndecimals=0, min=1)
+            "runtime",
+            NumberValue(default=60, unit="s", step=1, ndecimals=0, min=1, type="float"),
         )
         self.setattr_argument(
             "response_time",
-            NumberValue(default=10e-6, unit="us", step=0.1e-6, ndecimals=1, min=0),
+            NumberValue(
+                default=10e-6, unit="us", step=0.1e-6, ndecimals=1, min=0, type="float"
+            ),
         )
 
         self.dds = self.get_device("dds_transfer_cavity_aom")
@@ -51,6 +54,9 @@ class TTLRingdown(EnvExperiment):
         end_time = datetime.now() + timedelta(seconds=self.runtime)
         logger.info("Running cavity ringdown measurement until %s", end_time)
 
+        # Convert the response time to machine units
+        self.response_time_mu = self.core.seconds_to_mu(self.response_time)
+
         self.watch_dds_for_ttl()
 
     @kernel
@@ -59,9 +65,6 @@ class TTLRingdown(EnvExperiment):
         end_timestamp_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(
             self.runtime
         )
-
-        # Convert the response time to machine units
-        response_time_mu = self.core.seconds_to_mu(self.response_time)
 
         self.core.reset()
 
@@ -73,7 +76,7 @@ class TTLRingdown(EnvExperiment):
         # Read the current value of the ttl
         self.ttl.input()
         delay(1 * ms)
-        ttl_state = self.ttl.sample_get_nonrt()
+        ttl_state = bool(self.ttl.sample_get_nonrt())
 
         # If the ttl is high, turn on the dds. Otherwise turn it off
         self.ttl.set_o(ttl_state)
@@ -88,6 +91,6 @@ class TTLRingdown(EnvExperiment):
             if transition_timestamp_mu == -1:
                 break
             else:
-                at_mu(transition_timestamp_mu + response_time_mu)
+                at_mu(transition_timestamp_mu + self.response_time_mu)
                 ttl_state = not ttl_state
                 self.ttl.set_o(ttl_state)
