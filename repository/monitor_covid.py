@@ -2,11 +2,8 @@ import json
 import logging
 import time
 from datetime import datetime
-from pprint import pformat
 
-import requests
 from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
 from artiq.language.core import TerminationRequested
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
