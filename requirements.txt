@@ -17,7 +17,9 @@ backcall==0.2.0
 black==22.6.0
     # via -r requirements.in
 certifi==2022.6.15
-    # via requests
+    # via
+    #   requests
+    #   uk-covid19
 cfgv==3.3.1
     # via pre-commit
 charset-normalizer==2.0.12
@@ -138,6 +140,7 @@ requests==2.28.0
     # via
     #   -r requirements.in
     #   sphinx
+    #   uk-covid19
 six==1.16.0
     # via
     #   livereload
@@ -191,6 +194,8 @@ typing-extensions==4.3.0
     #   black
     #   pyvisa
     #   pyvisa-py
+uk-covid19==1.2.2
+    # via -r requirements.in
 urllib3==1.26.9
     # via requests
 virtualenv==20.14.1
