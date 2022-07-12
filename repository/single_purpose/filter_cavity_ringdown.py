@@ -79,7 +79,7 @@ class TTLRingdown(EnvExperiment):
         ttl_state = bool(self.ttl.sample_get_nonrt())
 
         # If the ttl is high, turn on the dds. Otherwise turn it off
-        self.ttl.set_o(ttl_state)
+        self.dds.sw.set_o(ttl_state)
 
         # Now gate the input for rising or falling edges until the timeout
         end_timestamp_mu = self.ttl.gate_both(self.runtime)
@@ -93,4 +93,4 @@ class TTLRingdown(EnvExperiment):
             else:
                 at_mu(transition_timestamp_mu + self.response_time_mu)
                 ttl_state = not ttl_state
-                self.ttl.set_o(ttl_state)
+                self.dds.sw.set_o(ttl_state)
