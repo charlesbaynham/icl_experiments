@@ -40,8 +40,8 @@ class TTLRingdown(EnvExperiment):
             NumberValue(default=10e-6, unit="us", step=0.1e-6, ndecimals=1, min=0),
         )
 
-        self.setattr_device("dds", "dds_transfer_cavity_aom")
-        self.setattr_device("ttl", "dds_transfer_cavity_trigger")
+        self.dds = self.get_device("dds_transfer_cavity_aom")
+        self.ttl = self.get_device("ttl_transfer_cavity_trigger")
 
         self.core: Core
         self.dds: AD9910
