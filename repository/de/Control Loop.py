@@ -58,6 +58,7 @@ class OvenSpectroscopy(EnvExperiment):
         )
 
         self.pass_Voltage(voltages)  ## Passes values into the function.
+        print("Done!")
 
     @kernel
     def pass_Voltage(self, voltage):
