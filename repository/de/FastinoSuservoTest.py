@@ -120,6 +120,6 @@ class fastino_test(EnvExperiment):
                 # i += 1
                 # self.core.break_realtime()
 
-        return empty
+        # return empty
 
         # self.core.break_realtime()
