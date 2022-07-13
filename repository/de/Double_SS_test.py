@@ -43,8 +43,6 @@ class SUServoTest(EnvExperiment):
         self.setattr_argument("ki", NumberValue(default=-300.0, ndecimals=5))
 
     def run(self):
-        self.set_dataset("Sampler_Data", np.full(int(self.n), np.nan), broadcast=True)
-        self.set_dataset("Sampler2_Data", np.full(int(self.n), np.nan), broadcast=True)
 
         n_steps = 100
         voltages = [(5 / n_steps) * i for i in range(n_steps + 1)]
@@ -116,5 +114,7 @@ class SUServoTest(EnvExperiment):
                 sampler1.append(self.suservo0.get_adc(1))
                 delay(self.Delay / 2)
 
-        self.mutate_dataset("Sampler1_Data", sampler0)
-        self.mutate_dataset("Sampler2_Data", sampler1)
+        self.set_dataset("Sampler_Data", sampler0, broadcast=True)
+        self.set_dataset("Sampler2_Data", sampler1, broadcast=True)
+        # self.mutate_dataset("Sampler1_Data", sampler0)
+        # self.mutate_dataset("Sampler2_Data", sampler1)
