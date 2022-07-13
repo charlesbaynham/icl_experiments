@@ -89,6 +89,7 @@ class SUServoTest(EnvExperiment):
 
         self.suservo0.set_config(enable=1)
         self.fastino0.init()
+        i = 0
         self.core.break_realtime()
 
         with parallel:
@@ -100,6 +101,7 @@ class SUServoTest(EnvExperiment):
                 sampler2 = self.suservo0.get_adc(1)
                 delay(self.Delay / 4)
                 self.mutate_dataset("Sampler2_Data", i, sampler2)
+                i += 1
                 delay(self.Delay / 4)
 
             while runs > 0:
