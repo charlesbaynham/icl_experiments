@@ -1,6 +1,6 @@
 from artiq.experiment import EnvExperiment
 from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import create_and_run_once
+from ndscan.experiment.entry_point import create_and_run_fragment_once
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 
@@ -14,7 +14,7 @@ class MyExpFragment(ExpFragment):
 
 class MyEnvExperiment(EnvExperiment):
     def run(self):
-        results = create_and_run_once(self, MyExpFragment)
+        results = create_and_run_fragment_once(self, MyExpFragment)
         print(results["foo"])
 
 
