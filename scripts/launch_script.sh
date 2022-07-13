@@ -87,7 +87,7 @@ if $GUI; then
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v"
-    "sleep 2 && artiq_dashboard -v -p ndscan.dashboard_plugin" \
+    "sleep 2 && nix run .#dashboard" \
     "nix run .#backup_database" \
     "nix run .#backup_datasets" \
     "nix run .#database" \
