@@ -50,15 +50,17 @@ class fastino_test(EnvExperiment):
 
         runs = 5000  # (self.freq * 200)**-1                                ## Converts frequency into a number of iterations of the triangle wave
 
-        empty = np.zeros(
-            len(voltages) * int(self.runs)
-        )  ## Allocates memory for an appropriately lengthed array
+        # empty = np.zeros(
+        #    len(voltages) * int(self.runs)
+
+        # )  ## Allocates memory for an appropriately lengthed array
 
         sampler_values = self.pass_Voltage(
             voltages, int(self.runs)
         )  ## Passes values into the function.
-        print(sampler_values)
-        plt.plot(sampler_values)
+
+        # print(sampler_values)
+        # plt.plot(sampler_values)
 
     @kernel
     def pass_Voltage(self, voltage, n):  # empty, n):
@@ -113,9 +115,11 @@ class fastino_test(EnvExperiment):
             for value in voltage:
 
                 self.fastino0.set_dac(0, value)
+                delay(self.delay)  # 50 * us)
+
                 # self.fastino0.load()
-                print(i)
-                delay(50 * us)
+                # print(i)
+
                 # empty[i] = self.suservo0.get_adc(0)
                 # i += 1
                 # self.core.break_realtime()
