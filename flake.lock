@@ -211,6 +211,22 @@
         "type": "indirect"
       }
     },
+    "oitg": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1644507971,
+        "narHash": "sha256-gEKTlpeSBCfO+xOLbc8ngZIQ9znGv1Ve3F2Onhv8oQE=",
+        "owner": "OxfordIonTrapGroup",
+        "repo": "oitg",
+        "rev": "1193e2cb415ce4c1a22aab09573b8af5531afee8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "OxfordIonTrapGroup",
+        "repo": "oitg",
+        "type": "github"
+      }
+    },
     "pyaion": {
       "inputs": {
         "flake-utils": "flake-utils_3",
@@ -262,6 +278,7 @@
           "mach-nix",
           "nixpkgs"
         ],
+        "oitg": "oitg",
         "pyaion": "pyaion",
         "pypi-deps-db": "pypi-deps-db"
       }

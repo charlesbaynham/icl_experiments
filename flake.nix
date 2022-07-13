@@ -17,8 +17,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Oxford's ndscan ARTIQ extension + supporting package
     ndscan = {
       url = "github:OxfordIonTrapGroup/ndscan";
+      flake = false;
+    };
+    oitg = {
+      url = "github:OxfordIonTrapGroup/oitg";
       flake = false;
     };
 
@@ -63,6 +68,7 @@
     , mach-nix
     , pyaion
     , ndscan
+    , oitg
     , artiq_influx_generic
     , ...
     }:
@@ -105,6 +111,7 @@
         drivers # Our supporting, system-specific package
         pyaion.defaultPackage.${system} # The shared AION package
         ndscan # Actually just the source of a package, but mach-nix will process it
+        oitg # Also just the source of a package, needed for ndscan
       ];
       # Non-python dependencies
       nonPythonDeps = [
