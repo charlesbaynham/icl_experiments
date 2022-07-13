@@ -21,7 +21,7 @@ class SUServoTest(EnvExperiment):
         self.fastino0: Fastino
 
         self.setattr_argument(
-            "Frequency", NumberValue(default=200, unit="MHz", step=10, ndecimals=0)
+            "Frequency", NumberValue(default=200, unit="MHz", ndecimals=0)
         )
         self.setattr_argument(
             "Phase", NumberValue(default=0, min=0, max=1, ndecimals=1)
