@@ -39,11 +39,16 @@ class SUServoTest(EnvExperiment):
         self.set_dataset("Sampler_Data", np.full(int(self.n), np.nan), broadcast=True)
         self.set_dataset("Sampler2_Data", np.full(int(self.n), np.nan), broadcast=True)
 
-        self.run_core()
+        n_steps = 100
+        voltages = [(5 / n_steps) * i for i in range(n_steps + 1)]
+        voltages = [y for x in [voltages, voltages[::-1]] for y in x]
+        runs = 20000
+
+        self.run_core(runs, voltages)
         print("done!")
 
     @kernel
-    def run_core(self):
+    def run_core(self, runs, voltages):
         cpld = self.suservo0.cplds[0]
         self.core.reset()
 
@@ -82,17 +87,22 @@ class SUServoTest(EnvExperiment):
         self.suservo0_ch1.set(en_out=1, en_iir=1, profile=0)
 
         self.suservo0.set_config(enable=1)
-
+        self.fastino0.init()
         self.core.break_realtime()
 
-        # with parallel:
-        for i in range(int(self.n)):
-            sampler1 = self.suservo0.get_adc(0)
-            delay(self.Delay / 4)
-            self.mutate_dataset("Sampler_Data", i, sampler1)
-            delay(self.Delay / 4)
-            sampler2 = self.suservo0.get_adc(1)
-            delay(self.Delay / 4)
-            self.mutate_dataset("Sampler2_Data", i, sampler2)
-            delay(self.Delay / 4)
-            # for i in range(int(self.n)):
+        with parallel:
+            while runs > 0:
+                sampler1 = self.suservo0.get_adc(0)
+                delay(self.Delay / 4)
+                self.mutate_dataset("Sampler_Data", i, sampler1)
+                delay(self.Delay / 4)
+                sampler2 = self.suservo0.get_adc(1)
+                delay(self.Delay / 4)
+                self.mutate_dataset("Sampler2_Data", i, sampler2)
+                delay(self.Delay / 4)
+
+            while runs > 0:
+                for value in voltages:
+                    self.fastino0.set_dac(0, value)
+                    delay(50 * us)
+                runs -= 1
