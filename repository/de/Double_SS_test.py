@@ -15,7 +15,7 @@ class SUServoTest(EnvExperiment):
         self.setattr_device("fastino0")
 
         self.setattr_argument(
-            "Frequency", NumberValue(default=0, unit="MHz", step=10, ndecimals=0)
+            "Frequency", NumberValue(default=200, unit="MHz", step=10, ndecimals=0)
         )
         self.setattr_argument(
             "Phase", NumberValue(default=0, min=0, max=1, ndecimals=1)
@@ -29,7 +29,7 @@ class SUServoTest(EnvExperiment):
         self.setattr_argument("n", NumberValue(default=5000, step=5000, ndecimals=0))
 
         self.setattr_argument(
-            "Delay", NumberValue(default=5, unit="ms", min=0, ndecimals=4)
+            "Delay", NumberValue(default=0.5, unit="ms", min=0, ndecimals=4)
         )
 
         self.setattr_argument("kp", NumberValue(default=-0.1, ndecimals=5))
