@@ -106,8 +106,6 @@ class SUServoTest(EnvExperiment):
                 runs -= 1
 
             for i in range(runs * int(len(voltages))):
-
-                ##TODO 1 Mutate Dataset after, just have an array here
                 sampler1[i] = self.suservo0.get_adc(0)
                 delay(self.Delay / 2)
 
