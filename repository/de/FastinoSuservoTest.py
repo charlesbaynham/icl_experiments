@@ -35,6 +35,10 @@ class fastino_test(EnvExperiment):
         self.setattr_argument(
             "offset", NumberValue(default=0, unit="V", min=0, max=1.0, ndecimals=1)
         )
+        self.setattr_argument(
+            "runs", NumberValue(default=1000, min=1000, ndecimals=0, step=1000)
+        )
+        self.setattr_argument("delay", NumberValue(default=50, unit="us", ndecimals=0))
         # self.setattr_argument("runs", NumberValue(default = 1, min = 1, max = 5, ndecimals = 0))
 
     def run(self):
@@ -44,10 +48,10 @@ class fastino_test(EnvExperiment):
             y for x in [voltages, voltages[::-1]] for y in x
         ]  ## Builds an array of Voltages based on the number of input steps
 
-        runs = 20000  # (self.freq * 200)**-1                                ## Converts frequency into a number of iterations of the triangle wave
+        runs = 5000  # (self.freq * 200)**-1                                ## Converts frequency into a number of iterations of the triangle wave
 
         empty = np.zeros(
-            len(voltages) * runs
+            len(voltages) * int(self.runs)
         )  ## Allocates memory for an appropriately lengthed array
 
         sampler_values = self.pass_Voltage(
@@ -110,6 +114,7 @@ class fastino_test(EnvExperiment):
 
                 self.fastino0.set_dac(0, value)
                 # self.fastino0.load()
+                print(i)
                 delay(50 * us)
                 # empty[i] = self.suservo0.get_adc(0)
                 # i += 1
