@@ -94,8 +94,8 @@ class SUServoTest(EnvExperiment):
         self.suservo0.set_config(enable=1)
         self.fastino0.init()
         # i = 0
-        sampler0 = [0] * (runs * len(voltages))
-        sampler1 = [0] * (runs * len(voltages))
+        sampler0 = [0] * (runs * int(len(voltages)))
+        sampler1 = [0] * (runs * int(len(voltages)))
         self.core.break_realtime()
 
         with parallel:
