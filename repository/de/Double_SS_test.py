@@ -94,8 +94,8 @@ class SUServoTest(EnvExperiment):
         self.suservo0.set_config(enable=1)
         self.fastino0.init()
         # i = 0
-        sampler0 = [0] * runs
-        sampler1 = [0] * runs
+        sampler0 = [0] * (runs * len(voltages))
+        sampler1 = [0] * (runs * len(voltages))
         self.core.break_realtime()
 
         with parallel:
@@ -105,7 +105,7 @@ class SUServoTest(EnvExperiment):
                     delay(50 * us)
                 runs -= 1
 
-            for i in range(int(self.n)):
+            for i in range(runs * int(len(voltages))):
 
                 ##TODO 1 Mutate Dataset after, just have an array here
                 sampler1.append(self.suservo0.get_adc(0))
@@ -116,5 +116,3 @@ class SUServoTest(EnvExperiment):
 
         self.set_dataset("Sampler_Data", sampler0, broadcast=True)
         self.set_dataset("Sampler2_Data", sampler1, broadcast=True)
-        # self.mutate_dataset("Sampler1_Data", sampler0)
-        # self.mutate_dataset("Sampler2_Data", sampler1)
