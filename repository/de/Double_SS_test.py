@@ -1,4 +1,5 @@
 import numpy as np
+from artiq.coredevice.fastino import Fastino
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import *
@@ -13,6 +14,11 @@ class SUServoTest(EnvExperiment):
         self.setattr_device("suservo0_ch0")
         self.setattr_device("suservo0_ch1")
         self.setattr_device("fastino0")
+
+        self.suservo0: SUServo
+        self.suservo0_ch0: Channel
+        self.suservo0_ch1: Channel
+        self.fastino0: Fastino
 
         self.setattr_argument(
             "Frequency", NumberValue(default=200, unit="MHz", step=10, ndecimals=0)
@@ -90,21 +96,25 @@ class SUServoTest(EnvExperiment):
         self.suservo0.set_config(enable=1)
         self.fastino0.init()
         # i = 0
+        sampler0 = [0] * runs
+        sampler1 = [0] * runs
         self.core.break_realtime()
 
         with parallel:
-            for i in range(int(self.n)):
-                sampler1 = self.suservo0.get_adc(0)
-                delay(self.Delay / 4)
-                self.mutate_dataset("Sampler_Data", i, sampler1)
-                delay(self.Delay / 4)
-                sampler2 = self.suservo0.get_adc(1)
-                delay(self.Delay / 4)
-                self.mutate_dataset("Sampler2_Data", i, sampler2)
-                delay(self.Delay / 4)
-
             while runs > 0:
                 for value in voltages:
                     self.fastino0.set_dac(0, value)
                     delay(50 * us)
                 runs -= 1
+
+            for i in range(int(self.n)):
+
+                ##TODO 1 Mutate Dataset after, just have an array here
+                sampler1.append(self.suservo0.get_adc(0))
+                delay(self.Delay / 2)
+
+                sampler1.append(self.suservo0.get_adc(1))
+                delay(self.Delay / 2)
+
+        self.mutate_dataset("Sampler1_Data", sampler0)
+        self.mutate_dataset("Sampler2_Data", sampler1)
