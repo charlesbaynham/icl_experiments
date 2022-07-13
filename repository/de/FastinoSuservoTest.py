@@ -55,13 +55,13 @@ class fastino_test(EnvExperiment):
         )  ## Allocates memory for an appropriately lengthed array
 
         sampler_values = self.pass_Voltage(
-            voltages, empty, runs
+            voltages, int(self.runs)
         )  ## Passes values into the function.
         print(sampler_values)
         plt.plot(sampler_values)
 
     @kernel
-    def pass_Voltage(self, voltage, empty, n):
+    def pass_Voltage(self, voltage, n):  # empty, n):
         cpld = self.suservo0.cplds[0]
         self.core.reset()
 
