@@ -32,7 +32,7 @@ class SUServoTest(EnvExperiment):
         self.setattr_argument(
             "Attenuation", NumberValue(default=10, unit="dB", ndecimals=0)  #
         )
-        self.setattr_argument("n", NumberValue(default=5000, step=5000, ndecimals=0))
+        # self.setattr_argument("n", NumberValue(default=5000, step=5000, ndecimals=0))
 
         self.setattr_argument(
             "Delay", NumberValue(default=0.5, unit="ms", min=0, ndecimals=4)
