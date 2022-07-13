@@ -51,6 +51,53 @@
         "type": "github"
       }
     },
+    "artiq-comtools_2": {
+      "inputs": {
+        "nixpkgs": [
+          "artiq_influx_generic",
+          "nixpkgs"
+        ],
+        "sipyco": [
+          "artiq_influx_generic",
+          "sipyco"
+        ]
+      },
+      "locked": {
+        "lastModified": 1644743100,
+        "narHash": "sha256-XqxMq2l2DXSovV7r2k/FXjYRM3bvVl3Mjy+C1koVAx4=",
+        "owner": "m-labs",
+        "repo": "artiq-comtools",
+        "rev": "8a126dd7d0a3f2d50ae151ec633cd52587d98796",
+        "type": "github"
+      },
+      "original": {
+        "owner": "m-labs",
+        "repo": "artiq-comtools",
+        "type": "github"
+      }
+    },
+    "artiq_influx_generic": {
+      "inputs": {
+        "artiq-comtools": "artiq-comtools_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "sipyco": "sipyco_2"
+      },
+      "locked": {
+        "lastModified": 1647022982,
+        "narHash": "sha256-aNi1SMhH9qbe6kjvQSzl4zgJQD404uRYuBbSbjZld/M=",
+        "ref": "refs/heads/master",
+        "rev": "7424ebeac92c9c4f4d8a779411aa3ab7773898ee",
+        "revCount": 13,
+        "type": "git",
+        "url": "https://gitlab.com/charlesbaynham/artiq_influx_generic"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://gitlab.com/charlesbaynham/artiq_influx_generic"
+      }
+    },
     "flake-utils": {
       "locked": {
         "lastModified": 1653893745,
@@ -105,11 +152,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1654084003,
-        "narHash": "sha256-j/XrVVistvM+Ua+0tNFvO5z83isL+LBgmBi9XppxuKA=",
+        "lastModified": 1657089034,
+        "narHash": "sha256-qSjk1iOi14ijAOP6QuGfE3fvy08aVxsgus+ArwgiyuU=",
         "owner": "DavHau",
         "repo": "mach-nix",
-        "rev": "7e14360bde07dcae32e5e24f366c83272f52923f",
+        "rev": "51caf584f26acdfaa51bbf7ee1ffa365aea7bc64",
         "type": "github"
       },
       "original": {
@@ -207,6 +254,7 @@
     "root": {
       "inputs": {
         "artiq": "artiq",
+        "artiq_influx_generic": "artiq_influx_generic",
         "flake-utils": "flake-utils",
         "mach-nix": "mach-nix",
         "ndscan": "ndscan",
@@ -231,6 +279,27 @@
         "owner": "m-labs",
         "repo": "sipyco",
         "rev": "efda015e9994faf6cafc19b239d8e69ca4d26226",
+        "type": "github"
+      },
+      "original": {
+        "owner": "m-labs",
+        "repo": "sipyco",
+        "type": "github"
+      }
+    },
+    "sipyco_2": {
+      "inputs": {
+        "nixpkgs": [
+          "artiq_influx_generic",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1644649772,
+        "narHash": "sha256-LE9L5bDSunCPEnuf5Ed8enTAXA2vkTSmjvqPX9ILO0Y=",
+        "owner": "m-labs",
+        "repo": "sipyco",
+        "rev": "8e4382352bc64bd01c9db35d9c9b0ef42b8b9d3b",
         "type": "github"
       },
       "original": {

@@ -18,6 +18,8 @@ generic-scpi-driver >= 1.3
 toptica-lasersdk
 nidaqmx
 numpy
+requests
+uk-covid19
 
 # Additional requirements, handled by flakes:
 # sypico  # sypico is required, but cannot be installed through PyPI. Options include:
@@ -28,6 +30,7 @@ numpy
 
 # Code linting
 pre-commit
+black
 
 # Unit testing
 pytest

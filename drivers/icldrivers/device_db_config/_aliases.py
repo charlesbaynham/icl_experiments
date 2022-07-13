@@ -2,8 +2,8 @@
 # These should be friendly names that describe the purpose of a connection.
 # These are just examples, add your own!
 aliases = {
-    "ttl_coil_toggle": "ttl1",
-    "dds_461_2DMOT": "urukul0_ch0",
+    "dds_transfer_cavity_aom": "urukul0_ch2",
+    "ttl_transfer_cavity_trigger": "ttl0",
     # It's also possible to store generic information here about the hardware
     # configuration of your experiment. For example, let's imagine that I need
     # to record the polarity of a coil driver's connection to a coil, I could use:

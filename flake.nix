@@ -47,6 +47,12 @@
       inputs.mach-nix.follows = "mach-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Controller for quickly writing generic information to InfluxDB
+    artiq_influx_generic = {
+      url = "git+https://gitlab.com/charlesbaynham/artiq_influx_generic";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -57,6 +63,7 @@
     , mach-nix
     , pyaion
     , ndscan
+    , artiq_influx_generic
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -90,6 +97,8 @@
         artiq.packages.${system}.qasync
         artiq.inputs.sipyco.packages.${system}.sipyco
         artiq.inputs.artiq-comtools.packages.${system}.artiq-comtools
+
+        artiq_influx_generic.packages.${system}.artiq_influx_generic
       ];
       # Packages which were built with mach-nix
       machnixPackages = [
@@ -230,109 +239,96 @@
         in
         { type = "app"; program = "${script}/bin/launch_server"; };
 
-      apps.update_requirements =
-        let
-          script = pkgs.writeShellScriptBin "update_requirements" ''
-            export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
+      apps = {
+        update_requirements =
+          let
+            script = pkgs.writeShellScriptBin "update_requirements" ''
+              export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
-            pip-compile requirements.in
-          '';
-        in
-        { type = "app"; program = "${script}/bin/update_requirements"; };
+              pip-compile requirements.in
+            '';
+          in
+          { type = "app"; program = "${script}/bin/update_requirements"; };
 
-      apps.pytest =
-        let
-          script = pkgs.writeShellScriptBin "pytest" ''
-            export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
+        pytest =
+          let
+            script = pkgs.writeShellScriptBin "pytest" ''
+              export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
-            coverage run --omit "tests/*,*/_version.py,/nix/store/*" -m pytest --junitxml=report.xml $1
-            test_exit_code=$?
-            coverage report
-            exit "$test_exit_code"
-          '';
-        in
-        { type = "app"; program = "${script}/bin/pytest"; };
+              coverage run --omit "tests/*,*/_version.py,/nix/store/*" -m pytest --junitxml=report.xml $1
+              test_exit_code=$?
+              coverage report
+              exit "$test_exit_code"
+            '';
+          in
+          { type = "app"; program = "${script}/bin/pytest"; };
 
-      apps.run_artiq =
-        let
-          script = pkgs.writeShellScriptBin "run_artiq" ''
-            export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
+        run_artiq =
+          let
+            script = pkgs.writeShellScriptBin "run_artiq" ''
+              export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
-            exec ./scripts/launch_script.sh "$@"
-          '';
-        in
-        { type = "app"; program = "${script}/bin/run_artiq"; };
+              exec ./scripts/launch_script.sh "$@"
+            '';
+          in
+          { type = "app"; program = "${script}/bin/run_artiq"; };
 
-      apps.dashboard =
-        let
-          script = pkgs.writeShellScriptBin "run_artiq" ''
-            export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
+        dashboard =
+          let
+            script = pkgs.writeShellScriptBin "run_artiq" ''
+              export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
-            exec artiq_dashboard "$@"
-          '';
-        in
-        { type = "app"; program = "${script}/bin/run_artiq"; };
+              exec artiq_dashboard "$@"
+            '';
+          in
+          { type = "app"; program = "${script}/bin/run_artiq"; };
 
-      apps.backup =
-        let
-          script = pkgs.writeShellScriptBin "run" ''
-            export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
-            export TIMEOUT=60
+        backup_datasets =
+          let
+            script = pkgs.writeShellScriptBin "run" ''
+              export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
 
-            echo "Backup loop starting - scanning for results every $TIMEOUT seconds"
+              # Unlike the other scripts, this one is launched w.r.t. the working directory
+              # so that if the working dir isn't correct, it'll fail with an error message
+              # rather than looking like it's working and then not actuall backing up the data.
+              exec ./scripts/backup_datasets.sh
+            '';
+          in
+          { type = "app"; program = "${script}/bin/run"; };
 
-            while true; do {
-              rsync \
-                --recursive \
-                --links \
-                --times \
-                --quiet \
-                --progress \
-                --modify-window=2 \
-                ./results/ \
-                /mnt/RDS/artiq_data/results
+        backup_database =
+          let
+            script = pkgs.writeShellScriptBin "run" ''
+              export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
 
-              rsync \
-                --recursive \
-                --links \
-                --times \
-                --quiet \
-                --progress \
-                --modify-window=2 \
-                ./log/ \
-                /mnt/RDS/artiq_data/logs
+              exec ${self}/scripts/backup_database.sh
+            '';
+          in
+          { type = "app"; program = "${script}/bin/run"; };
 
-              echo "Data synchronized to RDS"
+        database =
+          let
+            script = pkgs.writeShellScriptBin "run" ''
+              export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
 
-              sleep $TIMEOUT
-            }; done
+              exec ${self}/scripts/launch_database.sh
+            '';
+          in
+          { type = "app"; program = "${script}/bin/run"; };
 
-          '';
-        in
-        { type = "app"; program = "${script}/bin/run"; };
+        grafana =
+          let
+            provisioning_dir = "${self}/scripts/grafana_provisioning";
+            script = pkgs.writeShellScriptBin "run" ''
+              export PATH=${pkgs.lib.makeBinPath [pkgs.grafana]}:$PATH
+              export GRAFANA_HOMEPATH=${pkgs.grafana}/share/grafana
+              export GF_PATHS_PROVISIONING=${provisioning_dir}
 
-      apps.database =
-        let
-          script = pkgs.writeShellScriptBin "run" ''
-            export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
-
-            exec ${self}/scripts/launch_database.sh
-          '';
-        in
-        { type = "app"; program = "${script}/bin/run"; };
-
-      apps.grafana =
-        let
-          provisioning_dir = "${self}/scripts/provisioning";
-          script = pkgs.writeShellScriptBin "run" ''
-            export PATH=${pkgs.lib.makeBinPath [pkgs.grafana]}:$PATH
-            export GRAFANA_HOMEPATH=${pkgs.grafana}/share/grafana
-            export GF_PATHS_PROVISIONING=${provisioning_dir}
-
-            exec ${self}/scripts/launch_grafana.sh
-          '';
-        in
-        { type = "app"; program = "${script}/bin/run"; };
+              exec ${self}/scripts/launch_grafana.sh
+            '';
+          in
+          { type = "app"; program = "${script}/bin/run"; };
+      };
     }
     );
 

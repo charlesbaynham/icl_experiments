@@ -82,13 +82,14 @@ if $GUI; then
   concurrently \
     -c "green.bold,red.bold,blue.bold,cyan.bold,white.bold,yellow.bold" \
     --kill-others \
-    -n master,ctlmgr,dashboard,backup,database,grafana,ndscan \
+    -n master,ctlmgr,dashboard,backup_db,backup_datasets,database,grafana,ndscan \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v"
     "sleep 2 && artiq_dashboard -v -p ndscan.dashboard_plugin" \
-    "nix run .#backup" \
+    "nix run .#backup_database" \
+    "nix run .#backup_datasets" \
     "nix run .#database" \
     "nix run .#grafana" \
     "ndscan_dataset_janitor"
@@ -97,12 +98,13 @@ else
   concurrently \
     -c "green.bold,red.bold,cyan.bold,white.bold,yellow.bold" \
     --kill-others \
-    -n master,ctlmgr,backup,database,grafana,ndscan \
+    -n master,ctlmgr,backup_db,backup_datasets,database,grafana,ndscan \
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v" \
-    "nix run .#backup" \
+    "nix run .#backup_database" \
+    "nix run .#backup_datasets" \
     "nix run .#database" \
     "nix run .#grafana" \
     "ndscan_dataset_janitor"
