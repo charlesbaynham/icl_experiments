@@ -12,6 +12,7 @@ class SUServoTest(EnvExperiment):
         self.setattr_device("suservo0")
         self.setattr_device("suservo0_ch0")
         self.setattr_device("suservo0_ch1")
+        self.setattr_device("fastino0")
 
         self.setattr_argument(
             "Frequency", NumberValue(default=0, unit="MHz", step=10, ndecimals=0)
