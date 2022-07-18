@@ -106,6 +106,7 @@
         pkgs.git # needed for pre-commit
         pkgs.librsvg # needed for latex docs conversion of SVGs
         pkgs.influxdb # Not used by artiq directly, but useful to have in the devshell
+        pkgs.grafana # Not used by artiq directly, but useful to have in the devshell
       ];
       # The rest: a newline-seperated string, listing PyPI dependencies (like a
       # normal python package). These are read from the file "requirements.in",
