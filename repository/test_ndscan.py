@@ -1,3 +1,4 @@
+import ndscan.experiment.parameters
 from artiq.experiment import EnvExperiment
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
