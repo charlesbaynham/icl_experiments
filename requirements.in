@@ -44,5 +44,4 @@ ipython
 
 # Flake installs, listed here for requirement pinning
 artiq_influx_generic
-sypico
 pyaion
