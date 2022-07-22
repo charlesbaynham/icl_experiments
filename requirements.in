@@ -21,13 +21,6 @@ numpy
 requests
 uk-covid19
 
-# Additional requirements, handled by flakes:
-# sypico  # sypico is required, but cannot be installed through PyPI. Options include:
-#   a) Use Nix - this is handled via flakes
-#   b) Install it manually using pip install git+https://github.com/m-labs/sipyco.git
-#   c) Pester Sebastian to upload it to PyPI at https://github.com/m-labs/sipyco
-# pyaion is required - this is installed via flakes
-
 # Code linting
 pre-commit
 black
@@ -48,3 +41,8 @@ pip-tools
 
 # General debugging
 ipython
+
+# Flake installs, listed here for requirement pinning
+artiq_influx_generic
+sypico
+pyaion
