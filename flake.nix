@@ -27,6 +27,16 @@
       flake = false;
     };
 
+    # My own naffly named calibration package
+    qbutler = {
+      url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        ndscan.follows = "ndscan";
+        oitg.follows = "oitg";
+      };
+    };
+
     # Mach-nix is an extension to nix which allows you to build python
     # environments reproducably while still fetching packages from nixpkgs and
     # having fully-fledged dependency resolution.
@@ -70,6 +80,7 @@
     , ndscan
     , oitg
     , artiq_influx_generic
+    , qbutler
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -110,6 +121,7 @@
       machnixPackages = [
         drivers # Our supporting, system-specific package
         pyaion.defaultPackage.${system} # The shared AION package
+        qbutler.defaultPackage.${system}
         ndscan # Actually just the source of a package, but mach-nix will process it
         oitg # Also just the source of a package, needed for ndscan
       ];
