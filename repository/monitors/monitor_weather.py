@@ -1,14 +1,11 @@
 import json
 import logging
-import time
 from pprint import pformat
 
 import requests
-from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
-from artiq.language.core import TerminationRequested
-from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
+from qbutler.calibration import Calibration
+from qbutler.calibration import CalibrationResult
 
 logger = logging.getLogger(__name__)
 
@@ -29,25 +26,15 @@ QUERY_STR = {
 }
 
 
-class MonitorWeather(EnvExperiment):
+class MonitorWeather(Calibration):
     """
     MonitorWeather
 
     Query the temperature of a weather sensor near the Blackett lab
     """
 
-    def build(self):
-        self.setattr_argument(
-            "delay", NumberValue(default=300, scale=1, step=1, ndecimals=0, min=300)
-        )
-
-        self.setattr_device("influx_logger")
-        self.influx_logger: InfluxController
-
-        self.setattr_device("scheduler")
-        self.scheduler: Scheduler
-
-        self.set_default_scheduling(pipeline_name=f"weather")
+    def build_calibration(self):
+        self.set_timeout(300)
 
     @staticmethod
     def get_weather():
@@ -73,31 +60,7 @@ class MonitorWeather(EnvExperiment):
             "relative_humidity": int(data["rh"]),
         }
 
-    def run(self):
-        last_timestamp = None
-
-        while True:
-            try:
-                timestamp, weather_data = self.get_weather()
-
-                logger.info("weather_data = ")
-                logger.info(weather_data)
-
-                if timestamp != last_timestamp:
-                    last_timestamp = timestamp
-                    self.influx_logger.write(
-                        tags={"type": "weather"},
-                        fields=weather_data,
-                        timestamp=timestamp,
-                    )
-
-                self.scheduler.pause()
-                time.sleep(self.delay)
-
-            except Exception as e:
-                if isinstance(e, (KeyboardInterrupt, TerminationRequested)):
-                    break
-                else:
-                    logger.error("Error occured:", exc_info=e)
-                    if self.scheduler.check_pause():
-                        return
+    def run_once(self):
+        timestamp, weather_data = self.get_weather()
+        self.status.push(CalibrationResult.OK)
+        self.data.push(weather_data)

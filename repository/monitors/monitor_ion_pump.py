@@ -22,7 +22,7 @@ class MonitorIonPump(EnvExperiment):
     """
 
     def build(self):
-        self.setattr_argument("ip", StringValue(default="192.168.0.43"))
+        self.setattr_argument("ip", StringValue(default="192.168.1.8"))
         self.setattr_argument(
             "delay", NumberValue(default=30, scale=1, step=1, ndecimals=0)
         )
