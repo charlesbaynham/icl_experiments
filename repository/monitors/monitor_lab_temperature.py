@@ -1,17 +1,9 @@
 import logging
-import time
 
 import requests
-from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
 from artiq.experiment import StringValue
-from artiq.language.core import TerminationRequested
-from artiq.master.scheduler import Scheduler
-from artiq_influx_generic import InfluxController
-
-from ndscan.experiment import StringParam
-
-from qbutler.calibration import Calibration, CalibrationResult
+from qbutler.calibration import Calibration
+from qbutler.calibration import CalibrationResult
 
 logger = logging.getLogger(__name__)
 
@@ -35,4 +27,9 @@ class MonitorLabTemperature(Calibration):
         logger.debug('Temperature = %f ("%s")', temperature, temp_str)
 
         self.status.push(CalibrationResult.OK)
-        self.data.push(temperature)
+        self.data.push(
+            {
+                "tags": {"sensor": self.description},
+                "fields": {"value": temperature},
+            }
+        )
