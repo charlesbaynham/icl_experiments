@@ -154,11 +154,11 @@
     },
     "flake-utils": {
       "locked": {
-        "lastModified": 1653893745,
-        "narHash": "sha256-0jntwV3Z8//YwuOjzhV2sgJJPt+HY6KhU7VZUL0fKZQ=",
+        "lastModified": 1659877975,
+        "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "1ed9fb1935d260de5fe1c2f7ee0ebaae17ed2fa1",
+        "rev": "c0e246b9b83f637f4681389ecabcb2681b4f3af0",
         "type": "github"
       },
       "original": {
@@ -236,11 +236,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1657089034,
-        "narHash": "sha256-qSjk1iOi14ijAOP6QuGfE3fvy08aVxsgus+ArwgiyuU=",
+        "lastModified": 1662635943,
+        "narHash": "sha256-1OBBlBzZ894or8eHZjyADOMnGH89pPUKYGVVS5rwW/0=",
         "owner": "DavHau",
         "repo": "mach-nix",
-        "rev": "51caf584f26acdfaa51bbf7ee1ffa365aea7bc64",
+        "rev": "65266b5cc867fec2cb6a25409dd7cd12251f6107",
         "type": "github"
       },
       "original": {
@@ -303,11 +303,11 @@
     "ndscan": {
       "flake": false,
       "locked": {
-        "lastModified": 1657027583,
-        "narHash": "sha256-W1yahVaF7SxwBVp3s66uX6bQHteLRG/NdckgqikGqQk=",
+        "lastModified": 1660127653,
+        "narHash": "sha256-sNsEYJta/FiIx5j1KT4yvyuq8j6Bgbw+/1WrDPkJmPw=",
         "owner": "OxfordIonTrapGroup",
         "repo": "ndscan",
-        "rev": "4fcbe3adf9e7dc2c78cfc071c777a3a68b4fa029",
+        "rev": "7116e4a75c667fdaa0306f88b0fae1370fca16b0",
         "type": "github"
       },
       "original": {
@@ -349,11 +349,11 @@
     "oitg": {
       "flake": false,
       "locked": {
-        "lastModified": 1644507971,
-        "narHash": "sha256-gEKTlpeSBCfO+xOLbc8ngZIQ9znGv1Ve3F2Onhv8oQE=",
+        "lastModified": 1663173810,
+        "narHash": "sha256-aRC+5UQfLSilc4Xwz+8dI2thjSGGJZhMp6IadQ+zOTc=",
         "owner": "OxfordIonTrapGroup",
         "repo": "oitg",
-        "rev": "1193e2cb415ce4c1a22aab09573b8af5531afee8",
+        "rev": "14513e2c39961ff7238ad98ce06c269f766934b0",
         "type": "github"
       },
       "original": {
@@ -373,11 +373,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1655739355,
-        "narHash": "sha256-oEIiNoDRkP8QB+xtcqWgGiHscPOF2e0gu/4xG2Ftj9Y=",
+        "lastModified": 1657214275,
+        "narHash": "sha256-LCFn+OLfllRi2YqxqFX/Vvm0MycLlPcINomSXY30ARE=",
         "ref": "refs/heads/master",
-        "rev": "2417d956755917cd448c8c033e67d3bcda5f5546",
-        "revCount": 16,
+        "rev": "3a3535e4847301166365198feb004e71f7221253",
+        "revCount": 17,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
@@ -389,11 +389,11 @@
     "pypi-deps-db": {
       "flake": false,
       "locked": {
-        "lastModified": 1655800137,
-        "narHash": "sha256-hoHvtzC5jIeuPWexMDJVKgNq0MIo7euCS+Ypfew6L2c=",
+        "lastModified": 1664354857,
+        "narHash": "sha256-7KEiAeIC/85XzJ5JUXxkFlBAfv/jxe8VfSu/A1RSfnU=",
         "owner": "DavHau",
         "repo": "pypi-deps-db",
-        "rev": "c57be9db6e0bd2a9316b36b5122a805f5daf65a1",
+        "rev": "8ea62c17f4a8c5bec71161fc75612a0fa568981c",
         "type": "github"
       },
       "original": {
@@ -434,11 +434,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1664291065,
-        "narHash": "sha256-NFUBhN6UTpDeP+kNKjislXW4npUQbaEQqBU6JiXKaJM=",
+        "lastModified": 1664371439,
+        "narHash": "sha256-NrErPXZDohKEXLMmXmHHpBPpdPggLR1PTqXSYMrmg94=",
         "ref": "refs/heads/master",
-        "rev": "37cd93f3dca72c1cd0f88558596a4733fb05d7c8",
-        "revCount": 40,
+        "rev": "b1beb1f300e03df8a7bef7a28bbbf83d2ae610f7",
+        "revCount": 43,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/qbutler.git"
       },
