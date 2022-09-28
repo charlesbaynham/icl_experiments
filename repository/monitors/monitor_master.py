@@ -2,6 +2,7 @@ import logging
 
 from artiq_influx_generic import InfluxController
 from monitor_weather import MonitorWeather
+from monitor_lab_temperature import MonitorLabTemperature
 from qbutler.monitoring import make_monitor_controller
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ def my_db_logger(self, name, state, data):
 
 MyMonitorMaster = make_monitor_controller(
     "MyMonitorMaster",
-    monitors={"weather": MonitorWeather},
+    monitors={"weather": MonitorWeather, "temperature": MonitorLabTemperature},
     devices=["influx_logger"],
     data_logger=my_db_logger,
 )

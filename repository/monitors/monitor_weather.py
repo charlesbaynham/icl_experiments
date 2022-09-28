@@ -3,7 +3,6 @@ import logging
 from pprint import pformat
 
 import requests
-from artiq_influx_generic import InfluxController
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
