@@ -2,7 +2,7 @@ import logging
 import re
 from telnetlib import Telnet
 
-from artiq.experiment import StringValue
+from ndscan.experiment import StringParam
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
@@ -18,18 +18,25 @@ class MonitorIonPump(Calibration):
     """
 
     def build_calibration(self):
-        self.setattr_argument("ip", StringValue(default="192.168.1.8"))
-        self.setattr_argument("description", StringValue(default="chamber1"))
+        self.setattr_param(
+            "ip", StringParam, "IP of the ion pump", default='"192.168.1.8"'
+        )
+        self.setattr_param(
+            "description",
+            StringParam,
+            "Description of the ion pump",
+            default='"chamber1"',
+        )
 
         self.set_timeout(30)
 
     def run_once(self):
-        with Telnet(self.ip, 23) as tn:
-            logger.debug("Connected to ion pump at %s", self.ip)
+        with Telnet(self.ip.get(), 23) as tn:
+            logger.debug("Connected to ion pump at %s", self.ip.get())
 
             tn.read_until(b">", timeout=1)
 
-            logger.debug("Querying ion pump pressure at %s", self.ip)
+            logger.debug("Querying ion pump pressure at %s", self.ip.get())
 
             tn.write(COMMAND_PRESSURE)
             response = tn.read_until(b">", 1)
@@ -40,7 +47,7 @@ class MonitorIonPump(Calibration):
                 re.match(r"OK 00 ([\d\.E-]{7}) MBA.*", response.decode())[1]
             )
 
-            logger.debug("Querying ion pump current at %s", self.ip)
+            logger.debug("Querying ion pump current at %s", self.ip.get())
 
             tn.write(COMMAND_CURRENT)
             response = tn.read_until(b">", 1)
@@ -60,7 +67,7 @@ class MonitorIonPump(Calibration):
             self.status.push(CalibrationResult.OK)
             self.data.push(
                 {
-                    "tags": {"sensor": self.description},
+                    "tags": {"sensor": self.description.get()},
                     "fields": {"pressure": pressure, "current": current},
                 }
             )
