@@ -1,12 +1,11 @@
 import json
 import logging
-
 from pprint import pformat
 
 import requests
 from artiq_influx_generic import InfluxController
-
-from qbutler.calibration import Calibration, CalibrationResult
+from qbutler.calibration import Calibration
+from qbutler.calibration import CalibrationResult
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +36,6 @@ class MonitorWeather(Calibration):
     def build_calibration(self):
         self.set_timeout(300)
 
-        # self.setattr_device("influx_logger")
-        self.influx_logger: InfluxController
-
-        
     @staticmethod
     def get_weather():
         response = requests.request("GET", QUERY_URL, params=QUERY_STR)
