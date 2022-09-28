@@ -20,7 +20,7 @@ class MonitorLabTemperature(Calibration):
         self.setattr_argument("description", StringValue(default="above_chamber"))
         self.set_timeout(30)
 
-    def run(self):
+    def run_once(self):
         temp_str = requests.get(self.monitor_url).text
         temperature = float(temp_str)
 

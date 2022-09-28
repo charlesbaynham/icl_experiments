@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 def my_db_logger(self, name, state, data):
-
     tags = {}
     if isinstance(data, dict):
         if "fields" in data:
@@ -27,8 +26,8 @@ def my_db_logger(self, name, state, data):
 
     tags["type"] = name
 
-    logger.debug(
-        "Writing to database: type = %s, tags = %s, fields = %s", name, tags, data
+    logger.info(
+        "Writing to database: type = %s, tags = %s, fields = %s", name, tags, fields
     )
 
     self.influx_logger: InfluxController
