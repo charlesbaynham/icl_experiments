@@ -1,12 +1,8 @@
-import json
 import logging
-import time
 from datetime import datetime
 
-from artiq.experiment import EnvExperiment
-from artiq.language.core import TerminationRequested
-from artiq.master.scheduler import Scheduler
-from artiq_influx_generic import InfluxController
+from qbutler.calibration import Calibration
+from qbutler.calibration import CalibrationResult
 from uk_covid19 import Cov19API
 
 logger = logging.getLogger(__name__)
@@ -22,42 +18,19 @@ NEW_CASES_STRUCTURE = {
 DELAY = 12 * 3600  # Query every 12 hours
 
 
-class MonitorCOVID(EnvExperiment):
-    def build(self):
-        self.setattr_device("influx_logger")
-        self.influx_logger: InfluxController
-
-        self.setattr_device("scheduler")
-        self.scheduler: Scheduler
-
-        self.set_default_scheduling(pipeline_name=f"covid")
-
+class MonitorCOVID(Calibration):
+    def build_calibration(self):
+        self.set_timeout(DELAY)
         self.latest_datetime = None
 
-    def run(self):
-        while True:
-            try:
-                new_datetime, new_cases = self.get_data()
+    def run_once(self):
+        new_datetime, new_cases = self.get_data()
 
-                if new_datetime != self.latest_datetime:
-                    self.latest_datetime = new_datetime
+        if new_datetime != self.latest_datetime:
+            self.latest_datetime = new_datetime
 
-                    self.influx_logger.write(
-                        tags={"type": "covid"},
-                        fields={"new_cases": new_cases},
-                        timestamp=new_datetime.timestamp(),
-                    )
-
-                self.scheduler.pause()
-                time.sleep(DELAY)
-
-            except Exception as e:
-                if isinstance(e, (KeyboardInterrupt, TerminationRequested)):
-                    break
-                else:
-                    logger.error("Error occured:", exc_info=e)
-                    if self.scheduler.check_pause():
-                        return
+            self.status.push(CalibrationResult.OK)
+            self.data.push({"fields": {"new_cases": new_cases}, "tags": {}})
 
     @staticmethod
     def get_data():

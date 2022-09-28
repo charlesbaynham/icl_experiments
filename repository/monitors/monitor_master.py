@@ -5,6 +5,7 @@ from monitor_lab_temperature import MonitorLabTemperature
 from monitor_weather import MonitorWeather
 from qbutler.monitoring import make_monitor_controller
 
+from repository.monitors.monitor_covid import MonitorCOVID
 from repository.monitors.monitor_ion_pump import MonitorIonPump
 
 logger = logging.getLogger(__name__)
@@ -12,10 +13,13 @@ logger = logging.getLogger(__name__)
 
 def my_db_logger(self, name, state, data):
     tags = {}
+    timestamp = None
     if isinstance(data, dict):
         if "fields" in data:
             fields = data["fields"]
             tags = data["tags"]
+            if "timestamp" in data:
+                timestamp = data["timestamp"]
             assert "type" not in tags
         else:
             fields = data
@@ -33,10 +37,7 @@ def my_db_logger(self, name, state, data):
     )
 
     self.influx_logger: InfluxController
-    self.influx_logger.write(
-        tags=tags,
-        fields=fields,
-    )
+    self.influx_logger.write(tags=tags, fields=fields, timestamp=timestamp)
 
 
 MyMonitorMaster = make_monitor_controller(
@@ -45,6 +46,7 @@ MyMonitorMaster = make_monitor_controller(
         "weather": MonitorWeather,
         "temperature": MonitorLabTemperature,
         "ion_pump": MonitorIonPump,
+        "covid": MonitorCOVID,
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
