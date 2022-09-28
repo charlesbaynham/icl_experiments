@@ -5,6 +5,8 @@ from monitor_lab_temperature import MonitorLabTemperature
 from monitor_weather import MonitorWeather
 from qbutler.monitoring import make_monitor_controller
 
+from repository.monitors.monitor_ion_pump import MonitorIonPump
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +41,11 @@ def my_db_logger(self, name, state, data):
 
 MyMonitorMaster = make_monitor_controller(
     "MyMonitorMaster",
-    monitors={"weather": MonitorWeather, "temperature": MonitorLabTemperature},
+    monitors={
+        "weather": MonitorWeather,
+        "temperature": MonitorLabTemperature,
+        "ion_pump": MonitorIonPump,
+    },
     devices=["influx_logger"],
     data_logger=my_db_logger,
 )
