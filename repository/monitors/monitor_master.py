@@ -6,6 +6,7 @@ from monitor_weather import MonitorWeather
 from qbutler.monitoring import make_monitor_controller
 
 from repository.monitors.monitor_covid import MonitorCOVID
+from repository.monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.monitors.monitor_ion_pump import MonitorIonPump
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,8 @@ def my_db_logger(self, name, state, data):
             fields = data
     elif isinstance(data, float):
         fields = {"value": data}
+    elif data is None:
+        return
     else:
         raise ValueError(
             "Data type %s not supported - only floats and dicts are accepted", data
@@ -47,6 +50,7 @@ MyMonitorMaster = make_monitor_controller(
         "temperature": MonitorLabTemperature,
         "ion_pump": MonitorIonPump,
         "covid": MonitorCOVID,
+        "heartbeat": MonitorHeartbeat,
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
