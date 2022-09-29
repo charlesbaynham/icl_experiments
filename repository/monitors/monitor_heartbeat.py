@@ -23,7 +23,7 @@ class MonitorHeartbeat(Calibration):
     """
 
     def build_calibration(self):
-        self.set_timeout(300)
+        self.set_timeout(3 * 60)
 
     @staticmethod
     def ping_cronitor():
