@@ -43,8 +43,8 @@ def my_db_logger(self, name, state, data):
     self.influx_logger.write(tags=tags, fields=fields, timestamp=timestamp)
 
 
-MyMonitorMaster = make_monitor_controller(
-    "MyMonitorMaster",
+MonitorMaster = make_monitor_controller(
+    "MonitorMaster",
     monitors={
         "weather": MonitorWeather,
         "temperature": MonitorLabTemperature,
