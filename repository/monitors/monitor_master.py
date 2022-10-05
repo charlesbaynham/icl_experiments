@@ -8,6 +8,7 @@ from qbutler.monitoring import make_monitor_controller
 from repository.monitors.monitor_covid import MonitorCOVID
 from repository.monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.monitors.monitor_ion_pump import MonitorIonPump
+from repository.monitors.monitor_turbopump import MonitorTurbo
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ MonitorMaster = make_monitor_controller(
         "ion_pump": MonitorIonPump,
         "covid": MonitorCOVID,
         "heartbeat": MonitorHeartbeat,
-        "turbopump": MonitorTurbo
+        "turbopump": MonitorTurbo,
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
