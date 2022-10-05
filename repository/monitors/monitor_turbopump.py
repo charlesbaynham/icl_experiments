@@ -34,7 +34,9 @@ class MonitorTurbo(Calibration):
         self.set_timeout(10)
 
     def run_once(self):
-        info_str = requests.get(self.monitor_ip.get() + RESOURCE_PATH).text
+        info_str = requests.get(
+            "http://" + self.monitor_ip.get() + "/" + RESOURCE_PATH
+        ).text
 
         pressure_str = info_str.split("|")[3]
         pressure_1_str = pressure_str.split(";")[4]
