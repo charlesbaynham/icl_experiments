@@ -51,6 +51,7 @@ MonitorMaster = make_monitor_controller(
         "ion_pump": MonitorIonPump,
         "covid": MonitorCOVID,
         "heartbeat": MonitorHeartbeat,
+        "turbopump": MonitorTurbo
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
