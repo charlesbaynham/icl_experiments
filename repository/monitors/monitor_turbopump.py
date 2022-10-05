@@ -8,7 +8,6 @@ from qbutler.calibration import CalibrationResult
 logger = logging.getLogger(__name__)
 
 
-
 # Odd path to access, determined by sniffing the web client
 RESOURCE_PATH = "!cDSSID:ae75bb64"
 
@@ -44,8 +43,7 @@ class MonitorTurbo(Calibration):
         pressure_1 = float(pressure_1_str.split(":")[1])
         pressure_2 = float(pressure_2_str.split(":")[1])
 
-
-        logger.debug('Pressures = %f / %f', pressure_1, pressure_2)
+        logger.info("Pressures = %f / %f", pressure_1, pressure_2)
 
         self.status.push(CalibrationResult.OK)
         self.data.push(
