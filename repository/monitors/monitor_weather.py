@@ -33,7 +33,7 @@ class MonitorWeather(Calibration):
     """
 
     def build_calibration(self):
-        self.set_timeout(300)
+        self.set_timeout(1800)
 
     @staticmethod
     def get_weather():
