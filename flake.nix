@@ -17,6 +17,26 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Oxford's ndscan ARTIQ extension + supporting package
+    ndscan = {
+      url = "github:OxfordIonTrapGroup/ndscan";
+      flake = false;
+    };
+    oitg = {
+      url = "github:OxfordIonTrapGroup/oitg";
+      flake = false;
+    };
+
+    # My own naffly named calibration package
+    qbutler = {
+      url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        ndscan.follows = "ndscan";
+        oitg.follows = "oitg";
+      };
+    };
+
     # Mach-nix is an extension to nix which allows you to build python
     # environments reproducably while still fetching packages from nixpkgs and
     # having fully-fledged dependency resolution.
@@ -57,7 +77,10 @@
     , nixpkgs
     , mach-nix
     , pyaion
+    , ndscan
+    , oitg
     , artiq_influx_generic
+    , qbutler
     , ...
     }:
     flake-utils.lib.eachDefaultSystem (system:
@@ -98,6 +121,9 @@
       machnixPackages = [
         drivers # Our supporting, system-specific package
         pyaion.defaultPackage.${system} # The shared AION package
+        qbutler.defaultPackage.${system}
+        ndscan # Actually just the source of a package, but mach-nix will process it
+        oitg # Also just the source of a package, needed for ndscan
       ];
       # Non-python dependencies
       nonPythonDeps = [
@@ -107,6 +133,8 @@
         pkgs.librsvg # needed for latex docs conversion of SVGs
         pkgs.influxdb # Not used by artiq directly, but useful to have in the devshell
         pkgs.grafana # Not used by artiq directly, but useful to have in the devshell
+
+        pkgs.qt5.full  # Nasty hack to temporarily get QT working
       ];
       # The rest: a newline-seperated string, listing PyPI dependencies (like a
       # normal python package). These are read from the file "requirements.in",
@@ -272,7 +300,7 @@
             script = pkgs.writeShellScriptBin "run_artiq" ''
               export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
-              exec artiq_dashboard "$@"
+              exec artiq_dashboard -v -p ndscan.dashboard_plugin "$@"
             '';
           in
           { type = "app"; program = "${script}/bin/run_artiq"; };
