@@ -39,6 +39,9 @@ Help()
    exit 0
 }
 
+echo WARNING: Performing nasty SSL certificate hack
+export SSL_CERT_DIR=/etc/ssl/certs
+
 ############################################################
 # Process the input options. Add options as needed.        #
 ############################################################
