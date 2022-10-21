@@ -86,7 +86,7 @@ if $GUI; then
     --prefix "{name} {time}" \
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
-    "sleep 5 && artiq_ctlmgr --bind \* -v"
+    "sleep 5 && artiq_ctlmgr --bind \* -v" \
     "sleep 2 && nix run .#dashboard" \
     "nix run .#backup_database" \
     "nix run .#backup_datasets" \
