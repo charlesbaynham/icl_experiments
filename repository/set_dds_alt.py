@@ -34,7 +34,6 @@ class SetUrukulChannel(EnvExperiment):
             )  ## We need a few devices, so this activates 4x urukuls and 8x suservo urukuls
             if i < 4:
                 self.setattr_device(string_uruk)
-                self.setattr_device(string_uruk)
                 used_uruk.append(string_uruk)
 
             else:
