@@ -1,7 +1,7 @@
 import artiq
-
-from artiq.experiment import *
                                
+
+from artiq.experiment import*                                   #imports everything from the artiq experiment library
 
 #This code outputs a single frequency at a fixed amplitude on a single channel of the urukul
 #The following must be input from the dashboard:
