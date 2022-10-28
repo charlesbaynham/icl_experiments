@@ -18,8 +18,8 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_device("core")                                                     #sets core device drivers as attributes
         self.setattr_device("suservo0")   
         
+        dev_db = self.get_device_db()
         check_array = [d for d in dev_db.keys() if re.match(r"suservo\d+_ch\d+", d)]
-        check_2 = [d for d in dev_db.keys() if re.match(r"urukul\d+_ch\d+", d)]
                                                    #sets urukul0, channel 1 device drivers as attributes
         self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq
         self.setattr_argument("amp", NumberValue(ndecimals=2, step=1))                  #instructs dashboard to take input and set it as an attribute called amp
