@@ -30,15 +30,15 @@ class Urukul_Programmable(EnvExperiment):
     @kernel #This code runs on the FPGA
     def run(self):  
         self.core.reset()                                       #resets core device
-        self.urukul0_ch1.cpld.init()                            #initialises CPLD on channel 1
-        self.urukul0_ch1.init()                                 #initialises channel 1
+        self.suservo0.cpld.init()                            #initialises CPLD on channel 1
+        self.suservo0.init()                                 #initialises channel 1
         delay(10 * ms)                                          #10ms delay
         
         
-        self.urukul0_ch1.set_att(self.atten)                    #writes attenuation to urukul channel
-        self.urukul0_ch1.sw.on()                                #switches urukul channel on
+        self.suservo0.set_att(self.atten)                    #writes attenuation to urukul channel
+        self.suservo0.sw.on()                                #switches urukul channel on
            
             
-        self.urukul0_ch1.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function
+        self.suservo0.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function
         delay(self.t_pulse * s)                                 #delay determined by user input
-        self.urukul0_ch1.sw.off()                               #switches urukul channel off
+        self.suservo0.sw.off()                               #switches urukul channel off
