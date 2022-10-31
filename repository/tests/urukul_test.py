@@ -36,10 +36,14 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("DDS", EnumerationValue(check_array, default=check_array[0]))
     
 
-    @kernel #This code runs on the FPGA
+     #This code runs on the FPGA
     def run(self): 
-        # type:(Channel) -> None
         dds = self.get_device(self.DDS)
+        run_run(dds)
+        
+    @kernel
+    def run_run(self, dds):
+        # type:(Channel) -> None
 
         print(dds)
         """
