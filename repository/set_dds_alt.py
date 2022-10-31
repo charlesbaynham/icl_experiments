@@ -42,7 +42,7 @@ class SetUrukulChannel(EnvExperiment):
             used_suservos.append(string_suservo)
 
         used_suservos.append("fastino0")
-        self.setattr_device("fastino0")
+        #self.setattr_device("fastino0")
         global used_devices
         used_devices = used_suservos
 
