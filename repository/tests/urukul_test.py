@@ -74,7 +74,7 @@ class Urukul_Programmable(EnvExperiment):
             profile=0,
             offset=-0.5,  # 5 V with above PGIA settings
             frequency=self.freq,
-            phase=self.phase,
+            phase=0#self.phase,
         )
         # enable RF, IIR updates and profile 0
         dds.set(en_out=1, en_iir=0, profile=0)
