@@ -21,21 +21,24 @@ class Urukul_Programmable(EnvExperiment):
     def build(self): #This code runs on the host device
         
 
-        self.setattr_device("core")                                                     #sets core device drivers as attributes
+        self.setattr_device("core")               #sets core device drivers as attributes
         self.setattr_device("suservo0")   
         
-        dds = self.get_device(self.DDS)
-
-        dev_db = self.get_device_db()
-        check_array = [d for d in dev_db.keys() if re.match(r"suservo\d+_ch\d+", d)]
+    
                                                    #sets urukul0, channel 1 device drivers as attributes
         self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq
         self.setattr_argument("amp", NumberValue(ndecimals=2, step=1))                  #instructs dashboard to take input and set it as an attribute called amp
         self.setattr_argument("atten", NumberValue(ndecimals=2, step=1))                #instructs dashboard to take input and set it as an attribute called atten
         self.setattr_argument("DDS", EnumerationValue(used_devices, default=used_devices[0]))
     
+
     @kernel #This code runs on the FPGA
     def run(self):  
+
+        dds = self.get_device(self.DDS)
+
+        dev_db = self.get_device_db()
+        check_array = [d for d in dev_db.keys() if re.match(r"suservo\d+_ch\d+", d)]
         self.core.reset()  # resets core device
 
         dds.cpld.init()  # initialises CPLD on channel 1
