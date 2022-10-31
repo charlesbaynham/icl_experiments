@@ -30,12 +30,9 @@ class Urukul_Programmable(EnvExperiment):
         for val in check_array:
             self.setattr_device(val)
                                                    #sets urukul0, channel 1 device drivers as attributes
-        self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq
-        self.setattr_argument("amp", NumberValue(ndecimals=2, step=1))                  #instructs dashboard to take input and set it as an attribute called amp
-        self.setattr_argument("atten", NumberValue(ndecimals=2, step=1))                #instructs dashboard to take input and set it as an attribute called atten
-        self.setattr_argument(
-            "phase", NumberValue(default=0, min=0, max=1, ndecimals=2)
-        )
+        self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq                 #instructs dashboard to take input and set it as an attribute called amp
+        self.setattr_argument("att", NumberValue(default=0, unit="dB", min=0, max=31.5, ndecimals=1))  # instructs dashboard to take input and set it as an attribute called amp
+        self.setattr_argument("phase", NumberValue(default=0, min=0, max=1, ndecimals=2))
         self.setattr_argument("DDS", EnumerationValue(check_array, default=check_array[0]))
     
 
