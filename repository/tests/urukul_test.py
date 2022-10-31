@@ -39,7 +39,8 @@ class Urukul_Programmable(EnvExperiment):
      #This code runs on the FPGA
     def run(self): 
         dds = self.get_device(self.DDS)
-        run_run(dds)
+        print(dds)
+        #run_run(dds)
         
     @kernel
     def run_run(self, dds):
