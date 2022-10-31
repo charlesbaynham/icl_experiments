@@ -40,16 +40,14 @@ class Urukul_Programmable(EnvExperiment):
     
 
      #This code runs on the FPGA
-    def run(self): 
+    #def run(self): 
         dds = self.get_device(self.DDS)
-        print(dds)
-        self.fpga(dds)
+        #self.fpga(dds)
         
     @kernel
     def fpga(self, dds):
         # type:(Channel) -> None
-
-        
+        dds = self.get_device(self.DDS)
         self.core.reset()  # resets core device
         
         cpld = self.suservo0.cplds[0]
