@@ -36,10 +36,15 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("DDS", EnumerationValue(check_array, default=check_array[0]))
     
 
-    @kernel #This code runs on the FPGA
-    def run(self):  
+    #@kernel #This code runs on the FPGA
+    def run(self): 
+
         dds = self.get_device(self.DDS)
-        self.core.reset()  # resets core device
+
+        dev_db = self.get_device_db()
+        check_array = [d for d in dev_db.keys() if re.match(r"suservo\d+_ch\d+", d)]
+        print(check_array)
+        #self.core.reset()  # resets core device
         
         """
         
