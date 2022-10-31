@@ -33,7 +33,7 @@ class SetUrukulChannel(EnvExperiment):
                 it=i
             )  ## We need a few devices, so this activates 4x urukuls and 8x suservo urukuls
             if i < 4:
-                self.setattr_device(string_uruk)
+                #self.setattr_device(string_uruk)
                 used_uruk.append(string_uruk)
 
             else:
@@ -44,7 +44,7 @@ class SetUrukulChannel(EnvExperiment):
         used_suservos.append("fastino0")
         self.setattr_device("fastino0")
         global used_devices
-        used_devices = [y for x in [used_uruk, used_suservos] for y in x]
+        used_devices = used_suservos
 
         self.setattr_argument(
             "freq",
@@ -158,7 +158,7 @@ class SetUrukulChannel(EnvExperiment):
             phase=self.phase,
         )
         # enable RF, IIR updates and profile 0
-        dds.set(en_out=1, en_iir=1, profile=0)
+        dds.set(en_out=1, en_iir=0, profile=0)
         # enable global servo iterations
         self.suservo0.set_config(enable=1)
         # dds.set_dds(profile, frequency, offset, phase)
