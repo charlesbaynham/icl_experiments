@@ -33,6 +33,9 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq
         self.setattr_argument("amp", NumberValue(ndecimals=2, step=1))                  #instructs dashboard to take input and set it as an attribute called amp
         self.setattr_argument("atten", NumberValue(ndecimals=2, step=1))                #instructs dashboard to take input and set it as an attribute called atten
+        self.setattr_argument(
+            "phase", NumberValue(default=0, min=0, max=1, ndecimals=2)
+        )
         self.setattr_argument("DDS", EnumerationValue(check_array, default=check_array[0]))
     
 
@@ -74,7 +77,7 @@ class Urukul_Programmable(EnvExperiment):
             profile=0,
             offset=-0.5,  # 5 V with above PGIA settings
             frequency=self.freq,
-            phase=0#self.phase,
+            phase=self.phase,
         )
         # enable RF, IIR updates and profile 0
         dds.set(en_out=1, en_iir=0, profile=0)
