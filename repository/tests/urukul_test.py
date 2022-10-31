@@ -33,7 +33,7 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq
         self.setattr_argument("amp", NumberValue(ndecimals=2, step=1))                  #instructs dashboard to take input and set it as an attribute called amp
         self.setattr_argument("atten", NumberValue(ndecimals=2, step=1))                #instructs dashboard to take input and set it as an attribute called atten
-        self.setattr_argument("DDS", EnumerationValue(used_devices, default=used_devices[0]))
+        self.setattr_argument("DDS", EnumerationValue(check_array, default=check_array[0]))
     
 
     @kernel #This code runs on the FPGA
