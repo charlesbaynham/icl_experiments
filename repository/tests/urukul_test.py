@@ -38,12 +38,45 @@ class Urukul_Programmable(EnvExperiment):
 
     @kernel #This code runs on the FPGA
     def run(self): 
-
+        # type:(Channel) -> None
         dds = self.get_device(self.DDS)
 
-
+        print(dds)
         self.core.reset()  # resets core device
         
+        cpld = self.suservo0.cplds[0]
+        self.core.reset()
+
+        self.suservo0.init()
+        delay(1 * us)
+
+        # ADC PGIA gain
+        for i in range(8):
+            self.suservo0.set_pgia_mu(i, 0)
+            delay(10 * us)
+
+        # DDS attenuator
+        cpld.set_att(0, 10.0)
+        delay(1 * us)
+
+        # Servo is done and disabled
+        assert self.suservo0.get_status() & 0xFF == 2
+
+        # set up profile 0 on channel 0:
+        delay(120 * us)
+        dds.set_y(profile=0, y=0.0)  # clear integrator
+        dds.set_dds(
+            profile=0,
+            offset=-0.5,  # 5 V with above PGIA settings
+            frequency=self.freq,
+            phase=self.phase,
+        )
+        # enable RF, IIR updates and profile 0
+        dds.set(en_out=1, en_iir=0, profile=0)
+        # enable global servo iterations
+        self.suservo0.set_config(enable=1)
+       
+        """
         dds.set_dds(
             profile=0,
             offset=-0.5,  # 5 V with above PGIA settings
@@ -65,3 +98,4 @@ class Urukul_Programmable(EnvExperiment):
         dds.set_att(self.att)
 
         dds.sw.on()  # switches urukul channel on                             #switches urukul channel off
+        """
