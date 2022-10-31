@@ -40,10 +40,10 @@ class Urukul_Programmable(EnvExperiment):
     def run(self): 
         dds = self.get_device(self.DDS)
         print(dds)
-        #run_run(dds)
+        self.fpga(dds)
         
     @kernel
-    def run_run(self, dds):
+    def fpga(self, dds):
         # type:(Channel) -> None
 
         print(dds)
