@@ -46,8 +46,7 @@ class Urukul_Programmable(EnvExperiment):
     def fpga(self, dds):
         # type:(Channel) -> None
 
-        print(dds)
-        """
+        
         self.core.reset()  # resets core device
         
         cpld = self.suservo0.cplds[0]
@@ -81,7 +80,7 @@ class Urukul_Programmable(EnvExperiment):
         dds.set(en_out=1, en_iir=0, profile=0)
         # enable global servo iterations
         self.suservo0.set_config(enable=1)
-        """
+    
         """
         dds.set_dds(
             profile=0,
