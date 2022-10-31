@@ -43,7 +43,9 @@ class Urukul_Programmable(EnvExperiment):
 
         dev_db = self.get_device_db()
         check_array = [d for d in dev_db.keys() if re.match(r"suservo\d+_ch\d+", d)]
-        print(check_array)
+        
+        for val in check_array:
+            print(val)
         #self.core.reset()  # resets core device
         
         """
