@@ -1,7 +1,13 @@
-import artiq
-                               
+import re
 
-from artiq.experiment import*                                   #imports everything from the artiq experiment library
+import numpy
+from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.fastino import Fastino
+from artiq.coredevice.suservo import Channel
+from artiq.coredevice.suservo import SUServo
+from artiq.experiment import *
+from regex import D                                #imports everything from the artiq experiment library
 
 #This code outputs a single frequency at a fixed amplitude on a single channel of the urukul
 #The following must be input from the dashboard:
@@ -18,27 +24,27 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_device("core")                                                     #sets core device drivers as attributes
         self.setattr_device("suservo0")   
         
+        dds = self.get_device(self.DDS)
+
         dev_db = self.get_device_db()
         check_array = [d for d in dev_db.keys() if re.match(r"suservo\d+_ch\d+", d)]
                                                    #sets urukul0, channel 1 device drivers as attributes
         self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq
         self.setattr_argument("amp", NumberValue(ndecimals=2, step=1))                  #instructs dashboard to take input and set it as an attribute called amp
         self.setattr_argument("atten", NumberValue(ndecimals=2, step=1))                #instructs dashboard to take input and set it as an attribute called atten
-        self.setattr_argument("t_pulse", NumberValue(ndecimals=2, unit = "s", step=1))  #instructs dashboard to take input and set it as an attribute called t_pulse
-        
+        self.setattr_argument("DDS", EnumerationValue(used_devices, default=used_devices[0]))
     
     @kernel #This code runs on the FPGA
     def run(self):  
-        self.core.reset()                                       #resets core device
-        self.suservo0.cpld.init()                            #initialises CPLD on channel 1
-        self.suservo0.init()                                 #initialises channel 1
-        delay(10 * ms)                                          #10ms delay
-        
-        
-        self.suservo0.set_att(self.atten)                    #writes attenuation to urukul channel
-        self.suservo0.sw.on()                                #switches urukul channel on
-           
-            
-        self.suservo0.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function
-        delay(self.t_pulse * s)                                 #delay determined by user input
-        self.suservo0.sw.off()                               #switches urukul channel off
+        self.core.reset()  # resets core device
+
+        dds.cpld.init()  # initialises CPLD on channel 1
+        dds.init()
+
+        att_reg = dds.cpld.get_att_mu()
+        delay(250 * us)
+
+        dds.set(self.freq, self.phase)
+        dds.set_att(self.att)
+
+        dds.sw.on()  # switches urukul channel on                             #switches urukul channel off
