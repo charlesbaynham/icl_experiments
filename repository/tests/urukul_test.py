@@ -36,20 +36,24 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("DDS", EnumerationValue(check_array, default=check_array[0]))
     
 
-    #@kernel #This code runs on the FPGA
+    @kernel #This code runs on the FPGA
     def run(self): 
 
         dds = self.get_device(self.DDS)
 
-        dev_db = self.get_device_db()
-        check_array = [d for d in dev_db.keys() if re.match(r"suservo\d+_ch\d+", d)]
+
+        self.core.reset()  # resets core device
         
-        for val in check_array:
-            print(val)
-        #self.core.reset()  # resets core device
-        
-        """
-        
+        dds.set_dds(
+            profile=0,
+            offset=-0.5,  # 5 V with above PGIA settings
+            frequency=self.freq,
+            phase=self.phase,
+        )
+        # enable RF, IIR updates and profile 0
+        dds.set(en_out=1, en_iir=0, profile=0)
+        # enable global servo iterations
+        self.suservo0.set_config(enable=1)
 
         dds.cpld.init()  # initialises CPLD on channel 1
         dds.init()
@@ -61,4 +65,3 @@ class Urukul_Programmable(EnvExperiment):
         dds.set_att(self.att)
 
         dds.sw.on()  # switches urukul channel on                             #switches urukul channel off
-        """
