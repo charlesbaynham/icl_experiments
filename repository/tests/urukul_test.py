@@ -45,7 +45,7 @@ class Urukul_Programmable(EnvExperiment):
         #self.fpga(dds)
         
     @kernel
-    def fpga(self, dds):
+    def fpga(self):
         # type:(Channel) -> None
         dds = self.get_device(self.DDS)
         self.core.reset()  # resets core device
