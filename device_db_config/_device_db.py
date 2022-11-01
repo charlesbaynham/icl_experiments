@@ -129,13 +129,13 @@ device_db["urukul0_cpld"] = {
     "type": "local",
     "module": "artiq.coredevice.urukul",
     "class": "CPLD",
-    "arguments": {"spi_device": "spi_urukul0", "refclk": 100000000.0, "clk_sel": 0},
+    "arguments": {"spi_device": "spi_urukul0", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul0_dds"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
-    "arguments": {"pll_n": 40, "chip_select": 3, "cpld_device": "urukul0_cpld"},
+    "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul0_cpld"},
 }
 
 device_db["spi_urukul1"] = {
@@ -148,13 +148,13 @@ device_db["urukul1_cpld"] = {
     "type": "local",
     "module": "artiq.coredevice.urukul",
     "class": "CPLD",
-    "arguments": {"spi_device": "spi_urukul1", "refclk": 100000000.0, "clk_sel": 0},
+    "arguments": {"spi_device": "spi_urukul1", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul1_dds"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
-    "arguments": {"pll_n": 40, "chip_select": 3, "cpld_device": "urukul1_cpld"},
+    "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul1_cpld"},
 }
 
 device_db["suservo1_ch0"] = {
@@ -242,13 +242,13 @@ device_db["urukul2_cpld"] = {
     "type": "local",
     "module": "artiq.coredevice.urukul",
     "class": "CPLD",
-    "arguments": {"spi_device": "spi_urukul2", "refclk": 100000000.0, "clk_sel": 0},
+    "arguments": {"spi_device": "spi_urukul2", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul2_dds"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
-    "arguments": {"pll_n": 40, "chip_select": 3, "cpld_device": "urukul2_cpld"},
+    "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul2_cpld"},
 }
 
 device_db["spi_urukul3"] = {
@@ -261,13 +261,13 @@ device_db["urukul3_cpld"] = {
     "type": "local",
     "module": "artiq.coredevice.urukul",
     "class": "CPLD",
-    "arguments": {"spi_device": "spi_urukul3", "refclk": 100000000.0, "clk_sel": 0},
+    "arguments": {"spi_device": "spi_urukul3", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul3_dds"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
-    "arguments": {"pll_n": 40, "chip_select": 3, "cpld_device": "urukul3_cpld"},
+    "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul3_cpld"},
 }
 
 device_db["led0"] = {
