@@ -42,7 +42,7 @@ device_db = {
     },
 }
 
-# master peripherals
+# standalone peripherals
 
 device_db["suservo0_ch0"] = {
     "type": "local",
@@ -129,13 +129,13 @@ device_db["urukul0_cpld"] = {
     "type": "local",
     "module": "artiq.coredevice.urukul",
     "class": "CPLD",
-    "arguments": {"spi_device": "spi_urukul0", "refclk": 100000000.0, "clk_sel": 0},
+    "arguments": {"spi_device": "spi_urukul0", "refclk": 125000000.0, "clk_sel": 0},
 }
 device_db["urukul0_dds"] = {
     "type": "local",
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
-    "arguments": {"pll_n": 40, "chip_select": 3, "cpld_device": "urukul0_cpld"},
+    "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul0_cpld"},
 }
 
 device_db["spi_urukul1"] = {
@@ -268,4 +268,18 @@ device_db["urukul3_dds"] = {
     "module": "artiq.coredevice.ad9910",
     "class": "AD9910",
     "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul3_cpld"},
+}
+
+device_db["led0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x000018},
+}
+
+device_db["led1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x000019},
 }
