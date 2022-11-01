@@ -47,15 +47,15 @@ def get_non_core_devices(simulation_mode=False):
         },
         # Example devices: edit to suit your lab
         # An example of a local device:
-        "SomeCurrentDriver": {
-            "type": "local",
-            "module": "icldrivers.peripherals.TTI_QL335TP",
-            "class": "TTI_QL335TP",
-            "arguments": {
-                "id": "USB VID:PID=103E:03E8 SER=TT29WXY4A",
-                "simulation": simulation_mode,
-            },
-        },
+        # "SomeCurrentDriver": {
+        #     "type": "local",
+        #     "module": "icldrivers.peripherals.TTI_QL335TP",
+        #     "class": "TTI_QL335TP",
+        #     "arguments": {
+        #         "id": "USB VID:PID=103E:03E8 SER=TT29WXY4A",
+        #         "simulation": simulation_mode,
+        #     },
+        # },
         # An example of a controller device:
         # This is commented out since otherwise you'll get error messages
         # because you don't have this device in your lab.
@@ -67,16 +67,16 @@ def get_non_core_devices(simulation_mode=False):
         #     "command": 'aqctl_TTIPowerSupply --port {port} --bind {bind} --id "USB VID:PID=103E:03E8 SER=TTTEO7KJA"',
         # },
         # An example of connecting to a Toptica DLC Pro
-        "ATopticaDLCPro": {
-            "type": "local",
-            "module": "icldrivers.peripherals.TopticaDLCPro",
-            "class": "TopticaDLCPro",
-            "arguments": {
-                "ip": "1.2.3.4",
-                "laser": "laser1",
-                "simulation": simulation_mode,
-            },
-        },
+        # "ATopticaDLCPro": {
+        #     "type": "local",
+        #     "module": "icldrivers.peripherals.TopticaDLCPro",
+        #     "class": "TopticaDLCPro",
+        #     "arguments": {
+        #         "ip": "1.2.3.4",
+        #         "laser": "laser1",
+        #         "simulation": simulation_mode,
+        #     },
+        # },
     }
 
     return _non_core

@@ -99,12 +99,6 @@
       # Define the requirements for the ARTIQ environment. These are used to
       # launch a devShell with these requirements present.
 
-      # A build of the drivers package within this repository
-      drivers = mach-nix.lib."${system}".buildPythonPackage {
-        src = "${self}/drivers";
-        version = "0.0.0";
-      };
-
       # Packages built with buildPythonPackage but which are not in nixpkgs already
       nonPyPIPackages = [
         patched_artiq
@@ -119,7 +113,6 @@
       ];
       # Packages which were built with mach-nix
       machnixPackages = [
-        drivers # Our supporting, system-specific package
         pyaion.defaultPackage.${system} # The shared AION package
         qbutler.defaultPackage.${system}
         ndscan # Actually just the source of a package, but mach-nix will process it
@@ -134,7 +127,7 @@
         pkgs.influxdb # Not used by artiq directly, but useful to have in the devshell
         pkgs.grafana # Not used by artiq directly, but useful to have in the devshell
 
-        pkgs.qt5.full  # Nasty hack to temporarily get QT working
+        pkgs.qt5.full # Nasty hack to temporarily get QT working
       ];
       # The rest: a newline-seperated string, listing PyPI dependencies (like a
       # normal python package). These are read from the file "requirements.in",
@@ -224,7 +217,6 @@
             cp -r $src/* .
             chmod -R +w .
             sphinx-apidoc -o docs/autogen/repo repository
-            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             sphinx-build docs html_out -b html
             mv html_out $out
           '';
@@ -242,7 +234,6 @@
             cp -r $src/* .
             chmod -R +w .
             sphinx-apidoc -o docs/autogen/repo repository
-            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             sphinx-build docs latex -b latex
             mv latex $out
           '';
@@ -255,7 +246,6 @@
             export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
 
             sphinx-apidoc -o docs/autogen/repo repository
-            sphinx-apidoc -o docs/autogen/drivers drivers/icldrivers
             exec sphinx-autobuild docs html_out
           '';
         in
