@@ -1,7 +1,10 @@
+import logging
 import re
 
+from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
+from artiq.coredevice.urukul import CPLD
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
@@ -60,6 +63,14 @@ class SetSUServoStatic(EnvExperiment):
     ):
         # type:(Channel, float, float, float) -> None
 
+        logging.info(
+            "Setting channel %s to %f MHz, amp = %f, att = %f",
+            suservo_channel,
+            1e-6 * freq,
+            amplitude,
+            attenuation,
+        )
+
         suservo = suservo_channel.servo  # type: SUServo
 
         self.core.reset()
@@ -67,8 +78,16 @@ class SetSUServoStatic(EnvExperiment):
 
         suservo.init()
 
-        # Set the attenuator for this channel
-        suservo_channel.dds.cpld.set_att(0, attenuation)
+        # Set the attenuator for all channels on this Urukul
+        cpld = suservo_channel.dds.cpld  # type: CPLD
+        attenuation_mu = cpld.att_to_mu(attenuation)
+        att_reg = (
+            attenuation_mu
+            | (attenuation_mu << 1 * 8)
+            | (attenuation_mu << 2 * 8)
+            | (attenuation_mu << 3 * 8)
+        )
+        cpld.set_all_att_mu(att_reg)
 
         # Configure profile 0 to have the requested amplitude and frequency
         suservo_channel.set_y(profile=0, y=amplitude)
