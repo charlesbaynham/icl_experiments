@@ -1,13 +1,14 @@
-from artiq.coredevice.ad9910 import AD9910
+import re
+
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import delay
+from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import ms
 from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
-from artiq.experiment import TInt32
 
 
 class SetSUServoStatic(EnvExperiment):
@@ -19,52 +20,35 @@ class SetSUServoStatic(EnvExperiment):
     def build(self):
         self.setattr_device("core")
 
-        # used_uruk = []
-        # used_suservos = []
+        self.setattr_argument(
+            "frequency",
+            NumberValue(
+                default=100e6,
+                unit="MHz",
+                step=1,
+                ndecimals=2,
+            ),
+        )
+        self.setattr_argument(
+            "amplitude", NumberValue(default=1.0, min=0, max=1, ndecimals=1)
+        )
+        self.setattr_argument(
+            "attenuation",
+            NumberValue(default=30, unit="dB", min=0, max=31.5, ndecimals=1),
+        )
 
-        # for i in range(8):
-        #     string_uruk = "urukul0_ch{it}".format(it=i)
-        #     string_suservo = "suservo0_ch{it}".format(
-        #         it=i
-        #     )  ## We need a few devices, so this activates 4x urukuls and 8x suservo urukuls
-        #     if i < 4:
-        #         self.setattr_device(string_uruk)
-        #         used_uruk.append(string_uruk)
-
-        #     else:
-        #         self.setattr_device(string_suservo)
-
-        #     used_suservos.append(string_suservo)
-
-        # used_suservos.append("fastino0")
-        # self.setattr_device("fastino0")
-        # global used_devices
-        # used_devices = [y for x in [used_uruk, used_suservos] for y in x]
-
-        # self.setattr_argument(
-        #     "freq",
-        #     NumberValue(
-        #         default=0,
-        #         unit="MHz",
-        #         step=1,
-        #         ndecimals=0,
-        #     ),
-        # )  # instructs dashboard to take input in MHz and set it as an attribute called freq
-        # self.setattr_argument(
-        #     "att", NumberValue(default=0, unit="dB", min=0, max=31.5, ndecimals=1)
-        # )  # instructs dashboard to take input and set it as an attribute called amp
-        # self.setattr_argument(
-        #     "phase", NumberValue(default=0, min=0, max=1, ndecimals=2)
-        # )
-
-        # ## Option for phase TODO
-        # self.setattr_argument(
-        #     "DDS", EnumerationValue(used_devices, default=used_devices[0])
-        # )
+        suservo_channels = [
+            d for d in self.get_device_db().keys() if re.match(r"suservo\d+_ch\d+", d)
+        ]
+        self.setattr_argument(
+            "channel", EnumerationValue(suservo_channels, default=suservo_channels[0])
+        )
 
     def run(self):
-        chan = self.get_device("suservo0_ch0")
-        self.init_and_set_suservo(chan, 200.0e6, 0.5)
+        chan = self.get_device(self.channel)
+        self.init_and_set_suservo(
+            chan, self.frequency, self.amplitude, self.attenuation
+        )
 
     @kernel
     def init_and_set_suservo(
