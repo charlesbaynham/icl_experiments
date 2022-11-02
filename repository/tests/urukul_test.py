@@ -6,6 +6,8 @@ from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.fastino import Fastino
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
+from artiq.coredevice.urukul import CPLD
+
 from artiq.experiment import *
                      #imports everything from the artiq experiment library
 
