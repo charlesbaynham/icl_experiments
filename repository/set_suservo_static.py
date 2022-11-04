@@ -1,62 +1,94 @@
 import logging
 import re
 
-from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.coredevice.urukul import CPLD
-from artiq.experiment import delay
-from artiq.experiment import EnumerationValue
-from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
-from artiq.experiment import ms
-from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatParam
+from ndscan.experiment import StringParam
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 
-class SetSUServoStatic(EnvExperiment):
-    """Set a static SUServo output
+class SetSUServoStatic(ExpFragment):
+    """
+    Set a static SUServo output
 
-    This Experiment will reinitialise the SUServo, clearing any currently set frequencies
+    The channel to be set should be configured using
+    :meth:`.Fragment.override_param` or :meth:`.Fragment.bind_param`.
+
+    The :meth:`.Fragment.device_setup` of this ExpFragment will reinitialise the
+    entire SUServo device. This Fragment then provides a :meth:`.set_suservo`
+    method which can be used to set the specified channel's output (and which
+    ignores the "frequency", "amplitude" etc parameters). The :meth:`.run_once`
+    method just calls :meth:`.set_suservo` using the parameters.
+
+    FIXME: This Fragment currently sets all channels on the same Urukul to have
+    the same attenuation as the desired one. This is obviously a problem.
     """
 
-    def build(self):
+    def build_fragment(self):
         self.setattr_device("core")
 
-        self.setattr_argument(
+        self.setattr_param(
             "frequency",
-            NumberValue(
-                default=100e6,
-                unit="MHz",
-                step=1,
-                ndecimals=2,
-            ),
+            FloatParam,
+            description="Static frequency of the SUServo channel",
+            default=100e6,
+            min=0,
+            max=400e6,  # from AD9910 specs
+            unit="MHz",
+            step=1,
+            # ndecimals=2,
         )
-        self.setattr_argument(
-            "amplitude", NumberValue(default=1.0, min=0, max=1, ndecimals=1)
+
+        self.setattr_param(
+            "amplitude",
+            FloatParam,
+            description="Amplitude of AD9910 output, from 0 to 1",
+            default=1.0,
+            min=0,
+            max=1,
+            # ndecimals=1,
         )
-        self.setattr_argument(
+        self.setattr_param(
             "attenuation",
-            NumberValue(default=30, unit="dB", min=0, max=31.5, ndecimals=1),
+            FloatParam,
+            description="Attenuation on Urukul's variable attenuator",
+            default=30,
+            unit="dB",
+            min=0,
+            max=31.5,
+            # ndecimals=1,
         )
 
         suservo_channels = [
             d for d in self.get_device_db().keys() if re.match(r"suservo\d+_ch\d+", d)
         ]
-        self.setattr_argument(
-            "channel", EnumerationValue(suservo_channels, default=suservo_channels[0])
+        self.setattr_param(
+            "channel",
+            StringParam,
+            description="SUServo channel to set",
+            default='"' + suservo_channels[0] + '"',
         )
 
-    def run(self):
-        chan = self.get_device(self.channel)
-        self.init_and_set_suservo(
-            chan, self.frequency, self.amplitude, self.attenuation
-        )
+    def host_setup(self):
+        self.suservo_channel: Channel = self.get_device(self.channel.get())
+        self.suservo: SUServo = self.suservo_channel.servo
 
     @kernel
-    def init_and_set_suservo(
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        # Initiate the suservo itself (i.e. all four channels)
+        self.core.break_realtime()
+        self.suservo.init()
+
+    @kernel
+    def set_suservo(
         self,
-        suservo_channel,
         freq: TFloat,
         amplitude: TFloat,
         attenuation: TFloat = 30.0,
@@ -65,21 +97,14 @@ class SetSUServoStatic(EnvExperiment):
 
         logging.info(
             "Setting channel %s to %f MHz, amp = %f, att = %f",
-            suservo_channel,
+            self.suservo_channel,
             1e-6 * freq,
             amplitude,
             attenuation,
         )
 
-        suservo = suservo_channel.servo  # type: SUServo
-
-        self.core.reset()
-        delay(1 * ms)
-
-        suservo.init()
-
         # Set the attenuator for all channels on this Urukul
-        cpld = suservo_channel.dds.cpld  # type: CPLD
+        cpld = self.suservo_channel.dds.cpld  # type: CPLD
         attenuation_mu = cpld.att_to_mu(attenuation)
         att_reg = (
             attenuation_mu
@@ -90,8 +115,8 @@ class SetSUServoStatic(EnvExperiment):
         cpld.set_all_att_mu(att_reg)
 
         # Configure profile 0 to have the requested amplitude and frequency
-        suservo_channel.set_y(profile=0, y=amplitude)
-        suservo_channel.set_dds(
+        self.suservo_channel.set_y(profile=0, y=amplitude)
+        self.suservo_channel.set_dds(
             profile=0,
             offset=-0.5,  # Not used
             frequency=freq,
@@ -99,5 +124,14 @@ class SetSUServoStatic(EnvExperiment):
         )
 
         # Enable profile 0 and the suservo more widely
-        suservo_channel.set(en_out=1, en_iir=0, profile=0)
-        suservo.set_config(enable=1)
+        self.suservo_channel.set(en_out=1, en_iir=0, profile=0)
+        self.suservo.set_config(enable=1)
+
+    @kernel
+    def run_once(self):
+        self.set_suservo(
+            self.frequency.get(), self.amplitude.get(), self.attenuation.get()
+        )
+
+
+SetSUServoStaticExp = make_fragment_scan_exp(SetSUServoStatic)
