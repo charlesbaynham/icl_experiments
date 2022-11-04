@@ -17,9 +17,11 @@ class SetSUServoStatic(ExpFragment):
     Set a static SUServo output
 
     The channel to be set should be configured using
-    :meth:`.Fragment.override_param` or :meth:`.Fragment.bind_param`.
+    :meth:`~ndscan.experiment.fragment.Fragment.override_param` or
+    :meth:`~ndscan.experiment.fragment.Fragment.bind_param`.
 
-    The :meth:`.Fragment.device_setup` of this ExpFragment will reinitialise the
+    The :meth:`~ndscan.experiment.fragment.Fragment.device_setup` of this
+    :class:`~ndscan.experiment.fragment.ExpFragment` will reinitialise the
     entire SUServo device. This Fragment then provides a :meth:`.set_suservo`
     method which can be used to set the specified channel's output (and which
     ignores the "frequency", "amplitude" etc parameters). The :meth:`.run_once`
