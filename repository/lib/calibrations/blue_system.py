@@ -44,11 +44,11 @@ class BlueInjectionAOM(Calibration):
             max=31.5,
         )
 
-        self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic)
-        self.LibSetSUServoStatic: LibSetSUServoStatic
+        # self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic)
+        # self.LibSetSUServoStatic: LibSetSUServoStatic
 
-        self.setattr_device("core")
-        self.suservo_injection_aom: Channel = self.get_device("suservo_injection_aom")
+        # self.setattr_device("core")
+        # self.suservo_injection_aom: Channel = self.get_device("suservo_injection_aom")
 
     # @kernel
     # def device_setup(self) -> None:
