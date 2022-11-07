@@ -91,8 +91,8 @@ if $GUI; then
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v" \
     "sleep 2 && nix run .#dashboard" \
-    # "nix run .#backup_database" \
-    # "nix run .#backup_datasets" \
+    "nix run .#backup_database" \
+    "nix run .#backup_datasets" \
     "nix run .#database" \
     "nix run .#grafana" \
     "ndscan_dataset_janitor"
@@ -106,8 +106,8 @@ else
     --timestamp-format "yyyy-MM-dd HH:mm:ss" \
     "$MASTER_COMMAND" \
     "sleep 5 && artiq_ctlmgr --bind \* -v" \
-    # "nix run .#backup_database" \
-    # "nix run .#backup_datasets" \
+    "nix run .#backup_database" \
+    "nix run .#backup_datasets" \
     "nix run .#database" \
     "nix run .#grafana" \
     "ndscan_dataset_janitor"
