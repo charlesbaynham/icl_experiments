@@ -60,7 +60,6 @@ class BlueInjectionAOM(Calibration):
             self.core.break_realtime()
             self.suservo_injection_aom.servo.init()
 
-    @portable
     def run_once(self):
         if self.setup_completed:
             self.status.push(CalibrationResult.OK)
