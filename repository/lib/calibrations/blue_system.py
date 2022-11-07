@@ -50,15 +50,15 @@ class BlueInjectionAOM(Calibration):
         self.setattr_device("core")
         self.suservo_injection_aom: Channel = self.get_device("suservo_injection_aom")
 
-    @kernel
-    def device_setup(self) -> None:
-        self.device_setup_subfragments()
+    # @kernel
+    # def device_setup(self) -> None:
+    #     self.device_setup_subfragments()
 
-        try:
-            self.suservo_injection_aom.servo.init()
-        except RTIOUnderflow:
-            self.core.break_realtime()
-            self.suservo_injection_aom.servo.init()
+    #     try:
+    #         self.suservo_injection_aom.servo.init()
+    #     except RTIOUnderflow:
+    #         self.core.break_realtime()
+    #         self.suservo_injection_aom.servo.init()
 
     def run_once(self):
         if self.setup_completed:
@@ -68,13 +68,13 @@ class BlueInjectionAOM(Calibration):
 
         self.data.push(None)
 
-    @kernel
+    # @kernel
     def fix_own_state(self):
         self.setup_completed = True
 
-        self.LibSetSUServoStatic.set_suservo(
-            self.frequency.get(), 1.0, self.attenuation.get()
-        )
+        # self.LibSetSUServoStatic.set_suservo(
+        # self.frequency.get(), 1.0, self.attenuation.get()
+        # )
 
 
 TurnOnBlueInjectionAOM = make_fragment_scan_exp(BlueInjectionAOM)
