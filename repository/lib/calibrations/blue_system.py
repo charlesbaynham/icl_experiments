@@ -1,7 +1,6 @@
 import logging
 
 from artiq.coredevice.suservo import Channel
-from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
 from artiq.experiment import portable
 from artiq.experiment import RTIOUnderflow
@@ -9,8 +8,9 @@ from ndscan.experiment import FloatParam
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
+from repository.lib.constants import BLUE_INJECTION_AOM_ATTENUATION
+from repository.lib.constants import BLUE_INJECTION_AOM_DEFAULT_FREQUENCY
 from repository.lib.fragments.suservo import LibSetSUServoStatic
-
 
 logger = logging.getLogger(__name__)
 
@@ -28,26 +28,17 @@ class BlueInjectionAOM(Calibration):
             "frequency",
             FloatParam,
             description="Frequency of the double-pass injection AOM",
-            default=200e6,
+            default=BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
             min=0,
             max=400e6,  # from AD9910 specs
             unit="MHz",
             step=0.1,
         )
         self.setattr_param(
-            "amplitude",
-            FloatParam,
-            description="Amplitude of AD9910 output, from 0 to 1",
-            default=1.0,
-            min=0,
-            max=1,
-        )
-        self.setattr_param(
             "attenuation",
             FloatParam,
             description="Attenuation on Urukul's variable attenuator",
-            default=20,
-            unit="dB",
+            default=BLUE_INJECTION_AOM_ATTENUATION,
             min=0,
             max=31.5,
         )
@@ -77,9 +68,10 @@ class BlueInjectionAOM(Calibration):
 
         self.data.push(None)
 
+    @kernel
     def fix_own_state(self):
         self.setup_completed = True
 
         self.LibSetSUServoStatic.set_suservo(
-            self.frequency.get(), self.amplitude.get(), self.attenuation.get()
+            self.frequency.get(), 1.0, self.attenuation.get()
         )
