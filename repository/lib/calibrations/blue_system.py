@@ -69,12 +69,12 @@ class BlueInjectionAOM(Calibration):
         self.data.push(None)
 
     # @kernel
-    def fix_own_state(self):
-        self.setup_completed = True
+    # def fix_own_state(self):
+    #     self.setup_completed = True
 
-        # self.LibSetSUServoStatic.set_suservo(
-        # self.frequency.get(), 1.0, self.attenuation.get()
-        # )
+    # self.LibSetSUServoStatic.set_suservo(
+    # self.frequency.get(), 1.0, self.attenuation.get()
+    # )
 
 
 TurnOnBlueInjectionAOM = make_fragment_scan_exp(BlueInjectionAOM)
