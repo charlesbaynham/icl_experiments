@@ -8,4 +8,4 @@ default setting in a build() method somewhere: it should be here.
 
 
 BLUE_INJECTION_AOM_ATTENUATION = 20.0
-BLUE_INJECTION_AOM_DEFAULT_FREQUENCY = 200
+BLUE_INJECTION_AOM_DEFAULT_FREQUENCY = 200e6
