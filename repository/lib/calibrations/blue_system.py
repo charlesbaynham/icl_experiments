@@ -5,6 +5,7 @@ from artiq.experiment import kernel
 from artiq.experiment import portable
 from artiq.experiment import RTIOUnderflow
 from ndscan.experiment import FloatParam
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
@@ -75,3 +76,6 @@ class BlueInjectionAOM(Calibration):
         self.LibSetSUServoStatic.set_suservo(
             self.frequency.get(), 1.0, self.attenuation.get()
         )
+
+
+TurnOnBlueInjectionAOM = make_fragment_scan_exp(BlueInjectionAOM)
