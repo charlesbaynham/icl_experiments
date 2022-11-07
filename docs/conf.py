@@ -72,6 +72,10 @@ intersphinx_mapping = {
         "https://oxfordiontrapgroup.github.io/ndscan",
         "https://oxfordiontrapgroup.github.io/ndscan/objects.inv",
     ),
+    "qbutler": (
+        "https://aion-physics.gitlab.io/code/artiq/qbutler/",
+        "https://aion-physics.gitlab.io/code/artiq/qbutler/objects.inv",
+    ),
 }
 
 # Add any paths that contain templates here, relative to this directory.
