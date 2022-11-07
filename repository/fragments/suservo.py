@@ -7,10 +7,8 @@ from artiq.coredevice.urukul import CPLD
 from artiq.experiment import kernel
 from artiq.experiment import RTIOUnderflow
 from artiq.experiment import TFloat
-from ndscan.experiment import FloatParam
 from ndscan.experiment import Fragment
 from ndscan.experiment import StringParam
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 
 class LibSetSUServoStatic(Fragment):

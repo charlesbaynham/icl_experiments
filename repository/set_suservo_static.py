@@ -1,11 +1,6 @@
-import logging
 import re
 
-from artiq.coredevice.suservo import Channel
-from artiq.coredevice.suservo import SUServo
-from artiq.coredevice.urukul import CPLD
 from artiq.experiment import kernel
-from artiq.experiment import TFloat
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import StringParam
