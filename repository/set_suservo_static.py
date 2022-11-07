@@ -6,7 +6,7 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment import StringParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.fragments.suservo import LibSetSUServoStatic
+from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 
 class SetSUServoStatic(ExpFragment):
