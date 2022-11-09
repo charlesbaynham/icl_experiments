@@ -28,13 +28,13 @@ class LibSetSUServoStatic(Fragment):
     the same attenuation as the desired one. This is obviously a problem.
     """
 
-    def build_fragment(self, channel : str):
+    def build_fragment(self, channel: str):
         self.setattr_device("core")
-        
+
         self.channel = channel
 
     def get_suservo_channels(self):
-        return  [
+        return [
             d for d in self.get_device_db().keys() if re.match(r"suservo\d+_ch\d+", d)
         ]
 
