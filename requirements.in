@@ -48,4 +48,3 @@ pip-tools
 
 # General debugging
 ipython
-jsonschema
