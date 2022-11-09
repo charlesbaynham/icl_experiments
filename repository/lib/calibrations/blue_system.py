@@ -23,26 +23,27 @@ class BlueInjectionAOM(Calibration):
     """
 
     def build_calibration(self):
-        self.setup_completed = False
+        pass
+        # self.setup_completed = False
 
-        self.setattr_param(
-            "frequency",
-            FloatParam,
-            description="Frequency of the double-pass injection AOM",
-            default=BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
-            min=0,
-            max=400e6,  # from AD9910 specs
-            unit="MHz",
-            step=0.1,
-        )
-        self.setattr_param(
-            "attenuation",
-            FloatParam,
-            description="Attenuation on Urukul's variable attenuator",
-            default=BLUE_INJECTION_AOM_ATTENUATION,
-            min=0,
-            max=31.5,
-        )
+        # self.setattr_param(
+        #     "frequency",
+        #     FloatParam,
+        #     description="Frequency of the double-pass injection AOM",
+        #     default=BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+        #     min=0,
+        #     max=400e6,  # from AD9910 specs
+        #     unit="MHz",
+        #     step=0.1,
+        # )
+        # self.setattr_param(
+        #     "attenuation",
+        #     FloatParam,
+        #     description="Attenuation on Urukul's variable attenuator",
+        #     default=BLUE_INJECTION_AOM_ATTENUATION,
+        #     min=0,
+        #     max=31.5,
+        # )
 
         # self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic)
         # self.LibSetSUServoStatic: LibSetSUServoStatic
@@ -61,12 +62,13 @@ class BlueInjectionAOM(Calibration):
     #         self.suservo_injection_aom.servo.init()
 
     def run_once(self):
-        if self.setup_completed:
-            self.status.push(CalibrationResult.OK)
-        else:
-            self.status.push(CalibrationResult.BAD_EXPIRED)
-
-        self.data.push(None)
+        # if self.setup_completed:
+        #     self.status.push(CalibrationResult.OK)
+        # else:
+        #     self.status.push(CalibrationResult.BAD_EXPIRED)
+        self.status.push(CalibrationResult.OK)
+        # self.data.push(None)
+        logger.info("ran successfully")
 
     # @kernel
     # def fix_own_state(self):
