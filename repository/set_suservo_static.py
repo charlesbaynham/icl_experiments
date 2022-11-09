@@ -60,10 +60,11 @@ class SetSUServoStatic(ExpFragment):
             default='"' + suservo_channels[0] + '"',
         )
 
-        self.setattr_fragment(
-            "LibSetSUServoStatic", LibSetSUServoStatic, self.channel.get()
-        )
-        self.LibSetSUServoStatic: LibSetSUServoStatic
+        if self.channel:
+            self.setattr_fragment(
+                "LibSetSUServoStatic", LibSetSUServoStatic, self.channel.get()
+            )
+            self.LibSetSUServoStatic: LibSetSUServoStatic
 
     @kernel
     def run_once(self):
