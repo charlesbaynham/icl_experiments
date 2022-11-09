@@ -434,11 +434,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1667838576,
-        "narHash": "sha256-/4peg+af7R5UMJ1J6/renokqVbxrOKBAdYuS8fDA4dE=",
+        "lastModified": 1667992449,
+        "narHash": "sha256-fnvXqS599nV0Cj41vYouCqLfKKdyQLx4KALWU7LUQ4k=",
         "ref": "refs/heads/master",
-        "rev": "b6f28670048173ade862dde3ed67f796ada7126a",
-        "revCount": 58,
+        "rev": "c1437a1ae58e22ec872c6bea2d08e272b91b63fb",
+        "revCount": 62,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/qbutler.git"
       },
