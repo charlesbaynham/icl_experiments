@@ -28,21 +28,18 @@ class LibSetSUServoStatic(Fragment):
     the same attenuation as the desired one. This is obviously a problem.
     """
 
-    def build_fragment(self):
+    def build_fragment(self, channel : str):
         self.setattr_device("core")
+        
+        self.channel = channel
 
-        suservo_channels = [
+    def get_suservo_channels(self):
+        return  [
             d for d in self.get_device_db().keys() if re.match(r"suservo\d+_ch\d+", d)
         ]
-        self.setattr_param(
-            "channel",
-            StringParam,
-            description="SUServo channel to set",
-            default='"' + suservo_channels[0] + '"',
-        )
 
     def host_setup(self):
-        self.suservo_channel: Channel = self.get_device(self.channel.get())
+        self.suservo_channel: Channel = self.get_device(self.channel)
         self.suservo: SUServo = self.suservo_channel.servo
 
     @kernel
