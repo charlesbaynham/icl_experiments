@@ -1,6 +1,7 @@
 import logging
 import re
 
+from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.coredevice.urukul import CPLD
@@ -8,7 +9,8 @@ from artiq.experiment import kernel
 from artiq.experiment import RTIOUnderflow
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
-from ndscan.experiment import StringParam
+
+logger = logging.getLogger(__name__)
 
 
 class LibSetSUServoStatic(Fragment):
@@ -30,6 +32,7 @@ class LibSetSUServoStatic(Fragment):
 
     def build_fragment(self, channel: str):
         self.setattr_device("core")
+        self.core: Core
 
         self.channel = channel
 
@@ -41,6 +44,8 @@ class LibSetSUServoStatic(Fragment):
     def host_setup(self):
         self.suservo_channel: Channel = self.get_device(self.channel)
         self.suservo: SUServo = self.suservo_channel.servo
+
+        self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
     def device_setup(self):
@@ -62,6 +67,8 @@ class LibSetSUServoStatic(Fragment):
     ):
         """Set a static output on a SUServo channel
 
+        This method consumes no slack unless the logging level is in DEBUG mode, in which case it calls :meth:`~artiq.coredevice.core.Core.break_realtime`.
+
         Args:
             freq (TFloat): Frequency in Hz
             amplitude (TFloat): Amplitude from 0 to 1 when 1 is 10)% output.
@@ -69,13 +76,15 @@ class LibSetSUServoStatic(Fragment):
         """
         # type:(Channel, float, float, float) -> None
 
-        logging.info(
-            "Setting channel %s to %f MHz, amp = %f, att = %f",
-            self.suservo_channel,
-            1e-6 * freq,
-            amplitude,
-            attenuation,
-        )
+        if self.print_debug_statements:
+            logger.info(
+                "Setting channel %s to %f MHz, amp = %f, att = %f",
+                self.channel,
+                1e-6 * freq,
+                amplitude,
+                attenuation,
+            )
+            self.core.break_realtime()
 
         # Set the attenuator for all channels on this Urukul
         cpld = self.suservo_channel.dds.cpld  # type: CPLD
