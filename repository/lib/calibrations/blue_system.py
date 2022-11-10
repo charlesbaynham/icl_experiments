@@ -2,11 +2,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
-from artiq.experiment import delay
 from artiq.experiment import kernel
-from artiq.experiment import ms
-from artiq.experiment import portable
-from artiq.experiment import RTIOUnderflow
 from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
