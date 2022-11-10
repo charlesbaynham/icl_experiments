@@ -1,5 +1,4 @@
 import logging
-import re
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
@@ -9,6 +8,7 @@ from artiq.experiment import kernel
 from artiq.experiment import RTIOUnderflow
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +35,6 @@ class LibSetSUServoStatic(Fragment):
         self.core: Core
 
         self.channel = channel
-
-    def get_suservo_channels(self):
-        return [
-            d for d in self.get_device_db().keys() if re.match(r"suservo\d+_ch\d+", d)
-        ]
 
     def host_setup(self):
         self.suservo_channel: Channel = self.get_device(self.channel)

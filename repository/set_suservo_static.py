@@ -1,13 +1,14 @@
 import re
 
 from artiq.experiment import kernel
-from artiq.experiment import StringValue
 from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.suservo import LibSetSUServoStatic
+from repository.lib.utils import get_suservo_channels
 
 
 class SetSUServoStatic(ExpFragment):
@@ -51,9 +52,11 @@ class SetSUServoStatic(ExpFragment):
             # ndecimals=1,
         )
 
-        suservo_channels = [
-            d for d in self.get_device_db().keys() if re.match(r"suservo\d+_ch\d+", d)
-        ]
+        self.amplitude: FloatParamHandle
+        self.frequency: FloatParamHandle
+        self.attenuation: FloatParamHandle
+
+        suservo_channels = get_suservo_channels(self)
         self.setattr_argument("channel", EnumerationValue(suservo_channels))
 
         self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic, self.channel)
