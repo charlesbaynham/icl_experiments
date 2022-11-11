@@ -2,12 +2,7 @@
 # These should be friendly names that describe the purpose of a connection.
 # These are just examples, add your own!
 aliases = {
-    "dds_transfer_cavity_aom": "urukul0_ch2",
-    "ttl_transfer_cavity_trigger": "ttl0",
-    # It's also possible to store generic information here about the hardware
-    # configuration of your experiment. For example, let's imagine that I need
-    # to record the polarity of a coil driver's connection to a coil, I could use:
-    "coil_polarity": "positive",
-    # and could retrieve that information with
-    #     self.get_device_db()["coil_polarity"]
+    "suservo_aom_doublepass_461_injection": "suservo0_ch3",
+    "suservo_aom_singlepass_461_spectroscopy": "suservo0_ch7",
+    "suservo_aom_singlepass_461_push": "suservo1_ch3",
 }

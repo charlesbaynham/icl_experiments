@@ -68,6 +68,14 @@ extensions = [
 # sphinx-generated docs here
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "ndscan": (
+        "https://oxfordiontrapgroup.github.io/ndscan",
+        "https://oxfordiontrapgroup.github.io/ndscan/objects.inv",
+    ),
+    "qbutler": (
+        "https://aion-physics.gitlab.io/code/artiq/qbutler/",
+        "https://aion-physics.gitlab.io/code/artiq/qbutler/objects.inv",
+    ),
 }
 
 # Add any paths that contain templates here, relative to this directory.

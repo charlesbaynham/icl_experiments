@@ -1,14 +1,14 @@
 import logging
 
 from artiq_influx_generic import InfluxController
-from monitor_lab_temperature import MonitorLabTemperature
-from monitor_weather import MonitorWeather
 from qbutler.monitoring import make_monitor_controller
 
 from repository.monitors.monitor_covid import MonitorCOVID
 from repository.monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.monitors.monitor_ion_pump import MonitorIonPump
+from repository.monitors.monitor_lab_temperature import MonitorLabTemperature
 from repository.monitors.monitor_turbopump import MonitorTurbo
+from repository.monitors.monitor_weather import MonitorWeather
 
 logger = logging.getLogger(__name__)
 
