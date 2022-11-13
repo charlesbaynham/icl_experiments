@@ -17,9 +17,11 @@ class LibSetSUServoStatic(Fragment):
     """
     Set a static SUServo output
 
-    The channel to be set should be configured using
-    :meth:`~ndscan.experiment.fragment.Fragment.override_param` or
-    :meth:`~ndscan.experiment.fragment.Fragment.bind_param`.
+    The channel to be set should be passed as an argument to :meth:`.build_fragment`, e.g.::
+
+        self.setattr_fragment(
+            "LibSetSUServoStatic", LibSetSUServoStatic, "suservo0_ch0",
+        )
 
     The :meth:`~ndscan.experiment.fragment.Fragment.device_setup` of this
     :class:`~ndscan.experiment.fragment.ExpFragment` will reinitialise the
