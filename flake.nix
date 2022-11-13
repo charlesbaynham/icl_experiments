@@ -156,36 +156,125 @@
       # For the documentation:
       fullVersion = "${self.shortRev or "dirty-${self.lastModifiedDate}"}";
 
-      # Finally, we build all of the above into a list of requirements that the
-      # environment will have
+      # We use mach-nix to process the python packages / requirements list into a
+      # python environment which solves these constaints
+      pythonEnv = mach-nix.lib.${system}.mkPython {
+        requirements = pyPIRequirements + "\n" + nonPyPIRequirements;
+        packagesExtra = machnixPackages;
+        # Patch our non-public packages into nixpkgs before machnix runs, so
+        # that they are treated the same way as public packages:
+        overridesPre = [
+          (final: prev: nonPyPIPackagesByName)
+        ];
+        # This complex looking expression is run on the output set of python
+        # packages from mach-nix, after it has done its job of altering versions
+        # until our set of requirements is met. This expression loops through
+        # all python packages and sets "permitUserSite = true" in their
+        # buildPythonPackage derivation call. This prevents nix from wrapping
+        # any binaries that they produce with an "export
+        # PYTHONNOUSERSITE='true'" prefix, which would disable user site
+        # packages. Nix does this normally to ensure reproducability (which we
+        # want), however it's added to every single binary produced. By turning
+        # it off for the packages, we allow control over this variable at the
+        # environment level. We use this to disable user site packages normally
+        # (for reproducability), but to enable them when running in development
+        # mode so that users can use pip to install packages in editable mode,
+        # for quick debugging/development. See allRequirementsDebug below. TODO:
+        # document this better.
+        overridesPost = [
+          (final: prev:
+            (builtins.mapAttrs
+              (
+                name: pkg:
+                  if (
+                    builtins.isAttrs pkg &&
+                    builtins.hasAttr "override" pkg &&
+                    builtins.hasAttr "permitUserSite" pkg.override.__functionArgs
+                  ) then
+                    (pkg.override (x: { permitUserSite = true; }))
+                  else
+                    pkg
+              )
+              prev)
+          )
+        ];
+        providers = {
+          # This is a bugfix, because pythonparser IS in PyPI, but not the
+          # latest version. We therefore force it to use the nixpkgs
+          # version, which we've just created via overridePre. Remove once
+          # https://github.com/m-labs/pythonparser/issues/31 is closed.
+          pythonparser = "nixpkgs";
+        };
+      };
+
+      # Finally, we build package the python environement with non-python
+      # dependencies into a list that can be used as a list of buildInput
+      # dependencies to reproduce our ARTIQ environment
       allRequirements = [
+        pythonEnv
+      ] ++ nonPythonDeps;
+
+      # Create a copy of the same, but with the python environment set to allow use of
+      # pip. If you install packages with pip they will take priority over nix ones.
+      # This should only be used for debugging since it breaks the reproducability of nix.
+      allRequirementsDebug = [
         (
-          mach-nix.lib.${system}.mkPython {
-            requirements = pyPIRequirements + "\n" + nonPyPIRequirements;
-            packagesExtra = machnixPackages;
-            overridesPre = [
-              (final: prev: nonPyPIPackagesByName)
-            ];
-            providers = {
-              # This is a bugfix, because pythonparser IS in PyPI, but not the
-              # latest version. We therefore force it to use the nixpkgs
-              # version, which we've just created via overridePre. Remove once
-              # https://github.com/m-labs/pythonparser/issues/31 is closed.
-              pythonparser = "nixpkgs";
-            };
-          }
+          pythonEnv.override (prev: {
+            permitUserSite = true;
+          })
         )
       ] ++ nonPythonDeps;
 
     in
     rec
     {
-      inherit allRequirements;
-
       # This is the main shell, in which our artiq instance will run
       devShells.artiq = pkgs.mkShell {
         name = "icl-artiq-environment";
         buildInputs = allRequirements;
+      };
+
+      # This is the same, except that pip is enabled to install packages locally
+      # (or in editable mode) for testing / developing
+      devShells.artiqDev = pkgs.mkShell {
+        name = "icl-artiq-environment";
+        buildInputs = allRequirementsDebug;
+        shellHook = ''
+          # Register a local directory as a user site packages directory. Pip
+          # will default to installing packages here when it discovers that it
+          # can't write to the global site-packages, and python will treat this
+          # site-packages as a higher priority than the global (nix) one. Note
+          # that this is not a typical "venv" virtualenv, in that it does not
+          # contain copies of the python binaries
+          mkdir -p $(pwd)/.venv/${pkgs.python3.sitePackages}
+          export PYTHONUSERBASE=$(pwd)/.venv
+
+          # Add the binary venv path to the system search path
+          export PATH="$(pwd)/.venv/bin:$PATH"
+
+          # Give up on reproducability - we're in dev mode
+          unset SOURCE_DATE_EPOCH
+
+          # Tell pip to ignore already installed packages by default, otherwise
+          # it will fail with an error because it can't uninstall them from the
+          # global sitepackages
+          export PIP_IGNORE_INSTALLED=true
+
+          # Finally, another fix. Nix's python environment uses a
+          # "sitecustomize.py" file to parse NIX_... environmental variables
+          # into python environments. However, this file ends up changing
+          # sys.prefix so that it's no longer equal to sys.base_prefix,
+          # resulting in python thinking it's in a virtual environment even
+          # though it isn't (the nix python installation is a system
+          # installation, not a venv). I think this is a bug, (see
+          # https://github.com/NixOS/nixpkgs/issues/201037) but I can patch it
+          # like so:
+          echo "import sys" > $(pwd)/.venv/${pkgs.python3.sitePackages}/usercustomize.py
+          echo "sys.base_prefix = sys.prefix" >> $(pwd)/.venv/${pkgs.python3.sitePackages}/usercustomize.py
+
+          echo "*** WARNING: Entering development mode ***"
+          echo "Packages installed by pip are not tracked by Nix so ARTIQ experiments run in this mode are not reproducable"
+        '';
       };
 
       # An environment with the tools required for flashing gateware loaded.
@@ -240,17 +329,18 @@
         };
       };
 
-      apps.docs =
-        let
-          script = pkgs.writeShellScriptBin "launch_server" ''
-            export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
-
-            exec sphinx-autobuild docs html_out --pre-build 'sphinx-apidoc -o docs/autogen/repo "repository"' --watch repository
-          '';
-        in
-        { type = "app"; program = "${script}/bin/launch_server"; };
 
       apps = {
+        docs =
+          let
+            script = pkgs.writeShellScriptBin "launch_server" ''
+              export PATH=${pkgs.lib.makeBinPath allRequirements}:$PATH
+
+              exec sphinx-autobuild docs html_out --pre-build 'sphinx-apidoc -o docs/autogen/repo "repository"' --watch repository
+            '';
+          in
+          { type = "app"; program = "${script}/bin/launch_server"; };
+
         update_requirements =
           let
             script = pkgs.writeShellScriptBin "update_requirements" ''
