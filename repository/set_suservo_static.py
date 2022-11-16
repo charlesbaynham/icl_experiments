@@ -6,8 +6,8 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
-from repository.lib.fragments.suservo import LibSetSUServoStatic
 from repository.lib.utils import get_suservo_channels
 
 

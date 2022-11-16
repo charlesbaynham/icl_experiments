@@ -6,12 +6,12 @@ from artiq.experiment import kernel
 from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
 from repository.lib.constants import BLUE_INJECTION_AOM_ATTENUATION
 from repository.lib.constants import BLUE_INJECTION_AOM_DEFAULT_FREQUENCY
-from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
