@@ -57,11 +57,21 @@
               exec ${generated_outputs.apps.grafana.program}
             '');
           };
+
+
+          full_stack = let
+              backup_database = "nix run .#backup_database";
+              backup_datasets = "nix run .#backup_datasets";
+            in
+            generated_outputs.apps.full_stack.override (prev: {
+              commands = prev.commands // {
+                inherit backup_database backup_datasets;
+              };
+            });
         };
 
         nixConfig = {
           bash-prompt = "\\[\\e[1m\\e[32m\\]ICL ARTIQ \\[\\e[0m\\e[94m\\](\\w)\\[\\e[0m\\] $ ";
         };
-
       });
 }
