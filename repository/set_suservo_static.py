@@ -1,1 +1,1 @@
-from pyaion.utilities import SetSUServoStatic
+from pyaion.utilities.set_suservo_static import SetSUServoStatic
