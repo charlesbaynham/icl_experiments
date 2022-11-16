@@ -1,5 +1,3 @@
-import re
-
 from artiq.experiment import kernel
 from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
