@@ -1,26 +1,23 @@
 Readme
 ######
 
-**The Imperial ARTIQ experiments repository.**
+**The ICL ARTIQ experiments repository.**
 
 This repository holds the ARTIQ experiments, imported by ARTIQ as an
 "experiment repository" and whose hash is embedded into datasets. This
 also includes a complete Nix definition of the working environment
-required to run ARTIQ, thus pinning all dependencies as well. The one
-remaining item of information that's not recorded is the bitstream
-version running on the Sinara core. It's t.b.d. how we manage this.
-(TODO)
+required to run ARTIQ, thus pinning all dependencies as well.
 
 Overview
 ========
 
-This repository contains the Imperial ARTIQ experiments, and also defines the
-software environment in which the Imperial ARTIQ system runs. It is a nix flake:
+This repository contains the ICL ARTIQ experiments, and also defines the
+software environment in which the ICL ARTIQ system runs. It is a nix flake:
 to launch ARTIQ, see the :ref:`Launching ARTIQ` section below. This repository has an
 opinionated structure and provides the following features, in approximately
 descending order of importance:
 
-#. This is one of several repositories that make up the complete Imperial ARTIQ
+#. This is one of several repositories that make up the complete ICL ARTIQ
    installation. For the complete structure, see `the PyAION documentation
    <https://aion-physics.gitlab.io/code/artiq/pyaion/>`__.
 
@@ -31,10 +28,13 @@ descending order of importance:
    For more information on how to add / update packages in your
    installation, see the Managing packages section below.
 
-#. Definition of the ARTIQ + peripherals hardware happens elsewhere, in
-   the institute-specific python packages. See `the PyAION
-   documentation <https://aion-physics.gitlab.io/code/artiq/pyaion/>`__
+#. Definition of your ARTIQ + peripherals hardware happens in `device_db_config`.
+   See `the PyAION documentation <https://aion-physics.gitlab.io/code/artiq/pyaion/>`__
    for details.
+
+#. The ARTIQ stack uses
+  `ndscan <https://github.com/OxfordIonTrapGroup/ndscan>`__. This allows us to handle
+   complexity without giving up deep control of our experiments.
 
 #. This repository uses mach-nix to handle python dependencies. Compared to
    plain nix, this give us dependency resolution, the ability to specify version
@@ -85,6 +85,27 @@ descending order of importance:
    more explicit and allows IDEs to provide code suggestions
    automatically.*
 
+Updates
+=======
+
+To update to the latest version of PyAION, use `nix flake lock --update-input pyaion`.
+
+Contributing
+============
+
+As much as possible, all common functionality is implemented in the PyAION
+package instead of here. This means that improvements can be shared easily
+across institutions, and also reduces our divergence.
+
+When making changes / adding functionality, please consider whether you can make
+them in PyAION instead of in your local package. If you do so, we'll all have a
+common interface and will be able to benefit from the work of others.
+
+We're yet to define the full layout of the control system (as of 2022-11-16) so
+this repository currently contains very little of use. As the structure becomes
+more defined it'll be coded in PyAION. To use that code, you'll need to add
+snippets to this repository (like the one in `set_suservo_static.py`).
+
 Initial setup
 =============
 
@@ -101,9 +122,11 @@ more.
 #. Enable Nix flakes: paste "experimental-features = nix-command flakes" into
    `~/.config/nix/nix.conf`.
 
-#. *(optional but recommended)* Install and configure cachix to benefit from
-   pre-built binaries. Run `nix profile install nixpkgs#cachix` then `cachix use
-   aion-physics`.
+#. *(optional but strongly recommended)* Install and configure cachix to benefit
+   from pre-built binaries. Run `nix profile install nixpkgs#cachix` then
+   `cachix use aion-physics`. This allows your ARTIQ setup to pull pre-built
+   environments from our GitLab CI pipelines, saving you ~2 hours for the first
+   run after an update.
 
 #. Done! Your environment is now totally defined by the flake: move on to
    :ref:`Launching ARTIQ`, or run `nix develop -c artiq_master --version` to
@@ -112,15 +135,53 @@ more.
 Launching ARTIQ
 ===============
 
-To run ARTIQ in the recommended "repository" mode, just run `nix run
-.#run_artiq` in this repository. You'll need to launch a dashboard separately:
-if you also want a dashboard, add `--gui` to the command.
+Basic usage
+-----------
 
-To see the launch options, run `nix run .#run_artiq -- --help`
+To enter an environent with ARTIQ available, use `nix develop`. This will give
+you an environent with all the required packages installed for you to be able to
+run commands like `artiq_master`. This is the starting point for all the
+examples in the ARTIQ manual.
 
-To debug in ARTIQ's file mode, use `nix run .#run_artiq -- --dev`.
+To run ARTIQ in the recommended "repository" mode, use::
 
-To launch a shell in which all the ARTIQ dependencies are available, use `nix develop`.
+  artiq_session -m=--git -m=--repository -m=. -m=--experiment-subdir -m=repository
+
+Full stack usage
+----------------
+
+ARTIQ is at its best when supported by a stack of complimentary software. For
+example, you might require an InfluxDB database and a Grafana interface to it.
+Or, you might want to make regular backups to an onsite location (see the
+icl_experiments repository for an example of this).
+
+To support this behaviour reproducably, this repository contains a session
+manager which will launch a pre-defined stack of software, currently consisting
+of:
+
+* ARTIQ (master and controller manager)
+* NDScan janitor
+* InfluxDB
+* Grafana
+
+To launch this stack, use `nix run .#full_stack` or run the script in this
+repository called `run_artiq.sh`.
+
+Development usage
+-----------------
+
+Nix environments are 100% reproducable which makes them excellent for performing
+well-defined experiments. However, when debugging / developing, it's often
+useful to run in a less strict environment where python packages can be quickly
+installed / edited (e.g. using pip's `pip install --editable` option).
+
+For this purpose, there is an alternative devShell available called "artiqDev" which can be entered via::
+
+  nix develop .#artiqDev
+
+__Do not use this for normal usage!__ Doing so will break the reproducibility
+guarantees which Nix otherwise provides and will mean than changes you make to
+your environment cannot be used by others. You have been warned...
 
 Dependencies
 ============
@@ -134,6 +195,9 @@ Once you've done this, run `nix run .#update_requirements` to automatically
 regenerate the `requirements.txt` file, keeping it in sync with the pinned nix
 packages.
 
+If you forget to do this, the CI pipeline will remind you by having one of the
+jobs fail.
+
 Updating dependencies
 ---------------------
 
@@ -141,17 +205,11 @@ To update all packages to the latest version, use `nix flake update`. This will
 remake your `flake.lock` file: once you've committed this file, future launches
 will use the new package versions instead.
 
-To update just the PyPI python dependencies, use `nix flake lock --update-input pypi-deps-db`.
+Note that since packages are pinned to a common version by PyAION, this will
+just update you to the latest AION pin. If you need a specific package for some
+reason, you should add it as a requirement bound in your requirements.in file. E.g.::
 
-To update just our internal packages, use:
-
-`nix flake lock --update-input pyaion`
-
-or
-
-`nix flake lock --update-input artiq`
-
-for those respective packages.
+  some-unusual-package >= 3.1
 
 Documentation
 =============
@@ -163,7 +221,8 @@ details on the syntax.
 This will be automatically compiled to a website on Gitlab Pages for each commit
 to `master`, as well as compiled into a pdf (downloadable from the pipeline).
 
-To preview documentation locally, run `nix run .#docs` to launch a webserver at http://127.0.0.1:8000.
+To preview documentation locally, run `nix run .#docs` to launch a webserver at
+http://127.0.0.1:8000.
 
 Other features
 ==============
@@ -179,127 +238,18 @@ practices).
 This is an opinionated template - feel free to remove / change any of these
 features as you prefer!
 
-Version control
----------------
+See the documentation for `pypackage template
+<https://gitlab.com/aion-physics/code/pypackage-template>`_ for details of
+these.
 
-* **Your package will use git for version control**
-  You probably already agree that this is a good idea if you're reading this message.
+Authors
+=======
 
+`icl_experiments` was written by `Charles Baynham
+<c.baynham@imperial.ac.uk>`_.
 
-Virtual environment
--------------------
-
-* **A Nix devShell is defined for you**
-  This is a much stronger form of dependency management than pip environments, which you should prefer over virtual environments if possible. To launch a shell with your defined packages in scope, use `nix develop`. To add packages to your environment, edit `requirements.txt` and restart the shell.
-
-* **This repository supports Nix + direnv**
-  To automatically activate the Nix devShell when entering this directory, use direnv. See
-  the `Nix documentation <https://nixos.wiki/wiki/Flakes#Direnv_integration>`_ for more information.
-
-README
-------
-
-* **README should use reStructuredText format**
-  This is the format used by most Python tools, is expected by
-  `setuptools <https://setuptools.readthedocs.io>`_, and can be used by
-  `Sphinx <http://sphinx-doc.org/>`_.
-
-* **As few README files as possible**
-  Additional README files (AUTHORS, CHANGELOG, etc) should be left to the user to create when necessary.
-
-LICENSE
--------
-
-* **No license**
-  This template is aimed at projects which remain internal. If you later publish this code publicly, you should make sure to choose a license so others can use it legally.
-
-`setup.py`
-----------
-
-* **Use setuptools**
-  It's the standard packaging library for Python.
-  `distribute` has merged back into `setuptools`, and `distutils` is less
-  capable.
-* **setup.py should not import anything from the package**
-  When installing from source, the user may not have the packages dependencies installed, and importing the package is likely to raise an `ImportError`.
-* **Dependencies are specified in `requirements.in`**
-  This file specifies loose dependencies which are imported by `setup.py` when
-  your package is installed. `requirements.in` should contain dependencies which
-  are essential for your package to function. Note
-  that you should prefer Nix-based environment management via `nix develop`, but
-  setuptools-based installation is supported for e.g. Windows systems.
-
-* **Dependencies are frozen by Nix** While `requirements.in` contains the list
-  of dependencies for your project, this file should aim to be as
-  nonrestrictive as possible in terms of the versions of the packages it
-  requires. However, for reproducibility, it's useful to "freeze" the versions of
-  packages used once you've got a project working so that you can always revisit
-  a "known good" version. This template uses `nix flake` s for this purpose.
-  These are also the versions used for CI testing. To update this list, just add
-  a requirement to the `.in` file: it'll be resolved
-  deterministically against the PyPI packages available when this repository was
-  initiated. To include packages newer than this, run `nix flake update` to
-  fetch the newest list, and commit the changes this makes to `flake.lock`.
-
-Documentation
--------------
-
-* **Use `sphinx <https://www.sphinx-doc.org/en/master/>`_**
-  Sphinx is a powerful documentation tool which can produce documentation in
-  many formats from the same input files. It can even be configured to parse
-  your project's code and extract documentation from specially formatted
-  comments, allowing you to keep the documentation right next to the code and
-  reducing the risk of them becoming out-of-sync.
-* **Use GitLab pages**
-  Gitlab Pages lets you host a static html website associated with your project.
-  This template will build your Sphinx documentation and host it at that
-  location. By default, the Gitlab Page associated with your project has the
-  same visibility as the project itself. The documentation will only be updated
-  when you push to the master branch or tag a commit.
-* **Compile to pdf**
-  Sometime it's useful to have a pdf document with all the documentation for a
-  project in it. The CI system will also compile your sphinx documentation to
-  latex, and then compile that to pdf. The pdf will be available for download as
-  an "artifact" for every commit.
-* **Use `nix run .#docs` for testing**
-  It's useful to quickly compile the documentation locally when you're writing
-  it. To do this, run `nix run .#docs`.
-
-Testing
--------
-
-* **Uses** `pytest <https://docs.pytest.org>`_ **as the default test runner**
-  This can be changed easily, though pytest is a easier, more powerful test
-  library and runner than the standard library's unittest. Tests will be run
-  automatically in Gitlab CI.
-* **Define testing dependencies and `requirements.in`**
-* **Use** `coverage <https://coverage.readthedocs.io/>`_ **for test coverage calculation**
-  Receive a report of how much coverage your tests have in your codebase when
-  you run them. This will be detected by Gitlab and shown alongside your commit.
-* **Only run slow tests on the master branch or manually**
-  Some unit tests are really slow: you don't want to run these for every single
-  commit. You can mark your tests as slow using the decorator
-  `@pytest.mark.slow`. These will only be run for:
-
-  * Commits with a tag
-  * When the user manually clicks the run button on the CI page
-  * When a CI run is scheduled to be run repeatedly
-
-* **`tests` directory should not be a package**
-  The `tests` directory should not be a Python package unless you want to define
-  some fixtures. But the best practices are to use `PyTest fixtures
-  <https://docs.pytest.org/en/latest/fixture.html>`_ which provide a better
-  solution. Therefore, the `tests` directory has no `__init__.py` file.
-
-Linting
--------
-
-* **Use** `black <https://black.readthedocs.io/en/stable/?badge=stable>`_ **for code styling**
-  Code style is important: it makes it much easier for others to read your code.
-  It's also boring and repetitive. `black` is a very opinionated code styler
-  which makes all the decisions regarding code style, allowing you to focus on
-  what you're actually writing. It will be run by the CI as a check stage.
-* **Use** `pre-commit <https://pre-commit.com/>`_ **for automated styling** To
-  prevent you from having to manually style your code, use `pre-commit` to
-  configure your system to automatically run `black` every time you commit. To
-  use it, run `pre-commit install`. This will also run automatically in the CI.
+The `template
+<https://gitlab.com/aion-physics/code/artiq/device-packages/aion-experiments-template>`_
+from which this package was generated was written by Charles Baynham and
+inspired by `cookiecutter-pypackage-minimal
+<https://github.com/kragniz/cookiecutter-pypackage-minimal>`_
