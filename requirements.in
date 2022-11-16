@@ -14,37 +14,4 @@
 # both requirements.txt and flake.lock are identical.
 
 # Scientific requirements
-generic-scpi-driver >= 1.3
-toptica-lasersdk
-nidaqmx
-numpy
-requests
 uk-covid19
-
-# Additional requirements, handled by flakes:
-# sypico  # sypico is required, but cannot be installed through PyPI. Options include:
-#   a) Use Nix - this is handled via flakes
-#   b) Install it manually using pip install git+https://github.com/m-labs/sipyco.git
-#   c) Pester Sebastian to upload it to PyPI at https://github.com/m-labs/sipyco
-# pyaion is required - this is installed via flakes
-
-# Code linting
-pre-commit
-black
-
-# Unit testing
-pytest
-coverage
-
-# Documentation generation
-git-version-info
-sphinx
-sphinx-autobuild
-sphinx_rtd_theme
-sphinxcontrib-svg2pdfconverter
-
-# Environment debugging / freezing for non-nix python
-pip-tools
-
-# General debugging
-ipython
