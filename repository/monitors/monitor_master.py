@@ -6,6 +6,7 @@ from qbutler.monitoring import make_monitor_controller
 from repository.monitors.monitor_covid import MonitorCOVID
 from repository.monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.monitors.monitor_ion_pump import MonitorIonPump
+from repository.monitors.monitor_ionpump_duplicate import MonitorIonPumpDup
 from repository.monitors.monitor_lab_temperature import MonitorLabTemperature
 from repository.monitors.monitor_turbopump import MonitorTurbo
 from repository.monitors.monitor_weather import MonitorWeather
@@ -49,7 +50,8 @@ MonitorMaster = make_monitor_controller(
     monitors={
         "weather": MonitorWeather,
         "temperature": MonitorLabTemperature,
-        "ion_pump": MonitorIonPump,
+        "ion_pump_cham1": MonitorIonPump,
+        "ion_pump_cham2": MonitorIonPumpDup,
         "covid": MonitorCOVID,
         "heartbeat": MonitorHeartbeat,
         "turbopump": MonitorTurbo,
