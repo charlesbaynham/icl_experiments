@@ -50,7 +50,7 @@ MonitorMaster = make_monitor_controller(
     monitors={
         "weather": MonitorWeather,
         "temperature": MonitorLabTemperature,
-        "ion_pump_cham1": MonitorIonPump,
+        "ion_pump": MonitorIonPump,
         "ion_pump_cham2": MonitorIonPumpDup,
         "covid": MonitorCOVID,
         "heartbeat": MonitorHeartbeat,
