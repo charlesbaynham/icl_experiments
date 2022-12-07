@@ -81,6 +81,8 @@ class FlashSUServo(ExpFragment):
         self.LibSetSUServoStatic: LibSetSUServoStatic
 
     def host_setup(self):
+        super().host_setup()
+
         self.suservo_channel: Channel = self.get_device(self.channel)
         self.suservo: SUServo = self.suservo_channel.servo
 
