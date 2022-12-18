@@ -14,11 +14,11 @@
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1657805296,
-        "narHash": "sha256-SXvSgwtgTRJh0n/9NLc+HK9bc/Qz5h7d4u15x5jf4qA=",
+        "lastModified": 1671041477,
+        "narHash": "sha256-Nb3/1AOc4C0c4Sg8xxprLTiknaZcYK8orfNP+BDcuAs=",
         "ref": "refs/heads/master",
-        "rev": "60f3251bf7f36b7812d0051754a516be75ad69e6",
-        "revCount": 8134,
+        "rev": "4bafce7d908eabf43e239235cf67315617c13610",
+        "revCount": 8250,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
@@ -29,6 +29,7 @@
     },
     "artiq-comtools": {
       "inputs": {
+        "flake-utils": "flake-utils_2",
         "nixpkgs": [
           "pyaion",
           "artiq",
@@ -41,11 +42,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1654007592,
-        "narHash": "sha256-vaDFhE1ItjqtIcinC/6RAJGbj44pxxMUEeQUa3FtgEE=",
+        "lastModified": 1664405593,
+        "narHash": "sha256-yP441NerlLGig7n+9xHsx8yCtZ+Ggd0VqfBSzc20E04=",
         "owner": "m-labs",
         "repo": "artiq-comtools",
-        "rev": "cb73281154656ee8f74db1866859e31bf42755cd",
+        "rev": "15ddac62813ef623a076ccf982b3bc63d314e651",
         "type": "github"
       },
       "original": {
@@ -177,11 +178,11 @@
     },
     "flake-utils_2": {
       "locked": {
-        "lastModified": 1653893745,
-        "narHash": "sha256-0jntwV3Z8//YwuOjzhV2sgJJPt+HY6KhU7VZUL0fKZQ=",
+        "lastModified": 1659877975,
+        "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "1ed9fb1935d260de5fe1c2f7ee0ebaae17ed2fa1",
+        "rev": "c0e246b9b83f637f4681389ecabcb2681b4f3af0",
         "type": "github"
       },
       "original": {
@@ -191,6 +192,21 @@
       }
     },
     "flake-utils_3": {
+      "locked": {
+        "lastModified": 1667395993,
+        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_4": {
       "locked": {
         "lastModified": 1642700792,
         "narHash": "sha256-XqHrk7hFb+zBvRg6Ghl+AZDq03ov6OshJLiSWOoX5es=",
@@ -205,7 +221,7 @@
         "type": "github"
       }
     },
-    "flake-utils_4": {
+    "flake-utils_5": {
       "locked": {
         "lastModified": 1659877975,
         "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
@@ -222,7 +238,7 @@
     },
     "mach-nix": {
       "inputs": {
-        "flake-utils": "flake-utils_3",
+        "flake-utils": "flake-utils_4",
         "nixpkgs": "nixpkgs",
         "pypi-deps-db": [
           "pyaion",
@@ -230,11 +246,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1657089034,
-        "narHash": "sha256-qSjk1iOi14ijAOP6QuGfE3fvy08aVxsgus+ArwgiyuU=",
+        "lastModified": 1667918925,
+        "narHash": "sha256-jCZ4iI4UCOC+T5SEgoCbUzqaeMo5WT3DcFwqwvn2fEs=",
         "owner": "DavHau",
         "repo": "mach-nix",
-        "rev": "51caf584f26acdfaa51bbf7ee1ffa365aea7bc64",
+        "rev": "913e6c16f986746ba5507878ef7ff992804d1fa8",
         "type": "github"
       },
       "original": {
@@ -245,11 +261,11 @@
     "mozilla-overlay": {
       "flake": false,
       "locked": {
-        "lastModified": 1657214286,
-        "narHash": "sha256-rO/4oymKXU09wG2bcTt4uthPCp1XsBZjxuCJo3yVXNs=",
+        "lastModified": 1664789696,
+        "narHash": "sha256-UGWJHQShiwLCr4/DysMVFrYdYYHcOqAOVsWNUu+l6YU=",
         "owner": "mozilla",
         "repo": "nixpkgs-mozilla",
-        "rev": "0508a66e28a5792fdfb126bbf4dec1029c2509e0",
+        "rev": "80627b282705101e7b38e19ca6e8df105031b072",
         "type": "github"
       },
       "original": {
@@ -277,11 +293,11 @@
     "ndscan": {
       "flake": false,
       "locked": {
-        "lastModified": 1660127653,
-        "narHash": "sha256-sNsEYJta/FiIx5j1KT4yvyuq8j6Bgbw+/1WrDPkJmPw=",
+        "lastModified": 1664479591,
+        "narHash": "sha256-0/cWBYiVsiVb9Ebh0qWCABNNdbc8oPKB15LjpTvA0qQ=",
         "owner": "OxfordIonTrapGroup",
         "repo": "ndscan",
-        "rev": "7116e4a75c667fdaa0306f88b0fae1370fca16b0",
+        "rev": "1b5526cd2c06257baa3de0c6ecade186bef9848f",
         "type": "github"
       },
       "original": {
@@ -325,7 +341,7 @@
       "inputs": {
         "artiq": "artiq",
         "artiq_influx_generic": "artiq_influx_generic",
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils_3",
         "mach-nix": "mach-nix",
         "ndscan": "ndscan",
         "nixpkgs": [
@@ -338,11 +354,11 @@
         "qbutler": "qbutler"
       },
       "locked": {
-        "lastModified": 1670438898,
-        "narHash": "sha256-qjttTUdZYmPjV0+I/I4hS9RVn6eQnxziZVyHNg7DGgI=",
+        "lastModified": 1671111319,
+        "narHash": "sha256-MrATEuku9gZ/gq03yyK73st2m4SyjtV6rHm1sEg4OV8=",
         "ref": "refs/heads/master",
-        "rev": "9bfb5d0fe75b255669070021ec6395a1dae61dad",
-        "revCount": 26,
+        "rev": "c845153ee16a1237808e47eab91963d51ed69468",
+        "revCount": 29,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
@@ -354,11 +370,11 @@
     "pypi-deps-db": {
       "flake": false,
       "locked": {
-        "lastModified": 1655800137,
-        "narHash": "sha256-hoHvtzC5jIeuPWexMDJVKgNq0MIo7euCS+Ypfew6L2c=",
+        "lastModified": 1670518748,
+        "narHash": "sha256-pfUce0zlRI+tzxPgvRSKkusjxDCBVjCpkcDKWboHa+U=",
         "owner": "DavHau",
         "repo": "pypi-deps-db",
-        "rev": "c57be9db6e0bd2a9316b36b5122a805f5daf65a1",
+        "rev": "e9571cac25d2f509e44fec9dc94a3703a40126ff",
         "type": "github"
       },
       "original": {
@@ -370,7 +386,7 @@
     "qbutler": {
       "inputs": {
         "artiq": "artiq_2",
-        "flake-utils": "flake-utils_4",
+        "flake-utils": "flake-utils_5",
         "mach-nix": [
           "pyaion",
           "mach-nix"
@@ -421,11 +437,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1654830914,
-        "narHash": "sha256-tratXcWu6Dgzd0Qd9V6EMjuNlE9qDN1pKFhP+Gt0b64=",
+        "lastModified": 1669369686,
+        "narHash": "sha256-YHez+S3PTUgtuliUNB5WM+RXcj8RKLbHVRvOgELSkwU=",
         "owner": "m-labs",
         "repo": "sipyco",
-        "rev": "58b0935f7ae47659abee5b5792fa594153328d6f",
+        "rev": "98db6eacb084c2c5280fb653bee3d313e3ca6df8",
         "type": "github"
       },
       "original": {
@@ -482,11 +498,11 @@
     "src-migen": {
       "flake": false,
       "locked": {
-        "lastModified": 1656649178,
-        "narHash": "sha256-A91sZRrprEuPOtIUVxm6wX5djac9wnNZQ4+cU1nvJPc=",
+        "lastModified": 1662111470,
+        "narHash": "sha256-IPyhoFZLhY8d3jHB8jyvGdbey7V+X5eCzBZYSrJ18ec=",
         "owner": "m-labs",
         "repo": "migen",
-        "rev": "0fb91737090fe45fd764ea3f71257a4c53c7a4ae",
+        "rev": "639e66f4f453438e83d86dc13491b9403bbd8ec6",
         "type": "github"
       },
       "original": {
@@ -514,11 +530,11 @@
     "src-misoc": {
       "flake": false,
       "locked": {
-        "lastModified": 1649324486,
-        "narHash": "sha256-Mw/fQS3lHFvCm7L1k63joRkz5uyijQfywcOq+X2+o2s=",
+        "lastModified": 1669779825,
+        "narHash": "sha256-l3lyy6dmbivo9Tppb08KHSyU89ZZG1CCcSjPlNRD210=",
         "ref": "master",
-        "rev": "f1dc58d2b8c222ba41c25cee4301626625f46e43",
-        "revCount": 2420,
+        "rev": "2c255775f732a41ba1a512ab3d2547af4e25f674",
+        "revCount": 2435,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/m-labs/misoc.git"
