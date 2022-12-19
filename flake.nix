@@ -14,9 +14,26 @@
         };
         pkgs = nixpkgs.legacyPackages.${system};
 
+        hello_drv = pkgs.writeShellScriptBin "hello" ''
+          export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
+
+          echo "Hello world!"
+        '';
+
       in
       {
-        inherit (generated_outputs) devShells packages formatter;
+        inherit (generated_outputs) packages formatter;
+
+        devShells = generated_outputs.devShells // {
+          hello = pkgs.mkShell {
+            name = "hello-shell";
+            buildInputs = [ hello_drv ];
+          };
+
+          artiq = (generated_outputs.devShells.artiq.overrideAttrs (previousAttrs: {
+            buildInputs = previousAttrs.buildInputs ++ [ hello_drv ];
+          }));
+        };
 
         apps = generated_outputs.apps // {
           backup_datasets =
@@ -58,8 +75,10 @@
             '');
           };
 
+          hello = flake-utils.lib.mkApp { drv = hello_drv; };
 
-          full_stack = let
+          full_stack =
+            let
               backup_database = "nix run .#backup_database";
               backup_datasets = "nix run .#backup_datasets";
             in
