@@ -2,16 +2,21 @@
   inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  outputs = { self, nixpkgs, pyaion, flake-utils }:
+  inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
+  inputs.artiq-http.inputs.nixpkgs.follows = "nixpkgs";
+
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
         requirements = builtins.readFile ./requirements.in;
-        generated_outputs = pyaion.lib.${system}.build_institute_outputs {
-          institute_flake = self;
-          system = system;
-          extra_requirements = requirements;
-        };
+        generated_outputs = pyaion.lib.${system}.build_institute_outputs
+          {
+            institute_flake = self;
+            system = system;
+            extra_requirements = requirements;
+            extra_machnix_packages = [ artiq-http.defaultPackage.${system} ];
+          };
         pkgs = nixpkgs.legacyPackages.${system};
 
       in
@@ -59,7 +64,8 @@
           };
 
 
-          full_stack = let
+          full_stack =
+            let
               backup_database = "nix run .#backup_database";
               backup_datasets = "nix run .#backup_datasets";
             in

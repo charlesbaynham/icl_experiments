@@ -45,6 +45,12 @@ def get_non_core_devices(simulation_mode=False):
             "port": "3275",
             "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
         },
+        "artiq_http": {
+            "type": "controller",
+            "host": "::1",
+            "port": "8000",
+            "command": "aqctl_artiq_http",
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
