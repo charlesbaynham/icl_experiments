@@ -121,11 +121,11 @@
         "sipyco": "sipyco"
       },
       "locked": {
-        "lastModified": 1671880388,
-        "narHash": "sha256-gPw1No+KOyhKTr9D2Opx7X3YRJNAy6XcNStxy+N/Zmw=",
+        "lastModified": 1671900993,
+        "narHash": "sha256-X9ADL1uO98jfunQNwoB97JeHL03K/z04aK1kSWzssUc=",
         "ref": "refs/heads/master",
-        "rev": "f5b7be9002a495fe17db13fcafc4f9be3c6b3b86",
-        "revCount": 68,
+        "rev": "a2003fb8b6d188fa75539f8e876af71bc0b0ff3d",
+        "revCount": 70,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git"
       },
