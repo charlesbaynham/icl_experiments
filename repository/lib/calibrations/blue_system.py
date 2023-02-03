@@ -16,60 +16,71 @@ from repository.lib.constants import BLUE_INJECTION_AOM_DEFAULT_FREQUENCY
 logger = logging.getLogger(__name__)
 
 
-class BlueInjectionAOM(Calibration):
-    """
-    Ensure that the double-pass AOM which injects the blue diodes has been set
-    up and turned on
-    """
+def make_static_AOM_calibration(
+    name, description: str, default_frequency, default_attenuation, device_name
+):
+    class CreatedClass(Calibration):
+        description
 
-    def build_calibration(self):
-        self.setup_completed = False
-        self.setattr_device("core")
-        self.core: Core
+        def build_calibration(self):
+            self.setup_completed = False
+            self.setattr_device("core")
+            self.core: Core
 
-        self.setattr_param(
-            "frequency",
-            FloatParam,
-            description="Frequency of the double-pass injection AOM",
-            default=BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
-            min=0,
-            max=400e6,  # from AD9910 specs
-            unit="MHz",
-            step=0.1,
-        )
-        self.setattr_param(
-            "attenuation",
-            FloatParam,
-            description="Attenuation on Urukul's variable attenuator",
-            default=BLUE_INJECTION_AOM_ATTENUATION,
-            min=0,
-            max=31.5,
-        )
-        self.frequency: FloatParamHandle
-        self.attenuation: FloatParamHandle
+            self.setattr_param(
+                "frequency",
+                FloatParam,
+                description="Frequency of the AOM",
+                default=default_frequency,
+                min=0,
+                max=400e6,  # from AD9910 specs
+                unit="MHz",
+                step=0.1,
+            )
+            self.setattr_param(
+                "attenuation",
+                FloatParam,
+                description="Attenuation on Urukul's variable attenuator",
+                default=default_attenuation,
+                min=0,
+                max=31.5,
+            )
+            self.frequency: FloatParamHandle
+            self.attenuation: FloatParamHandle
 
-        self.setattr_fragment(
-            "LibSetSUServoStatic",
-            LibSetSUServoStatic,
-            "suservo_aom_doublepass_461_injection",
-        )
-        self.LibSetSUServoStatic: LibSetSUServoStatic
+            self.setattr_fragment(
+                "LibSetSUServoStatic",
+                LibSetSUServoStatic,
+                device_name,
+            )
+            self.LibSetSUServoStatic: LibSetSUServoStatic
 
-    @kernel
-    def run_once(self):
-        # This calibration is always OK - its turns on the AOM in the setup
-        # which is always called directly before this run_once method
-        self.status.push(CalibrationResult.OK)
+        @kernel
+        def run_once(self):
+            # This calibration is always OK - its turns on the AOM in the setup
+            # which is always called directly before this run_once method
+            self.status.push(CalibrationResult.OK)
 
-    @kernel
-    def device_setup(self):
-        self.device_setup_subfragments()
+        @kernel
+        def device_setup(self):
+            self.device_setup_subfragments()
 
-        self.core.break_realtime()
+            self.core.break_realtime()
 
-        self.LibSetSUServoStatic.set_suservo(
-            self.frequency.get(), 1.0, self.attenuation.get()
-        )
+            self.LibSetSUServoStatic.set_suservo(
+                self.frequency.get(), 1.0, self.attenuation.get()
+            )
+
+    CreatedClass.__name__ = name
+
+    return CreatedClass
 
 
+BlueInjectionAOM = make_static_AOM_calibration(
+    "BlueInjectionAOM",
+    "Ensure that the double-pass AOM which injects the blue diodes has been set up and turned on",
+    BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+    BLUE_INJECTION_AOM_ATTENUATION,
+    "suservo_aom_doublepass_461_injection",
+)
 TurnOnBlueInjectionAOM = make_fragment_scan_exp(BlueInjectionAOM)
