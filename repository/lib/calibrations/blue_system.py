@@ -83,11 +83,11 @@ BlueInjectionAOM = make_static_AOM_calibration(
     "suservo_aom_doublepass_461_injection",
 )
 
-BlueSpectroscopyAOM = make_static_AOM_calibration(
-    "BlueSpectroscopyAOM",
+BlueProbeAOM = make_static_AOM_calibration(
+    "BlueProbeAOM",
     "Ensure that the single-pass AOM which powers the probes has been set up and turned on",
-    constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
-    constants.BLUE_INJECTION_AOM_ATTENUATION,
+    constants.BLUE_PROBE_AOM_DEFAULT_FREQUENCY,
+    constants.BLUE_PROBE_AOM_ATTENUATION,
     "suservo_aom_singlepass_461_spectroscopy",
 )
 
@@ -115,6 +115,26 @@ Blue2DMOTB_AOM = make_static_AOM_calibration(
     "suservo_aom_singlepass_461_2dmot_b",
 )
 
+
+class BlueSystemStatic(Calibration):
+    """
+    Turn the blue system fully on
+    """
+
+    def build_calibration(self):
+        self.add_dependency(BlueInjectionAOM)
+        self.add_dependency(BlueProbeAOM)
+        self.add_dependency(BluePushbeamAOM)
+        self.add_dependency(Blue2DMOTA_AOM)
+        self.add_dependency(Blue2DMOTB_AOM)
+
+    @kernel
+    def run_once(self):
+        # This calibration is always OK - it just inherits
+        self.status.push(CalibrationResult.OK)
+
+
 ## Make some interfaces
 TurnOnBlueInjectionAOM = make_fragment_scan_exp(BlueInjectionAOM)
-BlueSpectroscopyAOM = make_fragment_scan_exp(BlueSpectroscopyAOM)
+BlueProbeAOM = make_fragment_scan_exp(BlueProbeAOM)
+BlueSystemStatic = make_fragment_scan_exp(BlueSystemStatic)
