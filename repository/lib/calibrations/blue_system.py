@@ -10,8 +10,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
-from repository.lib.constants import BLUE_INJECTION_AOM_ATTENUATION
-from repository.lib.constants import BLUE_INJECTION_AOM_DEFAULT_FREQUENCY
+import repository.lib.constants as constants
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +78,43 @@ def make_static_AOM_calibration(
 BlueInjectionAOM = make_static_AOM_calibration(
     "BlueInjectionAOM",
     "Ensure that the double-pass AOM which injects the blue diodes has been set up and turned on",
-    BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
-    BLUE_INJECTION_AOM_ATTENUATION,
+    constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+    constants.BLUE_INJECTION_AOM_ATTENUATION,
     "suservo_aom_doublepass_461_injection",
 )
+
+BlueSpectroscopyAOM = make_static_AOM_calibration(
+    "BlueSpectroscopyAOM",
+    "Ensure that the single-pass AOM which powers the probes has been set up and turned on",
+    constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+    constants.BLUE_INJECTION_AOM_ATTENUATION,
+    "suservo_aom_singlepass_461_spectroscopy",
+)
+
+BluePushbeamAOM = make_static_AOM_calibration(
+    "BluePushbeamAOM",
+    "Ensure that the push-beam AOM has been set up and turned on",
+    constants.BLUE_PUSHBEAM_AOM_DEFAULT_FREQUENCY,
+    constants.BLUE_PUSHBEAM_AOM_ATTENUATION,
+    "suservo_aom_singlepass_461_pushbeam",
+)
+
+Blue2DMOTA_AOM = make_static_AOM_calibration(
+    "Blue2DMOTA_AOM",
+    "Ensure that the 2D MOT A beam AOM has been set up and turned on",
+    constants.BLUE_2DMOT_A_AOM_DEFAULT_FREQUENCY,
+    constants.BLUE_2DMOT_A_AOM_ATTENUATION,
+    "suservo_aom_singlepass_461_2dmot_a",
+)
+
+Blue2DMOTB_AOM = make_static_AOM_calibration(
+    "Blue2DMOTB_AOM",
+    "Ensure that the 2D MOT B beam AOM has been set up and turned on",
+    constants.BLUE_2DMOT_B_AOM_DEFAULT_FREQUENCY,
+    constants.BLUE_2DMOT_B_AOM_ATTENUATION,
+    "suservo_aom_singlepass_461_2dmot_b",
+)
+
+## Make some interfaces
 TurnOnBlueInjectionAOM = make_fragment_scan_exp(BlueInjectionAOM)
+BlueSpectroscopyAOM = make_fragment_scan_exp(BlueSpectroscopyAOM)
