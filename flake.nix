@@ -5,7 +5,10 @@
   inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
   inputs.artiq-http.inputs.nixpkgs.follows = "nixpkgs";
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http }:
+  inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
+  inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
+
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
@@ -15,7 +18,7 @@
             institute_flake = self;
             system = system;
             extra_requirements = requirements;
-            extra_machnix_packages = [ artiq-http.defaultPackage.${system} ];
+            extra_machnix_packages = [ artiq-http.defaultPackage.${system} koheron_driver.defaultPackage.${system} ];
           };
         pkgs = nixpkgs.legacyPackages.${system};
 
