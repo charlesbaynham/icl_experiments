@@ -20,6 +20,9 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+port_iterator = iter(range(3276, 99999))
+get_next_port = lambda: str(next(port_iterator))
+
 
 def get_non_core_devices(simulation_mode=False):
 
@@ -35,14 +38,14 @@ def get_non_core_devices(simulation_mode=False):
         "influx_logger": {
             "type": "controller",
             "host": "::1",
-            "port": "3276",
+            "port": get_next_port(),
             "target": "influx_logger",
             "command": "artiq_influx_generic --port {port} --bind {bind}",
         },
         "influx_scheduler_logger": {
             "type": "controller",
             "host": "::1",
-            "port": "3275",
+            "port": get_next_port(),
             "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
         },
         "artiq_http": {
@@ -50,6 +53,12 @@ def get_non_core_devices(simulation_mode=False):
             "host": "::1",
             "port": "8000",
             "command": "aqctl_artiq_http",
+        },
+        "blue_IJD1_controller": {
+            "type": "controller",
+            "host": "::1",
+            "port": get_next_port(),
+            "command": "aqctl_koheron_ctl200_laser_driver --port {port} --bind {bind} --id 'USB VID:PID=0403:6015 SER=DT0405C1A'",
         },
         # Example devices: edit to suit your lab
         # An example of a local device:
