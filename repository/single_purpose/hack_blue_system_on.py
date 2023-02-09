@@ -1,0 +1,90 @@
+import logging
+
+from artiq.coredevice.core import Core
+from artiq.coredevice.suservo import Channel
+from artiq.coredevice.suservo import SUServo
+from artiq.experiment import delay_mu
+from artiq.experiment import kernel
+from ndscan.experiment import EnumerationValue
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatParam
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.lib.utils import get_suservo_channels
+
+import repository.lib.constants as constants
+
+
+logger = logging.getLogger(__name__)
+
+
+class HackBlueSystemOn(ExpFragment):
+    """
+    Hack the blue AOMs on
+    """
+
+    def build_fragment(self):
+        self.setattr_fragment(
+            "suservo_aom_doublepass_461_injection",
+            LibSetSUServoStatic,
+            "suservo_aom_doublepass_461_injection",
+        )
+        self.setattr_fragment(
+            "suservo_aom_singlepass_461_spectroscopy",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_spectroscopy",
+        )
+        self.setattr_fragment(
+            "suservo_aom_singlepass_461_pushbeam",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_pushbeam",
+        )
+        self.setattr_fragment(
+            "suservo_aom_singlepass_461_2dmot_a",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_2dmot_a",
+        )
+        self.setattr_fragment(
+            "suservo_aom_singlepass_461_2dmot_b",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_2dmot_b",
+        )
+
+        self.setattr_device("core")
+
+    @kernel
+    def run_once(self):
+        # Set the outputs
+        self.suservo_aom_doublepass_461_injection.set_suservo(
+            constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_INJECTION_AOM_ATTENUATION,
+        )
+
+        self.suservo_aom_singlepass_461_spectroscopy.set_suservo(
+            constants.BLUE_PROBE_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_PROBE_AOM_ATTENUATION,
+        )
+
+        self.suservo_aom_singlepass_461_pushbeam.set_suservo(
+            constants.BLUE_PUSHBEAM_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_PUSHBEAM_AOM_ATTENUATION,
+        )
+
+        self.suservo_aom_singlepass_461_2dmot_a.set_suservo(
+            constants.BLUE_2DMOT_A_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_2DMOT_A_AOM_ATTENUATION,
+        )
+
+        self.suservo_aom_singlepass_461_2dmot_b.set_suservo(
+            constants.BLUE_2DMOT_B_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_2DMOT_B_AOM_ATTENUATION,
+        )
+
+
+HackBlueSystemOnExp = make_fragment_scan_exp(HackBlueSystemOn)
