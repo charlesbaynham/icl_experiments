@@ -58,7 +58,7 @@ def get_non_core_devices(simulation_mode=False):
             "type": "controller",
             "host": "::1",
             "port": get_next_port(),
-            "command": "aqctl_koheron_ctl200_laser_driver --port {port} --bind {bind} --id 'USB VID:PID=0403:6015 SER=DT0405C1A'",
+            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1A'",
         },
         # Example devices: edit to suit your lab
         # An example of a local device:

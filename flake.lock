@@ -329,11 +329,11 @@
         "sipyco": "sipyco_2"
       },
       "locked": {
-        "lastModified": 1675880290,
-        "narHash": "sha256-+rJpBNqSuYxzXjp9a4h2Od+LGlbGTXj7t79VOPCq1AQ=",
+        "lastModified": 1675896389,
+        "narHash": "sha256-xcpVO6/aBLrHtf3WvMG99yO+QKuowlYDjn19EiBjD+0=",
         "ref": "refs/heads/master",
-        "rev": "b5ce8fca2d4f5d7670ffc66017e29fedb3594196",
-        "revCount": 5,
+        "rev": "3cb778dd91672b2d8b689b66fbf5a356b17a9f22",
+        "revCount": 6,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
       },
