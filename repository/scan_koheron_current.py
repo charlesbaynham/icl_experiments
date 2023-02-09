@@ -1,0 +1,88 @@
+import logging
+
+from artiq.coredevice.core import Core
+from artiq.coredevice.sampler import Sampler
+from artiq.coredevice.suservo import Channel
+from artiq.coredevice.suservo import SUServo
+from artiq.coredevice.urukul import CPLD
+from artiq.experiment import EnumerationValue
+from artiq.experiment import kernel
+from artiq.experiment import NumberValue
+from artiq.experiment import RTIOUnderflow
+from artiq.experiment import TFloat
+from koheron_ctl200_laser_driver import CTL200
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatParam
+from ndscan.experiment import ResultChannel
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.sampler import SamplerReader
+from pyaion.lib.utils import get_local_devices
+
+logger = logging.getLogger(__name__)
+
+
+class ScanKoheronCurrent(ExpFragment):
+    """
+    Set a Koheron CTL200 laser driver's current and measure an analog input in response
+    """
+
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_param(
+            "current",
+            FloatParam,
+            description="Current to set",
+            default=0,
+            min=0,
+            max=400,
+            unit="mA",
+            step=0.1,
+        )
+        self.current: FloatParamHandle
+
+        # Choose the controller to set:
+        controller_names = [
+            k
+            for k, v in self.get_device_db().items()
+            if (
+                ("type" in v and v["type"] == "controller")
+                and (
+                    "command" in v
+                    and "aqctl_koheron_ctl200_laser_driver" in v["command"]
+                )
+            )
+        ]
+        if not controller_names:
+            raise ValueError("No CTL200 Koheron controllers found in device_db")
+        self.setattr_argument("controller_name", EnumerationValue(controller_names))
+
+        # And the Sampler to read
+        sampler_names = get_local_devices(Sampler)
+        if not sampler_names:
+            raise ValueError("No samplers found")
+        self.setattr_argument("sampler_device", EnumerationValue(sampler_names))
+        self.setattr_argument(
+            "sampler_channel", NumberValue(0, step=1, ndecimals=0, scale=1, type="int")
+        )
+
+        self.controller: CTL200 = self.get_device(self.controller_name)
+        self.sampler: Sampler = self.get_device(self.sampler_device)
+
+        self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
+
+        # Load the sampler utility from pyaion
+        self.setattr_fragment("sampler_reader", SamplerReader)
+        self.sampler_reader: SamplerReader
+
+        # And define a results channel as output
+        self.setattr_result("voltage")
+        self.voltage: ResultChannel
+
+    @kernel
+    def run_once(self):
+        self.controller.set_current_mA(self.current.get())
+        voltage = self.sampler_reader.read_single_channel(self.sampler_channel)
+        self.voltage.push(voltage)
