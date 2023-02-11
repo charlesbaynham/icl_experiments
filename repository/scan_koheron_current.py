@@ -16,7 +16,6 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.sampler import SamplerReader
 from pyaion.lib.utils import get_local_devices
 
 logger = logging.getLogger(__name__)
@@ -60,7 +59,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_argument("controller_name", EnumerationValue(controller_names))
 
         # And the Sampler to read
-        sampler_names = get_local_devices(Sampler)
+        sampler_names = get_local_devices(self, Sampler)
         if not sampler_names:
             raise ValueError("No samplers found")
         self.setattr_argument("sampler_device", EnumerationValue(sampler_names))
@@ -84,7 +83,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.controller.set_current_mA(self.current.get())
-        voltage = self.sampler_reader.read_single_channel(self.sampler_channel)
+        # voltage = self.sampler_reader.read_single_channel(self.sampler_channel)
+        voltage = 999.9
         self.voltage.push(voltage)
 
 
