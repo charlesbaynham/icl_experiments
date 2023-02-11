@@ -59,22 +59,22 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_argument("controller_name", EnumerationValue(controller_names))
 
         # And the Sampler to read
-        sampler_names = get_local_devices(self, Sampler)
-        if not sampler_names:
-            raise ValueError("No samplers found")
-        self.setattr_argument("sampler_device", EnumerationValue(sampler_names))
-        self.setattr_argument(
-            "sampler_channel", NumberValue(0, step=1, ndecimals=0, scale=1, type="int")
-        )
+        # sampler_names = get_local_devices(self, Sampler)
+        # if not sampler_names:
+        #     raise ValueError("No samplers found")
+        # self.setattr_argument("sampler_device", EnumerationValue(sampler_names))
+        # self.setattr_argument(
+        #     "sampler_channel", NumberValue(0, step=1, ndecimals=0, scale=1, type="int")
+        # )
 
         self.controller: CTL200 = self.get_device(self.controller_name)
-        self.sampler: Sampler = self.get_device(self.sampler_device)
+        # self.sampler: Sampler = self.get_device(self.sampler_device)
 
         self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
 
-        # Load the sampler utility from pyaion
-        self.setattr_fragment("sampler_reader", SamplerReader)
-        self.sampler_reader: SamplerReader
+        # # Load the sampler utility from pyaion
+        # self.setattr_fragment("sampler_reader", SamplerReader)
+        # self.sampler_reader: SamplerReader
 
         # And define a results channel as output
         self.setattr_result("voltage")
