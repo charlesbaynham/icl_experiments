@@ -22,7 +22,7 @@ from pyaion.lib.utils import get_local_devices
 logger = logging.getLogger(__name__)
 
 
-class ScanKoheronCurrent(ExpFragment):
+class ScanKoheronCurrentFrag(ExpFragment):
     """
     Set a Koheron CTL200 laser driver's current and measure an analog input in response
     """
@@ -86,3 +86,6 @@ class ScanKoheronCurrent(ExpFragment):
         self.controller.set_current_mA(self.current.get())
         voltage = self.sampler_reader.read_single_channel(self.sampler_channel)
         self.voltage.push(voltage)
+
+
+ScanKoheronCurrent = make_fragment_scan_exp(ScanKoheronCurrentFrag)
