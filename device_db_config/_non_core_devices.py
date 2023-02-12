@@ -60,6 +60,18 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
         },
+        "blue_IJD2_controller": {
+            "type": "controller",
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
+        },
+        "blue_IJD3_controller": {
+            "type": "controller",
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
