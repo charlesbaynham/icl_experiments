@@ -19,6 +19,8 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.lib.utils import get_local_devices
 
+from repository.lib.fragments.read_suservo_adc import ReadSUServoADC
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,24 +60,32 @@ class ScanKoheronCurrentFrag(ExpFragment):
         if not controller_names:
             raise ValueError("No CTL200 Koheron controllers found in device_db")
         self.setattr_argument("controller_name", EnumerationValue(controller_names))
-
-        # And the Sampler to read
-        # sampler_names = get_local_devices(self, Sampler)
-        # if not sampler_names:
-        #     raise ValueError("No samplers found")
-        # self.setattr_argument("sampler_device", EnumerationValue(sampler_names))
-        # self.setattr_argument(
-        #     "sampler_channel", NumberValue(0, step=1, ndecimals=0, scale=1, type="int")
-        # )
-
         self.controller: CTL200 = self.get_device(self.controller_name)
-        # self.sampler: Sampler = self.get_device(self.sampler_device)
+
+        # And the suservo channel to read
+        suservos = get_local_devices(self, SUServo)
+        if not suservos:
+            raise ValueError("No suservo devices found in device_db")
+        self.setattr_argument("suservo_device", EnumerationValue(suservos))
+        self.setattr_argument(
+            "suservo_channel",
+            NumberValue(
+                default=0, ndecimals=0, scale=1, step=1, min=0, max=7, type="int"
+            ),
+        )
+        self.suservo_channel: int
+        self.suservo_device: str
 
         self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
 
         # # Load the sampler utility from pyaion
         # self.setattr_fragment("sampler_reader", SamplerReader)
         # self.sampler_reader: SamplerReader
+
+        self.setattr_fragment(
+            "suservo_reader", ReadSUServoADC, self.suservo_device, self.suservo_channel
+        )
+        self.suservo_reader: ReadSUServoADC
 
         # And define a results channel as output
         self.setattr_result("voltage")
@@ -85,7 +95,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
     def run_once(self):
         cur = self.current.get()
         self.set_current(cur)
-        # voltage = self.sampler_reader.read_single_channel(self.sampler_channel)
+        voltage = self.suservo_reader.read_adc()
         voltage = cur * cur
         self.voltage.push(voltage)
 
