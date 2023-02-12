@@ -96,7 +96,6 @@ class ScanKoheronCurrentFrag(ExpFragment):
         cur = self.current.get()
         self.set_current(cur)
         voltage = self.suservo_reader.read_adc()
-        voltage = cur * cur
         self.voltage.push(voltage)
 
     @rpc
