@@ -83,9 +83,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        self.set_current(self.current.get())
+        cur = self.current.get()
+        self.set_current(cur)
         # voltage = self.sampler_reader.read_single_channel(self.sampler_channel)
-        voltage = 999.9
+        voltage = cur * cur
         self.voltage.push(voltage)
 
     @rpc
