@@ -91,6 +91,13 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_result("voltage")
         self.voltage: ResultChannel
 
+    def host_setup(self):
+        if not self.controller.status():
+            logger.warning("CTL200 controller was off - turning on...")
+            self.controller.turn_on()
+
+        return super().host_setup()
+
     @kernel
     def run_once(self):
         cur = self.current.get()
