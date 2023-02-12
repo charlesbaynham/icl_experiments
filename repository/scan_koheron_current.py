@@ -8,6 +8,7 @@ from artiq.coredevice.urukul import CPLD
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import NumberValue
+from artiq.experiment import rpc
 from artiq.experiment import RTIOUnderflow
 from artiq.experiment import TFloat
 from koheron_ctl200_laser_driver import CTL200
@@ -82,10 +83,14 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        self.controller.set_current_mA(self.current.get())
+        self.set_current(self.current.get())
         # voltage = self.sampler_reader.read_single_channel(self.sampler_channel)
         voltage = 999.9
         self.voltage.push(voltage)
+
+    @rpc
+    def set_current(self, current):
+        self.controller.set_current_mA(current)
 
 
 ScanKoheronCurrent = make_fragment_scan_exp(ScanKoheronCurrentFrag)
