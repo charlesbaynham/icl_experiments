@@ -96,6 +96,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
             logger.warning("CTL200 controller was off - turning on...")
             self.controller.turn_on()
 
+        logger.debug(f"Current = {self.current.get()}")
+
         return super().host_setup()
 
     @kernel
