@@ -1,6 +1,7 @@
 import logging
 import time
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import Channel
@@ -18,6 +19,8 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from pyaion.lib.utils import get_local_devices
 
 from repository.lib import constants
@@ -71,6 +74,16 @@ class ScanKoheronCurrentFrag(ExpFragment):
             step=1,
         )
         self.temperature_waittime: FloatParamHandle
+
+        self.setattr_param(
+            "num_points",
+            IntParam,
+            description="Number of voltage points to take, spaced by 1ms",
+            default=10,
+            min=1,
+            max=1000,
+        )
+        self.num_points: IntParamHandle
 
         # Choose the controller to set:
         controller_names = [
@@ -131,9 +144,18 @@ class ScanKoheronCurrentFrag(ExpFragment):
     def run_once(self):
         self.set_temperature(self.temperature.get())
         self.set_current(self.current.get())
-        self.core.break_realtime()
-        voltage = self.suservo_reader.read_adc()
-        self.voltage.push(voltage)
+
+        voltages = [0.0] * self.num_points.get()
+
+        for i in range(0, self.num_points.get()):
+            self.core.break_realtime()
+            voltages[i] = self.suservo_reader.read_adc()
+
+        self.voltage.push(self.calculate_median(voltages))
+
+    @rpc
+    def calculate_median(self, list_of_floats) -> TFloat:
+        return np.median(list_of_floats)
 
     @rpc
     def set_temperature(self, temperature):
