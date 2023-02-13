@@ -54,6 +54,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             min=250,
             max=400,
             unit="K",
+            scale=1,
             step=0.1,
         )
         self.temperature: FloatParamHandle
