@@ -137,8 +137,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @rpc
     def set_temperature(self, temperature):
-        current_temperature_sp = round(self.controller.get_temperature_setpoint())
-        current_temperature_actual = round(self.controller.get_temperature_actual())
+        current_temperature_sp = self.controller.get_temperature_setpoint()
+        current_temperature_actual = self.controller.get_temperature_actual()
 
         logger.debug("current_temperature_sp = %s", current_temperature_sp)
         logger.debug("current_temperature_actual = %s", current_temperature_actual)
@@ -153,6 +153,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         ):
             # ... then assume everything is fine and do nothing
             logger.debug("Temperature already at setpoint - continuing")
+            return
 
         # Otherwise, set the temperature and wait for it
         logger.info(
