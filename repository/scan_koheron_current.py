@@ -140,6 +140,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
         current_temperature_sp = round(self.controller.get_temperature_setpoint())
         current_temperature_actual = round(self.controller.get_temperature_actual())
 
+        logger.debug("current_temperature_sp = %s", current_temperature_sp)
+        logger.debug("current_temperature_actual = %s", current_temperature_actual)
+        logger.debug("temperature = %s", temperature)
+
         if (
             # if the setpoint is already correct...
             round(current_temperature_sp, 2) == round(temperature, 2)
