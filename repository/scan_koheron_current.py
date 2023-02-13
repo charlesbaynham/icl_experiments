@@ -7,6 +7,7 @@ from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.coredevice.urukul import CPLD
+from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import NumberValue
@@ -27,6 +28,7 @@ from repository.lib import constants
 from repository.lib.fragments.read_suservo_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
+SAMPLING_WAIT_TIME = 0.001  # wait 1ms between points
 
 
 class ScanKoheronCurrentFrag(ExpFragment):
@@ -147,8 +149,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         voltages = [0.0] * self.num_points.get()
 
+        self.core.break_realtime()
         for i in range(0, self.num_points.get()):
-            self.core.break_realtime()
+            delay(SAMPLING_WAIT_TIME)
             voltages[i] = self.suservo_reader.read_adc()
 
         self.voltage.push(self.calculate_median(voltages))
