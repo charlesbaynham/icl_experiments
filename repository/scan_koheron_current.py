@@ -52,9 +52,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
             FloatParam,
             description="Temperature",
             default=constants.IJD1_TEMPERATURE,
-            min=250,
-            max=400,
-            unit="K",
+            min=8000,
+            max=15000,
+            unit="Ohms",
             scale=1,
             step=0.1,
         )
@@ -137,8 +137,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @rpc
     def set_temperature(self, temperature):
-        current_temperature_sp = self.controller.get_temperature_setpoint()
-        current_temperature_actual = self.controller.get_temperature_actual()
+        current_temperature_sp = self.controller.get_resistance_setpoint()
+        current_temperature_actual = self.controller.get_resistance_actual()
 
         logger.debug("current_temperature_sp = %s", current_temperature_sp)
         logger.debug("current_temperature_actual = %s", current_temperature_actual)
@@ -161,7 +161,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             temperature,
             self.temperature_waittime.get(),
         )
-        self.controller.set_temperature_setpoint(round(temperature, 2))
+        self.controller.set_resistance_setpoint(round(temperature, 2))
         time.sleep(self.temperature_waittime.get())
 
     @rpc
