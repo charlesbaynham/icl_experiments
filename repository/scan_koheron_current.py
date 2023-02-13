@@ -147,9 +147,14 @@ class ScanKoheronCurrentFrag(ExpFragment):
             abs(current_temperature_actual - temperature) < 0.1
         ):
             # ... then assume everything is fine and do nothing
-            return
+            logger.debug("Temperature already at setpoint - continuing")
 
         # Otherwise, set the temperature and wait for it
+        logger.info(
+            "Setting temperature to %s and waiting %ss",
+            temperature,
+            self.temperature_waittime.get(),
+        )
         self.controller.set_temperature_setpoint(round(temperature, 2))
         time.sleep(self.temperature_waittime.get())
 
