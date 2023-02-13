@@ -1,3 +1,7 @@
-from device_db_config import get_device_db
+import importlib
 
-device_db = get_device_db()
+import device_db_config
+
+# Force reload of the module in case it has been updated
+importlib.reload(device_db_config)
+device_db = device_db_config.get_device_db()
