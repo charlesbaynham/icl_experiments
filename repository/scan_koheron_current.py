@@ -146,10 +146,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         if (
             # if the setpoint is already correct...
-            round(current_temperature_sp, 2) == round(temperature, 2)
-            and
-            # and we're within 1 ohm of the right temperature
-            abs(current_temperature_actual - temperature) < 1
+            round(current_temperature_sp, 2)
+            == round(temperature, 2)
         ):
             # ... then assume everything is fine and do nothing
             logger.debug("Temperature already at setpoint - continuing")
