@@ -29,6 +29,7 @@ class ReadSUServoADC(ExpFragment):
         self.device_setup_subfragments()
         self.core.break_realtime()
         self.suservo.init()
+        self.suservo.set_config(enable=1)
 
     @kernel
     def read_adc(self):
