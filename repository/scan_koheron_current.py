@@ -131,6 +131,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
     def run_once(self):
         self.set_temperature(self.temperature.get())
         self.set_current(self.current.get())
+        self.core.break_realtime()
         voltage = self.suservo_reader.read_adc()
         self.voltage.push(voltage)
 
