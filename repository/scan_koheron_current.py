@@ -102,14 +102,13 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        cur = self.current.get()
-        self.set_current(cur)
+        self.set_current(self.current.get())
         voltage = self.suservo_reader.read_adc()
         self.voltage.push(voltage)
 
     @rpc
     def set_current(self, current):
-        self.controller.set_current_mA(current)
+        self.controller.set_current_mA(1e3 * current)
 
 
 ScanKoheronCurrent = make_fragment_scan_exp(ScanKoheronCurrentFrag)
