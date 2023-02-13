@@ -20,6 +20,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.lib.utils import get_local_devices
 
+from repository.lib import constants
 from repository.lib.fragments.read_suservo_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             "temperature",
             FloatParam,
             description="Temperature",
-            default=0,
+            default=constants.IJD1_TEMPERATURE,
             min=250,
             max=400,
             unit="K",
