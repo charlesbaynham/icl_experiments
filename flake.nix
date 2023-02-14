@@ -75,6 +75,7 @@
             generated_outputs.apps.full_stack.override (prev: {
               commands = prev.commands // {
                 inherit backup_database backup_datasets;
+                ndscan_janitor = "ndscan_dataset_janitor --timeout 172800"; # 48 hours
               };
             });
         };
