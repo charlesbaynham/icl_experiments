@@ -144,8 +144,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        self.set_temperature(self.temperature.get())
         self.set_current(self.current.get())
+        self.set_temperature(self.temperature.get())
 
         voltages = [0.0] * self.num_points.get()
 
