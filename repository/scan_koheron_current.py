@@ -162,8 +162,6 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         self.voltage.push(self.calculate_median(voltages))
 
-        self.is_first_cycle = False
-
     @rpc
     def calculate_median(self, list_of_floats) -> TFloat:
         return np.median(list_of_floats)
@@ -196,6 +194,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.controller.set_resistance_setpoint(round(temperature, 2))
         time.sleep(self.temperature_waittime.get())
+
+        self.is_first_cycle = False
 
     @rpc
     def set_current(self, current):
