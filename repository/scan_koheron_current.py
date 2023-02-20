@@ -7,6 +7,7 @@ from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.coredevice.urukul import CPLD
+from artiq.experiment import BooleanValue
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
@@ -87,6 +88,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.num_points: IntParamHandle
 
+        self.setattr_argument("always_wait_at_start", BooleanValue(default=False))
+        self.always_wait_at_start: bool
+
         # Choose the controller to set:
         controller_names = [
             k
@@ -133,6 +137,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_result("voltage")
         self.voltage: ResultChannel
 
+        self.is_first_cycle = True
+
     def host_setup(self):
         if not self.controller.status():
             logger.warning("CTL200 controller was off - turning on...")
@@ -156,6 +162,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         self.voltage.push(self.calculate_median(voltages))
 
+        self.is_first_cycle = False
+
     @rpc
     def calculate_median(self, list_of_floats) -> TFloat:
         return np.median(list_of_floats)
@@ -169,10 +177,12 @@ class ScanKoheronCurrentFrag(ExpFragment):
         logger.debug("current_temperature_actual = %s", current_temperature_actual)
         logger.debug("temperature = %s", temperature)
 
-        if (
-            # if the setpoint is already correct...
-            round(current_temperature_sp, 2)
-            == round(temperature, 2)
+        temperature_setpoint_is_correct = round(current_temperature_sp, 2) == round(
+            temperature, 2
+        )
+
+        if temperature_setpoint_is_correct and not (
+            self.is_first_cycle and self.always_wait_at_start
         ):
             # ... then assume everything is fine and do nothing
             logger.debug("Temperature already at setpoint - continuing")
