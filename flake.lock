@@ -546,11 +546,11 @@
         "qbutler": "qbutler"
       },
       "locked": {
-        "lastModified": 1676314366,
-        "narHash": "sha256-NU+Q9w64K5YZs5CHrUVY/NwKOyHKn9KXUMZvNqUYiIQ=",
+        "lastModified": 1676995387,
+        "narHash": "sha256-I0RtzCYs47VexM0PGsVI7M71PqrpxpNmjxDKY3IzMUM=",
         "ref": "refs/heads/master",
-        "rev": "9e267b574a852e3669c07545ee13a2b7e1ab5ff3",
-        "revCount": 37,
+        "rev": "34204790b96265a1a88386e9628ae49fcf5c2524",
+        "revCount": 38,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
