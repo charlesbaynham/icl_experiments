@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
+from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -11,7 +12,7 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.lib.utils import get_suservo_channels
+from pyaion.lib.utils import get_local_devices
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ class FlashSUServo(ExpFragment):
             step=1,
         )
 
-        suservo_channels = get_suservo_channels(self)
+        suservo_channels = get_local_devices(self, SUServoChannel)
         self.setattr_argument("channel", EnumerationValue(suservo_channels))
 
         self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic, self.channel)
