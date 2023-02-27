@@ -22,10 +22,10 @@ class AOMBox(EnvExperiment):
 
         self.setattr_argument(
             "frequency",
-            NumberValue(default=20e6, unit="MHz", step=0.1e6, ndecimals=1, min=0),
+            NumberValue(default=20, unit="MHz", step=0.1e6, ndecimals=1, min=0),
         )
         self.setattr_argument(
-            "frequency", NumberValue(default=0, unit="db", step=0.1, ndecimals=1, min=0)
+            "frequency", NumberValue(default=0, unit="dB", step=0.1, ndecimals=1, min=0)
         )
 
         available = [
