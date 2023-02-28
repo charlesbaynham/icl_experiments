@@ -113,11 +113,11 @@ class ScanKoheronCurrentFrag(ExpFragment):
         suservos = get_local_devices(self, SUServo)
         samplers = get_local_devices(self, Sampler)
 
-        if not [suservos + samplers]:
+        if not (suservos + samplers):
             raise ValueError("No suservos or samplers found in device_db")
 
         # And the channel to read
-        self.setattr_argument("adc_device", EnumerationValue([suservos + samplers]))
+        self.setattr_argument("adc_device", EnumerationValue(suservos + samplers))
         self.setattr_argument(
             "adc_channel",
             NumberValue(
@@ -137,7 +137,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             self.setattr_fragment(
                 "adc_reader", ReadSUServoADC, self.adc_device, self.adc_channel
             )
-        elif adc_obj is None:
+        elif self.adc_device is None:
             # we're in build
             pass
         else:
