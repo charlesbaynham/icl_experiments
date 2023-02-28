@@ -46,12 +46,12 @@ class ReadSamplerADC(ReadADC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         self.core.break_realtime()
-        self.sampler.init()
+        self.sampler_device.init()
 
     @kernel
     def read_adc(self):
         samples = [0.0] * 8
-        self.sampler.sample(samples)
+        self.sampler_device.sample(samples)
 
         return samples[self.sampler_channel]
 
@@ -79,9 +79,9 @@ class ReadSUServoADC(ReadADC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         self.core.break_realtime()
-        self.suservo.init()
-        self.suservo.set_config(enable=1)
+        self.suservo_device.init()
+        self.suservo_device.set_config(enable=1)
 
     @kernel
     def read_adc(self):
-        return self.suservo.get_adc(self.suservo_channel)
+        return self.suservo_device.get_adc(self.suservo_channel)

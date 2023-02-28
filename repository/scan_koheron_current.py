@@ -131,11 +131,11 @@ class ScanKoheronCurrentFrag(ExpFragment):
         adc_obj = self.get_device(self.adc_device)
         if isinstance(adc_obj, Sampler):
             self.setattr_fragment(
-                "adc_reader", ReadSamplerADC, self.adc_device, self.adc_channel
+                "adc_reader", ReadSamplerADC, adc_obj, self.adc_channel
             )
-        elif isinstance(adc_obj, Sampler):
+        elif isinstance(adc_obj, SUServo):
             self.setattr_fragment(
-                "adc_reader", ReadSUServoADC, self.adc_device, self.adc_channel
+                "adc_reader", ReadSUServoADC, adc_obj, self.adc_channel
             )
         elif self.adc_device is None:
             # we're in build
