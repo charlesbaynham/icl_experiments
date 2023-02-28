@@ -26,7 +26,9 @@ from ndscan.experiment.parameters import IntParamHandle
 from pyaion.lib.utils import get_local_devices
 
 from repository.lib import constants
-from repository.lib.fragments.read_suservo_adc import ReadSUServoADC
+from repository.lib.fragments.read_adc import ReadADC
+from repository.lib.fragments.read_adc import ReadSamplerADC
+from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
 SAMPLING_WAIT_TIME = 0.001  # wait 1ms between points
@@ -108,35 +110,48 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_argument("controller_name", EnumerationValue(controller_names))
         self.controller: CTL200 = self.get_device(self.controller_name)
 
-        # And the suservo channel to read
         suservos = get_local_devices(self, SUServo)
-        if not suservos:
-            raise ValueError("No suservo devices found in device_db")
-        self.setattr_argument("suservo_device", EnumerationValue(suservos))
+        samplers = get_local_devices(self, Sampler)
+
+        if not [suservos + samplers]:
+            raise ValueError("No suservos or samplers found in device_db")
+
+        # And the channel to read
+        self.setattr_argument("adc_device", EnumerationValue([suservos + samplers]))
         self.setattr_argument(
-            "suservo_channel",
+            "adc_channel",
             NumberValue(
                 default=0, ndecimals=0, scale=1, step=1, min=0, max=7, type="int"
             ),
         )
-        self.suservo_channel: int
-        self.suservo_device: str
+        self.adc_channel: int
+        self.adc_device: str
 
-        self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
+        # Load the sampler / suservo utility from pyaion
+        adc_obj = self.get_device(self.adc_device)
+        if isinstance(adc_obj, Sampler):
+            self.setattr_fragment(
+                "adc_reader", ReadSamplerADC, self.adc_device, self.adc_channel
+            )
+        elif isinstance(adc_obj, Sampler):
+            self.setattr_fragment(
+                "adc_reader", ReadSUServoADC, self.adc_device, self.adc_channel
+            )
+        elif adc_obj is None:
+            # we're in build
+            pass
+        else:
+            raise ValueError(
+                f"Expected a SUServo or Sampler, received {self.adc_device}"
+            )
 
-        # # Load the sampler utility from pyaion
-        # self.setattr_fragment("sampler_reader", SamplerReader)
-        # self.sampler_reader: SamplerReader
-
-        self.setattr_fragment(
-            "suservo_reader", ReadSUServoADC, self.suservo_device, self.suservo_channel
-        )
-        self.suservo_reader: ReadSUServoADC
+        self.adc_reader: ReadADC
 
         # And define a results channel as output
         self.setattr_result("voltage")
         self.voltage: ResultChannel
 
+        self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
         self.is_first_cycle = True
 
     def host_setup(self):
@@ -158,7 +173,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.core.break_realtime()
         for i in range(0, self.num_points.get()):
             delay(SAMPLING_WAIT_TIME)
-            voltages[i] = self.suservo_reader.read_adc()
+            voltages[i] = self.adc_reader.read_adc()
 
         self.voltage.push(self.calculate_median(voltages))
 
