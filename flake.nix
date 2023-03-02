@@ -9,8 +9,6 @@
   inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
 
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
-  inputs.qbutler.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.qbutler.inputs.artiq.follows = "pyaion/artiq";
 
   outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler }:
 
@@ -25,7 +23,7 @@
             extra_machnix_packages = [
               artiq-http.defaultPackage.${system}
               koheron_driver.defaultPackage.${system}
-              qbutler.defaultPackage.${system}
+              qbutler # Just the source
             ];
           };
         pkgs = nixpkgs.legacyPackages.${system};
