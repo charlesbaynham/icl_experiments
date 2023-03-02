@@ -10,7 +10,7 @@
 
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
   inputs.qbutler.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.qbutler.inputs.artiq.follows = "artiq";
+  inputs.qbutler.inputs.artiq.follows = "pyaion/artiq";
 
   outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler }:
 
