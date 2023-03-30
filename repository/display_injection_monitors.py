@@ -53,14 +53,15 @@ class DisplayInjectionMonitors(ExpFragment):
 
         self.sampler: Sampler = self.get_device("sampler_IJD_monitor")
 
-        self.sampler_channel_names = [
-            "sampler_channel_IJD1",
-            "sampler_channel_IJD2",
-            "sampler_channel_IJD3",
-        ]
-        self.sampler_channels = [
-            self.get_device_db()[k] for k in self.sampler_channel_names
-        ]
+        # self.sampler_channel_names = [
+        #     "sampler_channel_IJD1",
+        #     "sampler_channel_IJD2",
+        #     "sampler_channel_IJD3",
+        # ]
+        # self.sampler_channels = [
+        #     self.get_device_db()[k] for k in self.sampler_channel_names
+        # ]
+        self.sampler_channels = [0, 1, 2]  # hard-code for now
 
         # Define result channels as outputs
         self.setattr_result("v_IJD1")
@@ -83,13 +84,9 @@ class DisplayInjectionMonitors(ExpFragment):
 
         self.sampler.sample(samples)
 
-        self.v_IJD1.push(1.0)
-        self.v_IJD2.push(2.0)
-        self.v_IJD3.push(3.0)
-
-        # self.v_IJD1.push(self.sampler_channels[0])
-        # self.v_IJD2.push(self.sampler_channels[1])
-        # self.v_IJD3.push(self.sampler_channels[2])
+        self.v_IJD1.push(self.sampler_channels[0])
+        self.v_IJD2.push(self.sampler_channels[1])
+        self.v_IJD3.push(self.sampler_channels[2])
 
 
 DisplayInjectionMonitors = make_fragment_scan_exp(DisplayInjectionMonitors)
