@@ -83,9 +83,13 @@ class DisplayInjectionMonitors(ExpFragment):
 
         self.sampler.sample(samples)
 
-        self.v_IJD1.push(self.sampler_channels[0])
-        self.v_IJD2.push(self.sampler_channels[1])
-        self.v_IJD3.push(self.sampler_channels[2])
+        self.v_IJD1.push(1.0)
+        self.v_IJD2.push(2.0)
+        self.v_IJD3.push(3.0)
+
+        # self.v_IJD1.push(self.sampler_channels[0])
+        # self.v_IJD2.push(self.sampler_channels[1])
+        # self.v_IJD3.push(self.sampler_channels[2])
 
 
 DisplayInjectionMonitors = make_fragment_scan_exp(DisplayInjectionMonitors)
