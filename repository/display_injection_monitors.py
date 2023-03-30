@@ -11,6 +11,7 @@ from artiq.experiment import BooleanValue
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
+from artiq.experiment import ms
 from artiq.experiment import NumberValue
 from artiq.experiment import rpc
 from artiq.experiment import RTIOUnderflow
@@ -78,9 +79,9 @@ class DisplayInjectionMonitors(ExpFragment):
     def run_once(self):
         samples = [0.0] * 8
 
-        self.delay(self.waittime.get())
+        delay(self.waittime.get())
 
-        self.sampler_device.sample(samples)
+        self.sampler.sample(samples)
 
         self.v_IJD1.push(self.sampler_channels[0])
         self.v_IJD2.push(self.sampler_channels[1])
