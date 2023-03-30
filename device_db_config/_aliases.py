@@ -7,7 +7,7 @@ aliases = {
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
     "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
     "suservo_aom_singlepass_461_2dmot_b": "suservo1_ch1",
-    "sampler_IJD_monitor": "sampler0",
+    "sampler_IJD_monitor": "sampler2",
     # These are not devices, but can still be retrieved from the device_db
     "sampler_channel_IJD1": 0,
     "sampler_channel_IJD2": 1,
