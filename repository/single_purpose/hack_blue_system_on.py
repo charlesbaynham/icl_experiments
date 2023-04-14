@@ -42,6 +42,21 @@ class HackBlueSystemOn(ExpFragment):
             LibSetSUServoStatic,
             "suservo_aom_singlepass_461_2dmot_b",
         )
+        self.setattr_fragment(
+            "suservo_aom_singlepass_461_3DMOT_radial",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_3DMOT_radial",
+        )
+        self.setattr_fragment(
+            "suservo_aom_singlepass_461_3DMOT_axialplus",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_3DMOT_axialplus",
+        )
+        self.setattr_fragment(
+            "suservo_aom_singlepass_461_3DMOT_axialminus",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_3DMOT_axialminus",
+        )
 
         self.setattr_device("core")
 
@@ -76,6 +91,24 @@ class HackBlueSystemOn(ExpFragment):
             constants.BLUE_2DMOT_B_AOM_DEFAULT_FREQUENCY,
             1.0,
             constants.BLUE_2DMOT_B_AOM_ATTENUATION,
+        )
+
+        self.suservo_aom_singlepass_461_3DMOT_radial.set_suservo(
+            constants.BLUE_3DMOT_RADIAL_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_3DMOT_RADIAL_AOM_ATTENUATION,
+        )
+
+        self.suservo_aom_singlepass_461_3DMOT_axialplus.set_suservo(
+            constants.BLUE_3DMOT_AXIALPLUS_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_3DMOT_AXIALPLUS_AOM_ATTENUATION,
+        )
+
+        self.suservo_aom_singlepass_461_3DMOT_axialminus.set_suservo(
+            constants.BLUE_3DMOT_AXIALMINUS_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            constants.BLUE_3DMOT_AXIALMINUS_AOM_ATTENUATION,
         )
 
 
