@@ -1,10 +1,7 @@
-import logging
-
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
 
 
@@ -48,22 +45,15 @@ class ReadSamplerADC(ReadADC):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
-
-        logging.info("SAMPLER")
-
         self.core.break_realtime()
         self.sampler_device.init()
 
     @kernel
     def read_adc(self):
-        t1 = self.core.get_rtio_counter_mu()
         samples = [0.0] * 8
-        t2 = self.core.get_rtio_counter_mu()
-        t2_cursor = now_mu()
         self.sampler_device.sample(samples)
-        t3 = self.core.get_rtio_counter_mu()
 
-        return samples[self.sampler_channel], t1, t2, t2_cursor, t3
+        return samples[self.sampler_channel]
 
 
 class ReadSUServoADC(ReadADC):
