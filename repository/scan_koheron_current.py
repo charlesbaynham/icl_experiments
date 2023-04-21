@@ -174,18 +174,23 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.is_first_cycle = True
 
     def host_setup(self):
+        t1 = time.time()
         if not self.controller.status():
             logger.warning("CTL200 controller was off - turning on...")
             self.controller.turn_on()
+        t2 = time.time()
 
-        logger.debug(f"Current = {self.current.get()}")
+        logger.info(f"Current = {self.current.get()}")
+        logger.info(f"Setup took = {1e3*(t2-t1)}ms")
 
         return super().host_setup()
 
     @kernel
     def run_once(self):
+        t1 = self.core.get_rtio_counter_mu()
         self.set_current(self.current.get())
         self.set_temperature(self.temperature.get())
+        t2 = self.core.get_rtio_counter_mu()
 
         voltages = [0.0] * self.num_points.get()
 
@@ -199,11 +204,41 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         delay(1 * ms)
 
-        for i in range(0, self.num_points.get()):
-            delay(SAMPLING_WAIT_TIME)
-            voltages[i] = self.adc_reader.read_adc()
+        t3 = self.core.get_rtio_counter_mu()
+
+        n = self.num_points.get()
+
+        t3a = self.core.get_rtio_counter_mu()
+
+        # for i in range(0, n):
+        #     delay(SAMPLING_WAIT_TIME)
+        #     voltages[i] = self.adc_reader.read_adc()
+
+        delay(SAMPLING_WAIT_TIME)
+
+        t3b = self.core.get_rtio_counter_mu()
+        voltages[0] = self.adc_reader.read_adc()
+
+        t4 = self.core.get_rtio_counter_mu()
 
         self.voltage.push(self.calculate_median(voltages))
+
+        t5 = self.core.get_rtio_counter_mu()
+
+        logger.info(
+            "Core RPC calls took %f ms", 1000 * self.core.mu_to_seconds(t2 - t1)
+        )
+        logger.info(
+            "The AOM setting took %f ms",
+            1000 * self.core.mu_to_seconds(t3 - t2),
+        )
+        logger.info(
+            "The sampling took %f ms  (%f ms for the param, %f ms for the delay)",
+            1000 * self.core.mu_to_seconds(t4 - t3),
+            1000 * self.core.mu_to_seconds(t3a - t3),
+            1000 * self.core.mu_to_seconds(t3b - t3a),
+        )
+        logger.info("The rest took %f ms", 1000 * self.core.mu_to_seconds(t5 - t4))
 
     @rpc
     def calculate_median(self, list_of_floats) -> TFloat:
