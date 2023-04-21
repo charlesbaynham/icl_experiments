@@ -78,7 +78,7 @@ class LibSetSUServoStatic(Fragment):
                     1000 * self.core.mu_to_seconds(t2a_c - t2a),
                     1000 * self.core.mu_to_seconds(t2_c - t2),
                 )
-            self.suservos_have_been_initiated = True
+            # self.suservos_have_been_initiated = True
 
     @kernel
     def set_suservo(
