@@ -38,8 +38,6 @@ class LibSetSUServoStatic(Fragment):
 
         self.channel = channel
 
-        self.suservos_have_been_initiated = False
-
     def host_setup(self):
         super().host_setup()
 
@@ -58,27 +56,25 @@ class LibSetSUServoStatic(Fragment):
         t0_c = now_mu()
 
         # Initiate the suservo itself (i.e. all four channels)
-        if not self.suservos_have_been_initiated:
-            try:
-                self.suservo.init()
-            except RTIOUnderflow:
-                t1 = self.core.get_rtio_counter_mu()
-                t1_c = now_mu()
-                self.core.break_realtime()
-                t2a = self.core.get_rtio_counter_mu()
-                t2a_c = now_mu()
-                self.suservo.init()
-                t2 = self.core.get_rtio_counter_mu()
-                t2_c = now_mu()
+        try:
+            self.suservo.init()
+        except RTIOUnderflow:
+            t1 = self.core.get_rtio_counter_mu()
+            t1_c = now_mu()
+            self.core.break_realtime()
+            t2a = self.core.get_rtio_counter_mu()
+            t2a_c = now_mu()
+            self.suservo.init()
+            t2 = self.core.get_rtio_counter_mu()
+            t2_c = now_mu()
 
-                logger.info(
-                    "Initially had %f ms slack, then %f ms, then %f ms, then %f ms",
-                    1000 * self.core.mu_to_seconds(t0_c - t0),
-                    1000 * self.core.mu_to_seconds(t1_c - t1),
-                    1000 * self.core.mu_to_seconds(t2a_c - t2a),
-                    1000 * self.core.mu_to_seconds(t2_c - t2),
-                )
-            self.suservos_have_been_initiated = True
+            logger.info(
+                "Initially had %f ms slack, then %f ms, then %f ms, then %f ms",
+                1000 * self.core.mu_to_seconds(t0_c - t0),
+                1000 * self.core.mu_to_seconds(t1_c - t1),
+                1000 * self.core.mu_to_seconds(t2a_c - t2a),
+                1000 * self.core.mu_to_seconds(t2_c - t2),
+            )
 
     @kernel
     def set_suservo(
