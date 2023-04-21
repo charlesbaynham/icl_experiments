@@ -13,6 +13,7 @@ from artiq.experiment import ms
 from artiq.experiment import NumberValue
 from artiq.experiment import rpc
 from artiq.experiment import TFloat
+from artiq.experiment import us
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
@@ -200,7 +201,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             self.aom_attenuation.get(),
         )
 
-        delay(1 * ms)
+        delay(100 * us)
 
         for i in range(0, self.num_points.get()):
             delay(SAMPLING_WAIT_TIME)
