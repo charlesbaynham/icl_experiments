@@ -4,16 +4,14 @@ import time
 import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
-from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
-from artiq.coredevice.urukul import CPLD
 from artiq.experiment import BooleanValue
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
+from artiq.experiment import ms
 from artiq.experiment import NumberValue
 from artiq.experiment import rpc
-from artiq.experiment import RTIOUnderflow
 from artiq.experiment import TFloat
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import ExpFragment
@@ -23,12 +21,14 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
 
 from repository.lib import constants
 from repository.lib.fragments.read_adc import ReadADC
 from repository.lib.fragments.read_adc import ReadSamplerADC
 from repository.lib.fragments.read_adc import ReadSUServoADC
+
 
 logger = logging.getLogger(__name__)
 SAMPLING_WAIT_TIME = 0.001  # wait 1ms between points
@@ -90,6 +90,18 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.num_points: IntParamHandle
 
+        self.setattr_param(
+            "aom_attenuation",
+            FloatParam,
+            description="Attenuation of injection AOM",
+            default=20,
+            min=18,
+            max=30,
+            unit="dB",
+            step=0.1,
+        )
+        self.aom_attenuation: FloatParamHandle
+
         self.setattr_argument("always_wait_at_start", BooleanValue(default=False))
         self.always_wait_at_start: bool
 
@@ -147,6 +159,13 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         self.adc_reader: ReadADC
 
+        self.setattr_fragment(
+            "injection_aom_setter",
+            LibSetSUServoStatic,
+            "suservo_aom_doublepass_461_injection",
+        )
+        self.injection_aom_setter: LibSetSUServoStatic
+
         # And define a results channel as output
         self.setattr_result("voltage")
         self.voltage: ResultChannel
@@ -171,6 +190,15 @@ class ScanKoheronCurrentFrag(ExpFragment):
         voltages = [0.0] * self.num_points.get()
 
         self.core.break_realtime()
+
+        self.injection_aom_setter.set_suservo(
+            constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+            1.0,
+            self.aom_attenuation.get(),
+        )
+
+        delay(1 * ms)
+
         for i in range(0, self.num_points.get()):
             delay(SAMPLING_WAIT_TIME)
             voltages[i] = self.adc_reader.read_adc()
