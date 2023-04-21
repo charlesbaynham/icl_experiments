@@ -10,6 +10,7 @@ from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.experiment import now_mu
 from artiq.experiment import NumberValue
 from artiq.experiment import rpc
 from artiq.experiment import TFloat
@@ -21,13 +22,15 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
 
 from repository.lib import constants
 from repository.lib.fragments.read_adc import ReadADC
 from repository.lib.fragments.read_adc import ReadSamplerADC
 from repository.lib.fragments.read_adc import ReadSUServoADC
+from repository.lib.fragments.suservo import LibSetSUServoStatic
+
+# from pyaion.fragments.suservo import LibSetSUServoStatic
 
 
 logger = logging.getLogger(__name__)
@@ -173,6 +176,17 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
         self.is_first_cycle = True
 
+    @kernel
+    def device_setup(self) -> None:
+        t = self.core.get_rtio_counter_mu()
+        t_cursor = now_mu()
+
+        logger.info(
+            "Init slack = %f ms",
+            1000 * self.core.mu_to_seconds(t_cursor - t),
+        )
+        self.device_setup_subfragments()
+
     def host_setup(self):
         t1 = time.time()
         if not self.controller.status():
@@ -187,6 +201,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @kernel
     def run_once(self):
+
+        t1_cursor = now_mu()
+
         t1 = self.core.get_rtio_counter_mu()
         self.set_current(self.current.get())
         self.set_temperature(self.temperature.get())
@@ -217,7 +234,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         delay(SAMPLING_WAIT_TIME)
 
         t3b = self.core.get_rtio_counter_mu()
-        voltages[0] = self.adc_reader.read_adc()
+        voltages[0], tadc1, tadc2, tadc2_cursor, tadc3 = self.adc_reader.read_adc()
 
         t4 = self.core.get_rtio_counter_mu()
 
@@ -225,6 +242,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         t5 = self.core.get_rtio_counter_mu()
 
+        logger.info(
+            "Initial slack = %f ms", 1000 * self.core.mu_to_seconds(t1_cursor - t1)
+        )
         logger.info(
             "Core RPC calls took %f ms", 1000 * self.core.mu_to_seconds(t2 - t1)
         )
@@ -237,6 +257,13 @@ class ScanKoheronCurrentFrag(ExpFragment):
             1000 * self.core.mu_to_seconds(t4 - t3),
             1000 * self.core.mu_to_seconds(t3a - t3),
             1000 * self.core.mu_to_seconds(t3b - t3a),
+        )
+        logger.info(
+            "The sampler fragment took %f ms, %f ms, %f ms with %f ms slack",
+            1000 * self.core.mu_to_seconds(tadc1 - t3b),
+            1000 * self.core.mu_to_seconds(tadc2 - tadc1),
+            1000 * self.core.mu_to_seconds(tadc3 - tadc2),
+            1000 * self.core.mu_to_seconds(tadc2_cursor - tadc2),
         )
         logger.info("The rest took %f ms", 1000 * self.core.mu_to_seconds(t5 - t4))
 
