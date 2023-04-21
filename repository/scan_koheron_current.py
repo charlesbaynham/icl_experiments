@@ -173,6 +173,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
         self.is_first_cycle = True
 
+        self.last_temperature: TFloat = -1.0
+        self.last_current: TFloat = -1.0
+
     def host_setup(self):
         if not self.controller.status():
             logger.warning("CTL200 controller was off - turning on...")
@@ -209,8 +212,16 @@ class ScanKoheronCurrentFrag(ExpFragment):
     def calculate_median(self, list_of_floats) -> TFloat:
         return np.median(list_of_floats)
 
+    @kernel
+    def set_temperature(self, temperature: TFloat):
+        if (self.last_temperature != temperature) or (
+            self.is_first_cycle and self.always_wait_at_start
+        ):
+            self.set_temperature_rpc(temperature)
+            self.last_temperature = temperature
+
     @rpc
-    def set_temperature(self, temperature):
+    def set_temperature_rpc(self, temperature):
         current_temperature_sp = self.controller.get_resistance_setpoint()
         current_temperature_actual = self.controller.get_resistance_actual()
 
@@ -240,8 +251,14 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         self.is_first_cycle = False
 
+    @kernel
+    def set_current(self, current: TFloat):
+        if self.last_current != current:
+            self.set_current_rpc(current)
+            self.last_current = current
+
     @rpc
-    def set_current(self, current):
+    def set_current_rpc(self, current):
         self.controller.set_current_mA(1e3 * current)
 
 
