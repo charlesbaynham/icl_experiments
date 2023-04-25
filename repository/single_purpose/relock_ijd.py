@@ -1,3 +1,4 @@
+import logging
 import time
 
 from artiq.experiment import EnvExperiment
@@ -17,6 +18,8 @@ from ndscan.experiment.parameters import IntParamHandle
 
 from repository.scan_koheron_current import ScanKoheronCurrentFrag
 
+logger = logging.getLogger(__name__)
+
 
 class RelockIJD1Frag(ExpFragment):
     """
@@ -32,6 +35,7 @@ class RelockIJD1Frag(ExpFragment):
             FloatParam,
             "Increase from minimum voltage that defines the upper end of the injection window",
             default=0.01,
+            unit="mV",
         )
         self.v_increase_threshold: FloatParamHandle
 
@@ -40,6 +44,7 @@ class RelockIJD1Frag(ExpFragment):
             FloatParam,
             "How far above the window to jump when relocking",
             default=2 * 1e-3,
+            unit="mA",
         )
         self.i_jump_above_window: FloatParamHandle
 
@@ -47,6 +52,7 @@ class RelockIJD1Frag(ExpFragment):
             "t_relock_waittime",
             FloatParam,
             "How long to wait after initial jump when relocking",
+            unit="ms",
             default=5 * 1e-3,
         )
         self.t_relock_waittime: FloatParamHandle
@@ -55,6 +61,7 @@ class RelockIJD1Frag(ExpFragment):
             "i_start_scan",
             FloatParam,
             "Current to start scan",
+            unit="mA",
             default=340 * 1e-3,
         )
         self.i_start_scan: FloatParamHandle
@@ -63,6 +70,7 @@ class RelockIJD1Frag(ExpFragment):
             "i_end_scan",
             FloatParam,
             "Current to end scan",
+            unit="mA",
             default=310 * 1e-3,
         )
         self.i_end_scan: FloatParamHandle
@@ -101,28 +109,30 @@ class RelockIJD1Frag(ExpFragment):
                 )
             ]
         )
-        print("coordinates")
-        print(coordinates)
-        print("values")
-        print(values)
-        print("analysis_results")
-        print(analysis_results)
+        logger.debug("coordinates")
+        logger.debug(coordinates)
+        logger.debug("values")
+        logger.debug(values)
+        logger.debug("analysis_results")
+        logger.debug(analysis_results)
 
         currents = coordinates[self.frag_ijd_scanner.current]
-        print("currents")
-        print(currents)
+        logger.debug("currents")
+        logger.debug(currents)
 
         voltages = values[self.frag_ijd_scanner.voltage]
-        print("voltages")
-        print(voltages)
+        logger.debug("voltages")
+        logger.debug(voltages)
 
-        # # Find the optimum current
-        # lock_point = self.find_lock_point(currents, voltages)
+        # Find the optimum current
+        lock_point = self.find_lock_point(currents, voltages)
 
-        # # Jump to it
-        # self.ijd_controller.set_current(lock_point + self.i_jump_above_window.get())
-        # time.sleep(self.t_relock_waittime.get())
-        # self.ijd_controller.set_current(lock_point)
+        logger.info("Selecting I = %.2f mA", lock_point * 1e3)
+
+        # Jump to it
+        self.ijd_controller.set_current(lock_point + self.i_jump_above_window.get())
+        time.sleep(self.t_relock_waittime.get())
+        self.ijd_controller.set_current(lock_point)
 
     @portable
     def find_lock_point(self, current: TList, voltage: TList):
