@@ -27,8 +27,6 @@ class RelockIJD1Frag(ExpFragment):
     """
 
     def build_fragment(self, *args, **kwargs) -> None:
-        # Request the ijd controller device
-        self.ijd_controller: CTL200 = self.get_device("blue_IJD1_controller")
 
         self.setattr_param(
             "v_increase_threshold",
@@ -85,6 +83,9 @@ class RelockIJD1Frag(ExpFragment):
 
         self.setattr_fragment("frag_ijd_scanner", ScanKoheronCurrentFrag)
         self.frag_ijd_scanner: ScanKoheronCurrentFrag
+
+        # Request the ijd controller device
+        self.ijd_controller: CTL200 = self.frag_ijd_scanner.controller
 
         setattr_subscan(
             self,
