@@ -9,13 +9,14 @@ from ndscan.experiment import Fragment
 from ndscan.experiment import LinearGenerator
 from ndscan.experiment import setattr_subscan
 from ndscan.experiment import Subscan
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.scan_koheron_current import ScanKoheronCurrentFrag
 
 
-class RelockIJD1(ExpFragment):
+class RelockIJD1Frag(ExpFragment):
     """
     Relock IJD1
     """
@@ -135,3 +136,6 @@ class RelockIJD1(ExpFragment):
                 break
 
         return (window_start + window_end) / 2
+
+
+RelockIJD1 = make_fragment_scan_exp(RelockIJD1Frag)
