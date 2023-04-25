@@ -12,6 +12,8 @@ from ndscan.experiment import Subscan
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.scan_koheron_current import ScanKoheronCurrentFrag
 
@@ -67,11 +69,11 @@ class RelockIJD1Frag(ExpFragment):
 
         self.setattr_param(
             "num_points",
-            FloatParam,
+            IntParam,
             "Number of scan points",
             default=100,
         )
-        self.num_points: FloatParamHandle
+        self.num_points: IntParamHandle
 
         self.setattr_fragment("frag_ijd_scanner", ScanKoheronCurrentFrag)
         self.frag_ijd_scanner: ScanKoheronCurrentFrag
@@ -91,8 +93,8 @@ class RelockIJD1Frag(ExpFragment):
                 (
                     self.frag_ijd_scanner.current,
                     LinearGenerator(
-                        self.start_current.get(),
-                        self.stop_current.get(),
+                        self.i_start_scan.get(),
+                        self.i_end_scan.get(),
                         self.num_points.get(),
                         False,
                     ),
