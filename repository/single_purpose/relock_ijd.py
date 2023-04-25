@@ -88,7 +88,7 @@ class RelockIJD1Frag(ExpFragment):
 
     def run_once(self) -> None:
         # scan over a range of currents on the IJD
-        self.scan_ijd_current.run(
+        coordinates, values, analysis_results = self.scan_ijd_current.run(
             [
                 (
                     self.frag_ijd_scanner.current,
@@ -101,8 +101,20 @@ class RelockIJD1Frag(ExpFragment):
                 )
             ]
         )
-        # currents = []
-        # voltages = []
+        print("coordinates")
+        print(coordinates)
+        print("values")
+        print(values)
+        print("analysis_results")
+        print(analysis_results)
+
+        currents = coordinates[self.frag_ijd_scanner.current]
+        print("currents")
+        print(currents)
+
+        voltages = values[self.frag_ijd_scanner.voltage]
+        print("voltages")
+        print(voltages)
 
         # # Find the optimum current
         # lock_point = self.find_lock_point(currents, voltages)
@@ -132,6 +144,7 @@ class RelockIJD1Frag(ExpFragment):
         # Find end of window (i.e point before the voltage raises by v_increase_threshold)
         v_window_start = voltage[ind_biggest_diff]
         v_threshold = v_window_start + self.v_increase_threshold.get()
+        window_end = current[0]
         for i in range(ind_biggest_diff, 0, -1):
             if voltage[i] > v_threshold:
                 window_end = current[i + 1]
