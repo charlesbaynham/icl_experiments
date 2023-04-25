@@ -6,8 +6,13 @@ from artiq.experiment import TList
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
+from ndscan.experiment import LinearGenerator
+from ndscan.experiment import setattr_subscan
+from ndscan.experiment import Subscan
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+
+from repository.scan_koheron_current import ScanKoheronCurrentFrag
 
 
 class RelockIJD1(ExpFragment):
@@ -16,6 +21,7 @@ class RelockIJD1(ExpFragment):
     """
 
     def build_fragment(self, *args, **kwargs) -> None:
+        # Request the ijd controller device
         self.ijd_controller: CTL200 = self.get_device("blue_IJD1_controller")
 
         self.setattr_param(
@@ -42,18 +48,66 @@ class RelockIJD1(ExpFragment):
         )
         self.t_relock_waittime: FloatParamHandle
 
+        self.setattr_param(
+            "i_start_scan",
+            FloatParam,
+            "Current to start scan",
+            default=340 * 1e-3,
+        )
+        self.i_start_scan: FloatParamHandle
+
+        self.setattr_param(
+            "i_end_scan",
+            FloatParam,
+            "Current to end scan",
+            default=310 * 1e-3,
+        )
+        self.i_end_scan: FloatParamHandle
+
+        self.setattr_param(
+            "num_points",
+            FloatParam,
+            "Number of scan points",
+            default=100,
+        )
+        self.num_points: FloatParamHandle
+
+        self.setattr_fragment("frag_ijd_scanner", ScanKoheronCurrentFrag)
+        self.frag_ijd_scanner: ScanKoheronCurrentFrag
+
+        setattr_subscan(
+            self,
+            "scan_ijd_current",
+            self.frag_ijd_scanner,
+            [(self.frag_ijd_scanner, "current")],
+        )
+        self.scan_ijd_current: Subscan
+
     def run_once(self) -> None:
         # scan over a range of currents on the IJD
-        currents = []
-        voltages = []
+        self.scan_ijd_current.run(
+            [
+                (
+                    self.frag_ijd_scanner.current,
+                    LinearGenerator(
+                        self.start_current.get(),
+                        self.stop_current.get(),
+                        self.num_points.get(),
+                        False,
+                    ),
+                )
+            ]
+        )
+        # currents = []
+        # voltages = []
 
-        # Find the optimum current
-        lock_point = self.find_lock_point(currents, voltages)
+        # # Find the optimum current
+        # lock_point = self.find_lock_point(currents, voltages)
 
-        # Jump to it
-        self.ijd_controller.set_current(lock_point + self.i_jump_above_window.get())
-        time.sleep(self.t_relock_waittime.get())
-        self.ijd_controller.set_current(lock_point)
+        # # Jump to it
+        # self.ijd_controller.set_current(lock_point + self.i_jump_above_window.get())
+        # time.sleep(self.t_relock_waittime.get())
+        # self.ijd_controller.set_current(lock_point)
 
     @portable
     def find_lock_point(self, current: TList, voltage: TList):
