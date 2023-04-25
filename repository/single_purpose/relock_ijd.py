@@ -126,12 +126,17 @@ class RelockIJD1Frag(ExpFragment):
 
         # Find the optimum current
         lock_point = self.find_lock_point(currents, voltages)
-
-        logger.info("Selecting I = %.2f mA", lock_point * 1e3)
+        start_point = lock_point + self.i_jump_above_window.get()
+        t_wait = self.t_relock_waittime.get()
 
         # Jump to it
-        self.ijd_controller.set_current(lock_point + self.i_jump_above_window.get())
-        time.sleep(self.t_relock_waittime.get())
+        logger.info("Prelock - Setting I = %.2f mA", start_point * 1e3)
+        self.ijd_controller.set_current(start_point)
+
+        logger.info("Sleeping for t_wait s")
+        time.sleep(t_wait)
+
+        logger.info("Lock - Setting I = %.2f mA", lock_point * 1e3)
         self.ijd_controller.set_current(lock_point)
 
     @portable
