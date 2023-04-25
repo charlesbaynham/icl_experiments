@@ -1,8 +1,9 @@
+import importlib
 import logging
 
-from ._aliases import aliases as _aliases
-from ._device_db import device_db as _db
-from ._non_core_devices import get_non_core_devices as get_non_core_devices
+from . import _aliases as aliases
+from . import _device_db as generated_device_db
+from . import _non_core_devices as non_core_devices
 
 
 logger = logging.getLogger(__name__)
@@ -13,9 +14,16 @@ if logger.level <= logging.INFO:
 def get_device_db(simulation_mode=False):
     """
     Returns the device_db, including both hardware identifiers and aliases.
+
+    This function always reloads the libraries even if they have already been imported.
     """
 
-    db = _db.copy()
+    # Force reload of the modules in case they have been updated
+    importlib.reload(aliases)
+    importlib.reload(generated_device_db)
+    importlib.reload(non_core_devices)
+
+    db = generated_device_db.device_db.copy()
 
     # Append our own peripheral devices
     db = _append_non_core(db, simulation_mode)
@@ -31,11 +39,11 @@ def get_device_db(simulation_mode=False):
 
 def _append_aliases(db: dict):
     # Merge dicts
-    return {**db, **_aliases}
+    return {**db, **aliases.aliases}
 
 
 def _append_non_core(db: dict, simulation_mode=False):
-    non_core = get_non_core_devices(simulation_mode)
+    non_core = non_core_devices.get_non_core_devices(simulation_mode)
 
     # Merge dicts
     return {**db, **non_core}

@@ -35,43 +35,43 @@ def get_non_core_devices(simulation_mode=False):
         # influx DB server running on this server. If you do, it should probably
         # also be managed by Nix - speak to Charles and tell him what you did so
         # we can compare notes!
-        "influx_logger": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
-            "target": "influx_logger",
-            "command": "artiq_influx_generic --port {port} --bind {bind}",
-        },
-        "influx_scheduler_logger": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
-            "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
-        },
-        "artiq_http": {
-            "type": "controller",
-            "host": "::1",
-            "port": "8000",
-            "command": "aqctl_artiq_http",
-        },
-        "blue_IJD1_controller": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
-            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} -vv --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
-        },
-        "blue_IJD2_controller": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
-            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
-        },
-        "blue_IJD3_controller": {
-            "type": "controller",
-            "host": "::1",
-            "port": get_next_port(),
-            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
-        },
+        # "influx_logger": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": get_next_port(),
+        #     "target": "influx_logger",
+        #     "command": "artiq_influx_generic --port {port} --bind {bind}",
+        # },
+        # "influx_scheduler_logger": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": get_next_port(),
+        #     "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
+        # },
+        # "artiq_http": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": "8000",
+        #     "command": "aqctl_artiq_http",
+        # },
+        # "blue_IJD1_controller": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": get_next_port(),
+        #     "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} -vv --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
+        # },
+        # "blue_IJD2_controller": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": get_next_port(),
+        #     "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
+        # },
+        # "blue_IJD3_controller": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": get_next_port(),
+        #     "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
+        # },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
