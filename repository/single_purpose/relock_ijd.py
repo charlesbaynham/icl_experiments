@@ -131,13 +131,13 @@ class RelockIJD1Frag(ExpFragment):
 
         # Jump to it
         logger.info("Prelock - Setting I = %.2f mA", start_point * 1e3)
-        self.ijd_controller.set_current(start_point)
+        self.ijd_controller.set_current_mA(start_point)
 
-        logger.info("Sleeping for t_wait s")
+        logger.info("Sleeping for %.3f s", t_wait)
         time.sleep(t_wait)
 
         logger.info("Lock - Setting I = %.2f mA", lock_point * 1e3)
-        self.ijd_controller.set_current(lock_point)
+        self.ijd_controller.set_current_mA(lock_point)
 
     @portable
     def find_lock_point(self, current: TList, voltage: TList):
