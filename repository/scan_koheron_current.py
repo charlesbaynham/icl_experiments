@@ -154,7 +154,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.controller_name: StringParamHandle
 
-        self.controller: CTL200 = self.get_device(self.controller_name.get())
+        try:
+            self.controller: CTL200 = self.get_device(self.controller_name.get())
+        except AttributeError:
+            self.controller_name = None
 
         # Get the passed controller's associated beat detection channel
         if self.controller_name is not None:  # i.e. not in build()
