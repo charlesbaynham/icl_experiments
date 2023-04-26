@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Optional
 
 import numpy as np
 from artiq.coredevice.core import Core
@@ -28,9 +29,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
 
 from repository.lib import constants
-from repository.lib.fragments.read_adc import ReadADC
 from repository.lib.fragments.read_adc import ReadSamplerADC
-from repository.lib.fragments.read_adc import ReadSUServoADC
 
 
 logger = logging.getLogger(__name__)
@@ -41,7 +40,17 @@ class ScanKoheronCurrentFrag(ExpFragment):
     Set a Koheron CTL200 laser driver's current and measure an analog input in response
     """
 
-    def build_fragment(self):
+    def build_fragment(
+        self,
+        controller_name: Optional[str] = None,
+    ):
+        """
+        Build this fragment
+
+        If controller_name is provided then this fragment use it.
+        Otherwise, it will expose it as an ARTIQ argument (note, not an ndscan parameter) instead.
+        """
+
         self.setattr_device("core")
         self.core: Core
 
@@ -139,25 +148,28 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_argument("always_wait_at_start", BooleanValue(default=False))
         self.always_wait_at_start: bool
 
-        # Choose the controller to set:
-        controller_names = [
-            k
-            for k, v in self.get_device_db().items()
-            if (
-                ("type" in v and v["type"] == "controller")
-                and (
-                    "command" in v
-                    and "aqctl_koheron_ctl200_laser_driver" in v["command"]
+        if controller_name is not None:
+            self.controller_name = controller_name
+        else:
+            # Choose the controller to set:
+            controller_names = [
+                k
+                for k, v in self.get_device_db().items()
+                if (
+                    ("type" in v and v["type"] == "controller")
+                    and (
+                        "command" in v
+                        and "aqctl_koheron_ctl200_laser_driver" in v["command"]
+                    )
                 )
-            )
-        ]
-        if not controller_names:
-            raise ValueError("No CTL200 Koheron controllers found in device_db")
-        self.setattr_argument("controller_name", EnumerationValue(controller_names))
-        self.controller: CTL200 = self.get_device(self.controller_name)
+            ]
+            if not controller_names:
+                raise ValueError("No CTL200 Koheron controllers found in device_db")
+            self.setattr_argument("controller_name", EnumerationValue(controller_names))
 
         # Get the passed controller's associated beat detection channel
-        if self.controller_name is not None:  # i.e. not in build()
+        if self.controller_name is not None:  # i.e. not in build() for the GUI
+            self.controller: CTL200 = self.get_device(self.controller_name)
             try:
                 self.adc_device, self.adc_channel = self.get_device_db()[
                     "IJD_monitors"
@@ -167,22 +179,12 @@ class ScanKoheronCurrentFrag(ExpFragment):
                     f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?"
                 )
 
-            # Load the sampler / suservo utility from pyaion
-            adc_obj = self.get_device(self.adc_device)
-            if isinstance(adc_obj, Sampler):
-                self.setattr_fragment(
-                    "adc_reader", ReadSamplerADC, adc_obj, self.adc_channel
-                )
-            elif isinstance(adc_obj, SUServo):
-                self.setattr_fragment(
-                    "adc_reader", ReadSUServoADC, adc_obj, self.adc_channel
-                )
-            else:
-                raise ValueError(
-                    f"Expected a SUServo or Sampler, received {self.adc_device}"
-                )
-
-        self.adc_reader: ReadADC
+            # Load the sampler utility subfragment
+            sampler_obj = self.get_device(self.adc_device)
+            self.setattr_fragment(
+                "adc_reader", ReadSamplerADC, sampler_obj, self.adc_channel
+            )
+            self.adc_reader: ReadSamplerADC
 
         self.setattr_fragment(
             "injection_aom_setter",

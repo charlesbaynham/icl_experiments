@@ -1,8 +1,14 @@
+from typing import Optional
+
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
+from ndscan.experiment.parameters import StringParam
+from ndscan.experiment.parameters import StringParamHandle
 
 
 class ReadADC(Fragment):
@@ -34,13 +40,43 @@ class ReadSamplerADC(ReadADC):
         )
     """
 
-    def build_fragment(self, sampler_device: Sampler, sampler_channel: int):
-        self.sampler_channel: int = sampler_channel
-        self.sampler_device: Sampler = sampler_device
+    def build_fragment(
+        self,
+        sampler_device: Optional[Sampler] = None,
+        sampler_channel: Optional[int] = None,
+    ):
+        """
+        Build this (sub)fragment
+
+        If sampler_device and sampler_channel are provided then this fragment will have no parameters.
+        Otherwise, it will expose these as ndscan parameters instead.
+        """
+        if sampler_channel is not None and sampler_channel is not None:
+            self.sampler_channel: int = sampler_channel
+            self.sampler_device: Sampler = sampler_device
+        else:
+            self.setattr_param(
+                "sampler_channel_number",
+                IntParam,
+                description="Sampler channel to read",
+                default=0,
+                min=0,
+                max=7,
+            )
+            self.setattr_param(
+                "sampler_device_name",
+                StringParam,
+                description="Sampler device to read",
+                default="",
+            )
+
+        self.core: Core = self.get_device("core")
 
     def host_setup(self):
+        if hasattr(self, "sampler_channel_number"):
+            self.sampler_device = self.get_device(self.sampler_device_name.get())
+            self.sampler_channel = self.sampler_channel_number.get()
         super().host_setup()
-        self.core: Core = self.get_device("core")
 
     @kernel
     def device_setup(self) -> None:
