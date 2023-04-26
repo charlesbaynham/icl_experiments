@@ -126,6 +126,14 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.aom_attenuation: FloatParamHandle
 
+        self.setattr_param(
+            "change_aom_attenuation",
+            BooleanValue,
+            description="If False, ignore the AOM attenuation setting",
+            # default=False,
+        )
+        # self.change_aom_attenuation: FloatParamHandle
+
         self.setattr_argument("always_wait_at_start", BooleanValue(default=False))
         self.always_wait_at_start: bool
 

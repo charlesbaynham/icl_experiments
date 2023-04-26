@@ -41,7 +41,7 @@ class RelockIJD1Frag(ExpFragment):
             "i_jump_above_window",
             FloatParam,
             "How far above the window to jump when relocking",
-            default=2 * 1e-3,
+            default=10 * 1e-3,
             unit="mA",
         )
         self.i_jump_above_window: FloatParamHandle
@@ -51,7 +51,7 @@ class RelockIJD1Frag(ExpFragment):
             FloatParam,
             "How long to wait after initial jump when relocking",
             unit="ms",
-            default=5 * 1e-3,
+            default=100 * 1e-3,
         )
         self.t_relock_waittime: FloatParamHandle
 
@@ -69,7 +69,7 @@ class RelockIJD1Frag(ExpFragment):
             FloatParam,
             "Current to end scan",
             unit="mA",
-            default=310 * 1e-3,
+            default=320 * 1e-3,
         )
         self.i_end_scan: FloatParamHandle
 
