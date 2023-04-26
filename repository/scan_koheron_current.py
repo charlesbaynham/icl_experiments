@@ -205,6 +205,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.set_current(self.current.get())
         self.set_temperature(self.temperature.get())
 
+        current_waittime = self.current_waittime.get()
+        sampling_waittime = self.sampling_waittime.get()
+        num_points = self.num_points.get()
+
         voltages = [0.0] * self.num_points.get()
 
         self.core.break_realtime()
@@ -215,11 +219,11 @@ class ScanKoheronCurrentFrag(ExpFragment):
             self.aom_attenuation.get(),
         )
 
-        if self.current_waittime.get() > 0.0:
-            delay(self.current_waittime.get())
+        if current_waittime > 0.0:
+            delay(current_waittime)
 
-        for i in range(0, self.num_points.get()):
-            delay(self.sampling_waittime.get())
+        for i in range(0, num_points):
+            delay(sampling_waittime)
             voltages[i] = self.adc_reader.read_adc()
 
         self.voltage.push(self.calculate_median(voltages))
