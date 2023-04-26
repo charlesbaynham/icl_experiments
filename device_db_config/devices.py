@@ -4,6 +4,7 @@ import logging
 from . import _aliases as aliases
 from . import _device_db as generated_device_db
 from . import _non_core_devices as non_core_devices
+from . import _freeform as freeform
 
 
 logger = logging.getLogger(__name__)

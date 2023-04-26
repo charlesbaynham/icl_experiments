@@ -146,40 +146,27 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_argument("controller_name", EnumerationValue(controller_names))
         self.controller: CTL200 = self.get_device(self.controller_name)
 
-        suservos = get_local_devices(self, SUServo)
-        samplers = get_local_devices(self, Sampler)
+        # Get the passed controller's associated beat detection channel
+        if self.controller_name is not None:  # i.e. not in build()
+            try:
+                self.adc_device, self.adc_channel = self.get_device_db()[self.controller_name]
+            except KeyError:
+                raise KeyError(f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?")
 
-        if not (suservos + samplers):
-            raise ValueError("No suservos or samplers found in device_db")
-
-        # And the channel to read
-        self.setattr_argument("adc_device", EnumerationValue(suservos + samplers))
-        self.setattr_argument(
-            "adc_channel",
-            NumberValue(
-                default=0, ndecimals=0, scale=1, step=1, min=0, max=7, type="int"
-            ),
-        )
-        self.adc_channel: int
-        self.adc_device: str
-
-        # Load the sampler / suservo utility from pyaion
-        adc_obj = self.get_device(self.adc_device)
-        if isinstance(adc_obj, Sampler):
-            self.setattr_fragment(
-                "adc_reader", ReadSamplerADC, adc_obj, self.adc_channel
-            )
-        elif isinstance(adc_obj, SUServo):
-            self.setattr_fragment(
-                "adc_reader", ReadSUServoADC, adc_obj, self.adc_channel
-            )
-        elif self.adc_device is None:
-            # we're in build
-            pass
-        else:
-            raise ValueError(
-                f"Expected a SUServo or Sampler, received {self.adc_device}"
-            )
+            # Load the sampler / suservo utility from pyaion
+            adc_obj = self.get_device(self.adc_device)
+            if isinstance(adc_obj, Sampler):
+                self.setattr_fragment(
+                    "adc_reader", ReadSamplerADC, adc_obj, self.adc_channel
+                )
+            elif isinstance(adc_obj, SUServo):
+                self.setattr_fragment(
+                    "adc_reader", ReadSUServoADC, adc_obj, self.adc_channel
+                )
+            else:
+                raise ValueError(
+                    f"Expected a SUServo or Sampler, received {self.adc_device}"
+                )
 
         self.adc_reader: ReadADC
 
