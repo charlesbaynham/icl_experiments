@@ -21,9 +21,9 @@ from repository.scan_koheron_current import ScanKoheronCurrentFrag
 logger = logging.getLogger(__name__)
 
 
-class RelockIJDFrag(ExpFragment):
+class RelockIJD1Frag(ExpFragment):
     """
-    Relock one IJD
+    Relock IJD1
     """
 
     def build_fragment(self, *args, **kwargs) -> None:
@@ -181,74 +181,4 @@ class RelockIJDFrag(ExpFragment):
         )
 
 
-RelockIJD = make_fragment_scan_exp(RelockIJDFrag)
-
-
-# class RelockIJDFrag(ExpFragment):
-#     """
-#     Relock all IJDs
-#     """
-
-#     def build_fragment(self, *args, **kwargs) -> None:
-#         self.setattr_fragment("frag_ijd_scanner_1", ScanKoheronCurrentFrag)
-#         self.setattr_fragment("frag_ijd_scanner_2", ScanKoheronCurrentFrag)
-#         self.setattr_fragment("frag_ijd_scanner_3", ScanKoheronCurrentFrag)
-#         self.frag_ijd_scanner_1: ScanKoheronCurrentFrag
-#         self.frag_ijd_scanner_2: ScanKoheronCurrentFrag
-#         self.frag_ijd_scanner_3: ScanKoheronCurrentFrag
-
-#         # Request the ijd controller device
-#         self.ijd_controller: CTL200 = self.frag_ijd_scanner.controller
-
-#         setattr_subscan(
-#             self,
-#             "scan_ijd_current",
-#             self.frag_ijd_scanner,
-#             [(self.frag_ijd_scanner, "current")],
-#         )
-#         self.scan_ijd_current: Subscan
-
-#     def run_once(self) -> None:
-#         # scan over a range of currents on the IJD
-#         coordinates, values, analysis_results = self.scan_ijd_current.run(
-#             [
-#                 (
-#                     self.frag_ijd_scanner.current,
-#                     LinearGenerator(
-#                         self.i_start_scan.get(),
-#                         self.i_end_scan.get(),
-#                         self.num_points.get(),
-#                         False,
-#                     ),
-#                 )
-#             ]
-#         )
-#         logger.debug("coordinates")
-#         logger.debug(coordinates)
-#         logger.debug("values")
-#         logger.debug(values)
-#         logger.debug("analysis_results")
-#         logger.debug(analysis_results)
-
-#         currents = coordinates[self.frag_ijd_scanner.current]
-#         logger.debug("currents")
-#         logger.debug(currents)
-
-#         voltages = values[self.frag_ijd_scanner.voltage]
-#         logger.debug("voltages")
-#         logger.debug(voltages)
-
-#         # Find the optimum current
-#         lock_point = self.find_lock_point(currents, voltages)
-#         start_point = lock_point + self.i_jump_above_window.get()
-#         t_wait = self.t_relock_waittime.get()
-
-#         # Jump to it
-#         logger.info("Prelock - Setting I = %.2f mA", start_point * 1e3)
-#         self.ijd_controller.set_current_mA(start_point * 1e3)
-
-#         logger.info("Sleeping for %.3f s", t_wait)
-#         time.sleep(t_wait)
-
-#         logger.info("Lock - Setting I = %.2f mA", lock_point * 1e3)
-#         self.ijd_controller.set_current_mA(lock_point * 1e3)
+RelockIJD1 = make_fragment_scan_exp(RelockIJD1Frag)
