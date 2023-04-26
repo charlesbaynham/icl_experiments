@@ -24,6 +24,8 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from ndscan.experiment.parameters import StringParam
+from ndscan.experiment.parameters import StringParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
 
@@ -136,25 +138,23 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.change_aom: BoolParamHandle
 
-        self.setattr_argument("always_wait_at_start", BooleanValue(default=False))
-        self.always_wait_at_start: bool
+        self.setattr_param(
+            "always_wait_at_start",
+            BoolParam,
+            description="Always wait for temperature_waittime at the start of scans",
+            default="False",
+        )
+        self.always_wait_at_start: BoolParamHandle
 
-        # Choose the controller to set:
-        controller_names = [
-            k
-            for k, v in self.get_device_db().items()
-            if (
-                ("type" in v and v["type"] == "controller")
-                and (
-                    "command" in v
-                    and "aqctl_koheron_ctl200_laser_driver" in v["command"]
-                )
-            )
-        ]
-        if not controller_names:
-            raise ValueError("No CTL200 Koheron controllers found in device_db")
-        self.setattr_argument("controller_name", EnumerationValue(controller_names))
-        self.controller: CTL200 = self.get_device(self.controller_name)
+        self.setattr_param(
+            "controller_name",
+            StringParam,
+            description="IJD controller name",
+            default="blue_IJD1_controller",
+        )
+        self.controller_name: StringParamHandle
+
+        self.controller: CTL200 = self.get_device(self.controller_name.get())
 
         # Get the passed controller's associated beat detection channel
         if self.controller_name is not None:  # i.e. not in build()
@@ -246,7 +246,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
     @kernel
     def set_temperature(self, temperature: TFloat):
         if (self.last_temperature != temperature) or (
-            self.is_first_cycle and self.always_wait_at_start
+            self.is_first_cycle and self.always_wait_at_start.get()
         ):
             self.set_temperature_rpc(temperature)
             self.last_temperature = temperature
@@ -265,7 +265,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
 
         if temperature_setpoint_is_correct and not (
-            self.is_first_cycle and self.always_wait_at_start
+            self.is_first_cycle and self.always_wait_at_start.get()
         ):
             # ... then assume everything is fine and do nothing
             logger.debug("Temperature already at setpoint - continuing")
