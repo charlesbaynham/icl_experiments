@@ -96,7 +96,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             "sampling_waittime",
             FloatParam,
             description="Time to wait between samples",
-            default=0,
+            default=1e-3,
             min=0,
             max=1,
             unit="ms",
