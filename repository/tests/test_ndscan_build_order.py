@@ -15,10 +15,11 @@ class TestBuild(ExpFragment):
         try:
             print(self.testparam.get())
         except AttributeError:
-            pass
+            print("There was an error")
 
     def run_once(self) -> None:
-        return
+        print("run_once")
+        print(self.testparam.get())
 
 
 TestBuildExp = make_fragment_scan_exp(TestBuild)
