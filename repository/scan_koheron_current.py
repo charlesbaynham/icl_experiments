@@ -147,11 +147,15 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.controller: CTL200 = self.get_device(self.controller_name)
 
         # Get the passed controller's associated beat detection channel
-        if self.controller_name is not None:  # i.e. not in build()
+        if self.controller_name is not None:  # i.e. not in build()
             try:
-                self.adc_device, self.adc_channel = self.get_device_db()[self.controller_name]
+                self.adc_device, self.adc_channel = self.get_device_db()[
+                    "IJD_monitors"
+                ][self.controller_name]
             except KeyError:
-                raise KeyError(f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?")
+                raise KeyError(
+                    f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?"
+                )
 
             # Load the sampler / suservo utility from pyaion
             adc_obj = self.get_device(self.adc_device)
@@ -211,7 +215,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             self.aom_attenuation.get(),
         )
 
-        if (self.current_waittime.get() > 0.0):
+        if self.current_waittime.get() > 0.0:
             delay(self.current_waittime.get())
 
         for i in range(0, self.num_points.get()):
