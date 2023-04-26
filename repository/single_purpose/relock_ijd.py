@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Optional
 
 from artiq.experiment import EnvExperiment
 from artiq.experiment import portable
@@ -21,13 +22,14 @@ from repository.scan_koheron_current import ScanKoheronCurrentFrag
 logger = logging.getLogger(__name__)
 
 
-class RelockIJD1Frag(ExpFragment):
+class RelockIJDFrag(ExpFragment):
     """
-    Relock IJD1
+    Relock one injected diode
     """
 
-    def build_fragment(self, *args, **kwargs) -> None:
-
+    def build_fragment(
+        self, controller_name: Optional[str] = None, *args, **kwargs
+    ) -> None:
         self.setattr_param(
             "v_increase_threshold",
             FloatParam,
@@ -91,7 +93,9 @@ class RelockIJD1Frag(ExpFragment):
         )
         self.frac_through_window: IntParamHandle
 
-        self.setattr_fragment("frag_ijd_scanner", ScanKoheronCurrentFrag)
+        self.setattr_fragment(
+            "frag_ijd_scanner", ScanKoheronCurrentFrag, controller_name=controller_name
+        )
         self.frag_ijd_scanner: ScanKoheronCurrentFrag
 
         setattr_subscan(
@@ -109,6 +113,9 @@ class RelockIJD1Frag(ExpFragment):
         self.ijd_controller: CTL200 = self.frag_ijd_scanner.controller
 
     def run_once(self) -> None:
+        self.relock()
+
+    def relock(self) -> None:
         # scan over a range of currents on the IJD
         coordinates, values, analysis_results = self.scan_ijd_current.run(
             [
@@ -184,4 +191,37 @@ class RelockIJD1Frag(ExpFragment):
         )
 
 
-RelockIJD1 = make_fragment_scan_exp(RelockIJD1Frag)
+class RelockAllIJDsFrag(ExpFragment):
+    """
+    Relock all IJDs
+    """
+
+    def build_fragment(self, *args, **kwargs) -> None:
+        ijd_controller_names = [
+            "blue_IJD1_controller",
+            "blue_IJD2_controller",
+            "blue_IJD3_controller",
+        ]
+
+        self.ijd_controller_frags = []
+
+        for ijd_controller_name in ijd_controller_names:
+            fragment_name = f"frag_relocker_{ijd_controller_name}"
+
+            self.ijd_controller_frags.append(
+                self.setattr_fragment(
+                    fragment_name,
+                    RelockIJDFrag,
+                    ijd_controller_name,
+                )
+            )
+
+    def run_once(self) -> None:
+        # Relock each IJD in order
+        for ijd_relock_frag in self.ijd_controller_frags:
+            ijd_relock_frag: RelockIJDFrag
+            ijd_relock_frag.relock()
+
+
+RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
+RelockAllIJDs = make_fragment_scan_exp(RelockAllIJDsFrag)
