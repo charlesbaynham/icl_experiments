@@ -1,3 +1,5 @@
+from typing import Optional
+
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import SUServo
@@ -17,7 +19,7 @@ class ReadADC(Fragment):
     """
 
     def build_fragment(self, *args, **kwargs):
-        raise NotImplementedError
+        pass
 
     def read_adc(self) -> float:
         raise NotImplementedError
@@ -34,11 +36,31 @@ class ReadSamplerADC(ReadADC):
         )
     """
 
-    def build_fragment(self, sampler_device: Sampler, sampler_channel: int):
-        self.sampler_channel: int = sampler_channel
-        self.sampler_device: Sampler = sampler_device
+    def build_fragment(
+        self,
+        sampler_device: Optional[Sampler] = None,
+        sampler_channel: Optional[int] = None,
+    ):
+        """
+        Set up this Fragment
+
+        If sampler_device and sampler_channel are not provided now they must be
+        provided later before this Fragment is setup via :meth:`.set_settings`
+        """
+        self.sampler_channel = sampler_channel
+        self.sampler_device = sampler_device
+
+    def set_settings(self, sampler_device: Sampler, sampler_channel: int):
+        self.sampler_device = sampler_device
+        self.sampler_channel = sampler_channel
 
     def host_setup(self):
+        if self.sampler_device is None or self.sampler_channel is None:
+            raise ValueError(
+                "sampler_device or sampler_channel is None. You must either pass these to build_fragment()"
+                " or call set_settings() before Fragment setup"
+            )
+
         super().host_setup()
         self.core: Core = self.get_device("core")
 
@@ -67,11 +89,31 @@ class ReadSUServoADC(ReadADC):
         )
     """
 
-    def build_fragment(self, suservo_device: SUServo, suservo_channel: int):
-        self.suservo_channel: int = suservo_channel
-        self.suservo_device: SUServo = suservo_device
+    def build_fragment(
+        self,
+        suservo_device: Optional[SUServo] = None,
+        suservo_channel: Optional[int] = None,
+    ):
+        """
+        Set up this Fragment
+
+        If suservo_device and suservo_channel are not provided now they must be
+        provided later before this Fragment is setup via :meth:`.set_settings`
+        """
+        self.suservo_channel = suservo_channel
+        self.suservo_device = suservo_device
+
+    def set_settings(self, suservo_device: SUServo, suservo_channel: int):
+        self.suservo_device = suservo_device
+        self.suservo_channel = suservo_channel
 
     def host_setup(self):
+        if self.suservo_device is None or self.suservo_channel is None:
+            raise ValueError(
+                "suservo_device or suservo_channel is None. You must either pass these to build_fragment()"
+                " or call set_settings() before Fragment setup"
+            )
+
         super().host_setup()
         self.core: Core = self.get_device("core")
 
