@@ -132,7 +132,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             "change_aom",
             BoolParam,
             description="If False, ignore the injection AOM",
-            default=False,
+            default="False",
         )
         self.change_aom: BoolParamHandle
 
