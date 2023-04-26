@@ -81,6 +81,16 @@ class RelockIJD1Frag(ExpFragment):
         )
         self.num_points: IntParamHandle
 
+        self.setattr_param(
+            "frac_through_window",
+            FloatParam,
+            "Fraction of the way through the window to lock at",
+            default=0.75,
+            min=0,
+            max=1,
+        )
+        self.frac_through_window: IntParamHandle
+
         self.setattr_fragment("frag_ijd_scanner", ScanKoheronCurrentFrag)
         self.frag_ijd_scanner: ScanKoheronCurrentFrag
 
@@ -166,7 +176,9 @@ class RelockIJD1Frag(ExpFragment):
                 window_end = current[i + 1]
                 break
 
-        return (window_start + window_end) / 2
+        return (
+            window_start + (window_end - window_start) * self.frac_through_window.get()
+        )
 
 
 RelockIJD1 = make_fragment_scan_exp(RelockIJD1Frag)
