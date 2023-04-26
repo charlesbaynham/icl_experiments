@@ -94,9 +94,6 @@ class RelockIJD1Frag(ExpFragment):
         self.setattr_fragment("frag_ijd_scanner", ScanKoheronCurrentFrag)
         self.frag_ijd_scanner: ScanKoheronCurrentFrag
 
-        # Request the ijd controller device
-        self.ijd_controller: CTL200 = self.frag_ijd_scanner.controller
-
         setattr_subscan(
             self,
             "scan_ijd_current",
@@ -104,6 +101,12 @@ class RelockIJD1Frag(ExpFragment):
             [(self.frag_ijd_scanner, "current")],
         )
         self.scan_ijd_current: Subscan
+
+    def host_setup(self):
+        super().host_setup()
+
+        # Request the ijd controller device
+        self.ijd_controller: CTL200 = self.frag_ijd_scanner.controller
 
     def run_once(self) -> None:
         # scan over a range of currents on the IJD

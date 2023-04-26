@@ -149,8 +149,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.always_wait_at_start: bool
 
         if controller_name is not None:
+            logger.debug("Controller name provided - hard coding")
             self.controller_name = controller_name
         else:
+            logger.debug("Controller name not provided - setting up as an argument")
             # Choose the controller to set:
             controller_names = [
                 k
