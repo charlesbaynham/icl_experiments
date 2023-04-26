@@ -32,7 +32,6 @@ from repository.lib.fragments.read_adc import ReadSUServoADC
 
 
 logger = logging.getLogger(__name__)
-SAMPLING_WAIT_TIME = 0.001  # wait 1ms between points
 
 
 class ScanKoheronCurrentFrag(ExpFragment):
@@ -80,6 +79,30 @@ class ScanKoheronCurrentFrag(ExpFragment):
             step=1,
         )
         self.temperature_waittime: FloatParamHandle
+
+        self.setattr_param(
+            "current_waittime",
+            FloatParam,
+            description="Time to wait after a current change",
+            default=0,
+            min=0,
+            max=1000,
+            unit="ms",
+            step=1e-3,
+        )
+        self.current_waittime: FloatParamHandle
+
+        self.setattr_param(
+            "sampling_waittime",
+            FloatParam,
+            description="Time to wait between samples",
+            default=0,
+            min=0,
+            max=1,
+            unit="ms",
+            step=1e-4,
+        )
+        self.sampling_waittime: FloatParamHandle
 
         self.setattr_param(
             "num_points",
@@ -201,10 +224,11 @@ class ScanKoheronCurrentFrag(ExpFragment):
             self.aom_attenuation.get(),
         )
 
-        delay(100 * us)
+        if (self.current_waittime.get() > 0.0):
+            delay(self.current_waittime.get())
 
         for i in range(0, self.num_points.get()):
-            delay(SAMPLING_WAIT_TIME)
+            delay(self.sampling_waittime.get())
             voltages[i] = self.adc_reader.read_adc()
 
         self.voltage.push(self.calculate_median(voltages))
