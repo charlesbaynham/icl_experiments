@@ -48,12 +48,12 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
         },
-        "artiq_http": {
-            "type": "controller",
-            "host": "::1",
-            "port": "8000",
-            "command": "aqctl_artiq_http",
-        },
+        # "artiq_http": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": "8000",
+        #     "command": "aqctl_artiq_http",
+        # },
         "blue_IJD1_controller": {
             "type": "controller",
             "host": "::1",
