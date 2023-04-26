@@ -51,17 +51,16 @@ class DisplayInjectionMonitors(ExpFragment):
         )
         self.waittime: FloatParamHandle
 
-        self.sampler: Sampler = self.get_device("sampler_IJD_monitor")
+        monitors = self.get_device_db()["IJD_monitors"]
 
-        # self.sampler_channel_names = [
-        #     "sampler_channel_IJD1",
-        #     "sampler_channel_IJD2",
-        #     "sampler_channel_IJD3",
-        # ]
-        # self.sampler_channels = [
-        #     self.get_device_db()[k] for k in self.sampler_channel_names
-        # ]
-        self.sampler_channels = [0, 1, 2]  # hard-code for now
+        sampler_name, _ = monitors["blue_IJD1_controller"]
+        self.sampler: Sampler = self.get_device(sampler_name)
+
+        self.sampler_channels = [
+            monitors["blue_IJD1_controller"],
+            monitors["blue_IJD2_controller"],
+            monitors["blue_IJD3_controller"],
+        ]
 
         # Define result channels as outputs
         self.setattr_result("v_IJD1")
