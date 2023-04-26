@@ -15,10 +15,12 @@ from artiq.experiment import rpc
 from artiq.experiment import TFloat
 from artiq.experiment import us
 from koheron_ctl200_laser_driver import CTL200
+from ndscan.experiment import BoolParam
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
@@ -127,12 +129,12 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.aom_attenuation: FloatParamHandle
 
         self.setattr_param(
-            "change_aom_attenuation",
-            BooleanValue,
-            description="If False, ignore the AOM attenuation setting",
-            # default=False,
+            "change_aom",
+            BoolParam,
+            description="If False, ignore the injection AOM",
+            default=False,
         )
-        # self.change_aom_attenuation: FloatParamHandle
+        self.change_aom: BoolParamHandle
 
         self.setattr_argument("always_wait_at_start", BooleanValue(default=False))
         self.always_wait_at_start: bool
@@ -221,11 +223,12 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         self.core.break_realtime()
 
-        self.injection_aom_setter.set_suservo(
-            constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            self.aom_attenuation.get(),
-        )
+        if self.change_aom.get():
+            self.injection_aom_setter.set_suservo(
+                constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+                1.0,
+                self.aom_attenuation.get(),
+            )
 
         if current_waittime > 0.0:
             delay(current_waittime)
