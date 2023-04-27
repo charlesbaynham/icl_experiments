@@ -8,9 +8,11 @@
   inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
   inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
 
+  inputs.laserloop.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git";
+
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler }:
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
@@ -24,6 +26,7 @@
               artiq-http.defaultPackage.${system}
               koheron_driver.defaultPackage.${system}
               qbutler # Just the source
+              laserloop # Also just the source
             ];
           };
         pkgs = nixpkgs.legacyPackages.${system};

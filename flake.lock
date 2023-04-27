@@ -8,7 +8,7 @@
           "pyaion",
           "nixpkgs"
         ],
-        "sipyco": "sipyco_3",
+        "sipyco": "sipyco_4",
         "src-migen": "src-migen",
         "src-misoc": "src-misoc",
         "src-pythonparser": "src-pythonparser"
@@ -141,7 +141,7 @@
           "qbutler",
           "nixpkgs"
         ],
-        "sipyco": "sipyco_5",
+        "sipyco": "sipyco_6",
         "src-migen": "src-migen_2",
         "src-misoc": "src-misoc_2",
         "src-pythonparser": "src-pythonparser_2"
@@ -167,7 +167,7 @@
           "pyaion",
           "nixpkgs"
         ],
-        "sipyco": "sipyco_4"
+        "sipyco": "sipyco_5"
       },
       "locked": {
         "lastModified": 1647022982,
@@ -370,6 +370,25 @@
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
       }
     },
+    "laserloop": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_4",
+        "sipyco": "sipyco_3"
+      },
+      "locked": {
+        "lastModified": 1682606921,
+        "narHash": "sha256-NQHOS+RmD0SwdqTnySp9K/4vBEQGv4ZbiQCTBeefb04=",
+        "ref": "refs/heads/master",
+        "rev": "0ff4aad5b022d945f42e0693efc5255582e6005b",
+        "revCount": 18,
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git"
+      }
+    },
     "mach-nix": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -413,7 +432,7 @@
     "mach-nix_3": {
       "inputs": {
         "flake-utils": "flake-utils_8",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_5",
         "pypi-deps-db": [
           "pyaion",
           "pypi-deps-db"
@@ -435,7 +454,7 @@
     "mach-nix_4": {
       "inputs": {
         "flake-utils": "flake-utils_11",
-        "nixpkgs": "nixpkgs_5",
+        "nixpkgs": "nixpkgs_6",
         "pypi-deps-db": "pypi-deps-db_4"
       },
       "locked": {
@@ -564,6 +583,22 @@
     },
     "nixpkgs_4": {
       "locked": {
+        "lastModified": 1646675913,
+        "narHash": "sha256-ZvGf51XpXM7JojKLZ5yI0XLUq8UOFX6AwZ3bhtdcpIo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "9b1c7ba323732ddc85a51850a7f10ecc5269b8e9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-21.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_5": {
+      "locked": {
         "lastModified": 1643805626,
         "narHash": "sha256-AXLDVMG+UaAGsGSpOtQHPIKB+IZ0KSd9WS77aanGzgc=",
         "owner": "NixOS",
@@ -577,7 +612,7 @@
         "type": "indirect"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_6": {
       "locked": {
         "lastModified": 1643805626,
         "narHash": "sha256-AXLDVMG+UaAGsGSpOtQHPIKB+IZ0KSd9WS77aanGzgc=",
@@ -749,6 +784,7 @@
         "artiq-http": "artiq-http",
         "flake-utils": "flake-utils_3",
         "koheron_driver": "koheron_driver",
+        "laserloop": "laserloop",
         "nixpkgs": [
           "pyaion",
           "nixpkgs"
@@ -799,6 +835,27 @@
     "sipyco_3": {
       "inputs": {
         "nixpkgs": [
+          "laserloop",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1644649772,
+        "narHash": "sha256-LE9L5bDSunCPEnuf5Ed8enTAXA2vkTSmjvqPX9ILO0Y=",
+        "owner": "m-labs",
+        "repo": "sipyco",
+        "rev": "8e4382352bc64bd01c9db35d9c9b0ef42b8b9d3b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "m-labs",
+        "repo": "sipyco",
+        "type": "github"
+      }
+    },
+    "sipyco_4": {
+      "inputs": {
+        "nixpkgs": [
           "pyaion",
           "artiq",
           "nixpkgs"
@@ -818,7 +875,7 @@
         "type": "github"
       }
     },
-    "sipyco_4": {
+    "sipyco_5": {
       "inputs": {
         "nixpkgs": [
           "pyaion",
@@ -840,7 +897,7 @@
         "type": "github"
       }
     },
-    "sipyco_5": {
+    "sipyco_6": {
       "inputs": {
         "nixpkgs": [
           "qbutler",
