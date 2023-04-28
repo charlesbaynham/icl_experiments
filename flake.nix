@@ -39,6 +39,13 @@
               high-finesse-wavemeter
               wand
             ];
+            overridesPre = [
+              # There is already a package called "Wand" (not "wand") in nixpkgs
+              # which breaks wand, so we remove it:
+              (final: prev: {
+                Wand = { };
+              })
+            ];
           };
         pkgs = nixpkgs.legacyPackages.${system};
 
