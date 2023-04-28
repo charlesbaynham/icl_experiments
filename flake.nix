@@ -82,6 +82,13 @@
             '');
           };
 
+          # Temporary hack to get the dashboard to launch with "nix run" and
+          # default to ICL's settings
+          default = flake-utils.lib.mkApp {
+            drv = (pkgs.writeShellScriptBin "script" ''
+              exec ${generated_outputs.apps.dashboard.program} -s labserver
+            '');
+          };
 
           full_stack =
             let
