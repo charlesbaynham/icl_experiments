@@ -578,7 +578,8 @@
           "nixpkgs"
         ],
         "pyaion": "pyaion",
-        "qbutler": "qbutler"
+        "qbutler": "qbutler",
+        "wand": "wand"
       }
     },
     "sipyco": {
@@ -712,6 +713,22 @@
         "owner": "m-labs",
         "repo": "pythonparser",
         "type": "github"
+      }
+    },
+    "wand": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1666623971,
+        "narHash": "sha256-uZxLAFnFlwF+2EdUvMdfGDSPRGPYoVKeVGJdoCzTFJI=",
+        "ref": "refs/heads/master",
+        "rev": "5a9bb18626f6235945c33a12a27944d8dc719135",
+        "revCount": 135,
+        "type": "git",
+        "url": "https://github.com/OxfordIonTrapGroup/wand.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/OxfordIonTrapGroup/wand.git"
       }
     }
   },
