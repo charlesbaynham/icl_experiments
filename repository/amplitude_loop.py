@@ -1,22 +1,70 @@
 from artiq.experiment import *
 
 #SUServo loop
-#Change amplitude on urukul 
-#Get feedback from photodiode sampler
-#Determine max signal from photodiode and set corresponding urukul amplitude
 
 class SuservoLoop(EnvExperiment):
     def build(self):
         self.setattr_device("core")  # Core device
-        self.setattr_device("suservo1_0")  # Urukul channel to control amplitude
-        #self.setattr_device("sampler0")
-
+        self.setattr_device("suservo0") 
+        self.setattr_device("suservo0_ch0")  # Urukul channel to control amplitude
+        
     @kernel #this code runs on the FPGA
     def run(self):
         self.core.reset()
-        self.suservo1_ch01.init()
-       
+        self.suservo0.init()
+   
+        self.suservo0.set_config(enable=1)
+        
+        # Set Sampler gain and Urukul attenuation
+        g = 0
+        a = 0.0
+        self.suservo0.set_pgia_mu(0, g)         # set gain on Sampler channel 0 to 10^g
+        self.suservo0.cpld0.set_att(0, A)       # set attenuation on Urukul channel 0 to 0
+        
+        
+        # Set physical parameters
+        v_t = 0.07                              # target input voltage (V) for Sampler channel - i have to define this based on experimentation 
+        #i need to take measurements with the photodetector 
+        f = 340000000                         # frequency (Hz) of Urukul output
+        o = -v_t*(10.0**(g-1))                  # offset to assign to servo to reach target voltage
 
+        # Set PI loop parameters 
+        kp = 0                             # proportional gain
+        ki = 0                             # integrator gainxb 
+        gl = 0.0                           # integrator gain limit
+        adc_ch = 0                         # Sampler channel to read from
+        
+        # Input parameters, activate Urukul output (en_out=1),
+        # activate PI loop (en_iir=1)
+        self.suservo0_ch0.set_iir(profile=0, adc=adc_ch, kp=kp, ki=ki, g=gl)
+        self.suservo0_ch0.set_dds(profile=0, frequency=f, offset=o)
+        self.suservo0_ch0.set(en_out=1, en_iir=1, profile=0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################
         # Set Frequency & attenuation
         freq = 340e6
         attenuation = 0
