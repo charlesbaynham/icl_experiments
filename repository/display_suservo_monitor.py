@@ -67,7 +67,9 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.suservo_channel = int(
             re.match(
                 r"suservo\d+_ch(\d+)", suservo_channel_names[self.suservo_channel_name]
-            )
+            )[1]
+            if self.suservo_channel_name is not None
+            else 0
         )
 
         # Define result channels as outputs
@@ -83,7 +85,6 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
-        self.core.reset()
         delay(10 * ms)
 
     @kernel
