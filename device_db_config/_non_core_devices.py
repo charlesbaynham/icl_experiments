@@ -55,11 +55,13 @@ def get_non_core_devices(simulation_mode=False):
             "host": "::1",
             "port": PORT_WAND_CONTROL,
             "command": (
+                "bash -c '"
                 "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
                 "WAND_CONFIG_PATH=./scripts/icl_aion_server_config.pyon "
                 "wand_server -n icl_aion --bind {bind} "
                 f"--port-notify {PORT_WAND_NOTIFY} "
                 f"--port-control {PORT_WAND_CONTROL}"
+                "'"
             ),
         },
         # "artiq_http": {
