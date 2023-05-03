@@ -25,8 +25,7 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch6",
-    # # These are not devices, but can still be retrieved from the device_db
-    # FIXME: These currently break pyaion's "get_local_devices"
+    # %% These are not devices, but can still be retrieved from the device_db
     "IJD_monitors": {
         "blue_IJD1_controller": ("sampler2", 0),
         "blue_IJD2_controller": ("sampler2", 1),
