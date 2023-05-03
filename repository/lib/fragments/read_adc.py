@@ -107,6 +107,8 @@ class ReadSUServoADC(ReadADC):
         self.suservo_channel: int = suservo_channel
         self.suservo_device: SUServo = suservo_device
 
+        self.suservo_has_been_setup = False
+
     def host_setup(self):
         super().host_setup()
         self.core: Core = self.get_device("core")
@@ -114,9 +116,11 @@ class ReadSUServoADC(ReadADC):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
-        self.core.break_realtime()
-        self.suservo_device.init()
-        self.suservo_device.set_config(enable=1)
+        if not self.suservo_has_been_setup:
+            self.core.break_realtime()
+            self.suservo_device.init()
+            self.suservo_device.set_config(enable=1)
+            self.suservo_has_been_setup = True
 
     @kernel
     def read_adc(self):
