@@ -25,6 +25,12 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch6",
+    "TTL_shutter_461_pushbeam": "ttl16",
+    "TTL_shutter_461_2dmot_is_it_a": "ttl17",
+    "TTL_shutter_461_IJD1_is_it_b": "ttl18",
+    "TTL_shutter_461_3dmot": "ttl19",
+    "TTL_shutter_679_temporary_shutter": "ttl22",
+    "TTL_shutter_707_temporary_shutter": "ttl23",
     # %% These are not devices, but can still be retrieved from the device_db
     "IJD_monitors": {
         "blue_IJD1_controller": ("sampler2", 0),
