@@ -383,11 +383,11 @@
     "ndscan": {
       "flake": false,
       "locked": {
-        "lastModified": 1681938653,
-        "narHash": "sha256-SEN3jHufOIa9nEnPnE/bAtqZROBvkiOtyi2KclgsYlA=",
+        "lastModified": 1664479591,
+        "narHash": "sha256-0/cWBYiVsiVb9Ebh0qWCABNNdbc8oPKB15LjpTvA0qQ=",
         "owner": "OxfordIonTrapGroup",
         "repo": "ndscan",
-        "rev": "1f3e8da67a3f14efb4e854326b2dea54c630061d",
+        "rev": "1b5526cd2c06257baa3de0c6ecade186bef9848f",
         "type": "github"
       },
       "original": {
@@ -489,11 +489,11 @@
         "pypi-deps-db": "pypi-deps-db_3"
       },
       "locked": {
-        "lastModified": 1682094429,
-        "narHash": "sha256-LH7d180jD/KVQkC3ZLVp2NlxN5qY4BVtbIsFG0zuqFk=",
+        "lastModified": 1682683359,
+        "narHash": "sha256-Yu0QWGeyBND5GKTTJKgtPgaJrMXCcZzcK2OUarNx+SE=",
         "ref": "refs/heads/master",
-        "rev": "12cfe6d5a50b5b60e34824f3a120ef6aa4acdd57",
-        "revCount": 47,
+        "rev": "ba3c34d66bbb9532227a6a1f1a8bdb8390597587",
+        "revCount": 48,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
@@ -578,7 +578,8 @@
           "nixpkgs"
         ],
         "pyaion": "pyaion",
-        "qbutler": "qbutler"
+        "qbutler": "qbutler",
+        "wand": "wand"
       }
     },
     "sipyco": {
@@ -712,6 +713,22 @@
         "owner": "m-labs",
         "repo": "pythonparser",
         "type": "github"
+      }
+    },
+    "wand": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1666623971,
+        "narHash": "sha256-uZxLAFnFlwF+2EdUvMdfGDSPRGPYoVKeVGJdoCzTFJI=",
+        "ref": "refs/heads/master",
+        "rev": "5a9bb18626f6235945c33a12a27944d8dc719135",
+        "revCount": 135,
+        "type": "git",
+        "url": "https://github.com/OxfordIonTrapGroup/wand.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/OxfordIonTrapGroup/wand.git"
       }
     }
   },

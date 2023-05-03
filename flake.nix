@@ -17,7 +17,10 @@
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
   inputs.qbutler.flake = false;
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter }:
+  inputs.wand.url = "git+https://github.com/OxfordIonTrapGroup/wand.git";
+  inputs.wand.flake = false;
+
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
@@ -34,6 +37,14 @@
               qbutler
               laserloop
               high-finesse-wavemeter
+              wand
+            ];
+            overridesPre = [
+              # There is already a package called "Wand" (not "wand") in nixpkgs
+              # which breaks wand, so we remove it:
+              (final: prev: {
+                Wand = { };
+              })
             ];
           };
         pkgs = nixpkgs.legacyPackages.${system};
