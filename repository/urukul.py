@@ -4,21 +4,25 @@ class Urukul_Programmable(EnvExperiment):
     """Urukul frequency, amplitude and attenuation"""
     def build(self): 
         
-
-        self.setattr_device("core")                                                     #sets core device drivers as attributes
-        self.setattr_device("urukul0_ch1")                                              #sets urukul0, channel 1 device drivers as attributes
-        self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1))     #instructs dashboard to take input in MHz and set it as an attribute called freq
-        self.setattr_argument("amp", NumberValue(ndecimals=2, step=1))                  #instructs dashboard to take input and set it as an attribute called amp
-        self.setattr_argument("atten", NumberValue(ndecimals=2, step=1))                #instructs dashboard to take input and set it as an attribute called atten
         
+        urukuls = []
+        for i in range(8):
+            urukuls.append("urukul0_ch{a}".format(a = i))
+
+        self.setattr_device("core")                                                                             #sets core device drivers as attributes
+        self.setattr_device("urukul0") 
+       
+        self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1, min=0))     #instructs dashboard to take input in MHz and set it as an attribute called freq
+        self.setattr_argument("amp", NumberValue(ndecimals=2, step=0.5, min = 0, max = 1))                                          #instructs dashboard to take input and set it as an attribute called amp
+        self.setattr_argument("atten", NumberValue(ndecimals=2, unit="dB", step=0.1, min=0))                                        #instructs dashboard to take input and set it as an attribute called atten
+        self.setattr_argument(urukuls, EnumerationValue(default = urukuls[0]))
         
     
     @kernel 
     def run(self):  
-        self.core.reset()                                       #resets core device
-        self.urukul0_ch1.cpld.init()                            #initialises CPLD on channel 1
-        self.urukul0_ch1.init()                                 #initialises channel 1
-        delay(10 * ms)                                          #10ms delay
+        self.core.reset()                                      
+        self.urukul0_ch1.cpld.init()                            
+        self.urukul0_ch1.init()                                                                        
         
         
         self.urukul0_ch1.set_att(self.atten)                    #writes attenuation to urukul channel
