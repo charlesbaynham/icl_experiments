@@ -20,12 +20,14 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-port_iterator = iter(range(3276, 99999))
+port_iterator = iter(range(3278, 99999))
 get_next_port = lambda: str(next(port_iterator))
+
+PORT_WAND_CONTROL = 3276
+PORT_WAND_NOTIFY = 3277
 
 
 def get_non_core_devices(simulation_mode=False):
-
     if simulation_mode:
         logger.warning("Initiating devices in simulation mode")
 
@@ -47,6 +49,11 @@ def get_non_core_devices(simulation_mode=False):
             "host": "::1",
             "port": get_next_port(),
             "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
+        },
+        "wand_server": {
+            "type": "controller",
+            "host": "::1",
+            "command": f"wand_server -n icl_aion --bind {{bind}} --port-notify {PORT_WAND_NOTIFY} --port-control {PORT_WAND_CONTROL}",
         },
         # "artiq_http": {
         #     "type": "controller",
