@@ -101,6 +101,18 @@
             '');
           };
 
+          wand = flake-utils.lib.mkApp {
+            drv =
+              let config_file = "${self}/scripts/icl_aion_gui_config.pyon";
+              in
+              (pkgs.writeShellScriptBin "script" ''
+                export PATH=${pkgs.lib.makeBinPath generated_outputs.devShells.artiq.buildInputs}:$PATH
+
+                export WAND_CONFIG_PATH=${config_file}
+                exec wand_gui -n icl_aion
+              '');
+          };
+
           full_stack =
             let
               backup_database = "nix run .#backup_database";
