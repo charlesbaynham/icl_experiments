@@ -17,7 +17,7 @@
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
   inputs.qbutler.flake = false;
 
-  inputs.wand.url = "git+https://github.com/OxfordIonTrapGroup/wand.git";
+  inputs.wand.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/wand.git?ref=adapt_for_linux";
   inputs.wand.flake = false;
 
   outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:

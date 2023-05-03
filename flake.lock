@@ -718,17 +718,18 @@
     "wand": {
       "flake": false,
       "locked": {
-        "lastModified": 1666623971,
-        "narHash": "sha256-uZxLAFnFlwF+2EdUvMdfGDSPRGPYoVKeVGJdoCzTFJI=",
-        "ref": "refs/heads/master",
-        "rev": "5a9bb18626f6235945c33a12a27944d8dc719135",
-        "revCount": 135,
+        "lastModified": 1683127144,
+        "narHash": "sha256-/EUpN/tX+66mAfv9rBSY+kD127kll9/9BvMpbnzRXhk=",
+        "ref": "adapt_for_linux",
+        "rev": "889aab6dbeefe57114c1a65ef6194e3046eaa478",
+        "revCount": 180,
         "type": "git",
-        "url": "https://github.com/OxfordIonTrapGroup/wand.git"
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
       },
       "original": {
+        "ref": "adapt_for_linux",
         "type": "git",
-        "url": "https://github.com/OxfordIonTrapGroup/wand.git"
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
       }
     }
   },
