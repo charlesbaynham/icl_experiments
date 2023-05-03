@@ -383,11 +383,11 @@
     "ndscan": {
       "flake": false,
       "locked": {
-        "lastModified": 1664479591,
-        "narHash": "sha256-0/cWBYiVsiVb9Ebh0qWCABNNdbc8oPKB15LjpTvA0qQ=",
+        "lastModified": 1681938653,
+        "narHash": "sha256-SEN3jHufOIa9nEnPnE/bAtqZROBvkiOtyi2KclgsYlA=",
         "owner": "OxfordIonTrapGroup",
         "repo": "ndscan",
-        "rev": "1b5526cd2c06257baa3de0c6ecade186bef9848f",
+        "rev": "1f3e8da67a3f14efb4e854326b2dea54c630061d",
         "type": "github"
       },
       "original": {
@@ -460,11 +460,11 @@
     "oitg": {
       "flake": false,
       "locked": {
-        "lastModified": 1663173810,
-        "narHash": "sha256-aRC+5UQfLSilc4Xwz+8dI2thjSGGJZhMp6IadQ+zOTc=",
+        "lastModified": 1682090417,
+        "narHash": "sha256-34GtVj9n0CrFkTiS7GCwLDpqokGtYNS58hL0ErX2RO0=",
         "owner": "OxfordIonTrapGroup",
         "repo": "oitg",
-        "rev": "14513e2c39961ff7238ad98ce06c269f766934b0",
+        "rev": "ee9bdd14d382eb655643212b3de011cb2d88a4de",
         "type": "github"
       },
       "original": {
@@ -489,11 +489,11 @@
         "pypi-deps-db": "pypi-deps-db_3"
       },
       "locked": {
-        "lastModified": 1683117090,
-        "narHash": "sha256-ODMP16ByxDQ3Wm3IE88XhohaQ7G1UDmrPWf77el9exg=",
-        "ref": "master",
-        "rev": "9a3f5aa267871e83f13722f617409cae1a9228c5",
-        "revCount": 49,
+        "lastModified": 1683130924,
+        "narHash": "sha256-zZ95H8vwErk+6cP//U+dM18VHuhMi0cfHSG4XU8vda8=",
+        "ref": "refs/heads/master",
+        "rev": "db10e044b7c0ef598c30ab97a4faf0ffd4928a81",
+        "revCount": 50,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
