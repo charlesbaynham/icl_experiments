@@ -2,7 +2,7 @@
 todo.txt
 *.swp
 results
-*.pyon
+/*.pyon
 .vscode
 .direnv
 html_out

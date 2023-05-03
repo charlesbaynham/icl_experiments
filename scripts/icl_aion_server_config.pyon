@@ -1,0 +1,53 @@
+{
+    "fast_poll_time": 0.1,
+    "lasers": {
+        "461": {
+            "auto_exposure": true,
+            "channel": 4,
+            "display_colour": "red",
+            "exposure": [2, 1],
+            "f_ref": 650.503e12,
+            "fast_enabled_at": 0,
+            "fast_mode": false,
+            "fast_mode_set_at": 1683033885.65985,
+            "host": "192.168.1.7",
+            "lock_capture_range": 3000000000.0,
+            "lock_gain": 1e-10,
+            "lock_owner": "",
+            "lock_poll_time": 10.0,
+            "lock_ready": false,
+            "lock_set_point": 0,
+            "lock_timeout": null,
+            "locked": false,
+            "locked_at": 0,
+            "target": "laser1"
+        },
+        "689": {
+            "auto_exposure": true,
+            "channel": 5,
+            "display_colour": "red",
+            "exposure": [20, 1],
+            "f_ref": 441.332688e12,
+            "fast_enabled_at": 0,
+            "fast_mode": false,
+            "fast_mode_set_at": 1683033888.1694472,
+            "lock_capture_range": 3000000000.0,
+            "lock_gain": 1e-10,
+            "lock_owner": "",
+            "lock_poll_time": 10.0,
+            "lock_ready": false,
+            "lock_set_point": 0,
+            "lock_timeout": null,
+            "locked": false,
+            "locked_at": 0,
+            "host": "192.168.1.11",
+            "target": "laser2"
+        }
+    },
+    "name": "icl_aion",
+    "poll_time": 5,
+    "switch": {
+        "dead_time": 0.012,
+        "type": "internal"
+    }
+}

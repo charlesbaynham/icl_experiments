@@ -53,7 +53,13 @@ def get_non_core_devices(simulation_mode=False):
         "wand_server": {
             "type": "controller",
             "host": "::1",
-            "command": f"wand_server -n icl_aion --bind {{bind}} --port-notify {PORT_WAND_NOTIFY} --port-control {PORT_WAND_CONTROL}",
+            "command": (
+                "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
+                "WAND_CONFIG_PATH=./scripts/icl_aion_server_config.pyon "
+                "wand_server -n icl_aion --bind {bind} "
+                f"--port-notify {PORT_WAND_NOTIFY} "
+                f"--port-control {PORT_WAND_CONTROL}",
+            ),
         },
         # "artiq_http": {
         #     "type": "controller",
