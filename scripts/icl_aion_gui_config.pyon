@@ -1,19 +1,10 @@
 {
-    "servers": {
-        "icl_aion": {
-            "host": "labserver",
-            "notify": 3277,
-            "control": 3276
-        }
-    },
+    "servers": {"icl_aion": {"host": "labserver", "notify": 3277, "control": 3276}},
     "display_names": {
         "461": "461",
-        "689": "689"
+        "689": "689",
+        "707": "707",
+        "679": "679",
     },
-    "layout": [
-        [
-            "461","689"
-        ],
-        []
-    ]
+    "layout": [["461", "689"], ["707", "679"]],
 }
