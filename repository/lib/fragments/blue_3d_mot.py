@@ -101,7 +101,7 @@ class Blue3DMOTFrag(ExpFragment):
 
         delay_mu(shutter_delay_time_mu)
 
-        self.push_beam_suservo.set(en_out=1, en_iir=1)
+        self.push_beam_suservo.set(en_out=1, en_iir=0)
 
     @kernel
     def push_beam_off(self):
@@ -122,7 +122,7 @@ class Blue3DMOTFrag(ExpFragment):
 
         delay_mu(shutter_delay_time_mu)
 
-        self.push_beam_suservo.set(en_out=1, en_iir=1)
+        self.push_beam_suservo.set(en_out=1, en_iir=0)
 
         delay_mu(-shutter_delay_time_mu)
 
