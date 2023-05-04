@@ -5,7 +5,7 @@ from wand.server import ControlInterface as WandServer
 
 class EnableWavemeterLock(EnvExperiment):
     """
-    Enable / disable wavemeter locking with WAND
+    Enable or disable wavemeter locking with WAND
     """
 
     def build(self):
@@ -14,5 +14,9 @@ class EnableWavemeterLock(EnvExperiment):
         self.wand_server: WandServer
 
     def run(self):
+
         for laser in self.wand_server.get_laser_db().keys():
-            self.wand_server.lock(laser, set_point=0.0, timeout=None)
+            if self.enable:
+                self.wand_server.lock(laser, set_point=0.0, timeout=None)
+            else:
+                self.wand_server.unlock(laser, name="")
