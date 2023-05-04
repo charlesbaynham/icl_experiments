@@ -24,11 +24,13 @@ class HackBlueSystemOn(ExpFragment):
 
     def build_fragment(self):
 
+        self.suservo_setters: List[LibSetSUServoStatic] = []
         self.beam_info = [constants.AOM_BEAMS[beam] for beam in SUSERVOED_BEAMS]
         self.ttls: List[TTLOut] = []
 
         for beam, beam_info in zip(SUSERVOED_BEAMS, self.beam_info):
             self.setattr_fragment(beam, LibSetSUServoStatic, beam_info.suservo_device)
+            self.suservo_setters.append(getattr(self, beam))
             if beam_info.shutter_device:
                 self.ttls.append(self.get_device(beam_info.shutter_device))
 
@@ -43,10 +45,11 @@ class HackBlueSystemOn(ExpFragment):
     @kernel
     def go(self):
         # Set the outputs
-        for beam, beam_info in zip(SUSERVOED_BEAMS, self.beam_info):
-            getattr(self, beam).set_suservo(
-                beam_info.frequency, 1.0, beam_info.attenuation
-            )
+        for i in range(len(SUSERVOED_BEAMS)):
+            setter = self.suservo_setters[i]
+            beam_info = self.beam_info[i]
+
+            setter.set_suservo(beam_info.frequency, 1.0, beam_info.attenuation)
 
         for ttl in self.ttls:
             ttl.on()
