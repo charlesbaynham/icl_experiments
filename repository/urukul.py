@@ -30,6 +30,7 @@ class Urukul_Programmable(EnvExperiment):
     
     @kernel 
     def run(self):  
+        #type: AD9910
         self.core.reset()          
         dds = self.dds                            
         dds.cpld.init()                            
