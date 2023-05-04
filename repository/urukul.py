@@ -24,7 +24,7 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("atten", NumberValue(ndecimals=2, unit="dB", step=0.1, min=0))                                        #instructs dashboard to take input and set it as an attribute called atten
         self.setattr_argument("urukul_channel", EnumerationValue(urukuls, default = urukuls[0]))
         
-        self.my_urukul : AD9910 = self.get_device(self.urukul_channel)
+        #self.my_urukul : AD9910 = self.get_device(self.urukul_channel)
 
         
     
