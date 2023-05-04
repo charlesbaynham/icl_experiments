@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 BLUE_SHUTTERS = [
     "TTL_shutter_461_pushbeam",
     "TTL_shutter_461_2dmot_is_it_a",
-    "TTL_shutter_461_IJD1_is_it_b",
+    "TTL_shutter_461_2dmot_is_it_b",
     "TTL_shutter_461_3dmot",
     "TTL_shutter_679_temporary_shutter",
     "TTL_shutter_707_temporary_shutter",
