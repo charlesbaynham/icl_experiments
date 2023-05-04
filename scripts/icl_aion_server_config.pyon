@@ -5,7 +5,10 @@
             "auto_exposure": true,
             "channel": 4,
             "display_colour": "blue",
-            "exposure": [2, 1],
+            "exposure": [
+                2,
+                1
+            ],
             "f_ref": 650.503218e12,
             "fast_enabled_at": 0,
             "fast_mode": false,
@@ -24,9 +27,12 @@
         },
         "707": {
             "auto_exposure": true,
-            "channel": 6,
+            "channel": 1,
             "display_colour": "purple",
-            "exposure": [2, 1],
+            "exposure": [
+                2,
+                1
+            ],
             "f_ref": 423.91292e12,
             "fast_enabled_at": 0,
             "fast_mode": false,
@@ -47,7 +53,10 @@
             "auto_exposure": true,
             "channel": 5,
             "display_colour": "green",
-            "exposure": [2, 1],
+            "exposure": [
+                2,
+                1
+            ],
             "f_ref": 441.3322710e12,
             "fast_enabled_at": 0,
             "fast_mode": false,
@@ -68,7 +77,10 @@
             "auto_exposure": true,
             "channel": 7,
             "display_colour": "red",
-            "exposure": [18, 1],
+            "exposure": [
+                18,
+                1
+            ],
             "f_ref": 441332688000000.0,
             "fast_enabled_at": 0,
             "fast_mode": false,
@@ -88,5 +100,8 @@
     },
     "name": "icl_aion",
     "poll_time": 5,
-    "switch": {"dead_time": 0.012, "type": "internal"},
+    "switch": {
+        "dead_time": 0.012,
+        "type": "internal"
+    },
 }
