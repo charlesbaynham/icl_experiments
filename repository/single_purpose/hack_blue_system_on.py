@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List
 
 from artiq.coredevice.ttl import TTLOut
@@ -13,14 +14,7 @@ import repository.lib.constants as constants
 logger = logging.getLogger(__name__)
 
 
-BLUE_SHUTTERS = [
-    "TTL_shutter_461_pushbeam",
-    "TTL_shutter_461_2dmot_is_it_a",
-    "TTL_shutter_461_2dmot_is_it_b",
-    "TTL_shutter_461_3dmot",
-    "TTL_shutter_679_temporary_shutter",
-    "TTL_shutter_707_temporary_shutter",
-]
+SUSERVOED_BEAMS = [k for k in constants.AOM_BEAMS.keys() if re.match(r"^blue_", k)]
 
 
 class HackBlueSystemOn(ExpFragment):
@@ -29,102 +23,30 @@ class HackBlueSystemOn(ExpFragment):
     """
 
     def build_fragment(self):
-        self.setattr_fragment(
-            "suservo_aom_doublepass_461_injection",
-            LibSetSUServoStatic,
-            "suservo_aom_doublepass_461_injection",
-        )
-        self.setattr_fragment(
-            "suservo_aom_singlepass_461_spectroscopy",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_spectroscopy",
-        )
-        self.setattr_fragment(
-            "suservo_aom_singlepass_461_pushbeam",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_pushbeam",
-        )
-        self.setattr_fragment(
-            "suservo_aom_singlepass_461_2dmot_a",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_2dmot_a",
-        )
-        self.setattr_fragment(
-            "suservo_aom_singlepass_461_2dmot_b",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_2dmot_b",
-        )
-        self.setattr_fragment(
-            "suservo_aom_singlepass_461_3DMOT_radial",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_3DMOT_radial",
-        )
-        self.setattr_fragment(
-            "suservo_aom_singlepass_461_3DMOT_axialplus",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_3DMOT_axialplus",
-        )
-        self.setattr_fragment(
-            "suservo_aom_singlepass_461_3DMOT_axialminus",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_3DMOT_axialminus",
-        )
+
+        self.beam_info = [constants.AOM_BEAMS[beam] for beam in SUSERVOED_BEAMS]
+        self.ttls: List[TTLOut] = []
+
+        for beam, beam_info in zip(SUSERVOED_BEAMS, self.beam_info):
+            self.setattr_fragment(beam, LibSetSUServoStatic, beam_info.suservo_device)
+            if beam_info.shutter_device:
+                self.ttls.append(self.get_device(beam_info.shutter_device))
 
         self.setattr_device("core")
 
-        self.ttls = [self.get_device(ttl) for ttl in BLUE_SHUTTERS]
-        self.ttls: List[TTLOut]
+    def run_once(self):
+        logger.info("Enabling AOMS:")
+        logger.info(SUSERVOED_BEAMS)
+
+        self.go()
 
     @kernel
-    def run_once(self):
+    def go(self):
         # Set the outputs
-        self.suservo_aom_doublepass_461_injection.set_suservo(
-            constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_INJECTION_AOM_ATTENUATION,
-        )
-
-        self.suservo_aom_singlepass_461_spectroscopy.set_suservo(
-            constants.BLUE_PROBE_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_PROBE_AOM_ATTENUATION,
-        )
-
-        self.suservo_aom_singlepass_461_pushbeam.set_suservo(
-            constants.BLUE_PUSHBEAM_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_PUSHBEAM_AOM_ATTENUATION,
-        )
-
-        self.suservo_aom_singlepass_461_2dmot_a.set_suservo(
-            constants.BLUE_2DMOT_A_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_2DMOT_A_AOM_ATTENUATION,
-        )
-
-        self.suservo_aom_singlepass_461_2dmot_b.set_suservo(
-            constants.BLUE_2DMOT_B_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_2DMOT_B_AOM_ATTENUATION,
-        )
-
-        self.suservo_aom_singlepass_461_3DMOT_radial.set_suservo(
-            constants.BLUE_3DMOT_RADIAL_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_3DMOT_RADIAL_AOM_ATTENUATION,
-        )
-
-        self.suservo_aom_singlepass_461_3DMOT_axialplus.set_suservo(
-            constants.BLUE_3DMOT_AXIALPLUS_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_3DMOT_AXIALPLUS_AOM_ATTENUATION,
-        )
-
-        self.suservo_aom_singlepass_461_3DMOT_axialminus.set_suservo(
-            constants.BLUE_3DMOT_AXIALMINUS_AOM_DEFAULT_FREQUENCY,
-            1.0,
-            constants.BLUE_3DMOT_AXIALMINUS_AOM_ATTENUATION,
-        )
+        for beam, beam_info in zip(SUSERVOED_BEAMS, self.beam_info):
+            getattr(self, beam).set_suservo(
+                beam_info.frequency, 1.0, beam_info.attenuation
+            )
 
         for ttl in self.ttls:
             ttl.on()
