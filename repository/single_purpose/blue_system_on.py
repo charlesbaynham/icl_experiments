@@ -2,6 +2,7 @@ import logging
 import re
 from typing import List
 
+from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
@@ -23,6 +24,8 @@ class BlueSystemOn(ExpFragment):
     """
 
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
 
         self.suservo_setters: List[LibSetSUServoStatic] = []
         self.beam_info = [constants.AOM_BEAMS[beam] for beam in SUSERVOED_BEAMS]
@@ -36,10 +39,12 @@ class BlueSystemOn(ExpFragment):
 
         self.setattr_device("core")
 
+    @kernel
     def run_once(self):
         logger.info("Enabling AOMS:")
         logger.info(SUSERVOED_BEAMS)
 
+        self.core.break_realtime()
         self.turn_on()
 
     @kernel
