@@ -26,21 +26,21 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("urukul_channel", EnumerationValue(urukuls, default = urukuls[0]))
         
         #self.my_urukul : AD9910 = self.get_device(self.urukul_channel)
-        self.dds = self.get_device(self.urukul_channel)
+        self.my_urukul = self.get_device(self.urukul_channel)
         
     
     @kernel 
     def run(self):  
-        #type: AD9910
+
         self.core.reset()          
-        dds = self.dds                            
-        dds.cpld.init()                            
-        dds.init()                                                                        
+        my_urukul = self.dds                            
+        my_urukul.cpld.init()                            
+        my_urukul.init()                                                                        
         
         
-        dds.set_att(self.atten)                    #writes attenuation to urukul channel
-        dds.sw.on()                                #switches urukul channel on
+        my_urukul.set_att(self.atten)                    #writes attenuation to urukul channel
+        my_urukul.sw.on()                                #switches urukul channel on
            
             
-        dds.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function                             #delay determined by user input
+        my_urukul.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function                             #delay determined by user input
                                 
