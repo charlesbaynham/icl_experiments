@@ -108,8 +108,9 @@
               (pkgs.writeShellScriptBin "script" ''
                 export PATH=${pkgs.lib.makeBinPath generated_outputs.devShells.artiq.buildInputs}:$PATH
 
-                export WAND_CONFIG_PATH=${config_file}
-                exec wand_gui -n icl_aion
+                export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
+                cp "${config_file}" "$WAND_CONFIG_PATH"
+                exec wand_gui -n icl_aion "$@"
               '');
           };
 
@@ -120,7 +121,8 @@
               (pkgs.writeShellScriptBin "script" ''
                 export PATH=${pkgs.lib.makeBinPath generated_outputs.devShells.artiq.buildInputs}:$PATH
 
-                export WAND_CONFIG_PATH=${config_file}
+                export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
+                cp "${config_file}" "$WAND_CONFIG_PATH"
                 exec wand_server "$@"
               '');
           };
