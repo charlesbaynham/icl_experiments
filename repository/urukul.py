@@ -18,7 +18,6 @@ class Urukul_Programmable(EnvExperiment):
             urukuls.append(string)
             
         self.setattr_device(string)
-        urukuls.append(string)
             #self.urukul2_ch1 = self.get_device("urukul2_ch0")
         
        
