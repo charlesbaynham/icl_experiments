@@ -1,5 +1,4 @@
 import logging
-import re
 from typing import List
 
 from artiq.coredevice.core import Core
@@ -57,16 +56,16 @@ class Blue3DMOTFrag(ExpFragment):
             "blue_push_beam"
         ].shutter_delay
 
+    @kernel
     def run_once(self):
         logger.info("Enabling AOMS:")
         logger.info(BLUE_3D_MOT_BEAMS)
 
+        self.core.break_realtime()
         self.enable_mot()
 
     @kernel
     def enable_mot(self):
-        self.core.break_realtime()
-
         # Set the outputs
         for i in range(len(BLUE_3D_MOT_BEAMS)):
             setter = self.suservo_setters[i]
