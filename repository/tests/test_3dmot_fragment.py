@@ -1,5 +1,6 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
+from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -25,6 +26,8 @@ class TestBlue3DMOTPushBeamFrag(ExpFragment):
             self.frag_blue_3d_mot.push_beam_off()
             delay(1.0)
             self.frag_blue_3d_mot.push_beam_on()
+
+        self.core.wait_until_mu(now_mu())
 
 
 TestBlue3DMOTPushBeam = make_fragment_scan_exp(TestBlue3DMOTPushBeamFrag)

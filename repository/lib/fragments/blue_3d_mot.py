@@ -6,6 +6,7 @@ from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -73,6 +74,7 @@ class Blue3DMOTFrag(ExpFragment):
 
         self.core.break_realtime()
         self.enable_mot()
+        self.core.wait_until_mu(now_mu())
 
     @kernel
     def enable_mot(self):
