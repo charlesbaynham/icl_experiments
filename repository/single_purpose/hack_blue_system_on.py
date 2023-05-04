@@ -1,5 +1,7 @@
 import logging
+from typing import List
 
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -9,6 +11,16 @@ import repository.lib.constants as constants
 
 
 logger = logging.getLogger(__name__)
+
+
+BLUE_SHUTTERS = [
+    "TTL_shutter_461_pushbeam",
+    "TTL_shutter_461_2dmot_is_it_a",
+    "TTL_shutter_461_IJD1_is_it_b",
+    "TTL_shutter_461_3dmot",
+    "TTL_shutter_679_temporary_shutter",
+    "TTL_shutter_707_temporary_shutter",
+]
 
 
 class HackBlueSystemOn(ExpFragment):
@@ -60,6 +72,9 @@ class HackBlueSystemOn(ExpFragment):
 
         self.setattr_device("core")
 
+        self.ttls = [self.get_device(ttl) for ttl in BLUE_SHUTTERS]
+        self.ttls: List[TTLOut]
+
     @kernel
     def run_once(self):
         # Set the outputs
@@ -110,6 +125,9 @@ class HackBlueSystemOn(ExpFragment):
             1.0,
             constants.BLUE_3DMOT_AXIALMINUS_AOM_ATTENUATION,
         )
+
+        for ttl in self.ttls:
+            ttl.on()
 
 
 HackBlueSystemOnExp = make_fragment_scan_exp(HackBlueSystemOn)
