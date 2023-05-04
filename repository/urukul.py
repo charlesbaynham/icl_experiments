@@ -4,14 +4,14 @@ class Urukul_Programmable(EnvExperiment):
     """Urukul frequency, amplitude and attenuation"""
     def build(self): 
         
-        urukuls = []
-        for i in range(4):
-            urukuls.append("urukul0_ch{a}".format(a = i))
+        #urukuls = []
+        #for i in range(4):
+        #   urukuls.append("urukul0_ch{a}".format(a = i))
 
         self.setattr_device("core") 
         #sets core device drivers as attributes
         self.setattr_device("urukul0_ch0")
-        #self.urukul0 = self.get_device("urukul0")
+        self.urukul0_ch0 = self.get_device("urukul0_ch0")
         
        
         self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1, min=0))     #instructs dashboard to take input in MHz and set it as an attribute called freq
