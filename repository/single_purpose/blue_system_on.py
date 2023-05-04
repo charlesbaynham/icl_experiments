@@ -19,7 +19,7 @@ SUSERVOED_BEAMS = [k for k in constants.AOM_BEAMS.keys() if re.match(r"^blue_", 
 
 class BlueSystemOn(ExpFragment):
     """
-    Turn the blue system AOMs and shutters on
+    Turn the blue system AOMs and shutters on to default settings
     """
 
     def build_fragment(self):

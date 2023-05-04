@@ -6,6 +6,7 @@ be stored, so you should never e.g. store an AOM's optimal attenuation as a
 default setting in a build() method somewhere: it should be here.
 """
 from dataclasses import dataclass
+from typing import Optional
 
 # IJD1
 
@@ -17,7 +18,7 @@ class SUServoedBeam:
     frequency: float
     attenuation: float
     suservo_device: str
-    shutter_device: str = None
+    shutter_device: str = Optional[None]
     shutter_delay: float = 0.0
 
 
