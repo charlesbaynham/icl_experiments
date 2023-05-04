@@ -65,6 +65,8 @@ class Blue3DMOTFrag(ExpFragment):
 
     @kernel
     def enable_mot(self):
+        self.core.break_realtime()
+
         # Set the outputs
         for i in range(len(BLUE_3D_MOT_BEAMS)):
             setter = self.suservo_setters[i]
