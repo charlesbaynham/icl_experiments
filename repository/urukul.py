@@ -10,8 +10,8 @@ class Urukul_Programmable(EnvExperiment):
 
         self.setattr_device("core") 
         #sets core device drivers as attributes
-        self.setattr_device("urukul0_ch0")
-        self.urukul0_ch0 = self.get_device("urukul0_ch0")
+        self.setattr_device("urukul2_ch0")
+        #self.urukul0_ch0 = self.get_device("urukul0_ch0")
         
        
         self.setattr_argument("freq", NumberValue(ndecimals=0, unit="MHz", step=1, min=0))     #instructs dashboard to take input in MHz and set it as an attribute called freq
@@ -26,13 +26,13 @@ class Urukul_Programmable(EnvExperiment):
     @kernel 
     def run(self):  
         self.core.reset()                                      
-        self.urukul0_ch0.cpld.init()                            
-        self.urukul0_ch0.init()                                                                        
+        self.urukul2_ch0.cpld.init()                            
+        self.urukul2_ch0.init()                                                                        
         
         
-        self.urukul0_ch0.set_att(self.atten)                    #writes attenuation to urukul channel
-        self.urukul0_ch0.sw.on()                                #switches urukul channel on
+        self.urukul2_ch0.set_att(self.atten)                    #writes attenuation to urukul channel
+        self.urukul2_ch0.sw.on()                                #switches urukul channel on
            
             
-        self.urukul0_ch0.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function                             #delay determined by user input
-        self.urukul0_ch0.sw.off()                               #switches urukul channel off
+        self.urukul2_ch0.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function                             #delay determined by user input
+        self.urukul2_ch0.sw.off()                               #switches urukul channel off
