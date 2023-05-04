@@ -33,7 +33,7 @@ class Urukul_Programmable(EnvExperiment):
     def run(self):  
 
         self.core.reset()          
-        my_urukul = self.dds                            
+        my_urukul = self.my_urukul                            
         my_urukul.cpld.init()                            
         my_urukul.init()                                                                        
         
