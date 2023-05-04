@@ -17,7 +17,7 @@ class Urukul_Programmable(EnvExperiment):
             string = "urukul2_ch{a}".format(a = i)
             urukuls.append(string)
             
-        self.setattr_device(string)
+        self.setattr_device(urukuls)
             #self.urukul2_ch1 = self.get_device("urukul2_ch0")
         
        
