@@ -8,6 +8,8 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
@@ -46,15 +48,23 @@ class Blue3DMOTFrag(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
+        self.setattr_param(
+            "push_beam_delay",
+            FloatParam,
+            "Delay between opening shutter and turning on AOM",
+            default=constants.AOM_BEAMS["blue_push_beam"].shutter_delay,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.push_beam_delay: FloatParamHandle
+
         self.push_beam_suservo: SUServoChannel = self.get_device(
             constants.AOM_BEAMS["blue_push_beam"].suservo_device
         )
         self.push_beam_shutter: TTLOut = self.get_device(
             constants.AOM_BEAMS["blue_push_beam"].shutter_device
         )
-        self.push_beam_shutter_delay: float = constants.AOM_BEAMS[
-            "blue_push_beam"
-        ].shutter_delay
 
     @kernel
     def run_once(self):
@@ -92,7 +102,7 @@ class Blue3DMOTFrag(ExpFragment):
         events to prevent using a new RTIO lane.
         """
 
-        shutter_delay_time_mu = self.core.seconds_to_mu(self.push_beam_shutter_delay)
+        shutter_delay_time_mu = self.core.seconds_to_mu(self.push_beam_delay.get())
 
         delay_mu(-shutter_delay_time_mu)
 
@@ -115,7 +125,7 @@ class Blue3DMOTFrag(ExpFragment):
         into the future by "push_beam_shutter_delay" seconds.
         """
 
-        shutter_delay_time_mu = self.core.seconds_to_mu(self.push_beam_shutter_delay)
+        shutter_delay_time_mu = self.core.seconds_to_mu(self.push_beam_delay.get())
 
         self.push_beam_suservo.set(en_out=0, en_iir=0)
         self.push_beam_shutter.off()
