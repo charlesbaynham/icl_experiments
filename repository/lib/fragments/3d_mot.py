@@ -53,9 +53,9 @@ class Blue3DMOTFrag(ExpFragment):
         self.push_beam_shutter: TTLOut = self.get_device(
             constants.AOM_BEAMS["blue_push_beam"].shutter_device
         )
-        self.push_beam_shutter_delay: float = self.get_device(
-            constants.AOM_BEAMS["blue_push_beam"].shutter_delay
-        )
+        self.push_beam_shutter_delay: float = constants.AOM_BEAMS[
+            "blue_push_beam"
+        ].shutter_delay
 
     def run_once(self):
         logger.info("Enabling AOMS:")

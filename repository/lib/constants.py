@@ -18,7 +18,7 @@ class SUServoedBeam:
     frequency: float
     attenuation: float
     suservo_device: str
-    shutter_device: str = Optional[None]
+    shutter_device: Optional[str] = None
     shutter_delay: float = 0.0
 
 
