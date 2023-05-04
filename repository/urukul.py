@@ -40,4 +40,4 @@ class Urukul_Programmable(EnvExperiment):
            
             
         self.urukul2_ch1.set(self.freq, amplitude = self.amp)   #writes frequency and amplitude attributes to urukul channel thus outputting function                             #delay determined by user input
-        self.urukul2_ch1.sw.off()                               #switches urukul channel off
+                                
