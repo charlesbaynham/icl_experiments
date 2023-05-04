@@ -26,7 +26,7 @@ class Urukul_Programmable(EnvExperiment):
         self.setattr_argument("urukul_channel", EnumerationValue(urukuls, default = urukuls[0]))
         
         #self.my_urukul : AD9910 = self.get_device(self.urukul_channel)
-        self.dds - self.get_device(self.urukul_channel)
+        self.dds = self.get_device(self.urukul_channel)
         
     
     @kernel 
