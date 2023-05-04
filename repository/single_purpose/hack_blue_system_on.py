@@ -49,7 +49,9 @@ class HackBlueSystemOn(ExpFragment):
             setter = self.suservo_setters[i]
             beam_info = self.beam_info[i]
 
-            setter.set_suservo(beam_info.frequency, 1.0, beam_info.attenuation)
+            setter.set_suservo(
+                float(beam_info.frequency), 1.0, float(beam_info.attenuation)
+            )
 
         for ttl in self.ttls:
             ttl.on()
