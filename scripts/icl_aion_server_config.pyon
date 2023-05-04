@@ -25,7 +25,7 @@
         "707": {
             "auto_exposure": true,
             "channel": 6,
-            "display_colour": "red",
+            "display_colour": "purple",
             "exposure": [2, 1],
             "f_ref": 423.91292e12,
             "fast_enabled_at": 0,
@@ -46,7 +46,7 @@
         "679": {
             "auto_exposure": true,
             "channel": 5,
-            "display_colour": "red",
+            "display_colour": "green",
             "exposure": [2, 1],
             "f_ref": 441.3322710e12,
             "fast_enabled_at": 0,
