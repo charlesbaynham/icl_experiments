@@ -718,11 +718,11 @@
     "wand": {
       "flake": false,
       "locked": {
-        "lastModified": 1683139476,
-        "narHash": "sha256-qdE/xkrfbhRrOzAHxZrS9hqkoTPnqDRbztp1kDDPGyk=",
+        "lastModified": 1683202359,
+        "narHash": "sha256-IUfskVZp/YpQ8wribGvjhawc65ToTNNGjuAe81m649I=",
         "ref": "adapt_for_linux",
-        "rev": "20289099ca083b093f51c572a18fec83f850bfec",
-        "revCount": 184,
+        "rev": "811edd86470d7a801e673fd8f174fae6a3c84027",
+        "revCount": 185,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
       },
