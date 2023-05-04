@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 SUSERVOED_BEAMS = [k for k in constants.AOM_BEAMS.keys() if re.match(r"^blue_", k)]
 
 
-class HackBlueSystemOn(ExpFragment):
+class BlueSystemOn(ExpFragment):
     """
-    Hack the blue AOMs on
+    Turn the blue system AOMs and shutters on
     """
 
     def build_fragment(self):
@@ -40,10 +40,10 @@ class HackBlueSystemOn(ExpFragment):
         logger.info("Enabling AOMS:")
         logger.info(SUSERVOED_BEAMS)
 
-        self.go()
+        self.turn_on()
 
     @kernel
-    def go(self):
+    def turn_on(self):
         # Set the outputs
         for i in range(len(SUSERVOED_BEAMS)):
             setter = self.suservo_setters[i]
@@ -57,4 +57,4 @@ class HackBlueSystemOn(ExpFragment):
             ttl.on()
 
 
-HackBlueSystemOnExp = make_fragment_scan_exp(HackBlueSystemOn)
+BlueSystemOnExp = make_fragment_scan_exp(BlueSystemOn)
