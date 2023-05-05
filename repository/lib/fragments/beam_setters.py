@@ -91,18 +91,14 @@ class ControlBeamWithoutCoolingAOM(Fragment):
         )
         self.beam_delay: FloatParamHandle
 
-        self.beam_suservo: SUServoChannel = self.get_device(
-            constants.AOM_BEAMS["blue_push_beam"].suservo_device
-        )
-        self.beam_shutter: TTLOut = self.get_device(
-            constants.AOM_BEAMS["blue_push_beam"].shutter_device
-        )
+        self.beam_suservo: SUServoChannel = self.get_device(beam_info.suservo_device)
+        self.beam_shutter: TTLOut = self.get_device(beam_info.shutter_device)
 
     def host_setup(self):
         logger.info(
             "Setting up beam controller with %s and %s",
-            constants.AOM_BEAMS["blue_push_beam"].suservo_device,
-            constants.AOM_BEAMS["blue_push_beam"].shutter_device,
+            self.beam_info.suservo_device,
+            self.beam_info.shutter_device,
         )
 
         return super().host_setup()
