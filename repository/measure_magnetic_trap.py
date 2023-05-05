@@ -18,7 +18,7 @@ from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.read_adc import ReadSamplerADC
+from repository.lib.fragments.read_adc import ReadSUServoADC
 
 
 class MOTPhotodiodeMeasurement(Fragment):
@@ -26,16 +26,18 @@ class MOTPhotodiodeMeasurement(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        photodiode_sampler_name, photodiode_sampler_channel = self.get_device_db()[
+        photodiode_suservo_name, photodiode_suservo_channel = self.get_device_db()[
             "mot_photodiode_sampler_config"
         ]
 
-        # Load the sampler utility subfragment
-        sampler_obj = self.get_device(photodiode_sampler_name)
+        # Load the ADC utility subfragment
         self.setattr_fragment(
-            "adc_reader", ReadSamplerADC, sampler_obj, photodiode_sampler_channel
+            "adc_reader",
+            ReadSUServoADC,
+            self.get_device(photodiode_suservo_name),
+            photodiode_suservo_channel,
         )
-        self.adc_reader: ReadSamplerADC
+        self.adc_reader: ReadSUServoADC
 
     def measure_MOT_fluorescence(
         self, num_points: TInt32, delay_between_points_mu: TFloat

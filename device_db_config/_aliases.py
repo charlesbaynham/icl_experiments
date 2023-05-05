@@ -37,5 +37,5 @@ aliases = {
         "blue_IJD2_controller": ("sampler2", 1),
         "blue_IJD3_controller": ("sampler2", 2),
     },
-    "mot_photodiode_sampler_config": ("samplerXXX", 0),
+    "mot_photodiode_sampler_config": ("suservo0", 0),
 }
