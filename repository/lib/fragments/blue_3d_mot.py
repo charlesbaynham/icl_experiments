@@ -6,6 +6,7 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import ns
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -95,6 +96,7 @@ class Blue3DMOTFrag(Fragment):
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
         self.blue_3dmot_radial_setter.turn_beam_on()
+        delay(20 * ns)
         self.blue_3dmot_axialplus_setter.turn_beam_on()
         self.blue_3dmot_axialminus_setter.turn_beam_on()
 
