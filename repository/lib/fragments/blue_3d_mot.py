@@ -72,20 +72,36 @@ class Blue3DMOTFrag(Fragment):
 
     @kernel
     def turn_on_push_beam(self):
+        """
+        Turn on the push beam using the AOM+shutter sequence
+        from :class:`.ControlBeamWithoutCoolingAOM`
+        """
         self.blue_push_beam_setter.turn_beam_on()
     
     @kernel
     def turn_off_push_beam(self):
+        """
+        Turn off the push beam using the AOM+shutter sequence
+        from :class:`.ControlBeamWithoutCoolingAOM`
+        """
         self.blue_push_beam_setter.turn_beam_off()
 
     @kernel
     def turn_on_3d_mot_beams(self):
+        """
+        Turn on the mot beams using the AOM+shutter sequence
+        from :class:`.ControlBeamWithoutCoolingAOM`
+        """
         self.blue_3dmot_radial_setter.turn_beam_on()
         self.blue_3dmot_axialplus_setter.turn_beam_on()
         self.blue_3dmot_axialminus_setter.turn_beam_on()
 
     @kernel
     def turn_off_3d_mot_beams(self):
+        """
+        Turn off the mot beams using the AOM+shutter sequence
+        from :class:`.ControlBeamWithoutCoolingAOM`
+        """
         self.blue_3dmot_radial_setter.turn_beam_off()
         self.blue_3dmot_axialplus_setter.turn_beam_off()
         self.blue_3dmot_axialminus_setter.turn_beam_off()
