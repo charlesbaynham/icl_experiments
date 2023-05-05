@@ -15,8 +15,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from ndscan.experiment.parameters import OpaqueChannel
-from ndscan.experiment.parameters import OpaqueChannelHandle
+from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.read_adc import ReadSamplerADC
@@ -27,7 +26,7 @@ class MOTPhotodiodeMeasurement(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        photodiode_sampler_name, photodiode_sampler_channel = self.get_device_db[
+        photodiode_sampler_name, photodiode_sampler_channel = self.get_device_db()[
             "mot_photodiode_sampler_config"
         ]
 
@@ -69,13 +68,6 @@ class MeasureMagneticTrapFrag(ExpFragment):
             "TTL_shutter_679_temporary_shutter"
         )
 
-        # Load the sampler utility subfragment
-        sampler_obj = self.get_device(self.adc_device)
-        self.setattr_fragment(
-            "adc_reader", ReadSamplerADC, sampler_obj, self.adc_channel
-        )
-        self.adc_reader: ReadSamplerADC
-
         self.setattr_param(
             "mot_loading_time",
             FloatParam,
@@ -104,7 +96,6 @@ class MeasureMagneticTrapFrag(ExpFragment):
             description="Number of points to take in photodiode trace",
             default=100,
             min=1,
-            step=1,
         )
         self.num_trace_points: IntParamHandle
 
