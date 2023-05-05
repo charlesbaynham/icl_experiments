@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 
 BLUE_3D_MOT_BEAMS = [
     "blue_push_beam",
-    # "blue_2dmot_A",
-    # "blue_2dmot_B",
-    # "blue_3dmot_radial",
-    # "blue_3dmot_axialplus",
-    # "blue_3dmot_axialminus",
-    # "blue_injection",
+    "blue_2dmot_A",
+    "blue_2dmot_B",
+    "blue_3dmot_radial",
+    "blue_3dmot_axialplus",
+    "blue_3dmot_axialminus",
+    "blue_injection",
 ]
 
 
