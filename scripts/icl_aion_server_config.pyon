@@ -28,7 +28,7 @@
         "707": {
             "auto_exposure": true,
             "channel": 1,
-            "display_colour": "purple",
+            "display_colour": "blue",
             "exposure": [
                 2,
                 1
@@ -52,7 +52,7 @@
         "679": {
             "auto_exposure": true,
             "channel": 5,
-            "display_colour": "green",
+            "display_colour": "blue",
             "exposure": [
                 2,
                 1
@@ -76,7 +76,7 @@
         "689": {
             "auto_exposure": true,
             "channel": 7,
-            "display_colour": "red",
+            "display_colour": "blue",
             "exposure": [
                 18,
                 1
