@@ -98,6 +98,15 @@ class ControlBeamWithoutCoolingAOM(Fragment):
             constants.AOM_BEAMS["blue_push_beam"].shutter_device
         )
 
+    def host_setup(self):
+        logger.info(
+            "Setting up beam controller with %s and %s",
+            constants.AOM_BEAMS["blue_push_beam"].suservo_device,
+            constants.AOM_BEAMS["blue_push_beam"].shutter_device,
+        )
+
+        return super().host_setup()
+
     @kernel
     def turn_beam_on(self):
         """
