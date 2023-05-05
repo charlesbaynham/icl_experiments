@@ -1,5 +1,3 @@
-import logging
-
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
@@ -22,9 +20,6 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.read_adc import ReadSUServoADC
-
-
-logger = logging.getLogger(__file__)
 
 
 class MOTPhotodiodeMeasurement(Fragment):
@@ -149,8 +144,6 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.core.break_realtime()
         delay(50 * ms)  # Add some slack for the shutters
 
-        logger.warning("1")
-
         # Load MOT without repumpers
         self.repumper_707_shutter.off()
         self.repumper_679_shutter.off()
@@ -158,28 +151,18 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.mot_controller.turn_on_3d_mot_beams()
         self.mot_controller.turn_on_push_beam()
 
-        logger.warning("2")
-
         # Wait for the MOT to load
         delay(self.mot_loading_time.get())
-
-        logger.warning("3")
 
         # Turn off the push and MOT beams
         self.mot_controller.turn_off_3d_mot_beams()
         self.mot_controller.turn_off_push_beam()
 
-        logger.warning("4")
-
         # Wait for some time while the atoms sit in their magnetic trap
         delay(self.mot_loading_time.get())
 
-        logger.warning("5")
-
         # Turn on the MOT beams (but not the push beam)
         self.mot_controller.turn_on_3d_mot_beams()
-
-        logger.warning("6")
 
         # Measure a trace from the photodiode of how bright the MOT is
         num_points = self.num_trace_points.get()
@@ -193,11 +176,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
             data=trace_data,
         )
 
-        logger.warning("7")
-
         self.photodiode_voltage.push(trace_data)
-
-        logger.warning("8")
 
         # Deluxe:
         # Turn off the MOT beams again and turn on the repumpers
