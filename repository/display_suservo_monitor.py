@@ -59,6 +59,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
             "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch5",
             "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch6",
+            "mot_photodiode_monitor": "suservo0_ch0",
         }
         self.setattr_argument(
             "suservo_channel_name", EnumerationValue(list(suservo_channel_names.keys()))
