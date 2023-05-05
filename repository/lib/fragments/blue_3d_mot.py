@@ -79,7 +79,7 @@ class Blue3DMOTFrag(Fragment):
         Turn on the push beam using the AOM+shutter sequence
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
-        # self.blue_push_beam_setter.turn_beam_on()
+        self.blue_push_beam_setter.turn_beam_on()
         delay(20 * ns)
 
     @kernel
@@ -88,7 +88,7 @@ class Blue3DMOTFrag(Fragment):
         Turn off the push beam using the AOM+shutter sequence
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
-        # self.blue_push_beam_setter.turn_beam_off()
+        self.blue_push_beam_setter.turn_beam_off()
         delay(20 * ns)
 
     @kernel
