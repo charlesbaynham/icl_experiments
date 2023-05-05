@@ -3,9 +3,14 @@ from typing import List
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import kernel
+from artiq.experiment import kernel,delay_mu
 from ndscan.experiment import Fragment
 from pyaion.fragments.suservo import LibSetSUServoStatic
+from artiq.coredevice.suservo import Channel as SUServoChannel
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+
+
 
 import repository.lib.constants as constants
 
@@ -60,3 +65,94 @@ class SetBeamsToDefaults(Fragment):
             ttl.on()
 
 
+
+class ControlBeamWithoutCoolingAOM(Fragment):
+    """
+    Methods to turn on/off a beam using a SUServoed AOM for sharp edges
+    and a shutter to fully block it
+
+    The AOM will be left on as much as possible even while the beam is
+    off (but blocked with the shutter) to avoid pointing instability
+    from thermal effects.
+    """
+
+    def build_fragment(self, beam_info : constants.SUServoedBeam):
+        self.beam_info = beam_info
+
+        if beam_info.shutter_device is None:
+            raise ValueError("Beam [%s] has no shutter configured".format(beam_info))
+        
+        self.setattr_device("core")
+        self.core: Core
+
+        # Allow the user to override the beam delay if they wish
+        self.setattr_param(
+            "beam_delay",
+            FloatParam,
+            "Delay between opening shutter and turning on AOM",
+            default=beam_info.shutter_delay,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.beam_delay: FloatParamHandle
+        
+        self.beam_suservo: SUServoChannel = self.get_device(
+            constants.AOM_BEAMS["blue_push_beam"].suservo_device
+        )
+        self.beam_shutter: TTLOut = self.get_device(
+            constants.AOM_BEAMS["blue_push_beam"].shutter_device
+        )
+
+    @kernel
+    def device_setup(self):
+        self.shutter_delay_time_mu = self.core.seconds_to_mu(self.beam_delay.get())
+        self.device_setup_subfragments()
+
+
+    @kernel
+    def turn_beam_on(self):
+        """
+        Turn on the beam using the AOM and shutter
+
+        This method will use the AOM to turn on the beam at the cursor, having
+        first disabled the AOM and opened the shutter to prevent the AOM from
+        cooling down too much.
+
+        This method does not advance the timeline, BUT will reverse time to write
+        shutter opening into the past. You should therefore make sure that there
+        is at least "shutter_delay_time" slack, ideally with no queued RTIO
+        events to prevent using a new RTIO lane.
+        """
+
+        
+
+        delay_mu(-self.shutter_delay_time_mu)
+
+        self.push_beam_suservo.set(en_out=0, en_iir=0)
+        self.push_beam_shutter.on()
+
+        delay_mu(self.shutter_delay_time_mu)
+
+        self.push_beam_suservo.set(en_out=1, en_iir=0)
+
+    @kernel
+    def turn_beam_off(self):
+        """
+        Turn off the beam using the AOM and shutter
+
+        This method will turn off the beam at the cursor and then close the
+        shutter and turn the AOM back on to stop it cooling down.
+
+        This method does not advance the timeline, BUT will write shutter closing events
+        into the future by "shutter_delay_time" seconds.
+        """
+
+        self.push_beam_suservo.set(en_out=0, en_iir=0)
+        self.push_beam_shutter.off()
+
+        delay_mu(self.shutter_delay_time_mu)
+
+        self.push_beam_suservo.set(en_out=1, en_iir=0)
+
+        delay_mu(-self.shutter_delay_time_mu)
