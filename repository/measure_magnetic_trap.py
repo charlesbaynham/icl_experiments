@@ -1,16 +1,10 @@
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import ms
 from artiq.experiment import ns
-from artiq.experiment import TFloat
-from artiq.experiment import TInt32
-from artiq.experiment import TInt64
-from artiq.experiment import TList
 from ndscan.experiment import ExpFragment
-from ndscan.experiment import Fragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -21,40 +15,7 @@ from ndscan.experiment.result_channels import FloatChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.read_adc import ReadSUServoADC
-
-
-class MOTPhotodiodeMeasurement(Fragment):
-    def build_fragment(self):
-        self.setattr_device("core")
-        self.core: Core
-
-        photodiode_suservo_name, photodiode_suservo_channel = self.get_device_db()[
-            "mot_photodiode_sampler_config"
-        ]
-
-        # Load the ADC utility subfragment
-        self.setattr_fragment(
-            "adc_reader",
-            ReadSUServoADC,
-            self.get_device(photodiode_suservo_name),
-            photodiode_suservo_channel,
-        )
-        self.adc_reader: ReadSUServoADC
-
-    @kernel
-    def measure_MOT_fluorescence(
-        self, num_points: TInt32, delay_between_points_mu: TInt64, data: TList(TFloat)
-    ) -> None:
-        """
-        Read the flourescence out into an array.
-
-        You must pass an array of floats with size <num_points> to `data`.
-        """
-
-        for i in range(num_points):
-            data[i] = self.adc_reader.read_adc()
-            delay_mu(delay_between_points_mu)
+from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
 
 
 class MeasureMagneticTrapFrag(ExpFragment):
