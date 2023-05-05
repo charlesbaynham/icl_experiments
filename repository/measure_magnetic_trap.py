@@ -120,11 +120,6 @@ class MeasureMagneticTrapFrag(ExpFragment):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        # Precalculate stuff
-        self.delay_between_trace_points_mu = self.core.seconds_to_mu(
-            self.delay_between_trace_points.get()
-        )
-
         self.core.break_realtime()
         delay(20 * ms)
 
@@ -168,7 +163,9 @@ class MeasureMagneticTrapFrag(ExpFragment):
         # Measure a trace from the photodiode of how bright the MOT is
         trace_data = self.mot_measurer.measure_MOT_fluorescence(
             num_points=self.num_trace_points.get(),
-            delay_between_points_mu=self.delay_between_trace_points_mu,
+            delay_between_points_mu=self.core.seconds_to_mu(
+                self.delay_between_trace_points.get()
+            ),
         )
 
         self.photodiode_voltage.push(trace_data)
