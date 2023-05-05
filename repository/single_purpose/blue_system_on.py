@@ -2,10 +2,10 @@ import logging
 import re
 
 from artiq.coredevice.core import Core
-from artiq.experiment import kernel, now_mu
+from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
@@ -25,9 +25,10 @@ class BlueSystemOn(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("SetBeamsToDefaults", SetBeamsToDefaults, beams_to_enable=BLUE_BEAMS)
+        self.setattr_fragment(
+            "SetBeamsToDefaults", SetBeamsToDefaults, beams_to_enable=BLUE_BEAMS
+        )
         self.SetBeamsToDefaults: SetBeamsToDefaults
-        
 
     @kernel
     def run_once(self):

@@ -10,9 +10,9 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setters import SetBeamsToDefaults, ControlBeamWithoutCoolingAOM
+from repository.lib.fragments.beam_setters import ControlBeamWithoutCoolingAOM
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,11 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("all_beam_default_setter", SetBeamsToDefaults, beams_to_enable=BLUE_3D_MOT_BEAMS)
+        self.setattr_fragment(
+            "all_beam_default_setter",
+            SetBeamsToDefaults,
+            beams_to_enable=BLUE_3D_MOT_BEAMS,
+        )
         self.all_beam_default_setter: SetBeamsToDefaults
 
         # Give us access to on/off methods for the push beam and the 3D MOT beams
@@ -48,15 +52,14 @@ class Blue3DMOTFrag(Fragment):
             "blue_3dmot_axialminus",
         ]:
             beam_info = constants.AOM_BEAMS[beam_name]
-            self.setattr_fragment(f"{beam_name}_setter",
-                                  ControlBeamWithoutCoolingAOM, beam_info=beam_info)
-        
-        self.blue_push_beam_setter : ControlBeamWithoutCoolingAOM
-        self.blue_3dmot_radial_setter : ControlBeamWithoutCoolingAOM
-        self.blue_3dmot_axialplus_setter : ControlBeamWithoutCoolingAOM
-        self.blue_3dmot_axialminus_setter : ControlBeamWithoutCoolingAOM
+            self.setattr_fragment(
+                f"{beam_name}_setter", ControlBeamWithoutCoolingAOM, beam_info=beam_info
+            )
 
-
+        self.blue_push_beam_setter: ControlBeamWithoutCoolingAOM
+        self.blue_3dmot_radial_setter: ControlBeamWithoutCoolingAOM
+        self.blue_3dmot_axialplus_setter: ControlBeamWithoutCoolingAOM
+        self.blue_3dmot_axialminus_setter: ControlBeamWithoutCoolingAOM
 
     @kernel
     def enable_mot_beams(self):
@@ -65,7 +68,7 @@ class Blue3DMOTFrag(Fragment):
 
         This method does not advance the timeline and does not
         respect beam shutter delays - it just turns everything
-        on immediately. 
+        on immediately.
         """
         self.all_beam_default_setter.turn_on_all()
 
@@ -76,7 +79,7 @@ class Blue3DMOTFrag(Fragment):
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
         self.blue_push_beam_setter.turn_beam_on()
-    
+
     @kernel
     def turn_off_push_beam(self):
         """
@@ -104,5 +107,3 @@ class Blue3DMOTFrag(Fragment):
         self.blue_3dmot_radial_setter.turn_beam_off()
         self.blue_3dmot_axialplus_setter.turn_beam_off()
         self.blue_3dmot_axialminus_setter.turn_beam_off()
-
-

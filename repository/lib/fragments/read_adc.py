@@ -68,7 +68,7 @@ class ReadSamplerADC(ReadADC):
                 description="Sampler device to read",
                 default="",
             )
-            self.sampler_device_name:StringParamHandle
+            self.sampler_device_name: StringParamHandle
 
         self.core: Core = self.get_device("core")
 

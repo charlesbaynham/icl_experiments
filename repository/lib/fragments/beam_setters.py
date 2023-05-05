@@ -2,15 +2,14 @@ import logging
 from typing import List
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import kernel,delay_mu
-from ndscan.experiment import Fragment
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from artiq.coredevice.suservo import Channel as SUServoChannel
+from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import delay_mu
+from artiq.experiment import kernel
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-
-
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
 
@@ -18,14 +17,12 @@ import repository.lib.constants as constants
 logger = logging.getLogger(__name__)
 
 
-
-
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of suservoed beams, possibly with shutters, to their default settings
     """
 
-    def build_fragment(self, beams_to_enable : List[str]):
+    def build_fragment(self, beams_to_enable: List[str]):
         self.beams_to_enable = beams_to_enable
 
         self.setattr_device("core")
@@ -42,8 +39,6 @@ class SetBeamsToDefaults(Fragment):
                 self.ttls.append(self.get_device(beam_info.shutter_device))
 
         self.setattr_device("core")
-
-
 
     @kernel
     def turn_on_all(self):
@@ -65,7 +60,6 @@ class SetBeamsToDefaults(Fragment):
             ttl.on()
 
 
-
 class ControlBeamWithoutCoolingAOM(Fragment):
     """
     Methods to turn on/off a beam using a SUServoed AOM for sharp edges
@@ -76,12 +70,12 @@ class ControlBeamWithoutCoolingAOM(Fragment):
     from thermal effects.
     """
 
-    def build_fragment(self, beam_info : constants.SUServoedBeam):
+    def build_fragment(self, beam_info: constants.SUServoedBeam):
         self.beam_info = beam_info
 
         if beam_info.shutter_device is None:
             raise ValueError("Beam [%s] has no shutter configured".format(beam_info))
-        
+
         self.setattr_device("core")
         self.core: Core
 
@@ -96,7 +90,7 @@ class ControlBeamWithoutCoolingAOM(Fragment):
             step=1,
         )
         self.beam_delay: FloatParamHandle
-        
+
         self.beam_suservo: SUServoChannel = self.get_device(
             constants.AOM_BEAMS["blue_push_beam"].suservo_device
         )
@@ -108,7 +102,6 @@ class ControlBeamWithoutCoolingAOM(Fragment):
     def device_setup(self):
         self.shutter_delay_time_mu = self.core.seconds_to_mu(self.beam_delay.get())
         self.device_setup_subfragments()
-
 
     @kernel
     def turn_beam_on(self):
@@ -124,8 +117,6 @@ class ControlBeamWithoutCoolingAOM(Fragment):
         is at least "shutter_delay_time" slack, ideally with no queued RTIO
         events to prevent using a new RTIO lane.
         """
-
-        
 
         delay_mu(-self.shutter_delay_time_mu)
 
