@@ -1,7 +1,7 @@
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 
 
-from ndscan.experiment import ExpFragment, Fragment
+from ndscan.experiment import ExpFragment, Fragment, ResultChannel
 
 from artiq.coredevice.core import Core
 
@@ -16,6 +16,8 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from ndscan.experiment.parameters import OpaqueChannel
+from ndscan.experiment.parameters import OpaqueChannelHandle
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
@@ -112,6 +114,10 @@ class MeasureMagneticTrapFrag(ExpFragment):
         )
         self.delay_between_trace_points: FloatParamHandle
         
+        # Add output channel
+        self.setattr_result("photodiode_voltage", OpaqueChannel)
+        self.photodiode_voltage: ResultChannel
+
     
     @kernel
     def device_setup(self) -> None:
@@ -164,6 +170,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
             delay_between_points_mu=self.delay_between_trace_points_mu
         )
 
+        self.photodiode_voltage.push(trace_data)
 
         # Deluxe:
         # Turn off the MOT beams again and turn on the repumpers
