@@ -19,7 +19,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 
 
-class MeasureMagneticTrap(ExpFragment):
+class MeasureMagneticTrapFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -103,4 +103,4 @@ class MeasureMagneticTrap(ExpFragment):
         # Take background photodiode measurement
 
 
-MeasureMagneticTrap = make_fragment_scan_exp(MeasureMagneticTrap)
+MeasureMagneticTrap = make_fragment_scan_exp(MeasureMagneticTrapFrag)
