@@ -4,14 +4,14 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from ndscan.experiment import ExpFragment
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.suservo import Channel as SUServoChannel
+
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay_mu
+
 from artiq.experiment import ms
 
 from artiq.experiment import kernel
-from artiq.experiment import now_mu, delay
-from ndscan.experiment import Fragment
+from artiq.experiment import  delay
+
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.entry_point import make_fragment_scan_exp
