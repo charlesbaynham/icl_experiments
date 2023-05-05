@@ -118,7 +118,6 @@ class MeasureMagneticTrapFrag(ExpFragment):
 
     @kernel
     def device_setup(self) -> None:
-        self.core.reset()
         self.device_setup_subfragments()
 
         self.core.break_realtime()
