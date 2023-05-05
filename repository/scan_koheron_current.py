@@ -229,7 +229,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         if self.change_aom.get():
             self.injection_aom_setter.set_suservo(
-                constants.BLUE_INJECTION_AOM_DEFAULT_FREQUENCY,
+                constants.AOM_BEAMS["blue_injection"].frequency,
                 1.0,
                 self.aom_attenuation.get(),
             )
