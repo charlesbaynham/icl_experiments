@@ -4,6 +4,7 @@ from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.experiment import ns
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from artiq.experiment import TInt64
@@ -138,6 +139,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.mot_controller.enable_mot_beams()
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
+        delay(20 * ns)
         self.mot_controller.turn_off_push_beam()
         self.mot_controller.turn_off_3d_mot_beams()
 
@@ -165,6 +167,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
         # Turn on the MOT beams and the repumpers (but not the push beam)
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
+        delay(20 * ns)
         self.mot_controller.turn_on_3d_mot_beams()
 
         # Measure a trace from the photodiode of how bright the MOT is
