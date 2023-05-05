@@ -47,7 +47,7 @@ class MOTPhotodiodeMeasurement(Fragment):
 
     @kernel
     def measure_MOT_fluorescence(
-        self, num_points: TInt32, delay_between_points_mu: TInt64, data: TList[TFloat]
+        self, num_points: TInt32, delay_between_points_mu: TInt64, data: TList(TFloat)
     ) -> None:
         """
         Read the flourescence out into an array.
@@ -184,6 +184,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
         # Measure a trace from the photodiode of how bright the MOT is
         num_points = self.num_trace_points.get()
         trace_data = [0.0] * num_points
+
         self.mot_measurer.measure_MOT_fluorescence(
             num_points=num_points,
             delay_between_points_mu=self.core.seconds_to_mu(
