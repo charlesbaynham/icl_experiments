@@ -6,7 +6,6 @@ from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.parameters import StringParam
 from ndscan.experiment.parameters import StringParamHandle
 
@@ -69,6 +68,7 @@ class ReadSamplerADC(ReadADC):
                 description="Sampler device to read",
                 default="",
             )
+            self.sampler_device_name:StringParamHandle
 
         self.core: Core = self.get_device("core")
 
