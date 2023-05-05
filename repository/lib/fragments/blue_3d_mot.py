@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
