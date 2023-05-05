@@ -8,6 +8,7 @@ from artiq.experiment import kernel
 from artiq.experiment import ms
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
+from artiq.experiment import TInt64
 from artiq.experiment import TList
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
@@ -46,7 +47,7 @@ class MOTPhotodiodeMeasurement(Fragment):
 
     @kernel
     def measure_MOT_fluorescence(
-        self, num_points: TInt32, delay_between_points_mu: TFloat
+        self, num_points: TInt32, delay_between_points_mu: TInt64
     ) -> TList(TFloat):
         data = [0.0] * num_points
 
