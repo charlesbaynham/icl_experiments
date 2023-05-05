@@ -96,9 +96,10 @@ class ControlBeamWithoutCoolingAOM(Fragment):
 
     def host_setup(self):
         logger.info(
-            "Setting up beam controller with %s and %s",
+            "Setting up beam controller with suservo_device=%s, shutter_device=%s and shutter_delay=%s",
             self.beam_info.suservo_device,
             self.beam_info.shutter_device,
+            self.beam_info.shutter_delay,
         )
 
         return super().host_setup()
