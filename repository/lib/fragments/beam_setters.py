@@ -71,6 +71,7 @@ class ControlBeamWithoutCoolingAOM(Fragment):
     """
 
     def build_fragment(self, beam_info: constants.SUServoedBeam):
+        logger.debug("Building with %s", beam_info)
         self.beam_info = beam_info
 
         if beam_info.shutter_device is None:
