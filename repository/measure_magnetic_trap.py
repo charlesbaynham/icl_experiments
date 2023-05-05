@@ -1,7 +1,7 @@
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 
 
-from ndscan.experiment import ExpFragment
+from ndscan.experiment import ExpFragment, Fragment
 
 from artiq.coredevice.core import Core
 
@@ -9,15 +9,42 @@ from artiq.coredevice.ttl import TTLOut
 
 from artiq.experiment import ms
 
-from artiq.experiment import kernel
+from artiq.experiment import kernel, TInt32, TFloat, TList, delay_mu
 from artiq.experiment import  delay
 
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
+
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.fragments.read_adc import ReadSamplerADC
 
+class MOTPhotodiodeMeasurement(Fragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
 
+        photodiode_sampler_name, photodiode_sampler_channel = self.get_device_db['mot_photodiode_sampler_config']
+
+        # Load the sampler utility subfragment
+        sampler_obj = self.get_device(photodiode_sampler_name)
+        self.setattr_fragment(
+            "adc_reader", ReadSamplerADC, sampler_obj, photodiode_sampler_channel
+        )
+        self.adc_reader: ReadSamplerADC
+    
+    def measure_MOT_fluorescence(self,
+                                 num_points:TInt32,
+                                 delay_between_points_mu:TFloat) -> TList(TFloat):
+        data = [0.0] * num_points
+
+        for i in range(num_points):
+            data[i] = self.adc_reader.read_adc()
+            delay_mu(delay_between_points_mu)
+        
+        return data
 
 class MeasureMagneticTrapFrag(ExpFragment):
     def build_fragment(self):
@@ -27,9 +54,20 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.setattr_fragment("mot_controller", Blue3DMOTFrag)
         self.mot_controller: Blue3DMOTFrag
 
+        self.setattr_fragment("mot_measurer", MOTPhotodiodeMeasurement)
+        self.mot_measurer: MOTPhotodiodeMeasurement
+
+
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
         self.repumper_707_shutter:TTLOut = self.get_device("TTL_shutter_707_temporary_shutter")
         self.repumper_679_shutter:TTLOut = self.get_device("TTL_shutter_679_temporary_shutter")
+
+        # Load the sampler utility subfragment
+        sampler_obj = self.get_device(self.adc_device)
+        self.setattr_fragment(
+            "adc_reader", ReadSamplerADC, sampler_obj, self.adc_channel
+        )
+        self.adc_reader: ReadSamplerADC
 
         self.setattr_param(
             "mot_loading_time",
@@ -53,16 +91,43 @@ class MeasureMagneticTrapFrag(ExpFragment):
         )
         self.dark_time: FloatParamHandle
 
+        self.setattr_param(
+            "num_trace_points",
+            IntParam,
+            description="Number of points to take in photodiode trace",
+            default=100,
+            min=1,
+            step=1,
+        )
+        self.num_trace_points: IntParamHandle
+
+        self.setattr_param(
+            "delay_between_trace_points",
+            FloatParam,
+            description="Delay between points in the photodiode trace",
+            default=1*ms,
+            unit="ms",
+            min=1*ms,
+            step=1,
+        )
+        self.delay_between_trace_points: FloatParamHandle
+        
     
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
+        # Precalculate stuff
+        self.delay_between_trace_points_mu = self.core.seconds_to_mu(self.delay_between_trace_points.get())
+
+        self.core.break_realtime()
+        delay(20*ms)
+
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
-        self.mot_controller.enable_mot_beams()
         self.mot_controller.turn_off_push_beam()
         self.mot_controller.turn_off_3d_mot_beams()
+        self.mot_controller.enable_mot_beams()
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         
@@ -94,7 +159,11 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.mot_controller.turn_on_3d_mot_beams()
 
         # Measure a trace from the photodiode of how bright the MOT is
-        raise NotImplementedError
+        trace_data = self.mot_measurer.measure_MOT_fluorescence(
+            num_points = self.num_trace_points.get(),
+            delay_between_points_mu=self.delay_between_trace_points_mu
+        )
+
 
         # Deluxe:
         # Turn off the MOT beams again and turn on the repumpers
