@@ -99,8 +99,8 @@ class Blue3DMOTFrag(Fragment):
         """
         self.blue_3dmot_radial_setter.turn_beam_on()
         delay(20 * ns)
-        # self.blue_3dmot_axialplus_setter.turn_beam_on()
-        # delay(20 * ns)
+        self.blue_3dmot_axialplus_setter.turn_beam_on()
+        delay(20 * ns)
         # self.blue_3dmot_axialminus_setter.turn_beam_on()
         # delay(20 * ns)
 
@@ -112,7 +112,7 @@ class Blue3DMOTFrag(Fragment):
         """
         self.blue_3dmot_radial_setter.turn_beam_off()
         delay(20 * ns)
-        # self.blue_3dmot_axialplus_setter.turn_beam_off()
-        # delay(20 * ns)
+        self.blue_3dmot_axialplus_setter.turn_beam_off()
+        delay(20 * ns)
         # self.blue_3dmot_axialminus_setter.turn_beam_off()
         # delay(20 * ns)
