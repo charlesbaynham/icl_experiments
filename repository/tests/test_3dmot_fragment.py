@@ -17,6 +17,11 @@ class TestBlue3DMOTPushBeamFrag(ExpFragment):
         self.frag_blue_3d_mot: Blue3DMOTFrag
 
     @kernel
+    def device_setup(self) -> None:
+        self.core.reset()
+        self.device_setup_subfragments()
+
+    @kernel
     def run_once(self):
         self.core.break_realtime()
         self.frag_blue_3d_mot.enable_mot_beams()
