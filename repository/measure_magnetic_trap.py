@@ -16,6 +16,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from ndscan.experiment.result_channels import FloatChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
@@ -120,6 +121,9 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.setattr_result("photodiode_voltage", OpaqueChannel)
         self.photodiode_voltage: ResultChannel
 
+        self.setattr_result("initial_voltage", FloatChannel)
+        self.final_voltage: ResultChannel
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
@@ -177,6 +181,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
         )
 
         self.photodiode_voltage.push(trace_data)
+        self.final_voltage.push(trace_data[-1])
 
         # Deluxe:
         # Turn off the MOT beams again and turn on the repumpers
