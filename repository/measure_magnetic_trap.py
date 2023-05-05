@@ -44,6 +44,7 @@ class MOTPhotodiodeMeasurement(Fragment):
         )
         self.adc_reader: ReadSUServoADC
 
+    @kernel
     def measure_MOT_fluorescence(
         self, num_points: TInt32, delay_between_points_mu: TFloat
     ) -> TList(TFloat):
