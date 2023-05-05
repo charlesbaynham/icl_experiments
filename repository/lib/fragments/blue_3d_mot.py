@@ -14,7 +14,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
-
+from repository.lib.fragments.beam_setter import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 
@@ -36,18 +36,23 @@ class Blue3DMOTFrag(ExpFragment):
     """
 
     def build_fragment(self):
-        self.suservo_setters: List[LibSetSUServoStatic] = []
-        self.beam_info = [constants.AOM_BEAMS[beam] for beam in BLUE_3D_MOT_BEAMS]
-        self.ttls: List[TTLOut] = []
-
-        for beam, beam_info in zip(BLUE_3D_MOT_BEAMS, self.beam_info):
-            self.setattr_fragment(beam, LibSetSUServoStatic, beam_info.suservo_device)
-            self.suservo_setters.append(getattr(self, beam))
-            if beam_info.shutter_device:
-                self.ttls.append(self.get_device(beam_info.shutter_device))
-
         self.setattr_device("core")
         self.core: Core
+
+        self.setattr_fragment("SetBeamsToDefaults", SetBeamsToDefaults, beams_to_enable=BLUE_3D_MOT_BEAMS)
+        self.SetBeamsToDefaults: SetBeamsToDefaults
+
+        # self.suservo_setters: List[LibSetSUServoStatic] = []
+        # self.beam_info = [constants.AOM_BEAMS[beam] for beam in BLUE_3D_MOT_BEAMS]
+        # self.ttls: List[TTLOut] = []
+
+        # for beam, beam_info in zip(BLUE_3D_MOT_BEAMS, self.beam_info):
+        #     self.setattr_fragment(beam, LibSetSUServoStatic, beam_info.suservo_device)
+        #     self.suservo_setters.append(getattr(self, beam))
+        #     if beam_info.shutter_device:
+        #         self.ttls.append(self.get_device(beam_info.shutter_device))
+
+        
 
         self.setattr_param(
             "push_beam_delay",
@@ -69,26 +74,24 @@ class Blue3DMOTFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        logger.info("Enabling AOMS:")
+        logger.info("Enabling all 3D MOT beams:")
         logger.info(BLUE_3D_MOT_BEAMS)
 
         self.core.break_realtime()
-        self.enable_mot()
+        self.enable_mot_beams()
         self.core.wait_until_mu(now_mu())
 
     @kernel
-    def enable_mot(self):
-        # Set the outputs
-        for i in range(len(BLUE_3D_MOT_BEAMS)):
-            setter = self.suservo_setters[i]
-            beam_info = self.beam_info[i]
+    def enable_mot_beams(self):
+        """
+        Immediately turn on all beams related to the 3D blue MOT
 
-            setter.set_suservo(
-                float(beam_info.frequency), 1.0, float(beam_info.attenuation)
-            )
+        This method does not advance the timeline and does not
+        respect beam shutter delays - it just turns everything
+        on immediately. 
+        """
+        self.SetBeamsToDefaults.turn_on_all()
 
-        for ttl in self.ttls:
-            ttl.on()
 
     @kernel
     def push_beam_on(self):
@@ -96,7 +99,8 @@ class Blue3DMOTFrag(ExpFragment):
         Turn on the push beam using the AOM and shutter
 
         This method will use the AOM to turn on the beam at the cursor, having
-        first opened the shutter.
+        first disabled the AOM and opened the shutter to prevent the AOM from
+        cooling down too much.
 
         This method does not advance the timeline, BUT will reverse time to write
         shutter opening into the past. You should therefore make sure that there
