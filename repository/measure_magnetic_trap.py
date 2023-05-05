@@ -165,8 +165,10 @@ class MeasureMagneticTrapFrag(ExpFragment):
         # Wait for some time while the atoms sit in their magnetic trap
         delay(self.dark_time.get())
 
-        # Turn on the MOT beams (but not the push beam)
+        # Turn on the MOT beams and the repumpers (but not the push beam)
         self.mot_controller.turn_on_3d_mot_beams()
+        self.repumper_707_shutter.on()
+        self.repumper_679_shutter.on()
 
         # Measure a trace from the photodiode of how bright the MOT is
         num_points = self.num_trace_points.get()
