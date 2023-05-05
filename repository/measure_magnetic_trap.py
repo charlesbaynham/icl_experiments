@@ -121,7 +121,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.setattr_result("photodiode_voltage", OpaqueChannel)
         self.photodiode_voltage: ResultChannel
 
-        self.setattr_result("initial_voltage", FloatChannel)
+        self.setattr_result("final_voltage", FloatChannel)
         self.final_voltage: ResultChannel
 
     @kernel
