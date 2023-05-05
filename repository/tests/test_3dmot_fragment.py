@@ -22,13 +22,13 @@ class TestBlue3DMOTPushBeamFrag(ExpFragment):
         self.frag_blue_3d_mot.enable_mot_beams()
 
         for _ in range(10):
-            # delay(1.0)
-            # self.frag_blue_3d_mot.turn_on_3d_mot_beams()
+            delay(1.0)
+            self.frag_blue_3d_mot.turn_on_3d_mot_beams()
             delay(1.0)
             self.frag_blue_3d_mot.turn_on_push_beam()
             delay(1.0)
-            # self.frag_blue_3d_mot.turn_off_3d_mot_beams()
-            # delay(1.0)
+            self.frag_blue_3d_mot.turn_off_3d_mot_beams()
+            delay(1.0)
             self.frag_blue_3d_mot.turn_off_push_beam()
 
         self.core.wait_until_mu(now_mu())
