@@ -94,7 +94,7 @@ class Blue3DMOTFrag(Fragment):
         Turn on the mot beams using the AOM+shutter sequence
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
-        # self.blue_3dmot_radial_setter.turn_beam_on()
+        self.blue_3dmot_radial_setter.turn_beam_on()
         # self.blue_3dmot_axialplus_setter.turn_beam_on()
         self.blue_3dmot_axialminus_setter.turn_beam_on()
 
@@ -104,6 +104,6 @@ class Blue3DMOTFrag(Fragment):
         Turn off the mot beams using the AOM+shutter sequence
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
-        # self.blue_3dmot_radial_setter.turn_beam_off()
+        self.blue_3dmot_radial_setter.turn_beam_off()
         # self.blue_3dmot_axialplus_setter.turn_beam_off()
         self.blue_3dmot_axialminus_setter.turn_beam_off()
