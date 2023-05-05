@@ -8,7 +8,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setter import SetBeamsToDefaults
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 

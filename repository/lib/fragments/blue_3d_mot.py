@@ -14,7 +14,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setter import SetBeamsToDefaults
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 
