@@ -4,7 +4,7 @@ from typing import List
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay_mu
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
@@ -99,11 +99,6 @@ class ControlBeamWithoutCoolingAOM(Fragment):
         )
 
     @kernel
-    def device_setup(self):
-        self.shutter_delay_time_mu = self.core.seconds_to_mu(self.beam_delay.get())
-        self.device_setup_subfragments()
-
-    @kernel
     def turn_beam_on(self):
         """
         Turn on the beam using the AOM and shutter
@@ -118,14 +113,14 @@ class ControlBeamWithoutCoolingAOM(Fragment):
         events to prevent using a new RTIO lane.
         """
 
-        delay_mu(-self.shutter_delay_time_mu)
+        delay(-self.beam_delay.get())
 
-        self.push_beam_suservo.set(en_out=0, en_iir=0)
-        self.push_beam_shutter.on()
+        self.beam_suservo.set(en_out=0, en_iir=0)
+        self.beam_shutter.on()
 
-        delay_mu(self.shutter_delay_time_mu)
+        delay(self.beam_delay.get())
 
-        self.push_beam_suservo.set(en_out=1, en_iir=0)
+        self.beam_suservo.set(en_out=1, en_iir=0)
 
     @kernel
     def turn_beam_off(self):
@@ -139,11 +134,11 @@ class ControlBeamWithoutCoolingAOM(Fragment):
         into the future by "shutter_delay_time" seconds.
         """
 
-        self.push_beam_suservo.set(en_out=0, en_iir=0)
-        self.push_beam_shutter.off()
+        self.beam_suservo.set(en_out=0, en_iir=0)
+        self.beam_shutter.off()
 
-        delay_mu(self.shutter_delay_time_mu)
+        delay(self.beam_delay.get())
 
-        self.push_beam_suservo.set(en_out=1, en_iir=0)
+        self.beam_suservo.set(en_out=1, en_iir=0)
 
-        delay_mu(-self.shutter_delay_time_mu)
+        delay(-self.beam_delay.get())
