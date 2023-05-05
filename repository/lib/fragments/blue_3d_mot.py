@@ -95,8 +95,8 @@ class Blue3DMOTFrag(Fragment):
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
         self.blue_3dmot_radial_setter.turn_beam_on()
-        # self.blue_3dmot_axialplus_setter.turn_beam_on()
-        # self.blue_3dmot_axialminus_setter.turn_beam_on()
+        self.blue_3dmot_axialplus_setter.turn_beam_on()
+        self.blue_3dmot_axialminus_setter.turn_beam_on()
 
     @kernel
     def turn_off_3d_mot_beams(self):
@@ -105,5 +105,5 @@ class Blue3DMOTFrag(Fragment):
         from :class:`.ControlBeamWithoutCoolingAOM`
         """
         self.blue_3dmot_radial_setter.turn_beam_off()
-        # self.blue_3dmot_axialplus_setter.turn_beam_off()
-        # self.blue_3dmot_axialminus_setter.turn_beam_off()
+        self.blue_3dmot_axialplus_setter.turn_beam_off()
+        self.blue_3dmot_axialminus_setter.turn_beam_off()
