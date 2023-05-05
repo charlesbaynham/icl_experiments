@@ -64,7 +64,14 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.setattr_argument(
             "suservo_channel_name", EnumerationValue(list(suservo_channel_names.keys()))
         )
-        self.suservo: SUServo = self.get_device("suservo1")
+        suservo_name = (
+            re.match(
+                r"(suservo\d+)_ch\d+", suservo_channel_names[self.suservo_channel_name]
+            )[1]
+            if self.suservo_channel_name is not None
+            else "suservo0"
+        )
+        self.suservo: SUServo = self.get_device(suservo_name)
         self.suservo_channel = int(
             re.match(
                 r"suservo\d+_ch(\d+)", suservo_channel_names[self.suservo_channel_name]
