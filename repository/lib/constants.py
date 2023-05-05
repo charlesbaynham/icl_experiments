@@ -24,28 +24,55 @@ class SUServoedBeam:
 
 AOM_BEAMS = {
     "blue_push_beam": SUServoedBeam(
-        150e6, 20, "suservo_aom_singlepass_461_pushbeam", "TTL_shutter_461_pushbeam"
+        150e6,
+        20,
+        "suservo_aom_singlepass_461_pushbeam",
+        "TTL_shutter_461_pushbeam",
+        shutter_delay=20e-3,
     ),
     "blue_2dmot_A": SUServoedBeam(
-        100e6, 20, "suservo_aom_singlepass_461_2dmot_a", "TTL_shutter_461_2dmot_is_it_a"
+        100e6,
+        20,
+        "suservo_aom_singlepass_461_2dmot_a",
+        "TTL_shutter_461_2dmot_is_it_a",
+        shutter_delay=20e-3,
     ),
     "blue_2dmot_B": SUServoedBeam(
-        100e6, 20, "suservo_aom_singlepass_461_2dmot_b", "TTL_shutter_461_2dmot_is_it_b"
+        100e6,
+        20,
+        "suservo_aom_singlepass_461_2dmot_b",
+        "TTL_shutter_461_2dmot_is_it_b",
+        shutter_delay=20e-3,
     ),
     "blue_3dmot_radial": SUServoedBeam(
-        150e6, 20, "suservo_aom_singlepass_461_3DMOT_radial", "TTL_shutter_461_3dmot"
+        150e6,
+        20,
+        "suservo_aom_singlepass_461_3DMOT_radial",
+        "TTL_shutter_461_3dmot",
+        shutter_delay=10e-3,
     ),
     "blue_3dmot_axialplus": SUServoedBeam(
-        150e6, 20, "suservo_aom_singlepass_461_3DMOT_axialplus", "TTL_shutter_461_3dmot"
+        150e6,
+        20,
+        "suservo_aom_singlepass_461_3DMOT_axialplus",
+        "TTL_shutter_461_3dmot",
+        shutter_delay=10e-3,
     ),
     "blue_3dmot_axialminus": SUServoedBeam(
         150e6,
         20,
         "suservo_aom_singlepass_461_3DMOT_axialminus",
         "TTL_shutter_461_3dmot",
+        shutter_delay=10e-3,
     ),
-    "blue_injection": SUServoedBeam(200e6, 24, "suservo_aom_doublepass_461_injection"),
+    "blue_injection": SUServoedBeam(
+        200e6,
+        24,
+        "suservo_aom_doublepass_461_injection",
+    ),
     "blue_spectroscopy": SUServoedBeam(
-        200e6, 20, "suservo_aom_singlepass_461_spectroscopy"
+        200e6,
+        20,
+        "suservo_aom_singlepass_461_spectroscopy",
     ),
 }
