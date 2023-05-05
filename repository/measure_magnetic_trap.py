@@ -133,11 +133,11 @@ class MeasureMagneticTrapFrag(ExpFragment):
 
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
-        self.mot_controller.turn_off_push_beam()
-        self.mot_controller.turn_off_3d_mot_beams()
         self.mot_controller.enable_mot_beams()
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
+        self.mot_controller.turn_off_push_beam()
+        self.mot_controller.turn_off_3d_mot_beams()
 
         delay(
             100 * ms
