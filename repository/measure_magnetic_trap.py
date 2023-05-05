@@ -159,7 +159,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.mot_controller.turn_off_push_beam()
 
         # Wait for some time while the atoms sit in their magnetic trap
-        delay(self.mot_loading_time.get())
+        delay(self.dark_time.get())
 
         # Turn on the MOT beams (but not the push beam)
         self.mot_controller.turn_on_3d_mot_beams()
