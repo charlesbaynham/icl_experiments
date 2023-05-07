@@ -22,6 +22,7 @@ pkgs.python3Packages.buildPythonPackage rec {
   preBuild = ''
     echo "import aravis" > make_deb.py
     echo "DEBVERSION=aravis.__version__" >> make_deb.py
+    echo GI_TYPELIB_PATH=$GI_TYPELIB_PATH
   '';
 
   # Add a hook to dependent packages so that aravis is added to their GI_TYPELIB_PATH too

@@ -59,6 +59,7 @@
       in
       {
         inherit (generated_outputs) devShells packages formatter;
+        deleteme = import ./python-aravis.nix { inherit pkgs; };
 
         apps = generated_outputs.apps // {
           backup_datasets =
