@@ -29,7 +29,9 @@
           {
             institute_flake = self;
             system = system;
-            extra_requirements = requirements;
+            extra_requirements = requirements + ''
+              python-aravis
+            '';
             extra_machnix_packages = [
               artiq-http.defaultPackage.${system}
               koheron_driver.defaultPackage.${system}
@@ -44,6 +46,11 @@
               # which breaks wand, so we remove it:
               (final: prev: {
                 Wand = { };
+              })
+
+              # Patch python-aravis into nixpkgs
+              (final: prev: {
+                python-aravis = import ./python-aravis.nix { inherit pkgs; };
               })
             ];
           };
