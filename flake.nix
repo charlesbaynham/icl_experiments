@@ -41,16 +41,14 @@
               high-finesse-wavemeter
               wand
             ];
+            extra_non_PyPI_packages = [
+              (import ./python-aravis.nix { inherit pkgs; })
+            ];
             overridesPre = [
               # There is already a package called "Wand" (not "wand") in nixpkgs
               # which breaks wand, so we remove it:
               (final: prev: {
                 Wand = { };
-              })
-
-              # Patch python-aravis into nixpkgs
-              (final: prev: {
-                python-aravis = import ./python-aravis.nix { inherit pkgs; };
               })
             ];
           };
