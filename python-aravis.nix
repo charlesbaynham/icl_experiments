@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> { } }:
 pkgs.python3Packages.buildPythonPackage rec {
-  name = "python-aravis";
+  pname = "python-aravis";
   version = "0.5";
   src = pkgs.fetchFromGitHub {
     owner = "SintefManufacturing";
