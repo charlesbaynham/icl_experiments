@@ -20,18 +20,23 @@
   inputs.wand.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/wand.git?ref=adapt_for_linux";
   inputs.wand.flake = false;
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
+  # Hack in a newer version of nixpkgs just for aravis
+  inputs.newer_nixpkgs.url = "nixpkgs";
+
+  outputs = { self, nixpkgs, newer_nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
+        pkgs = nixpkgs.legacyPackages.${system} // {
+          aravis = nixpkgs.legacyPackages.${system}.aravis;
+        };
+
         requirements = builtins.readFile ./requirements.in;
         generated_outputs = pyaion.lib.${system}.build_institute_outputs
           {
             institute_flake = self;
             system = system;
-            extra_requirements = requirements + ''
-              python-aravis
-            '';
+            extra_requirements = requirements;
             extra_machnix_packages = [
               artiq-http.defaultPackage.${system}
               koheron_driver.defaultPackage.${system}
@@ -42,7 +47,9 @@
               wand
             ];
             extra_non_PyPI_packages = [
-              (import ./python-aravis.nix { inherit pkgs; })
+              (import ./python-aravis.nix {
+                inherit pkgs;
+              })
             ];
             overridesPre = [
               # There is already a package called "Wand" (not "wand") in nixpkgs
@@ -52,7 +59,6 @@
               })
             ];
           };
-        pkgs = nixpkgs.legacyPackages.${system};
 
       in
       {
