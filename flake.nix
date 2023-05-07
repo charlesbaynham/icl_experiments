@@ -21,7 +21,7 @@
   inputs.wand.flake = false;
 
   # Hack in a newer version of nixpkgs just for aravis
-  inputs.newer_nixpkgs.url = "nixpkgs";
+  inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
   outputs = { self, nixpkgs, newer_nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
 
