@@ -28,7 +28,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system} // {
-          aravis = nixpkgs.legacyPackages.${system}.aravis;
+          aravis = newer_nixpkgs.legacyPackages.${system}.aravis;
         };
 
         requirements = builtins.readFile ./requirements.in;
