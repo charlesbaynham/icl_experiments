@@ -52,6 +52,7 @@
             extra_non_PyPI_packages = [
               python-aravis
             ];
+            extra_non_python_deps = [ pkgs.aravis ];
             overridesPre = [
               # There is already a package called "Wand" (not "wand") in nixpkgs
               # which breaks wand, so we remove it:
