@@ -3,10 +3,10 @@
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
-  inputs.artiq-http.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.artiq-http.flake = false;
 
   inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
-  inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.koheron_driver.flake = false;
 
   inputs.laserloop.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git";
   inputs.laserloop.flake = false;
@@ -39,9 +39,9 @@
             system = system;
             extra_requirements = requirements;
             extra_machnix_packages = [
-              artiq-http.defaultPackage.${system}
-              koheron_driver.defaultPackage.${system}
-              # The following are plain source files, built by mach-nix now:
+              # The following are plain source files, built by mach-nix
+              artiq-http
+              koheron_driver
               qbutler
               laserloop
               high-finesse-wavemeter
