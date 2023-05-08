@@ -1,5 +1,5 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=update";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
@@ -21,15 +21,13 @@
   inputs.wand.flake = false;
 
   # Hack in a newer version of nixpkgs just for aravis
-  inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+  # inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
-  outputs = { self, nixpkgs, newer_nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system} // {
-          aravis = newer_nixpkgs.legacyPackages.${system}.aravis;
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
         python-aravis = (import ./python-aravis.nix {
           inherit pkgs;
         });

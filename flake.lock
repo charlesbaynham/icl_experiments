@@ -159,12 +159,15 @@
       }
     },
     "flake-utils_3": {
+      "inputs": {
+        "systems": "systems"
+      },
       "locked": {
-        "lastModified": 1667395993,
-        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
+        "lastModified": 1681202837,
+        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
+        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
         "type": "github"
       },
       "original": {
@@ -218,12 +221,15 @@
       }
     },
     "flake-utils_7": {
+      "inputs": {
+        "systems": "systems_2"
+      },
       "locked": {
-        "lastModified": 1667395993,
-        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
+        "lastModified": 1681202837,
+        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
+        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
         "type": "github"
       },
       "original": {
@@ -273,11 +279,11 @@
         "sipyco": "sipyco_2"
       },
       "locked": {
-        "lastModified": 1676284998,
-        "narHash": "sha256-BahI2V3hUZhNs9ypd86mBJ2MizS8LRCAhV8su4+9eUs=",
+        "lastModified": 1676396440,
+        "narHash": "sha256-ri+AQQZyTBTAEffjJ5JAoJ/FQNsS8hy8D5XILxmmUVc=",
         "ref": "refs/heads/master",
-        "rev": "830d4d38ac247a4dda34510e1a28001dd0be7b5f",
-        "revCount": 11,
+        "rev": "171c11bc8980bb9751827681a5b94aeba93e3b1c",
+        "revCount": 12,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
       },
@@ -345,18 +351,21 @@
     "mach-nix_3": {
       "inputs": {
         "flake-utils": "flake-utils_8",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": [
+          "pyaion",
+          "nixpkgs"
+        ],
         "pypi-deps-db": [
           "pyaion",
           "pypi-deps-db"
         ]
       },
       "locked": {
-        "lastModified": 1667918925,
-        "narHash": "sha256-jCZ4iI4UCOC+T5SEgoCbUzqaeMo5WT3DcFwqwvn2fEs=",
+        "lastModified": 1681814846,
+        "narHash": "sha256-IMQ1Twf/ozE53CwrunXNlYD3D31xqgz/mZyZG38Ov/Y=",
         "owner": "DavHau",
         "repo": "mach-nix",
-        "rev": "913e6c16f986746ba5507878ef7ff992804d1fa8",
+        "rev": "8d903072c7b5426d90bc42a008242c76590af916",
         "type": "github"
       },
       "original": {
@@ -393,22 +402,6 @@
       "original": {
         "owner": "OxfordIonTrapGroup",
         "repo": "ndscan",
-        "type": "github"
-      }
-    },
-    "newer_nixpkgs": {
-      "locked": {
-        "lastModified": 1683383741,
-        "narHash": "sha256-rAQSBnFGNKNomUUyVl+7v0tnp45677t4Ovlh9f57k6Q=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "adc7c6f1bbaa73cda26be2323353b63a05b42f61",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-22.11",
-        "repo": "nixpkgs",
         "type": "github"
       }
     },
@@ -460,17 +453,18 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1643805626,
-        "narHash": "sha256-AXLDVMG+UaAGsGSpOtQHPIKB+IZ0KSd9WS77aanGzgc=",
-        "owner": "NixOS",
+        "lastModified": 1683478192,
+        "narHash": "sha256-7f7RR71w0jRABDgBwjq3vE1yY3nrVJyXk8hDzu5kl1E=",
+        "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "554d2d8aa25b6e583575459c297ec23750adb6cb",
+        "rev": "c568239bcc990050b7aedadb7387832440ad8fb1",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-unstable",
-        "type": "indirect"
+        "owner": "nixos",
+        "ref": "nixos-22.11",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "oitg": {
@@ -496,24 +490,21 @@
         "flake-utils": "flake-utils_7",
         "mach-nix": "mach-nix_3",
         "ndscan": "ndscan",
-        "nixpkgs": [
-          "pyaion",
-          "mach-nix",
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs_4",
         "oitg": "oitg",
         "pypi-deps-db": "pypi-deps-db_3"
       },
       "locked": {
-        "lastModified": 1683548374,
-        "narHash": "sha256-WStRtZDVm533VUbO+Jb9DAIPzY8pVcXi+EiFFesvdBg=",
-        "ref": "refs/heads/master",
-        "rev": "3f645989fc004b63ad4d8ad8c9c00f51872b394b",
-        "revCount": 55,
+        "lastModified": 1683550398,
+        "narHash": "sha256-oo/ZlTYTqYhSM1flqA8grPpoS9CoXvwR2UJcFkMOLM0=",
+        "ref": "update",
+        "rev": "9e4d872daaf2910736a9bc1f13844001e34277c1",
+        "revCount": 57,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
       "original": {
+        "ref": "update",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       }
@@ -553,11 +544,11 @@
     "pypi-deps-db_3": {
       "flake": false,
       "locked": {
-        "lastModified": 1670518748,
-        "narHash": "sha256-pfUce0zlRI+tzxPgvRSKkusjxDCBVjCpkcDKWboHa+U=",
+        "lastModified": 1683543445,
+        "narHash": "sha256-EW8qTYK/+U/9iPZygjFzZAX+qIYURj6apxFtE1JPnK0=",
         "owner": "DavHau",
         "repo": "pypi-deps-db",
-        "rev": "e9571cac25d2f509e44fec9dc94a3703a40126ff",
+        "rev": "44c125220acfd2665535e567ba1144abccbc514f",
         "type": "github"
       },
       "original": {
@@ -589,7 +580,6 @@
         "high-finesse-wavemeter": "high-finesse-wavemeter",
         "koheron_driver": "koheron_driver",
         "laserloop": "laserloop",
-        "newer_nixpkgs": "newer_nixpkgs",
         "nixpkgs": [
           "pyaion",
           "nixpkgs"
@@ -729,6 +719,36 @@
       "original": {
         "owner": "m-labs",
         "repo": "pythonparser",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_2": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
         "type": "github"
       }
     },
