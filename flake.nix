@@ -64,7 +64,6 @@
       in
       {
         inherit (generated_outputs) devShells packages formatter;
-        deleteme = python-aravis;
 
         apps = generated_outputs.apps // {
           backup_datasets =
