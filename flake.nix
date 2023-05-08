@@ -30,6 +30,9 @@
         pkgs = nixpkgs.legacyPackages.${system} // {
           aravis = newer_nixpkgs.legacyPackages.${system}.aravis;
         };
+        python-aravis = (import ./python-aravis.nix {
+          inherit pkgs;
+        });
 
         requirements = builtins.readFile ./requirements.in;
         generated_outputs = pyaion.lib.${system}.build_institute_outputs
@@ -47,9 +50,7 @@
               wand
             ];
             extra_non_PyPI_packages = [
-              (import ./python-aravis.nix {
-                inherit pkgs;
-              })
+              python-aravis
             ];
             overridesPre = [
               # There is already a package called "Wand" (not "wand") in nixpkgs
@@ -63,7 +64,7 @@
       in
       {
         inherit (generated_outputs) devShells packages formatter;
-        deleteme = import ./python-aravis.nix { inherit pkgs; };
+        deleteme = python-aravis;
 
         apps = generated_outputs.apps // {
           backup_datasets =
