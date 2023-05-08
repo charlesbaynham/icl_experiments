@@ -87,6 +87,8 @@
         "flake-utils": "flake-utils",
         "mach-nix": "mach-nix",
         "nixpkgs": [
+          "artiq-http",
+          "mach-nix",
           "nixpkgs"
         ],
         "sipyco": "sipyco"
@@ -274,6 +276,8 @@
         "flake-utils": "flake-utils_4",
         "mach-nix": "mach-nix_2",
         "nixpkgs": [
+          "koheron_driver",
+          "mach-nix",
           "nixpkgs"
         ],
         "sipyco": "sipyco_2"
