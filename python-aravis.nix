@@ -15,19 +15,13 @@ pkgs.python3Packages.buildPythonPackage rec {
     pkgs.aravis
   ];
 
-  # Set GI_TYPELIB_PATH to point to the aravis libraries
-  GI_TYPELIB_PATH = "${pkgs.aravis.lib}/lib/girepository-1.0/";
-
-  # Override make_deb.py so that it doesn't try to call git
   preBuild = ''
+    # Override make_deb.py so that it doesn't try to call git
     echo "import aravis" > make_deb.py
     echo "DEBVERSION=aravis.__version__" >> make_deb.py
-    echo GI_TYPELIB_PATH=$GI_TYPELIB_PATH
-  '';
 
-  # Add a hook to dependent packages so that aravis is added to their GI_TYPELIB_PATH too
-  setupHook = pkgs.writeShellScript "hook.sh" ''
-    export GI_TYPELIB_PATH=''${GI_TYPELIB_PATH:+$GI_TYPELIB_PATH:}${GI_TYPELIB_PATH}
-    echo Adding aravis to GI_TYPELIB_PATH
+    # Override aravis.py to bake in the GI_TYPELIB_PATH variable
+    echo 'import os' | cat - aravis.py > temp && mv temp aravis.py
+    echo 'os.environ["GI_TYPELIB_PATH"] = "${pkgs.aravis.lib}/lib/girepository-1.0/"' | cat - aravis.py > temp && mv temp aravis.py
   '';
 }
