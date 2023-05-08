@@ -1,6 +1,7 @@
 ## added by CFAB:
 todo.txt
 *.swp
+result
 results
 /*.pyon
 .vscode

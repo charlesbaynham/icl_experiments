@@ -21,7 +21,14 @@ pkgs.python3Packages.buildPythonPackage rec {
     echo "DEBVERSION=aravis.__version__" >> make_deb.py
 
     # Override aravis.py to bake in the GI_TYPELIB_PATH variable
-    echo 'os.environ["GI_TYPELIB_PATH"] = "${pkgs.aravis.lib}/lib/girepository-1.0/"' | cat - aravis.py > temp && mv temp aravis.py
-    echo 'import os' | cat - aravis.py > temp && mv temp aravis.py
+    touch tmp
+    echo ### patches by nix ### >> tmp
+    echo 'import os' >> tmp
+    echo 'os.environ["GI_TYPELIB_PATH"] = "${pkgs.aravis.lib}/lib/girepository-1.0/"' >> tmp
+    echo ### end patches by nix ### >> tmp
+
+    cat tmp aravis.py > tmp2
+    mv tmp2 aravis.py
+    rm tmp
   '';
 }
