@@ -129,8 +129,9 @@ class MeasureMagneticTrapFrag(ExpFragment):
         # Wait for the MOT to load
         delay(self.mot_loading_time.get())
 
-        # Turn off the repumpers & push beam and drain into the magnetic trap
+        # Turn off the repumpers & push beam & 2D MOT and drain into the magnetic trap
         self.mot_controller.turn_off_push_beam()
+        self.mot_controller.turn_off_2d_mot_beams()
         self.repumper_707_shutter.off()
         self.repumper_679_shutter.off()
 
