@@ -49,6 +49,17 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.mot_loading_time: FloatParamHandle
 
         self.setattr_param(
+            "magnetic_trap_loading_time",
+            FloatParam,
+            description="Time to drain into the mag trap for",
+            default=100 * ms,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.magnetic_trap_loading_time: FloatParamHandle
+
+        self.setattr_param(
             "dark_time",
             FloatParam,
             description="Time to wait in the dark for the magnetic trap",
@@ -108,19 +119,25 @@ class MeasureMagneticTrapFrag(ExpFragment):
             100 * ms
         )  # Wait to allow atoms to disperse if there were any hanging around
 
-        # Load MOT without repumpers
-        self.repumper_707_shutter.off()
-        self.repumper_679_shutter.off()
-        delay(20 * ms)  # Surely enough for the SRS shutters to close
+        # Load MOT with repumpers
         self.mot_controller.turn_on_3d_mot_beams()
         self.mot_controller.turn_on_push_beam()
+        delay(20 * ns)
+        self.repumper_707_shutter.on()
+        self.repumper_679_shutter.on()
 
         # Wait for the MOT to load
         delay(self.mot_loading_time.get())
 
-        # Turn off the push and MOT beams
-        self.mot_controller.turn_off_3d_mot_beams()
+        # Turn off the repumpers & push beam and drain into the magnetic trap
         self.mot_controller.turn_off_push_beam()
+        self.repumper_707_shutter.off()
+        self.repumper_679_shutter.off()
+
+        delay(self.magnetic_trap_loading_time.get())
+
+        # Turn off the MOT beams
+        self.mot_controller.turn_off_3d_mot_beams()
 
         # Wait for some time while the atoms sit in their magnetic trap
         delay(self.dark_time.get())
