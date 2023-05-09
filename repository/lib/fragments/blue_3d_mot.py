@@ -12,7 +12,7 @@ from artiq.experiment import TList
 from ndscan.experiment import Fragment
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setters import ControlBeamWithoutCoolingAOM
+from repository.lib.fragments.beam_setters import ControlBeamsWithoutCoolingAOM
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
@@ -57,16 +57,35 @@ class Blue3DMOTFrag(Fragment):
         ]:
             beam_info = constants.AOM_BEAMS[beam_name]
             self.setattr_fragment(
-                f"{beam_name}_setter", ControlBeamWithoutCoolingAOM, beam_info=beam_info
+                f"{beam_name}_setter",
+                ControlBeamsWithoutCoolingAOM,
+                beam_info=beam_info,
             )
 
-        self.blue_push_beam_setter: ControlBeamWithoutCoolingAOM
-        self.blue_3dmot_radial_setter: ControlBeamWithoutCoolingAOM
-        self.blue_3dmot_axialplus_setter: ControlBeamWithoutCoolingAOM
-        self.blue_3dmot_axialminus_setter: ControlBeamWithoutCoolingAOM
+        self.setattr_fragment(
+            "all_mot_beams_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.AOM_BEAMS["blue_push_beam"],
+                constants.AOM_BEAMS["blue_3dmot_radial"],
+                constants.AOM_BEAMS["blue_3dmot_axialplus"],
+                constants.AOM_BEAMS["blue_3dmot_axialminus"],
+                constants.AOM_BEAMS["blue_2dmot_A"],
+                constants.AOM_BEAMS["blue_2dmot_B"],
+            ],
+        )
+        self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
 
-        self.blue_2dmot_A_setter: ControlBeamWithoutCoolingAOM
-        self.blue_2dmot_B_setter: ControlBeamWithoutCoolingAOM
+        self.setattr_fragment(
+            "mot_3d_beams_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.AOM_BEAMS["blue_3dmot_radial"],
+                constants.AOM_BEAMS["blue_3dmot_axialplus"],
+                constants.AOM_BEAMS["blue_3dmot_axialminus"],
+            ],
+        )
+        self.mot_3d_beams_setter: ControlBeamsWithoutCoolingAOM
 
     @kernel
     def enable_mot_beams(self):
@@ -80,70 +99,20 @@ class Blue3DMOTFrag(Fragment):
         self.all_beam_default_setter.turn_on_all()
 
     @kernel
-    def turn_on_push_beam(self):
-        """
-        Turn on the push beam using the AOM+shutter sequence
-        from :class:`.ControlBeamWithoutCoolingAOM`
-        """
-        self.blue_push_beam_setter.turn_beam_on()
-        delay(20 * ns)
+    def turn_on_3d_and_2d_beams(self):
+        self.all_mot_beams_setter.turn_beams_on()
 
     @kernel
-    def turn_off_push_beam(self):
-        """
-        Turn off the push beam using the AOM+shutter sequence
-        from :class:`.ControlBeamWithoutCoolingAOM`
-        """
-        self.blue_push_beam_setter.turn_beam_off()
-        delay(20 * ns)
+    def turn_off_3d_and_2d_beams(self):
+        self.all_mot_beams_setter.turn_beams_off()
 
     @kernel
-    def turn_on_2d_mot_beams(self):
-        """
-        Turn on the 2D mot beams using the AOM+shutter sequence
-        from :class:`.ControlBeamWithoutCoolingAOM`
-        """
-        self.blue_2dmot_A_setter.turn_beam_on()
-        delay(20 * ns)
-        self.blue_2dmot_B_setter.turn_beam_on()
-        delay(20 * ns)
+    def turn_on_3d_beams(self):
+        self.mot_3d_beams_setter.turn_beams_on()
 
     @kernel
-    def turn_off_2d_mot_beams(self):
-        """
-        Turn off the 2D mot beams using the AOM+shutter sequence
-        from :class:`.ControlBeamWithoutCoolingAOM`
-        """
-        self.blue_2dmot_A_setter.turn_beam_off()
-        delay(20 * ns)
-        self.blue_2dmot_B_setter.turn_beam_off()
-        delay(20 * ns)
-
-    @kernel
-    def turn_on_3d_mot_beams(self):
-        """
-        Turn on the mot beams using the AOM+shutter sequence
-        from :class:`.ControlBeamWithoutCoolingAOM`
-        """
-        self.blue_3dmot_radial_setter.turn_beam_on()
-        delay(20 * ns)
-        self.blue_3dmot_axialplus_setter.turn_beam_on()
-        delay(20 * ns)
-        self.blue_3dmot_axialminus_setter.turn_beam_on()
-        delay(20 * ns)
-
-    @kernel
-    def turn_off_3d_mot_beams(self):
-        """
-        Turn off the mot beams using the AOM+shutter sequence
-        from :class:`.ControlBeamWithoutCoolingAOM`
-        """
-        self.blue_3dmot_radial_setter.turn_beam_off()
-        delay(20 * ns)
-        self.blue_3dmot_axialplus_setter.turn_beam_off()
-        delay(20 * ns)
-        self.blue_3dmot_axialminus_setter.turn_beam_off()
-        delay(20 * ns)
+    def turn_off_3d_beams(self):
+        self.mot_3d_beams_setter.turn_beams_off()
 
 
 class MOTPhotodiodeMeasurement(Fragment):
