@@ -16,9 +16,10 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
+from repository.lib.fragments.camera import MOTCameraMeasurement
 
 
-class MeasureMagneticTrapFrag(ExpFragment):
+class MeasureMagneticTrapWithPDFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -153,4 +154,117 @@ class MeasureMagneticTrapFrag(ExpFragment):
         # Take background photodiode measurement
 
 
-MeasureMagneticTrap = make_fragment_scan_exp(MeasureMagneticTrapFrag)
+class MeasureMagneticTrapWithCameraFrag(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment("mot_controller", Blue3DMOTFrag)
+        self.mot_controller: Blue3DMOTFrag
+
+        self.setattr_fragment("mot_measurer", MOTCameraMeasurement)
+        self.mot_measurer: MOTCameraMeasurement
+
+        # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
+        self.repumper_707_shutter: TTLOut = self.get_device(
+            "TTL_shutter_707_temporary_shutter"
+        )
+        self.repumper_679_shutter: TTLOut = self.get_device(
+            "TTL_shutter_679_temporary_shutter"
+        )
+
+        self.setattr_param(
+            "mot_loading_time",
+            FloatParam,
+            description="Time to wait for the 3D MOT to load",
+            default=100 * ms,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.mot_loading_time: FloatParamHandle
+
+        self.setattr_param(
+            "dark_time",
+            FloatParam,
+            description="Time to wait in the dark for the magnetic trap",
+            default=100 * ms,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.dark_time: FloatParamHandle
+
+        # Add output channels
+        self.setattr_result("mot_images", OpaqueChannel)
+        self.mot_images: ResultChannel
+
+        self.setattr_result("mot_image_timestamps", OpaqueChannel)
+        self.mot_image_timestamps: ResultChannel
+
+    def run_once(self) -> None:
+        self.run_on_core()
+
+        # Save the data
+        image_data = self.mot_measurer.get_images()
+        timestamps, images = zip(*image_data)
+        self.mot_image_timestamps.push(timestamps)
+        self.mot_images.push(images)
+
+    @kernel
+    def run_on_core(self):
+        self.core.break_realtime()
+        delay(20 * ms)
+
+        # Turn on the 2D/3D beams & AOMs,
+        # but block the important ones, leaving the repumpers on
+        self.mot_controller.enable_mot_beams()
+        self.repumper_707_shutter.on()
+        self.repumper_679_shutter.on()
+        delay(20 * ns)
+        self.mot_controller.turn_off_push_beam()
+        self.mot_controller.turn_off_3d_mot_beams()
+
+        delay(
+            100 * ms
+        )  # Wait to allow atoms to disperse if there were any hanging around
+
+        # Load MOT without repumpers
+        self.repumper_707_shutter.off()
+        self.repumper_679_shutter.off()
+        delay(20 * ms)  # Surely enough for the SRS shutters to close
+        self.mot_controller.turn_on_3d_mot_beams()
+        self.mot_controller.turn_on_push_beam()
+
+        # Wait for the MOT to load
+        delay(self.mot_loading_time.get())
+
+        # Turn off the push and MOT beams
+        self.mot_controller.turn_off_3d_mot_beams()
+        self.mot_controller.turn_off_push_beam()
+
+        # Wait for some time while the atoms sit in their magnetic trap
+        delay(self.dark_time.get())
+
+        # Turn on the MOT beams and the repumpers (but not the push beam)
+        self.repumper_707_shutter.on()
+        self.repumper_679_shutter.on()
+        delay(20 * ns)
+        self.mot_controller.turn_on_3d_mot_beams()
+
+        # Begin taking photos of the MOT
+        self.mot_measurer.start_camera_measurement()
+
+        # Deluxe:
+        # Turn off the MOT beams again and turn on the repumpers
+        # Wait for atoms to disappear
+        # Turn on the MOT beams again
+        # Take background photodiode measurement
+
+
+MeasureMagneticTrapWithPhotodiode = make_fragment_scan_exp(
+    MeasureMagneticTrapWithPDFrag
+)
+MeasureMagneticTrapWithCamera = make_fragment_scan_exp(
+    MeasureMagneticTrapWithCameraFrag
+)
