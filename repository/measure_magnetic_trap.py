@@ -101,24 +101,14 @@ class MeasureMagneticTrapFrag(ExpFragment):
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         delay(20 * ns)
-        self.mot_controller.turn_off_push_beam()
-        delay(21 * ms)
-        self.mot_controller.turn_off_2d_mot_beams()
-        delay(21 * ms)
-        self.mot_controller.turn_off_3d_mot_beams()
+        self.mot_controller.turn_off_3d_and_2d_beams()
 
         delay(
             100 * ms
         )  # Wait to allow atoms to disperse if there were any hanging around
 
         # Load MOT with repumpers disabled to drain into mag. trap
-        self.mot_controller.turn_on_2d_mot_beams()
-        delay(21 * ms)
-        self.mot_controller.turn_on_3d_mot_beams()
-        delay(21 * ms)
-        self.mot_controller.turn_on_push_beam()
-        delay(21 * ms)
-        delay(20 * ns)
+        self.mot_controller.turn_on_3d_and_2d_beams()
         self.repumper_707_shutter.off()
         self.repumper_679_shutter.off()
 
@@ -126,17 +116,14 @@ class MeasureMagneticTrapFrag(ExpFragment):
         delay(self.magnetic_trap_loading_time.get())
 
         # Turn off the MOT beams
-        self.mot_controller.turn_off_2d_mot_beams()
-        delay(21 * ms)
-        self.mot_controller.turn_off_3d_mot_beams()
-        delay(21 * ms)
-        self.mot_controller.turn_off_push_beam()
+        self.mot_controller.turn_off_3d_and_2d_beams()
 
         # Wait for some time while the atoms sit in their magnetic trap
         delay(self.dark_time.get())
 
         # Turn on the MOT beams and the repumpers (but not the push beam)
-        self.mot_controller.turn_on_3d_mot_beams()
+        self.mot_controller.turn_on_3d_beams()
+        # Delay to be sure that the atoms are not being repumped before the MOT light comes on
         delay(20 * ms)
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
