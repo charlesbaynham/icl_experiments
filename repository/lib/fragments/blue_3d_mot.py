@@ -46,22 +46,6 @@ class Blue3DMOTFrag(Fragment):
         )
         self.all_beam_default_setter: SetBeamsToDefaults
 
-        # Give us access to on/off methods for the push beam and the 3D MOT beams
-        for beam_name in [
-            "blue_push_beam",
-            "blue_3dmot_radial",
-            "blue_3dmot_axialplus",
-            "blue_3dmot_axialminus",
-            "blue_2dmot_A",
-            "blue_2dmot_B",
-        ]:
-            beam_info = constants.AOM_BEAMS[beam_name]
-            self.setattr_fragment(
-                f"{beam_name}_setter",
-                ControlBeamsWithoutCoolingAOM,
-                beam_info=beam_info,
-            )
-
         self.setattr_fragment(
             "all_mot_beams_setter",
             ControlBeamsWithoutCoolingAOM,
