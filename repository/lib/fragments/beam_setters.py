@@ -6,6 +6,7 @@ from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import ns
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -60,92 +61,110 @@ class SetBeamsToDefaults(Fragment):
             ttl.on()
 
 
-class ControlBeamWithoutCoolingAOM(Fragment):
+class ControlBeamsWithoutCoolingAOM(Fragment):
     """
-    Methods to turn on/off a beam using a SUServoed AOM for sharp edges
-    and a shutter to fully block it
+    Methods to turn on/off a list of beams using a SUServoed AOM for sharp
+    edges and a shutter to fully block it
 
-    The AOM will be left on as much as possible even while the beam is
-    off (but blocked with the shutter) to avoid pointing instability
-    from thermal effects.
+    The AOMs will be left on as much as possible even while the beams are off
+    (but blocked with the shutter) to avoid pointing instability from thermal
+    effects.
+
+    Note that when groups of beams are intended to be turned on together, you
+    should use a sincle instance of this fragment to control all of them rather
+    than initialising one for each beam. That's because this fragment skips
+    forwards and backwards in time and will therefore wantonly consume RTIO
+    lanes unless you let it reduce this behaviour by knowing in advance which
+    shutters need to be opened.
     """
 
-    def build_fragment(self, beam_info: constants.SUServoedBeam):
-        logger.debug("Building with %s", beam_info)
-        self.beam_info = beam_info
-
-        if beam_info.shutter_device is None:
-            raise ValueError("Beam [%s] has no shutter configured".format(beam_info))
+    def build_fragment(self, beam_infos: List[constants.SUServoedBeam]):
+        logger.debug("Building with %s", beam_infos)
+        self.beam_infos = beam_infos
 
         self.setattr_device("core")
         self.core: Core
 
-        # Allow the user to override the beam delay if they wish
-        self.setattr_param(
-            "beam_delay",
-            FloatParam,
-            "Delay between opening shutter and turning on AOM",
-            default=beam_info.shutter_delay,
-            min=0,
-            unit="ms",
-            step=1,
-        )
-        self.beam_delay: FloatParamHandle
+        self.beam_suservos: List[SUServoChannel] = []
+        self.beam_shutters: List[TTLOut] = []
+        self.beam_delays: List[float] = []
 
-        self.beam_suservo: SUServoChannel = self.get_device(beam_info.suservo_device)
-        self.beam_shutter: TTLOut = self.get_device(beam_info.shutter_device)
+        for beam_info in beam_infos:
+            if beam_info.shutter_device is None:
+                raise ValueError(
+                    "Beam [%s] has no shutter configured".format(beam_info.name)
+                )
 
-    def host_setup(self):
-        logger.info(
-            "Setting up beam controller with suservo_device=%s, shutter_device=%s and shutter_delay=%s",
-            self.beam_info.suservo_device,
-            self.beam_info.shutter_device,
-            self.beam_info.shutter_delay,
-        )
+            self.beam_suservos.append(self.get_device(beam_info.suservo_device))
+            self.beam_shutters.append(self.get_device(beam_info.shutter_device))
+            self.beam_delays.append(self.get_device(beam_info.shutter_delay))
 
-        return super().host_setup()
+        # Sort beams by order of delay - smallest delay first
+        tupled = list(zip(self.beam_suservos, self.beam_shutters, self.beam_delays))
+        sorted_tupled = sorted(tupled, key=lambda v: v[2])
+        self.beam_suservos, self.beam_shutters, self.beam_delays = zip(*sorted_tupled)
 
     @kernel
-    def turn_beam_on(self):
+    def turn_beams_on(self):
         """
-        Turn on the beam using the AOM and shutter
+        Turn on the beams using the AOM and shutter
 
         This method will use the AOM to turn on the beam at the cursor, having
         first disabled the AOM and opened the shutter to prevent the AOM from
         cooling down too much.
 
-        This method does not advance the timeline, BUT will reverse time to write
-        shutter opening into the past. You should therefore make sure that there
-        is at least "shutter_delay_time" slack, ideally with no queued RTIO
-        events to prevent using a new RTIO lane.
+        Start with the shutters with the longest delay to avoid switching
+        backwards and forwards in time
+
+        This method advances the timelines by 30ns per beam, BUT will reverse time to
+        write shutter opening into the past. You should therefore make sure that
+        there is at least "shutter_delay_time" slack, ideally with no queued
+        RTIO events to prevent using a new RTIO lane.
         """
 
-        delay(-self.beam_delay.get())
+        for i in range(len(self.beam_delays) - 1, -1, -1):
+            suservo = self.beam_suservos[i]
+            shutter = self.beam_shutters[i]
+            delay_by = self.beam_delays[i]
 
-        self.beam_suservo.set(en_out=0, en_iir=0)
-        self.beam_shutter.on()
+            delay(-delay_by)
 
-        delay(self.beam_delay.get())
+            suservo.set(en_out=0, en_iir=0)
+            delay(10 * ns)
+            shutter.on()
+            delay(10 * ns)
 
-        self.beam_suservo.set(en_out=1, en_iir=0)
+            delay(delay_by)
+
+            suservo.set(en_out=1, en_iir=0)
+
+            delay(10 * ns)
 
     @kernel
-    def turn_beam_off(self):
+    def turn_beams_off(self):
         """
-        Turn off the beam using the AOM and shutter
+        Turn off the beams using the AOM and shutter
 
         This method will turn off the beam at the cursor and then close the
         shutter and turn the AOM back on to stop it cooling down.
 
-        This method does not advance the timeline, BUT will write shutter closing events
-        into the future by "shutter_delay_time" seconds.
+        This method will advance the timeline by 30ns per beam BUT will write
+        shutter closing events into the future by "shutter_delay_time" seconds.
         """
 
-        self.beam_suservo.set(en_out=0, en_iir=0)
-        self.beam_shutter.off()
+        for i in range(len(self.beam_delays)):
+            suservo = self.beam_suservos[i]
+            shutter = self.beam_shutters[i]
+            delay_by = self.beam_delays[i]
 
-        delay(self.beam_delay.get())
+            suservo.set(en_out=0, en_iir=0)
+            delay(10 * ns)
+            shutter.off()
+            delay(10 * ns)
 
-        self.beam_suservo.set(en_out=1, en_iir=0)
+            delay(delay_by)
 
-        delay(-self.beam_delay.get())
+            suservo.set(en_out=1, en_iir=0)
+            delay(10 * ns)
+
+            delay(-delay_by)

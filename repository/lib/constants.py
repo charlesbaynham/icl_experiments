@@ -15,6 +15,7 @@ IJD1_TEMPERATURE = 9632  # Ohms
 # Information about beams controlled by AOMs
 @dataclass
 class SUServoedBeam:
+    name: str
     frequency: float
     attenuation: float
     suservo_device: str
@@ -24,6 +25,7 @@ class SUServoedBeam:
 
 AOM_BEAMS = {
     "blue_push_beam": SUServoedBeam(
+        "blue_push_beam",
         150e6,
         20,
         "suservo_aom_singlepass_461_pushbeam",
@@ -31,6 +33,7 @@ AOM_BEAMS = {
         shutter_delay=20e-3,
     ),
     "blue_2dmot_A": SUServoedBeam(
+        "blue_2dmot_A",
         100e6,
         20,
         "suservo_aom_singlepass_461_2dmot_a",
@@ -38,6 +41,7 @@ AOM_BEAMS = {
         shutter_delay=20e-3,
     ),
     "blue_2dmot_B": SUServoedBeam(
+        "blue_2dmot_B",
         100e6,
         20,
         "suservo_aom_singlepass_461_2dmot_b",
@@ -45,6 +49,7 @@ AOM_BEAMS = {
         shutter_delay=20e-3,
     ),
     "blue_3dmot_radial": SUServoedBeam(
+        "blue_3dmot_radial",
         150e6,
         20,
         "suservo_aom_singlepass_461_3DMOT_radial",
@@ -52,6 +57,7 @@ AOM_BEAMS = {
         shutter_delay=10e-3,
     ),
     "blue_3dmot_axialplus": SUServoedBeam(
+        "blue_3dmot_axialplus",
         150e6,
         20,
         "suservo_aom_singlepass_461_3DMOT_axialplus",
@@ -59,6 +65,7 @@ AOM_BEAMS = {
         shutter_delay=10e-3,
     ),
     "blue_3dmot_axialminus": SUServoedBeam(
+        "blue_3dmot_axialminus",
         150e6,
         20,
         "suservo_aom_singlepass_461_3DMOT_axialminus",
@@ -66,11 +73,13 @@ AOM_BEAMS = {
         shutter_delay=10e-3,
     ),
     "blue_injection": SUServoedBeam(
+        "blue_injection",
         200e6,
         24,
         "suservo_aom_doublepass_461_injection",
     ),
     "blue_spectroscopy": SUServoedBeam(
+        "blue_spectroscopy",
         200e6,
         20,
         "suservo_aom_singlepass_461_spectroscopy",
