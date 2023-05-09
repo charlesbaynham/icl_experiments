@@ -107,12 +107,13 @@ class MeasureMagneticTrapFrag(ExpFragment):
     @kernel
     def run_once(self):
         # Turn on the 2D/3D beams & AOMs,
-        # but block the important ones, leaving the repumpers on
+        # but block the important ones, leaving the repumpers on and allowing the AOMs to warm
         self.mot_controller.enable_mot_beams()
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         delay(20 * ns)
         self.mot_controller.turn_off_push_beam()
+        self.mot_controller.turn_off_2d_mot_beams()
         self.mot_controller.turn_off_3d_mot_beams()
 
         delay(
@@ -120,6 +121,7 @@ class MeasureMagneticTrapFrag(ExpFragment):
         )  # Wait to allow atoms to disperse if there were any hanging around
 
         # Load MOT with repumpers
+        self.mot_controller.turn_on_2d_mot_beams()
         self.mot_controller.turn_on_3d_mot_beams()
         self.mot_controller.turn_on_push_beam()
         delay(20 * ns)
