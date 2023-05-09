@@ -1,12 +1,12 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=update";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
-  inputs.artiq-http.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.artiq-http.flake = false;
 
   inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
-  inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.koheron_driver.flake = false;
 
   inputs.laserloop.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git";
   inputs.laserloop.flake = false;
@@ -21,15 +21,13 @@
   inputs.wand.flake = false;
 
   # Hack in a newer version of nixpkgs just for aravis
-  inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+  # inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
-  outputs = { self, nixpkgs, newer_nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, laserloop, high-finesse-wavemeter, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system} // {
-          aravis = newer_nixpkgs.legacyPackages.${system}.aravis;
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
         python-aravis = (import ./python-aravis.nix {
           inherit pkgs;
         });
@@ -41,9 +39,9 @@
             system = system;
             extra_requirements = requirements;
             extra_machnix_packages = [
-              artiq-http.defaultPackage.${system}
-              koheron_driver.defaultPackage.${system}
-              # The following are plain source files, built by mach-nix now:
+              # The following are plain source files, built by mach-nix
+              artiq-http
+              koheron_driver
               qbutler
               laserloop
               high-finesse-wavemeter
@@ -52,6 +50,7 @@
             extra_non_PyPI_packages = [
               python-aravis
             ];
+            extra_non_python_deps = [ pkgs.aravis ];
             overridesPre = [
               # There is already a package called "Wand" (not "wand") in nixpkgs
               # which breaks wand, so we remove it:
