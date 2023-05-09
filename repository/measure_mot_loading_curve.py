@@ -72,6 +72,7 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
         self.repumper_679_shutter.on()
         delay(20 * ns)
         self.mot_controller.turn_off_push_beam()
+        self.mot_controller.turn_off_2d_mot_beams()
         self.mot_controller.turn_off_3d_mot_beams()
 
         delay(
@@ -79,6 +80,7 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
         )  # Wait to allow atoms to disperse if there were any hanging around
 
         # Load MOT and start measuring signal immediately
+        self.mot_controller.turn_on_2d_mot_beams()
         self.mot_controller.turn_on_3d_mot_beams()
         self.mot_controller.turn_on_push_beam()
 
