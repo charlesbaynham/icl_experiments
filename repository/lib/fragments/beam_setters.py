@@ -79,7 +79,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
     """
 
     def build_fragment(self, beam_infos: List[constants.SUServoedBeam]):
-        logger.warning("Building with %s", beam_infos)
+        logger.debug("Building with %s", beam_infos)
         self.beam_infos = beam_infos
 
         self.setattr_device("core")
@@ -97,18 +97,23 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             self.beam_suservos.append(self.get_device(beam_info.suservo_device))
             self.beam_shutters.append(self.get_device(beam_info.shutter_device))
-            self.beam_delays.append(self.get_device(beam_info.shutter_delay))
+            self.beam_delays.append(beam_info.shutter_delay)
 
         # Sort beams by order of delay - smallest delay first
         tupled = list(zip(self.beam_suservos, self.beam_shutters, self.beam_delays))
 
-        logger.warning("tupled = %s", tupled)
-        logger.warning("tupled[0] = %s", tupled[0])
+        logger.debug("tupled = %s", tupled)
+        logger.debug("tupled[0] = %s", tupled[0])
 
         sorted_tupled = sorted(tupled, key=lambda v: v[2])
         self.beam_suservos, self.beam_shutters, self.beam_delays = zip(*sorted_tupled)
 
-        logger.warning("sorted_tupled = %s", sorted_tupled)
+        # Convert them back to lists - python has turned them into tuples
+        self.beam_suservos = list(self.beam_suservos)
+        self.beam_shutters = list(self.beam_shutters)
+        self.beam_delays = list(self.beam_delays)
+
+        logger.debug("sorted_tupled = %s", sorted_tupled)
 
     @kernel
     def turn_beams_on(self):
