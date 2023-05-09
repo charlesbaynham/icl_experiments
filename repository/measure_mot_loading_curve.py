@@ -65,6 +65,7 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
 
     @kernel
     def run_once(self):
+        self.core.break_realtime()
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
         self.mot_controller.enable_mot_beams()
