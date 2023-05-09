@@ -79,7 +79,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
     """
 
     def build_fragment(self, beam_infos: List[constants.SUServoedBeam]):
-        logger.debug("Building with %s", beam_infos)
+        logger.warning("Building with %s", beam_infos)
         self.beam_infos = beam_infos
 
         self.setattr_device("core")
@@ -101,8 +101,14 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
         # Sort beams by order of delay - smallest delay first
         tupled = list(zip(self.beam_suservos, self.beam_shutters, self.beam_delays))
+
+        logger.warning("tupled = %s", tupled)
+        logger.warning("tupled[0] = %s", tupled[0])
+
         sorted_tupled = sorted(tupled, key=lambda v: v[2])
         self.beam_suservos, self.beam_shutters, self.beam_delays = zip(*sorted_tupled)
+
+        logger.warning("sorted_tupled = %s", sorted_tupled)
 
     @kernel
     def turn_beams_on(self):
