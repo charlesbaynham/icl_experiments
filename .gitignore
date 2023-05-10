@@ -1,7 +1,7 @@
 ## added by CFAB:
 todo.txt
 *.swp
-results
+result
 /*.pyon
 .vscode
 .direnv
