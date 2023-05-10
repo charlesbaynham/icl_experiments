@@ -63,6 +63,9 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
         self.setattr_result("photodiode_voltage", OpaqueChannel)
         self.photodiode_voltage: ResultChannel
 
+        self.setattr_result("photodiode_mean_voltage", FloatChannel)
+        self.photodiode_mean_voltage: ResultChannel
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -97,6 +100,11 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
         )
 
         self.photodiode_voltage.push(trace_data)
+        mean_voltage = 0.0
+        for i in range(len(trace_data)):
+            mean_voltage += trace_data[i]
+        mean_voltage /= len(trace_data)
+        self.photodiode_mean_voltage.push(mean_voltage)
 
 
 MeasureMOTLoadingCurve = make_fragment_scan_exp(MeasureMOTLoadingCurveFrag)
