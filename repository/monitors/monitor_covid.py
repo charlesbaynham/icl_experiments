@@ -23,14 +23,13 @@ class MonitorCOVID(Calibration):
         self.set_timeout(DELAY)
         self.latest_datetime = None
 
-    def run_once(self):
+    def check_own_state(self):
         new_datetime, new_cases = self.get_data()
 
         if new_datetime != self.latest_datetime:
             self.latest_datetime = new_datetime
 
-            self.status.push(CalibrationResult.OK)
-            self.data.push({"fields": {"new_cases": new_cases}, "tags": {}})
+            return CalibrationResult.OK, {"new_cases": new_cases}
 
     @staticmethod
     def get_data():

@@ -29,16 +29,13 @@ class MonitorLabTemperature(Calibration):
 
         self.set_timeout(30)
 
-    def run_once(self):
+    def check_own_state(self):
         temp_str = requests.get(self.monitor_url.get()).text
         temperature = float(temp_str)
 
         logger.debug('Temperature = %f ("%s")', temperature, temp_str)
 
-        self.status.push(CalibrationResult.OK)
-        self.data.push(
-            {
-                "tags": {"sensor": self.description.get()},
-                "fields": {"value": temperature},
-            }
-        )
+        return CalibrationResult.OK, {
+            "tags": {"sensor": self.description.get()},
+            "fields": {"value": temperature},
+        }
