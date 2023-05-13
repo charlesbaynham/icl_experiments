@@ -159,12 +159,15 @@
       }
     },
     "flake-utils_3": {
+      "inputs": {
+        "systems": "systems"
+      },
       "locked": {
-        "lastModified": 1667395993,
-        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
+        "lastModified": 1681202837,
+        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
+        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
         "type": "github"
       },
       "original": {
@@ -273,11 +276,11 @@
         "sipyco": "sipyco_2"
       },
       "locked": {
-        "lastModified": 1676284998,
-        "narHash": "sha256-BahI2V3hUZhNs9ypd86mBJ2MizS8LRCAhV8su4+9eUs=",
+        "lastModified": 1676396440,
+        "narHash": "sha256-ri+AQQZyTBTAEffjJ5JAoJ/FQNsS8hy8D5XILxmmUVc=",
         "ref": "refs/heads/master",
-        "rev": "830d4d38ac247a4dda34510e1a28001dd0be7b5f",
-        "revCount": 11,
+        "rev": "171c11bc8980bb9751827681a5b94aeba93e3b1c",
+        "revCount": 12,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
       },
@@ -473,16 +476,15 @@
         "pypi-deps-db": "pypi-deps-db_3"
       },
       "locked": {
-        "lastModified": 1683986216,
-        "narHash": "sha256-mlKnfrWXvEK5cuEGT8brw24ijBTRR2hlYRqnj7hI4zU=",
-        "ref": "add-beam-setter",
-        "rev": "c4bffcad18364e683c247e23cc037eef362ebf66",
+        "lastModified": 1683989912,
+        "narHash": "sha256-791IyBSUU7kWrIthSg3YxkeilxKg4GQzJghGXtdiGo0=",
+        "ref": "refs/heads/master",
+        "rev": "5fe62e7d656323130a775617b3eb6751d749fa30",
         "revCount": 62,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
       "original": {
-        "ref": "add-beam-setter",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       }
@@ -696,6 +698,21 @@
       "original": {
         "owner": "m-labs",
         "repo": "pythonparser",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
         "type": "github"
       }
     },
