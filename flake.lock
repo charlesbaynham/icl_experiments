@@ -473,11 +473,11 @@
         "pypi-deps-db": "pypi-deps-db_3"
       },
       "locked": {
-        "lastModified": 1683984499,
-        "narHash": "sha256-i8tOt4T2TcPCbEeSym+cfbbdPek/qM5YyiDZl7mo/rw=",
+        "lastModified": 1683986216,
+        "narHash": "sha256-mlKnfrWXvEK5cuEGT8brw24ijBTRR2hlYRqnj7hI4zU=",
         "ref": "add-beam-setter",
-        "rev": "ef3e50c57e9ab624f47e806f38dc194c5ed6b4e1",
-        "revCount": 60,
+        "rev": "c4bffcad18364e683c247e23cc037eef362ebf66",
+        "revCount": 62,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
