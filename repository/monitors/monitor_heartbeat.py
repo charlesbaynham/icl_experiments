@@ -34,7 +34,6 @@ class MonitorHeartbeat(Calibration):
                 f"API query failed with error code {response.status_code}"
             )
 
-    def run_once(self):
+    def check_own_state(self):
         self.ping_cronitor()
-        self.status.push(CalibrationResult.OK)
-        self.data.push(None)
+        return CalibrationResult.OK, None

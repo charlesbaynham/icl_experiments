@@ -30,7 +30,7 @@ class MonitorIonPump(Calibration):
 
         self.set_timeout(30)
 
-    def run_once(self):
+    def check_own_state(self):
         with Telnet(self.ip.get(), 23) as tn:
             logger.debug("Connected to ion pump at %s", self.ip.get())
 
@@ -64,10 +64,7 @@ class MonitorIonPump(Calibration):
                 current,
             )
 
-            self.status.push(CalibrationResult.OK)
-            self.data.push(
-                {
-                    "tags": {"sensor": self.description.get()},
-                    "fields": {"pressure": pressure, "current": current},
-                }
-            )
+            return CalibrationResult.OK, {
+                "tags": {"sensor": self.description.get()},
+                "fields": {"pressure": pressure, "current": current},
+            }

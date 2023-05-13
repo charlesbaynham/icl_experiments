@@ -218,22 +218,6 @@
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
       }
     },
-    "laserloop": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1682606921,
-        "narHash": "sha256-NQHOS+RmD0SwdqTnySp9K/4vBEQGv4ZbiQCTBeefb04=",
-        "ref": "refs/heads/master",
-        "rev": "0ff4aad5b022d945f42e0693efc5255582e6005b",
-        "revCount": 18,
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git"
-      }
-    },
     "mach-nix": {
       "inputs": {
         "flake-utils": "flake-utils_4",
@@ -335,11 +319,11 @@
         "pypi-deps-db": "pypi-deps-db"
       },
       "locked": {
-        "lastModified": 1683621340,
-        "narHash": "sha256-P4hfJTIeSLMbEO4C1PoNdcofT95PEJdbO8SxGR4yk7U=",
+        "lastModified": 1683966536,
+        "narHash": "sha256-1EFyrE0TRzg8RdkcvYlTRiVlRBPJJGoO0OJ0Xok7eaQ=",
         "ref": "update",
-        "rev": "9f4293184bc03dbbff21654efee95766587e8ee7",
-        "revCount": 61,
+        "rev": "6a782b5ebc37343dec9d4613623ffe5d3066fae3",
+        "revCount": 65,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
@@ -368,11 +352,11 @@
     "qbutler": {
       "flake": false,
       "locked": {
-        "lastModified": 1671361358,
-        "narHash": "sha256-tGxnKhIwilULg7x9LoCkAL7AYp/CT5KAvi/VtL5LG/Q=",
+        "lastModified": 1683924406,
+        "narHash": "sha256-penGAdh2XSnT75hrCdbBrhEYyD9mPSUwc0Dp2CQXUTs=",
         "ref": "refs/heads/master",
-        "rev": "30ab03b19647f7bcf8bbdddc70219e45f7193d9d",
-        "revCount": 65,
+        "rev": "7d2f703c04023d754084d1af9b08457726005569",
+        "revCount": 70,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/qbutler.git"
       },
@@ -387,7 +371,6 @@
         "flake-utils": "flake-utils",
         "high-finesse-wavemeter": "high-finesse-wavemeter",
         "koheron_driver": "koheron_driver",
-        "laserloop": "laserloop",
         "nixpkgs": [
           "pyaion",
           "nixpkgs"

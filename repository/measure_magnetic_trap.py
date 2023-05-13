@@ -39,15 +39,15 @@ class MeasureMagneticTrapWithPDFrag(ExpFragment):
         )
 
         self.setattr_param(
-            "mot_loading_time",
+            "magnetic_trap_loading_time",
             FloatParam,
-            description="Time to wait for the 3D MOT to load",
+            description="Time to drain into the mag trap for",
             default=100 * ms,
             min=0,
             unit="ms",
             step=1,
         )
-        self.mot_loading_time: FloatParamHandle
+        self.magnetic_trap_loading_time: FloatParamHandle
 
         self.setattr_param(
             "dark_time",
@@ -97,40 +97,37 @@ class MeasureMagneticTrapWithPDFrag(ExpFragment):
     @kernel
     def run_once(self):
         # Turn on the 2D/3D beams & AOMs,
-        # but block the important ones, leaving the repumpers on
+        # but block the important ones, leaving the repumpers on and allowing the AOMs to warm
         self.mot_controller.enable_mot_beams()
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         delay(20 * ns)
-        self.mot_controller.turn_off_push_beam()
-        self.mot_controller.turn_off_3d_mot_beams()
+        self.mot_controller.turn_off_3d_and_2d_beams()
 
         delay(
             100 * ms
         )  # Wait to allow atoms to disperse if there were any hanging around
 
-        # Load MOT without repumpers
+        # Load MOT with repumpers disabled to drain into mag. trap
+        self.mot_controller.turn_on_3d_and_2d_beams()
         self.repumper_707_shutter.off()
         self.repumper_679_shutter.off()
-        delay(20 * ms)  # Surely enough for the SRS shutters to close
-        self.mot_controller.turn_on_3d_mot_beams()
-        self.mot_controller.turn_on_push_beam()
 
         # Wait for the MOT to load
-        delay(self.mot_loading_time.get())
+        delay(self.magnetic_trap_loading_time.get())
 
-        # Turn off the push and MOT beams
-        self.mot_controller.turn_off_3d_mot_beams()
-        self.mot_controller.turn_off_push_beam()
+        # Turn off the MOT beams
+        self.mot_controller.turn_off_3d_and_2d_beams()
 
         # Wait for some time while the atoms sit in their magnetic trap
         delay(self.dark_time.get())
 
         # Turn on the MOT beams and the repumpers (but not the push beam)
+        self.mot_controller.turn_on_3d_beams()
+        # Delay to be sure that the atoms are not being repumped before the MOT light comes on
+        delay(20 * ms)
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
-        delay(20 * ns)
-        self.mot_controller.turn_on_3d_mot_beams()
 
         # Measure a trace from the photodiode of how bright the MOT is
         num_points = self.num_trace_points.get()

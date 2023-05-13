@@ -3,6 +3,7 @@ todo.txt
 *.swp
 result
 results
+_build
 /*.pyon
 .vscode
 .direnv

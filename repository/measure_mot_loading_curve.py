@@ -63,24 +63,27 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
         self.setattr_result("photodiode_voltage", OpaqueChannel)
         self.photodiode_voltage: ResultChannel
 
+        self.setattr_result("photodiode_mean_voltage", FloatChannel)
+        self.photodiode_mean_voltage: ResultChannel
+
     @kernel
     def run_once(self):
+        self.core.break_realtime()
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
         self.mot_controller.enable_mot_beams()
+        delay(20 * ns)
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
-        delay(20 * ns)
-        self.mot_controller.turn_off_push_beam()
-        self.mot_controller.turn_off_3d_mot_beams()
+        delay(25 * ms)
+        self.mot_controller.turn_off_3d_and_2d_beams()
 
         delay(
             100 * ms
         )  # Wait to allow atoms to disperse if there were any hanging around
 
         # Load MOT and start measuring signal immediately
-        self.mot_controller.turn_on_3d_mot_beams()
-        self.mot_controller.turn_on_push_beam()
+        self.mot_controller.turn_on_3d_and_2d_beams()
 
         num_points = int(
             self.mot_loading_time.get() / self.delay_between_trace_points.get()
@@ -97,6 +100,11 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
         )
 
         self.photodiode_voltage.push(trace_data)
+        mean_voltage = 0.0
+        for i in range(len(trace_data)):
+            mean_voltage += trace_data[i]
+        mean_voltage /= len(trace_data)
+        self.photodiode_mean_voltage.push(mean_voltage)
 
 
 MeasureMOTLoadingCurve = make_fragment_scan_exp(MeasureMOTLoadingCurveFrag)

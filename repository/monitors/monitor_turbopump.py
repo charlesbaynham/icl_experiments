@@ -33,7 +33,7 @@ class MonitorTurbo(Calibration):
 
         self.set_timeout(10)
 
-    def run_once(self):
+    def check_own_state(self):
         info_str = requests.get(
             "http://" + self.monitor_ip.get() + "/" + RESOURCE_PATH
         ).text
@@ -47,10 +47,7 @@ class MonitorTurbo(Calibration):
 
         logger.info("Pressures = %f / %f", pressure_1, pressure_2)
 
-        self.status.push(CalibrationResult.OK)
-        self.data.push(
-            {
-                "tags": {"description": self.description.get()},
-                "fields": {"pressure_1": pressure_1, "pressure_2": pressure_2},
-            }
-        )
+        return CalibrationResult.OK, {
+            "tags": {"description": self.description.get()},
+            "fields": {"pressure_1": pressure_1, "pressure_2": pressure_2},
+        }

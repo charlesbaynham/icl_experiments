@@ -59,7 +59,6 @@ class MonitorWeather(Calibration):
             "relative_humidity": int(data["rh"]),
         }
 
-    def run_once(self):
+    def check_own_state(self):
         timestamp, weather_data = self.get_weather()
-        self.status.push(CalibrationResult.OK)
-        self.data.push(weather_data)
+        return CalibrationResult.OK, weather_data
