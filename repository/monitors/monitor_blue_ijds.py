@@ -20,8 +20,10 @@ class MonitorIJD1(Calibration):
     def check_own_state(self):
         out = {}
 
-        out["temperature_actual"] = self.controller.get_temperature_actual()
-        out["temperature_setpoint"] = self.controller.get_temperature_setpoint()
+        out["temperature_actual"] = self.controller.get_temperature_actual() - 273.15
+        out["temperature_setpoint"] = (
+            self.controller.get_temperature_setpoint() - 273.15
+        )
         out["current"] = 1e-3 * self.controller.get_current_mA()
         out["voltage"] = self.controller.get_voltage()
 
