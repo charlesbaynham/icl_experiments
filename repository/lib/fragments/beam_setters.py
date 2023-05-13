@@ -15,6 +15,8 @@ import repository.lib.constants as constants
 
 logger = logging.getLogger(__name__)
 
+DELAY_BETWEEN_RTIO_EVENTS = 4 * ns
+
 
 class SetBeamsToDefaults(Fragment):
     """
@@ -139,9 +141,9 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay(-delay_by)
 
             suservo.set(en_out=0, en_iir=0)
-            delay(1 * ns)
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
             shutter.on()
-            delay(1 * ns)
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
 
             delay(delay_by)
 
@@ -152,7 +154,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             suservo.set(en_out=1, en_iir=0)
 
-            delay(1 * ns)
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
 
     @kernel
     def turn_beams_off(self):
@@ -172,9 +174,9 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay_by = self.beam_delays[i]
 
             suservo.set(en_out=0, en_iir=0)
-            delay(1 * ns)
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
             shutter.off()
-            delay(1 * ns)
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
 
         for i in range(len(self.beam_delays)):
             suservo = self.beam_suservos[i]
@@ -184,6 +186,6 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay(delay_by)
 
             suservo.set(en_out=1, en_iir=0)
-            delay(1 * ns)
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
 
             delay(-delay_by)
