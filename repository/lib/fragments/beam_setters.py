@@ -15,7 +15,7 @@ import repository.lib.constants as constants
 
 logger = logging.getLogger(__name__)
 
-DELAY_BETWEEN_RTIO_EVENTS = 3 * ns
+DELAY_BETWEEN_RTIO_EVENTS = 4 * ns
 
 
 class SetBeamsToDefaults(Fragment):
