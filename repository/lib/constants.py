@@ -5,8 +5,9 @@ by other parts of the code. This is the only file where magic numbers should
 be stored, so you should never e.g. store an AOM's optimal attenuation as a
 default setting in a build() method somewhere: it should be here.
 """
-from dataclasses import dataclass
 from typing import Optional
+
+from pydantic.dataclasses import dataclass
 
 # IJD1
 
