@@ -286,22 +286,6 @@
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
       }
     },
-    "laserloop": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1682606921,
-        "narHash": "sha256-NQHOS+RmD0SwdqTnySp9K/4vBEQGv4ZbiQCTBeefb04=",
-        "ref": "refs/heads/master",
-        "rev": "0ff4aad5b022d945f42e0693efc5255582e6005b",
-        "revCount": 18,
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git"
-      }
-    },
     "mach-nix": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -572,7 +556,6 @@
         "flake-utils": "flake-utils_3",
         "high-finesse-wavemeter": "high-finesse-wavemeter",
         "koheron_driver": "koheron_driver",
-        "laserloop": "laserloop",
         "nixpkgs": [
           "pyaion",
           "nixpkgs"
