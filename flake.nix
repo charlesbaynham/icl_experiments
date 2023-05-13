@@ -15,13 +15,21 @@
   inputs.wand.flake = false;
 
   # Hack in a newer version of nixpkgs just for aravis
-  # inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+  inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, wand }:
+  outputs = { self, nixpkgs, newer_nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        newer_pkgs = newer_nixpkgs.legacyPackages.${system};
+        pkgs = nixpkgs.legacyPackages.${system} // {
+          aravis = newer_pkgs.aravis.overrideAttrs (final: prev: {
+            nativeBuildInputs = [
+              pkgs.autoPatchelfHook
+            ] ++ prev.nativeBuildInputs;
+          });
+        };
+
         python-aravis = (import ./python-aravis.nix {
           inherit pkgs;
         });

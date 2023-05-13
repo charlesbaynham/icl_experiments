@@ -253,6 +253,22 @@
         "type": "github"
       }
     },
+    "newer_nixpkgs": {
+      "locked": {
+        "lastModified": 1683928319,
+        "narHash": "sha256-maz0DRKixJVcNRMiAMWlJniiF8IuQ+WbfmlJJ8D+jfM=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "9656e85a15a0fe67847ee8cdb99a20d8df499962",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-22.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1643805626,
@@ -350,6 +366,7 @@
         "artiq-http": "artiq-http",
         "flake-utils": "flake-utils",
         "koheron_driver": "koheron_driver",
+        "newer_nixpkgs": "newer_nixpkgs",
         "nixpkgs": [
           "pyaion",
           "nixpkgs"
