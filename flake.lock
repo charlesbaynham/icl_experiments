@@ -154,15 +154,12 @@
       }
     },
     "flake-utils_3": {
-      "inputs": {
-        "systems": "systems_2"
-      },
       "locked": {
-        "lastModified": 1681202837,
-        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
+        "lastModified": 1667395993,
+        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
+        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
         "type": "github"
       },
       "original": {
@@ -205,21 +202,18 @@
     "mach-nix": {
       "inputs": {
         "flake-utils": "flake-utils_4",
-        "nixpkgs": [
-          "pyaion",
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs",
         "pypi-deps-db": [
           "pyaion",
           "pypi-deps-db"
         ]
       },
       "locked": {
-        "lastModified": 1681814846,
-        "narHash": "sha256-IMQ1Twf/ozE53CwrunXNlYD3D31xqgz/mZyZG38Ov/Y=",
+        "lastModified": 1667918925,
+        "narHash": "sha256-jCZ4iI4UCOC+T5SEgoCbUzqaeMo5WT3DcFwqwvn2fEs=",
         "owner": "DavHau",
         "repo": "mach-nix",
-        "rev": "8d903072c7b5426d90bc42a008242c76590af916",
+        "rev": "913e6c16f986746ba5507878ef7ff992804d1fa8",
         "type": "github"
       },
       "original": {
@@ -261,18 +255,17 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1652375457,
-        "narHash": "sha256-ZWbWNcbPE8POo/bzGKBeQvsEZpWMg/JNb0eJDZhAOPo=",
-        "owner": "nixos",
+        "lastModified": 1643805626,
+        "narHash": "sha256-AXLDVMG+UaAGsGSpOtQHPIKB+IZ0KSd9WS77aanGzgc=",
+        "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ff9bda440ac81f255e890d25b800c77f7d8dd8a6",
+        "rev": "554d2d8aa25b6e583575459c297ec23750adb6cb",
         "type": "github"
       },
       "original": {
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "ff9bda440ac81f255e890d25b800c77f7d8dd8a6",
-        "type": "github"
+        "id": "nixpkgs",
+        "ref": "nixos-unstable",
+        "type": "indirect"
       }
     },
     "oitg": {
@@ -298,21 +291,24 @@
         "flake-utils": "flake-utils_3",
         "mach-nix": "mach-nix",
         "ndscan": "ndscan",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": [
+          "pyaion",
+          "mach-nix",
+          "nixpkgs"
+        ],
         "oitg": "oitg",
         "pypi-deps-db": "pypi-deps-db"
       },
       "locked": {
-        "lastModified": 1683966536,
-        "narHash": "sha256-1EFyrE0TRzg8RdkcvYlTRiVlRBPJJGoO0OJ0Xok7eaQ=",
-        "ref": "update",
-        "rev": "6a782b5ebc37343dec9d4613623ffe5d3066fae3",
-        "revCount": 65,
+        "lastModified": 1683989912,
+        "narHash": "sha256-791IyBSUU7kWrIthSg3YxkeilxKg4GQzJghGXtdiGo0=",
+        "ref": "refs/heads/master",
+        "rev": "5fe62e7d656323130a775617b3eb6751d749fa30",
+        "revCount": 62,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
       "original": {
-        "ref": "update",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       }
@@ -320,11 +316,11 @@
     "pypi-deps-db": {
       "flake": false,
       "locked": {
-        "lastModified": 1683579992,
-        "narHash": "sha256-QQrXDEyJ72yliAGmtJFaM2FZix8YR0dCmNg6ZWIyyoc=",
+        "lastModified": 1670518748,
+        "narHash": "sha256-pfUce0zlRI+tzxPgvRSKkusjxDCBVjCpkcDKWboHa+U=",
         "owner": "DavHau",
         "repo": "pypi-deps-db",
-        "rev": "827ab00fcadac093c8ca444f4fd1e9e2129298a6",
+        "rev": "e9571cac25d2f509e44fec9dc94a3703a40126ff",
         "type": "github"
       },
       "original": {
@@ -458,21 +454,6 @@
       }
     },
     "systems": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
-    "systems_2": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
