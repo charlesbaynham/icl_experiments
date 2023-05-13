@@ -8,8 +8,6 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import ns
 from ndscan.experiment import Fragment
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
