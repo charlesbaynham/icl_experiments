@@ -139,9 +139,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay(-delay_by)
 
             suservo.set(en_out=0, en_iir=0)
-            delay(10 * ns)
             shutter.on()
-            delay(10 * ns)
 
             delay(delay_by)
 
@@ -151,8 +149,6 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay_by = self.beam_delays[i]
 
             suservo.set(en_out=1, en_iir=0)
-
-            delay(10 * ns)
 
     @kernel
     def turn_beams_off(self):
@@ -172,9 +168,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay_by = self.beam_delays[i]
 
             suservo.set(en_out=0, en_iir=0)
-            delay(10 * ns)
             shutter.off()
-            delay(10 * ns)
 
         for i in range(len(self.beam_delays)):
             suservo = self.beam_suservos[i]
@@ -184,6 +178,5 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay(delay_by)
 
             suservo.set(en_out=1, en_iir=0)
-            delay(10 * ns)
 
             delay(-delay_by)
