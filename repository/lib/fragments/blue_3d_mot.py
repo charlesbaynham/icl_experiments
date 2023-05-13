@@ -10,9 +10,9 @@ from artiq.experiment import TInt32
 from artiq.experiment import TInt64
 from artiq.experiment import TList
 from ndscan.experiment import Fragment
+from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setters import ControlBeamsWithoutCoolingAOM
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
