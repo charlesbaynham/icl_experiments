@@ -250,22 +250,6 @@
         "type": "github"
       }
     },
-    "high-finesse-wavemeter": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1656348208,
-        "narHash": "sha256-EL8ggFr6sI9ezd7VWFTzvHN9EFifEMoN8LoeLvjF7wE=",
-        "ref": "refs/heads/main",
-        "rev": "22781312b3f26312e49112c2086491e491150ef7",
-        "revCount": 10,
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/high-finesse-wavemeter.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://gitlab.com/aion-physics/code/artiq/drivers/high-finesse-wavemeter.git"
-      }
-    },
     "koheron_driver": {
       "inputs": {
         "flake-utils": "flake-utils_4",
@@ -557,7 +541,6 @@
       "inputs": {
         "artiq-http": "artiq-http",
         "flake-utils": "flake-utils_3",
-        "high-finesse-wavemeter": "high-finesse-wavemeter",
         "koheron_driver": "koheron_driver",
         "nixpkgs": [
           "pyaion",

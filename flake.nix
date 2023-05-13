@@ -8,16 +8,13 @@
   inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
   inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.high-finesse-wavemeter.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/high-finesse-wavemeter.git";
-  inputs.high-finesse-wavemeter.flake = false;
-
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
   inputs.qbutler.flake = false;
 
   inputs.wand.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/wand.git?ref=adapt_for_linux";
   inputs.wand.flake = false;
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, high-finesse-wavemeter, wand }:
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
@@ -32,7 +29,6 @@
               koheron_driver.defaultPackage.${system}
               # The following are plain source files, built by mach-nix now:
               qbutler
-              high-finesse-wavemeter
               wand
             ];
             overridesPre = [
