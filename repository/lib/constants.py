@@ -5,25 +5,13 @@ by other parts of the code. This is the only file where magic numbers should
 be stored, so you should never e.g. store an AOM's optimal attenuation as a
 default setting in a build() method somewhere: it should be here.
 """
-from typing import Optional
-
-from pydantic.dataclasses import dataclass
+from repository.lib.models import SUServoedBeam
 
 # IJD1
 
 IJD1_TEMPERATURE = 9632  # Ohms
 
 # Information about beams controlled by AOMs
-@dataclass
-class SUServoedBeam:
-    name: str
-    frequency: float
-    attenuation: float
-    suservo_device: str
-    shutter_device: Optional[str] = None
-    shutter_delay: float = 0.0
-
-
 AOM_BEAMS = [
     SUServoedBeam(
         "blue_push_beam",
