@@ -8,9 +8,6 @@
   inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
   inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.laserloop.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/laserloop.git";
-  inputs.laserloop.flake = false;
-
   inputs.high-finesse-wavemeter.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/high-finesse-wavemeter.git";
   inputs.high-finesse-wavemeter.flake = false;
 
@@ -35,7 +32,6 @@
               koheron_driver.defaultPackage.${system}
               # The following are plain source files, built by mach-nix now:
               qbutler
-              laserloop
               high-finesse-wavemeter
               wand
             ];
