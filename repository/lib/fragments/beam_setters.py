@@ -4,8 +4,10 @@ from typing import List
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from artiq.experiment import ns
 from ndscan.experiment import Fragment
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -63,19 +65,24 @@ class SetBeamsToDefaults(Fragment):
 
 class ControlBeamsWithoutCoolingAOM(Fragment):
     """
-    Methods to turn on/off a list of beams using a SUServoed AOM for sharp
-    edges and a shutter to fully block it
+    Methods to turn on/off a list of beams using a SUServoed AOM for sharp edges
+    and a shutter to fully block it
 
     The AOMs will be left on as much as possible even while the beams are off
     (but blocked with the shutter) to avoid pointing instability from thermal
     effects.
 
     Note that when groups of beams are intended to be turned on together, you
-    should use a sincle instance of this fragment to control all of them rather
+    should use a single instance of this fragment to control all of them rather
     than initialising one for each beam. That's because this fragment skips
     forwards and backwards in time and will therefore wantonly consume RTIO
     lanes unless you let it reduce this behaviour by knowing in advance which
     shutters need to be opened.
+
+    Note that the beam turn-on/off events will not quite be simultaneous, but
+    will actually be separated by 4ns. This is so that only one RTIO lane is
+    consumed, avoiding collisions. If this is unacceptable for your application,
+    you will need to manage the lane usage manually.
     """
 
     def build_fragment(self, beam_infos: List[constants.SUServoedBeam]):
@@ -125,13 +132,15 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         cooling down too much.
 
         Start with the shutters with the longest delay to avoid switching
-        backwards and forwards in time
+        backwards and forwards in time.
 
-        This method advances the timelines by 30ns per beam, BUT will reverse time to
-        write shutter opening into the past. You should therefore make sure that
-        there is at least "shutter_delay_time" slack, ideally with no queued
-        RTIO events to prevent using a new RTIO lane.
+        This method does not advance the cursor. However, it will reverse time
+        to write shutter opening into the past. You should therefore make sure
+        that there is at least "shutter_delay_time" slack, ideally with no
+        queued RTIO events to prevent using a new RTIO lane.
         """
+
+        start_mu = now_mu()
 
         for i in range(len(self.beam_delays) - 1, -1, -1):
             suservo = self.beam_suservos[i]
@@ -156,6 +165,10 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             delay(DELAY_BETWEEN_RTIO_EVENTS)
 
+        # Cancel out the accumulated tiny delays so that we do not affect the
+        # cursor position
+        at_mu(start_mu)
+
     @kernel
     def turn_beams_off(self):
         """
@@ -164,9 +177,11 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         This method will turn off the beam at the cursor and then close the
         shutter and turn the AOM back on to stop it cooling down.
 
-        This method will advance the timeline by 30ns per beam BUT will write
-        shutter closing events into the future by "shutter_delay_time" seconds.
+        This method will not advance the cursor BUT will write shutter closing
+        events into the future by "shutter_delay_time" seconds.
         """
+
+        start_mu = now_mu()
 
         for i in range(len(self.beam_delays)):
             suservo = self.beam_suservos[i]
@@ -189,3 +204,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay(DELAY_BETWEEN_RTIO_EVENTS)
 
             delay(-delay_by)
+
+        # Cancel out the accumulated tiny delays so that we do not affect the
+        # cursor position
+        at_mu(start_mu)
