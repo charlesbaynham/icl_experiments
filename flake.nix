@@ -8,9 +8,6 @@
   inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
   inputs.koheron_driver.flake = false;
 
-  inputs.high-finesse-wavemeter.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/high-finesse-wavemeter.git";
-  inputs.high-finesse-wavemeter.flake = false;
-
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
   inputs.qbutler.flake = false;
 
@@ -20,7 +17,7 @@
   # Hack in a newer version of nixpkgs just for aravis
   # inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, high-finesse-wavemeter, wand }:
+  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
@@ -40,7 +37,6 @@
               artiq-http
               koheron_driver
               qbutler
-              high-finesse-wavemeter
               wand
             ];
             extra_non_PyPI_packages = [
