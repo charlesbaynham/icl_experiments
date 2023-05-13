@@ -23,8 +23,8 @@ class SUServoedBeam:
     shutter_delay: float = 0.0
 
 
-AOM_BEAMS = {
-    "blue_push_beam": SUServoedBeam(
+AOM_BEAMS = [
+    SUServoedBeam(
         "blue_push_beam",
         150e6,
         20,
@@ -32,7 +32,7 @@ AOM_BEAMS = {
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
     ),
-    "blue_2dmot_A": SUServoedBeam(
+    SUServoedBeam(
         "blue_2dmot_A",
         100e6,
         20,
@@ -40,7 +40,7 @@ AOM_BEAMS = {
         "TTL_shutter_461_2dmot_is_it_a",
         shutter_delay=20e-3,
     ),
-    "blue_2dmot_B": SUServoedBeam(
+    SUServoedBeam(
         "blue_2dmot_B",
         100e6,
         20,
@@ -48,7 +48,7 @@ AOM_BEAMS = {
         "TTL_shutter_461_2dmot_is_it_b",
         shutter_delay=20e-3,
     ),
-    "blue_3dmot_radial": SUServoedBeam(
+    SUServoedBeam(
         "blue_3dmot_radial",
         150e6,
         20,
@@ -56,7 +56,7 @@ AOM_BEAMS = {
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
     ),
-    "blue_3dmot_axialplus": SUServoedBeam(
+    SUServoedBeam(
         "blue_3dmot_axialplus",
         150e6,
         20,
@@ -64,7 +64,7 @@ AOM_BEAMS = {
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
     ),
-    "blue_3dmot_axialminus": SUServoedBeam(
+    SUServoedBeam(
         "blue_3dmot_axialminus",
         150e6,
         20,
@@ -72,16 +72,19 @@ AOM_BEAMS = {
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
     ),
-    "blue_injection": SUServoedBeam(
+    SUServoedBeam(
         "blue_injection",
         200e6,
         24,
         "suservo_aom_doublepass_461_injection",
     ),
-    "blue_spectroscopy": SUServoedBeam(
+    SUServoedBeam(
         "blue_spectroscopy",
         200e6,
         20,
         "suservo_aom_singlepass_461_spectroscopy",
     ),
-}
+]
+
+# Convert to dict for ease of use
+AOM_BEAMS = {beam.name: beam for beam in AOM_BEAMS}
