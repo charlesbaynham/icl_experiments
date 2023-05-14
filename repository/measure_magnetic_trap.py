@@ -212,7 +212,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         logger.info("Saving data completed")
 
     @kernel
-    def run_on(self):
+    def run_once(self):
         self.core.break_realtime()
         delay(20 * ms)
 
