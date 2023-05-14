@@ -1,9 +1,12 @@
+import logging
+
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import ms
-from artiq.experiment import ns, rpc
+from artiq.experiment import ns
+from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -18,7 +21,6 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
 from repository.lib.fragments.camera import MOTCameraMeasurement
 
-import logging
 logger = logging.getLogger(__name__)
 
 

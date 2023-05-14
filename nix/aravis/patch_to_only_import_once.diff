@@ -12,6 +12,6 @@
 +print(f'GI_TYPELIB_PATH = {os.environ["GI_TYPELIB_PATH"]}')
  from gi.repository import Aravis
 +### end patches by nix ###
- 
+
  __author__ = "Olivier Roulet-Dubonnet, Morten Lind"
  __copyright__ = "Copyright 2011-2013, Sintef Raufoss Manufacturing"

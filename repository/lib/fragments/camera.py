@@ -3,21 +3,19 @@ import time
 from typing import List
 from typing import Tuple
 
-from numpy.typing import ArrayLike
-
 import numpy as np
-
 from artiq.coredevice.core import Core
 from artiq.experiment import host_only
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.result_channels import OpaqueChannel, FloatChannel
-
+from ndscan.experiment.result_channels import FloatChannel
+from ndscan.experiment.result_channels import OpaqueChannel
+from numpy.typing import ArrayLike
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +51,7 @@ class Chamber2Camera:
         while True:
             time.sleep(self._per_image_time)
 
-            new_frame =self.cam.try_pop_frame(True)
+            new_frame = self.cam.try_pop_frame(True)
             if new_frame is not None:
                 ts, frame = new_frame
                 if ts is not None:
@@ -107,7 +105,6 @@ class MOTCameraMeasurement(ExpFragment):
 
         self.setattr_result("images", OpaqueChannel)
         self.images: OpaqueChannel
-        
 
     def host_setup(self):
         self.camera_driver = Chamber2Camera(
@@ -133,7 +130,6 @@ class MOTCameraMeasurement(ExpFragment):
             raise RuntimeError("Images have not yet been aquired")
 
         return self._images
-
 
     @host_only
     def run_once(self) -> None:
