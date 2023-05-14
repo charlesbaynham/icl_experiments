@@ -10,11 +10,12 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import host_only
 from artiq.experiment import rpc
-from ndscan.experiment import Fragment
+from ndscan.experiment import ExpFragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ class Chamber2Camera:
         return out
 
 
-class MOTCameraMeasurement(Fragment):
+class MOTCameraMeasurement(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -123,3 +124,17 @@ class MOTCameraMeasurement(Fragment):
             raise RuntimeError("Images have not yet been aquired")
 
         return self.images
+
+
+    @host_only
+    def run_once(self) -> None:
+        logger.info("Starting camera measurement")
+        self.start_camera_measurement()
+
+        logger.info("Camera measurement completed")
+
+        images = self.get_images()
+        logger.info("Took %i images", len(images))
+
+
+MOTCameraMeasurementExp = make_fragment_scan_exp(MOTCameraMeasurement)
