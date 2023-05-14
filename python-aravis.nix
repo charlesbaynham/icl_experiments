@@ -16,7 +16,10 @@ pkgs.python3Packages.buildPythonPackage rec {
   ];
 
   patches = [
-    ./nix/aravis/patch_to_only_import_once.diff
+    (pkgs.substituteAll {
+      aravisPath = pkgs.aravis;
+      src = ./nix/aravis/patch_to_only_import_once.diff;
+    })
   ];
 
   preBuild = ''
