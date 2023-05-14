@@ -23,7 +23,10 @@
       let
         # Add our newer version aravis to our packages
         pkgs = nixpkgs.legacyPackages.${system} // {
-          aravis = pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") { };
+          aravis = pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") {
+            enableGstPlugin = false;
+            enableViewer = false;
+          };
         };
 
         # Build the python bindings for aravis
