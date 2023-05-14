@@ -1,0 +1,17 @@
+--- source/aravis.py	2023-05-14 12:52:32.466975081 +0000
+@@ -6,7 +6,14 @@
+ import logging
+ import numpy as np
+ import ctypes
+-from gi.repository import Aravis
++
++### patches by nix ###
++import os
++os.environ["GI_TYPELIB_PATH"] = "${pkgs.aravis.lib}/lib/girepository-1.0/"
++
++import gi.repository
++Aravis = gi.repository.Aravis
++### end patches by nix ###
+
+ __author__ = "Olivier Roulet-Dubonnet, Morten Lind"
+ __copyright__ = "Copyright 2011-2013, Sintef Raufoss Manufacturing"
