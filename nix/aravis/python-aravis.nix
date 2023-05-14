@@ -1,23 +1,23 @@
-{ pkgs ? import <nixpkgs> { } }:
-pkgs.python3Packages.buildPythonPackage rec {
+{ fetchFromGitHub, substituteAll, aravis, buildPythonPackage, numpy, pygobject3 }:
+buildPythonPackage rec {
   pname = "python-aravis";
   version = "0.5";
-  src = pkgs.fetchFromGitHub {
+  src = fetchFromGitHub {
     owner = "SintefManufacturing";
     repo = "python-aravis";
     rev = "5750250cedb9b96d7a0172c0da9c1811b6b817af";
     sha256 = "sha256-PQfi9ehGHJMFkMj9Wp0D9u2/iaqOz44B39/dpYJJPCs=";
   };
-  propagatedBuildInputs = with pkgs.python3Packages; [
+  propagatedBuildInputs = [
     numpy
     pygobject3
 
-    pkgs.aravis
+    aravis
   ];
 
   patches = [
-    (pkgs.substituteAll {
-      aravisPath = pkgs.aravis.lib;
+    (substituteAll {
+      aravisPath = aravis.lib;
       src = ./patch_to_only_import_once.diff;
     })
   ];

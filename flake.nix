@@ -21,17 +21,14 @@
 
     flake-utils.lib.eachDefaultSystem (system:
       let
-        # Add our newer version aravis to our packages
+        # Add our newer version of aravis to our packages
         aravis = (pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") { });
-        aravis_overridden = aravis.overrideAttrs (prev: { });
-        pkgs = nixpkgs.legacyPackages.${system} // {
-          aravis = aravis_overridden;
-        };
+        pkgs = nixpkgs.legacyPackages.${system}.extend (final: prev: {
+          inherit aravis;
+        });
 
         # Build the python bindings for aravis
-        python-aravis = (import ./nix/aravis/python-aravis.nix {
-          inherit pkgs;
-        });
+        python-aravis = pkgs.python3Packages.callPackage (import ./nix/aravis/python-aravis.nix) { };
 
         requirements = builtins.readFile ./requirements.in;
         generated_outputs = pyaion.lib.${system}.build_institute_outputs
