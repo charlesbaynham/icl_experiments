@@ -18,7 +18,7 @@ buildPythonPackage rec {
   patches = [
     (substituteAll {
       aravisPath = aravis.lib;
-      src = ./patch_to_only_import_once.diff;
+      src = ./patch_to_add_aravis_envvar.diff;
     })
   ];
 
