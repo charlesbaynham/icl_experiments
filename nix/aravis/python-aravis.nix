@@ -18,7 +18,7 @@ pkgs.python3Packages.buildPythonPackage rec {
   patches = [
     (pkgs.substituteAll {
       aravisPath = pkgs.aravis.lib;
-      src = ./nix/aravis/patch_to_only_import_once.diff;
+      src = ./patch_to_only_import_once.diff;
     })
   ];
 
@@ -26,16 +26,5 @@ pkgs.python3Packages.buildPythonPackage rec {
     # Override make_deb.py so that it doesn't try to call git
     echo "import aravis" > make_deb.py
     echo "DEBVERSION=aravis.__version__" >> make_deb.py
-
-    # # Override aravis.py to bake in the GI_TYPELIB_PATH variable
-    # touch tmp
-    # echo ### patches by nix ### >> tmp
-    # echo 'import os' >> tmp
-    # echo 'os.environ["GI_TYPELIB_PATH"] = "${pkgs.aravis.lib}/lib/girepository-1.0/"' >> tmp
-    # echo ### end patches by nix ### >> tmp
-
-    # cat tmp aravis.py > tmp2
-    # mv tmp2 aravis.py
-    # rm tmp
   '';
 }

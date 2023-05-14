@@ -29,7 +29,7 @@
         };
 
         # Build the python bindings for aravis
-        python-aravis = (import ./python-aravis.nix {
+        python-aravis = (import ./nix/aravis/python-aravis.nix {
           inherit pkgs;
         });
 
