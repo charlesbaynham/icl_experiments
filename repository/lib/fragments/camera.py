@@ -87,7 +87,6 @@ class MOTCameraMeasurement(Fragment):
             description="Number of images to take",
             default=100,
             min=1,
-            step=1,
         )
         self.number_images: IntParamHandle
 
