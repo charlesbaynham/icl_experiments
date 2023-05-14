@@ -1,6 +1,6 @@
---- aravis.py	2023-05-14 13:49:37.492446508 +0000
-+++ aravis_src_modified.py	2023-05-14 13:49:37.492446508 +0000
-@@ -6,7 +6,13 @@
+--- source/aravis.py	2023-05-14 13:49:46.356486085 +0000
++++ aravis_src_modified.py	2023-05-14 13:55:06.269930045 +0000
+@@ -6,7 +6,14 @@
  import logging
  import numpy as np
  import ctypes
@@ -9,6 +9,7 @@
 +import os
 +os.environ["GI_TYPELIB_PATH"] = "@aravisPath@/lib/girepository-1.0/"
 +
++print(f'GI_TYPELIB_PATH = {os.environ["GI_TYPELIB_PATH"]}')
  from gi.repository import Aravis
 +### end patches by nix ###
  

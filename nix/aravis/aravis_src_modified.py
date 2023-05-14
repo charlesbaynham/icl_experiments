@@ -24,7 +24,7 @@ class AravisException(Exception):
 
 class Camera(object):
     """
-    Create a Camera object. 
+    Create a Camera object.
     name is the camera ID in aravis.
     If name is None, the first found camera is used.
     If no camera is found an AravisException is raised.
@@ -210,13 +210,13 @@ class Camera(object):
 
     def __repr__(self):
         return self.__str__()
-    
+
     def start_acquisition(self, nb_buffers=10):
         self.logger.info("starting acquisition")
         payload = self.cam.get_payload()
         if payload != self._last_payload:
             #FIXME should clear buffers
-            self.create_buffers(nb_buffers, payload) 
+            self.create_buffers(nb_buffers, payload)
             self._last_payload = payload
         self.cam.start_acquisition()
 
@@ -229,7 +229,7 @@ class Camera(object):
     def start_acquisition_continuous(self, nb_buffers=20):
         self.set_feature("AcquisitionMode", "Continuous") #no acquisition limits
         #self.set_feature("TriggerSource", "Freerun") #as fast as possible
-        #self.set_string_feature("TriggerSource", "FixedRate") 
+        #self.set_string_feature("TriggerSource", "FixedRate")
         #self.set_feature("TriggerMode", "On") #Not documented but necesary
         self.start_acquisition(nb_buffers)
 
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         print("Vendor Name: ", cam.get_vendor_name())
         print("Device id: ", cam.get_device_id())
         #print("Image size: ", width, ",", height)
-        print("Sensor size: ", cam.get_sensor_size()) 
+        print("Sensor size: ", cam.get_sensor_size())
         print("Exposure: ", cam.get_exposure_time())
         print("Frame rate: ", cam.get_frame_rate())
         print("Payload: ", cam.get_payload())
