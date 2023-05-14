@@ -3,7 +3,6 @@ import time
 from typing import List
 from typing import Tuple
 
-import aravis
 import numpy as np
 from aravis import Camera
 from artiq.coredevice.core import Core

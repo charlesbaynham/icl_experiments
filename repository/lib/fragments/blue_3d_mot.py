@@ -1,18 +1,8 @@
 import logging
-import time
-from typing import List
-from typing import Tuple
 
-import aravis
-import numpy as np
-from aravis import Camera
 from artiq.coredevice.core import Core
-from artiq.experiment import delay
 from artiq.experiment import delay_mu
-from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import ns
-from artiq.experiment import rpc
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from artiq.experiment import TInt64
