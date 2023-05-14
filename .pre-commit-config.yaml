@@ -15,9 +15,11 @@ repos:
     rev: v3.1.0
     hooks:
     - id: reorder-python-imports
+      exclude: "nix"
 
   # Format the code with a conventional PEP8 style
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
       - id: black
+        exclude: "nix"

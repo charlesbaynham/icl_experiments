@@ -1,10 +1,8 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
-from artiq.experiment import ns
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from artiq.experiment import TInt64
@@ -15,6 +13,7 @@ from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
+
 
 logger = logging.getLogger(__name__)
 

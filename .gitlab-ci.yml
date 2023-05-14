@@ -51,7 +51,7 @@ check-requirements:
 ### Builder ###
 
 # If the environmental variables CACHIX_CACHE_NAME and CACHIX_AUTH_TOKEN are set,
-# build the package and the devShell and push the results to cachix
+# build the devShell and push the results to cachix
 nix_build:
   extends: .deps
   needs: []

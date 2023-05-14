@@ -16,3 +16,10 @@
 # Scientific requirements
 uk-covid19
 pydantic
+
+# Utilities
+ipython
+notebook
+pytest
+coverage
+pip-tools

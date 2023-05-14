@@ -3,10 +3,10 @@
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
-  inputs.artiq-http.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.artiq-http.flake = false;
 
   inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
-  inputs.koheron_driver.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.koheron_driver.flake = false;
 
   inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
   inputs.qbutler.flake = false;
@@ -14,10 +14,22 @@
   inputs.wand.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/wand.git?ref=adapt_for_linux";
   inputs.wand.flake = false;
 
-  outputs = { self, nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, wand }:
+  # Hack in a newer version of nixpkgs just for aravis
+  inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+
+  outputs = { self, nixpkgs, newer_nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, wand }:
 
     flake-utils.lib.eachDefaultSystem (system:
       let
+        # Add our newer version of aravis to our packages
+        aravis = (pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") { });
+        pkgs = nixpkgs.legacyPackages.${system}.extend (final: prev: {
+          inherit aravis;
+        });
+
+        # Build the python bindings for aravis
+        python-aravis = pkgs.python3Packages.callPackage (import ./nix/aravis/python-aravis.nix) { };
+
         requirements = builtins.readFile ./requirements.in;
         generated_outputs = pyaion.lib.${system}.build_institute_outputs
           {
@@ -25,12 +37,16 @@
             system = system;
             extra_requirements = requirements;
             extra_machnix_packages = [
-              artiq-http.defaultPackage.${system}
-              koheron_driver.defaultPackage.${system}
-              # The following are plain source files, built by mach-nix now:
+              # The following are plain source files, built by mach-nix
+              artiq-http
+              koheron_driver
               qbutler
               wand
             ];
+            extra_non_PyPI_packages = [
+              python-aravis
+            ];
+            extra_non_python_deps = [ pkgs.aravis ];
             overridesPre = [
               # There is already a package called "Wand" (not "wand") in nixpkgs
               # which breaks wand, so we remove it:
@@ -39,11 +55,14 @@
               })
             ];
           };
-        pkgs = nixpkgs.legacyPackages.${system};
 
       in
       {
-        inherit (generated_outputs) devShells packages formatter;
+        inherit (generated_outputs) devShells formatter;
+        packages = generated_outputs.packages // {
+          aravis = pkgs.aravis;
+          python-aravis = python-aravis;
+        };
 
         apps = generated_outputs.apps // {
           backup_datasets =
