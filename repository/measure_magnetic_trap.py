@@ -3,7 +3,7 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import ms
-from artiq.experiment import ns
+from artiq.experiment import ns, rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -202,19 +202,17 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.setattr_result("mot_image_timestamps", OpaqueChannel)
         self.mot_image_timestamps: ResultChannel
 
-    def run_once(self) -> None:
-        self.run_on_core()
-
-        # Save the data
+    @rpc
+    def save_data(self):
         image_data = self.mot_measurer.get_images()
         timestamps, images = zip(*image_data)
         self.mot_image_timestamps.push(timestamps)
         self.mot_images.push(images)
 
-        logger.info("Completed")
+        logger.info("Saving data completed")
 
     @kernel
-    def run_on_core(self):
+    def run_on(self):
         self.core.break_realtime()
         delay(20 * ms)
 
@@ -253,6 +251,9 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         # Begin taking photos of the MOT
         self.mot_measurer.start_camera_measurement()
+
+        # Trigger the host to retrieve the data
+        self.save_data()
 
         # Deluxe:
         # Turn off the MOT beams again and turn on the repumpers
