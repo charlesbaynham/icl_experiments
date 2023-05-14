@@ -21,19 +21,12 @@
 
     flake-utils.lib.eachDefaultSystem (system:
       let
-        # newer_pkgs = newer_nixpkgs.legacyPackages.${system};
-        aravis_overlay = final: prev: {
-          aravis = prev.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") { };
+        # Add our newer version aravis to our packages
+        pkgs = nixpkgs.legacyPackages.${system} // {
+          aravis = pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") { };
         };
-        pkgs = nixpkgs.legacyPackages.${system}.extend aravis_overlay;
-        # pkgs = nixpkgs.legacyPackages.${system} // {
-        #   aravis = (newer_pkgs.aravis.override
-        #     {
-        #       inherit (pkgs) glib gtk3 wrapGAppsHook;
-        #     }
-        #   );
-        # };
 
+        # Build the python bindings for aravis
         python-aravis = (import ./python-aravis.nix {
           inherit pkgs;
         });
