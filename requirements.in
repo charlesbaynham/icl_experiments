@@ -21,4 +21,5 @@ pydantic
 ipython
 notebook
 pytest
+coverage
 pip-tools
