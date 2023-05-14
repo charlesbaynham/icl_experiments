@@ -22,19 +22,11 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         # Add our newer version aravis to our packages
-        aravis = (pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") {
-          enableGstPlugin = false;
-          enableViewer = false;
-        });
-        aravis_overridden = aravis.overrideAttrs (prev: {
-          postPhases = [ "makeOutDir" ];
-          makeOutDir = ''
-            echo Making empty out dir in $out
-            mkdir $out
-          '';
-        });
         pkgs = nixpkgs.legacyPackages.${system} // {
-          aravis = aravis_overridden;
+          aravis = pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") {
+            enableGstPlugin = false;
+            enableViewer = false;
+          };
         };
 
         # Build the python bindings for aravis
@@ -70,10 +62,7 @@
 
       in
       {
-        inherit (generated_outputs) devShells formatter;
-        packages = generated_outputs.packages // {
-          aravis = pkgs.aravis;
-        };
+        inherit (generated_outputs) devShells packages formatter;
 
         apps = generated_outputs.apps // {
           backup_datasets =
