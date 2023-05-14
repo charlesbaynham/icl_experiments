@@ -18,6 +18,9 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
 from repository.lib.fragments.camera import MOTCameraMeasurement
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class MeasureMagneticTrapWithPDFrag(ExpFragment):
     def build_fragment(self):
@@ -207,6 +210,8 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         timestamps, images = zip(*image_data)
         self.mot_image_timestamps.push(timestamps)
         self.mot_images.push(images)
+
+        logger.info("Completed")
 
     @kernel
     def run_on_core(self):
