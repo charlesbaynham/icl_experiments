@@ -17,7 +17,7 @@ pkgs.python3Packages.buildPythonPackage rec {
 
   patches = [
     (pkgs.substituteAll {
-      aravisPath = pkgs.aravis;
+      aravisPath = pkgs.aravis.lib;
       src = ./nix/aravis/patch_to_only_import_once.diff;
     })
   ];
