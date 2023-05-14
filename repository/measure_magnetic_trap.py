@@ -219,8 +219,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         delay(20 * ns)
-        self.mot_controller.turn_off_push_beam()
-        self.mot_controller.turn_off_3d_mot_beams()
+        self.mot_controller.turn_off_3d_and_2d_beams()
 
         delay(
             100 * ms
@@ -230,15 +229,13 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.repumper_707_shutter.off()
         self.repumper_679_shutter.off()
         delay(20 * ms)  # Surely enough for the SRS shutters to close
-        self.mot_controller.turn_on_3d_mot_beams()
-        self.mot_controller.turn_on_push_beam()
+        self.mot_controller.turn_on_3d_and_2d_beams()
 
         # Wait for the MOT to load
         delay(self.mot_loading_time.get())
 
         # Turn off the push and MOT beams
-        self.mot_controller.turn_off_3d_mot_beams()
-        self.mot_controller.turn_off_push_beam()
+        self.mot_controller.turn_off_3d_and_2d_beams()
 
         # Wait for some time while the atoms sit in their magnetic trap
         delay(self.dark_time.get())
@@ -247,7 +244,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         delay(20 * ns)
-        self.mot_controller.turn_on_3d_mot_beams()
+        self.mot_controller.turn_on_3d_beams()
 
         # Begin taking photos of the MOT
         self.mot_measurer.start_camera_measurement()
