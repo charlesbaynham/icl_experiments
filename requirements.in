@@ -21,3 +21,4 @@ pydantic
 ipython
 notebook
 pytest
+pip-tools
