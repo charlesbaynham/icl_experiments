@@ -16,6 +16,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.result_channels import OpaqueChannel, FloatChannel
+
 
 
 logger = logging.getLogger(__name__)
@@ -100,13 +102,20 @@ class MOTCameraMeasurement(ExpFragment):
         )
         self.number_images: IntParamHandle
 
+        self.setattr_result("timestamps", OpaqueChannel)
+        self.timestamps: OpaqueChannel
+
+        self.setattr_result("images", OpaqueChannel)
+        self.images: OpaqueChannel
+        
+
     def host_setup(self):
         self.camera_driver = Chamber2Camera(
             num_images=self.number_images.get(),
             exposure_us=1e6 * self.exposure.get(),
             delay_ms=1e3 * self.image_delay.get(),
         )
-        self.images = None
+        self._images = None
         return super().host_setup()
 
     @rpc
@@ -116,14 +125,14 @@ class MOTCameraMeasurement(ExpFragment):
 
         When finished, images will be available via :meth:`.get_images()`
         """
-        self.images = self.camera_driver.capture_frames()
+        self._images = self.camera_driver.capture_frames()
 
     @host_only
     def get_images(self):
-        if self.images is None:
+        if self._images is None:
             raise RuntimeError("Images have not yet been aquired")
 
-        return self.images
+        return self._images
 
 
     @host_only
@@ -135,6 +144,11 @@ class MOTCameraMeasurement(ExpFragment):
 
         images = self.get_images()
         logger.info("Took %i images", len(images))
+
+        timestamps, image_data = zip(*images)
+
+        self.timestamps.push(np.array(timestamps))
+        self.images.push(np.array(image_data))
 
 
 MOTCameraMeasurementExp = make_fragment_scan_exp(MOTCameraMeasurement)
