@@ -20,3 +20,4 @@ pydantic
 # Utilities
 ipython
 notebook
+pytest
