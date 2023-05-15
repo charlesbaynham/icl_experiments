@@ -15,7 +15,7 @@ class MonitorIJD1(Calibration):
 
         self.controller: CTL200 = self.blue_IJD1_controller
 
-        self.set_timeout(30)
+        self.set_timeout(10)
 
     def check_own_state(self):
         out = {}
