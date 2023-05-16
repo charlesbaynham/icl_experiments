@@ -4,8 +4,6 @@ from typing import Optional
 
 import numpy as np
 from artiq.coredevice.core import Core
-from artiq.coredevice.sampler import Sampler
-from artiq.coredevice.suservo import SUServo
 from artiq.experiment import BooleanValue
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
@@ -176,10 +174,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
                 self.adc_device, self.adc_channel = self.get_device_db()[
                     "IJD_monitors"
                 ][self.controller_name]
-            except KeyError:
+            except KeyError as exc:
                 raise KeyError(
                     f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?"
-                )
+                ) from exc
 
             # Load the sampler utility subfragment
             sampler_obj = self.get_device(self.adc_device)
