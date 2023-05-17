@@ -16,10 +16,10 @@ device_db = {
     },
     "core_moninj": {
         "type": "controller",
-        "host": "155.198.206.96",
+        "host": "::1",
         "port_proxy": 1383,
         "port": 1384,
-        "command": "aqctl_moninj_proxy --port-proxy {port_proxy} --port-control {port} --bind \* "
+        "command": "aqctl_moninj_proxy --port-proxy {port_proxy} --port-control {port} --bind {bind} "
         + core_addr,
     },
     "core_cache": {
