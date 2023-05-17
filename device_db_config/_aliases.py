@@ -32,10 +32,10 @@ aliases = {
     "TTL_shutter_679_temporary_shutter": "ttl22",
     "TTL_shutter_707_temporary_shutter": "ttl23",
     # %% These are not devices, but can still be retrieved from the device_db
-    "IJD_monitors": {
-        "blue_IJD1_controller": ("sampler2", 0),
-        "blue_IJD2_controller": ("sampler2", 1),
-        "blue_IJD3_controller": ("sampler2", 2),
-    },
-    "mot_photodiode_sampler_config": ("suservo0", 0),
+    # "IJD_monitors": {
+    #     "blue_IJD1_controller": ("sampler2", 0),
+    #     "blue_IJD2_controller": ("sampler2", 1),
+    #     "blue_IJD3_controller": ("sampler2", 2),
+    # },
+    # "mot_photodiode_sampler_config": ("suservo0", 0),
 }
