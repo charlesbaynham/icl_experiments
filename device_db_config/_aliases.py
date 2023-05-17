@@ -25,7 +25,7 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch6",
-    "suservo_aom_singlepass_461_chamber2_spectroscopy": "suservo0_ch0",
+    "suservo_aom_singlepass_461_chamber2_imaging": "suservo0_ch0",
     "TTL_shutter_461_pushbeam": "ttl16",
     "TTL_shutter_461_2dmot_is_it_a": "ttl17",
     "TTL_shutter_461_2dmot_is_it_b": "ttl18",
