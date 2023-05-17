@@ -26,6 +26,8 @@ get_next_port = lambda: str(next(port_iterator))
 PORT_WAND_CONTROL = 3276
 PORT_WAND_NOTIFY = 3277
 
+HOSTNAME_LAB_SERVER = "labserver.lan"
+
 
 def get_non_core_devices(simulation_mode=False):
     if simulation_mode:
@@ -39,20 +41,20 @@ def get_non_core_devices(simulation_mode=False):
         # we can compare notes!
         "influx_logger": {
             "type": "controller",
-            "host": "::1",
+            "host": HOSTNAME_LAB_SERVER,
             "port": get_next_port(),
             "target": "influx_logger",
             "command": "artiq_influx_generic --port {port} --bind {bind}",
         },
         "influx_scheduler_logger": {
             "type": "controller",
-            "host": "::1",
+            "host": HOSTNAME_LAB_SERVER,
             "port": get_next_port(),
             "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
         },
         "wand_server": {
             "type": "controller",
-            "host": "::1",
+            "host": HOSTNAME_LAB_SERVER,
             "port": PORT_WAND_CONTROL,
             "command": (
                 "bash -c '"
@@ -65,25 +67,25 @@ def get_non_core_devices(simulation_mode=False):
         },
         # "artiq_http": {
         #     "type": "controller",
-        #     "host": "::1",
+        #     "host": HOSTNAME_LAB_SERVER,
         #     "port": "8000",
         #     "command": "aqctl_artiq_http",
         # },
         "blue_IJD1_controller": {
             "type": "controller",
-            "host": "::1",
+            "host": HOSTNAME_LAB_SERVER,
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
         },
         "blue_IJD2_controller": {
             "type": "controller",
-            "host": "::1",
+            "host": HOSTNAME_LAB_SERVER,
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
         },
         "blue_IJD3_controller": {
             "type": "controller",
-            "host": "::1",
+            "host": HOSTNAME_LAB_SERVER,
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
         },
@@ -103,7 +105,7 @@ def get_non_core_devices(simulation_mode=False):
         # because you don't have this device in your lab.
         # "AnotherCurrentDriver": {
         #     "type": "controller",
-        #     "host": "::1",
+        #     "host": HOSTNAME_LAB_SERVER,
         #     "port": "3303",
         #     "target": "TTIPowerSupply",
         #     "command": 'aqctl_TTIPowerSupply --port {port} --bind {bind} --id "USB VID:PID=103E:03E8 SER=TTTEO7KJA"',
