@@ -14,6 +14,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
+from repository.lib.fragments.camera import MOTCameraMeasurement
 
 
 class MeasureMOTFrag(ExpFragment):
@@ -25,7 +26,10 @@ class MeasureMOTFrag(ExpFragment):
         self.mot_controller: Blue3DMOTFrag
 
         self.setattr_fragment("mot_measurer", MOTPhotodiodeMeasurement)
-        self.mot_measurer: MOTPhotodiodeMeasurement
+        self.mot_measurer_pd: MOTPhotodiodeMeasurement
+
+        self.setattr_fragment("mot_measurer_camera", MOTCameraMeasurement)
+        self.mot_measurer_camera: MOTCameraMeasurement
 
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
         self.repumper_707_shutter: TTLOut = self.get_device(
@@ -90,7 +94,7 @@ class MeasureMOTFrag(ExpFragment):
 
         trace_data = [0.0] * num_points
 
-        self.mot_measurer.measure_MOT_fluorescence(
+        self.mot_measurer_pd.measure_MOT_fluorescence(
             num_points=num_points,
             delay_between_points_mu=self.core.seconds_to_mu(
                 self.delay_between_trace_points.get()
