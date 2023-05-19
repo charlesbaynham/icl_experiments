@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.zotino import Zotino
+from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import NumberValue
@@ -27,4 +28,5 @@ class SetZotinoVoltage(EnvExperiment):
     def run(self):
         self.core.reset()
         self.zotino_plant_room.init()
+        delay(10e-3)
         self.zotino_plant_room.set_dac([self.voltage], [self.channel])
