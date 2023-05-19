@@ -34,8 +34,6 @@ class SetBeamsToDefaults(Fragment):
             if beam_info.shutter_device:
                 self.ttls.append(self.get_device(beam_info.shutter_device))
 
-        self.setattr_device("core")
-
     @kernel
     def turn_on_all(self):
         """
