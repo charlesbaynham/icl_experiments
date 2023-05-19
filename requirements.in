@@ -17,9 +17,21 @@
 uk-covid19
 pydantic
 
-# Utilities
-ipython
-notebook
+# Code linting
+pre-commit
+black
+
+# Unit testing
 pytest
 coverage
+
+# Documentation generation
+sphinx
+sphinx-autobuild
+sphinx_rtd_theme
+sphinxcontrib-svg2pdfconverter
+
+# Environment debugging / freezing for non-nix python
 pip-tools
+ipython
+notebook
