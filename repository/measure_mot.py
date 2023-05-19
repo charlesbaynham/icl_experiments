@@ -25,7 +25,7 @@ class MeasureMOTFrag(ExpFragment):
         self.setattr_fragment("mot_controller", Blue3DMOTFrag)
         self.mot_controller: Blue3DMOTFrag
 
-        self.setattr_fragment("mot_measurer", MOTPhotodiodeMeasurement)
+        self.setattr_fragment("mot_measurer_pd", MOTPhotodiodeMeasurement)
         self.mot_measurer_pd: MOTPhotodiodeMeasurement
 
         self.setattr_fragment("mot_measurer_camera", MOTCameraMeasurement)
