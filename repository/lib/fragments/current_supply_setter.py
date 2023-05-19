@@ -1,11 +1,13 @@
 import logging
-from typing import Optional
+from typing import List
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.zotino import Zotino
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
+from artiq.experiment import TFloat
+from artiq.experiment import TList
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import Fragment
@@ -56,6 +58,59 @@ class SetAnalogCurrentSupply(Fragment):
             self.current_config.zotino_channel,
         )
         self.zotino.set_dac([voltage], [self.current_config.zotino_channel])
+
+
+class SetAnalogCurrentSupplies(Fragment):
+    """
+    Set multiple current supplies that are controlled by a analog voltages.
+    The supplies must all be controlled by the same Zotino
+    """
+
+    def build_fragment(self, current_configs: List[VoltageControlledCurrentSupply]):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.current_configs = current_configs
+
+        assert all(
+            [c.zotino == current_configs[0].zotino for c in current_configs]
+        ), "All current drivers must use the same Zotino"
+
+        self.zotino = self.get_device(self.current_configs[0].zotino)
+        self.zotino: Zotino
+
+        self.zotino_channels = [c.zotino_channel for c in current_configs]
+
+    @kernel
+    def device_setup(self) -> None:
+        self.core.break_realtime()
+        self.zotino.init()
+        delay(200e-6)
+        self.zotino.set_dac([0.0] * 32)
+
+        self.device_setup_subfragments()
+
+    @kernel
+    def set_currents(self, currents: TList[TFloat]):
+        """
+        Set currents in amps.
+        This method does not advance the timeline.
+        """
+        voltages = [0.0] * len(self.current_configs)
+
+        if len(currents) != len(self.current_configs):
+            raise ValueError("Expected %d currents" % len(self.current_configs))
+
+        for i in range(len(self.current_configs)):
+            voltages[i] = currents[i] / self.current_config.gain
+
+        logger.debug(
+            "Setting currents = %s with voltages = %s on channels %s",
+            currents,
+            voltages,
+            self.zotino_channels,
+        )
+        self.zotino.set_dac(voltages, self.zotino_channels)
 
 
 class SetAnalogCurrentSupplyExpFrag(ExpFragment):
