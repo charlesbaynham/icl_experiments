@@ -28,5 +28,7 @@ class SetZotinoVoltage(EnvExperiment):
     def run(self):
         self.core.reset()
         self.zotino_plant_room.init()
-        delay(10e-3)
+        delay(200e-6)
+        self.zotino_plant_room.set_dac([0.0] * 32)
+        delay(200e-6)
         self.zotino_plant_room.set_dac([self.voltage], [self.channel])
