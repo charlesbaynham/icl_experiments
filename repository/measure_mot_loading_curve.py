@@ -1,3 +1,4 @@
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
@@ -100,7 +101,7 @@ class MeasureMOTFrag(ExpFragment):
             data=trace_data,
         )
 
-        print(trace_data)
+        print(np.array(trace_data))
 
         self.photodiode_voltage.push(trace_data)
         mean_voltage = 0.0
