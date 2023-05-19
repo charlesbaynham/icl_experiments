@@ -32,7 +32,7 @@ class DisplayInjectionMonitors(ExpFragment):
         )
         self.waittime: FloatParamHandle
 
-        monitors = self.get_device_db()["IJD_monitors"]
+        monitors = self.get_device_db()["IJD_monitors"]["data"]
 
         sampler_name, _ = monitors["blue_IJD1_controller"]
         self.sampler: Sampler = self.get_device(sampler_name)

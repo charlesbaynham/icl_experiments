@@ -32,11 +32,19 @@ aliases = {
     "TTL_shutter_461_3dmot": "ttl19",
     "TTL_shutter_679_temporary_shutter": "ttl22",
     "TTL_shutter_707_temporary_shutter": "ttl23",
-    # %% These are not devices, but can still be retrieved from the device_db
+    # The following are not devices, but can still be retrieved from the device_db. The
+    # "type": "something" line is important since without it these are invalid
+    # entries and ARTIQ will rightfully complain.
     "IJD_monitors": {
-        "blue_IJD1_controller": ("sampler2", 0),
-        "blue_IJD2_controller": ("sampler2", 1),
-        "blue_IJD3_controller": ("sampler2", 2),
+        "type": "config",
+        "data": {
+            "blue_IJD1_controller": ("sampler2", 0),
+            "blue_IJD2_controller": ("sampler2", 1),
+            "blue_IJD3_controller": ("sampler2", 2),
+        },
     },
-    "mot_photodiode_sampler_config": ("suservo0", 0),
+    "mot_photodiode_sampler_config": {
+        "type": "config",
+        "data": ("suservo0", 0),
+    },
 }

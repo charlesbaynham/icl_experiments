@@ -105,7 +105,7 @@ class MOTPhotodiodeMeasurement(Fragment):
 
         photodiode_suservo_name, photodiode_suservo_channel = self.get_device_db()[
             "mot_photodiode_sampler_config"
-        ]
+        ]["data"]
 
         # Load the ADC utility subfragment
         self.setattr_fragment(

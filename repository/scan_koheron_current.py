@@ -173,7 +173,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             try:
                 self.adc_device, self.adc_channel = self.get_device_db()[
                     "IJD_monitors"
-                ][self.controller_name]
+                ]["data"][self.controller_name]
             except KeyError as exc:
                 raise KeyError(
                     f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?"
