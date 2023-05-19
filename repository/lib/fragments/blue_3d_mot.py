@@ -83,6 +83,7 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_param(
             "chamber_2_bias_x",
             FloatParam,
+            "Bias current for chamber 2 - X",
             default=constants.B_FIELD_BIAS_X,
             unit="A",
             min=-5,
@@ -91,6 +92,7 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_param(
             "chamber_2_bias_y",
             FloatParam,
+            "Bias current for chamber 2 - Y",
             default=constants.B_FIELD_BIAS_Y,
             unit="A",
             min=-5,
@@ -99,6 +101,7 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_param(
             "chamber_2_bias_z",
             FloatParam,
+            "Bias current for chamber 2 - Z",
             default=constants.B_FIELD_BIAS_Z,
             unit="A",
             min=-5,
@@ -111,6 +114,7 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_param(
             "chamber_2_field_gradient",
             FloatParam,
+            "Field gradient current for chamber 2",
             default=constants.B_FIELD_GRADIENT,
             unit="A",
             min=0,
