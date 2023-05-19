@@ -132,11 +132,11 @@ class Blue3DMOTFrag(Fragment):
         on immediately. It needs at least 3924ns of slack.
         """
         self.all_beam_default_setter.turn_on_all()
-        self.chamber_2_field_setter.set_bias_fields(
-            self.chamber_2_bias_x.get(),
-            self.chamber_2_bias_y.get(),
-            self.chamber_2_bias_z.get(),
-        )
+        # self.chamber_2_field_setter.set_bias_fields(
+        #     self.chamber_2_bias_x.get(),
+        #     self.chamber_2_bias_y.get(),
+        #     self.chamber_2_bias_z.get(),
+        # )
         # delay(4e-9)
         # self.chamber_2_field_setter.set_mot_gradient(
         #     self.chamber_2_field_gradient.get()
