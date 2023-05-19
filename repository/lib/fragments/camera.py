@@ -115,7 +115,7 @@ class MOTCameraMeasurement(ExpFragment):
         self._images = None
         return super().host_setup()
 
-    @rpc
+    @rpc(flags={"async"})
     def start_camera_measurement(self):
         """
         Start measuring images using pre-defined camera settings
