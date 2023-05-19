@@ -35,8 +35,8 @@ def get_device_db(simulation_mode=False):
     # Append our config data
     db = _append_config(db)
 
-    logger.info("DeviceDB import performed, resulting in device_db:")
-    logger.info(pprint.pformat(db))
+    logger.debug("DeviceDB import performed, resulting in device_db:")
+    logger.debug(pprint.pformat(db))
 
     return db
 
