@@ -100,6 +100,8 @@ class MeasureMOTFrag(ExpFragment):
             data=trace_data,
         )
 
+        print(trace_data)
+
         self.photodiode_voltage.push(trace_data)
         mean_voltage = 0.0
         for i in range(len(trace_data)):
