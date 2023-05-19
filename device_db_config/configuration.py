@@ -58,8 +58,8 @@ config = {
         "ch2_coils_y": 25,
         "ch2_coils_z": 24,
     },
-    "chamber_2_coil_x": VoltageControlledCurrentSupply("zotino_plant_room", 26, 2.0),
-    "chamber_2_coil_y": VoltageControlledCurrentSupply("zotino_plant_room", 25, 2.0),
-    "chamber_2_coil_z": VoltageControlledCurrentSupply("zotino_plant_room", 24, 1.0),
+    "chamber_2_coil_x": VoltageControlledCurrentSupply("zotino_plant_room", 26, -2.0),
+    "chamber_2_coil_y": VoltageControlledCurrentSupply("zotino_plant_room", 25, -2.0),
+    "chamber_2_coil_z": VoltageControlledCurrentSupply("zotino_plant_room", 24, -1.0),
     "chamber_2_coil_mot": VoltageControlledCurrentSupply("zotino_plant_room", 0, 50.0),
 }
