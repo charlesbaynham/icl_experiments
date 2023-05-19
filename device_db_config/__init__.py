@@ -15,9 +15,10 @@ from . import _aliases
 from . import _device_db
 from . import _non_core_devices
 from . import devices
+from .devices import get_configuration_from_db
 from .devices import get_device_db
 
 for p in [devices, _non_core_devices, _device_db, _aliases]:
     importlib.reload(p)
 
-__all__ = [get_device_db]
+__all__ = ["get_device_db", "get_configuration_from_db"]
