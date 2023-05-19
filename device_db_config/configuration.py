@@ -45,4 +45,5 @@ config = {
         "ch2_coils_y": 25,
         "ch2_coils_z": 24,
     },
+    "chamber_2_coil_gains": {"x": 2, "y": 2, "z": 1, "mot": 50},  #  in amps per volt
 }
