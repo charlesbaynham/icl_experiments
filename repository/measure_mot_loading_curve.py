@@ -18,7 +18,7 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
 
 
-class MeasureMOTLoadingCurveFrag(ExpFragment):
+class MeasureMOTFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -107,4 +107,4 @@ class MeasureMOTLoadingCurveFrag(ExpFragment):
         self.photodiode_mean_voltage.push(mean_voltage)
 
 
-MeasureMOTLoadingCurve = make_fragment_scan_exp(MeasureMOTLoadingCurveFrag)
+MeasureMOT = make_fragment_scan_exp(MeasureMOTFrag)
