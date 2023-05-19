@@ -42,6 +42,10 @@ def get_device_db(simulation_mode=False):
 
 
 def get_configuration_from_db(key, simulation_mode=False):
+    """
+    Get the config item saved in module :mod:`.configuration` under `key`. This
+    can be any datatype.
+    """
     db = get_device_db(simulation_mode=simulation_mode)
 
     def is_config_item(item):

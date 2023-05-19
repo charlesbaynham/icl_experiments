@@ -1,5 +1,6 @@
 """
 Hardware configuration
+======================
 
 This module can hold free-form data of any type. It should be used to represent
 hardware state in the lab (e.g. "which cable is plugged in where" or "which
