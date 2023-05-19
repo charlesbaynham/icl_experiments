@@ -656,3 +656,486 @@ device_db["sampler2"] = {
         "hw_rev": "v2.2",
     },
 }
+# DEST#2 peripherals
+
+device_db["suservo2_ch0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020000, "servo_device": "suservo2"},
+}
+
+device_db["suservo2_ch1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020001, "servo_device": "suservo2"},
+}
+
+device_db["suservo2_ch2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020002, "servo_device": "suservo2"},
+}
+
+device_db["suservo2_ch3"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020003, "servo_device": "suservo2"},
+}
+
+device_db["suservo2_ch4"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020004, "servo_device": "suservo2"},
+}
+
+device_db["suservo2_ch5"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020005, "servo_device": "suservo2"},
+}
+
+device_db["suservo2_ch6"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020006, "servo_device": "suservo2"},
+}
+
+device_db["suservo2_ch7"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "Channel",
+    "arguments": {"channel": 0x020007, "servo_device": "suservo2"},
+}
+
+device_db["suservo2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.suservo",
+    "class": "SUServo",
+    "arguments": {
+        "channel": 0x020008,
+        "pgia_device": "spi_sampler3_pgia",
+        "cpld_devices": ["urukul6_cpld", "urukul7_cpld"],
+        "dds_devices": ["urukul6_dds", "urukul7_dds"],
+        "sampler_hw_rev": "v2.2",
+    },
+}
+
+device_db["spi_sampler3_pgia"] = {
+    "type": "local",
+    "module": "artiq.coredevice.spi2",
+    "class": "SPIMaster",
+    "arguments": {"channel": 0x020009},
+}
+
+device_db["spi_urukul6"] = {
+    "type": "local",
+    "module": "artiq.coredevice.spi2",
+    "class": "SPIMaster",
+    "arguments": {"channel": 0x02000A},
+}
+device_db["urukul6_cpld"] = {
+    "type": "local",
+    "module": "artiq.coredevice.urukul",
+    "class": "CPLD",
+    "arguments": {"spi_device": "spi_urukul6", "refclk": 125000000.0, "clk_sel": 2},
+}
+device_db["urukul6_dds"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
+    "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul6_cpld"},
+}
+
+device_db["spi_urukul7"] = {
+    "type": "local",
+    "module": "artiq.coredevice.spi2",
+    "class": "SPIMaster",
+    "arguments": {"channel": 0x02000B},
+}
+device_db["urukul7_cpld"] = {
+    "type": "local",
+    "module": "artiq.coredevice.urukul",
+    "class": "CPLD",
+    "arguments": {"spi_device": "spi_urukul7", "refclk": 125000000.0, "clk_sel": 2},
+}
+device_db["urukul7_dds"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
+    "arguments": {"pll_n": 32, "chip_select": 3, "cpld_device": "urukul7_cpld"},
+}
+
+device_db["eeprom_urukul8"] = {
+    "type": "local",
+    "module": "artiq.coredevice.kasli_i2c",
+    "class": "KasliEEPROM",
+    "arguments": {"port": "EEM4"},
+}
+
+device_db["spi_urukul8"] = {
+    "type": "local",
+    "module": "artiq.coredevice.spi2",
+    "class": "SPIMaster",
+    "arguments": {"channel": 0x02000C},
+}
+
+device_db["ttl_urukul8_io_update"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02000D},
+}
+
+device_db["ttl_urukul8_sw0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02000E},
+}
+
+device_db["ttl_urukul8_sw1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02000F},
+}
+
+device_db["ttl_urukul8_sw2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020010},
+}
+
+device_db["ttl_urukul8_sw3"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020011},
+}
+
+device_db["urukul8_cpld"] = {
+    "type": "local",
+    "module": "artiq.coredevice.urukul",
+    "class": "CPLD",
+    "arguments": {
+        "spi_device": "spi_urukul8",
+        "sync_device": None,
+        "io_update_device": "ttl_urukul8_io_update",
+        "refclk": 125000000.0,
+        "clk_sel": 2,
+    },
+}
+
+device_db["urukul8_ch0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
+    "arguments": {
+        "pll_n": 32,
+        "chip_select": 4,
+        "cpld_device": "urukul8_cpld",
+        "sw_device": "ttl_urukul8_sw0",
+    },
+}
+
+device_db["urukul8_ch1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
+    "arguments": {
+        "pll_n": 32,
+        "chip_select": 5,
+        "cpld_device": "urukul8_cpld",
+        "sw_device": "ttl_urukul8_sw1",
+    },
+}
+
+device_db["urukul8_ch2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
+    "arguments": {
+        "pll_n": 32,
+        "chip_select": 6,
+        "cpld_device": "urukul8_cpld",
+        "sw_device": "ttl_urukul8_sw2",
+    },
+}
+
+device_db["urukul8_ch3"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
+    "arguments": {
+        "pll_n": 32,
+        "chip_select": 7,
+        "cpld_device": "urukul8_cpld",
+        "sw_device": "ttl_urukul8_sw3",
+    },
+}
+
+device_db["spi_mirny0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.spi2",
+    "class": "SPIMaster",
+    "arguments": {"channel": 0x020012},
+}
+
+device_db["ttl_mirny0_sw0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020013},
+}
+
+device_db["ttl_mirny0_sw1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020014},
+}
+
+device_db["ttl_mirny0_sw2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020015},
+}
+
+device_db["ttl_mirny0_sw3"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020016},
+}
+
+device_db["mirny0_ch0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 0,
+        "sw_device": "ttl_mirny0_sw0",
+        "cpld_device": "mirny0_cpld",
+    },
+}
+
+device_db["mirny0_ch1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 1,
+        "sw_device": "ttl_mirny0_sw1",
+        "cpld_device": "mirny0_cpld",
+    },
+}
+
+device_db["mirny0_ch2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 2,
+        "sw_device": "ttl_mirny0_sw2",
+        "cpld_device": "mirny0_cpld",
+    },
+}
+
+device_db["mirny0_ch3"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 3,
+        "sw_device": "ttl_mirny0_sw3",
+        "cpld_device": "mirny0_cpld",
+    },
+}
+
+device_db["mirny0_cpld"] = {
+    "type": "local",
+    "module": "artiq.coredevice.mirny",
+    "class": "Mirny",
+    "arguments": {"spi_device": "spi_mirny0", "refclk": 125000000.0, "clk_sel": "mmcx"},
+}
+
+device_db["spi_mirny1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.spi2",
+    "class": "SPIMaster",
+    "arguments": {"channel": 0x020017},
+}
+
+device_db["ttl_mirny1_sw0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020018},
+}
+
+device_db["ttl_mirny1_sw1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020019},
+}
+
+device_db["ttl_mirny1_sw2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02001A},
+}
+
+device_db["ttl_mirny1_sw3"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02001B},
+}
+
+device_db["mirny1_ch0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 0,
+        "sw_device": "ttl_mirny1_sw0",
+        "cpld_device": "mirny1_cpld",
+    },
+}
+
+device_db["mirny1_ch1"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 1,
+        "sw_device": "ttl_mirny1_sw1",
+        "cpld_device": "mirny1_cpld",
+    },
+}
+
+device_db["mirny1_ch2"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 2,
+        "sw_device": "ttl_mirny1_sw2",
+        "cpld_device": "mirny1_cpld",
+    },
+}
+
+device_db["mirny1_ch3"] = {
+    "type": "local",
+    "module": "artiq.coredevice.adf5356",
+    "class": "ADF5356",
+    "arguments": {
+        "channel": 3,
+        "sw_device": "ttl_mirny1_sw3",
+        "cpld_device": "mirny1_cpld",
+    },
+}
+
+device_db["mirny1_cpld"] = {
+    "type": "local",
+    "module": "artiq.coredevice.mirny",
+    "class": "Mirny",
+    "arguments": {"spi_device": "spi_mirny1", "refclk": 125000000.0, "clk_sel": "mmcx"},
+}
+
+device_db["ttl24"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02001C},
+}
+
+device_db["ttl25"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02001D},
+}
+
+device_db["ttl26"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02001E},
+}
+
+device_db["ttl27"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02001F},
+}
+
+device_db["ttl28"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020020},
+}
+
+device_db["ttl29"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020021},
+}
+
+device_db["ttl30"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020022},
+}
+
+device_db["ttl31"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020023},
+}
+# DEST#3 peripherals
+
+device_db["spi_zotino0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.spi2",
+    "class": "SPIMaster",
+    "arguments": {"channel": 0x030000},
+}
+device_db["ttl_zotino0_ldac"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x030001},
+}
+device_db["ttl_zotino0_clr"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x030002},
+}
+device_db["zotino0"] = {
+    "type": "local",
+    "module": "artiq.coredevice.zotino",
+    "class": "Zotino",
+    "arguments": {
+        "spi_device": "spi_zotino0",
+        "ldac_device": "ttl_zotino0_ldac",
+        "clr_device": "ttl_zotino0_clr",
+    },
+}
