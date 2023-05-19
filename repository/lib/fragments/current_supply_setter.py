@@ -91,7 +91,7 @@ class SetAnalogCurrentSupplies(Fragment):
         self.device_setup_subfragments()
 
     @kernel
-    def set_currents(self, currents: TList[TFloat]):
+    def set_currents(self, currents: TList(TFloat)):
         """
         Set currents in amps.
         This method does not advance the timeline.
