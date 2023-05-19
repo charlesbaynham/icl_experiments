@@ -138,7 +138,9 @@ class Blue3DMOTFrag(Fragment):
             self.chamber_2_bias_z.get(),
         )
         delay(4e-9)
-        self.chamber_2_field_setter.set_mot_gradient(self.chamber_2_field_gradient.get)
+        self.chamber_2_field_setter.set_mot_gradient(
+            self.chamber_2_field_gradient.get()
+        )
         delay(-4e-9)
 
     @kernel

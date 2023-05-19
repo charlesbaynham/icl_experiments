@@ -1,18 +1,11 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.zotino import Zotino
-from artiq.experiment import delay
-from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
-from ndscan.experiment import ExpFragment
-from ndscan.experiment import FloatParam
+from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import FloatParamHandle
 
 from device_db_config import get_configuration_from_db
-from device_db_config.configuration import VoltageControlledCurrentSupply
 from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupplies
 from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupply
 
@@ -60,7 +53,7 @@ class SetMagneticFields(Fragment):
         self.current_setter_bias.set_currents([current_x, current_y, current_z])
 
     @kernel
-    def set_mot_gradient(self, current: float):
+    def set_mot_gradient(self, current: TFloat):
         """
         Sets the chamber 2 field gradient current
         """
