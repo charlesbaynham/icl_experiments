@@ -27,7 +27,7 @@ class SetMagneticFields(Fragment):
         current_config_mot = get_configuration_from_db("chamber_2_coil_mot")
 
         self.setattr_fragment(
-            "bias_current_setter",
+            "current_setter_bias",
             SetAnalogCurrentSupplies,
             current_configs=[
                 current_config_x,

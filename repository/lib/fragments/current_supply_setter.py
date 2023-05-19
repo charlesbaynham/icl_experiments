@@ -99,10 +99,10 @@ class SetAnalogCurrentSupplies(Fragment):
         voltages = [0.0] * len(self.current_configs)
 
         if len(currents) != len(self.current_configs):
-            raise ValueError("Expected %d currents" % len(self.current_configs))
+            raise ValueError("Wrong number of currents")
 
         for i in range(len(self.current_configs)):
-            voltages[i] = currents[i] / self.current_config.gain
+            voltages[i] = currents[i] / self.current_configs[i].gain
 
         logger.debug(
             "Setting currents = %s with voltages = %s on channels %s",
