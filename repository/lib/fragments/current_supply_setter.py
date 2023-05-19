@@ -49,7 +49,12 @@ class SetAnalogCurrentSupply(Fragment):
         """
         voltage = current / self.current_config.gain
 
-        logger.debug("Setting current = %.2f with voltage = %.3f", current, voltage)
+        logger.debug(
+            "Setting current = %.2f with voltage = %.3f on channel %i",
+            current,
+            voltage,
+            self.current_config.zotino_channel,
+        )
         self.zotino.set_dac([voltage], [self.current_config.zotino_channel])
 
 
