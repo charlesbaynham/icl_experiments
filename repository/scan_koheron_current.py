@@ -26,6 +26,7 @@ from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
 
+from device_db_config import get_configuration_from_db
 from repository.lib import constants
 from repository.lib.fragments.read_adc import ReadSamplerADC
 
@@ -171,9 +172,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
         if self.controller_name is not None:  # i.e. not in build() for the GUI
             self.controller: CTL200 = self.get_device(self.controller_name)
             try:
-                self.adc_device, self.adc_channel = self.get_device_db()[
+                self.adc_device, self.adc_channel = get_configuration_from_db(
                     "IJD_monitors"
-                ]["data"][self.controller_name]
+                )[self.controller_name]
             except KeyError as exc:
                 raise KeyError(
                     f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?"

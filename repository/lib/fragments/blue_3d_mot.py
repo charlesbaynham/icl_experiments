@@ -11,9 +11,9 @@ from ndscan.experiment import Fragment
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
+from device_db_config import get_configuration_from_db
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
-
 
 logger = logging.getLogger(__name__)
 
@@ -103,9 +103,9 @@ class MOTPhotodiodeMeasurement(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        photodiode_suservo_name, photodiode_suservo_channel = self.get_device_db()[
+        photodiode_suservo_name, photodiode_suservo_channel = get_configuration_from_db(
             "mot_photodiode_sampler_config"
-        ]["data"]
+        )
 
         # Load the ADC utility subfragment
         self.setattr_fragment(

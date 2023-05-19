@@ -11,6 +11,8 @@ from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
+from device_db_config import get_configuration_from_db
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +34,7 @@ class DisplayInjectionMonitors(ExpFragment):
         )
         self.waittime: FloatParamHandle
 
-        monitors = self.get_device_db()["IJD_monitors"]["data"]
+        monitors = get_configuration_from_db("IJD_monitors")
 
         sampler_name, _ = monitors["blue_IJD1_controller"]
         self.sampler: Sampler = self.get_device(sampler_name)
