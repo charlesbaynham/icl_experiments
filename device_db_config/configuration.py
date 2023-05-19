@@ -30,6 +30,14 @@ To retrieve information from this file in an experiment, use
     data = get_configuration_from_db("my_data_item")
 
 """
+from pydantic.dataclasses import dataclass
+
+
+@dataclass
+class VoltageControlledCurrentSupply:
+    zotino: str
+    zotino_channel: int
+    gain: float  # amps/volt
 
 
 config = {
@@ -45,5 +53,8 @@ config = {
         "ch2_coils_y": 25,
         "ch2_coils_z": 24,
     },
-    "chamber_2_coil_gains": {"x": 2, "y": 2, "z": 1, "mot": 50},  #  in amps per volt
+    "chamber_2_coil_x": VoltageControlledCurrentSupply("zotino_plant_room", 26, 2.0),
+    "chamber_2_coil_y": VoltageControlledCurrentSupply("zotino_plant_room", 25, 2.0),
+    "chamber_2_coil_z": VoltageControlledCurrentSupply("zotino_plant_room", 24, 1.0),
+    "chamber_2_coil_mot": VoltageControlledCurrentSupply("zotino_plant_room", 0, 50.0),
 }

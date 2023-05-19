@@ -11,10 +11,10 @@
 #     """
 #     Set a current supply that's controlled by an analog voltage
 #     """
-#     def build_fragment(self):
+#     def build_fragment(self, ):
 #         self.setattr_device("core")
 #         self.core: Core
-#         self.setattr_device("zotino0")
+#         self.
 #    @kernel
 #     def set_current(self, current):
 #         """

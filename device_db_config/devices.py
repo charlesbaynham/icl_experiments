@@ -41,6 +41,15 @@ def get_device_db(simulation_mode=False):
     return db
 
 
+def _is_config_item(item):
+    return (
+        isinstance(item, dict)
+        and "type" in item
+        and item["type"] == "config"
+        and "data" in item
+    )
+
+
 def get_configuration_from_db(key, simulation_mode=False):
     """
     Get the config item saved in module :mod:`.configuration` under `key`. This
@@ -48,23 +57,24 @@ def get_configuration_from_db(key, simulation_mode=False):
     """
     db = get_device_db(simulation_mode=simulation_mode)
 
-    def is_config_item(item):
-        return (
-            isinstance(item, dict)
-            and "type" in item
-            and item["type"] == "config"
-            and "data" in item
-        )
-
     def extract_config_data(item):
         return item["data"]
 
     item = db[key]
 
-    if not is_config_item(item):
+    if not _is_config_item(item):
         raise KeyError(f"Item {key} does note have 'type'=='config' set")
 
     return extract_config_data(item)
+
+
+def get_all_configurations_from_db(simulation_mode=False):
+    """
+    Get all configuration entries saved in module :mod:`.configuration`.
+    """
+    db = get_device_db(simulation_mode=simulation_mode)
+
+    return {k: v for k, v in db.items() if _is_config_item(v)}
 
 
 def _append_config(db: dict):
