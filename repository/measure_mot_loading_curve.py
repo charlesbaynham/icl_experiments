@@ -9,8 +9,6 @@ from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 
