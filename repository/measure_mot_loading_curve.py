@@ -69,6 +69,7 @@ class MeasureMOTFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+        delay(10e-6)
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
         self.mot_controller.enable_mot_defaults()

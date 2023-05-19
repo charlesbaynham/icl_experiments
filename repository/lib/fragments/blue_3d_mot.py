@@ -129,7 +129,7 @@ class Blue3DMOTFrag(Fragment):
 
         This method does not advance the timeline and does not
         respect beam shutter delays - it just turns everything
-        on immediately.
+        on immediately. It needs at least 3924ns of slack.
         """
         self.all_beam_default_setter.turn_on_all()
         self.chamber_2_field_setter.set_bias_fields(

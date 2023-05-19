@@ -48,6 +48,9 @@ class SetMagneticFields(Fragment):
     def set_bias_fields(self, current_x, current_y, current_z):
         """
         Sets the bias field currents
+
+        Requires at least 3924ns of slack, in which time the Zotino cannot be
+        written to by other methods.
         """
 
         self.current_setter_bias.set_currents([current_x, current_y, current_z])
