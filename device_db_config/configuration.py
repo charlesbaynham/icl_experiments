@@ -36,8 +36,13 @@ from pydantic.dataclasses import dataclass
 @dataclass
 class VoltageControlledCurrentSupply:
     zotino: str
+    "Name of zotino device in device_db"
+
     zotino_channel: int
-    gain: float  # amps/volt
+    "Zotino channel controlling the supply"
+
+    gain: float
+    "Current gain in amps per volt"
 
 
 config = {
