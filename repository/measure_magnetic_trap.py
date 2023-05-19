@@ -103,7 +103,7 @@ class MeasureMagneticTrapWithPDFrag(ExpFragment):
     def run_once(self):
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on and allowing the AOMs to warm
-        self.mot_controller.enable_mot_beams()
+        self.mot_controller.enable_mot_defaults()
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         delay(20 * ns)
@@ -220,7 +220,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
-        self.mot_controller.enable_mot_beams()
+        self.mot_controller.enable_mot_defaults()
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
         delay(20 * ns)

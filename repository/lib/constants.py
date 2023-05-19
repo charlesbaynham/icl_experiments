@@ -20,6 +20,12 @@ from pyaion.models import SUServoedBeam
 
 IJD1_TEMPERATURE = 9632  # Ohms
 
+# Default field in chamber 2
+B_FIELD_BIAS_X = 0.0  # A
+B_FIELD_BIAS_Y = 0.0  # A
+B_FIELD_BIAS_Z = 0.0  # A
+B_FIELD_GRADIENT = 100.0  # A
+
 # Information about beams controlled by AOMs
 AOM_BEAMS = [
     SUServoedBeam(

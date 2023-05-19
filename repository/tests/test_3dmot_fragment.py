@@ -24,7 +24,7 @@ class TestBlue3DMOTPushBeamFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        self.frag_blue_3d_mot.enable_mot_beams()
+        self.frag_blue_3d_mot.enable_mot_defaults()
 
         for _ in range(10):
             delay(1.0)

@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
@@ -8,11 +9,14 @@ from artiq.experiment import TInt32
 from artiq.experiment import TInt64
 from artiq.experiment import TList
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
 from device_db_config import get_configuration_from_db
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.magnetic_fields import SetMagneticFields
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
@@ -70,16 +74,68 @@ class Blue3DMOTFrag(Fragment):
         )
         self.mot_3d_beams_setter: ControlBeamsWithoutCoolingAOM
 
+        self.setattr_fragment(
+            "chamber_2_field_setter",
+            SetMagneticFields,
+        )
+        self.chamber_2_field_setter: SetMagneticFields
+
+        self.setattr_param(
+            "chamber_2_bias_x",
+            FloatParam,
+            default=constants.B_FIELD_BIAS_X,
+            unit="A",
+            min=-5,
+            max=5,
+        )
+        self.setattr_param(
+            "chamber_2_bias_y",
+            FloatParam,
+            default=constants.B_FIELD_BIAS_Y,
+            unit="A",
+            min=-5,
+            max=5,
+        )
+        self.setattr_param(
+            "chamber_2_bias_z",
+            FloatParam,
+            default=constants.B_FIELD_BIAS_Z,
+            unit="A",
+            min=-5,
+            max=5,
+        )
+        self.chamber_2_bias_x: FloatParamHandle
+        self.chamber_2_bias_y: FloatParamHandle
+        self.chamber_2_bias_z: FloatParamHandle
+
+        self.setattr_param(
+            "chamber_2_field_gradient",
+            FloatParam,
+            default=constants.B_FIELD_GRADIENT,
+            unit="A",
+            min=0,
+            max=100,
+        )
+        self.chamber_2_field_gradient: FloatParamHandle
+
     @kernel
-    def enable_mot_beams(self):
+    def enable_mot_defaults(self):
         """
-        Immediately turn on all beams related to the 3D blue MOT
+        Immediately turn on all beams and fields related to the 3D blue MOT
 
         This method does not advance the timeline and does not
         respect beam shutter delays - it just turns everything
         on immediately.
         """
         self.all_beam_default_setter.turn_on_all()
+        self.chamber_2_field_setter.set_bias_fields(
+            self.chamber_2_bias_x.get(),
+            self.chamber_2_bias_y.get(),
+            self.chamber_2_bias_z.get(),
+        )
+        delay(4e-9)
+        self.chamber_2_field_setter.set_mot_gradient(self.chamber_2_field_gradient.get)
+        delay(-4e-9)
 
     @kernel
     def turn_on_3d_and_2d_beams(self):
