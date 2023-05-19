@@ -64,8 +64,17 @@ def get_configuration_from_db(key, simulation_mode=False):
 
 
 def _append_config(db: dict):
-    # Merge dicts
-    return {**db, **config.config}
+    # For each item in the config dict, wrap it in a dict with a "type":
+    # "config" entry to stop ARTIQ from complaining that it's an invalid device
+    out = db.copy()
+
+    for key, data in config.config.items():
+        if key in db:
+            raise KeyError(f"Config key {key} is already in device_db")
+
+        out[key] = {"type": "config", "data": data}
+
+    return out
 
 
 def _append_aliases(db: dict):

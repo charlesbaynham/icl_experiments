@@ -15,15 +15,9 @@ To retrieve information from this file in an experiment, use `
 
 config = {
     "IJD_monitors": {
-        "type": "config",
-        "data": {
-            "blue_IJD1_controller": ("sampler2", 0),
-            "blue_IJD2_controller": ("sampler2", 1),
-            "blue_IJD3_controller": ("sampler2", 2),
-        },
+        "blue_IJD1_controller": ("sampler2", 0),
+        "blue_IJD2_controller": ("sampler2", 1),
+        "blue_IJD3_controller": ("sampler2", 2),
     },
-    "mot_photodiode_sampler_config": {
-        "type": "config",
-        "data": ("suservo0", 0),
-    },
+    "mot_photodiode_sampler_config": ("suservo0", 0),
 }

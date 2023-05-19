@@ -32,4 +32,5 @@ aliases = {
     "TTL_shutter_461_3dmot": "ttl19",
     "TTL_shutter_679_temporary_shutter": "ttl22",
     "TTL_shutter_707_temporary_shutter": "ttl23",
+    "zotino_plant_room": "zotino0",
 }
