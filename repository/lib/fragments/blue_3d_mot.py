@@ -127,22 +127,23 @@ class Blue3DMOTFrag(Fragment):
         """
         Immediately turn on all beams and fields related to the 3D blue MOT
 
-        This method does not advance the timeline and does not
+        This method advances the timeline by a ridiculous amount and does not
         respect beam shutter delays - it just turns everything
         on immediately. It needs at least 3924ns of slack.
+
+        FIXME: Figure out why I need a stupid amount of slack
         """
         self.all_beam_default_setter.turn_on_all()
-        delay(50e-3)
-        # self.chamber_2_field_setter.set_bias_fields(
-        #     self.chamber_2_bias_x.get(),
-        #     self.chamber_2_bias_y.get(),
-        #     self.chamber_2_bias_z.get(),
-        # )
-        # delay(4e-9)
+        delay(30e-3)
+        self.chamber_2_field_setter.set_bias_fields(
+            self.chamber_2_bias_x.get(),
+            self.chamber_2_bias_y.get(),
+            self.chamber_2_bias_z.get(),
+        )
+        delay(30e-3)
         self.chamber_2_field_setter.set_mot_gradient(
             self.chamber_2_field_gradient.get()
         )
-        # delay(-4e-9)
 
     @kernel
     def turn_on_3d_and_2d_beams(self):
