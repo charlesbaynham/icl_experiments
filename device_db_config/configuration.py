@@ -3,14 +3,27 @@ Hardware configuration
 ======================
 
 This module can hold free-form data of any type. It should be used to represent
-hardware state in the lab (e.g. "which cable is plugged in where" or "which
-sampler input channel is paired with which urukul output channel"). It should
-NOT be used to represent information like "which power we usually run this AOM
-at" or "what current this coil typically needs" - that information belongs in
-`constants.py`.
+hardware state in the lab . It should
+NOT be used to represent information about running that hardware. For example:
+
+In scope for this module:
+#########################
+
+* which cable is plugged in to which channel on the Sampler?
+* which cable is plugged in to which channel on the Zotino?
+* what gain is a particular photodiode set at?
+* what gain is a current modulation input on a laser controller set to?
+* which Sampler input channel is paired with which Urukul output channel?
+
+Out of scope for this module (put this in :mod:`repository.lib.constants`):
+#############################################################
+
+* which attenuation do we usually run this coil at?
+* what setpoint do we use for this SUServo?
+* what temperature is our laser set to?
 
 To retrieve information from this file in an experiment, use
-:meth:`.get_configuration_from_db` like so::
+:meth:`device_db_config.get_configuration_from_db` like so::
 
     from device_db_config import get_configuration_from_db
 

@@ -1,9 +1,18 @@
-"""Constants
+"""
+Experimental constants
+======================
 
-This module is simply used to store static constants that can be referred to
-by other parts of the code. This is the only file where magic numbers should
-be stored, so you should never e.g. store an AOM's optimal attenuation as a
-default setting in a build() method somewhere: it should be here.
+This module is used to store static constants that can be referred to by other
+parts of the code. This is the only file where magic numbers should be stored,
+so you should never e.g. store an AOM's optimal attenuation as a default setting
+in a build() method somewhere: it should be here.
+
+This file should (ideally) not be used to store hardware state - see
+:mod:`device_db_config.configuration` for that.
+
+If it makes sense to have hardware and experimental constants stored together
+(e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
+this module.
 """
 from pyaion.models import SUServoedBeam
 
