@@ -8,3 +8,4 @@ Welcome to icl_experiments's documentation!
    readme
 
    autogen/repo/modules
+   autogen/device_db/modules
