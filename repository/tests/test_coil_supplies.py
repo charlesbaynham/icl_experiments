@@ -18,7 +18,9 @@ class SetZotinoVoltage(EnvExperiment):
         self.setattr_device("zotino_plant_room")
         self.zotino_plant_room: Zotino
 
-        self.setattr_argument("channel", NumberValue(default=0, step=1, scale=1))
+        self.setattr_argument(
+            "channel", NumberValue(default=0, step=1, scale=1, type="int")
+        )
         self.setattr_argument("voltage", NumberValue(default=0.0, unit="V"))
 
     @kernel
