@@ -91,7 +91,9 @@ class MonitorChamber2Camera(ExpFragment):
         try:
             image_dataset = f"ndscan.rid_{self.scheduler.rid}.point.image"
             self.ccb.issue(
-                "create_applet", "Chamber 2", f"${{artiq_applet}}image {image_dataset}"
+                "create_applet",
+                "Chamber 2 camera",
+                f"${{artiq_applet}}image {image_dataset}",
             )
         except AttributeError:
             pass
