@@ -207,17 +207,33 @@ class RelockAllIJDsFrag(ExpFragment):
 
         self.ijd_controller_frags: List[RelockIJDFrag] = []
 
+        # Request a relock fragment for each IJD controller
         for ijd_controller_name in ijd_controller_names:
             fragment_name = f"frag_relocker_{ijd_controller_name}"
-            default_temperature, default_window_position = IJD_DEFAULTS[
-                ijd_controller_name
-            ]
 
             frag = self.setattr_fragment(
                 fragment_name,
                 RelockIJDFrag,
                 ijd_controller_name,
             )
+
+            self.ijd_controller_frags.append(frag)  # type: ignore
+
+        # Create a top-level "num_point" parameter which will override the
+        # subfragment's parameters
+        self.setattr_param_like("num_points", self.ijd_controller_frags[0], default=40)
+        self.num_points: FloatParamHandle
+
+        # For each subfragment relocked, rebind parameters to set defaults for
+        # each IJD
+        for frag, ijd_controller_name in zip(
+            self.ijd_controller_frags, ijd_controller_names
+        ):
+            default_temperature, default_window_position = IJD_DEFAULTS[
+                ijd_controller_name
+            ]
+
+            frag.bind_param("num_points", self.num_points)
 
             self.setattr_param_rebind(
                 f"{ijd_controller_name}_start_current",
@@ -239,14 +255,6 @@ class RelockAllIJDsFrag(ExpFragment):
                 original_name="temperature",
                 default=default_temperature,
             )
-
-            self.ijd_controller_frags.append(frag)
-
-        self.setattr_param_like("num_points", frag)
-        self.num_points: FloatParamHandle
-
-        for frag in self.ijd_controller_frags:
-            frag.bind_param("num_points", self.num_points)
 
         self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
 
