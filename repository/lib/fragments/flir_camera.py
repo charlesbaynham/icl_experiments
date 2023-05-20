@@ -9,6 +9,8 @@ from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 from numpy.typing import ArrayLike
@@ -88,6 +90,16 @@ class MonitorChamber2Camera(ExpFragment):
         self.setattr_device("scheduler")
         self.setattr_device("ccb")
 
+        self.setattr_param(
+            "exposure", FloatParam, description="Exposure", unit="us", default=1000e-6
+        )
+        self.setattr_param(
+            "delay", FloatParam, description="Delay", unit="ms", default=500e-3
+        )
+
+        self.exposure: FloatParamHandle
+        self.delay: FloatParamHandle
+
         try:
             image_dataset = f"ndscan.rid_{self.scheduler.rid}.point.image"
             self.ccb.issue(
@@ -101,10 +113,13 @@ class MonitorChamber2Camera(ExpFragment):
     @host_only
     def run_once(self) -> None:
         logger.info("Starting camera measurement")
-        self.camera.ready_for_trigger(1000, 1)
+        self.camera.ready_for_trigger(self.exposure.get() * 1e6, 1)
 
         self.camera.trigger()
-        time.sleep(100e-3)
+
+        acquisition_delay = self.exposure.get() + 10e-3
+
+        time.sleep(acquisition_delay)
 
         logger.info("Camera measurement completed")
 
@@ -117,7 +132,7 @@ class MonitorChamber2Camera(ExpFragment):
         self.timestamp.push(timestamps[0])
         self.image.push(image_data[0])
 
-        time.sleep(0.5)
+        time.sleep(max(self.delay.get() - acquisition_delay, 0))
 
 
 MonitorChamber2Camera = make_fragment_scan_exp(MonitorChamber2Camera)  # type: ignore
