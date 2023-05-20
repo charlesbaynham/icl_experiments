@@ -119,7 +119,7 @@ class RelockIJDFrag(ExpFragment):
 
     def relock(self) -> None:
         # scan over a range of currents on the IJD
-        coordinates, values, analysis_results = self.scan_ijd_current.run(
+        coordinates, values, analysis_results = self.scan_ijd_current.run(  # type: ignore
             [
                 (
                     self.frag_ijd_scanner.current,
@@ -148,19 +148,19 @@ class RelockIJDFrag(ExpFragment):
         logger.debug(voltages)
 
         # Find the optimum current
-        lock_point = self.find_lock_point(currents, voltages)
+        lock_point = self.find_lock_point(currents, voltages)  # type: ignore
         start_point = lock_point + self.i_jump_above_window.get()
         t_wait = self.t_relock_waittime.get()
 
         # Jump to it
         logger.info("Prelock - Setting I = %.2f mA", start_point * 1e3)
-        self.ijd_controller.set_current_mA(start_point * 1e3)
+        self.ijd_controller.set_current_mA(start_point * 1e3)  # type: ignore
 
         logger.info("Sleeping for %.3f s", t_wait)
         time.sleep(t_wait)
 
         logger.info("Lock - Setting I = %.2f mA", lock_point * 1e3)
-        self.ijd_controller.set_current_mA(lock_point * 1e3)
+        self.ijd_controller.set_current_mA(lock_point * 1e3)  # type: ignore
 
     @portable
     def find_lock_point(self, current: TList, voltage: TList):
@@ -171,7 +171,7 @@ class RelockIJDFrag(ExpFragment):
         # Find start of the window (low current end):
         biggest_diff = 0
         ind_biggest_diff = 0
-        for i in range(len(current) - 1):
+        for i in range(len(current) - 1):  # type: ignore
             diff = voltage[i + 1] - voltage[i]
             if diff > biggest_diff:
                 biggest_diff = diff
