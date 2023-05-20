@@ -69,7 +69,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             "temperature",
             FloatParam,
             description="Temperature",
-            default=constants.IJD1_TEMPERATURE,
+            default=9000,
             min=8000,
             max=15000,
             unit="Ohms",
