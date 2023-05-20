@@ -34,7 +34,8 @@ class Chamber2Camera(ExpFragment):
         from aravis import Camera
 
         self.cam = Camera(
-            "FLIR-Blackfly S BFS-PGE-50S5M-22018873", loglevel=logging.INFO
+            "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
+            loglevel=logger.getEffectiveLevel(),
         )
         self.cam.set_feature("ExposureAuto", "Off")
 
