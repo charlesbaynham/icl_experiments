@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import List
 from typing import Optional
 
 from artiq.experiment import EnvExperiment
@@ -204,7 +205,7 @@ class RelockAllIJDsFrag(ExpFragment):
             "blue_IJD3_controller",
         ]
 
-        self.ijd_controller_frags = []
+        self.ijd_controller_frags: List[RelockIJDFrag] = []
 
         for ijd_controller_name in ijd_controller_names:
             fragment_name = f"frag_relocker_{ijd_controller_name}"
@@ -242,6 +243,10 @@ class RelockAllIJDsFrag(ExpFragment):
             self.ijd_controller_frags.append(frag)
 
         self.setattr_param_like("num_points", frag)
+        self.num_points: FloatParamHandle
+
+        for frag in self.ijd_controller_frags:
+            frag.bind_param("num_points", self.num_points)
 
         self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
 
