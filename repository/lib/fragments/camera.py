@@ -12,7 +12,7 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import OpaqueChannel
 
-from repository.lib.other.flir_camera import Chamber2Camera
+from repository.lib.fragments.flir_camera import Chamber2Camera
 
 logger = logging.getLogger(__name__)
 

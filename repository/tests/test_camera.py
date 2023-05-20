@@ -8,7 +8,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from retry import retry
 
 from repository.lib.constants import CHAMBER_2_CAMERA
-from repository.lib.other.flir_camera import Chamber2Camera
+from repository.lib.fragments.flir_camera import Chamber2Camera
 
 
 class TestFLIRCamera(EnvExperiment):
@@ -36,23 +36,30 @@ class TestFLIRCamera(EnvExperiment):
         return f
 
 
-class TestFLIRCameraInterface(EnvExperiment):
-    def run(self):
-        cam = Chamber2Camera()
+class TestFLIRCameraInterface(ExpFragment):
+    def build_fragment(self):
+        self.setattr_fragment("cam", Chamber2Camera)
+        self.cam: Chamber2Camera
+
+    def host_setup(self):
+        super().host_setup()
 
         for feature, value in CHAMBER_2_CAMERA.items():
-            cam.cam.set_feature(feature, value)
+            self.cam.cam.set_feature(feature, value)
 
-        cam.ready_for_trigger(exposure_us=1000, num_images=3)
+        self.cam.ready_for_trigger(exposure_us=1000, num_images=3)
 
         for _ in range(3):
-            cam.trigger()
+            self.cam.trigger()
             time.sleep(0.1)
 
-        frames = cam.get_frames()
+        frames = self.cam.get_frames()
 
         print(f"Got {len(frames)} frames:")
 
         for ts, frame in frames:
             print(pd.Timedelta(ts, "ns"))
             print(frame)
+
+
+TestFLIRCameraInterface = make_fragment_scan_exp(TestFLIRCameraInterface)
