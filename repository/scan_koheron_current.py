@@ -144,8 +144,13 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.change_aom: BoolParamHandle
 
-        self.setattr_argument("always_wait_at_start", BooleanValue(default=False))
-        self.always_wait_at_start: bool
+        self.setattr_param(
+            "always_wait_at_start",
+            BoolParam,
+            description="Wait for the temperature to settle before starting the first scan",
+            default="False",
+        )
+        self.always_wait_at_start: BoolParamHandle
 
         if controller_name is not None:
             logger.debug("Controller name provided - hard coding")
@@ -251,7 +256,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
     @kernel
     def set_temperature(self, temperature: TFloat):
         if (self.last_temperature != temperature) or (
-            self.is_first_cycle and self.always_wait_at_start
+            self.is_first_cycle and self.always_wait_at_start.get()
         ):
             self.set_temperature_rpc(temperature)
             self.last_temperature = temperature
@@ -270,7 +275,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
 
         if temperature_setpoint_is_correct and not (
-            self.is_first_cycle and self.always_wait_at_start
+            self.is_first_cycle and self.always_wait_at_start.get()
         ):
             # ... then assume everything is fine and do nothing
             logger.debug("Temperature already at setpoint - continuing")
