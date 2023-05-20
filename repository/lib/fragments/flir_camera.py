@@ -38,11 +38,11 @@ class Chamber2Camera(ExpFragment):
             loglevel=logger.getEffectiveLevel(),
         )
 
-        # Reset to default
-        self.cam.execute_command("DeviceReset")
-        time.sleep(2)
-
+        # Set sensible defaults. The user might change these
         self.cam.set_feature("ExposureAuto", "Off")
+        self.cam.set_feature("GainAuto", "Off")
+        self.cam.set_feature("ExposureTime", 1000)
+        self.cam.set_feature("Gain", 20)
 
         for feature, value in CHAMBER_2_CAMERA.items():
             self.cam.set_feature(feature, value)
