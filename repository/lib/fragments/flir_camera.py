@@ -37,6 +37,11 @@ class Chamber2Camera(ExpFragment):
             "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
             loglevel=logger.getEffectiveLevel(),
         )
+
+        # Reset to default
+        self.cam.execute_command("DeviceReset")
+        time.sleep(2)
+
         self.cam.set_feature("ExposureAuto", "Off")
 
         for feature, value in CHAMBER_2_CAMERA.items():
