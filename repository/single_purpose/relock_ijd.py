@@ -219,10 +219,16 @@ class RelockAllIJDsFrag(ExpFragment):
 
             self.ijd_controller_frags.append(frag)  # type: ignore
 
-        # Create a top-level "num_point" parameter which will override the
+        # Create top-level parameters which will override the
         # subfragment's parameters
         self.setattr_param_like("num_points", self.ijd_controller_frags[0], default=40)
+        self.setattr_param_like(
+            "current_waittime",
+            self.ijd_controller_frags[0].frag_ijd_scanner,
+            default=10e-3,
+        )
         self.num_points: FloatParamHandle
+        self.current_waittime: FloatParamHandle
 
         # For each subfragment relocked, rebind parameters to set defaults for
         # each IJD
