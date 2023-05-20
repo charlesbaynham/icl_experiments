@@ -196,7 +196,7 @@ class RelockAllIJDsFrag(ExpFragment):
     Relock all IJDs
     """
 
-    def build_fragment(self, *args, **kwargs) -> None:
+    def build_fragment(self) -> None:
         ijd_controller_names = [
             "blue_IJD1_controller",
             "blue_IJD2_controller",
@@ -215,6 +215,22 @@ class RelockAllIJDsFrag(ExpFragment):
                     ijd_controller_name,
                 )
             )
+
+        self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
+
+        self.setattr_param_rebind(
+            "ijd1_start_current",
+            self.frag_relocker_blue_IJD1_controller,
+            original_name="i_start_scan",
+            default=0.335,
+        )
+
+        self.setattr_param_rebind(
+            "ijd1_end_current",
+            self.frag_relocker_blue_IJD1_controller,
+            original_name="i_end_scan",
+            default=0.325,
+        )
 
     def run_once(self) -> None:
         # Relock each IJD in order
