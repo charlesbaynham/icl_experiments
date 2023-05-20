@@ -19,6 +19,12 @@ class TestFLIRCamera(EnvExperiment):
         cam = Camera("FLIR-Blackfly S BFS-PGE-50S5M-22018873", loglevel=logging.INFO)
         cam.start_acquisition_trigger()
 
-        frame = cam.try_pop_frame()
+        frame = self.get_frame(cam)
 
         print(frame)
+
+    def get_frame(self, cam):
+        f = cam.try_pop_frame()
+        if f is None:
+            raise RuntimeError
+        return f
