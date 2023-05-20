@@ -1,11 +1,12 @@
 import logging
+import time
 
 from artiq.experiment import EnvExperiment
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from retry import retry
 
-from repository.lib.fragments.camera import Chamber2Camera
+from repository.lib.other.flir_camera import Chamber2Camera
 
 
 class TestFLIRCamera(EnvExperiment):
@@ -31,3 +32,22 @@ class TestFLIRCamera(EnvExperiment):
         if f is None:
             raise RuntimeError
         return f
+
+
+class TestFLIRCameraInterface(EnvExperiment):
+    def run(self):
+        cam = Chamber2Camera()
+
+        cam.ready_for_trigger(exposure_us=1000, num_images=3)
+
+        for _ in range(3):
+            cam.trigger()
+            time.sleep(0.1)
+
+        frames = cam.get_frames()
+
+        print(f"Got {len(frames)} frames:")
+
+        for ts, frame in frames:
+            print(ts)
+            print(frame)

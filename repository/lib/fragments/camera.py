@@ -59,6 +59,7 @@ class MOTCameraMeasurement(ExpFragment):
         self.images: OpaqueChannel
 
     def host_setup(self):
+        raise NotImplementedError("I've messed with the camera code and broken this")
         self.camera_driver = Chamber2Camera(
             num_images=self.number_images.get(),
             exposure_us=1e6 * self.exposure.get(),
