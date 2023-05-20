@@ -50,12 +50,23 @@ class Chamber2Camera(Fragment):
 
     @rpc(flags={"async"})
     def ready_for_trigger(self, exposure_us, num_images):
+        """
+        Prepare the camera for taking images
+
+        Image acquisition should then be triggered via :meth:`.trigger` and read
+        out by :meth:`.get_frames`.
+        """
         self.num_images = num_images
         self.cam.set_exposure_time(exposure_us)
         self.cam.start_acquisition_trigger(nb_buffers=num_images)
 
     @rpc(flags={"async"})
     def trigger(self):
+        """
+        Trigger a measurement now
+
+        The camera must have been set up via :meth:`.ready_for_trigger` first.
+        """
         self.cam.trigger()
 
     @host_only
