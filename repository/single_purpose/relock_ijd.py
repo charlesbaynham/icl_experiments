@@ -45,7 +45,7 @@ class RelockIJDFrag(ExpFragment):
             "i_jump_above_window",
             FloatParam,
             "How far above the window to jump when relocking",
-            default=10 * 1e-3,
+            default=3 * 1e-3,
             unit="mA",
         )
         self.i_jump_above_window: FloatParamHandle
