@@ -32,64 +32,29 @@ def get_device_db(simulation_mode=False):
     # Append our own aliases, describing the purposes of the channels
     db = _append_aliases(db)
 
-    # Append our config data
-    db = _append_config(db)
-
     logger.debug("DeviceDB import performed, resulting in device_db:")
     logger.debug(pprint.pformat(db))
 
     return db
 
 
-def _is_config_item(item):
-    return (
-        isinstance(item, dict)
-        and "type" in item
-        and item["type"] == "config"
-        and "data" in item
-    )
-
-
-def _extract_config_data(item):
-    return item["data"]
-
-
-def get_configuration_from_db(key, simulation_mode=False):
+def get_configuration_from_db(key):
     """
     Get the config item saved in module :mod:`.configuration` under `key`. This
     can be any datatype.
     """
-    db = get_device_db(simulation_mode=simulation_mode)
+    configuration_db = config.config
 
-    item = db[key]
+    item = configuration_db[key]
 
-    if not _is_config_item(item):
-        raise KeyError(f"Item {key} does note have 'type'=='config' set")
-
-    return _extract_config_data(item)
+    return item
 
 
-def get_all_configurations_from_db(simulation_mode=False):
+def get_all_configurations_from_db():
     """
     Get all configuration entries saved in module :mod:`.configuration`.
     """
-    db = get_device_db(simulation_mode=simulation_mode)
-
-    return {k: _extract_config_data(v) for k, v in db.items() if _is_config_item(v)}
-
-
-def _append_config(db: dict):
-    # For each item in the config dict, wrap it in a dict with a "type":
-    # "config" entry to stop ARTIQ from complaining that it's an invalid device
-    out = db.copy()
-
-    for key, data in config.config.items():
-        if key in db:
-            raise KeyError(f"Config key {key} is already in device_db")
-
-        out[key] = {"type": "config", "data": data}
-
-    return out
+    return config.config
 
 
 def _append_aliases(db: dict):
