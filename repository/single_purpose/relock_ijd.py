@@ -262,6 +262,11 @@ class RelockAllIJDsFrag(ExpFragment):
                 default=default_temperature,
             )
 
+            # Disable waiting for temperature to settle - the relock algorithm
+            # will just have to be run again if it fails because of temperature
+            # and we don't want to delay the other IJDs
+            frag.frag_ijd_scanner.override_param("temperature_waittime", 0)
+
         self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
 
     def run_once(self) -> None:
