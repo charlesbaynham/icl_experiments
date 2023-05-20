@@ -55,7 +55,7 @@ class RelockIJDFrag(ExpFragment):
             FloatParam,
             "How long to wait after initial jump when relocking",
             unit="ms",
-            default=100 * 1e-3,
+            default=300 * 1e-3,
         )
         self.t_relock_waittime: FloatParamHandle
 
