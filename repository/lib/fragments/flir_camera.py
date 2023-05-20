@@ -7,6 +7,7 @@ import numpy as np
 from artiq.experiment import host_only
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
@@ -18,18 +19,9 @@ from repository.lib.constants import CHAMBER_2_CAMERA
 logger = logging.getLogger(__name__)
 
 
-class Chamber2Camera(ExpFragment):
+class Chamber2Camera(Fragment):
     def build_fragment(self):
-        self.setattr_result("timestamp", IntChannel)
-        self.timestamp: IntChannel
-
-        self.setattr_result("image", OpaqueChannel)
-        self.image: OpaqueChannel
-
-        # self.setattr_device("scheduler")
-        # self.setattr_device("ccb")
-        # dataset_prefix = f"ndscan.rid_{self.scheduler.rid}."
-        print(self.fqn)
+        pass
 
     def host_setup(self):
         # This import happens here because, for some reason, importing the
@@ -81,17 +73,29 @@ class Chamber2Camera(ExpFragment):
 
         return out
 
+
+class MonitorChamber2Camera(ExpFragment):
+    def build_fragment(self):
+        self.setattr_result("timestamp", IntChannel)
+        self.timestamp: IntChannel
+
+        self.setattr_result("image", OpaqueChannel)
+        self.image: OpaqueChannel
+
+        self.setattr_fragment("camera", Chamber2Camera)
+        self.camera: Chamber2Camera
+
     @host_only
     def run_once(self) -> None:
         logger.info("Starting camera measurement")
-        self.ready_for_trigger(1000, 1)
+        self.camera.ready_for_trigger(1000, 1)
 
-        self.trigger()
+        self.camera.trigger()
         time.sleep(100e-3)
 
         logger.info("Camera measurement completed")
 
-        images = self.get_frames()
+        images = self.camera.get_frames()
 
         logger.info("Took %i images", len(images))
 
@@ -103,4 +107,4 @@ class Chamber2Camera(ExpFragment):
         time.sleep(0.5)
 
 
-Chamber2CameraExp = make_fragment_scan_exp(Chamber2Camera)
+MonitorChamber2Camera = make_fragment_scan_exp(MonitorChamber2Camera)  # type: ignore
