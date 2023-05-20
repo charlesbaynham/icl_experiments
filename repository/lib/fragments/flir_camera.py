@@ -8,6 +8,8 @@ from artiq.experiment import rpc
 from ndscan.experiment import Fragment
 from numpy.typing import ArrayLike
 
+from repository.lib.constants import CHAMBER_2_CAMERA
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +29,10 @@ class Chamber2Camera(Fragment):
             "FLIR-Blackfly S BFS-PGE-50S5M-22018873", loglevel=logging.INFO
         )
         self.cam.set_feature("ExposureAuto", "Off")
+
+        for feature, value in CHAMBER_2_CAMERA.items():
+            self.cam.set_feature(feature, value)
+
         return super().host_setup()
 
     @rpc(flags={"async"})
