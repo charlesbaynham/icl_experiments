@@ -70,21 +70,35 @@ class Chamber2Camera(Fragment):
         self.cam.trigger()
 
     @host_only
-    def get_frames(self) -> List[Tuple[int, ArrayLike]]:
+    def get_frames(self, timeout=0.0) -> List[Tuple[int, ArrayLike]]:
         out = []
         for _ in range(self.num_images):
-            new_frame = self.cam.try_pop_frame(True)
-            if new_frame is not None and new_frame[0] is not None:
-                ts, data = new_frame
-                out.append((ts, np.array(data)))
-            else:
+            try:
+                out.append(self._get_one_frame(timeout=timeout))
+
+            except TimeoutError:
                 logger.warning(
                     "Expected %d images but only got %d", self.num_images, len(out)
                 )
+                break
 
         self.cam.stop_acquisition()
 
         return out
+
+    @host_only
+    def _get_one_frame(self, timeout=0.0) -> Tuple[int, ArrayLike]:
+        t_end = time.time() + timeout
+        while True:
+            frame = self.cam.try_pop_frame(True)
+
+            if frame is not None and frame[0] is not None:
+                return frame[0], np.array(frame[1])
+
+            if time.time() > t_end:
+                raise TimeoutError(f"Image not received after {timeout}s")
+
+            time.sleep(0.01)
 
 
 class MonitorChamber2Camera(ExpFragment):
