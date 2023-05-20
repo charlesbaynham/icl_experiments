@@ -231,7 +231,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
     @rpc
     def save_data(self):
-        image_data = self.camera_frag.get_frames()
+        image_data = self.camera_frag.get_frames(timeout=100e-3 + self.exposure.get())
         assert len(image_data) == 1
 
         timestamp, image = image_data[0]
