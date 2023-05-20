@@ -17,6 +17,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
+from repository.lib.constants import IJD_DEFAULTS
 from repository.scan_koheron_current import ScanKoheronCurrentFrag
 
 logger = logging.getLogger(__name__)
@@ -207,30 +208,40 @@ class RelockAllIJDsFrag(ExpFragment):
 
         for ijd_controller_name in ijd_controller_names:
             fragment_name = f"frag_relocker_{ijd_controller_name}"
+            default_temperature, default_window_position = IJD_DEFAULTS[
+                ijd_controller_name
+            ]
 
-            self.ijd_controller_frags.append(
-                self.setattr_fragment(
-                    fragment_name,
-                    RelockIJDFrag,
-                    ijd_controller_name,
-                )
+            frag = self.setattr_fragment(
+                fragment_name,
+                RelockIJDFrag,
+                ijd_controller_name,
             )
 
+            self.setattr_param_rebind(
+                f"{ijd_controller_name}_start_current",
+                frag,
+                original_name="i_start_scan",
+                default=default_window_position + 5e-3,
+            )
+
+            self.setattr_param_rebind(
+                f"{ijd_controller_name}_end_current",
+                frag,
+                original_name="i_end_scan",
+                default=default_window_position - 2e-3,
+            )
+
+            self.setattr_param_rebind(
+                f"{ijd_controller_name}_temperature",
+                frag.frag_ijd_scanner,
+                original_name="temperature",
+                default=default_temperature,
+            )
+
+            self.ijd_controller_frags.append(frag)
+
         self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
-
-        self.setattr_param_rebind(
-            "ijd1_start_current",
-            self.frag_relocker_blue_IJD1_controller,
-            original_name="i_start_scan",
-            default=0.335,
-        )
-
-        self.setattr_param_rebind(
-            "ijd1_end_current",
-            self.frag_relocker_blue_IJD1_controller,
-            original_name="i_end_scan",
-            default=0.325,
-        )
 
     def run_once(self) -> None:
         # Relock each IJD in order
