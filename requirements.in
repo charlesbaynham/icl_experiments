@@ -16,6 +16,7 @@
 # Scientific requirements
 uk-covid19
 pydantic
+retry
 
 # Code linting
 pre-commit

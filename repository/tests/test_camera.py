@@ -1,5 +1,6 @@
 import logging
 
+import retry
 from artiq.experiment import EnvExperiment
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -18,6 +19,6 @@ class TestFLIRCamera(EnvExperiment):
         cam = Camera("FLIR-Blackfly S BFS-PGE-50S5M-22018873", loglevel=logging.INFO)
         cam.start_acquisition_trigger()
 
-        frame = cam.pop_frame()
+        frame = cam.try_pop_frame()
 
         print(frame)
