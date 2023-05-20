@@ -33,17 +33,6 @@ class MOTCameraMeasurement(ExpFragment):
         self.exposure: FloatParamHandle
 
         self.setattr_param(
-            "image_delay",
-            FloatParam,
-            description="Delay between startring aquisition of frames",
-            default=20e-3,
-            min=20e-3,
-            unit="ms",
-            step=1,
-        )
-        self.image_delay: FloatParamHandle
-
-        self.setattr_param(
             "number_images",
             IntParam,
             description="Number of images to take",
