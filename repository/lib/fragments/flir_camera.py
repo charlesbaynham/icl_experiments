@@ -85,6 +85,17 @@ class MonitorChamber2Camera(ExpFragment):
         self.setattr_fragment("camera", Chamber2Camera)
         self.camera: Chamber2Camera
 
+        self.setattr_device("scheduler")
+        self.setattr_device("ccb")
+
+        try:
+            image_dataset = f"ndscan.rid_{self.scheduler.rid}.point.image"
+            self.ccb.issue(
+                "create_applet", "Chamber 2", f"${{artiq_applet}}image {image_dataset}"
+            )
+        except AttributeError:
+            pass
+
     @host_only
     def run_once(self) -> None:
         logger.info("Starting camera measurement")
