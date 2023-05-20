@@ -1,6 +1,7 @@
 import logging
 import time
 
+import pandas as pd
 from artiq.experiment import EnvExperiment
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -49,5 +50,5 @@ class TestFLIRCameraInterface(EnvExperiment):
         print(f"Got {len(frames)} frames:")
 
         for ts, frame in frames:
-            print(ts)
+            print(pd.Timedelta(ts, "ns"))
             print(frame)
