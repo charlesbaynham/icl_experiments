@@ -241,6 +241,8 @@ class RelockAllIJDsFrag(ExpFragment):
 
             self.ijd_controller_frags.append(frag)
 
+        self.setattr_param_like("num_points", frag)
+
         self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
 
     def run_once(self) -> None:
