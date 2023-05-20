@@ -95,5 +95,7 @@ class Chamber2Camera(ExpFragment):
         self.timestamp.push(timestamps[0])
         self.image.push(image_data[0])
 
+        time.sleep(0.5)
+
 
 Chamber2CameraExp = make_fragment_scan_exp(Chamber2Camera)
