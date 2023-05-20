@@ -153,10 +153,10 @@ class RelockIJDFrag(ExpFragment):
         t_wait = self.t_relock_waittime.get()
 
         # Jump to it
-        logger.info("Prelock - Setting I = %.2f mA", start_point * 1e3)
+        logger.debug("Prelock - Setting I = %.2f mA", start_point * 1e3)
         self.ijd_controller.set_current_mA(start_point * 1e3)  # type: ignore
 
-        logger.info("Sleeping for %.3f s", t_wait)
+        logger.debug("Sleeping for %.3f s", t_wait)
         time.sleep(t_wait)
 
         logger.info("Lock - Setting I = %.2f mA", lock_point * 1e3)
