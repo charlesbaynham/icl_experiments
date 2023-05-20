@@ -26,6 +26,11 @@ class Chamber2Camera(ExpFragment):
         self.setattr_result("image", OpaqueChannel)
         self.image: OpaqueChannel
 
+        # self.setattr_device("scheduler")
+        # self.setattr_device("ccb")
+        # dataset_prefix = f"ndscan.rid_{self.scheduler.rid}."
+        print(self.fqn)
+
     def host_setup(self):
         # This import happens here because, for some reason, importing the
         # gi.repository Aravis (which happens in python-aravis) breaks if you do
