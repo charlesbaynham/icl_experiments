@@ -19,9 +19,9 @@ from pyaion.models import SUServoedBeam
 # Injected diode default temperatures and window positions
 
 IJD_DEFAULTS = {
-    "blue_IJD1_controller": (9632, 326e-3),
-    "blue_IJD2_controller": (9632, 340e-3),
-    "blue_IJD3_controller": (9632, 338e-3),
+    "blue_IJD1_controller": (8500, 345e-3),
+    "blue_IJD2_controller": (8800, 345e-3),
+    "blue_IJD3_controller": (9000, 346e-3),
 }
 
 IJD1_TEMPERATURE = 9632  # Ohms
