@@ -7,6 +7,7 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from retry import retry
 
+from repository.lib.constants import CHAMBER_2_CAMERA
 from repository.lib.other.flir_camera import Chamber2Camera
 
 
@@ -38,6 +39,9 @@ class TestFLIRCamera(EnvExperiment):
 class TestFLIRCameraInterface(EnvExperiment):
     def run(self):
         cam = Chamber2Camera()
+
+        for feature, value in CHAMBER_2_CAMERA.items():
+            cam.cam.set_feature(feature, value)
 
         cam.ready_for_trigger(exposure_us=1000, num_images=3)
 
