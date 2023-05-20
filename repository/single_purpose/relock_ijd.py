@@ -225,7 +225,7 @@ class RelockAllIJDsFrag(ExpFragment):
         self.setattr_param_like(
             "current_waittime",
             self.ijd_controller_frags[0].frag_ijd_scanner,
-            default=10e-3,
+            default=100e-3,
         )
         self.num_points: FloatParamHandle
         self.current_waittime: FloatParamHandle
