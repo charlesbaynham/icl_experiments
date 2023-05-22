@@ -134,13 +134,13 @@ class Blue3DMOTFrag(Fragment):
         FIXME: Figure out why I need a stupid amount of slack
         """
         self.all_beam_default_setter.turn_on_all()
-        delay(30e-3)
+        delay(50e-3)
         self.chamber_2_field_setter.set_bias_fields(
             self.chamber_2_bias_x.get(),
             self.chamber_2_bias_y.get(),
             self.chamber_2_bias_z.get(),
         )
-        delay(30e-3)
+        delay(50e-3)
         self.chamber_2_field_setter.set_mot_gradient(
             self.chamber_2_field_gradient.get()
         )
