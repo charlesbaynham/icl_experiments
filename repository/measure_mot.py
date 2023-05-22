@@ -161,6 +161,8 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         self.setattr_result("image_mean", FloatChannel)
         self.image_mean: ResultChannel
 
+        self.setup_happened = False
+
         super().build_fragment()
 
     @kernel
@@ -170,9 +172,11 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         self.core.break_realtime()
 
         # Prepare camera to be triggered for a single acquisition
-        self.mot_measurer_camera.ready_for_trigger(
-            self.exposure.get() * 1e6, num_images=1
-        )
+        if not self.setup_happened:
+            self.mot_measurer_camera.ready_for_trigger(
+                self.exposure.get() * 1e6, num_images=10
+            )
+            self.setup_happened = True
 
     @kernel
     def _take_data(self):
