@@ -155,8 +155,8 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         self.setattr_result("image", OpaqueChannel)
         self.image: ResultChannel
 
-        self.setattr_result("image_timestamp", IntChannel)
-        self.image_timestamp: ResultChannel
+        # self.setattr_result("image_timestamp", IntChannel)
+        # self.image_timestamp: ResultChannel
 
         self.setattr_result("image_mean", FloatChannel)
         self.image_mean: ResultChannel
@@ -193,7 +193,7 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
         image_mean = np.mean(np.array(image).flatten())
 
-        self.image_timestamp.push(timestamp)
+        # self.image_timestamp.push(timestamp)
         self.image.push(image)
         self.image_mean.push(image_mean)
 
