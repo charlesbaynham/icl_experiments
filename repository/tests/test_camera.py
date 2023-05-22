@@ -2,9 +2,16 @@ import logging
 import time
 
 import pandas as pd
+from artiq.coredevice.core import Core
+from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
+from artiq.experiment import kernel
+from artiq.experiment import now_mu
+from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.result_channels import OpaqueChannel
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from retry import retry
 
 from repository.lib.fragments.flir_camera import Chamber2Camera
@@ -56,6 +63,47 @@ class TestFLIRCameraInterface(ExpFragment):
         for ts, frame in frames:
             print(pd.Timedelta(ts, "ns"))
             print(frame)
+
+
+class TestFLIRAgainstLightBG(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment("cam", Chamber2Camera)
+        self.cam: Chamber2Camera
+
+        self.setattr_fragment(
+            "suservo_setter",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_461_3DMOT_axialplus",
+        )
+        self.suservo_setter: LibSetSUServoStatic
+
+        self.setattr_result("images", OpaqueChannel)
+
+    @rpc
+    def setup_camera(self):
+        self.cam.ready_for_trigger(exposure_us=1000, num_images=1)
+
+    @kernel
+    def run_once(self):
+        amplitudes = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+
+        for amplitude in amplitudes:
+
+            self.setup_camera()
+
+            self.core.break_realtime()
+            self.suservo_setter.set_suservo(150e6, amplitude=amplitude, attenuation=20)
+
+            delay(250e-3)
+            self.core.wait_until_mu(now_mu())
+
+            self.cam.get_one_frame()
+
+            self.cam.trigger()
+            delay(100e-3)
 
 
 TestFLIRCameraInterface = make_fragment_scan_exp(TestFLIRCameraInterface)
