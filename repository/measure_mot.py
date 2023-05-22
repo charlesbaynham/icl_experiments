@@ -63,7 +63,7 @@ class MeasureMOTFrag(ExpFragment):
         delay(20 * ns)
         self.repumper_707_shutter.on()
         self.repumper_679_shutter.on()
-        delay(25 * ms)
+        delay(1 * ms)
         self.mot_controller.turn_off_3d_and_2d_beams()
 
         delay(
