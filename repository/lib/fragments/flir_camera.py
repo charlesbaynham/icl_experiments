@@ -58,7 +58,12 @@ class Chamber2Camera(Fragment):
         """
         self.num_images = num_images
         self.cam.set_exposure_time(exposure_us)
+
         self.cam.start_acquisition_trigger(nb_buffers=num_images)
+
+        # Read out any images still in the buffer
+        while self.cam.try_pop_frame() is not None:
+            pass
 
     @rpc(flags={"async"})
     def trigger(self):
