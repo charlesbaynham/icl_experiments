@@ -116,7 +116,7 @@ class MeasureMotWithPDFrag(MeasureMOTFrag):
             data=trace_data,
         )
 
-        self.photodiode_voltage.push(trace_data)
+        self.photodiode_voltage.push(np.array(trace_data))
         mean_voltage = 0.0
         for i in range(len(trace_data)):
             mean_voltage += trace_data[i]
