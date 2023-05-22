@@ -167,6 +167,8 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
+        self.core.break_realtime()
+
         # Prepare camera to be triggered for a single acquisition
         self.mot_measurer_camera.ready_for_trigger(
             self.exposure.get() * 1e6, num_images=1
