@@ -1,15 +1,19 @@
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.experiment import now_mu
 from artiq.experiment import ns
+from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
+from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
@@ -24,12 +28,6 @@ class MeasureMOTFrag(ExpFragment):
 
         self.setattr_fragment("mot_controller", Blue3DMOTFrag)
         self.mot_controller: Blue3DMOTFrag
-
-        self.setattr_fragment("mot_measurer_pd", MOTPhotodiodeMeasurement)
-        self.mot_measurer_pd: MOTPhotodiodeMeasurement
-
-        self.setattr_fragment("mot_measurer_camera", Chamber2Camera)
-        self.mot_measurer_camera: Chamber2Camera
 
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
         self.repumper_707_shutter: TTLOut = self.get_device(
@@ -50,27 +48,14 @@ class MeasureMOTFrag(ExpFragment):
         )
         self.mot_loading_time: FloatParamHandle
 
-        self.setattr_param(
-            "delay_between_trace_points",
-            FloatParam,
-            description="Delay between points in the photodiode trace",
-            default=1 * ms,
-            unit="ms",
-            min=1 * ms,
-            step=1,
-        )
-        self.delay_between_trace_points: FloatParamHandle
-
-        # Add output channel
-        self.setattr_result("photodiode_voltage", OpaqueChannel)
-        self.photodiode_voltage: ResultChannel
-
-        self.setattr_result("photodiode_mean_voltage", FloatChannel)
-        self.photodiode_mean_voltage: ResultChannel
+    @kernel
+    def _take_data(self):
+        raise NotImplementedError
 
     @kernel
     def run_once(self):
         self.core.break_realtime()
+
         delay(10e-6)
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
@@ -88,6 +73,35 @@ class MeasureMOTFrag(ExpFragment):
         # Load MOT and start measuring signal immediately
         self.mot_controller.turn_on_3d_and_2d_beams()
 
+        self._take_data()
+
+
+class MeasureMotWithPDFrag(MeasureMOTFrag):
+    def build_fragment(self):
+        self.setattr_param(
+            "delay_between_trace_points",
+            FloatParam,
+            description="Delay between points in the photodiode trace",
+            default=1 * ms,
+            unit="ms",
+            min=1 * ms,
+            step=1,
+        )
+        self.delay_between_trace_points: FloatParamHandle
+
+        self.setattr_fragment("mot_measurer_pd", MOTPhotodiodeMeasurement)
+        self.mot_measurer_pd: MOTPhotodiodeMeasurement
+
+        self.setattr_result("photodiode_voltage", OpaqueChannel)
+        self.photodiode_voltage: ResultChannel
+
+        self.setattr_result("photodiode_mean_voltage", FloatChannel)
+        self.photodiode_mean_voltage: ResultChannel
+
+        super().build_fragment()
+
+    @kernel
+    def _take_data(self):
         num_points = int(
             self.mot_loading_time.get() / self.delay_between_trace_points.get()
         )
@@ -110,4 +124,77 @@ class MeasureMOTFrag(ExpFragment):
         self.photodiode_mean_voltage.push(mean_voltage)
 
 
-MeasureMOT = make_fragment_scan_exp(MeasureMOTFrag)
+class MeasureMotWithCameraFrag(MeasureMOTFrag):
+    def build_fragment(self):
+
+        self.setattr_param(
+            "exposure",
+            FloatParam,
+            description="Image exposure",
+            default=1e-3,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.exposure: FloatParamHandle
+
+        self.setattr_param(
+            "delay_before_image",
+            FloatParam,
+            description="Delay before imaging MOT",
+            default=50e-3,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.delay_before_image: FloatParamHandle
+
+        self.setattr_fragment("mot_measurer_camera", Chamber2Camera)
+        self.mot_measurer_camera: Chamber2Camera
+
+        self.setattr_result("image", OpaqueChannel)
+        self.image: ResultChannel
+
+        self.setattr_result("image_timestamp", IntChannel)
+        self.image_timestamp: ResultChannel
+
+        self.setattr_result("image_mean", FloatChannel)
+        self.image_mean: ResultChannel
+
+        super().build_fragment()
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        # Prepare camera to be triggered for a single acquisition
+        self.mot_measurer_camera.ready_for_trigger(
+            self.exposure.get() * 1e6, num_images=1
+        )
+
+    @kernel
+    def _take_data(self):
+
+        delay(self.delay_before_image.get())
+
+        self.core.wait_until_mu(now_mu())
+
+        self.mot_measurer_camera.trigger()
+
+        self.save_data()
+
+    @rpc
+    def save_data(self):
+        timestamp, image = self.mot_measurer_camera.get_one_frame(
+            timeout=1 + self.exposure.get()
+        )
+
+        image_mean = np.mean(np.array(image).flatten())
+
+        self.image_timestamp.push(timestamp)
+        self.image.push(image)
+        self.image_mean.push(image_mean)
+
+
+MeasureMOTWithPD = make_fragment_scan_exp(MeasureMotWithPDFrag)
+MeasureMOTWithCamera = make_fragment_scan_exp(MeasureMotWithCameraFrag)

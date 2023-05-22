@@ -74,7 +74,7 @@ class Chamber2Camera(Fragment):
         out = []
         for _ in range(self.num_images):
             try:
-                out.append(self._get_one_frame(timeout=timeout))
+                out.append(self.get_one_frame(timeout=timeout))
 
             except TimeoutError:
                 logger.warning(
@@ -87,7 +87,7 @@ class Chamber2Camera(Fragment):
         return out
 
     @host_only
-    def _get_one_frame(self, timeout=0.0) -> Tuple[int, ArrayLike]:
+    def get_one_frame(self, timeout=0.0) -> Tuple[int, ArrayLike]:
         t_end = time.time() + timeout
         while True:
             frame = self.cam.try_pop_frame(True)
