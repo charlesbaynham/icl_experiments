@@ -52,6 +52,11 @@ class Chamber2Camera(Fragment):
 
         return super().host_setup()
 
+    def host_cleanup(self):
+        self.cam.shutdown()
+
+        super().host_cleanup()
+
     @rpc(flags={"async"})
     def ready_for_trigger(self, exposure_us, num_images):
         """
