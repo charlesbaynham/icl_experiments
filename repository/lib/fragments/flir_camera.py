@@ -46,6 +46,10 @@ class Chamber2Camera(Fragment):
         for feature, value in CHAMBER_2_CAMERA.items():
             self.cam.set_feature(feature, value)
 
+        # Reset the camera timestamp in setup rather than ready_for_trigger so
+        # that timestamps increase when scanned from a kernel
+        self.cam.execute_command("TimestampReset")
+
         return super().host_setup()
 
     @rpc(flags={"async"})
