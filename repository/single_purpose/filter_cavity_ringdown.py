@@ -3,7 +3,7 @@ from datetime import datetime
 from datetime import timedelta
 
 import artiq
-from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLInOut
 from artiq.experiment import at_mu
@@ -47,7 +47,7 @@ class TTLRingdown(EnvExperiment):
         self.ttl = self.get_device("ttl_transfer_cavity_trigger")
 
         self.core: Core
-        self.dds: AD9910
+        self.dds: AD9912
         self.ttl: TTLInOut
 
     def run(self):
@@ -79,7 +79,7 @@ class TTLRingdown(EnvExperiment):
         ttl_state = not bool(self.ttl.sample_get_nonrt())
 
         # If the ttl is high, turn on the dds. Otherwise turn it off
-        self.dds.sw.set_o(ttl_state)
+        self.dds.cfg_sw(ttl_state)
 
         # Now gate the input for rising or falling edges until the timeout
         end_timestamp_mu = self.ttl.gate_both(self.runtime)
@@ -93,4 +93,4 @@ class TTLRingdown(EnvExperiment):
             else:
                 at_mu(transition_timestamp_mu + self.response_time_mu)
                 ttl_state = not ttl_state
-                self.dds.sw.set_o(ttl_state)
+                self.dds.cfg_sw(ttl_state)
