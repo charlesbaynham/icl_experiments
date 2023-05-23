@@ -81,17 +81,24 @@ class TestFLIRAgainstLightBG(ExpFragment):
         self.suservo_setter: LibSetSUServoStatic
 
         self.setattr_result("images", OpaqueChannel)
+        self.images: OpaqueChannel
+
+        self.image_list = []
 
     @rpc
     def setup_camera(self):
         self.cam.ready_for_trigger(exposure_us=1000, num_images=1)
+
+    @rpc
+    def get_frame(self):
+        self.cam.trigger()
+        self.image_list.append(self.cam.get_one_frame())
 
     @kernel
     def run_once(self):
         amplitudes = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
         for amplitude in amplitudes:
-
             self.setup_camera()
 
             self.core.break_realtime()
@@ -100,10 +107,15 @@ class TestFLIRAgainstLightBG(ExpFragment):
             delay(250e-3)
             self.core.wait_until_mu(now_mu())
 
-            self.cam.get_one_frame()
+            self.get_frame()
 
-            self.cam.trigger()
             delay(100e-3)
+
+            self.push()
+
+    @rpc
+    def push(self):
+        self.images.push(self.image_list)
 
 
 TestFLIRCameraInterface = make_fragment_scan_exp(TestFLIRCameraInterface)
