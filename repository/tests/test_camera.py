@@ -102,7 +102,9 @@ class TestFLIRAgainstLightBG(ExpFragment):
             self.setup_camera()
 
             self.core.break_realtime()
-            self.suservo_setter.set_suservo(150e6, amplitude=amplitude, attenuation=20)
+            self.suservo_setter.set_suservo(
+                150e6, amplitude=amplitude, attenuation=20.0
+            )
 
             delay(250e-3)
             self.core.wait_until_mu(now_mu())
