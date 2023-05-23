@@ -10,6 +10,8 @@ from artiq.experiment import now_mu
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import OpaqueChannel
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from retry import retry
@@ -80,10 +82,13 @@ class TestFLIRAgainstLightBG(ExpFragment):
         )
         self.suservo_setter: LibSetSUServoStatic
 
-        self.setattr_result("images", OpaqueChannel)
-        self.images: OpaqueChannel
+        self.setattr_param(
+            "amplitude", FloatParam, "AOM amplitude", default=1, max=1, min=0
+        )
+        self.amplitude: FloatParamHandle
 
-        self.image_list = []
+        self.setattr_result("image", OpaqueChannel)
+        self.image: OpaqueChannel
 
     @rpc
     def setup_camera(self):
@@ -93,32 +98,21 @@ class TestFLIRAgainstLightBG(ExpFragment):
     def get_frame(self):
         self.cam.trigger()
         _, image = self.cam.get_one_frame(timeout=1)
-        self.image_list.append(image)
+        self.image.push(image)
 
     @kernel
     def run_once(self):
-        amplitudes = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        self.setup_camera()
 
-        for amplitude in amplitudes:
-            self.setup_camera()
+        self.core.break_realtime()
+        self.suservo_setter.set_suservo(
+            150e6, amplitude=self.amplitude.get(), attenuation=20.0
+        )
 
-            self.core.break_realtime()
-            self.suservo_setter.set_suservo(
-                150e6, amplitude=amplitude, attenuation=20.0
-            )
+        delay(250e-3)
+        self.core.wait_until_mu(now_mu())
 
-            delay(250e-3)
-            self.core.wait_until_mu(now_mu())
-
-            self.get_frame()
-
-            delay(100e-3)
-
-            self.push()
-
-    @rpc
-    def push(self):
-        self.images.push(self.image_list)
+        self.get_frame()
 
 
 TestFLIRCameraInterface = make_fragment_scan_exp(TestFLIRCameraInterface)
