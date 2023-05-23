@@ -107,7 +107,7 @@ class Chamber2Camera(Fragment):
             frame = self.cam.try_pop_frame(True)
 
             if frame is not None and frame[0] is not None:
-                return frame[0], np.array(frame[1])
+                return frame[0], np.array(frame[1], dtype="uint8")
 
             if time.time() > t_end:
                 raise TimeoutError(f"Image not received after {timeout}s")
