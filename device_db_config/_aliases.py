@@ -33,4 +33,6 @@ aliases = {
     "TTL_shutter_679_temporary_shutter": "ttl22",
     "TTL_shutter_707_temporary_shutter": "ttl23",
     "zotino_plant_room": "zotino0",
+    "ttl_transfer_cavity_trigger": "ttl1",
+    "dds_transfer_cavity_aom": "urukul2_ch0",
 }
