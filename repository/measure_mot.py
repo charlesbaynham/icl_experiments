@@ -181,7 +181,7 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
         image_mean = np.mean(np.array(image).flatten())
 
-        self.image.push((timestamp, image))
+        self.image.push([timestamp, image.to_list()])
         self.image_mean.push(image_mean)
 
 
