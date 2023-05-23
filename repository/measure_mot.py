@@ -49,7 +49,7 @@ class MeasureMOTFrag(ExpFragment):
         self.mot_loading_time: FloatParamHandle
 
     @kernel
-    def _take_data(self):
+    def _take_data(self, loading_time):
         raise NotImplementedError
 
     @kernel
@@ -73,7 +73,7 @@ class MeasureMOTFrag(ExpFragment):
         # Load MOT and start measuring signal immediately
         self.mot_controller.turn_on_3d_and_2d_beams()
 
-        self._take_data()
+        self._take_data(self.mot_loading_time.get())
 
 
 class MeasureMotWithPDFrag(MeasureMOTFrag):
@@ -101,10 +101,8 @@ class MeasureMotWithPDFrag(MeasureMOTFrag):
         super().build_fragment()
 
     @kernel
-    def _take_data(self):
-        num_points = int(
-            self.mot_loading_time.get() / self.delay_between_trace_points.get()
-        )
+    def _take_data(self, loading_time):
+        num_points = int(loading_time / self.delay_between_trace_points.get())
 
         trace_data = [0.0] * num_points
 
@@ -138,25 +136,14 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         )
         self.exposure: FloatParamHandle
 
-        self.setattr_param(
-            "delay_before_image",
-            FloatParam,
-            description="Delay before imaging MOT",
-            default=50e-3,
-            min=0,
-            unit="ms",
-            step=1,
-        )
-        self.delay_before_image: FloatParamHandle
-
         self.setattr_fragment("mot_measurer_camera", Chamber2Camera)
         self.mot_measurer_camera: Chamber2Camera
 
         self.setattr_result("image", OpaqueChannel)
         self.image: ResultChannel
 
-        # self.setattr_result("image_timestamp", IntChannel)
-        # self.image_timestamp: ResultChannel
+        self.setattr_result("image_timestamp", IntChannel)
+        self.image_timestamp: ResultChannel
 
         self.setattr_result("image_mean", FloatChannel)
         self.image_mean: ResultChannel
@@ -174,14 +161,14 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         # Prepare camera to be triggered for a single acquisition
         if not self.setup_happened:
             self.mot_measurer_camera.ready_for_trigger(
-                self.exposure.get() * 1e6, num_images=10
+                self.exposure.get() * 1e6, num_images=1
             )
             self.setup_happened = True
 
     @kernel
-    def _take_data(self):
+    def _take_data(self, loading_time):
 
-        delay(self.delay_before_image.get())
+        delay(loading_time)
 
         self.core.wait_until_mu(now_mu())
 
@@ -197,7 +184,7 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
         image_mean = np.mean(np.array(image).flatten())
 
-        # self.image_timestamp.push(timestamp)
+        self.image_timestamp.push(timestamp)
         self.image.push(image)
         self.image_mean.push(image_mean)
 
