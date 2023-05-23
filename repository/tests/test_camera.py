@@ -119,3 +119,5 @@ class TestFLIRAgainstLightBG(ExpFragment):
 
 
 TestFLIRCameraInterface = make_fragment_scan_exp(TestFLIRCameraInterface)
+
+TestFLIRAgainstLightBG = make_fragment_scan_exp(TestFLIRAgainstLightBG)
