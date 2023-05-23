@@ -92,7 +92,8 @@ class TestFLIRAgainstLightBG(ExpFragment):
     @rpc
     def get_frame(self):
         self.cam.trigger()
-        self.image_list.append(self.cam.get_one_frame())
+        _, image = self.cam.get_one_frame(timeout=1)
+        self.image_list.append(image)
 
     @kernel
     def run_once(self):
