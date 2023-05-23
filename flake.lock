@@ -14,11 +14,11 @@
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1677607954,
-        "narHash": "sha256-Ho2bKoOmC5/pCj7VpCJS+vYTteNWRN+OcSItaMraxbY=",
+        "lastModified": 1684851268,
+        "narHash": "sha256-/PRDOL3AM3pNu82mh4YDFCNgHpt9yrcoMy6aF3TMqo8=",
         "ref": "refs/heads/master",
-        "rev": "4feca3b864d97ebaa989bda291bc8a04bd8e0f24",
-        "revCount": 8311,
+        "rev": "6cb12bcf0264f4a691393cc1d93bd30791a329ad",
+        "revCount": 8312,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
@@ -316,11 +316,11 @@
         "pypi-deps-db": "pypi-deps-db"
       },
       "locked": {
-        "lastModified": 1684430327,
-        "narHash": "sha256-GdO9rodKvZ2dzjxRNyJN3jM8PK8wuuWD5rApj2l1ZyE=",
+        "lastModified": 1684851321,
+        "narHash": "sha256-uOKjMQzZvlIYfg11T+XHTo9+OKBbC0Z0v3nYPE7gKxQ=",
         "ref": "refs/heads/master",
-        "rev": "62cba529ce8ecf5f0de581ae051ecccfdba64145",
-        "revCount": 63,
+        "rev": "bc613dd54b5165fa0e2c298eea10df6161eea662",
+        "revCount": 68,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
