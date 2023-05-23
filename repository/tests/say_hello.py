@@ -60,7 +60,7 @@ However, you still do have access to the logging library, like so
         logger.info('My message is "%s"', self.message)
         logger.warning('Or it could be a warning, like this: "%s"', self.message)
 
-    @rpc(flags={"async"})
+    @rpc(flags={"asyncccc"})
     def say_hello_from_host(self):
         print(f"I'm running on the host so I can do complex things like 1+1 = {1+1}")
         time.sleep(2)
