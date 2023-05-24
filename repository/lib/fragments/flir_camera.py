@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 class Chamber2Camera(Fragment):
     def build_fragment(self):
-        pass
+        for feature, value in CHAMBER_2_CAMERA.items():
+            self.setattr_param(feature, FloatParam, feature, default=value)
 
     def host_setup(self):
         # This import happens here because, for some reason, importing the
@@ -43,7 +44,8 @@ class Chamber2Camera(Fragment):
         self.cam.set_feature("ExposureTime", 1000)
         self.cam.set_feature("Gain", 20)
 
-        for feature, value in CHAMBER_2_CAMERA.items():
+        for feature in CHAMBER_2_CAMERA.keys():
+            value = getattr(self, feature).get()
             self.cam.set_feature(feature, value)
 
         # Reset the camera timestamp in setup rather than ready_for_trigger so
