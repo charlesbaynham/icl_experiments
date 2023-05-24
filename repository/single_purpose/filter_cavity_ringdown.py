@@ -109,6 +109,6 @@ class TTLRingdown(EnvExperiment):
                         "Received TTL toggle at t_mu = %d", transition_timestamp_mu
                     )
                     logger.info("Switching to RF state = %d", 1 if ttl_state else 0)
-                #     self.core.break_realtime()
+                    self.core.break_realtime()
 
                 self.dds.cfg_sw(ttl_state)
