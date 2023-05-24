@@ -57,6 +57,9 @@ class TTLRingdown(EnvExperiment):
         # Convert the response time to machine units
         self.response_time_mu = self.core.seconds_to_mu(self.response_time)
 
+        # Pre-calculate log level
+        self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
+
         self.watch_dds_for_ttl()
 
     @kernel
@@ -78,6 +81,12 @@ class TTLRingdown(EnvExperiment):
         delay(1 * ms)
         ttl_state = not bool(self.ttl.sample_get_nonrt())
 
+        if self.print_debug_statements:
+            logger.info(
+                "Starting experiment with ttl_state = %d", 1 if ttl_state else 0
+            )
+            self.core.break_realtime()
+
         # If the ttl is high, turn on the dds. Otherwise turn it off
         self.dds.cfg_sw(ttl_state)
 
@@ -86,11 +95,20 @@ class TTLRingdown(EnvExperiment):
 
         # For the rest of this Experiment, keep the RF switch in sync with the ttl
         while True:
+            ttl_state = not ttl_state
+
             transition_timestamp_mu = self.ttl.timestamp_mu(end_timestamp_mu)
 
             if transition_timestamp_mu == -1:
                 break
             else:
                 at_mu(transition_timestamp_mu + self.response_time_mu)
-                ttl_state = not ttl_state
+
+                if self.print_debug_statements:
+                    logger.info(
+                        "Received TTL toggle at t_mu = %d", transition_timestamp_mu
+                    )
+                    logger.info("Switching to RF state = %d", 1 if ttl_state else 0)
+                #     self.core.break_realtime()
+
                 self.dds.cfg_sw(ttl_state)
