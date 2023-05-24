@@ -14,6 +14,8 @@ If it makes sense to have hardware and experimental constants stored together
 (e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
 this module.
 """
+from collections import OrderedDict
+
 from pyaion.models import SUServoedBeam
 
 # Injected diode default temperatures and window positions
@@ -24,8 +26,16 @@ IJD_DEFAULTS = {
     "blue_IJD3_controller": (9000, 346e-3),
 }
 
-
-CHAMBER_2_CAMERA = {"Height": 726, "Width": 584, "OffsetX": 944, "OffsetY": 584}
+# Order matters here since the camera must have its offsets set first otherwise
+# the selected height / width may be invalid with the previous offsets
+CHAMBER_2_CAMERA = OrderedDict(
+    [
+        ("OffsetX", 944),
+        ("OffsetY", 584),
+        ("Height", 726),
+        ("Width", 584),
+    ]
+)
 "Chamber 2 camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
 
 # Default field in chamber 2
