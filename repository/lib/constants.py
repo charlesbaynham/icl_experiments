@@ -26,14 +26,14 @@ IJD_DEFAULTS = {
     "blue_IJD3_controller": (9000, 346e-3),
 }
 
-# Order matters here since the camera must have its offsets set first otherwise
-# the selected height / width may be invalid with the previous offsets
+# Order matters here since this is the order in which they are applied to the
+# camera and it will complain if it's ever in an invalid state
 CHAMBER_2_CAMERA = OrderedDict(
     [
-        ("OffsetX", 944),
-        ("OffsetY", 584),
         ("Height", 726),
         ("Width", 584),
+        ("OffsetX", 944),
+        ("OffsetY", 584),
     ]
 )
 "Chamber 2 camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"

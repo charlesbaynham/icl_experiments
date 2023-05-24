@@ -44,6 +44,14 @@ class Chamber2Camera(Fragment):
         self.cam.set_feature("ExposureTime", 1000)
         self.cam.set_feature("Gain", 20)
 
+        max_height = self.cam.get_feature("HeightMax")
+        max_width = self.cam.get_feature("WidthMax")
+
+        self.cam.set_feature("OffsetX", 0)
+        self.cam.set_feature("OffsetY", 0)
+        self.cam.set_feature("Height", max_height)
+        self.cam.set_feature("Width", max_width)
+
         for feature in CHAMBER_2_CAMERA.keys():
             value = getattr(self, feature).get()
             self.cam.set_feature(feature, value)
