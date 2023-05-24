@@ -160,14 +160,14 @@ class MonitorChamber2Camera(ExpFragment):
 
         logger.info("Camera measurement completed")
 
-        images = self.camera.get_frames(timeout=1 + self.exposure.get())
+        timestamp, image_data = self.camera.get_one_frame(
+            timeout=1 + self.exposure.get()
+        )
 
-        logger.info("Took %i images", len(images))
+        self.timestamp.push(timestamp)
 
-        timestamps, image_data = zip(*images)
-
-        self.timestamp.push(timestamps[0])
-        self.image.push(image_data[0])
+        # convert to int instead of uint8 for plotting
+        self.image.push(np.array(image_data).astype("int"))
 
         t_end = time.time()
 
