@@ -20,13 +20,31 @@ from repository.lib.constants import CHAMBER_2_CAMERA
 
 logger = logging.getLogger(__name__)
 
+CH2_CAM_DATASET_KEY = "latest_ch2_image"
+
 
 class Chamber2Camera(Fragment):
     def build_fragment(self):
         for feature, value in CHAMBER_2_CAMERA.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
 
+        self.setattr_device("ccb")
+
     def host_setup(self):
+        # Open the monitoring applet
+        self.set_dataset(
+            CH2_CAM_DATASET_KEY,
+            np.array([[0.0]]),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        self.ccb.issue(
+            "create_applet",
+            "Chamber 2 camera",
+            f"${{artiq_applet}}image {CH2_CAM_DATASET_KEY}",
+        )
+
         # This import happens here because, for some reason, importing the
         # gi.repository Aravis (which happens in python-aravis) breaks if you do
         # it from multiple processes at the same time, which ARTIQ will trigger
@@ -98,7 +116,7 @@ class Chamber2Camera(Fragment):
         out = []
         for _ in range(self.num_images):
             try:
-                out.append(self.get_one_frame(timeout=timeout))
+                out.append(self._get_one_frame_without_monitor_update(timeout=timeout))
 
             except TimeoutError:
                 logger.warning(
@@ -108,10 +126,21 @@ class Chamber2Camera(Fragment):
 
         self.cam.stop_acquisition()
 
+        self._update_monitor(out[-1][1])
+
         return out
 
     @host_only
     def get_one_frame(self, timeout=0.0) -> Tuple[int, ArrayLike]:
+        ts, img = self._get_one_frame_without_monitor_update(timeout=timeout)
+        self._update_monitor(img)
+        return ts, img
+
+    @host_only
+    def _get_one_frame_without_monitor_update(
+        self, timeout=0.0
+    ) -> Tuple[int, ArrayLike]:
+
         t_end = time.time() + timeout
         while True:
             frame = self.cam.try_pop_frame(True)
@@ -124,11 +153,22 @@ class Chamber2Camera(Fragment):
 
             time.sleep(0.01)
 
+    @host_only
+    def _update_monitor(self, img):
+        # convert to int instead of uint8 for plotting
+        self.set_dataset(
+            CH2_CAM_DATASET_KEY,
+            np.array(img).astype("int"),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
 
 class MonitorChamber2Camera(ExpFragment):
     def build_fragment(self):
         self.setattr_result("timestamp", IntChannel, display_hints={"priority": -1})
-        self.imestamp: IntChannel
+        self.timestamp: IntChannel
 
         self.setattr_result("image", OpaqueChannel)
         self.image: OpaqueChannel
@@ -149,16 +189,6 @@ class MonitorChamber2Camera(ExpFragment):
         self.exposure: FloatParamHandle
         self.delay: FloatParamHandle
 
-        try:
-            image_dataset = f"ndscan.rid_{self.scheduler.rid}.point.image"
-            self.ccb.issue(
-                "create_applet",
-                "Chamber 2 camera",
-                f"${{artiq_applet}}image {image_dataset}",
-            )
-        except AttributeError:
-            pass
-
     @host_only
     def run_once(self) -> None:
         t_start = time.time()
@@ -175,9 +205,7 @@ class MonitorChamber2Camera(ExpFragment):
         )
 
         self.timestamp.push(timestamp)
-
-        # convert to int instead of uint8 for plotting
-        self.image.push(np.array(image_data).astype("int"))
+        self.image.push(image_data)
 
         t_end = time.time()
 
