@@ -223,7 +223,9 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.setattr_result("mot_images", OpaqueChannel)
         self.mot_images: ResultChannel
 
-        self.setattr_result("mot_image_timestamps", OpaqueChannel)
+        self.setattr_result(
+            "mot_image_timestamps", OpaqueChannel, display_hints={"priority": -1}
+        )
         self.mot_image_timestamps: ResultChannel
 
         self.setattr_result("mot_integrated_brightness", FloatChannel)

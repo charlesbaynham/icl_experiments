@@ -127,8 +127,8 @@ class Chamber2Camera(Fragment):
 
 class MonitorChamber2Camera(ExpFragment):
     def build_fragment(self):
-        self.setattr_result("timestamp", IntChannel)
-        self.timestamp: IntChannel
+        self.setattr_result("timestamp", IntChannel, display_hints={"priority": -1})
+        self.imestamp: IntChannel
 
         self.setattr_result("image", OpaqueChannel)
         self.image: OpaqueChannel
