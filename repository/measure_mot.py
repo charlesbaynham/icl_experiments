@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
@@ -20,6 +22,9 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
 from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
 from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
+
+
+logger = logging.getLogger(__name__)
 
 
 class MeasureMOTFrag(ExpFragment):
@@ -224,6 +229,9 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
         image_horiz_mean = np.mean(np.array(image_horiz).flat)
         image_vert_mean = np.mean(np.array(image_vert).flat)
+
+        logger.debug("image_horiz.shape = %s", image_horiz.shape)
+        logger.debug("image_vert.shape = %s", image_vert.shape)
 
         self.image_horizontal_timestamp.push(timestamp_horiz)
         self.image_horizontal_timestamp.push(timestamp_vert)
