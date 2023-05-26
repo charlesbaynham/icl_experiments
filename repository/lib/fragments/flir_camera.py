@@ -17,6 +17,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 from numpy.typing import ArrayLike
 
 from repository.lib.constants import CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
+from repository.lib.constants import CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
 
 
 logger = logging.getLogger(__name__)
@@ -218,7 +219,7 @@ class Chamber2HorizontalCamera(CameraFrag):
 
 
 class Chamber2VerticalCamera(CameraFrag):
-    default_features = CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
+    default_features = CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
     monitor_dataset_key = "latest_ch2_vert_image"
     monitor_dataset_description = "Chamber 2 vertical camera"
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"

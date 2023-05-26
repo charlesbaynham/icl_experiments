@@ -36,7 +36,20 @@ CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
         ("OffsetY", 584),
     ]
 )
-"Chamber 2 camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
+"Chamber 2 horizontal camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
+
+# Order matters here since this is the order in which they are applied to the
+# camera and it will complain if it's ever in an invalid state
+CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
+    [
+        # ("Height", 726),
+        # ("Width", 584),
+        # ("OffsetX", 944),
+        # ("OffsetY", 584),
+    ]
+)
+"Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
+
 
 # Default field in chamber 2
 B_FIELD_BIAS_X = 0.0  # A
