@@ -152,7 +152,7 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         )
         self.mot_measurer_camera_horizontal: Chamber2HorizontalCamera
 
-        self.setattr_fragment("mot_measurer_camera_vertical", Chamber2HorizontalCamera)
+        self.setattr_fragment("mot_measurer_camera_vertical", Chamber2VerticalCamera)
         self.mot_measurer_camera_vertical: Chamber2VerticalCamera
 
         self.setattr_result("image_horizontal", OpaqueChannel)
