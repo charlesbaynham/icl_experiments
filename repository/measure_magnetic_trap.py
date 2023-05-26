@@ -19,7 +19,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
-from repository.lib.fragments.flir_camera import Chamber2Camera
+from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
 
 logger = logging.getLogger(__name__)
 
@@ -164,8 +164,8 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.setattr_fragment("mot_controller", Blue3DMOTFrag)
         self.mot_controller: Blue3DMOTFrag
 
-        self.setattr_fragment("camera_frag", Chamber2Camera)
-        self.camera_frag: Chamber2Camera
+        self.setattr_fragment("camera_frag", Chamber2HorizontalCamera)
+        self.camera_frag: Chamber2HorizontalCamera
 
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
         self.repumper_707_shutter: TTLOut = self.get_device(

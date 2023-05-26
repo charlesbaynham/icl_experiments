@@ -28,7 +28,7 @@ IJD_DEFAULTS = {
 
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state
-CHAMBER_2_CAMERA = OrderedDict(
+CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
     [
         ("Height", 726),
         ("Width", 584),

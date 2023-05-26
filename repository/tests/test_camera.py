@@ -16,7 +16,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from retry import retry
 
-from repository.lib.fragments.flir_camera import Chamber2Camera
+from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
 
 
 class TestFLIRCamera(EnvExperiment):
@@ -46,8 +46,8 @@ class TestFLIRCamera(EnvExperiment):
 
 class TestFLIRCameraInterface(ExpFragment):
     def build_fragment(self):
-        self.setattr_fragment("cam", Chamber2Camera)
-        self.cam: Chamber2Camera
+        self.setattr_fragment("cam", Chamber2HorizontalCamera)
+        self.cam: Chamber2HorizontalCamera
 
     def host_setup(self):
         super().host_setup()
@@ -72,8 +72,8 @@ class TestFLIRAgainstLightBG(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("cam", Chamber2Camera)
-        self.cam: Chamber2Camera
+        self.setattr_fragment("cam", Chamber2HorizontalCamera)
+        self.cam: Chamber2HorizontalCamera
 
         self.setattr_fragment(
             "suservo_setter",

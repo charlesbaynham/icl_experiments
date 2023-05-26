@@ -18,7 +18,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
-from repository.lib.fragments.flir_camera import Chamber2Camera
+from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
 
 
 class MeasureMOTFrag(ExpFragment):
@@ -136,8 +136,8 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         )
         self.exposure: FloatParamHandle
 
-        self.setattr_fragment("mot_measurer_camera", Chamber2Camera)
-        self.mot_measurer_camera: Chamber2Camera
+        self.setattr_fragment("mot_measurer_camera", Chamber2HorizontalCamera)
+        self.mot_measurer_camera: Chamber2HorizontalCamera
 
         self.setattr_result("image", OpaqueChannel)
         self.image: ResultChannel

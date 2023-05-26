@@ -16,7 +16,7 @@ from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 from numpy.typing import ArrayLike
 
-from repository.lib.constants import CHAMBER_2_CAMERA
+from repository.lib.constants import CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
 
 
 logger = logging.getLogger(__name__)
@@ -210,8 +210,8 @@ class CameraFrag(Fragment):
         )
 
 
-class Chamber2Camera(CameraFrag):
-    default_features = CHAMBER_2_CAMERA
+class Chamber2HorizontalCamera(CameraFrag):
+    default_features = CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
     monitor_dataset_key = "latest_ch2_image"
     monitor_dataset_description = "Chamber 2 camera"
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018873"
@@ -225,8 +225,8 @@ class MonitorChamber2Camera(ExpFragment):
         self.setattr_result("image", OpaqueChannel)
         self.image: OpaqueChannel
 
-        self.setattr_fragment("camera", Chamber2Camera)
-        self.camera: Chamber2Camera
+        self.setattr_fragment("camera", Chamber2HorizontalCamera)
+        self.camera: Chamber2HorizontalCamera
 
         self.setattr_device("scheduler")
         self.setattr_device("ccb")
