@@ -212,9 +212,16 @@ class CameraFrag(Fragment):
 
 class Chamber2HorizontalCamera(CameraFrag):
     default_features = CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
-    monitor_dataset_key = "latest_ch2_image"
-    monitor_dataset_description = "Chamber 2 camera"
+    monitor_dataset_key = "latest_ch2_horiz_image"
+    monitor_dataset_description = "Chamber 2 horizontal camera"
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018873"
+
+
+class Chamber2VerticalCamera(CameraFrag):
+    default_features = CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
+    monitor_dataset_key = "latest_ch2_vert_image"
+    monitor_dataset_description = "Chamber 2 vertical camera"
+    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
 
 
 class MonitorChamber2Camera(ExpFragment):
