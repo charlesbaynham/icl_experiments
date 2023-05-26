@@ -290,8 +290,13 @@ class MonitorCamera(ExpFragment):
         time.sleep(max(self.delay.get() - (t_end - t_start), 0))
 
 
-class MonitorChamber2Camera(MonitorCamera):
+class MonitorChamber2HorizCamera(MonitorCamera):
     camera_class = Chamber2HorizontalCamera
 
 
-MonitorChamber2Camera = make_fragment_scan_exp(MonitorChamber2Camera)  # type: ignore
+class MonitorChamber2VertCamera(MonitorCamera):
+    camera_class = Chamber2VerticalCamera
+
+
+MonitorChamber2HorizCamera = make_fragment_scan_exp(MonitorChamber2HorizCamera)  # type: ignore
+MonitorChamber2VertCamera = make_fragment_scan_exp(MonitorChamber2VertCamera)  # type: ignore
