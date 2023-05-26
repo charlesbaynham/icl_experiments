@@ -225,13 +225,14 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         image_horiz_mean = np.mean(np.array(image_horiz).flat)
         image_vert_mean = np.mean(np.array(image_vert).flat)
 
-        self.image_horizontal.push(image_horiz)
         self.image_horizontal_timestamp.push(timestamp_horiz)
-        self.image_horizontal_mean.push(image_horiz_mean)
-
-        self.image_horizontal.push(image_vert)
         self.image_horizontal_timestamp.push(timestamp_vert)
+
+        self.image_horizontal_mean.push(image_horiz_mean)
         self.image_horizontal_mean.push(image_vert_mean)
+
+        self.image_horizontal.push(image_horiz)
+        self.image_horizontal.push(image_vert)
 
 
 MeasureMOTWithPD = make_fragment_scan_exp(MeasureMotWithPDFrag)
