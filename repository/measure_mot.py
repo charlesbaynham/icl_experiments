@@ -19,6 +19,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
 from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
+from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
 
 
 class MeasureMOTFrag(ExpFragment):
@@ -124,31 +125,57 @@ class MeasureMotWithPDFrag(MeasureMOTFrag):
 
 class MeasureMotWithCameraFrag(MeasureMOTFrag):
     def build_fragment(self):
-
         self.setattr_param(
-            "exposure",
+            "exposure_horiz",
             FloatParam,
-            description="Image exposure",
+            description="Image exposure horizontal",
             default=1e-3,
             min=0,
-            unit="ms",
+            unit="us",
             step=1,
         )
-        self.exposure: FloatParamHandle
+        self.exposure_horiz: FloatParamHandle
 
-        self.setattr_fragment("mot_measurer_camera", Chamber2HorizontalCamera)
-        self.mot_measurer_camera: Chamber2HorizontalCamera
+        self.setattr_param(
+            "exposure_vert",
+            FloatParam,
+            description="Image exposure vertical",
+            default=1e-3,
+            min=0,
+            unit="us",
+            step=1,
+        )
+        self.exposure_vert: FloatParamHandle
 
-        self.setattr_result("image", OpaqueChannel)
-        self.image: ResultChannel
+        self.setattr_fragment(
+            "mot_measurer_camera_horizontal", Chamber2HorizontalCamera
+        )
+        self.mot_measurer_camera_horizontal: Chamber2HorizontalCamera
+
+        self.setattr_fragment("mot_measurer_camera_vertical", Chamber2HorizontalCamera)
+        self.mot_measurer_camera_vertical: Chamber2VerticalCamera
+
+        self.setattr_result("image_horizontal", OpaqueChannel)
+        self.image_horizontal: ResultChannel
 
         self.setattr_result(
-            "image_timestamp", IntChannel, display_hints={"priority": -1}
+            "image_horizontal_timestamp", IntChannel, display_hints={"priority": -1}
         )
-        self.image_timestamp: ResultChannel
+        self.image_horizontal_timestamp: ResultChannel
 
-        self.setattr_result("image_mean", FloatChannel)
-        self.image_mean: ResultChannel
+        self.setattr_result("image_horizontal_mean", FloatChannel)
+        self.image_horizontal_mean: ResultChannel
+
+        self.setattr_result("image_vertical", OpaqueChannel)
+        self.image_vertical: ResultChannel
+
+        self.setattr_result(
+            "image_vertical_timestamp", IntChannel, display_hints={"priority": -1}
+        )
+        self.image_vertical_timestamp: ResultChannel
+
+        self.setattr_result("image_vertical_mean", FloatChannel)
+        self.image_vertical_mean: ResultChannel
 
         self.setup_happened = False
 
@@ -160,10 +187,13 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
         self.core.break_realtime()
 
-        # Prepare camera to be triggered for a single acquisition
+        # Prepare cameras to be triggered for a single acquisition
         if not self.setup_happened:
-            self.mot_measurer_camera.ready_for_trigger(
-                self.exposure.get() * 1e6, num_images=1
+            self.mot_measurer_camera_horizontal.ready_for_trigger(
+                self.exposure_horiz.get() * 1e6, num_images=1
+            )
+            self.mot_measurer_camera_vertical.ready_for_trigger(
+                self.exposure_horiz.get() * 1e6, num_images=1
             )
             self.setup_happened = True
 
@@ -174,21 +204,34 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
         self.core.wait_until_mu(now_mu())
 
-        self.mot_measurer_camera.trigger()
+        self.mot_measurer_camera_horizontal.trigger()
+        self.mot_measurer_camera_vertical.trigger()
 
         self.save_data()
 
     @rpc
     def save_data(self):
-        timestamp, image = self.mot_measurer_camera.get_one_frame(
-            timeout=1 + self.exposure.get()
+        (
+            timestamp_horiz,
+            image_horiz,
+        ) = self.mot_measurer_camera_horizontal.get_one_frame(
+            timeout=1 + self.exposure_horiz.get()
         )
 
-        image_mean = np.mean(np.array(image).flatten())
+        (timestamp_vert, image_vert,) = self.mot_measurer_camera_vertical.get_one_frame(
+            timeout=1 + self.exposure_vert.get()
+        )
 
-        self.image.push(image)
-        self.image_mean.push(image_mean)
-        self.image_timestamp.push(timestamp)
+        image_horiz_mean = np.mean(np.array(image_horiz).flat)
+        image_vert_mean = np.mean(np.array(image_vert).flat)
+
+        self.image_horizontal.push(image_horiz)
+        self.image_horizontal_timestamp.push(timestamp_horiz)
+        self.image_horizontal_mean.push(image_horiz_mean)
+
+        self.image_horizontal.push(image_vert)
+        self.image_horizontal_timestamp.push(timestamp_vert)
+        self.image_horizontal_mean.push(image_vert_mean)
 
 
 MeasureMOTWithPD = make_fragment_scan_exp(MeasureMotWithPDFrag)
