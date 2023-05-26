@@ -31,10 +31,10 @@ class CameraFrag(Fragment):
     To use this class, inherit from it and populate the class variables below.
     """
 
-    default_features: Dict = None  # type: ignore
+    default_features: Dict
     "Dict of features to initialise this camera with"
 
-    monitor_dataset_key: str = None  # type: ignore
+    monitor_dataset_key: str
     """
     Name of broadcast dataset to update with the latest image
 
@@ -44,10 +44,10 @@ class CameraFrag(Fragment):
     running - don't rely on it for data taking!
     """
 
-    monitor_dataset_description: str = None  # type: ignore
+    monitor_dataset_description: str
     "Description for the monitor applet"
 
-    camera_id: str = None  # type: ignore
+    camera_id: str
     """The camera's ID string for connecting via Aravis
 
     To find this, run `arv-tool` (part of Aravis which is in the AION ARTIQ
@@ -56,15 +56,21 @@ class CameraFrag(Fragment):
 
     @classmethod
     def _validate_class_attrs(cls):
-        if (
-            cls.default_features is None
-            or cls.monitor_dataset_key is None
-            or cls.monitor_dataset_description is None
-            or cls.camera_id is None
-        ):
-            raise TypeError(
-                "You must subclass the CameraFrag class and populate all the class attributes in your implementation"
-            )
+        attrs = [
+            "default_features",
+            "monitor_dataset_key",
+            "monitor_dataset_description",
+            "camera_id",
+        ]
+        for attr in attrs:
+            if not hasattr(cls, attr):
+                raise TypeError(
+                    f"""
+                    Missing class attribute {attr}
+
+                    You must subclass the CameraFrag class and populate all the class attributes in your implementation
+                    """.strip()
+                )
 
     def __init__(self, *args, **kwargs):
         self._validate_class_attrs()
@@ -225,7 +231,9 @@ class Chamber2VerticalCamera(CameraFrag):
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
 
 
-class MonitorChamber2Camera(ExpFragment):
+class MonitorCamera(ExpFragment):
+    camera_class: CameraFrag
+
     def build_fragment(self):
         self.setattr_result("timestamp", IntChannel, display_hints={"priority": -1})
         self.timestamp: IntChannel
