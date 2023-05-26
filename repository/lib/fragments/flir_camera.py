@@ -231,6 +231,10 @@ class Chamber2VerticalCamera(CameraFrag):
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
 
 
+class BadCamera(CameraFrag):
+    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
+
+
 class MonitorCamera(ExpFragment):
     camera_class: CameraFrag
 
