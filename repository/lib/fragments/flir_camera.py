@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Dict
 from typing import List
 from typing import Tuple
 
@@ -20,20 +21,70 @@ from repository.lib.constants import CHAMBER_2_CAMERA
 
 logger = logging.getLogger(__name__)
 
-CH2_CAM_DATASET_KEY = "latest_ch2_image"
 
+class CameraFrag(Fragment):
+    """
+    Class to control a GeniCAM compatible camera (tested with the FLIR-Blackfly
+    S)
 
-class Chamber2Camera(Fragment):
+    To use this class, inherit from it and populate the class variables below.
+    """
+
+    default_features: Dict = None  # type: ignore
+    "Dict of features to initialise this camera with"
+
+    monitor_dataset_key: str = None  # type: ignore
+    """
+    Name of broadcast dataset to update with the latest image
+
+    This Fragment does not have an output channel by default - it's up to you to
+    do something useful with the images from your consumer code. This monitor
+    dataset is not archived and is only for viewing while the experiment is
+    running - don't rely on it for data taking!
+    """
+
+    monitor_dataset_description: str = None  # type: ignore
+    "Description for the monitor applet"
+
+    camera_id: str = None  # type: ignore
+    """The camera's ID string for connecting via Aravis
+
+    To find this, run `arv-tool` (part of Aravis which is in the AION ARTIQ
+    environments) from a computer on the same LAN as the camera.
+    """
+
+    @classmethod
+    def _validate_class_attrs(cls):
+        if (
+            cls.default_features is None
+            or cls.monitor_dataset_key is None
+            or cls.monitor_dataset_description is None
+            or cls.camera_id is None
+        ):
+            raise TypeError(
+                "You must subclass the CameraFrag class and populate all the class attributes in your implementation"
+            )
+
+    def __init__(self, *args, **kwargs):
+        self._validate_class_attrs()
+        super().__init__(*args, **kwargs)
+
     def build_fragment(self):
-        for feature, value in CHAMBER_2_CAMERA.items():
+        for feature, value in self.default_features.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
 
         self.setattr_device("ccb")
 
     def host_setup(self):
+        # This import happens here because, for some reason, importing the
+        # gi.repository Aravis (which happens in python-aravis) breaks if you do
+        # it from multiple processes at the same time, which ARTIQ will trigger
+        # when scanning for experiments
+        from aravis import Camera
+
         # Open the monitoring applet
         self.set_dataset(
-            CH2_CAM_DATASET_KEY,
+            self.monitor_dataset_key,
             np.array([[0.0]]),
             broadcast=True,
             persist=False,
@@ -41,18 +92,12 @@ class Chamber2Camera(Fragment):
         )
         self.ccb.issue(
             "create_applet",
-            "Chamber 2 camera",
-            f"${{artiq_applet}}image {CH2_CAM_DATASET_KEY}",
+            self.monitor_dataset_description,
+            f"${{artiq_applet}}image {self.monitor_dataset_key}",
         )
 
-        # This import happens here because, for some reason, importing the
-        # gi.repository Aravis (which happens in python-aravis) breaks if you do
-        # it from multiple processes at the same time, which ARTIQ will trigger
-        # when scanning for experiments
-        from aravis import Camera
-
         self.cam = Camera(
-            "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
+            self.camera_id,
             loglevel=logger.getEffectiveLevel(),
         )
 
@@ -70,7 +115,7 @@ class Chamber2Camera(Fragment):
         self.cam.set_feature("Height", max_height)
         self.cam.set_feature("Width", max_width)
 
-        for feature in CHAMBER_2_CAMERA.keys():
+        for feature in self.default_features.keys():
             value = getattr(self, feature).get()
             self.cam.set_feature(feature, value)
 
@@ -157,12 +202,19 @@ class Chamber2Camera(Fragment):
     def _update_monitor(self, img):
         # convert to int instead of uint8 for plotting
         self.set_dataset(
-            CH2_CAM_DATASET_KEY,
+            self.monitor_dataset_key,
             np.array(img).astype("int"),
             broadcast=True,
             persist=False,
             archive=False,
         )
+
+
+class Chamber2Camera(CameraFrag):
+    default_features = CHAMBER_2_CAMERA
+    monitor_dataset_key = "latest_ch2_image"
+    monitor_dataset_description = "Chamber 2 camera"
+    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018873"
 
 
 class MonitorChamber2Camera(ExpFragment):
