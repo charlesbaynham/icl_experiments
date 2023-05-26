@@ -232,10 +232,6 @@ class Chamber2VerticalCamera(CameraFrag):
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
 
 
-class BadCamera(CameraFrag):
-    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
-
-
 class MonitorCamera(ExpFragment):
     camera_class: Type[CameraFrag]
 
@@ -298,10 +294,5 @@ class MonitorChamber2VertCamera(MonitorCamera):
     camera_class = Chamber2VerticalCamera
 
 
-class MonitorBadCam(MonitorCamera):
-    camera_class = BadCamera
-
-
 MonitorChamber2HorizCamera = make_fragment_scan_exp(MonitorChamber2HorizCamera)  # type: ignore
 MonitorChamber2VertCamera = make_fragment_scan_exp(MonitorChamber2VertCamera)  # type: ignore
-MonitorBadCam = make_fragment_scan_exp(MonitorBadCam)  # type: ignore
