@@ -234,13 +234,13 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         logger.debug("image_vert.shape = %s", image_vert.shape)
 
         self.image_horizontal_timestamp.push(timestamp_horiz)
-        self.image_horizontal_timestamp.push(timestamp_vert)
+        self.image_vertical_timestamp.push(timestamp_vert)
 
         self.image_horizontal_mean.push(image_horiz_mean)
-        self.image_horizontal_mean.push(image_vert_mean)
+        self.image_vertical_mean.push(image_vert_mean)
 
         self.image_horizontal.push(image_horiz)
-        self.image_horizontal.push(image_vert)
+        self.image_vertical.push(image_vert)
 
 
 MeasureMOTWithPD = make_fragment_scan_exp(MeasureMotWithPDFrag)
