@@ -3,6 +3,7 @@ import time
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Type
 
 import numpy as np
 from artiq.experiment import host_only
@@ -236,7 +237,12 @@ class BadCamera(CameraFrag):
 
 
 class MonitorCamera(ExpFragment):
-    camera_class: CameraFrag
+    camera_class: Type[CameraFrag]
+
+    def __init__(self, managers_or_parent, *args, **kwargs):
+        if not hasattr(self, "camera_class"):
+            raise TypeError("Please specify camera_class by overriding this class")
+        super().__init__(managers_or_parent, *args, **kwargs)
 
     def build_fragment(self):
         self.setattr_result("timestamp", IntChannel, display_hints={"priority": -1})
@@ -245,8 +251,8 @@ class MonitorCamera(ExpFragment):
         self.setattr_result("image", OpaqueChannel)
         self.image: OpaqueChannel
 
-        self.setattr_fragment("camera", Chamber2HorizontalCamera)
-        self.camera: Chamber2HorizontalCamera
+        self.setattr_fragment("camera", self.camera_class)
+        self.camera: CameraFrag
 
         self.setattr_device("scheduler")
         self.setattr_device("ccb")
@@ -282,6 +288,10 @@ class MonitorCamera(ExpFragment):
         t_end = time.time()
 
         time.sleep(max(self.delay.get() - (t_end - t_start), 0))
+
+
+class MonitorChamber2Camera(MonitorCamera):
+    camera_class = Chamber2HorizontalCamera
 
 
 MonitorChamber2Camera = make_fragment_scan_exp(MonitorChamber2Camera)  # type: ignore
