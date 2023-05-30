@@ -181,8 +181,6 @@ class CameraFrag(Fragment):
 
         logger.info("Readout completed with %d images", len(out))
 
-        self.cam.stop_acquisition()
-
         self._update_monitor(out[-1][1])
 
         return out
