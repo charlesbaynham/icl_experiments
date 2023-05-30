@@ -76,10 +76,16 @@ class MeasureMOTFrag(ExpFragment):
             100 * ms
         )  # Wait to allow atoms to disperse if there were any hanging around
 
+        self._before_start_load_hook()
+
         # Load MOT and start measuring signal immediately
         self.mot_controller.turn_on_3d_and_2d_beams()
 
         self._take_data(self.mot_loading_time.get())
+
+    @kernel
+    def _before_start_load_hook(self):
+        pass
 
 
 class MeasureMotWithPDFrag(MeasureMOTFrag):
@@ -192,15 +198,34 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
         self.core.break_realtime()
 
-        # Prepare cameras to be triggered for a single acquisition
+        # Prepare cameras to be triggered for 2x acquisitions
         if not self.setup_happened:
             self.mot_measurer_camera_horizontal.ready_for_trigger(
-                self.exposure_horiz.get() * 1e6, num_images=1
+                self.exposure_horiz.get() * 1e6, num_images=2
             )
             self.mot_measurer_camera_vertical.ready_for_trigger(
-                self.exposure_horiz.get() * 1e6, num_images=1
+                self.exposure_horiz.get() * 1e6, num_images=2
             )
             self.setup_happened = True
+
+    @kernel
+    def _before_start_load_hook(self):
+        """
+        Before the MOT is loaded, take a background picture
+        """
+
+        time_to_wait_after_background_measurement = 3.0 * max(
+            self.exposure_vert.get(), self.exposure_horiz.get()
+        )
+
+        # Turn on just the 3d beams for a background picture
+        self.mot_controller.turn_on_3d_beams()
+
+        self.core.wait_until_mu(now_mu())
+        self.mot_measurer_camera_horizontal.trigger()
+        self.mot_measurer_camera_vertical.trigger()
+
+        delay(time_to_wait_after_background_measurement)
 
     @kernel
     def _take_data(self, loading_time):
@@ -216,16 +241,18 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
 
     @rpc
     def save_data(self):
-        (
-            timestamp_horiz,
-            image_horiz,
-        ) = self.mot_measurer_camera_horizontal.get_one_frame(
+        frames_horiz = self.mot_measurer_camera_horizontal.get_frames(
             timeout=1 + self.exposure_horiz.get()
         )
-
-        (timestamp_vert, image_vert,) = self.mot_measurer_camera_vertical.get_one_frame(
+        frames_vert = self.mot_measurer_camera_vertical.get_frames(
             timeout=1 + self.exposure_vert.get()
         )
+
+        timestamp_horiz = frames_horiz[1][0]
+        timestamp_vert = frames_vert[1][0]
+
+        image_horiz = frames_horiz[1][1] - frames_horiz[0][1]
+        image_vert = frames_vert[1][1] - frames_vert[0][1]
 
         image_horiz_mean = np.mean(np.array(image_horiz).flat)
         image_vert_mean = np.mean(np.array(image_vert).flat)
