@@ -42,10 +42,10 @@ CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
 # camera and it will complain if it's ever in an invalid state
 CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
     [
-        ("Width", 356),
-        ("Height", 402),
-        ("OffsetX", 1044),
-        ("OffsetY", 978),
+        ("Width", 500),
+        ("Height", 600),
+        ("OffsetX", 972),
+        ("OffsetY", 878),
     ]
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
