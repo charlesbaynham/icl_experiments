@@ -241,32 +241,30 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         frames_horiz = self.mot_measurer_camera_horizontal.get_frames(
             timeout=1 + self.exposure_horiz.get()
         )
-        # frames_vert = self.mot_measurer_camera_vertical.get_frames(
-        #     timeout=1 + self.exposure_vert.get()
-        # )
+        frames_vert = self.mot_measurer_camera_vertical.get_frames(
+            timeout=1 + self.exposure_vert.get()
+        )
 
-        logger.error("frames_horiz has len = %s", len(frames_horiz))
+        timestamp_horiz = frames_horiz[1][0]
+        timestamp_vert = frames_vert[1][0]
 
-        # timestamp_horiz = frames_horiz[1][0]
-        # timestamp_vert = frames_vert[1][0]
+        image_horiz = frames_horiz[1][1] - frames_horiz[0][1]
+        image_vert = frames_vert[1][1] - frames_vert[0][1]
 
-        # image_horiz = frames_horiz[1][1] - frames_horiz[0][1]
-        # image_vert = frames_vert[1][1] - frames_vert[0][1]
+        image_horiz_mean = np.mean(np.array(image_horiz).flat)
+        image_vert_mean = np.mean(np.array(image_vert).flat)
 
-        # image_horiz_mean = np.mean(np.array(image_horiz).flat)
-        # image_vert_mean = np.mean(np.array(image_vert).flat)
+        logger.debug("image_horiz.shape = %s", image_horiz.shape)
+        logger.debug("image_vert.shape = %s", image_vert.shape)
 
-        # logger.debug("image_horiz.shape = %s", image_horiz.shape)
-        # logger.debug("image_vert.shape = %s", image_vert.shape)
+        self.image_horizontal_timestamp.push(timestamp_horiz)
+        self.image_vertical_timestamp.push(timestamp_vert)
 
-        # self.image_horizontal_timestamp.push(timestamp_horiz)
-        # self.image_vertical_timestamp.push(timestamp_vert)
+        self.image_horizontal_mean.push(image_horiz_mean)
+        self.image_vertical_mean.push(image_vert_mean)
 
-        # self.image_horizontal_mean.push(image_horiz_mean)
-        # self.image_vertical_mean.push(image_vert_mean)
-
-        # self.image_horizontal.push(image_horiz)
-        # self.image_vertical.push(image_vert)
+        self.image_horizontal.push(image_horiz)
+        self.image_vertical.push(image_vert)
 
 
 MeasureMOTWithPD = make_fragment_scan_exp(MeasureMotWithPDFrag)
