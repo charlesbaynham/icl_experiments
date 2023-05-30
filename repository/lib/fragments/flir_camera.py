@@ -162,12 +162,12 @@ class CameraFrag(Fragment):
 
         The camera must have been set up via :meth:`.ready_for_trigger` first.
         """
-        logger.info("Triggering measurement")
+        logger.debug("Triggering measurement")
         self.cam.trigger()
 
     @host_only
     def get_frames(self, timeout=0.0) -> List[Tuple[int, ArrayLike]]:
-        logger.info("Reading out frames. Expecting %d images", self.num_images)
+        logger.debug("Reading out frames. Expecting %d images", self.num_images)
         out = []
         for _ in range(self.num_images):
             try:
@@ -179,7 +179,7 @@ class CameraFrag(Fragment):
                 )
                 break
 
-        logger.info("Readout completed with %d images", len(out))
+        logger.debug("Readout completed with %d images", len(out))
 
         self._update_monitor(out[-1][1])
 
@@ -196,7 +196,7 @@ class CameraFrag(Fragment):
         self, timeout=0.0
     ) -> Tuple[int, ArrayLike]:
 
-        logger.info("_get_one_frame_without_monitor_update running")
+        logger.debug("_get_one_frame_without_monitor_update running")
 
         t_end = time.time() + timeout
         while True:
