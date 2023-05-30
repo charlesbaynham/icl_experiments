@@ -213,10 +213,7 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         """
         Before the MOT is loaded, take a background picture
         """
-
-        time_to_wait_after_background_measurement = 3.0 * max(
-            self.exposure_vert.get(), self.exposure_horiz.get()
-        )
+        delay(-50e-3)
 
         # Turn on just the 3d beams for a background picture
         self.mot_controller.turn_on_3d_beams()
@@ -225,7 +222,7 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         self.mot_measurer_camera_horizontal.trigger()
         self.mot_measurer_camera_vertical.trigger()
 
-        delay(time_to_wait_after_background_measurement)
+        delay(50e-3)
 
     @kernel
     def _take_data(self, loading_time):
