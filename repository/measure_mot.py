@@ -204,7 +204,7 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
                 self.exposure_horiz.get() * 1e6, num_images=2
             )
             self.mot_measurer_camera_vertical.ready_for_trigger(
-                self.exposure_horiz.get() * 1e6, num_images=2
+                self.exposure_vert.get() * 1e6, num_images=2
             )
             self.setup_happened = True
 
