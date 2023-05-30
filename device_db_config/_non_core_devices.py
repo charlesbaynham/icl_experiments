@@ -39,6 +39,7 @@ def get_non_core_devices(simulation_mode=False):
         # we can compare notes!
         "influx_logger": {
             "type": "controller",
+            "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
             "target": "influx_logger",
@@ -46,12 +47,14 @@ def get_non_core_devices(simulation_mode=False):
         },
         "influx_scheduler_logger": {
             "type": "controller",
+            "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
             "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
         },
         "wand_server": {
             "type": "controller",
+            "best_effort": True,
             "host": "::1",
             "port": PORT_WAND_CONTROL,
             "command": (
@@ -71,18 +74,21 @@ def get_non_core_devices(simulation_mode=False):
         # },
         "blue_IJD1_controller": {
             "type": "controller",
+            "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
         },
         "blue_IJD2_controller": {
             "type": "controller",
+            "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
         },
         "blue_IJD3_controller": {
             "type": "controller",
+            "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
