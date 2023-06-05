@@ -16,7 +16,7 @@ class EnableWavemeterLock(EnvExperiment):
     def run(self):
 
         for laser in self.wand_server.get_laser_db().keys():
-            if self.enable:
+            if self.enable and laser != "461":
                 self.wand_server.lock(laser, set_point=0.0, timeout=None)
             else:
                 self.wand_server.unlock(laser, name="")
