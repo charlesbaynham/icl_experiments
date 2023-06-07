@@ -13,6 +13,7 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.result_channels import FloatChannel
 from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 from numpy.typing import ArrayLike
@@ -251,6 +252,9 @@ class MonitorCamera(ExpFragment):
         self.setattr_result("image", OpaqueChannel)
         self.image: OpaqueChannel
 
+        self.setattr_result("image_sum", FloatChannel)
+        self.image_sum: FloatChannel
+
         self.setattr_fragment("camera", self.camera_class)
         self.camera: CameraFrag
 
@@ -282,8 +286,11 @@ class MonitorCamera(ExpFragment):
             timeout=1 + self.exposure.get()
         )
 
+        pixel_sum = np.sum(image_data.flat)
+
         self.timestamp.push(timestamp)
         self.image.push(image_data)
+        self.image_sum.push(pixel_sum)
 
         t_end = time.time()
 
