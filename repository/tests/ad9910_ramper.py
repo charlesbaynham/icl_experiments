@@ -71,6 +71,7 @@ class AD9910Ramper(EnvExperiment):
         rs_top = 0xFFFFFFFF & (rs >> 32)
         rs_bottom = 0xFFFFFFFF & rs
 
+        logger.info("Reading back from AD9910:")
         logger.info("Ramp step = 0x%X,0x%X", rs_top, rs_bottom)
         logger.info("Ramp rate = 0x%X", rr)
 
