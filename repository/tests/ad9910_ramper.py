@@ -1,24 +1,14 @@
 import logging
-from typing import List
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.coredevice.urukul import CPLD
-from artiq.coredevice.zotino import Zotino
 from artiq.experiment import delay
-from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
+from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
-from artiq.experiment import TList
-from ndscan.experiment import ExpFragment
-from ndscan.experiment import FloatParam
-from ndscan.experiment import Fragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int32
-from numpy import int64
 
 
 logger = logging.getLogger(__name__)
@@ -31,30 +21,25 @@ class AD9910Ramper(EnvExperiment):
         self.setattr_device("urukul5_ch0")
         self.urukul5_ch0: AD9910
 
+        self.dds = self.urukul5_ch0
+
+        self.setattr_argument("f_min", NumberValue(default=10e6, unit="MHz"))
+        self.setattr_argument("f_max", NumberValue(default=20e6, unit="MHz"))
+        self.setattr_argument("df_dt", NumberValue(default=1e6, unit="MHz"))
+
     @kernel
     def run(self):
         self.core.reset()
-
-        self.urukul5_ch0.init()
+        self.dds.init()
 
         delay(10e-3)
 
-        dds = self.urukul5_ch0
-
-        # Enable no-dwell
-        # Set ramp rate:
-        #   t_step = xxx
-        #   f_step = minimum
-        # Set ramp max and min
-
-        dds.set_cfr2(drg_enable=1)
-
-        # Pulse IO_UPDATE
+        self.core.break_realtime()
+        self.start_ramp(self.df_dt, self.f_min, self.f_max)
 
     @kernel
     def extended_set_cfr2(
         self,
-        dds: AD9910,
         asf_profile_enable: TInt32 = 1,
         drg_enable: TInt32 = 0,
         effective_ftw: TInt32 = 1,
@@ -71,6 +56,8 @@ class AD9910Ramper(EnvExperiment):
 
         :param asf_profile_enable: Enable amplitude scale from single tone profiles.
         :param drg_enable: Digital ramp enable.
+        :param no_dwell_high: Set the NO-DWELL high bit.
+        :param no_dwell_low: Set the NO-DWELL low bit.
         :param effective_ftw: Read effective FTW.
         :param sync_validation_disable: Disable the SYNC_SMP_ERR pin indicating
             (active high) detection of a synchronization pulse sampling error.
@@ -82,7 +69,7 @@ class AD9910Ramper(EnvExperiment):
         """
         from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
 
-        dds.write32(
+        self.dds.write32(
             _AD9910_REG_CFR2,
             (asf_profile_enable << 24)
             | (drg_enable << 19)
@@ -94,9 +81,7 @@ class AD9910Ramper(EnvExperiment):
         )
 
     @kernel
-    def set_ramp_parameters_mu(
-        self, dds: AD9910, freq_step_mu: TInt32, delay_mu: TInt32
-    ):
+    def set_ramp_parameters_mu(self, freq_step_mu: TInt32, delay_mu: TInt32):
         """Sets the upwards and downwards DRG ramp step sizes and delays
 
         This function does not enable the DRG.
@@ -107,45 +92,62 @@ class AD9910Ramper(EnvExperiment):
         )
 
         # Write the same step size / ramp rates to both the up- and downwards ramps
-        dds.write64(_AD9910_REG_RAMP_STEP, freq_step_mu, freq_step_mu)
+        self.dds.write64(_AD9910_REG_RAMP_STEP, freq_step_mu, freq_step_mu)
 
         ramp_rate = delay_mu & 0xFFFF
         ramp_rate = ramp_rate | (ramp_rate << 16)
-        dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
+        self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
     @kernel
-    def set_ramp_parameters(self, dds: AD9910, freq_step: TFloat, delay: TFloat):
+    def set_ramp_parameters(self, freq_step: TFloat, delay: TFloat):
         """Sets the upwards and downwards DRG ramp step sizes and delays
 
         This function does not enable the DRG.
         """
-        freq_step_mu = dds.frequency_to_ftw(freq_step)
-        delay_mu = int32(round(dds.sysclk / 4 * delay))
+        freq_step_mu = self.dds.frequency_to_ftw(freq_step)
+        delay_mu = int32(round(self.dds.sysclk / 4 * delay))
 
-        self.set_ramp_parameters_mu(dds, freq_step_mu, delay_mu)
+        self.set_ramp_parameters_mu(freq_step_mu, delay_mu)
 
     @kernel
-    def set_ramp_limits_mu(
-        self, dds: AD9910, frequency_low_mu: TInt32, frequency_high_mu: TInt32
-    ):
+    def set_ramp_limits_mu(self, frequency_low_mu: TInt32, frequency_high_mu: TInt32):
         """Sets the high and low frequency limits for the DRG
 
         This function does not enable the DRG.
         """
         from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
 
-        dds.write64(_AD9910_REG_RAMP_LIMIT, frequency_high_mu, frequency_low_mu)
+        self.dds.write64(_AD9910_REG_RAMP_LIMIT, frequency_high_mu, frequency_low_mu)
 
     @kernel
-    def set_ramp_limits(
-        self, dds: AD9910, frequency_low: TFloat, frequency_high: TFloat
-    ):
+    def set_ramp_limits(self, frequency_low: TFloat, frequency_high: TFloat):
         """Sets the high and low frequency limits for the DRG
 
         This function does not enable the DRG.
         """
         self.set_ramp_limits_mu(
-            dds,
-            dds.frequency_to_ftw(frequency_low),
-            dds.frequency_to_ftw(frequency_high),
+            self.dds.frequency_to_ftw(frequency_low),
+            self.dds.frequency_to_ftw(frequency_high),
         )
+
+    @kernel
+    def start_ramp(self, rate: TFloat, freq_low: TFloat, freq_high: TFloat):
+        """Configures a triangle-wave ramp with the given rate in Hz/s and frequency limits.
+
+        This method sets the step size to the smallest possible amount and varies the time between steps.
+        The maximum ramp rate possible is therefore f_sys^2 / (4 * 2^32) (= 58 MHz/s for an AD9910 with default configuration)
+
+        This function enables the DRG immediately.
+        """
+
+        freq_step_mu = 1
+        delay_mu = int32(
+            round(freq_step_mu * self.dds.sysclk**2 / (4 * (1 << 32)) / rate)
+        )
+
+        self.set_ramp_limits(freq_low, freq_high)
+        self.set_ramp_parameters_mu(freq_step_mu, delay_mu)
+        self.extended_set_cfr2(drg_enable=1, no_dwell_low=1, no_dwell_high=1)
+
+        # Pulse IO_UPDATE
+        self.dds.cpld.io_update.pulse_mu(8)
