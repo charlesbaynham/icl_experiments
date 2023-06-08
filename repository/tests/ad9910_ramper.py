@@ -56,7 +56,7 @@ class AD9910Ramper(EnvExperiment):
     @kernel
     def run(self):
         self.core.reset()
-        delay(10e-3)
+        delay(100e-3)
 
         self.dds.init()
 
