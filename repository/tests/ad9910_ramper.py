@@ -129,8 +129,8 @@ class AD9910Ramper(EnvExperiment):
         ramp_rate = (pos_delay_mu & 0xFFFF) | (((neg_delay_mu) & 0xFFFF) << 16)
         self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
-        logger.info("neg_freq_step_mu = %s", neg_freq_step_mu)
-        logger.info("pos_freq_step_mu = %s", pos_freq_step_mu)
+        logger.info("neg_freq_step_mu = 0x%X", neg_freq_step_mu & 0xFFFFFFFF)
+        logger.info("pos_freq_step_mu = 0X%X", pos_freq_step_mu & 0xFFFFFFFF)
         logger.info("ramp_rate = 0x%X", ramp_rate & 0xFFFFFFFF)
         self.core.break_realtime()
 
@@ -199,17 +199,31 @@ class AD9910Ramper(EnvExperiment):
         delay(10e-3)
 
         self.set_ramp_limits(freq_low, freq_high)
-        self.set_ramp_parameters_mu(freq_step_mu, delay_mu)
+
+        max_step_mu = 0x8FFFFFFF
+        min_wait_mu = 1
 
         if wave_type == 0:
-            no_dwell_low = 1
-            no_dwell_high = 1
+            self.set_ramp_parameters_mu(
+                pos_freq_step_mu=freq_step_mu,
+                pos_delay_mu=delay_mu,
+                neg_freq_step_mu=freq_step_mu,
+                neg_delay_mu=delay_mu,
+            )
         elif wave_type == 1:
-            no_dwell_low = 0
-            no_dwell_high = 1
+            self.set_ramp_parameters_mu(
+                pos_freq_step_mu=freq_step_mu,
+                pos_delay_mu=delay_mu,
+                neg_freq_step_mu=max_step_mu,
+                neg_delay_mu=min_wait_mu,
+            )
         elif wave_type == 2:
-            no_dwell_low = 1
-            no_dwell_high = 0
+            self.set_ramp_parameters_mu(
+                pos_freq_step_mu=max_step_mu,
+                pos_delay_mu=min_wait_mu,
+                neg_freq_step_mu=freq_step_mu,
+                neg_delay_mu=delay_mu,
+            )
         else:
             raise ValueError("wave_type must be 0, 1 or 2")
 
