@@ -17,6 +17,8 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int32
+from numpy import int64
 
 
 logger = logging.getLogger(__name__)
@@ -92,7 +94,9 @@ class AD9910Ramper(EnvExperiment):
         )
 
     @kernel
-    def set_ramp_parameters(self, dds: AD9910, step_size_mu: TInt32, delay_mu: TInt32):
+    def set_ramp_parameters_mu(
+        self, dds: AD9910, freq_step_mu: TInt32, delay_mu: TInt32
+    ):
         """Sets the upwards and downwards DRG ramp step sizes and delays
 
         This function does not enable the DRG.
@@ -103,15 +107,26 @@ class AD9910Ramper(EnvExperiment):
         )
 
         # Write the same step size / ramp rates to both the up- and downwards ramps
-        dds.write64(_AD9910_REG_RAMP_STEP, step_size_mu, step_size_mu)
+        dds.write64(_AD9910_REG_RAMP_STEP, freq_step_mu, freq_step_mu)
 
         ramp_rate = delay_mu & 0xFFFF
         ramp_rate = ramp_rate | (ramp_rate << 16)
         dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
     @kernel
-    def set_ramp_limits(
-        self, dds: AD9910, frequency_low: TInt32, frequency_high: TInt32
+    def set_ramp_parameters(self, dds: AD9910, freq_step: TFloat, delay: TFloat):
+        """Sets the upwards and downwards DRG ramp step sizes and delays
+
+        This function does not enable the DRG.
+        """
+        freq_step_mu = dds.frequency_to_ftw(freq_step)
+        delay_mu = int32(round(dds.sysclk / 4 * delay))
+
+        self.set_ramp_parameters_mu(dds, freq_step_mu, delay_mu)
+
+    @kernel
+    def set_ramp_limits_mu(
+        self, dds: AD9910, frequency_low_mu: TInt32, frequency_high_mu: TInt32
     ):
         """Sets the high and low frequency limits for the DRG
 
@@ -119,4 +134,18 @@ class AD9910Ramper(EnvExperiment):
         """
         from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
 
-        dds.write64(_AD9910_REG_RAMP_LIMIT, frequency_high, frequency_low)
+        dds.write64(_AD9910_REG_RAMP_LIMIT, frequency_high_mu, frequency_low_mu)
+
+    @kernel
+    def set_ramp_limits(
+        self, dds: AD9910, frequency_low: TFloat, frequency_high: TFloat
+    ):
+        """Sets the high and low frequency limits for the DRG
+
+        This function does not enable the DRG.
+        """
+        self.set_ramp_limits_mu(
+            dds,
+            dds.frequency_to_ftw(frequency_low),
+            dds.frequency_to_ftw(frequency_high),
+        )
