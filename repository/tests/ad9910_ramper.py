@@ -147,7 +147,7 @@ class AD9910Ramper(EnvExperiment):
 
         factor = (4.0 * (2.0**32.0)) * rate / self.dds.sysclk**2.0
 
-        freq_step_mu = int32(ceil(factor))
+        freq_step_mu = int32(ceil(100.0 * factor))
         delay_mu = int32(round(freq_step_mu / factor))
 
         achieved_ramp_rate = (
