@@ -15,10 +15,10 @@ class AD9910Writer(EnvExperiment):
     def build(self):
         self.setattr_device("core")
         self.core: Core
-        self.setattr_device("urukul5_ch0")
-        self.urukul5_ch0: AD9910
+        self.setattr_device("urukul8_ch0")
+        self.urukul8_ch0: AD9910
 
-        self.dds = self.urukul5_ch0
+        self.dds = self.urukul8_ch0
 
         self.setattr_argument("freq", NumberValue(default=10e6, unit="MHz"))
 
