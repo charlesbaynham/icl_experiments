@@ -49,6 +49,8 @@ class TestAD9910Ramper(ExpFragment):
         )
 
     def host_setup(self):
+        super().host_setup()
+
         modes = {
             "Triangle": 0,
             "Positive saw": 1,
