@@ -31,6 +31,8 @@ class AD9910Ramper(Fragment):
 
         self.dds: AD9910 = self.get_device(self.channel)
 
+        print(f"Got: {self.dds}")
+
         if not isinstance(self.dds, AD9910):
             raise TypeError(
                 f"'channel' parameter must correspond to an AD9910 device, not a {type(self.dds)}"
