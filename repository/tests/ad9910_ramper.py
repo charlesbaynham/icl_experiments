@@ -15,6 +15,7 @@ from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from numpy import ceil
 from numpy import int32
+from numpy import int64
 
 
 logger = logging.getLogger(__name__)
@@ -108,8 +109,8 @@ class AD9910Ramper(EnvExperiment):
         self,
         pos_freq_step_mu: TInt32,
         pos_delay_mu: TInt32,
-        neg_freq_step_mu: TInt32 = -1,
-        neg_delay_mu: TInt32 = -1,
+        neg_freq_step_mu: TInt32 = 0,
+        neg_delay_mu: TInt32 = 0,
     ):
         """Sets the upwards and downwards DRG ramp step sizes and delays
 
@@ -118,19 +119,22 @@ class AD9910Ramper(EnvExperiment):
         This function does not enable the DRG.
         """
 
-        if neg_freq_step_mu == -1:
+        if neg_freq_step_mu == 0:
             neg_freq_step_mu = pos_freq_step_mu
-        if neg_delay_mu == -1:
+        if neg_delay_mu == 0:
             neg_delay_mu = pos_delay_mu
 
         self.dds.write64(_AD9910_REG_RAMP_STEP, neg_freq_step_mu, pos_freq_step_mu)
 
-        ramp_rate = (pos_delay_mu & 0xFFFF) | ((neg_delay_mu & 0xFFFF) << 16)
+        # We have to convert to int64 to avoid the 32nd bit being interpreted as a sign
+        ramp_rate = int32(
+            (pos_delay_mu & 0xFFFF) | ((int64(neg_delay_mu) & 0xFFFF) << 16)
+        )
         self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
         logger.info("neg_freq_step_mu = %s", neg_freq_step_mu)
         logger.info("pos_freq_step_mu = %s", pos_freq_step_mu)
-        logger.info("ramp_rate = 0x%X", ramp_rate)
+        logger.info("ramp_rate = 0x%X", ramp_rate & 0xFFFFFFFF)
         self.core.break_realtime()
 
     @kernel
