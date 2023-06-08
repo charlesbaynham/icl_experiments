@@ -140,11 +140,6 @@ class AD9910Ramper(EnvExperiment):
         ramp_rate = (pos_delay_mu & 0xFFFF) | (((neg_delay_mu) & 0xFFFF) << 16)
         self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
-        logger.info("neg_freq_step_mu = 0x%X", neg_freq_step_mu & 0xFFFFFFFF)
-        logger.info("pos_freq_step_mu = 0X%X", pos_freq_step_mu & 0xFFFFFFFF)
-        logger.info("ramp_rate = 0x%X", ramp_rate & 0xFFFFFFFF)
-        self.core.break_realtime()
-
     @kernel
     def set_ramp_parameters(self, freq_step: TFloat, delay: TFloat):
         """Sets the upwards and downwards DRG ramp step sizes and delays
@@ -200,22 +195,10 @@ class AD9910Ramper(EnvExperiment):
         freq_step_mu = int32(max(ceil(factor), 1000.0))
         delay_mu = int32(round(freq_step_mu / factor))
 
-        achieved_ramp_rate = (
-            freq_step_mu * self.dds.sysclk**2 / 4.0 / 2.0**32.0 / delay_mu
-        )
-        logger.info("freq_step_mu = %s", freq_step_mu)
-        logger.info("delay_mu = %s", delay_mu)
-        logger.info("achieved_ramp_rate = %s", achieved_ramp_rate)
-        self.core.break_realtime()
-        delay(10e-3)
-
         self.set_ramp_limits(freq_low, freq_high)
 
         max_step_mu = 0x7FFFFFFF
         min_wait_mu = 1
-
-        # max_step_mu = 0x8FFFFFFF
-        # min_wait_mu = 1
 
         if wave_type == 0:
             self.set_ramp_parameters_mu(
