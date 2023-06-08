@@ -52,6 +52,7 @@ class AD9910Ramper(EnvExperiment):
     @kernel
     def extended_set_cfr2(
         self,
+        dds: AD9910,
         asf_profile_enable: TInt32 = 1,
         drg_enable: TInt32 = 0,
         effective_ftw: TInt32 = 1,
@@ -79,7 +80,7 @@ class AD9910Ramper(EnvExperiment):
         """
         from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
 
-        self.write32(
+        dds.write32(
             _AD9910_REG_CFR2,
             (asf_profile_enable << 24)
             | (drg_enable << 19)
@@ -89,3 +90,33 @@ class AD9910Ramper(EnvExperiment):
             | (matched_latency_enable << 7)
             | (sync_validation_disable << 5),
         )
+
+    @kernel
+    def set_ramp_parameters(self, dds: AD9910, step_size_mu: TInt32, delay_mu: TInt32):
+        """Sets the upwards and downwards DRG ramp step sizes and delays
+
+        This function does not enable the DRG.
+        """
+        from artiq.coredevice.ad9910 import (
+            _AD9910_REG_RAMP_RATE,
+            _AD9910_REG_RAMP_STEP,
+        )
+
+        # Write the same step size / ramp rates to both the up- and downwards ramps
+        dds.write64(_AD9910_REG_RAMP_STEP, step_size_mu, step_size_mu)
+
+        ramp_rate = delay_mu & 0xFFFF
+        ramp_rate = ramp_rate | (ramp_rate << 16)
+        dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
+
+    @kernel
+    def set_ramp_limits(
+        self, dds: AD9910, frequency_low: TInt32, frequency_high: TInt32
+    ):
+        """Sets the high and low frequency limits for the DRG
+
+        This function does not enable the DRG.
+        """
+        from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
+
+        dds.write64(_AD9910_REG_RAMP_LIMIT, frequency_high, frequency_low)
