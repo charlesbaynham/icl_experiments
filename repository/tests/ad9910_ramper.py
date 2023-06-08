@@ -65,10 +65,14 @@ class AD9910Ramper(EnvExperiment):
 
         delay(100e-3)
         rr = self.dds.read32(_AD9910_REG_RAMP_RATE)
+        self.core.break_realtime()
         rs = self.dds.read64(_AD9910_REG_RAMP_STEP)
 
-        logger.info("Ramp rate = 0x%X", 0xFFFFFFFF & rr)
-        logger.info("Ramp step = 0x%X", 0xFFFFFFFFFFFFFFFF & rs)
+        rs_top = 0xFFFFFFFF & (rs >> 32)
+        rs_bottom = 0xFFFFFFFF & rs
+
+        logger.info("Ramp step = 0x%X,0x%X", rs_top, rs_bottom)
+        logger.info("Ramp rate = 0x%X", rr)
 
     @kernel
     def extended_set_cfr2(
