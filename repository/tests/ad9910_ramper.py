@@ -211,7 +211,7 @@ class AD9910Ramper(EnvExperiment):
 
         self.set_ramp_limits(freq_low, freq_high)
 
-        max_step_mu = 0x0000FFFF
+        max_step_mu = 0x00FFFFFF
         min_wait_mu = 1
 
         # max_step_mu = 0x8FFFFFFF
