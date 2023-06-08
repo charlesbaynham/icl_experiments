@@ -25,7 +25,7 @@ class AD9910Writer(EnvExperiment):
     @kernel
     def run(self):
         self.core.reset()
-        self.dds.init(blind=True)
+        self.dds.init(blind=False)
 
         delay(10e-3)
 
