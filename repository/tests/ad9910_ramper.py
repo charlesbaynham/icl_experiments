@@ -128,6 +128,11 @@ class AD9910Ramper(EnvExperiment):
         ramp_rate = (pos_delay_mu & 0xFFFF) | ((neg_delay_mu & 0xFFFF) << 16)
         self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
+        logger.info("neg_freq_step_mu = %s", neg_freq_step_mu)
+        logger.info("pos_freq_step_mu = %s", pos_freq_step_mu)
+        logger.info("ramp_rate = 0x%X", ramp_rate)
+        self.core.break_realtime()
+
     @kernel
     def set_ramp_parameters(self, freq_step: TFloat, delay: TFloat):
         """Sets the upwards and downwards DRG ramp step sizes and delays
