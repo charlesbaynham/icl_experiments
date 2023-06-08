@@ -12,6 +12,7 @@ from artiq.experiment import kernel
 from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
+from numpy import ceil
 from numpy import int32
 
 
@@ -134,19 +135,20 @@ class AD9910Ramper(EnvExperiment):
 
     @kernel
     def start_ramp(self, rate: TFloat, freq_low: TFloat, freq_high: TFloat):
-        """Configures a triangle-wave ramp with the given rate in Hz/s and frequency limits.
+        """Configures a triangle-wave ramp with the given rate in Hz/s and
+        frequency limits.
 
-        This method sets the step size to the smallest possible amount and varies the time between steps.
-        The maximum ramp rate possible is therefore f_sys^2 / (4 * 2^32) (= 58 MHz/s for an AD9910 with default configuration)
+        This method sets the step size to the smallest possible amount that will
+        permit the desired ramp rate then varies the time between steps to get
+        the requested rate.
 
         This function enables the DRG immediately.
         """
 
-        freq_step_mu = 1
+        factor = (4.0 * (2.0**32.0)) * rate / self.dds.sysclk**2.0
 
-        delay_mu = int32(
-            round(freq_step_mu * self.dds.sysclk**2.0 / (4.0 * (2.0**32.0)) / rate)
-        )
+        freq_step_mu = int32(ceil(factor))
+        delay_mu = int32(round(freq_step_mu / factor))
 
         self.set_ramp_limits(freq_low, freq_high)
         self.set_ramp_parameters_mu(freq_step_mu, delay_mu)
