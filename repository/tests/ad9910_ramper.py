@@ -196,6 +196,10 @@ class AD9910Ramper(EnvExperiment):
         freq_step_mu = int32(max(ceil(factor), 1000.0))
         delay_mu = int32(round(freq_step_mu / factor))
 
+        logger.info("freq_step_mu = %s", freq_step_mu)
+        logger.info("delay_mu = %s", delay_mu)
+        self.core.break_realtime()
+
         self.set_ramp_limits(freq_low, freq_high)
 
         max_step_mu = 0x7FFFFFFF
