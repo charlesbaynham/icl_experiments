@@ -150,6 +150,14 @@ class AD9910Ramper(EnvExperiment):
         freq_step_mu = int32(ceil(factor))
         delay_mu = int32(round(freq_step_mu / factor))
 
+        achieved_ramp_rate = (
+            freq_step_mu * self.dds.sysclk**2 / 4.0 / 2.0**32.0 / delay_mu
+        )
+        logger.info("freq_step_mu = %s", freq_step_mu)
+        logger.info("delay_mu = %s", delay_mu)
+        logger.info("achieved_ramp_rate = %s", achieved_ramp_rate)
+        self.core.break_realtime()
+
         self.set_ramp_limits(freq_low, freq_high)
         self.set_ramp_parameters_mu(freq_step_mu, delay_mu)
         self.extended_set_cfr2(drg_enable=1, no_dwell_low=1, no_dwell_high=1)
