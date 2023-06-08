@@ -55,9 +55,9 @@ class AD9910Ramper(EnvExperiment):
     @kernel
     def run(self):
         self.core.reset()
-        self.dds.init()
-
         delay(10e-3)
+
+        self.dds.init()
 
         self.core.break_realtime()
         self.start_ramp(self.df_dt, self.f_min, self.f_max, self.scan_type)
