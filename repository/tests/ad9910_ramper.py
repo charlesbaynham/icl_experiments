@@ -7,6 +7,7 @@ from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_STEP
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
+from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import NumberValue
@@ -38,6 +39,19 @@ class AD9910Ramper(EnvExperiment):
             "df_dt", NumberValue(default=1e6, unit="MHz", ndecimals=6)
         )
 
+        self.setattr_argument(
+            "mode", EnumerationValue(["Triangle", "Positive saw", "Negative saw"])
+        )
+
+    def prepare(self):
+        modes = {
+            "Triangle": 0,
+            "Positive saw": 1,
+            "Negative saw": 2,
+        }
+
+        self.scan_type = modes[self.mode]
+
     @kernel
     def run(self):
         self.core.reset()
@@ -46,7 +60,7 @@ class AD9910Ramper(EnvExperiment):
         delay(10e-3)
 
         self.core.break_realtime()
-        self.start_ramp(self.df_dt, self.f_min, self.f_max)
+        self.start_ramp(self.df_dt, self.f_min, self.f_max, self.scan_type)
 
     @kernel
     def extended_set_cfr2(
@@ -134,7 +148,9 @@ class AD9910Ramper(EnvExperiment):
         )
 
     @kernel
-    def start_ramp(self, rate: TFloat, freq_low: TFloat, freq_high: TFloat):
+    def start_ramp(
+        self, rate: TFloat, freq_low: TFloat, freq_high: TFloat, wave_type: TInt32 = 0
+    ):
         """Configures a triangle-wave ramp with the given rate in Hz/s and
         frequency limits.
 
@@ -143,6 +159,11 @@ class AD9910Ramper(EnvExperiment):
         the requested rate.
 
         This function enables the DRG immediately.
+
+        :param rate: Ramp rate in Hz/s
+        :param freq_low: Low extent of the ramp in Hz
+        :param freq_high: High extent of the ramp in Hz
+        :param wave_type: Type of scan. 0 (default) = triangle, 1 = positive-ramping sawtooth, 2 = negative-ramping sawtooth
         """
 
         factor = (4.0 * (2.0**32.0)) * rate / self.dds.sysclk**2.0
@@ -162,7 +183,22 @@ class AD9910Ramper(EnvExperiment):
 
         self.set_ramp_limits(freq_low, freq_high)
         self.set_ramp_parameters_mu(freq_step_mu, delay_mu)
-        self.extended_set_cfr2(drg_enable=1, no_dwell_low=1, no_dwell_high=1)
+
+        if wave_type == 0:
+            no_dwell_low = 1
+            no_dwell_high = 1
+        elif wave_type == 1:
+            no_dwell_low = 0
+            no_dwell_high = 1
+        elif wave_type == 2:
+            no_dwell_low = 1
+            no_dwell_high = 0
+        else:
+            raise ValueError("wave_type must be 0, 1 or 2")
+
+        self.extended_set_cfr2(
+            drg_enable=1, no_dwell_low=no_dwell_low, no_dwell_high=no_dwell_high
+        )
 
         # Pulse IO_UPDATE
         self.dds.cpld.io_update.pulse_mu(8)
