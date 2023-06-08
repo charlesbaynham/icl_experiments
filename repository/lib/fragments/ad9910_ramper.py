@@ -1,22 +1,15 @@
-import logging
-
 from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
 from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
 from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_RATE
 from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_STEP
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
-from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from ndscan.experiment import Fragment
 from numpy import ceil
 from numpy import int32
-
-
-logger = logging.getLogger(__name__)
 
 
 class AD9910Ramper(Fragment):
@@ -161,10 +154,6 @@ class AD9910Ramper(Fragment):
         # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
         freq_step_mu = int32(max(ceil(factor), 1000.0))
         delay_mu = int32(round(freq_step_mu / factor))
-
-        logger.info("freq_step_mu = %s", freq_step_mu)
-        logger.info("delay_mu = %s", delay_mu)
-        self.core.break_realtime()
 
         self.set_ramp_limits(freq_low, freq_high)
 
