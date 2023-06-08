@@ -1,5 +1,9 @@
 import logging
 
+from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
+from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
+from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_RATE
+from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_STEP
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
@@ -67,8 +71,6 @@ class AD9910Ramper(EnvExperiment):
             * matched_latency_enable = 0: in the order listed
             * matched_latency_enable = 1: simultaneously.
         """
-        from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
-
         self.dds.write32(
             _AD9910_REG_CFR2,
             (asf_profile_enable << 24)
@@ -86,10 +88,6 @@ class AD9910Ramper(EnvExperiment):
 
         This function does not enable the DRG.
         """
-        from artiq.coredevice.ad9910 import (
-            _AD9910_REG_RAMP_RATE,
-            _AD9910_REG_RAMP_STEP,
-        )
 
         # Write the same step size / ramp rates to both the up- and downwards ramps
         self.dds.write64(_AD9910_REG_RAMP_STEP, freq_step_mu, freq_step_mu)
@@ -115,8 +113,6 @@ class AD9910Ramper(EnvExperiment):
 
         This function does not enable the DRG.
         """
-        from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
-
         self.dds.write64(_AD9910_REG_RAMP_LIMIT, frequency_high_mu, frequency_low_mu)
 
     @kernel
