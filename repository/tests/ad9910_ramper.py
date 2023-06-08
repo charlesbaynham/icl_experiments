@@ -137,8 +137,9 @@ class AD9910Ramper(EnvExperiment):
         """
 
         freq_step_mu = 1
+
         delay_mu = int32(
-            round(freq_step_mu * self.dds.sysclk**2 / (4 * (2**32)) / rate)
+            round(freq_step_mu * self.dds.sysclk**2.0 / (4.0 * (2.0**32.0)) / rate)
         )
 
         self.set_ramp_limits(freq_low, freq_high)
