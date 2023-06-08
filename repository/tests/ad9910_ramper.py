@@ -213,7 +213,7 @@ class AD9910Ramper(EnvExperiment):
         else:
             raise ValueError("wave_type must be 0, 1 or 2")
 
-        self.extended_set_cfr2(drg_enable=1, no_dwell_low=0, no_dwell_high=0)
+        self.extended_set_cfr2(drg_enable=1, no_dwell_low=1, no_dwell_high=1)
 
         # Pulse IO_UPDATE
         self.dds.cpld.io_update.pulse_mu(8)
