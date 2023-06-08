@@ -23,24 +23,12 @@ class AD9910Ramper(Fragment):
     def build_fragment(self, channel: str):
         self.setattr_device("core")
         self.core: Core
-        self.setattr_device(channel)
-        self.dds: AD9910 = getattr(self, channel)
 
-        self.setattr_argument(
-            "f_min", NumberValue(default=10e6, unit="MHz", ndecimals=6)
-        )
-        self.setattr_argument(
-            "f_max", NumberValue(default=20e6, unit="MHz", ndecimals=6)
-        )
-        self.setattr_argument(
-            "df_dt", NumberValue(default=1e6, unit="MHz", ndecimals=6)
-        )
-
-        self.setattr_argument(
-            "mode", EnumerationValue(["Triangle", "Positive saw", "Negative saw"])
-        )
+        self.channel = channel
 
     def host_setup(self):
+        self.dds: AD9910 = self.get_device(self.channel)
+
         if not isinstance(self.dds, AD9910):
             raise TypeError(
                 f"'channel' parameter must correspond to an AD9910 device, not a {type(self.dds)}"
