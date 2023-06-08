@@ -104,17 +104,28 @@ class AD9910Ramper(EnvExperiment):
         )
 
     @kernel
-    def set_ramp_parameters_mu(self, freq_step_mu: TInt32, delay_mu: TInt32):
+    def set_ramp_parameters_mu(
+        self,
+        pos_freq_step_mu: TInt32,
+        pos_delay_mu: TInt32,
+        neg_freq_step_mu: TInt32 = -1,
+        neg_delay_mu: TInt32 = -1,
+    ):
         """Sets the upwards and downwards DRG ramp step sizes and delays
+
+        By default, set the negative ramp rate to the same as the positive one.
 
         This function does not enable the DRG.
         """
 
-        # Write the same step size / ramp rates to both the up- and downwards ramps
-        self.dds.write64(_AD9910_REG_RAMP_STEP, freq_step_mu, freq_step_mu)
+        if neg_freq_step_mu == -1:
+            neg_freq_step_mu = pos_freq_step_mu
+        if neg_delay_mu == -1:
+            neg_delay_mu = pos_delay_mu
 
-        ramp_rate = delay_mu & 0xFFFF
-        ramp_rate = ramp_rate | (ramp_rate << 16)
+        self.dds.write64(_AD9910_REG_RAMP_STEP, neg_freq_step_mu, pos_freq_step_mu)
+
+        ramp_rate = (pos_delay_mu & 0xFFFF) | ((neg_delay_mu & 0xFFFF) << 16)
         self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
     @kernel
@@ -196,9 +207,7 @@ class AD9910Ramper(EnvExperiment):
         else:
             raise ValueError("wave_type must be 0, 1 or 2")
 
-        self.extended_set_cfr2(
-            drg_enable=1, no_dwell_low=no_dwell_low, no_dwell_high=no_dwell_high
-        )
+        self.extended_set_cfr2(drg_enable=1, no_dwell_low=0, no_dwell_high=0)
 
         # Pulse IO_UPDATE
         self.dds.cpld.io_update.pulse_mu(8)
