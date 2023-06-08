@@ -126,10 +126,7 @@ class AD9910Ramper(EnvExperiment):
 
         self.dds.write64(_AD9910_REG_RAMP_STEP, neg_freq_step_mu, pos_freq_step_mu)
 
-        # We have to convert to int64 to avoid the 32nd bit being interpreted as a sign
-        ramp_rate = int32(
-            (pos_delay_mu & 0xFFFF) | ((int64(neg_delay_mu) & 0xFFFF) << 16)
-        )
+        ramp_rate = (pos_delay_mu & 0xFFFF) | (((neg_delay_mu) & 0xFFFF) << 16)
         self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
         logger.info("neg_freq_step_mu = %s", neg_freq_step_mu)
