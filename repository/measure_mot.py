@@ -19,7 +19,7 @@ from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.blue_3d_mot import MOTPhotodiodeMeasurement
+from repository.lib.fragments.chamber_photodiode import MOTPhotodiodeMeasurement
 from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
 from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
 
