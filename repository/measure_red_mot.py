@@ -38,45 +38,27 @@ class MeasureRedMOTFrag(ExpFragment):
         self.red_mot_controller: Red3DMOTFrag
 
         self.setattr_param(
-            "mot_loading_time",
+            "red_loading_time",
             FloatParam,
-            description="Time to wait for the 3D MOT to load",
-            default=100 * ms,
-            min=0,
-            unit="ms",
-            step=1,
+            "Delay after loading red MOT before taking flourescence measurement",
         )
-        self.mot_loading_time: FloatParamHandle
-
-    @kernel
-    def _take_data(self, loading_time):
-        raise NotImplementedError
 
     @kernel
     def run_once(self):
         self.core.break_realtime()
 
-        delay(10e-6)
-        # Turn on the 2D/3D beams & AOMs,
-        # but block the important ones, leaving the repumpers on
-        self.blue_mot_controller.enable_mot_defaults()
-        delay(1 * ms)
+        # Load a blue mot
+        self.blue_mot_controller.load_mot(clearout=True)
+
+        # Start sweeping red IJD and turn on the beams
+        self.red_mot_controller.turn_on_mot_beams()
+        delay(10e-9)
+        self.red_mot_controller.start_ramping_red()
+        delay(10e-9)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
 
-        delay(
-            100 * ms
-        )  # Wait to allow atoms to disperse if there were any hanging around
-
-        self._before_start_load_hook()
-
-        # Load MOT and start measuring signal immediately
-        self.blue_mot_controller.turn_on_3d_and_2d_beams()
-
-        self._take_data(self.mot_loading_time.get())
-
-    @kernel
-    def _before_start_load_hook(self):
-        pass
+        # Wait then take a photo
+        # to be implemented...
 
 
 MeasureRedMOT = make_fragment_scan_exp(MeasureRedMOTFrag)
