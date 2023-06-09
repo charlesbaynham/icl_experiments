@@ -129,6 +129,26 @@ class Blue3DMOTFrag(Fragment):
         )
         self.chamber_2_field_gradient: FloatParamHandle
 
+        self.setattr_param(
+            "clearout_time",
+            FloatParam,
+            "Time to clear out atoms for",
+            default=100e-3,
+            unit="ms",
+            min=0,
+        )
+        self.clearout_time: FloatParamHandle
+
+        self.setattr_param(
+            "loading_time",
+            FloatParam,
+            "Time to load atoms for",
+            default=300e-3,
+            unit="ms",
+            min=0,
+        )
+        self.loading_time: FloatParamHandle
+
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
@@ -141,9 +161,9 @@ class Blue3DMOTFrag(Fragment):
         delay(self.all_beam_default_setter.get_max_shutter_delay())
 
     @kernel
-    def enable_mot_defaults(self):
+    def enable_mot_fields(self):
         """
-        Immediately turn on all beams and fields related to the 3D blue MOT
+        Turn on the MOT gradient and bias fields
 
         This method advances the timeline by a ridiculous amount and does not
         respect beam shutter delays - it just turns everything
@@ -151,7 +171,7 @@ class Blue3DMOTFrag(Fragment):
 
         FIXME: Figure out why I need a stupid amount of slack
         """
-        self.all_beam_default_setter.turn_on_all()
+
         delay(50e-3)
         self.chamber_2_field_setter.set_bias_fields(
             self.chamber_2_bias_x.get(),
@@ -162,6 +182,14 @@ class Blue3DMOTFrag(Fragment):
         self.chamber_2_field_setter.set_mot_gradient(
             self.chamber_2_field_gradient.get()
         )
+
+    @kernel
+    def enable_mot_defaults(self):
+        """
+        Immediately turn on all beams and fields related to the 3D blue MOT
+        """
+        self.all_beam_default_setter.turn_on_all()
+        self.enable_mot_fields()
 
     @kernel
     def turn_on_3d_and_2d_beams(self):
@@ -186,3 +214,33 @@ class Blue3DMOTFrag(Fragment):
     @kernel
     def turn_off_repumpers(self):
         self.repump_beam_setter.turn_beams_off()
+
+    @kernel
+    def clear_ch2(self):
+        """
+        Clear out atoms from chamber 2
+        """
+
+        # Turn on the repumps and turn off everything else
+        self.turn_on_repumpers()
+        delay(1e-6)
+        self.turn_off_3d_and_2d_beams()
+
+        # Wait to allow atoms to disperse if there were any hanging around
+        delay(self.clearout_time.get())
+
+    @kernel
+    def load_mot(self, clearout=True):
+        """
+        Load a blue 3D MOT using the configured parameters
+
+        Optionally clear out atoms first
+        """
+
+        self.enable_mot_fields()
+
+        if clearout:
+            self.clear_ch2()
+
+        self.turn_on_3d_and_2d_beams()
+        delay(self.loading_time.get())

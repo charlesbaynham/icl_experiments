@@ -33,14 +33,8 @@ class MeasureBlueMOTFrag(ExpFragment):
         self.setattr_fragment("mot_controller", Blue3DMOTFrag)
         self.mot_controller: Blue3DMOTFrag
 
-        self.setattr_param(
-            "mot_loading_time",
-            FloatParam,
-            description="Time to wait for the 3D MOT to load",
-            default=100 * ms,
-            min=0,
-            unit="ms",
-            step=1,
+        self.setattr_param_rebind(
+            "mot_loading_time", self.mot_controller, "loading_time"
         )
         self.mot_loading_time: FloatParamHandle
 
@@ -52,16 +46,8 @@ class MeasureBlueMOTFrag(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
 
-        delay(10e-6)
-        # Turn on the 2D/3D beams & AOMs,
-        # but block the important ones, leaving the repumpers on
-        self.mot_controller.enable_mot_defaults()
-        delay(1 * ms)
-        self.mot_controller.turn_off_3d_and_2d_beams()
-
-        delay(
-            100 * ms
-        )  # Wait to allow atoms to disperse if there were any hanging around
+        self.mot_controller.enable_mot_fields()
+        self.mot_controller.clear_ch2()
 
         self._before_start_load_hook()
 
