@@ -23,6 +23,8 @@ BLUE_3D_MOT_BEAMS = [
     "blue_3dmot_axialplus",
     "blue_3dmot_axialminus",
     "blue_injection",
+    "repump_707",
+    "repump_679",
 ]
 
 
