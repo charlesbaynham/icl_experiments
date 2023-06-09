@@ -1,13 +1,17 @@
+import logging
+
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.coredevice.urukul import CPLD
 from artiq.experiment import kernel
+from artiq.experiment import RTIOUnderflow
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 
-from repository.lib.fragments.debug_logger import DebugLogger
+
+logger = logging.getLogger(__name__)
 
 
 class LibSetSUServoStatic(Fragment):
@@ -34,14 +38,13 @@ class LibSetSUServoStatic(Fragment):
 
         self.suservos_have_been_initiated = False
 
-        self.setattr_fragment("logger", DebugLogger, "suservo")
-        self.logger: DebugLogger
-
     def host_setup(self):
         super().host_setup()
 
         self.suservo_channel: Channel = self.get_device(self.channel)
         self.suservo: SUServo = self.suservo_channel.servo
+
+        self.print_debug_statements = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
     def device_setup(self):
@@ -57,7 +60,7 @@ class LibSetSUServoStatic(Fragment):
             # Read the attenuator registers so that we don't affect other channels
             for cpld in self.suservo.cplds:
                 att_mu = cpld.get_att_mu()
-                self.logger.log("Attenuation reg: 0x%X", att_mu)
+                logger.debug("Attenuation reg: 0x%X", att_mu)
 
     @kernel
     def set_suservo(
@@ -80,13 +83,15 @@ class LibSetSUServoStatic(Fragment):
         """
         # type:(Channel, float, float, float) -> None
 
-        self.logger.log(
-            "Setting channel %s to %f MHz, amp = %f, att = %f",
-            self.channel,
-            1e-6 * freq,
-            amplitude,
-            attenuation,
-        )
+        if self.print_debug_statements:
+            logger.info(
+                "Setting channel %s to %f MHz, amp = %f, att = %f",
+                self.channel,
+                1e-6 * freq,
+                amplitude,
+                attenuation,
+            )
+            self.core.break_realtime()
 
         # Set the attenuator for this channel on this Urukul
         attenuator_channel = self.suservo_channel.servo_channel % 4
