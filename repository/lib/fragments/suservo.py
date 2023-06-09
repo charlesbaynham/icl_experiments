@@ -52,13 +52,14 @@ class LibSetSUServoStatic(Fragment):
 
         # Initiate the suservo itself (i.e. all four channels)
         if not self.suservos_have_been_initiated:
-            try:
-                self.suservo.init()
-            except RTIOUnderflow:
-                self.core.break_realtime()
-                self.suservo.init()
+            self.core.break_realtime()
 
+            self.suservo.init()
             self.suservos_have_been_initiated = True
+
+            # Read the attenuator registers so that we don't affect other channels
+            for cpld in self.suservo.cplds:
+                cpld.get_att_mu()
 
     @kernel
     def set_suservo(
@@ -94,7 +95,6 @@ class LibSetSUServoStatic(Fragment):
         # Set the attenuator for this channel on this Urukul
         attenuator_channel = self.suservo_channel.servo_channel % 4
         cpld = self.suservo_channel.dds.cpld  # type: CPLD
-        cpld.get_att_mu()
         cpld.set_att(attenuator_channel, attenuation)
 
         # Configure profile 0 to have the requested amplitude and frequency
