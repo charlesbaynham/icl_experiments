@@ -267,6 +267,11 @@ class RelockAllIJDsFrag(ExpFragment):
             # and we don't want to delay the other IJDs
             frag.frag_ijd_scanner.override_param("temperature_waittime", 0)
 
+            # Don't change the injection AOM except for the first one
+            frag.frag_ijd_scanner.override_param(
+                "change_aom", ijd_controller_name == "blue_IJD1_controller"
+            )
+
         self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
 
     def run_once(self) -> None:
