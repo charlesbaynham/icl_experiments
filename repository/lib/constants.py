@@ -60,7 +60,7 @@ B_FIELD_GRADIENT = 100.0  # A
 RED_INJECTION_AOM_ATTENUATION = 0
 "Default attenuation for the 689 injection AOM"
 
-RED_INJECTION_AOM_FREQUENCY = 200e6
+RED_INJECTION_AOM_FREQUENCY = 340e6
 "Default frequency for the 689 injection AOM"
 
 OFFSET_FREQUENCY_689 = 450e6
@@ -136,39 +136,39 @@ AOM_BEAMS = [
     ### RED ###
     SUServoedBeam(
         "red_MOT_diag",
-        200e6,
+        100e6,
         0,
         "suservo_aom_singlepass_689_redMOT_diag",
     ),
     SUServoedBeam(
         "red_up",
-        200e6,
+        100e6,
         0,
         "suservo_aom_singlepass_689_up",
     ),
     SUServoedBeam(
         "red_MOT_axialplus",
-        200e6,
+        100e6,
         0,
         "suservo_aom_singlepass_689_redMOT_axialplus",
     ),
     SUServoedBeam(
         "red_MOT_axialminus",
-        200e6,
+        100e6,
         0,
         "suservo_aom_singlepass_689_redMOT_axialminus",
     ),
     ### OTHER ###
     SUServoedBeam(
         "repump_707",
-        200e6,
-        20,
+        100e6,
+        0,
         "suservo_aom_singlepass_707",
     ),
     SUServoedBeam(
         "repump_679",
-        200e6,
-        20,
+        100e6,
+        0,
         "suservo_aom_singlepass_679",
     ),
 ]
