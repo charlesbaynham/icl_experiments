@@ -126,11 +126,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1681202837,
-        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
+        "lastModified": 1685518550,
+        "narHash": "sha256-o2d0KcvaXzTrPRIo0kOLV0/QXHhDQ5DTi+OxcjO8xqY=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
+        "rev": "a1720a10a6cfe8234c0e93907ffe81be440f4cef",
         "type": "github"
       },
       "original": {
@@ -255,11 +255,11 @@
     },
     "newer_nixpkgs": {
       "locked": {
-        "lastModified": 1683928319,
-        "narHash": "sha256-maz0DRKixJVcNRMiAMWlJniiF8IuQ+WbfmlJJ8D+jfM=",
+        "lastModified": 1686190112,
+        "narHash": "sha256-BRDO/tnq+ruwv14caQLIqejYJ6w5icja5KYpNunOW24=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "9656e85a15a0fe67847ee8cdb99a20d8df499962",
+        "rev": "41b86284d3e073bb322da076ae8cd6e116b2ee2a",
         "type": "github"
       },
       "original": {
@@ -316,11 +316,11 @@
         "pypi-deps-db": "pypi-deps-db"
       },
       "locked": {
-        "lastModified": 1684851321,
-        "narHash": "sha256-uOKjMQzZvlIYfg11T+XHTo9+OKBbC0Z0v3nYPE7gKxQ=",
+        "lastModified": 1686044210,
+        "narHash": "sha256-i9mjtGqndPsOMt/xbjShVTrFITvBBQRC8OeATqw+FIQ=",
         "ref": "refs/heads/master",
-        "rev": "bc613dd54b5165fa0e2c298eea10df6161eea662",
-        "revCount": 68,
+        "rev": "c30be8b4cf3af588077a934835d38d5f60464ffa",
+        "revCount": 82,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
