@@ -36,9 +36,9 @@ class Red3DMOTFrag(Fragment):
             "all_beam_default_setter",
             SetBeamsToDefaults,
             beams_to_enable=[
-                "red_MOT_diag",
-                "red_MOT_axialplus",
-                "red_MOT_axialminus",
+                "red_mot_diagonal",
+                "red_mot_sigmaplus",
+                "red_mot_sigmaminus",
             ],
         )
         self.all_beam_default_setter: SetBeamsToDefaults
@@ -47,9 +47,9 @@ class Red3DMOTFrag(Fragment):
             "all_mot_beams_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.AOM_BEAMS["red_MOT_diag"],
-                constants.AOM_BEAMS["red_MOT_axialplus"],
-                constants.AOM_BEAMS["red_MOT_axialminus"],
+                constants.AOM_BEAMS["red_mot_diagonal"],
+                constants.AOM_BEAMS["red_mot_sigmaplus"],
+                constants.AOM_BEAMS["red_mot_sigmaminus"],
             ],
         )
         self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
