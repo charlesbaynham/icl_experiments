@@ -54,6 +54,8 @@ class Blue3DMOTFrag(Fragment):
                 constants.AOM_BEAMS["blue_3dmot_axialminus"],
                 constants.AOM_BEAMS["blue_2dmot_A"],
                 constants.AOM_BEAMS["blue_2dmot_B"],
+                constants.AOM_BEAMS["repump_679"],
+                constants.AOM_BEAMS["repump_707"],
             ],
         )
         self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
@@ -68,6 +70,16 @@ class Blue3DMOTFrag(Fragment):
             ],
         )
         self.mot_3d_beams_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
+            "repump_beam_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.AOM_BEAMS["repump_679"],
+                constants.AOM_BEAMS["repump_707"],
+            ],
+        )
+        self.repump_beam_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
             "chamber_2_field_setter",
@@ -166,3 +178,11 @@ class Blue3DMOTFrag(Fragment):
     @kernel
     def turn_off_3d_beams(self):
         self.mot_3d_beams_setter.turn_beams_off()
+
+    @kernel
+    def turn_on_repumpers(self):
+        self.repump_beam_setter.turn_beams_on()
+
+    @kernel
+    def turn_off_repumpers(self):
+        self.repump_beam_setter.turn_beams_off()

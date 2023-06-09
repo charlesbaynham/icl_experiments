@@ -2,12 +2,10 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import ms
 from artiq.experiment import now_mu
-from artiq.experiment import ns
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
@@ -35,14 +33,6 @@ class MeasureBlueMOTFrag(ExpFragment):
         self.setattr_fragment("mot_controller", Blue3DMOTFrag)
         self.mot_controller: Blue3DMOTFrag
 
-        # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
-        self.repumper_707_shutter: TTLOut = self.get_device(
-            "TTL_shutter_707_temporary_shutter"
-        )
-        self.repumper_679_shutter: TTLOut = self.get_device(
-            "TTL_shutter_679_temporary_shutter"
-        )
-
         self.setattr_param(
             "mot_loading_time",
             FloatParam,
@@ -66,9 +56,6 @@ class MeasureBlueMOTFrag(ExpFragment):
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
         self.mot_controller.enable_mot_defaults()
-        delay(20 * ns)
-        self.repumper_707_shutter.on()
-        self.repumper_679_shutter.on()
         delay(1 * ms)
         self.mot_controller.turn_off_3d_and_2d_beams()
 
