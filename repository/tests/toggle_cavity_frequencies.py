@@ -20,16 +20,12 @@ class ToggleCavityFreqs(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
-        self.core.wait_until_mu(now_mu())
-        self.core.reset()
+        self.core.break_realtime()
 
-        for _ in range(10):
-            self.laser_stab.offset_689(0.0)
-            delay(5.0)
-            self.laser_stab.offset_689(self.stepsize.get())
-            delay(5.0)
-
-        self.core.wait_until_mu(now_mu())
+        self.laser_stab.offset_689(0.0)
+        delay(5.0)
+        self.laser_stab.offset_689(self.stepsize.get())
+        delay(5.0)
 
 
 ToggleCavityFreqs = make_fragment_scan_exp(ToggleCavityFreqs)
