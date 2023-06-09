@@ -116,6 +116,17 @@ class Blue3DMOTFrag(Fragment):
         self.chamber_2_field_gradient: FloatParamHandle
 
     @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        # Turn on all the AOMs but close all the shutters
+        self.core.break_realtime()
+        self.all_beam_default_setter.turn_on_all(shutter_state=False)
+
+        # Make sure that the shutters are closed before run_once starts
+        delay(self.all_beam_default_setter.get_max_shutter_delay())
+
+    @kernel
     def enable_mot_defaults(self):
         """
         Immediately turn on all beams and fields related to the 3D blue MOT
