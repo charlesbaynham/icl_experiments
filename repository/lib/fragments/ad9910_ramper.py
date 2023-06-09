@@ -185,6 +185,24 @@ class AD9910Ramper(Fragment):
             raise ValueError("wave_type must be 0, 1 or 2")
 
         self._extended_set_cfr2(drg_enable=1, no_dwell_low=1, no_dwell_high=1)
+        self._pulse_io_update()
 
-        # Pulse IO_UPDATE
+    @kernel
+    def stop_ramp(self):
+        """
+        Disable frequency ramping
+
+        This function will immediately disable frequency ramping, leaving the
+        frequency wherever it happens to be (i.e. mid-ramp if a ramp was
+        running).
+        """
+
+        self._extended_set_cfr2(drg_enable=0)
+        self._pulse_io_update()
+
+    @kernel
+    def _pulse_io_update(self):
+        """
+        Pulse IO_UPDATE to load config registers into the DDS
+        """
         self.dds.cpld.io_update.pulse_mu(8)

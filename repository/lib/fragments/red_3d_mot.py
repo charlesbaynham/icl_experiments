@@ -8,6 +8,8 @@ from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
@@ -50,11 +52,11 @@ class Red3DMOTFrag(Fragment):
         self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
-            "injection_aom_dds",
+            "injection_aom_ramper",
             AD9910Ramper,
             "urukul9910_aom_doublepass_689_red_injection",
         )
-        self.injection_aom_dds: AD9910Ramper
+        self.injection_aom_ramper: AD9910Ramper
 
         self.injection_aom: AD9910 = self.get_device(
             "urukul9910_aom_doublepass_689_red_injection"
@@ -71,9 +73,66 @@ class Red3DMOTFrag(Fragment):
         )
         self.chamber_2_field_gradient: FloatParamHandle
 
+        ### Parameters ###
+
+        self.setattr_param(
+            "injection_aom_static_frequency",
+            FloatParam,
+            "689 injection AOM static frequency",
+            unit="MHz",
+            default=constants.RED_INJECTION_AOM_FREQUENCY,
+        )
+        self.injection_aom_static_frequency: FloatParamHandle
+
+        self.setattr_param(
+            "ramp_frequency",
+            FloatParam,
+            "689 injection AOM ramp frequency",
+            unit="MHz",
+            default=1e6,
+        )
+        self.setattr_param(
+            "ramp_low",
+            FloatParam,
+            "689 injection AOM ramp lower limit",
+            unit="MHz",
+            default=constants.RED_INJECTION_AOM_FREQUENCY - 2e6,
+        )
+        self.setattr_param(
+            "ramp_high",
+            FloatParam,
+            "689 injection AOM ramp upper limit",
+            unit="MHz",
+            default=constants.RED_INJECTION_AOM_FREQUENCY,
+        )
+        self.setattr_param(
+            "ramp_type",
+            FloatParam,
+            "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
+            default=1,
+        )
+
+        self.ramp_frequency: FloatParamHandle
+        self.ramp_low: FloatParamHandle
+        self.ramp_high: FloatParamHandle
+        self.ramp_type: IntParamHandle
+
+    def host_setup(self):
+        super().host_setup()
+        assert self.ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
+
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
+
+        # Precalculate the ramp rate required to get the requested modulation frequency
+        self.ramp_rate = (
+            self.ramp_high.get() - self.ramp_low.get()
+        ) * self.ramp_frequency.get()
+
+        if self.ramp_type.get() == 0:
+            # Triangle waves will need to ramp twice as quickly
+            self.ramp_rate *= 2
 
         # Turn on all the AOMs but close all the shutters
         self.core.break_realtime()
@@ -84,7 +143,7 @@ class Red3DMOTFrag(Fragment):
 
         # Start the injection AOM in static mode
         self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings
-        self.injection_aom.set(constants.RED_INJECTION_AOM_FREQUENCY)
+        self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.set_att(constants.RED_INJECTION_AOM_ATTENUATION)
 
     @kernel
@@ -94,3 +153,23 @@ class Red3DMOTFrag(Fragment):
     @kernel
     def turn_off_mot_beams(self):
         self.all_mot_beams_setter.turn_beams_off()
+
+    @kernel
+    def start_ramping_red(self):
+        """
+        Start modulation of the 689 DDS as configured
+        """
+        self.injection_aom_ramper.start_ramp(
+            self.ramp_rate,
+            self.ramp_low.get(),
+            self.ramp_high.get(),
+            self.ramp_type.get(),
+        )
+
+    @kernel
+    def stop_ramping_red(self):
+        """
+        Stop modulation of the 689 DDS and return to default frequency
+        """
+        self.injection_aom_ramper.stop_ramp()
+        self.injection_aom.set_frequency(self.injection_aom_static_frequency.get())
