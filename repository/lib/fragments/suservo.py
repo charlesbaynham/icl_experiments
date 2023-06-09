@@ -95,7 +95,7 @@ class LibSetSUServoStatic(Fragment):
         attenuator_channel = self.suservo_channel.servo_channel % 4
         cpld = self.suservo_channel.dds.cpld  # type: CPLD
         cpld.get_att_mu()
-        cpld.set_att_mu(attenuator_channel, attenuation)
+        cpld.set_att(attenuator_channel, attenuation)
 
         # Configure profile 0 to have the requested amplitude and frequency
         self.suservo_channel.set_y(profile=0, y=amplitude)
