@@ -27,7 +27,7 @@ from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
 logger = logging.getLogger(__name__)
 
 
-class MeasureMOTFrag(ExpFragment):
+class MeasureBlueMOTFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -88,7 +88,7 @@ class MeasureMOTFrag(ExpFragment):
         pass
 
 
-class MeasureMotWithPDFrag(MeasureMOTFrag):
+class MeasureBlueMOTWithPDFrag(MeasureBlueMOTFrag):
     def build_fragment(self):
         self.setattr_param(
             "delay_between_trace_points",
@@ -134,7 +134,7 @@ class MeasureMotWithPDFrag(MeasureMOTFrag):
         self.photodiode_mean_voltage.push(mean_voltage)
 
 
-class MeasureMotWithCameraFrag(MeasureMOTFrag):
+class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
     def build_fragment(self):
         self.setattr_param(
             "exposure_horiz",
@@ -267,5 +267,5 @@ class MeasureMotWithCameraFrag(MeasureMOTFrag):
         self.image_vertical.push(image_vert)
 
 
-MeasureMOTWithPD = make_fragment_scan_exp(MeasureMotWithPDFrag)
-MeasureMOTWithCamera = make_fragment_scan_exp(MeasureMotWithCameraFrag)
+MeasureBlueMOTWithPD = make_fragment_scan_exp(MeasureBlueMOTWithPDFrag)
+MeasureBlueMOTWithCamera = make_fragment_scan_exp(MeasureBlueMOTWithCameraFrag)
