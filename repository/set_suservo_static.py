@@ -1,3 +1,5 @@
+import logging
+
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import kernel
 from ndscan.experiment import BoolParam
@@ -10,6 +12,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.lib.utils import get_local_devices
 
 from repository.lib.fragments.suservo import LibSetSUServoStatic
+
+logger = logging.getLogger(__name__)
 
 
 class SetSUServoStatic(ExpFragment):
@@ -81,6 +85,14 @@ class SetSUServoStatic(ExpFragment):
             self.attenuation.get(),
             self.rf_switch.get(),
         )
+
+        logger.warning(
+            "Setting all SUServos on this Urukul to the same attenuation of %.2f dB",
+            self.attenuation.get(),
+        )
+
+        self.core.break_realtime()
+        self.LibSetSUServoStatic.set_all_attenuations(self.attenuation.get())
 
 
 SetSUServoStaticExp = make_fragment_scan_exp(SetSUServoStatic)

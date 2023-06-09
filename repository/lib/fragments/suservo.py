@@ -59,10 +59,23 @@ class LibSetSUServoStatic(Fragment):
     @kernel
     def set_all_attenuations(self, attenuation: TFloat):
         """
-        Set all channels on the same DDS as this channel to the same, given attenuation
+        Set all channels on the same DDS as this channel to the same, given
+        attenuation
 
-        This
+        This is annoyingly required because there is no way of getting
+        information out from the SUServo gateware about the current settings, so
+        they have to be reset on each run.
         """
+        # Set the attenuator for all channels on this Urukul
+        cpld = self.suservo_channel.dds.cpld  # type: CPLD
+        attenuation_mu = cpld.att_to_mu(attenuation)
+        att_reg = (
+            attenuation_mu
+            | (attenuation_mu << 1 * 8)
+            | (attenuation_mu << 2 * 8)
+            | (attenuation_mu << 3 * 8)
+        )
+        cpld.set_all_att_mu(att_reg)
 
     @kernel
     def set_suservo(
