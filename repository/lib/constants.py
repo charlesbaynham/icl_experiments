@@ -63,7 +63,7 @@ RED_INJECTION_AOM_ATTENUATION = 0
 RED_INJECTION_AOM_FREQUENCY = 340e6
 "Default frequency for the 689 injection AOM"
 
-OFFSET_FREQUENCY_689 = 450e6
+OFFSET_FREQUENCY_689 = 553e6
 "Default cavity offset frequency for the 689's laser stabilization"
 
 
