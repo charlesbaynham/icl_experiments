@@ -15,6 +15,7 @@ from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.cavity_control import LaserStabilisationSystem
 
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,8 @@ class Red3DMOTFrag(Fragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
+
+        # %% FRAGMENTS
 
         self.setattr_fragment(
             "all_beam_default_setter",
@@ -58,9 +61,16 @@ class Red3DMOTFrag(Fragment):
         )
         self.injection_aom_ramper: AD9910Ramper
 
+        self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
+        self.laser_stab_system: LaserStabilisationSystem
+
+        # %% DEVICES
+
         self.injection_aom: AD9910 = self.get_device(
             "urukul9910_aom_doublepass_689_red_injection"
         )
+
+        # %% PARAMETERS
 
         self.setattr_param(
             "chamber_2_field_gradient",
@@ -72,8 +82,6 @@ class Red3DMOTFrag(Fragment):
             max=100,
         )
         self.chamber_2_field_gradient: FloatParamHandle
-
-        ### Parameters ###
 
         self.setattr_param(
             "injection_aom_static_frequency",
@@ -107,7 +115,7 @@ class Red3DMOTFrag(Fragment):
         )
         self.setattr_param(
             "ramp_type",
-            FloatParam,
+            IntParam,
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
             default=1,
         )

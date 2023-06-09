@@ -46,4 +46,5 @@ aliases = {
     "zotino_plant_room": "zotino0",
     "ttl_transfer_cavity_trigger": "ttl1",
     "dds_transfer_cavity_aom": "urukul2_ch0",
+    "eom_cavity_offset_689": "mirny0_ch0",
 }
