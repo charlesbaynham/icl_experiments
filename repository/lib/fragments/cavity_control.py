@@ -69,12 +69,9 @@ class LaserStabilisationSystem(ExpFragment):
 
         # Immediately turn on the output.
         # Do this every time to ensure that any previous offsets are undone
-        self.turn_on_offset_frequency()
-
-    @kernel
-    def turn_on_offset_frequency(self):
-        self.mirny_channel_689.set_frequency(self.offset_default_689_freq.get())
         self.mirny_channel_689.set_att(self.offset_default_689_att.get())
+        self.offset_689(0.0)
+        self.mirny_channel_689.sw.on()
 
     @kernel
     def offset_689(self, offset: TFloat):
