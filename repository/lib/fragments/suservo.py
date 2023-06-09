@@ -59,7 +59,8 @@ class LibSetSUServoStatic(Fragment):
 
             # Read the attenuator registers so that we don't affect other channels
             for cpld in self.suservo.cplds:
-                cpld.get_att_mu()
+                att_mu = cpld.get_att_mu()
+                logger.debug("Attenuation reg: 0x%X", att_mu)
 
     @kernel
     def set_suservo(
