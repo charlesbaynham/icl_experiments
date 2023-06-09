@@ -67,7 +67,7 @@ OFFSET_FREQUENCY_689 = 553e6
 "Default cavity offset frequency for the 689's laser stabilization"
 
 
-OFFSET_ATTENUATION_689 = 0
+OFFSET_ATTENUATION_689 = 7.0
 "Default cavity offset attenuation for the 689's laser stabilization"
 
 # Information about beams controlled by AOMs

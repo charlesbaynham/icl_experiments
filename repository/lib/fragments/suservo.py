@@ -50,18 +50,19 @@ class LibSetSUServoStatic(Fragment):
     def device_setup(self):
         # Initiate the suservo itself (i.e. all four channels)
         if not self.suservos_have_been_initiated:
-            # Read the attenuator registers so that we don't affect other channels
-            for cpld in self.suservo.cplds:
-                self.core.break_realtime()
-                att_mu = cpld.get_att_mu()
-                if self.print_debug_statements:
-                    logger.info("Attenuation reg: 0x%X", att_mu)
-
             self.core.break_realtime()
             self.suservo.init()
             self.suservos_have_been_initiated = True
 
         self.device_setup_subfragments()
+
+    @kernel
+    def set_all_attenuations(self, attenuation: TFloat):
+        """
+        Set all channels on the same DDS as this channel to the same, given attenuation
+
+        This
+        """
 
     @kernel
     def set_suservo(
