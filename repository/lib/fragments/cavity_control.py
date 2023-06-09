@@ -5,7 +5,8 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.mirny import Mirny
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
-from ndscan.experiment import Fragment
+from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -15,9 +16,13 @@ import repository.lib.constants as constants
 logger = logging.getLogger(__name__)
 
 
-class LaserStabilisationSystem(Fragment):
+class LaserStabilisationSystem(ExpFragment):
     """
-    Methods for controlling the laser stabilization system
+    Control the laser stabilization system
+
+    This is mainly a control Fragment designed to be used by higher-level
+    Fragments. However, it also provides a :meth:`.run_once` method that sets
+    the default frequencies / attenuations as defined by parameters.
     """
 
     def build_fragment(self):
@@ -78,3 +83,13 @@ class LaserStabilisationSystem(Fragment):
         """
         new_freq = self.offset_default_689_freq.get() + offset
         self.mirny_channel_689.set_frequency(new_freq)
+
+    @kernel
+    def run_once(self) -> None:
+        # This code is not actually required - the device_setup will already do
+        # this. But it's here to be explicit
+        self.core.break_realtime()
+        self.offset_689(0.0)
+
+
+LaserStabilisationSystemExp = make_fragment_scan_exp(LaserStabilisationSystem)
