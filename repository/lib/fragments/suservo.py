@@ -28,9 +28,6 @@ class LibSetSUServoStatic(Fragment):
     :class:`~ndscan.experiment.fragment.ExpFragment` will reinitialise the
     entire SUServo device. This Fragment then provides a :meth:`.set_suservo`
     method which can be used to set the specified channel's output.
-
-    FIXME: This Fragment currently sets all channels on the same Urukul to have
-    the same attenuation as the desired one. This is obviously a problem.
     """
 
     def build_fragment(self, channel: str):
@@ -73,12 +70,14 @@ class LibSetSUServoStatic(Fragment):
     ):
         """Set a static output on a SUServo channel
 
-        This method consumes no slack unless the logging level is in DEBUG mode, in which case it calls :meth:`~artiq.coredevice.core.Core.break_realtime`.
+        This method consumes no slack unless the logging level is in DEBUG mode,
+        in which case it calls
+        :meth:`~artiq.coredevice.core.Core.break_realtime`.
 
         Args:
-            freq (TFloat): Frequency in Hz
-            amplitude (TFloat): Amplitude from 0 to 1 when 1 is 100% output.
-            attenuation (TFloat, optional): Attenuation on the variable attenuator. Defaults to 30.0.
+            freq (TFloat): Frequency in Hz amplitude (TFloat): Amplitude from 0
+            to 1 when 1 is 100% output. attenuation (TFloat, optional):
+            Attenuation on the variable attenuator. Defaults to 30.0.
         """
         # type:(Channel, float, float, float) -> None
 
@@ -92,16 +91,11 @@ class LibSetSUServoStatic(Fragment):
             )
             self.core.break_realtime()
 
-        # Set the attenuator for all channels on this Urukul
+        # Set the attenuator for this channel on this Urukul
+        attenuator_channel = self.suservo_channel.servo_channel % 4
         cpld = self.suservo_channel.dds.cpld  # type: CPLD
-        attenuation_mu = cpld.att_to_mu(attenuation)
-        att_reg = (
-            attenuation_mu
-            | (attenuation_mu << 1 * 8)
-            | (attenuation_mu << 2 * 8)
-            | (attenuation_mu << 3 * 8)
-        )
-        cpld.set_all_att_mu(att_reg)
+        cpld.get_att_mu()
+        cpld.set_att_mu(attenuator_channel, attenuation)
 
         # Configure profile 0 to have the requested amplitude and frequency
         self.suservo_channel.set_y(profile=0, y=amplitude)
