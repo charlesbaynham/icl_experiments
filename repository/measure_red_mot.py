@@ -41,6 +41,8 @@ class MeasureRedMOTFrag(ExpFragment):
             "red_loading_time",
             FloatParam,
             "Delay after loading red MOT before taking flourescence measurement",
+            default=200e-3,
+            unit="ms",
         )
 
     @kernel
