@@ -17,6 +17,7 @@ information like "optimal drive power for this AOM": that information belongs in
 
 
 aliases = {
+    # Blue
     "suservo_aom_doublepass_461_injection": "suservo1_ch3",
     "suservo_aom_singlepass_461_spectroscopy": "suservo1_ch7",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
@@ -26,6 +27,16 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch6",
     "suservo_aom_singlepass_461_chamber2_imaging": "suservo0_ch0",
+    # Red
+    "urukul9910_aom_doublepass_689_red_injection": "urukul8_ch0",
+    "suservo_aom_singlepass_689_redMOT_diag": "suservo2_ch4",
+    "suservo_aom_singlepass_689_up": "suservo2_ch5",
+    "suservo_aom_singlepass_689_redMOT_axialplus": "suservo2_ch6",
+    "suservo_aom_singlepass_689_redMOT_axialminus": "suservo2_ch7",
+    # Other
+    "suservo_aom_singlepass_707": "suservo2_ch0",
+    "suservo_aom_singlepass_679": "suservo2_ch1",
+    "suservo_aom_singlepass_1379": "suservo2_ch2",
     "TTL_shutter_461_pushbeam": "ttl16",
     "TTL_shutter_461_2dmot_is_it_a": "ttl17",
     "TTL_shutter_461_2dmot_is_it_b": "ttl18",

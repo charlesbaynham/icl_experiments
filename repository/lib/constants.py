@@ -59,6 +59,7 @@ B_FIELD_GRADIENT = 100.0  # A
 
 # Information about beams controlled by AOMs
 AOM_BEAMS = [
+    ### BLUE ###
     SUServoedBeam(
         "blue_push_beam",
         150e6,
@@ -118,6 +119,31 @@ AOM_BEAMS = [
         200e6,
         20,
         "suservo_aom_singlepass_461_spectroscopy",
+    ),
+    ### RED ###
+    SUServoedBeam(
+        "red_MOT_diag",
+        200e6,
+        0,
+        "suservo_aom_singlepass_689_redMOT_diag",
+    ),
+    SUServoedBeam(
+        "red_up",
+        200e6,
+        0,
+        "suservo_aom_singlepass_689_up",
+    ),
+    SUServoedBeam(
+        "red_MOT_axialplus",
+        200e6,
+        0,
+        "suservo_aom_singlepass_689_redMOT_axialplus",
+    ),
+    SUServoedBeam(
+        "red_MOT_axialminus",
+        200e6,
+        0,
+        "suservo_aom_singlepass_689_redMOT_axialminus",
     ),
 ]
 
