@@ -47,17 +47,19 @@ class LaserStabilisationSystem(ExpFragment):
         )
         self.offset_default_689_att: FloatParamHandle
 
-        self.mirny_channel_689: ADF5356 = self.get_device("eom_cavity_offset_689")
-        self.mirny_689: Mirny = self.mirny_channel_689.cpld
-
     def host_setup(self):
         super().host_setup()
+
+        self.mirny_channel_689: ADF5356 = self.get_device("eom_cavity_offset_689")
+        self.mirny_689: Mirny = self.mirny_channel_689.cpld
 
         self._init_completed = False
 
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
+
+        self.core.break_realtime()
 
         if not self._init_completed:
             self.mirny_689.init()
@@ -71,8 +73,8 @@ class LaserStabilisationSystem(ExpFragment):
 
     @kernel
     def turn_on_offset_frequency(self):
-        self.mirny_channel_689.set_frequency(self.offset_default_689_freq)
-        self.mirny_channel_689.set_att(self.offset_default_689_att)
+        self.mirny_channel_689.set_frequency(self.offset_default_689_freq.get())
+        self.mirny_channel_689.set_att(self.offset_default_689_att.get())
 
     @kernel
     def offset_689(self, offset: TFloat):
