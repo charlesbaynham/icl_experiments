@@ -38,6 +38,15 @@ class MeasureBlueMOTFrag(ExpFragment):
         )
         self.mot_loading_time: FloatParamHandle
 
+        self.setattr_param(
+            "delay_between_points",
+            FloatParam,
+            "Delay between measurements",
+            default=0,
+            min=0,
+        )
+        self.delay_between_points: FloatParamHandle
+
     @kernel
     def _take_data(self, loading_time):
         raise NotImplementedError
@@ -55,6 +64,9 @@ class MeasureBlueMOTFrag(ExpFragment):
         self.mot_controller.turn_on_3d_and_2d_beams()
 
         self._take_data(self.mot_loading_time.get())
+
+        delay(self.delay_between_points.get())
+        self.core.wait_until_mu(now_mu())
 
     @kernel
     def _before_start_load_hook(self):
