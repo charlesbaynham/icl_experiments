@@ -44,6 +44,7 @@ class MeasureBlueMOTFrag(ExpFragment):
             "Delay between measurements",
             default=0,
             min=0,
+            unit="s",
         )
         self.delay_between_points: FloatParamHandle
 
