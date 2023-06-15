@@ -9,12 +9,26 @@ AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD = 0.05  # k
 logger = logging.getLogger(__name__)
 
 
-class MonitorIJD1(Calibration):
+class MonitorKoheron(Calibration):
+    """
+    Monitor for a Koheron CTL200 current controller, connected via USB
+
+    Must be subclassed for the appropriate controller with `cls.controller_name`
+    set to an entry in the device_db.
+    """
+
+    controller_name: str = None
+
+    def __init__(self, *args, **kwargs):
+        if self.controller_name is None:
+            raise NotImplementedError(
+                "You must subclass this interface class and set cls.controller_name"
+            )
+
+        super().__init__(*args, **kwargs)
+
     def build_calibration(self):
-        self.setattr_device("blue_IJD1_controller")
-
-        self.controller: CTL200 = self.blue_IJD1_controller
-
+        self.controller: CTL200 = self.get_device(self.controller_name)
         self.set_timeout(10)
 
     def check_own_state(self):
@@ -42,6 +56,18 @@ class MonitorIJD1(Calibration):
         result = CalibrationResult.OK if out["status"] else CalibrationResult.BAD_DATA
 
         return result, {
-            "tags": {"device": "blue_IJD1_controller"},
+            "tags": {"device": self.controller_name},
             "fields": out,
         }
+
+
+class MonitorBlueIJD1(MonitorKoheron):
+    controller_name = "blue_IJD1_controller"
+
+
+class MonitorBlueIJD2(MonitorKoheron):
+    controller_name = "blue_IJD2_controller"
+
+
+class MonitorBlueIJD3(MonitorKoheron):
+    controller_name = "blue_IJD3_controller"

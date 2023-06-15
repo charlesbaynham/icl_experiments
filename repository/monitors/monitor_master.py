@@ -3,7 +3,9 @@ import logging
 from artiq_influx_generic import InfluxController
 from qbutler.monitoring import make_monitor_controller
 
-from repository.monitors.monitor_blue_ijds import MonitorIJD1
+from repository.monitors.monitor_blue_ijds import MonitorBlueIJD1
+from repository.monitors.monitor_blue_ijds import MonitorBlueIJD2
+from repository.monitors.monitor_blue_ijds import MonitorBlueIJD3
 from repository.monitors.monitor_covid import MonitorCOVID
 from repository.monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.monitors.monitor_ion_pump import MonitorIonPump
@@ -56,7 +58,9 @@ MonitorMaster = make_monitor_controller(
         "covid": MonitorCOVID,
         "heartbeat": MonitorHeartbeat,
         "turbopump": MonitorTurbo,
-        "blue_ijd1": MonitorIJD1,
+        "blue_ijd1": MonitorBlueIJD1,
+        "blue_ijd2": MonitorBlueIJD2,
+        "blue_ijd3": MonitorBlueIJD3,
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
