@@ -30,6 +30,7 @@ class MonitorIJD1(Calibration):
         laser_is_on = self.controller.status()
         if not laser_is_on:
             out["status"] = "OFF"
+            out["current"] = 0.0
         elif (
             abs(out["temperature_actual"] - out["temperature_setpoint"])
             > AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD
