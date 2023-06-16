@@ -56,7 +56,10 @@ class MonitorKoheron(Calibration):
         result = CalibrationResult.OK if out["status"] else CalibrationResult.BAD_DATA
 
         return result, {
-            "tags": {"device": self.controller_name},
+            "tags": {
+                "type": "MonitorKoheron",  # prevent subclasses from overriding the measurement name
+                "device": self.controller_name,
+            },
             "fields": out,
         }
 
