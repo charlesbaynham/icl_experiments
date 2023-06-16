@@ -26,6 +26,7 @@ def my_db_logger(self, name, state, data):
             tags = data["tags"]
             if "timestamp" in data:
                 timestamp = data["timestamp"]
+            assert "type" not in tags
         else:
             fields = data
     elif isinstance(data, float):
@@ -37,8 +38,7 @@ def my_db_logger(self, name, state, data):
             "Data type %s not supported - only floats and dicts are accepted", data
         )
 
-    if "type" not in tags:
-        tags["type"] = name
+    tags["type"] = name
 
     logger.info(
         "Writing to database: type = %s, tags = %s, fields = %s", name, tags, fields
