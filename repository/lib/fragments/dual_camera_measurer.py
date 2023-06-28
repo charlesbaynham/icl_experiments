@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import rpc
 from ndscan.experiment import Fragment
@@ -19,6 +20,10 @@ from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
 logger = logging.getLogger(__name__)
 
 
+DATASET_KEY_H = "latest_bg_corrected_image_horiz"
+DATASET_KEY_V = "latest_bg_corrected_image_vert"
+
+
 class BGCorrectedMeasurement(Fragment):
     """
     Background-corrected image aquisition with the FLIR cameras
@@ -27,6 +32,8 @@ class BGCorrectedMeasurement(Fragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
+
+        self.setattr_device("ccb")
 
         # %% Parameters
 
@@ -102,6 +109,33 @@ class BGCorrectedMeasurement(Fragment):
             self.exposure_vert.get() * 1e6, num_images=2
         )
 
+        # Launch bg-corrected monitors
+        self.set_dataset(
+            DATASET_KEY_H,
+            np.array([[0.0]]),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        self.set_dataset(
+            DATASET_KEY_V,
+            np.array([[0.0]]),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+        self.ccb.issue(
+            "create_applet",
+            "BG-corrected vertical image",
+            f"${{artiq_applet}}image {DATASET_KEY_H}",
+        )
+        self.ccb.issue(
+            "create_applet",
+            "BG-corrected vertical image",
+            f"${{artiq_applet}}image {DATASET_KEY_V}",
+        )
+
     @kernel
     def trigger_signal(self):
         """
@@ -158,6 +192,10 @@ class BGCorrectedMeasurement(Fragment):
         """
         self._save_data_rpc(self.bg_index, self.signal_index)
 
+        self.bg_index = -1
+        self.signal_index = -1
+        self.image_index = 0
+
     @rpc
     def _save_data_rpc(self, bg_index, signal_index):
         """
@@ -200,3 +238,23 @@ class BGCorrectedMeasurement(Fragment):
 
         self.image_horizontal.push(image_horiz)
         self.image_vertical.push(image_vert)
+
+        self._update_monitor(image_horiz, image_vert)
+
+    @host_only
+    def _update_monitor(self, img_h, img_v):
+        # convert to int instead of uint8 for plotting
+        self.set_dataset(
+            DATASET_KEY_H,
+            np.array(img_h).astype("int"),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        self.set_dataset(
+            DATASET_KEY_V,
+            np.array(img_v).astype("int"),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
