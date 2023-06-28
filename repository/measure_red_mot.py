@@ -34,11 +34,11 @@ class MeasureRedMOTFrag(ExpFragment):
         self.setattr_fragment("blue_mot_controller", Blue3DMOTFrag)
         self.blue_mot_controller: Blue3DMOTFrag
 
-        self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
-        self.red_mot_controller: Red3DMOTFrag
+        # self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
+        # self.red_mot_controller: Red3DMOTFrag
 
-        self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
-        self.camera_bg_corrected: BGCorrectedMeasurement
+        # self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
+        # self.camera_bg_corrected: BGCorrectedMeasurement
 
         self.setattr_param(
             "red_loading_time",
@@ -55,18 +55,18 @@ class MeasureRedMOTFrag(ExpFragment):
         # Load a blue mot
         self.blue_mot_controller.load_mot(clearout=True)
 
-        # Start sweeping red IJD and turn on the beams
-        self.red_mot_controller.turn_on_mot_beams()
-        delay(10e-9)
-        self.red_mot_controller.start_ramping_red()
-        delay(10e-9)
-        self.blue_mot_controller.turn_off_3d_and_2d_beams()
+        # # Start sweeping red IJD and turn on the beams
+        # self.red_mot_controller.turn_on_mot_beams()
+        # delay(10e-9)
+        # self.red_mot_controller.start_ramping_red()
+        # delay(10e-9)
+        # self.blue_mot_controller.turn_off_3d_and_2d_beams()
 
-        # Wait then take a photo
-        self.camera_bg_corrected.trigger_background()
-        self.camera_bg_corrected.trigger_signal()
+        # # Wait then take a photo
+        # self.camera_bg_corrected.trigger_background()
+        # self.camera_bg_corrected.trigger_signal()
 
-        self.camera_bg_corrected.save_data()
+        # self.camera_bg_corrected.save_data()
 
 
 MeasureRedMOT = make_fragment_scan_exp(MeasureRedMOTFrag)
