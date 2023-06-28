@@ -18,10 +18,10 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.chamber_photodiode import MOTPhotodiodeMeasurement
+from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
 from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
 from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
 from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
-
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,9 @@ class MeasureRedMOTFrag(ExpFragment):
 
         self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
         self.red_mot_controller: Red3DMOTFrag
+
+        self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
+        self.camera_bg_corrected: BGCorrectedMeasurement
 
         self.setattr_param(
             "red_loading_time",
@@ -60,7 +63,10 @@ class MeasureRedMOTFrag(ExpFragment):
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
 
         # Wait then take a photo
-        # to be implemented...
+        self.camera_bg_corrected.trigger_background()
+        self.camera_bg_corrected.trigger_signal()
+
+        self.camera_bg_corrected.save_data()
 
 
 MeasureRedMOT = make_fragment_scan_exp(MeasureRedMOTFrag)
