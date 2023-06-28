@@ -34,8 +34,8 @@ class MeasureRedMOTFrag(ExpFragment):
         self.setattr_fragment("blue_mot_controller", Blue3DMOTFrag)
         self.blue_mot_controller: Blue3DMOTFrag
 
-        # self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
-        # self.red_mot_controller: Red3DMOTFrag
+        self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
+        self.red_mot_controller: Red3DMOTFrag
 
         # self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
         # self.camera_bg_corrected: BGCorrectedMeasurement
