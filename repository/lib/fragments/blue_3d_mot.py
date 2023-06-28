@@ -125,7 +125,7 @@ class Blue3DMOTFrag(Fragment):
             default=constants.B_FIELD_GRADIENT,
             unit="A",
             min=0,
-            max=100,
+            max=130,
         )
         self.chamber_2_field_gradient: FloatParamHandle
 
