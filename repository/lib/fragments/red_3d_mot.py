@@ -125,6 +125,8 @@ class Red3DMOTFrag(Fragment):
         self.ramp_high: FloatParamHandle
         self.ramp_type: IntParamHandle
 
+        self.ramp_rate = 0.0
+
     def host_setup(self):
         super().host_setup()
         assert self.ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
@@ -141,6 +143,8 @@ class Red3DMOTFrag(Fragment):
         if self.ramp_type.get() == 0:
             # Triangle waves will need to ramp twice as quickly
             self.ramp_rate *= 2
+
+        logger.error("ramp rate: %f", self.ramp_rate)
 
         # Turn on all the AOMs but close all the shutters
         self.core.break_realtime()
@@ -167,6 +171,8 @@ class Red3DMOTFrag(Fragment):
         """
         Start modulation of the 689 DDS as configured
         """
+        logger.error("ramp rate: %f", self.ramp_rate)
+
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
             self.ramp_low.get(),
