@@ -46,6 +46,12 @@ class MeasureRedMOTFrag(ExpFragment):
         )
         self.red_loading_time: FloatParamHandle
 
+        # %% Convenience rebound parameters
+        self.setattr_param_rebind("ramp_low", self.red_mot_controller)
+        self.setattr_param_rebind("ramp_high", self.red_mot_controller)
+        self.setattr_param_rebind("ramp_frequency", self.red_mot_controller)
+        self.setattr_param_rebind("ramp_type", self.red_mot_controller)
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
