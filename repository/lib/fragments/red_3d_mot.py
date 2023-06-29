@@ -153,13 +153,14 @@ class Red3DMOTFrag(Fragment):
         self.core.break_realtime()
         self.all_beam_default_setter.turn_on_all(shutter_state=False)
 
-        # Make sure that the shutters are closed before run_once starts
-        delay(self.all_beam_default_setter.get_max_shutter_delay())
-
         # Start the injection AOM in static mode
         self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings
+        self.core.break_realtime()
         self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.set_att(constants.RED_INJECTION_AOM_ATTENUATION)
+
+        # Make sure that the shutters are closed before run_once starts
+        delay(self.all_beam_default_setter.get_max_shutter_delay())
 
     @kernel
     def turn_on_mot_beams(self):
