@@ -147,8 +147,6 @@ class Red3DMOTFrag(Fragment):
             # Triangle waves will need to ramp twice as quickly
             self.ramp_rate *= 2
 
-        logger.error("ramp rate precalc: %f", self.ramp_rate)
-
         # Turn on all the AOMs but close all the shutters
         self.core.break_realtime()
         self.all_beam_default_setter.turn_on_all(shutter_state=False)
@@ -175,7 +173,6 @@ class Red3DMOTFrag(Fragment):
         """
         Start modulation of the 689 DDS as configured
         """
-        logger.error("ramp rate run: %f", self.ramp_rate)
 
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
