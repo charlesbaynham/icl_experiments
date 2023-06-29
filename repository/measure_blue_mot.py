@@ -18,8 +18,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.chamber_photodiode import MOTPhotodiodeMeasurement
-from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
-from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
+from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
 
 
 logger = logging.getLogger(__name__)
@@ -144,55 +143,10 @@ class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
         )
         self.exposure_vert: FloatParamHandle
 
-        self.setattr_fragment(
-            "mot_measurer_camera_horizontal", Chamber2HorizontalCamera
-        )
-        self.mot_measurer_camera_horizontal: Chamber2HorizontalCamera
-
-        self.setattr_fragment("mot_measurer_camera_vertical", Chamber2VerticalCamera)
-        self.mot_measurer_camera_vertical: Chamber2VerticalCamera
-
-        self.setattr_result("image_horizontal", OpaqueChannel)
-        self.image_horizontal: ResultChannel
-
-        self.setattr_result(
-            "image_horizontal_timestamp", IntChannel, display_hints={"priority": -1}
-        )
-        self.image_horizontal_timestamp: ResultChannel
-
-        self.setattr_result("image_horizontal_mean", FloatChannel)
-        self.image_horizontal_mean: ResultChannel
-
-        self.setattr_result("image_vertical", OpaqueChannel)
-        self.image_vertical: ResultChannel
-
-        self.setattr_result(
-            "image_vertical_timestamp", IntChannel, display_hints={"priority": -1}
-        )
-        self.image_vertical_timestamp: ResultChannel
-
-        self.setattr_result("image_vertical_mean", FloatChannel)
-        self.image_vertical_mean: ResultChannel
-
-        self.setup_happened = False
+        self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
+        self.camera_bg_corrected: BGCorrectedMeasurement
 
         super().build_fragment()
-
-    @kernel
-    def device_setup(self) -> None:
-        self.device_setup_subfragments()
-
-        self.core.break_realtime()
-
-        # Prepare cameras to be triggered for 2x acquisitions
-        if not self.setup_happened:
-            self.mot_measurer_camera_horizontal.ready_for_trigger(
-                self.exposure_horiz.get() * 1e6, num_images=2
-            )
-            self.mot_measurer_camera_vertical.ready_for_trigger(
-                self.exposure_vert.get() * 1e6, num_images=2
-            )
-            self.setup_happened = True
 
     @kernel
     def _before_start_load_hook(self):
@@ -205,8 +159,7 @@ class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
         self.mot_controller.turn_on_3d_beams()
 
         self.core.wait_until_mu(now_mu())
-        self.mot_measurer_camera_horizontal.trigger()
-        self.mot_measurer_camera_vertical.trigger()
+        self.camera_bg_corrected.trigger_background()
 
         delay(50e-3)
 
@@ -217,40 +170,9 @@ class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
 
         self.core.wait_until_mu(now_mu())
 
-        self.mot_measurer_camera_horizontal.trigger()
-        self.mot_measurer_camera_vertical.trigger()
+        self.camera_bg_corrected.trigger_signal()
 
-        self.save_data()
-
-    @rpc
-    def save_data(self):
-        frames_horiz = self.mot_measurer_camera_horizontal.get_frames(
-            timeout=1 + self.exposure_horiz.get()
-        )
-        frames_vert = self.mot_measurer_camera_vertical.get_frames(
-            timeout=1 + self.exposure_vert.get()
-        )
-
-        timestamp_horiz = frames_horiz[1][0]
-        timestamp_vert = frames_vert[1][0]
-
-        image_horiz = frames_horiz[1][1] - frames_horiz[0][1]
-        image_vert = frames_vert[1][1] - frames_vert[0][1]
-
-        image_horiz_mean = np.mean(np.array(image_horiz).flat)
-        image_vert_mean = np.mean(np.array(image_vert).flat)
-
-        logger.debug("image_horiz.shape = %s", image_horiz.shape)
-        logger.debug("image_vert.shape = %s", image_vert.shape)
-
-        self.image_horizontal_timestamp.push(timestamp_horiz)
-        self.image_vertical_timestamp.push(timestamp_vert)
-
-        self.image_horizontal_mean.push(image_horiz_mean)
-        self.image_vertical_mean.push(image_vert_mean)
-
-        self.image_horizontal.push(image_horiz)
-        self.image_vertical.push(image_vert)
+        self.camera_bg_corrected.save_data()
 
 
 MeasureBlueMOTWithPD = make_fragment_scan_exp(MeasureBlueMOTWithPDFrag)
