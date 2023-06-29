@@ -8,6 +8,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
 from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
 
 logger = logging.getLogger(__name__)
@@ -24,8 +25,8 @@ class MeasureRedMOTFrag(ExpFragment):
         self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
         self.red_mot_controller: Red3DMOTFrag
 
-        # self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
-        # self.camera_bg_corrected: BGCorrectedMeasurement
+        self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
+        self.camera_bg_corrected: BGCorrectedMeasurement
 
         self.setattr_param(
             "red_loading_time",
@@ -49,11 +50,11 @@ class MeasureRedMOTFrag(ExpFragment):
         delay(10e-9)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
 
-        # # Wait then take a photo
-        # self.camera_bg_corrected.trigger_background()
-        # self.camera_bg_corrected.trigger_signal()
+        # Wait then take a photo
+        self.camera_bg_corrected.trigger_background()
+        self.camera_bg_corrected.trigger_signal()
 
-        # self.camera_bg_corrected.save_data()
+        self.camera_bg_corrected.save_data()
 
 
 MeasureRedMOT = make_fragment_scan_exp(MeasureRedMOTFrag)
