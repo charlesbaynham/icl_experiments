@@ -4,11 +4,11 @@ from qbutler.calibration import Calibration
 
 
 def test_dataset_db(dataset_db):
-    return dataset_db
+    pass
 
 
 def test_dataset_mgr(dataset_mgr):
-    return dataset_mgr
+    pass
 
 
 def test_fragment_factory(fragment_factory):
