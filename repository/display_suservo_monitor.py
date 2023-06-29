@@ -47,7 +47,11 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             "mot_photodiode_monitor": "suservo0_ch0",
         }
         self.setattr_argument(
-            "suservo_channel_name", EnumerationValue(list(suservo_channel_names.keys()))
+            "suservo_channel_name",
+            EnumerationValue(
+                list(suservo_channel_names.keys()),
+                default=list(suservo_channel_names.keys())[0],
+            ),
         )
         suservo_name = (
             re.match(

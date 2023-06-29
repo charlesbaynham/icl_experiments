@@ -127,7 +127,10 @@ class SetAnalogCurrentSupplyExpFrag(ExpFragment):
         }
 
         self.setattr_argument(
-            "current_supply", EnumerationValue(list(current_configs.keys()))
+            "current_supply",
+            EnumerationValue(
+                list(current_configs.keys()), default=list(current_configs.keys())[0]
+            ),
         )
         self.current_supply: str
 
