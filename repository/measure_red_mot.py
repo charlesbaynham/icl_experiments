@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -41,12 +42,12 @@ class MeasureRedMOTFrag(ExpFragment):
         # Load a blue mot
         self.blue_mot_controller.load_mot(clearout=True)
 
-        # # Start sweeping red IJD and turn on the beams
-        # self.red_mot_controller.turn_on_mot_beams()
-        # delay(10e-9)
-        # self.red_mot_controller.start_ramping_red()
-        # delay(10e-9)
-        # self.blue_mot_controller.turn_off_3d_and_2d_beams()
+        # Start sweeping red IJD and turn on the beams
+        self.red_mot_controller.turn_on_mot_beams()
+        delay(10e-9)
+        self.red_mot_controller.start_ramping_red()
+        delay(10e-9)
+        self.blue_mot_controller.turn_off_3d_and_2d_beams()
 
         # # Wait then take a photo
         # self.camera_bg_corrected.trigger_background()
