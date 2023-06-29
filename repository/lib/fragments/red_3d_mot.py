@@ -157,6 +157,10 @@ class Red3DMOTFrag(Fragment):
         self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.set_att(constants.RED_INJECTION_AOM_ATTENUATION)
 
+        # Ensure the RF switch is on
+        self.injection_aom.cfg_sw(True)
+        self.injection_aom.sw.on()
+
         # Make sure that the shutters are closed before run_once starts
         delay(self.all_beam_default_setter.get_max_shutter_delay())
 
