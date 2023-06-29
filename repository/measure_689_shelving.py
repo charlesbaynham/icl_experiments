@@ -72,7 +72,7 @@ class Measure689Shelving(ExpFragment):
 
         # Turn on the 689
         self.core.break_realtime()
-        delay(20e3)
+        delay(20e-3)
         self.red_mot_controller.turn_on_mot_beams()
 
         # Measure
