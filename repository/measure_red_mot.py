@@ -3,6 +3,7 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -51,7 +52,12 @@ class MeasureRedMOTFrag(ExpFragment):
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
 
         # Wait then take a photo
+        self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.trigger_background()
+
+        delay(500e-3)
+        self.core.wait_until_mu(now_mu())
+
         self.camera_bg_corrected.trigger_signal()
 
         self.camera_bg_corrected.save_data()
