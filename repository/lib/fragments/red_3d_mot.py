@@ -21,6 +21,17 @@ from repository.lib.fragments.cavity_control import LaserStabilisationSystem
 logger = logging.getLogger(__name__)
 
 
+class RedBeamSetter(SetBeamsToDefaults):
+    beam_infos = [
+        constants.AOM_BEAMS[beam]
+        for beam in [
+            "red_mot_diagonal",
+            "red_mot_sigmaplus",
+            "red_mot_sigmaminus",
+        ]
+    ]
+
+
 class Red3DMOTFrag(Fragment):
     """
     Methods for making and controlling the red 3D MOT
@@ -32,15 +43,7 @@ class Red3DMOTFrag(Fragment):
 
         # %% FRAGMENTS
 
-        self.setattr_fragment(
-            "all_beam_default_setter",
-            SetBeamsToDefaults,
-            beams_to_enable=[
-                "red_mot_diagonal",
-                "red_mot_sigmaplus",
-                "red_mot_sigmaminus",
-            ],
-        )
+        self.setattr_fragment("all_beam_default_setter", RedBeamSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment(
