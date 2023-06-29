@@ -49,8 +49,6 @@ class Measure689Shelving(ExpFragment):
 
         # %% core params
 
-        self.mot_loaded = False
-
     @kernel
     def run_once(self):
         # Clear the camera buffer in case we quit a previous sequence midway
@@ -61,9 +59,7 @@ class Measure689Shelving(ExpFragment):
         self.red_mot_controller.turn_off_mot_beams()
 
         # Load a blue mot
-        if not self.mot_loaded:
-            self.blue_mot_controller.load_mot(clearout=True)
-            self.mot_loaded = True
+        self.blue_mot_controller.load_mot(clearout=False)
 
         # Measure
         delay(self.toggle_delay.get())
