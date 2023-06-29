@@ -1,5 +1,4 @@
 import logging
-import time
 
 import numpy as np
 from artiq.coredevice.core import Core
@@ -228,8 +227,6 @@ class BGCorrectedMeasurement(Fragment):
         """
         Retrieve images from the cameras and save them to ndscan ResultChannels
         """
-
-        time.sleep(1)
 
         if bg_index == -1:
             raise RuntimeError("No BG image was taken")
