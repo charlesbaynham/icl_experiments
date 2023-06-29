@@ -16,29 +16,32 @@ def get_all_repo_modules():
     ]
 
 
-def get_all_envexperiments_from_module(module):
+def get_all_of_class_from_module(module, cls):
     out = []
     for obj_name in dir(module):
         obj = getattr(module, obj_name)
-        if inspect.isclass(obj) and issubclass(obj, EnvExperiment):
+        if inspect.isclass(obj) and issubclass(obj, cls):
             out.append(obj)
     return out
 
 
-def get_all_envExperiments():
+def get_all_of_class_from_repository(cls):
     out = []
     for module in get_all_repo_modules():
-        env_experiments = get_all_envexperiments_from_module(module)
+        env_experiments = get_all_of_class_from_module(module, cls)
         for exp in env_experiments:
             out.append((module, exp))
 
     return out
 
 
+all_env_experiments = get_all_of_class_from_repository(EnvExperiment)
+
+
 @pytest.mark.parametrize(
     "module, exp",
-    get_all_envExperiments(),
-    ids=[exp for _, exp in get_all_envExperiments()],
+    all_env_experiments,
+    ids=[exp for _, exp in all_env_experiments],
 )
 def test_build_all_experiments(module, exp, experiment_factory):
     experiment_factory(exp)
