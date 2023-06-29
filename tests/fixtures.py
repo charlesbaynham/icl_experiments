@@ -128,6 +128,14 @@ def device_mgr(mock_db_writer):
         "arguments": {"host": None, "ref_period": 1e-9},
     }
 
+    for key, desc in mock_device_db.items():
+        if "type" in desc and desc["type"] == "controller":
+            mock_device_db[key] = {
+                "type": "local",
+                "module": "unittest.mock",
+                "class": "Mock",
+            }
+
     class DummyDeviceDB:
         def __init__(self, device_db):
             self.data = Notifier(device_db)
