@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
@@ -155,6 +156,7 @@ class Blue3DMOTFrag(Fragment):
 
         # Turn on all the AOMs but close all the shutters
         self.core.break_realtime()
+        delay(10e-3)
         self.all_beam_default_setter.turn_on_all(shutter_state=False)
 
         # Make sure that the shutters are closed before run_once starts
