@@ -47,12 +47,6 @@ class Measure689Shelving(ExpFragment):
         )
         self.toggle_delay: FloatParamHandle
 
-        self.setattr_result("image_difference_h", FloatChannel)
-        self.setattr_result("image_difference_v", FloatChannel)
-
-        self.image_difference_h: FloatChannel
-        self.image_difference_v: FloatChannel
-
         # %% core params
 
         self.mot_loaded = False
