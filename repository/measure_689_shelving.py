@@ -47,19 +47,25 @@ class Measure689Shelving(ExpFragment):
         )
         self.toggle_delay: FloatParamHandle
 
-        # %% core params
+        self.first_run = True
+
 
     @kernel
     def run_once(self):
+        if self.first_run:
+            self.first_run = False
+            self.core.break_realtime()
+            self.red_mot_controller.init()
+            self.blue_mot_controller.init()
+            # Load a blue mot
+            self.blue_mot_controller.load_mot(clearout=False)
+
         # Clear the camera buffer in case we quit a previous sequence midway
         self.camera_bg_corrected.clear()
 
         self.core.break_realtime()
 
         self.red_mot_controller.turn_off_mot_beams()
-
-        # Load a blue mot
-        self.blue_mot_controller.load_mot(clearout=False)
 
         # Measure
         delay(self.toggle_delay.get())

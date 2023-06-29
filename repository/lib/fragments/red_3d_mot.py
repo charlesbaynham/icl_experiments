@@ -147,10 +147,7 @@ class Red3DMOTFrag(Fragment):
             # Triangle waves will need to ramp twice as quickly
             self.ramp_rate *= 2
 
-        # Turn on all the AOMs but close all the shutters
-        self.core.break_realtime()
-        self.all_beam_default_setter.turn_on_all(shutter_state=False)
-
+        
         # Start the injection AOM in static mode
         self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings
         self.core.break_realtime()
@@ -160,6 +157,16 @@ class Red3DMOTFrag(Fragment):
         # Ensure the RF switch is on
         self.injection_aom.cfg_sw(True)
         self.injection_aom.sw.on()
+
+    @kernel
+    def init(self):
+        """
+        Set up beam state for the red MOT, i.e. set up AOMs and close all shutters
+
+        This is not in device_setup so that the user can choose when / whether to call it during each scan cycle
+        """
+        # Turn on all the AOMs but close all the shutters
+        self.all_beam_default_setter.turn_on_all(shutter_state=False)
 
         # Make sure that the shutters are closed before run_once starts
         delay(self.all_beam_default_setter.get_max_shutter_delay())

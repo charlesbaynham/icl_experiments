@@ -55,6 +55,7 @@ class MeasureBlueMOTFrag(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
 
+        self.mot_controller.init()
         self.mot_controller.enable_mot_fields()
         self.mot_controller.clear_ch2()
 

@@ -253,6 +253,8 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         self.core.break_realtime()
         delay(20e-3)
+        
+        self.mot_controller.init()
 
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
