@@ -130,11 +130,17 @@ def device_mgr(mock_db_writer):
 
     for key, desc in mock_device_db.items():
         if "type" in desc and desc["type"] == "controller":
-            mock_device_db[key] = {
-                "type": "local",
-                "module": "unittest.mock",
-                "class": "Mock",
-            }
+            new_desc = desc.copy()
+            new_desc.update(
+                {
+                    "type": "local",
+                    "module": "unittest.mock",
+                    "class": "Mock",
+                    "mocked": True,
+                }
+            )
+
+            mock_device_db[key] = new_desc
 
     class DummyDeviceDB:
         def __init__(self, device_db):

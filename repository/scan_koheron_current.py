@@ -162,7 +162,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
                 k
                 for k, v in self.get_device_db().items()
                 if (
-                    ("type" in v and v["type"] == "controller")
+                    # Our unit tests replace controllers with local Mock
+                    # objects, but also add a field called "mocked" with value
+                    # True
+                    ("type" in v and (v["type"] == "controller" or "mocked" in v))
                     and (
                         "command" in v
                         and "aqctl_koheron_ctl200_laser_driver" in v["command"]
@@ -171,7 +174,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
             ]
             if not controller_names:
                 raise ValueError("No CTL200 Koheron controllers found in device_db")
-            self.setattr_argument("controller_name", EnumerationValue(controller_names))
+            self.setattr_argument(
+                "controller_name",
+                EnumerationValue(controller_names, default=controller_names[0]),
+            )
 
         # Get the passed controller's associated beat detection channel
         if self.controller_name is not None:  # i.e. not in build() for the GUI
