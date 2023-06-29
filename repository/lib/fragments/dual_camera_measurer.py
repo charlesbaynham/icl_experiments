@@ -247,8 +247,13 @@ class BGCorrectedMeasurement(Fragment):
         timestamp_horiz = timestamps_horiz[signal_index]
         timestamp_vert = timestamps_vert[signal_index]
 
-        image_horiz = images_horiz[signal_index] - images_horiz[bg_index]
-        image_vert = images_vert[signal_index] - images_vert[bg_index]
+        # Here, we convert the uint8 images to int16 so that we can support negative numbers
+        image_horiz = images_horiz[signal_index].astype("int16") - images_horiz[
+            bg_index
+        ].astype("int16")
+        image_vert = images_vert[signal_index].astype("int16") - images_vert[
+            bg_index
+        ].astype("int16")
 
         image_horiz_mean = np.mean(np.array(image_horiz).flat)
         image_vert_mean = np.mean(np.array(image_vert).flat)
