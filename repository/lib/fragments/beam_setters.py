@@ -1,5 +1,6 @@
 import logging
 from typing import List
+from typing import Optional
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
@@ -7,33 +8,45 @@ from artiq.experiment import kernel
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
 from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.models import SUServoedBeam
 
 import repository.lib.constants as constants
-
 
 logger = logging.getLogger(__name__)
 
 
 class SetBeamsToDefaults(Fragment):
     """
-    Turn on a list of suservoed beams, possibly with shutters, to their default settings
+    Turn on a list of suservoed beams, possibly with shutters, to their default
+    settings
+
+    To use this fragment you must subclass it and provide a class attribute
+    "beam_infos" which is a list of :class:`pyaion.models.SUServoedBeam`
+    objects describing the beams that this class instance will control.
     """
 
     kernel_invariants = {"max_shutter_delay"}
 
-    def build_fragment(self, beams_to_enable: List[str]):
-        self.beams_to_enable = beams_to_enable
+    beam_infos: List[SUServoedBeam] = None  # type: ignore
+
+    def build_fragment(self):
+        if self.beam_infos is None:
+            raise TypeError(
+                "You must create a subclass of SetBeamsToDefaults to use it - see the documentation"
+            )
 
         self.setattr_device("core")
         self.core: Core
 
         self.suservo_setters: List[LibSetSUServoStatic] = []
-        self.beam_infos = [constants.AOM_BEAMS[beam] for beam in self.beams_to_enable]
+
         self.ttls: List[TTLOut] = []
 
-        for beam, beam_info in zip(self.beams_to_enable, self.beam_infos):
-            self.setattr_fragment(beam, LibSetSUServoStatic, beam_info.suservo_device)
-            self.suservo_setters.append(getattr(self, beam))
+        for beam_info in self.beam_infos:
+            self.setattr_fragment(
+                beam_info.name, LibSetSUServoStatic, beam_info.suservo_device
+            )
+            self.suservo_setters.append(getattr(self, beam_info.name))
             if beam_info.shutter_device:
                 self.ttls.append(self.get_device(beam_info.shutter_device))
 
@@ -55,7 +68,7 @@ class SetBeamsToDefaults(Fragment):
         This method does not advance the timeline and does not respect
         shutter delays - it just turns everything on immediately.
         """
-        for i in range(len(self.beams_to_enable)):
+        for i in range(len(self.beam_infos)):
             setter = self.suservo_setters[i]
             beam_info = self.beam_infos[i]
 

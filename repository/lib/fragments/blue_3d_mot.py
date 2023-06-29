@@ -15,17 +15,21 @@ from repository.lib.fragments.magnetic_fields import SetMagneticFields
 logger = logging.getLogger(__name__)
 
 
-BLUE_3D_MOT_BEAMS = [
-    "blue_push_beam",
-    "blue_2dmot_A",
-    "blue_2dmot_B",
-    "blue_3dmot_radial",
-    "blue_3dmot_axialplus",
-    "blue_3dmot_axialminus",
-    "blue_injection",
-    "repump_707",
-    "repump_679",
-]
+class BlueBeamSetter(SetBeamsToDefaults):
+    beam_infos = [
+        constants.AOM_BEAMS[beam]
+        for beam in [
+            "blue_push_beam",
+            "blue_2dmot_A",
+            "blue_2dmot_B",
+            "blue_3dmot_radial",
+            "blue_3dmot_axialplus",
+            "blue_3dmot_axialminus",
+            "blue_injection",
+            "repump_707",
+            "repump_679",
+        ]
+    ]
 
 
 class Blue3DMOTFrag(Fragment):
@@ -37,11 +41,7 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment(
-            "all_beam_default_setter",
-            SetBeamsToDefaults,
-            beams_to_enable=BLUE_3D_MOT_BEAMS,
-        )
+        self.setattr_fragment("all_beam_default_setter", BlueBeamSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment(
