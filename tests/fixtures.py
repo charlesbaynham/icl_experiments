@@ -117,13 +117,15 @@ def mock_db_writer():
 
 @fixture
 def device_mgr(mock_db_writer):
-    mock_device_db = {
-        "core": {
-            "type": "local",
-            "module": "artiq.coredevice.core",
-            "class": "Core",
-            "arguments": {"host": None, "ref_period": 1e-9},
-        }
+
+    from device_db import device_db
+
+    mock_device_db = device_db.copy()
+    mock_device_db["core"] = {
+        "type": "local",
+        "module": "artiq.coredevice.core",
+        "class": "Core",
+        "arguments": {"host": None, "ref_period": 1e-9},
     }
 
     class DummyDeviceDB:
