@@ -54,6 +54,9 @@ class MeasureRedMOTFrag(ExpFragment):
 
     @kernel
     def run_once(self):
+        # Clear the camera buffer in case we quit a previous sequence midway
+        self.camera_bg_corrected.clear()
+
         self.core.break_realtime()
 
         # Load a blue mot

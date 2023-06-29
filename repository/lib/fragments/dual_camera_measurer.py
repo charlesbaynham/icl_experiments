@@ -202,6 +202,25 @@ class BGCorrectedMeasurement(Fragment):
         self.mot_measurer_camera_vertical.trigger()
 
     @kernel
+    def clear(
+        self,
+    ):
+        """
+        Discard any pictures in the buffer without reading out
+        """
+        if self.debug_enabled:
+            logger.info(
+                "Clearing buffer with image_index = %d, signal_index = %d, bg_index = %d",
+                self.image_index,
+                self.signal_index,
+                self.bg_index,
+            )
+
+        self.bg_index = -1
+        self.signal_index = -1
+        self.image_index = 0
+
+    @kernel
     def save_data(
         self,
     ):
