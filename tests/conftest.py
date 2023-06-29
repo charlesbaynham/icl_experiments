@@ -1,4 +1,10 @@
+import logging
+
 import pytest
+from fixtures import *
+
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger("qbutler").setLevel(logging.DEBUG)
 
 
 def pytest_addoption(parser):
