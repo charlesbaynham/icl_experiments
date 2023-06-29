@@ -3,9 +3,14 @@ from repository.measure_red_mot import MeasureRedMOTFrag
 
 def test_red_mot(fragment_factory):
     def precompile(self):
-        precompiled = self.core.precompile(self.run_once)
+        precompiled_setup = self.core.precompile(self.device_setup)
+        precompiled_run = self.core.precompile(self.run_once)
+        precompiled_cleanup = self.core.precompile(self.device_cleanup)
+
         print("Experiment was precompiled:")
-        print(precompiled)
+        print(precompiled_setup)
+        print(precompiled_run)
+        print(precompiled_cleanup)
 
     setattr(MeasureRedMOTFrag, "precompile", precompile)
 
