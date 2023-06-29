@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 BLUE_BEAMS = [k for k in constants.AOM_BEAMS.keys() if re.match(r"^blue_", k)]
 
 
+class BlueBeamSetter(SetBeamsToDefaults):
+    beam_infos = [constants.AOM_BEAMS[k] for k in BLUE_BEAMS]
+
+
 class BlueSystemOn(ExpFragment):
     """
     Turn the blue system AOMs and shutters on to their default settings
@@ -25,9 +29,7 @@ class BlueSystemOn(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment(
-            "SetBeamsToDefaults", SetBeamsToDefaults, beams_to_enable=BLUE_BEAMS
-        )
+        self.setattr_fragment("SetBeamsToDefaults", BlueBeamSetter)
         self.SetBeamsToDefaults: SetBeamsToDefaults
 
     @kernel
