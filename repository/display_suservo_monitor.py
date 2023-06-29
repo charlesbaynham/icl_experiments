@@ -35,27 +35,24 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         )
         self.waittime: FloatParamHandle
 
-        suservo_channel_names = {
-            "suservo_aom_doublepass_461_injection": "suservo1_ch3",
-            "suservo_aom_singlepass_461_spectroscopy": "suservo1_ch7",
-            "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
-            "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
-            "suservo_aom_singlepass_461_2dmot_b": "suservo1_ch1",
-            "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
-            "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch5",
-            "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch6",
-            "mot_photodiode_monitor": "suservo0_ch0",
+        device_db_suservo_aliases = {
+            k: v
+            for k, v in self.get_device_db().items()
+            if "suservo" in k and isinstance(v, str)
         }
+        device_db_suservo_aliases["mot_photodiode_monitor"] = "suservo0_ch0"
+
         self.setattr_argument(
             "suservo_channel_name",
             EnumerationValue(
-                list(suservo_channel_names.keys()),
-                default=list(suservo_channel_names.keys())[0],
+                list(device_db_suservo_aliases.keys()),
+                default=list(device_db_suservo_aliases.keys())[0],
             ),
         )
         suservo_name = (
             re.match(
-                r"(suservo\d+)_ch\d+", suservo_channel_names[self.suservo_channel_name]
+                r"(suservo\d+)_ch\d+",
+                device_db_suservo_aliases[self.suservo_channel_name],
             )[1]
             if self.suservo_channel_name is not None
             else "suservo0"
@@ -63,7 +60,8 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.suservo: SUServo = self.get_device(suservo_name)
         self.suservo_channel = int(
             re.match(
-                r"suservo\d+_ch(\d+)", suservo_channel_names[self.suservo_channel_name]
+                r"suservo\d+_ch(\d+)",
+                device_db_suservo_aliases[self.suservo_channel_name],
             )[1]
             if self.suservo_channel_name is not None
             else 0
