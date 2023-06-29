@@ -98,6 +98,8 @@ class BGCorrectedMeasurement(Fragment):
         self.bg_index = -1
         self.signal_index = -1
 
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+
     def host_setup(self) -> None:
         super().host_setup()
 
@@ -152,6 +154,14 @@ class BGCorrectedMeasurement(Fragment):
         if self.signal_index != -1:
             raise RuntimeError("Signal image already taken without being read out")
 
+        if self.debug_enabled:
+            logger.info(
+                "Taking signal image with image_index = %d, signal_index = %d, bg_index = %d",
+                self.image_index,
+                self.signal_index,
+                self.bg_index,
+            )
+
         self._trigger_rpc()
 
         self.signal_index = self.image_index
@@ -173,6 +183,14 @@ class BGCorrectedMeasurement(Fragment):
         if self.bg_index != -1:
             raise RuntimeError("Background image already taken without being read out")
 
+        if self.debug_enabled:
+            logger.info(
+                "Taking background image with image_index = %d, signal_index = %d, bg_index = %d",
+                self.image_index,
+                self.signal_index,
+                self.bg_index,
+            )
+
         self._trigger_rpc()
 
         self.bg_index = self.image_index
@@ -190,6 +208,14 @@ class BGCorrectedMeasurement(Fragment):
         """
         Retrieve images from the cameras and save them to ndscan ResultChannels
         """
+        if self.debug_enabled:
+            logger.info(
+                "Calling save_data with image_index = %d, signal_index = %d, bg_index = %d",
+                self.image_index,
+                self.signal_index,
+                self.bg_index,
+            )
+
         self._save_data_rpc(self.bg_index, self.signal_index)
 
         self.bg_index = -1
