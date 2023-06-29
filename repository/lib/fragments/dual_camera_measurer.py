@@ -129,7 +129,7 @@ class BGCorrectedMeasurement(Fragment):
 
         self.ccb.issue(
             "create_applet",
-            "BG-corrected vertical image",
+            "BG-corrected horizontal image",
             f"${{artiq_applet}}image {DATASET_KEY_H}",
         )
         self.ccb.issue(
