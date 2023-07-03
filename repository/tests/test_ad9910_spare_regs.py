@@ -12,6 +12,7 @@ from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
 from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE7
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import NumberValue
@@ -67,6 +68,8 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.urukul.write64(_AD9910_REG_PROFILE7, profile_7_LSB, profile_7_MSB)
 
         self.urukul.cpld.io_update.pulse_mu(8)
+
+        delay(1e-3)
 
         self.core.break_realtime()
         renewed_profile_7 = self.urukul.read64(_AD9910_REG_PROFILE7)
