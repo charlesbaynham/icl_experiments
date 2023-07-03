@@ -32,6 +32,8 @@ class AD9910Ramper(Fragment):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
+
+        self.core.break_realtime()
         self.dds.init()
 
     @kernel
