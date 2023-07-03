@@ -35,10 +35,14 @@ class SetAnalogCurrentSupply(Fragment):
         self.zotino: Zotino
 
         self.first_run = True
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
     def device_setup(self) -> None:
         if self.first_run:
+            if self.debug_enabled:
+                logger.info("Initiating Zotino %s", self.zotino)
+
             self.core.break_realtime()
             self.zotino.init()
 
@@ -54,12 +58,14 @@ class SetAnalogCurrentSupply(Fragment):
         """
         voltage = current / self.current_config.gain
 
-        logger.debug(
-            "Setting current = %.2f with voltage = %.3f on channel %i",
-            current,
-            voltage,
-            self.current_config.zotino_channel,
-        )
+        if self.debug_enabled:
+            logger.info(
+                "Setting current = %.2f with voltage = %.3f on channel %i",
+                current,
+                voltage,
+                self.current_config.zotino_channel,
+            )
+
         self.zotino.set_dac([voltage], [self.current_config.zotino_channel])
 
 
@@ -85,10 +91,14 @@ class SetAnalogCurrentSupplies(Fragment):
         self.zotino_channels = [c.zotino_channel for c in current_configs]
 
         self.first_run = True
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
     def device_setup(self) -> None:
         if self.first_run:
+            if self.debug_enabled:
+                logger.info("Initiating Zotino %s", self.zotino)
+
             self.core.break_realtime()
             self.zotino.init()
 
@@ -104,6 +114,7 @@ class SetAnalogCurrentSupplies(Fragment):
         This method does not advance the timeline but does require at least
         1.5us + 808ns * len(currents) on a Kasli 1.x.
         """
+
         voltages = [0.0] * len(self.current_configs)
 
         if len(currents) != len(self.current_configs):
@@ -112,12 +123,14 @@ class SetAnalogCurrentSupplies(Fragment):
         for i in range(len(self.current_configs)):
             voltages[i] = currents[i] / self.current_configs[i].gain
 
-        logger.debug(
-            "Setting currents = %s with voltages = %s on channels %s",
-            currents,
-            voltages,
-            self.zotino_channels,
-        )
+        if self.debug_enabled:
+            logger.info(
+                "Setting currents = %s with voltages = %s on channels %s",
+                currents,
+                voltages,
+                self.zotino_channels,
+            )
+
         self.zotino.set_dac(voltages, self.zotino_channels)
 
 
