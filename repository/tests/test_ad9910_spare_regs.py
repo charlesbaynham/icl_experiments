@@ -41,7 +41,7 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
 
         profile_7 = self.urukul.read64(_AD9910_REG_PROFILE7)
 
-        logger.info("Reading val = 0x%X", profile_7)
+        logger.info("Reading profile_7 = 0x%X", profile_7)
 
         # aux_val |= 0xABCDEF00
 
@@ -66,7 +66,7 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.core.break_realtime()
         self.urukul.write64(_AD9910_REG_PROFILE7, profile_7_LSB, profile_7_MSB)
 
-        # self.core.break_realtime()
-        # aux_val = self.urukul.read32(_AD9910_REG_PROFILE7)
+        self.core.break_realtime()
+        renewed_profile_7 = self.urukul.read64(_AD9910_REG_PROFILE7)
 
-        # logger.info("Reading val = 0x%X", aux_val)
+        logger.info("Reading renewed_profile_7 = 0x%X", renewed_profile_7)
