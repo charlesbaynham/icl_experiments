@@ -2,7 +2,7 @@ from artiq.experiment import BooleanValue
 from artiq.experiment import EnvExperiment
 from wand.server import ControlInterface as WandServer
 
-LASERS = ["461", "689", "689_IJD", "707", "679"]
+LASERS = ["461", "689", "707", "679"]
 
 
 class EnableWavemeterLock(EnvExperiment):
