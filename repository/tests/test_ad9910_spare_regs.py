@@ -31,8 +31,7 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
     def run(self):
         self.core.break_realtime()
 
-        self.urukul.init(blind=True)
-        self.urukul.write32(_AD9910_REG_AUX_DAC, 0x7F)
+        self.urukul.init()
 
         # self.core.break_realtime()
 
