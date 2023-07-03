@@ -34,12 +34,15 @@ class SetAnalogCurrentSupply(Fragment):
         self.zotino = self.get_device(self.current_config.zotino)
         self.zotino: Zotino
 
+        self.first_run = True
+
     @kernel
     def device_setup(self) -> None:
-        self.core.break_realtime()
-        self.zotino.init()
-        delay(200e-6)
-        self.zotino.set_dac([0.0] * 32)
+        if self.first_run:
+            self.core.break_realtime()
+            self.zotino.init()
+
+            self.first_run = False
 
         self.device_setup_subfragments()
 
@@ -81,12 +84,15 @@ class SetAnalogCurrentSupplies(Fragment):
 
         self.zotino_channels = [c.zotino_channel for c in current_configs]
 
+        self.first_run = True
+
     @kernel
     def device_setup(self) -> None:
-        self.core.break_realtime()
-        self.zotino.init()
-        delay(200e-6)
-        self.zotino.set_dac([0.0] * 32)
+        if self.first_run:
+            self.core.break_realtime()
+            self.zotino.init()
+
+            self.first_run = False
 
         self.device_setup_subfragments()
 
