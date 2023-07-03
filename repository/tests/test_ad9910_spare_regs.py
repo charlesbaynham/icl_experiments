@@ -9,7 +9,7 @@ import logging
 import numpy as np
 from artiq.coredevice.ad9910 import _AD9910_REG_AUX_DAC
 from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
-from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE7
+from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE3
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
@@ -40,38 +40,38 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
     def run(self):
         self.core.break_realtime()
 
-        profile_7 = self.urukul.read64(_AD9910_REG_PROFILE7)
+        profile_3 = self.urukul.read64(_AD9910_REG_PROFILE3)
 
-        logger.info("Reading profile_7 = 0x%X", profile_7)
+        logger.info("Reading profile_3 = 0x%X", profile_3)
 
         # aux_val |= 0xABCDEF00
 
         mask = np.int64(0xFFFF) << 40
 
-        address_step_rate = (profile_7 & mask) >> 40
+        address_step_rate = (profile_3 & mask) >> 40
 
         logger.info("address_step_rate = 0x%X", address_step_rate)
         logger.info("mask = 0x%X", mask)
 
         address_step_rate_new = np.int64(0xABCD)
 
-        profile_7_new = (profile_7 & (~mask)) | (address_step_rate_new << 40)
+        profile_3_new = (profile_3 & (~mask)) | (address_step_rate_new << 40)
 
-        profile_7_MSB = np.int32((profile_7_new >> 32) & (0xFFFFFFFF))
-        profile_7_LSB = np.int32(profile_7_new & (0xFFFFFFFF))
+        profile_3_MSB = np.int32((profile_3_new >> 32) & (0xFFFFFFFF))
+        profile_3_LSB = np.int32(profile_3_new & (0xFFFFFFFF))
 
-        logger.info("Writing profile7 = 0x%X", profile_7_new)
-        logger.info("Writing msb = 0x%X", profile_7_MSB)
-        logger.info("Writing lsb = 0x%X", profile_7_LSB)
+        logger.info("Writing profile_3 = 0x%X", profile_3_new)
+        logger.info("Writing msb = 0x%X", profile_3_MSB)
+        logger.info("Writing lsb = 0x%X", profile_3_LSB)
 
         self.core.break_realtime()
-        self.urukul.write64(_AD9910_REG_PROFILE7, profile_7_LSB, profile_7_MSB)
+        self.urukul.write64(_AD9910_REG_PROFILE3, profile_3_LSB, profile_3_MSB)
 
         self.urukul.cpld.io_update.pulse_mu(8)
 
         delay(1e-3)
 
         self.core.break_realtime()
-        renewed_profile_7 = self.urukul.read64(_AD9910_REG_PROFILE7)
+        renewed_profile_3 = self.urukul.read64(_AD9910_REG_PROFILE3)
 
-        logger.info("Reading renewed_profile_7 = 0x%X", renewed_profile_7)
+        logger.info("Reading renewed_profile_3 = 0x%X", renewed_profile_3)
