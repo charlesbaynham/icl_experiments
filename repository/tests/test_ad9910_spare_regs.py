@@ -36,7 +36,7 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
 
         self.core.break_realtime()
 
-        previous_value = self.urukul.write32(REG_ADDR)
+        previous_value = self.urukul.read32(REG_ADDR)
 
         logger.info("Previous value: 0x%X", previous_value)
 
