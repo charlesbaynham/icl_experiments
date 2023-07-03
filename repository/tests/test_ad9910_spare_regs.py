@@ -4,11 +4,14 @@ number to these so that I can read it back and detect whether the AD9910 (and,
 by extension, the rest of the urukul) has been initiated so that I can skip
 reinitialisation.
 """
-
-from artiq.experiment import EnvExperiment, NumberValue, kernel
-from artiq.coredevice.ad9910 import AD9910, _AD9910_REG_AUX_DAC, _AD9910_REG_CFR2
-
 import logging
+
+from artiq.coredevice.ad9910 import _AD9910_REG_AUX_DAC
+from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
+from artiq.coredevice.ad9910 import AD9910
+from artiq.experiment import EnvExperiment
+from artiq.experiment import kernel
+from artiq.experiment import NumberValue
 
 logger = logging.getLogger(__name__)
 REG_ADDR = 0x05
@@ -31,4 +34,4 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
     def run(self):
         self.core.break_realtime()
 
-        logger.info("Val = 0x%X", self.urukul.read32(_AD9910_REG_CFR2))
+        logger.info("Val = 0x%X", self.urukul.read32(_AD9910_REG_AUX_DAC))
