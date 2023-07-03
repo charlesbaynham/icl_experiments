@@ -161,6 +161,7 @@ class Blue3DMOTFrag(Fragment):
         """
 
         # Turn on all the AOMs but close all the shutters
+        delay(100e-6)  # We need some slack - create it deterministically
         self.all_beam_default_setter.turn_on_all(shutter_state=False)
 
     @kernel
