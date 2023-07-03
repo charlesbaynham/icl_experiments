@@ -50,6 +50,7 @@ config = {
         "blue_IJD1_controller": ("sampler2", 0),
         "blue_IJD2_controller": ("sampler2", 1),
         "blue_IJD3_controller": ("sampler2", 2),
+        "red_IJD1_controller": ("sampler2", 3),
     },
     "mot_photodiode_sampler_config": ("suservo0", 0),
     "zotino_plant_room_channels": {

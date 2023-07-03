@@ -188,7 +188,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
                 )[self.controller_name]
             except KeyError as exc:
                 raise KeyError(
-                    f"Could not find controller {self.controller_name} in device db. Have you added it to _aliases.py?"
+                    f"Could not find controller {self.controller_name} in configuration. Have you added it to configuration.py?"
                 ) from exc
 
             # Load the sampler utility subfragment
