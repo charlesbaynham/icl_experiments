@@ -6,7 +6,7 @@ reinitialisation.
 """
 
 from artiq.experiment import EnvExperiment, NumberValue, kernel
-from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ad9910 import AD9910, _AD9910_REG_AUX_DAC
 
 import logging
 
@@ -31,11 +31,12 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
     def run(self):
         self.core.break_realtime()
 
-        self.urukul.init()
+        self.urukul.init(blind=True)
+        self.write32(_AD9910_REG_AUX_DAC, 0x7F)
 
         self.core.break_realtime()
 
-        previous_value = self.urukul.read32(REG_ADDR)
+        previous_value = self.urukul.write32(REG_ADDR)
 
         logger.info("Previous value: 0x%X", previous_value)
 
