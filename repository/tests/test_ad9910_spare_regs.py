@@ -25,13 +25,27 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
             "urukul9910_aom_doublepass_689_red_injection"
         )
 
-        self.setattr_argument(
-            "value", NumberValue(default=0, step=1, ndecimals=0, type="int")
-        )
-        self.value: int
+        # self.setattr_argument(
+        #     "value", NumberValue(default=0, step=1, ndecimals=0, type="int")
+        # )
+        # self.value: int
 
     @kernel
     def run(self):
         self.core.break_realtime()
 
-        logger.info("Val = 0x%X", self.urukul.read32(_AD9910_REG_AUX_DAC))
+        aux_val = self.urukul.read32(_AD9910_REG_AUX_DAC)
+
+        logger.info("Reading val = 0x%X", aux_val)
+
+        aux_val |= 0xABCDEF00
+
+        logger.info("Writing val = 0x%X", aux_val)
+
+        self.core.break_realtime()
+        self.urukul.write32(_AD9910_REG_AUX_DAC, aux_val)
+
+        self.core.break_realtime()
+        aux_val = self.urukul.read32(_AD9910_REG_AUX_DAC)
+
+        logger.info("Reading val = 0x%X", aux_val)
