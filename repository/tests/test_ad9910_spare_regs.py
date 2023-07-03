@@ -41,6 +41,12 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
 
         # aux_val |= 0xABCDEF00
 
+        mask = 0xFFFF << 40
+
+        address_step_rate = (profile_7 & mask) >> 40
+
+        logger.info("address_step_rate = 0x%X", address_step_rate)
+
         # logger.info("Writing val = 0x%X", aux_val)
 
         # self.core.break_realtime()
