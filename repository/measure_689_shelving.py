@@ -49,14 +49,20 @@ class Measure689Shelving(ExpFragment):
 
         self.first_run = True
 
-
     @kernel
     def run_once(self):
         if self.first_run:
+            logger.warning("Shelving run_once init section")
             self.first_run = False
             self.core.break_realtime()
+
+            logger.warning("Red init...")
             self.red_mot_controller.init()
+
+            logger.warning("Blue init...")
             self.blue_mot_controller.init()
+
+            logger.warning("Blue mot load...")
             # Load a blue mot
             self.blue_mot_controller.load_mot(clearout=False)
 

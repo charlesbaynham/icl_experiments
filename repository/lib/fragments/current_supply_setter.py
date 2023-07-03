@@ -40,8 +40,8 @@ class SetAnalogCurrentSupply(Fragment):
     @kernel
     def device_setup(self) -> None:
         if self.first_run:
-            if self.debug_enabled:
-                logger.info("Initiating Zotino %s", self.zotino)
+            # if self.debug_enabled:
+            #     logger.info("Initiating Zotino %s", self.zotino)
 
             self.core.break_realtime()
             self.zotino.init()
@@ -96,8 +96,8 @@ class SetAnalogCurrentSupplies(Fragment):
     @kernel
     def device_setup(self) -> None:
         if self.first_run:
-            if self.debug_enabled:
-                logger.info("Initiating Zotino %s", self.zotino)
+            # if self.debug_enabled:
+            #     logger.info("Initiating Zotino %s", self.zotino)
 
             self.core.break_realtime()
             self.zotino.init()

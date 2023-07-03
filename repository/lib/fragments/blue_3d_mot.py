@@ -150,7 +150,7 @@ class Blue3DMOTFrag(Fragment):
         )
         self.loading_time: FloatParamHandle
 
-
+        self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
     def init(self):
@@ -163,8 +163,6 @@ class Blue3DMOTFrag(Fragment):
         # Turn on all the AOMs but close all the shutters
         self.all_beam_default_setter.turn_on_all(shutter_state=False)
 
-
-
     @kernel
     def enable_mot_fields(self):
         """
@@ -176,6 +174,11 @@ class Blue3DMOTFrag(Fragment):
 
         FIXME: Figure out why I need a stupid amount of slack
         """
+
+        if self.debug_mode:
+            logger.info("Enabling MOT fields")
+
+        logger.warning("Enabling MOT fields - DEBUG message")
 
         delay(50e-3)
         self.chamber_2_field_setter.set_bias_fields(
@@ -241,6 +244,8 @@ class Blue3DMOTFrag(Fragment):
 
         Optionally clear out atoms first
         """
+
+        logger.warning("Loading a blue MOT with clearout = %s", clearout)
 
         self.enable_mot_fields()
 
