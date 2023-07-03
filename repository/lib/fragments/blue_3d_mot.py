@@ -179,8 +179,6 @@ class Blue3DMOTFrag(Fragment):
         if self.debug_mode:
             logger.info("Enabling MOT fields")
 
-        logger.warning("Enabling MOT fields - DEBUG message")
-
         delay(50e-3)
         self.chamber_2_field_setter.set_bias_fields(
             self.chamber_2_bias_x.get(),
@@ -246,7 +244,8 @@ class Blue3DMOTFrag(Fragment):
         Optionally clear out atoms first
         """
 
-        logger.warning("Loading a blue MOT with clearout = %s", clearout)
+        if self.debug_mode:
+            logger.info("Loading a blue MOT with clearout = %s", clearout)
 
         self.enable_mot_fields()
 
