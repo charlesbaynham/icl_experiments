@@ -71,3 +71,7 @@ class MonitorBlueIJD2(MonitorKoheron):
 
 class MonitorBlueIJD3(MonitorKoheron):
     controller_name = "blue_IJD3_controller"
+
+
+class MonitorRedIJD1(MonitorKoheron):
+    controller_name = "red_IJD1_controller"

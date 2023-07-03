@@ -186,11 +186,11 @@
     "koheron_driver": {
       "flake": false,
       "locked": {
-        "lastModified": 1676396440,
-        "narHash": "sha256-ri+AQQZyTBTAEffjJ5JAoJ/FQNsS8hy8D5XILxmmUVc=",
+        "lastModified": 1688402632,
+        "narHash": "sha256-FwlidISwiY3aKW7i97gPFfGYllT5vEmc5utsuMRhHuU=",
         "ref": "refs/heads/master",
-        "rev": "171c11bc8980bb9751827681a5b94aeba93e3b1c",
-        "revCount": 12,
+        "rev": "08e3bfc17f173b9a614eeca950c8db249628e5d6",
+        "revCount": 13,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
       },
