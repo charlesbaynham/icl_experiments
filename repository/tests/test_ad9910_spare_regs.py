@@ -8,6 +8,7 @@ import logging
 
 from artiq.coredevice.ad9910 import _AD9910_REG_AUX_DAC
 from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
+from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE7
 from artiq.coredevice.ad9910 import AD9910
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
@@ -34,18 +35,18 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
     def run(self):
         self.core.break_realtime()
 
-        aux_val = self.urukul.read32(_AD9910_REG_AUX_DAC)
+        profile_7 = self.urukul.read64(_AD9910_REG_PROFILE7)
 
-        logger.info("Reading val = 0x%X", aux_val)
+        logger.info("Reading val = 0x%X", profile_7)
 
-        aux_val |= 0xABCDEF00
+        # aux_val |= 0xABCDEF00
 
-        logger.info("Writing val = 0x%X", aux_val)
+        # logger.info("Writing val = 0x%X", aux_val)
 
-        self.core.break_realtime()
-        self.urukul.write32(_AD9910_REG_AUX_DAC, aux_val)
+        # self.core.break_realtime()
+        # self.urukul.write32(_AD9910_REG_PROFILE7, aux_val)
 
-        self.core.break_realtime()
-        aux_val = self.urukul.read32(_AD9910_REG_AUX_DAC)
+        # self.core.break_realtime()
+        # aux_val = self.urukul.read32(_AD9910_REG_PROFILE7)
 
-        logger.info("Reading val = 0x%X", aux_val)
+        # logger.info("Reading val = 0x%X", aux_val)
