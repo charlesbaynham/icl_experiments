@@ -34,20 +34,20 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.urukul.init(blind=True)
         self.urukul.write32(_AD9910_REG_AUX_DAC, 0x7F)
 
-        self.core.break_realtime()
+        # self.core.break_realtime()
 
-        previous_value = self.urukul.read32(REG_ADDR)
+        # previous_value = self.urukul.read32(REG_ADDR)
 
-        logger.info("Previous value: 0x%X", previous_value)
+        # logger.info("Previous value: 0x%X", previous_value)
 
-        new_val = self.value & 0xFFFF
+        # new_val = self.value & 0xFFFF
 
-        logger.info("Writing new value: 0x%X", new_val)
+        # logger.info("Writing new value: 0x%X", new_val)
 
-        self.core.break_realtime()
-        self.urukul.write32(REG_ADDR, new_val)
+        # self.core.break_realtime()
+        # self.urukul.write32(REG_ADDR, new_val)
 
-        self.core.break_realtime()
-        new_value = self.urukul.read32(REG_ADDR)
+        # self.core.break_realtime()
+        # new_value = self.urukul.read32(REG_ADDR)
 
-        logger.info("Re-reading value: 0x%X", new_value)
+        # logger.info("Re-reading value: 0x%X", new_value)
