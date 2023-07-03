@@ -66,6 +66,8 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.core.break_realtime()
         self.urukul.write64(_AD9910_REG_PROFILE7, profile_7_LSB, profile_7_MSB)
 
+        self.urukul.cpld.io_update.pulse_mu(8)
+
         self.core.break_realtime()
         renewed_profile_7 = self.urukul.read64(_AD9910_REG_PROFILE7)
 
