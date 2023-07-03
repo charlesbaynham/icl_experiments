@@ -70,7 +70,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             FloatParam,
             description="Temperature",
             default=9000,
-            min=8000,
+            min=5000,
             max=15000,
             unit="Ohms",
             scale=1,
