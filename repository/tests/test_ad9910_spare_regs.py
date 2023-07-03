@@ -63,8 +63,8 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         logger.info("Writing msb = 0x%X", profile_7_MSB)
         logger.info("Writing lsb = 0x%X", profile_7_LSB)
 
-        # self.core.break_realtime()
-        # self.urukul.write64(_AD9910_REG_PROFILE7, profile_7_LSB, profile_7_MSB)
+        self.core.break_realtime()
+        self.urukul.write64(_AD9910_REG_PROFILE7, profile_7_LSB, profile_7_MSB)
 
         # self.core.break_realtime()
         # aux_val = self.urukul.read32(_AD9910_REG_PROFILE7)
