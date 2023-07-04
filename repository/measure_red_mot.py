@@ -124,7 +124,7 @@ class MeasureRedMOTFrag(ExpFragment):
         delay(self.camera_latency_margin.get())
 
         # Flash on the blue light
-        # self.blue_mot_controller.turn_on_3d_beams()
+        self.blue_mot_controller.turn_on_3d_beams()
         delay(self.fluorescence_pulse_length.get())
         self.blue_mot_controller.turn_off_3d_beams()
 
