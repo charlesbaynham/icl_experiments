@@ -40,7 +40,7 @@ class MeasureRedMOTFrag(ExpFragment):
         self.setattr_param(
             "red_loading_time",
             FloatParam,
-            "Delay after loading red MOT before taking flourescence measurement",
+            "Delay after loading red MOT before taking fluorescence measurement",
             default=200e-3,
             unit="ms",
         )
@@ -58,20 +58,20 @@ class MeasureRedMOTFrag(ExpFragment):
         self.setattr_param(
             "camera_latency_margin",
             FloatParam,
-            "Time to wait after triggering camera before turning on flourescence probe",
+            "Time to wait after triggering camera before turning on fluorescence probe",
             default=10e-3,
             unit="ms",
         )
         self.camera_latency_margin: FloatParamHandle
 
         self.setattr_param(
-            "flourescence_pulse_length",
+            "fluorescence_pulse_length",
             FloatParam,
-            "Length of flourescence pulse",
+            "Length of fluorescence pulse",
             default=200e-6,
             unit="us",
         )
-        self.flourescence_pulse_length: FloatParamHandle
+        self.fluorescence_pulse_length: FloatParamHandle
 
         # %% Convenience rebound parameters
         self.setattr_param_rebind("ramp_low", self.red_mot_controller)
@@ -123,7 +123,7 @@ class MeasureRedMOTFrag(ExpFragment):
 
         # Flash on the blue light
         self.blue_mot_controller.turn_on_3d_beams()
-        delay(self.flourescence_pulse_length.get())
+        delay(self.fluorescence_pulse_length.get())
         self.blue_mot_controller.turn_off_3d_beams()
 
         # Discard the MOT to take a background photo, allowing enough time for

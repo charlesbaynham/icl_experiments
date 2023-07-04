@@ -38,7 +38,7 @@ class MOTPhotodiodeMeasurement(Fragment):
         self, num_points: TInt32, delay_between_points_mu: TInt64, data: TList(TFloat)
     ) -> None:
         """
-        Read the flourescence out into an array.
+        Read the fluorescence out into an array.
 
         You must pass an array of floats with size <num_points> to `data`.
         """
