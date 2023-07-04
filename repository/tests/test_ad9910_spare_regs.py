@@ -43,6 +43,15 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
 
     @kernel
     def run(self):
+        logger.info("Reading from dds...")
+
+        self.core.break_realtime()
+        freq, phase, amp = self.channel.get()
+
+        logger.info("freq = %s", freq)
+        logger.info("phase = %s", phase)
+        logger.info("amp = %s", amp)
+
         logger.info("Resetting dds...")
 
         self.core.break_realtime()
@@ -63,6 +72,11 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
 
         self.core.break_realtime()
         self.channel.init()
+
+        logger.info("Setting freq = 340e6...")
+
+        self.core.break_realtime()
+        self.channel.set(340e6)
 
         # profile_3 = self.channel.read64(_AD9910_REG_PROFILE3)
 
