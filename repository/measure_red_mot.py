@@ -131,6 +131,7 @@ class MeasureRedMOTFrag(ExpFragment):
         self.chamber_2_field_setter.set_mot_gradient(0.0)
         delay(20e-3)
 
+        # TODO: this does nothing. Make it do something or remove it
         t_take_background = now_mu()
 
         # Turn the fields back on so eddy currents are gone by the next shot
