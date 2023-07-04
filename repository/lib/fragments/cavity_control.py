@@ -32,13 +32,13 @@ class LaserStabilisationSystem(ExpFragment):
         self.core: Core
 
         self.setattr_param(
-            "offset_689_freq",
+            "offset_689_default_freq",
             FloatParam,
             "Default EOM offset frequency for 689 laser",
             unit="MHz",
             default=constants.OFFSET_FREQUENCY_689,
         )
-        self.offset_689_freq: FloatParamHandle
+        self.offset_689_default_freq: FloatParamHandle
 
         self.setattr_param(
             "offset_689_att",
@@ -90,7 +90,7 @@ class LaserStabilisationSystem(ExpFragment):
         Args:
             offset (TFloat): Offset from default position
         """
-        new_freq = self.offset_689_freq.get() + offset
+        new_freq = self.offset_689_default_freq.get() + offset
         self.mirny_channel_689.set_frequency(new_freq)
 
     @kernel
