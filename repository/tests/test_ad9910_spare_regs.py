@@ -1,9 +1,3 @@
-"""
-The AD9910 has two spare registers, numbers 5 and 6. I'd like to write a magic
-number to these so that I can read it back and detect whether the AD9910 (and,
-by extension, the rest of the urukul) has been initiated so that I can skip
-reinitialisation.
-"""
 import logging
 
 import numpy as np
@@ -12,6 +6,8 @@ from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
 from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE3
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.coredevice.urukul import CFG_RST
+from artiq.coredevice.urukul import CPLD
 from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
@@ -27,9 +23,10 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.setattr_device("core")
         self.core: Core
 
-        self.urukul: AD9910 = self.get_device(
+        self.channel: AD9910 = self.get_device(
             "urukul9910_aom_doublepass_689_red_injection"
         )
+        self.urukul: CPLD = self.channel.cpld
 
         # self.setattr_argument(
         #     "value", NumberValue(default=0, step=1, ndecimals=0, type="int")
@@ -37,51 +34,60 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         # self.value: int
 
     @kernel
+    def urukul_rst(self, dds: CPLD):
+        """Pulse MASTER_RESET"""
+        dds.cfg_write(self.cfg_reg | (1 << CFG_RST))
+        delay(100e-3)
+        dds.cfg_write(self.cfg_reg & ~(1 << CFG_RST))
+
+    @kernel
     def run(self):
         self.core.break_realtime()
 
-        profile_3 = self.urukul.read64(_AD9910_REG_PROFILE3)
+        self.urukul_rst(self.urukul)
 
-        logger.info("Reading profile_3 = 0x%X", profile_3)
+        # profile_3 = self.channel.read64(_AD9910_REG_PROFILE3)
 
-        # aux_val |= 0xABCDEF00
+        # logger.info("Reading profile_3 = 0x%X", profile_3)
 
-        mask = np.int64(0xFFFF) << 40
+        # # aux_val |= 0xABCDEF00
 
-        address_step_rate = (profile_3 & mask) >> 40
+        # mask = np.int64(0xFFFF) << 40
 
-        logger.info("address_step_rate = 0x%X", address_step_rate)
-        logger.info("mask = 0x%X", mask)
+        # address_step_rate = (profile_3 & mask) >> 40
 
-        address_step_rate_new = np.int64(0xABCD)
+        # logger.info("address_step_rate = 0x%X", address_step_rate)
+        # logger.info("mask = 0x%X", mask)
 
-        profile_3_new = (profile_3 & (~mask)) | (address_step_rate_new << 40)
+        # address_step_rate_new = np.int64(0xABCD)
 
-        profile_3_MSB = np.int32((profile_3_new >> 32) & (0xFFFFFFFF))
-        profile_3_LSB = np.int32(profile_3_new & (0xFFFFFFFF))
+        # profile_3_new = (profile_3 & (~mask)) | (address_step_rate_new << 40)
 
-        logger.info("Writing profile_3 = 0x%X", profile_3_new)
-        logger.info("Writing msb = 0x%X", profile_3_MSB)
-        logger.info("Writing lsb = 0x%X", profile_3_LSB)
+        # profile_3_MSB = np.int32((profile_3_new >> 32) & (0xFFFFFFFF))
+        # profile_3_LSB = np.int32(profile_3_new & (0xFFFFFFFF))
 
-        self.core.break_realtime()
-        self.urukul.write64(_AD9910_REG_PROFILE3, profile_3_LSB, profile_3_MSB)
+        # logger.info("Writing profile_3 = 0x%X", profile_3_new)
+        # logger.info("Writing msb = 0x%X", profile_3_MSB)
+        # logger.info("Writing lsb = 0x%X", profile_3_LSB)
 
-        self.urukul.cpld.io_update.pulse_mu(8)
+        # self.core.break_realtime()
+        # self.channel.write64(_AD9910_REG_PROFILE3, profile_3_LSB, profile_3_MSB)
 
-        delay(1e-3)
+        # self.channel.cpld.io_update.pulse_mu(8)
 
-        self.core.break_realtime()
-        renewed_profile_3 = self.urukul.read64(_AD9910_REG_PROFILE3)
+        # delay(1e-3)
 
-        hi = (renewed_profile_3 >> 32) & 0xFFFFFFFF
-        lo = renewed_profile_3 & 0xFFFFFFFF
+        # self.core.break_realtime()
+        # renewed_profile_3 = self.channel.read64(_AD9910_REG_PROFILE3)
 
-        logger.info("Reading renewed_profile_3 = 0x%X, 0x%X", hi, lo)
+        # hi = (renewed_profile_3 >> 32) & 0xFFFFFFFF
+        # lo = renewed_profile_3 & 0xFFFFFFFF
 
-        self.core.break_realtime()
-        self.urukul.write64(_AD9910_REG_PROFILE3, 0, 0)
+        # logger.info("Reading renewed_profile_3 = 0x%X, 0x%X", hi, lo)
 
-        self.urukul.cpld.io_update.pulse_mu(8)
+        # self.core.break_realtime()
+        # self.channel.write64(_AD9910_REG_PROFILE3, 0, 0)
 
-        delay(1e-3)
+        # self.channel.cpld.io_update.pulse_mu(8)
+
+        # delay(1e-3)
