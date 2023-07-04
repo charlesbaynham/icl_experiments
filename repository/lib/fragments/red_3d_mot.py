@@ -108,20 +108,20 @@ class Red3DMOTFrag(Fragment):
             FloatParam,
             "689 injection AOM ramp lower limit",
             unit="MHz",
-            default=constants.RED_INJECTION_AOM_FREQUENCY - 2e6,
+            default=constants.RED_INJECTION_AOM_FREQUENCY,
         )
         self.setattr_param(
             "ramp_high",
             FloatParam,
             "689 injection AOM ramp upper limit",
             unit="MHz",
-            default=constants.RED_INJECTION_AOM_FREQUENCY,
+            default=constants.RED_INJECTION_AOM_FREQUENCY + 2e6,
         )
         self.setattr_param(
             "ramp_type",
             IntParam,
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
-            default=1,
+            default=0,
         )
 
         self.ramp_frequency: FloatParamHandle

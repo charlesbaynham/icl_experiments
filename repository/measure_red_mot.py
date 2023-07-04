@@ -41,7 +41,7 @@ class MeasureRedMOTFrag(ExpFragment):
             "red_loading_time",
             FloatParam,
             "Delay after loading red MOT before taking fluorescence measurement",
-            default=200e-3,
+            default=10e-3,
             unit="ms",
         )
         self.red_loading_time: FloatParamHandle
@@ -50,7 +50,7 @@ class MeasureRedMOTFrag(ExpFragment):
             "red_gradient_current",
             FloatParam,
             "Current for gradient coils for red MOT stage",
-            default=20,
+            default=10,
             unit="A",
         )
         self.red_gradient_current: FloatParamHandle
@@ -82,7 +82,7 @@ class MeasureRedMOTFrag(ExpFragment):
         self.setattr_param_rebind("ramp_type", self.red_mot_controller)
 
         self.setattr_param_rebind(
-            "camera_exposure", self.camera_bg_corrected, "exposure_horiz"
+            "camera_exposure", self.camera_bg_corrected, "exposure_horiz", default=11e-3
         )
         self.camera_bg_corrected.bind_param(
             "exposure_vert",
