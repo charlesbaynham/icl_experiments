@@ -110,7 +110,7 @@ class MeasureRedMOTFrag(ExpFragment):
         self.red_mot_controller.turn_on_mot_beams()
         delay(10e-9)
         self.red_mot_controller.start_ramping_red()
-        delay(100e-9)
+        delay(10e-9)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
         delay(10e-9)
         self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
