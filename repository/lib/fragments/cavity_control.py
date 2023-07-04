@@ -49,6 +49,14 @@ class LaserStabilisationSystem(ExpFragment):
         )
         self.offset_689_att: FloatParamHandle
 
+        self.setattr_param(
+            "rf_sw_689",
+            BoolParam,
+            "689 RF switch state",
+            default=True,
+        )
+        self.rf_sw_689: BoolParamHandle
+
     def host_setup(self):
         super().host_setup()
 
@@ -73,7 +81,7 @@ class LaserStabilisationSystem(ExpFragment):
         # Do this every time to ensure that any previous offsets are undone
         self.mirny_channel_689.set_att(self.offset_689_att.get())
         self.offset_689(0.0)
-        self.mirny_channel_689.sw.on()
+        self.mirny_channel_689.sw.set_o(self.rf_sw_689.get())
 
     @kernel
     def offset_689(self, offset: TFloat):
