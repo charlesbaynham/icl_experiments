@@ -1,15 +1,22 @@
+import logging
+
 from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
 from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
 from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_RATE
 from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_STEP
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.coredevice.urukul import CPLD
+from artiq.coredevice.urukul import urukul_sta_pll_lock
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from ndscan.experiment import Fragment
 from numpy import ceil
 from numpy import int32
+
+
+logger = logging.getLogger(__name__)
 
 
 class AD9910Ramper(Fragment):
@@ -23,18 +30,36 @@ class AD9910Ramper(Fragment):
         super().host_setup()
 
         self.dds: AD9910 = self.get_device(self.channel)
+        self.urukul: CPLD = self.dds.cpld
 
         if not isinstance(self.dds, AD9910):
             raise TypeError(
                 f"'channel' parameter must correspond to an AD9910 device, not a {type(self.dds)}"
             )
 
+        self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
+        # Read the Urukul CPLD and see if any DDSs have unlocked PLLs. If not,
+        # assume that they have already been init()ed and don't do it again to
+        # avoid glitches
+
         self.core.break_realtime()
-        self.dds.init()
+        status = self.urukul.sta_read()
+
+        if not urukul_sta_pll_lock(status):
+            logger.warning("Urukul PLL unlocked - reinitiating DDS and CPLD")
+
+            self.core.break_realtime()
+            self.urukul.init()
+            self.dds.init()
+
+        if self.debug_mode:
+            logger.info("Read status register: 0x%X", status)
+            logger.info("Urukul PLL status = %s", urukul_sta_pll_lock(status))
 
     @kernel
     def _extended_set_cfr2(
