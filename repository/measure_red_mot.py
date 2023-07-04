@@ -46,6 +46,15 @@ class MeasureRedMOTFrag(ExpFragment):
         )
         self.red_loading_time: FloatParamHandle
 
+        self.setattr_param(
+            "red_gradient_current",
+            FloatParam,
+            "Current for gradient coils for red MOT stage",
+            default=20,
+            unit="A",
+        )
+        self.red_gradient_current: FloatParamHandle
+
         # %% Convenience rebound parameters
         self.setattr_param_rebind("ramp_low", self.red_mot_controller)
         self.setattr_param_rebind("ramp_high", self.red_mot_controller)
@@ -66,12 +75,14 @@ class MeasureRedMOTFrag(ExpFragment):
         # Load a blue mot
         self.blue_mot_controller.load_mot(clearout=True)
 
-        # Start sweeping red IJD and turn on the beams
+        # Start sweeping red IJD, turn on the beams and drop the gradient
         self.red_mot_controller.turn_on_mot_beams()
         delay(10e-9)
         self.red_mot_controller.start_ramping_red()
         delay(10e-9)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
+        delay(10e-9)
+        self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
 
         # Wait with atoms hopefully in the red mot
         delay(self.red_loading_time.get())
