@@ -157,10 +157,10 @@ class Red3DMOTFrag(Fragment):
             self.ramp_rate *= 2
 
         # # Start the injection AOM in static mode
-        # self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings
-        # self.core.break_realtime()
-        # self.injection_aom.set(self.injection_aom_static_frequency.get())
-        # self.injection_aom.set_att(self.injection_aom_static_attenuation.get())
+        self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings
+        self.core.break_realtime()
+        self.injection_aom.set(self.injection_aom_static_frequency.get())
+        self.injection_aom.set_att(self.injection_aom_static_attenuation.get())
 
         # # Ensure the RF switch is on
         # self.injection_aom.cfg_sw(True)
