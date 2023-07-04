@@ -53,7 +53,7 @@ class LaserStabilisationSystem(ExpFragment):
             "rf_sw_689",
             BoolParam,
             "689 RF switch state",
-            default=True,
+            default="True",
         )
         self.rf_sw_689: BoolParamHandle
 
