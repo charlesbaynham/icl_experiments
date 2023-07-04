@@ -63,6 +63,15 @@ class MeasureRedMOTFrag(ExpFragment):
         )
         self.setattr_param_rebind("ramp_type", self.red_mot_controller)
 
+        self.setattr_param_rebind(
+            "camera_exposure", self.camera_bg_corrected, "exposure_horiz"
+        )
+        self.camera_bg_corrected.bind_param(
+            "exposure_vert",
+            self.camera_exposure,
+        )
+        self.camera_exposure: FloatParamHandle
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -101,7 +110,7 @@ class MeasureRedMOTFrag(ExpFragment):
 
         t_take_background = now_mu()
 
-        # Turn the fields back on so eddy current are gone by the next shot
+        # Turn the fields back on so eddy currents are gone by the next shot
         delay(10e-3)
         self.blue_mot_controller.enable_mot_fields()
 
