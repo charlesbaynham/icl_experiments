@@ -53,18 +53,11 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         logger.info("amp = %s", amp)
 
     @kernel
-    def run(self):
-        self.read_freq()
-
-        logger.info("Resetting dds...")
-
-        self.core.break_realtime()
-        self.urukul_rst(self.urukul)
-
+    def read_status(self):
         self.core.break_realtime()
         status = self.urukul.sta_read()
 
-        logger.info("Reading status register: 0x%X", status)
+        logger.info("Read status register: 0x%X", status)
 
         logger.info("urukul_sta_rf_sw = %s", urukul_sta_rf_sw(status))
         logger.info("urukul_sta_smp_err = %s", urukul_sta_smp_err(status))
@@ -72,12 +65,26 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         logger.info("urukul_sta_ifc_mode = %s", urukul_sta_ifc_mode(status))
         logger.info("urukul_sta_proto_rev = %s", urukul_sta_proto_rev(status))
 
-        logger.info("Attempting init...")
+    @kernel
+    def run(self):
+        self.read_freq()
+        self.read_status()
+
+        logger.warning("Resetting dds...")
+
+        self.core.break_realtime()
+        self.urukul_rst(self.urukul)
+
+        self.read_freq()
+        self.read_status()
+
+        logger.warning("Attempting init...")
 
         self.core.break_realtime()
         self.channel.init()
 
         self.read_freq()
+        self.read_status()
 
         logger.info("Setting freq = 340e6...")
 
@@ -85,6 +92,7 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.channel.set(340e6)
 
         self.read_freq()
+        self.read_status()
 
         # profile_3 = self.channel.read64(_AD9910_REG_PROFILE3)
 
