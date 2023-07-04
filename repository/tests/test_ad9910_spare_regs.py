@@ -6,6 +6,7 @@ from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
 from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE3
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.coredevice.urukul import *
 from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD
 from artiq.experiment import delay
@@ -26,25 +27,37 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.channel: AD9910 = self.get_device(
             "urukul9910_aom_doublepass_689_red_injection"
         )
+
+    def prepare(self):
         self.urukul: CPLD = self.channel.cpld
 
-        # self.setattr_argument(
-        #     "value", NumberValue(default=0, step=1, ndecimals=0, type="int")
-        # )
-        # self.value: int
-
     @kernel
-    def urukul_rst(self, dds: CPLD):
+    def urukul_rst(self, dds):
+        # type:(CPLD) -> None
+
         """Pulse MASTER_RESET"""
-        dds.cfg_write(self.cfg_reg | (1 << CFG_RST))
+
+        dds.cfg_write(dds.cfg_reg | (1 << CFG_RST))
         delay(100e-3)
-        dds.cfg_write(self.cfg_reg & ~(1 << CFG_RST))
+        dds.cfg_write(dds.cfg_reg & ~(1 << CFG_RST))
 
     @kernel
     def run(self):
-        self.core.break_realtime()
+        logger.info("Resetting dds...")
 
+        self.core.break_realtime()
         self.urukul_rst(self.urukul)
+
+        self.core.break_realtime()
+        status = self.urukul.sta_read()
+
+        logger.info("Reading status register: 0x%X", status)
+
+        logger.info("urukul_sta_rf_sw = %s", urukul_sta_rf_sw(status))
+        logger.info("urukul_sta_smp_err = %s", urukul_sta_smp_err(status))
+        logger.info("urukul_sta_pll_lock = %s", urukul_sta_pll_lock(status))
+        logger.info("urukul_sta_ifc_mode = %s", urukul_sta_ifc_mode(status))
+        logger.info("urukul_sta_proto_rev = %s", urukul_sta_proto_rev(status))
 
         # profile_3 = self.channel.read64(_AD9910_REG_PROFILE3)
 
