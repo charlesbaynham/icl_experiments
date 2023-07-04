@@ -7,6 +7,8 @@ from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -30,22 +32,22 @@ class LaserStabilisationSystem(ExpFragment):
         self.core: Core
 
         self.setattr_param(
-            "offset_default_689_freq",
+            "offset_689_freq",
             FloatParam,
             "Default EOM offset frequency for 689 laser",
             unit="MHz",
             default=constants.OFFSET_FREQUENCY_689,
         )
-        self.offset_default_689_freq: FloatParamHandle
+        self.offset_689_freq: FloatParamHandle
 
         self.setattr_param(
-            "offset_default_689_att",
+            "offset_689_att",
             FloatParam,
             "Default EOM offset attenuation for 689 laser",
             unit="dB",
             default=constants.OFFSET_ATTENUATION_689,
         )
-        self.offset_default_689_att: FloatParamHandle
+        self.offset_689_att: FloatParamHandle
 
     def host_setup(self):
         super().host_setup()
@@ -69,7 +71,7 @@ class LaserStabilisationSystem(ExpFragment):
 
         # Immediately turn on the output.
         # Do this every time to ensure that any previous offsets are undone
-        self.mirny_channel_689.set_att(self.offset_default_689_att.get())
+        self.mirny_channel_689.set_att(self.offset_689_att.get())
         self.offset_689(0.0)
         self.mirny_channel_689.sw.on()
 
@@ -80,7 +82,7 @@ class LaserStabilisationSystem(ExpFragment):
         Args:
             offset (TFloat): Offset from default position
         """
-        new_freq = self.offset_default_689_freq.get() + offset
+        new_freq = self.offset_689_freq.get() + offset
         self.mirny_channel_689.set_frequency(new_freq)
 
     @kernel
