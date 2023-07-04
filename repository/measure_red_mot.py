@@ -96,6 +96,8 @@ class MeasureRedMOTFrag(ExpFragment):
         self.blue_mot_controller.init()
         self.red_mot_controller.init()
 
+        self.red_mot_controller.turn_off_mot_beams()
+
         # Clear the camera buffer in case we quit a previous sequence midway
         self.camera_bg_corrected.clear()
 
