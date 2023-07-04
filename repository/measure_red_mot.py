@@ -79,17 +79,23 @@ class MeasureRedMOTFrag(ExpFragment):
         # Flash on the blue light and take a photo
         self.blue_mot_controller.turn_on_3d_beams()
 
-        self.core.wait_until_mu(now_mu())
-        self.camera_bg_corrected.trigger_signal()
+        t_take_signal = now_mu()
 
-        # Discard the MOT and take a background photo, allowing enough time for
+        # Discard the MOT to take a background photo, allowing enough time for
         # the gradient currents to dissipate
         self.chamber_2_field_setter.set_mot_gradient(0.0)
         delay(20e-3)
+
+        t_take_background = now_mu()
+
+        # Turn the fields back on so eddy current are gone by the next shot
+        delay(10e-3)
         self.blue_mot_controller.enable_mot_fields()
 
-        # Take a background photo
-        self.core.wait_until_mu(now_mu())
+        # End of RTIO sequencing. Now we are in real-time, taking the photos with RPCs
+        self.core.wait_until_mu(t_take_signal)
+        self.camera_bg_corrected.trigger_signal()
+        self.core.wait_until_mu(t_take_background)
         self.camera_bg_corrected.trigger_background()
 
         # Save the photos
