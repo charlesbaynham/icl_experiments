@@ -59,6 +59,11 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         logger.info("urukul_sta_ifc_mode = %s", urukul_sta_ifc_mode(status))
         logger.info("urukul_sta_proto_rev = %s", urukul_sta_proto_rev(status))
 
+        logger.info("Attempting init...")
+
+        self.core.break_realtime()
+        self.channel.init()
+
         # profile_3 = self.channel.read64(_AD9910_REG_PROFILE3)
 
         # logger.info("Reading profile_3 = 0x%X", profile_3)
