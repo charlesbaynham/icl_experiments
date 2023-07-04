@@ -42,7 +42,7 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         dds.cfg_write(dds.cfg_reg & ~(1 << CFG_RST))
 
     @kernel
-    def run(self):
+    def read_freq(self):
         logger.info("Reading from dds...")
 
         self.core.break_realtime()
@@ -51,6 +51,10 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         logger.info("freq = %s", freq)
         logger.info("phase = %s", phase)
         logger.info("amp = %s", amp)
+
+    @kernel
+    def run(self):
+        self.read_freq()
 
         logger.info("Resetting dds...")
 
@@ -73,10 +77,14 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         self.core.break_realtime()
         self.channel.init()
 
+        self.read_freq()
+
         logger.info("Setting freq = 340e6...")
 
         self.core.break_realtime()
         self.channel.set(340e6)
+
+        self.read_freq()
 
         # profile_3 = self.channel.read64(_AD9910_REG_PROFILE3)
 
