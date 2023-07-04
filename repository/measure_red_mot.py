@@ -58,7 +58,9 @@ class MeasureRedMOTFrag(ExpFragment):
         # %% Convenience rebound parameters
         self.setattr_param_rebind("ramp_low", self.red_mot_controller)
         self.setattr_param_rebind("ramp_high", self.red_mot_controller)
-        self.setattr_param_rebind("ramp_frequency", self.red_mot_controller)
+        self.setattr_param_rebind(
+            "ramp_frequency", self.red_mot_controller, unit="kHz", default=30e3
+        )
         self.setattr_param_rebind("ramp_type", self.red_mot_controller)
 
     @kernel
