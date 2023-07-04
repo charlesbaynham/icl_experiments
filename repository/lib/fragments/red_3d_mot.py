@@ -3,6 +3,7 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CPLD
+from artiq.coredevice.urukul import urukul_sta_pll_lock
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
@@ -96,15 +97,6 @@ class Red3DMOTFrag(Fragment):
         self.injection_aom_static_frequency: FloatParamHandle
 
         self.setattr_param(
-            "injection_aom_static_attenuation",
-            FloatParam,
-            "689 injection AOM static attenuation",
-            unit="MHz",
-            default=constants.RED_INJECTION_AOM_ATTENUATION,
-        )
-        self.injection_aom_static_attenuation: FloatParamHandle
-
-        self.setattr_param(
             "ramp_frequency",
             FloatParam,
             "689 injection AOM ramp frequency",
@@ -138,6 +130,7 @@ class Red3DMOTFrag(Fragment):
         self.ramp_type: IntParamHandle
 
         self.ramp_rate = 0.0
+        self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
     def host_setup(self):
         super().host_setup()
@@ -156,16 +149,54 @@ class Red3DMOTFrag(Fragment):
             # Triangle waves will need to ramp twice as quickly
             self.ramp_rate *= 2
 
-        # # Start the injection AOM in static mode
-        self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings
         self.core.break_realtime()
-        # self.injection_aom.set(self.injection_aom_static_frequency.get())
-        # self.injection_aom.set_att(self.injection_aom_static_attenuation.get())
 
-        # # Ensure the RF switch is on
-        # self.injection_aom.cfg_sw(True)
-        # self.injection_aom.sw.on()
-        logger.warning("Code commented out")
+        # Ensure the RF switch is on and the frequency is correct.
+        # These are glitch free, so we do them each time
+        self.injection_aom.set(self.injection_aom_static_frequency.get())
+        self.injection_aom.cfg_sw(True)
+        self.injection_aom.sw.on()
+
+        # Read the status register from the CPLD - we'll use this to detect
+        # whether the PLL is locked and treat this as a proxy for "has this DDS
+        # been set up already?" so we can avoid glitches from doing it again
+        # which might e.g. unlock injected diodes
+        status = self.injection_aom.cpld.sta_read()
+
+        if urukul_sta_pll_lock(status):
+            if self.debug_mode:
+                logger.info(
+                    "Skipping Urukul attenuation setting - we're assuming it is unchanged from %.1f",
+                    constants.RED_INJECTION_AOM_ATTENUATION,
+                )
+        else:
+            logger.warning(
+                "Urukul PLL unlocked - reinitiating DDS and CPLD and setting attenuation to %.1f",
+                constants.RED_INJECTION_AOM_ATTENUATION,
+            )
+
+            # Initiate the CPLD and DDS. This won't happen again since next time
+            # this code runs the PLL will be locked
+            self.core.break_realtime()
+            self.injection_aom.cpld.init()
+            self.injection_aom.init()
+
+            # Start the injection AOM in static mode. Every write to the
+            # attenuator (including the write that happens when you just
+            # "read"!) caused a small glitch on the output which is enough to
+            # unlock IJDs. The proper fix for this is documented in our Onenote
+            # 2023-07-04 but hasn't been implemented yet.
+            #
+            # For now, we just assume that if the PLL is locked then the
+            # attenuation has already been set, and we remove the user's ability
+            # to change the attenuation. If the attenuation is changed in code,
+            # you should power cycle the crate to prompt a reload.
+            self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings for other registers
+            self.injection_aom.set_att(constants.RED_INJECTION_AOM_ATTENUATION)
+
+            if self.debug_mode:
+                logger.info("Read status register: 0x%X", status)
+                logger.info("Urukul PLL status = %s", urukul_sta_pll_lock(status))
 
     @kernel
     def init(self):
