@@ -40,6 +40,7 @@ class WriteToAD9910SpareRegistry(EnvExperiment):
         dds.cfg_write(dds.cfg_reg | (1 << CFG_RST))
         delay(100e-3)
         dds.cfg_write(dds.cfg_reg & ~(1 << CFG_RST))
+        delay(100e-3)
 
     @kernel
     def read_freq(self):
