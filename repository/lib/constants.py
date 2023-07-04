@@ -24,7 +24,7 @@ IJD_DEFAULTS = {
     "blue_IJD1_controller": (8500, 345e-3),
     "blue_IJD2_controller": (8800, 345e-3),
     "blue_IJD3_controller": (9000, 346e-3),
-    "red_IJD1_controller": (5985, 70.3e-3),
+    "red_IJD1_controller": (6500, 62.0e-3),
 }
 
 # Order matters here since this is the order in which they are applied to the
