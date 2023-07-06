@@ -34,6 +34,8 @@ class MonitorKoheron(Calibration):
     def check_own_state(self):
         out = {}
 
+        self.controller.ping()
+
         out["temperature_actual"] = self.controller.get_temperature_actual() - 273.15
         out["temperature_setpoint"] = (
             self.controller.get_temperature_setpoint() - 273.15
