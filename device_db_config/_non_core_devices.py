@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 port_iterator = iter(range(3278, 99999))
-get_next_port = lambda: str(next(port_iterator))
+get_next_port = lambda: int(next(port_iterator))
 
 PORT_WAND_CONTROL = 3276
 PORT_WAND_NOTIFY = 3277
