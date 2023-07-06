@@ -34,28 +34,38 @@ class MonitorKoheron(Calibration):
     def check_own_state(self):
         out = {}
 
-        self.controller.ping()
+        try:
+            self.controller.ping()
 
-        out["temperature_actual"] = self.controller.get_temperature_actual() - 273.15
-        out["temperature_setpoint"] = (
-            self.controller.get_temperature_setpoint() - 273.15
-        )
-        out["current"] = 1e-3 * self.controller.get_current_mA()
-        out["voltage"] = self.controller.get_voltage()
+            out["temperature_actual"] = (
+                self.controller.get_temperature_actual() - 273.15
+            )
+            out["temperature_setpoint"] = (
+                self.controller.get_temperature_setpoint() - 273.15
+            )
+            out["current"] = 1e-3 * self.controller.get_current_mA()
+            out["voltage"] = self.controller.get_voltage()
 
-        laser_is_on = self.controller.status()
-        if not laser_is_on:
-            out["status"] = "OFF"
-            out["current"] = 0.0
-        elif (
-            abs(out["temperature_actual"] - out["temperature_setpoint"])
-            > AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD
-        ):
-            out["status"] = "SETTLING"
-        else:
-            out["status"] = "ON"
+            laser_is_on = self.controller.status()
+            if not laser_is_on:
+                out["status"] = "OFF"
+                out["current"] = 0.0
+            elif (
+                abs(out["temperature_actual"] - out["temperature_setpoint"])
+                > AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD
+            ):
+                out["status"] = "SETTLING"
+            else:
+                out["status"] = "ON"
 
-        result = CalibrationResult.OK if out["status"] else CalibrationResult.BAD_DATA
+            result = (
+                CalibrationResult.OK if out["status"] else CalibrationResult.BAD_DATA
+            )
+
+        except AttributeError:
+            # The connection to the controller failed
+            out["status"] = "ERROR"
+            result = CalibrationResult.BAD_DATA
 
         return result, {
             "tags": {"device": self.controller_name, "parent": MonitorKoheron.__name__},
