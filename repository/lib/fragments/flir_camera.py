@@ -156,6 +156,21 @@ class CameraFrag(Fragment):
         while self.cam.try_pop_frame() is not None:
             pass
 
+    @host_only
+    def start_acquisition_selectable_trigger(
+        self, nb_buffers=1, hardware_trigger=False
+    ):
+        """
+        Reimplementation of PyAravis's function but allowing hardware triggering
+        """
+
+        self.cam.set_feature("AcquisitionMode", "Continuous")  # no acquisition limits
+        self.cam.set_feature(
+            "TriggerSource", "Hardware" if hardware_trigger else "Software"
+        )
+        self.cam.set_feature("TriggerMode", "On")  # Not documented but necesary
+        self.cam.start_acquisition(nb_buffers)
+
     @rpc(flags={"async"})
     def trigger(self):
         """
@@ -196,7 +211,6 @@ class CameraFrag(Fragment):
     def _get_one_frame_without_monitor_update(
         self, timeout=0.0
     ) -> Tuple[int, ArrayLike]:
-
         logger.debug("_get_one_frame_without_monitor_update running")
 
         t_end = time.time() + timeout
