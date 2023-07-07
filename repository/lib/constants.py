@@ -31,10 +31,10 @@ IJD_DEFAULTS = {
 # camera and it will complain if it's ever in an invalid state
 CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
     [
-        ("Width", 584),
-        ("Height", 726),
-        ("OffsetX", 944),
-        ("OffsetY", 584),
+        ("Width", 256),
+        ("Height", 256),
+        ("OffsetX", 1172),
+        ("OffsetY", 790),
     ]
 )
 "Chamber 2 horizontal camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
@@ -43,10 +43,10 @@ CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
 # camera and it will complain if it's ever in an invalid state
 CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
     [
-        ("Width", 552),
-        ("Height", 552),
-        ("OffsetX", 888),
-        ("OffsetY", 550),
+        ("Width", 256),
+        ("Height", 256),
+        ("OffsetX", 1368),
+        ("OffsetY", 820),
     ]
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
