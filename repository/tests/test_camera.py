@@ -67,6 +67,42 @@ class TestFLIRCameraInterface(ExpFragment):
             print(frame)
 
 
+class TestFLIRHardwareTrigger(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment("cam", Chamber2HorizontalCamera, hardware_trigger=True)
+        self.cam: Chamber2HorizontalCamera
+        self.ttl_trigger = self.get_device("ttl_camera_trigger_horizontal")
+
+    def host_setup(self):
+        super().host_setup()
+
+        self.cam.ready_for_trigger(exposure_us=1000, num_images=3)
+
+    @kernel
+    def take_photos(self):
+        self.core.reset()
+
+        for _ in range(3):
+            self.ttl_trigger.pulse(1e-3)
+            delay(10e-3)
+
+        self.core.wait_until_mu(now_mu())
+
+    def run_once(self):
+        self.take_photos()
+
+        frames = self.cam.get_frames()
+
+        print(f"Got {len(frames)} frames:")
+
+        for ts, frame in frames:
+            print(pd.Timedelta(ts, "ns"))
+            print(frame)
+
+
 class TestFLIRAgainstLightBG(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
@@ -116,5 +152,5 @@ class TestFLIRAgainstLightBG(ExpFragment):
 
 
 TestFLIRCameraInterface = make_fragment_scan_exp(TestFLIRCameraInterface)
-
 TestFLIRAgainstLightBG = make_fragment_scan_exp(TestFLIRAgainstLightBG)
+TestFLIRHardwareTrigger = make_fragment_scan_exp(TestFLIRHardwareTrigger)
