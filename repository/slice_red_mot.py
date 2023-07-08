@@ -122,28 +122,21 @@ class SliceRedMOTFrag(ExpFragment):
 
         with parallel:
             self.camera_bg_corrected.trigger_signal()
-            with sequential:
-                # Flash on the blue light
-                self.blue_mot_controller.turn_on_3d_beams()
-                delay(self.fluorescence_pulse_length.get())
-                self.blue_mot_controller.turn_off_3d_beams()
-                delay(self.camera_exposure.get())
+            self.pulse_blue_for_image()
 
         # Wait for all RTIO events to complete
         self.core.break_realtime()
 
         # Discard the MOT to take a background photo, allowing enough time for
-        # the gradient currents to dissipate
+        # the gradient currents and atoms to dissipate
         self.chamber_2_field_setter.set_mot_gradient(0.0)
         delay(20e-3)
 
-        # TODO: this does nothing. Make it do something or remove it
-        delay(100e-3)
         with parallel:
+            self.pulse_blue_for_image()
             self.camera_bg_corrected.trigger_background()
 
         # Turn the fields back on so eddy currents are gone by the next shot
-        delay(self.camera_exposure.get() + 5e-3)
         self.blue_mot_controller.enable_mot_fields()
 
         # End of RTIO sequencing. Now we are in real-time.
@@ -151,6 +144,14 @@ class SliceRedMOTFrag(ExpFragment):
         # Save the photos
         self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.save_data()
+
+    @kernel
+    def pulse_blue_for_image(self):
+        # Flash on the blue light
+        self.blue_mot_controller.turn_on_3d_beams()
+        delay(self.fluorescence_pulse_length.get())
+        self.blue_mot_controller.turn_off_3d_beams()
+        delay(self.camera_exposure.get())
 
 
 SliceRedMOTFrag = make_fragment_scan_exp(SliceRedMOTFrag)
