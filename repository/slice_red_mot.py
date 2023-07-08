@@ -87,9 +87,6 @@ class SliceRedMOTFrag(ExpFragment):
         )
         self.camera_exposure: FloatParamHandle
 
-        self.camera_trigger_h: TTLOut = self.get_device("ttl_camera_trigger_horizontal")
-        self.camera_trigger_v: TTLOut = self.get_device("ttl_camera_trigger_vertical")
-
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -124,8 +121,7 @@ class SliceRedMOTFrag(ExpFragment):
         at_mu(t_signal)
 
         with parallel:
-            self.camera_trigger_h.pulse(1e-3)
-            self.camera_trigger_v.pulse(1e-3)
+            self.camera_bg_corrected.trigger_signal()
             with sequential:
                 # Flash on the blue light
                 self.blue_mot_controller.turn_on_3d_beams()
@@ -144,8 +140,7 @@ class SliceRedMOTFrag(ExpFragment):
         # TODO: this does nothing. Make it do something or remove it
         delay(100e-3)
         with parallel:
-            self.camera_trigger_h.pulse(1e-3)
-            self.camera_trigger_v.pulse(1e-3)
+            self.camera_bg_corrected.trigger_background()
 
         # Turn the fields back on so eddy currents are gone by the next shot
         delay(self.camera_exposure.get() + 5e-3)
