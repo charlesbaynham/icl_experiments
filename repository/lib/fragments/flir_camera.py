@@ -97,6 +97,8 @@ class CameraFrag(Fragment):
         self.hardware_trigger = hardware_trigger
         if hardware_trigger:
             self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
+        else:
+            self.ttl_trigger: TTLOut = None  # type: ignore
 
         # Kernel variables
         self.exposure = 0.0
@@ -224,10 +226,14 @@ class CameraFrag(Fragment):
                 "Triggering hardware measurement with exposure = %.1us",
                 1e6 * self.exposure,
             )
-            self.ttl_trigger.pulse(self.exposure)
+            self._hardware_trigger()
         else:
             logger.debug("Triggering software measurement")
             self._software_trigger()
+
+    @kernel
+    def _hardware_trigger(self):
+        self.ttl_trigger.pulse(self.exposure)
 
     @rpc(flags={"async"})
     def _software_trigger(self):
