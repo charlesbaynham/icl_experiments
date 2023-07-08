@@ -128,6 +128,8 @@ class CameraFrag(Fragment):
         )
 
         # Set sensible defaults. The user might change these
+        self.cam.set_feature("ExposureMode", "Timed")
+        self.cam.set_feature("TriggerSource", "Software")
         self.cam.set_feature("ExposureAuto", "Off")
         self.cam.set_feature("GainAuto", "Off")
         self.cam.set_feature("ExposureTime", 1000)
