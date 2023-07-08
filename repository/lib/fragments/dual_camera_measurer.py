@@ -4,6 +4,7 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import host_only
 from artiq.experiment import kernel
+from artiq.experiment import parallel
 from artiq.experiment import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment import ResultChannel
@@ -204,8 +205,9 @@ class BGCorrectedMeasurement(Fragment):
 
     @kernel
     def _trigger(self):
-        self.mot_measurer_camera_horizontal.trigger()
-        self.mot_measurer_camera_vertical.trigger()
+        with parallel:
+            self.mot_measurer_camera_horizontal.trigger()
+            self.mot_measurer_camera_vertical.trigger()
 
     @kernel
     def clear(

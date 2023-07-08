@@ -213,6 +213,9 @@ class CameraFrag(Fragment):
         Trigger a measurement now
 
         The camera must have been set up via :meth:`.ready_for_trigger` first.
+
+        In hardware trigger mode, this advances the timeline by the exposure
+        time. In software trigger mode, it calls an RPC.
         """
         if self.hardware_trigger:
             logger.debug(
