@@ -78,8 +78,13 @@ class SliceRedMOTFrag(ExpFragment):
         # )
         self.setattr_param_rebind("ramp_type", self.red_mot_controller)
 
+        # Ensure that both camera are on for the same length of time as the blue
+        # fluorescence is pulsed
         self.setattr_param_rebind(
-            "camera_exposure", self.camera_bg_corrected, "exposure_horiz", default=11e-3
+            "camera_exposure",
+            self.camera_bg_corrected,
+            "exposure_horiz",
+            default=200e-6,
         )
         self.camera_bg_corrected.bind_param(
             "exposure_vert",
