@@ -6,7 +6,9 @@ from typing import Tuple
 from typing import Type
 
 import numpy as np
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
+from artiq.experiment import kernel
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
@@ -56,6 +58,12 @@ class CameraFrag(Fragment):
     environments) from a computer on the same LAN as the camera.
     """
 
+    ttl_trigger_device: str
+    """The ttl line to use for hardware triggering.
+
+    Only used if "hardware_trigger=True" was passed to build_fragment
+    """
+
     @classmethod
     def _validate_class_attrs(cls):
         attrs = [
@@ -79,12 +87,16 @@ class CameraFrag(Fragment):
         super().__init__(*args, **kwargs)
 
     def build_fragment(self, hardware_trigger=False):
+        self.setattr_device("core")
+
         for feature, value in self.default_features.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
 
         self.setattr_device("ccb")
 
         self.hardware_trigger = hardware_trigger
+        if hardware_trigger:
+            self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
 
     def host_setup(self):
         # This import happens here because, for some reason, importing the
@@ -175,14 +187,22 @@ class CameraFrag(Fragment):
         self.cam.set_feature("TriggerMode", "On")  # Not documented but necesary
         self.cam.start_acquisition(nb_buffers)
 
-    @rpc(flags={"async"})
+    @kernel
     def trigger(self):
         """
         Trigger a measurement now
 
         The camera must have been set up via :meth:`.ready_for_trigger` first.
         """
-        logger.debug("Triggering measurement")
+        if self.hardware_trigger:
+            logger.debug("Triggering hardware measurement")
+            self.ttl_trigger.pulse(10e-6)
+        else:
+            logger.debug("Triggering software measurement")
+            self._software_trigger()
+
+    @rpc(flags={"async"})
+    def _software_trigger(self):
         self.cam.trigger()
 
     @host_only
@@ -246,6 +266,7 @@ class Chamber2HorizontalCamera(CameraFrag):
     monitor_dataset_key = "latest_ch2_horiz_image"
     monitor_dataset_description = "Chamber 2 horizontal camera"
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018873"
+    ttl_trigger_device = "ttl_camera_trigger_horizontal"
 
 
 class Chamber2VerticalCamera(CameraFrag):
@@ -253,6 +274,7 @@ class Chamber2VerticalCamera(CameraFrag):
     monitor_dataset_key = "latest_ch2_vert_image"
     monitor_dataset_description = "Chamber 2 vertical camera"
     camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
+    ttl_trigger_device = "ttl_camera_trigger_vertical"
 
 
 class MonitorCamera(ExpFragment):

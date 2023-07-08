@@ -31,22 +31,16 @@ class TestDualCameraMeasurerHardwareTrigger(ExpFragment):
         )
         self.camera_bg_corrected: BGCorrectedMeasurement
 
-        self.camera_trigger_h: TTLOut = self.get_device("ttl_camera_trigger_horizontal")
-        self.camera_trigger_v: TTLOut = self.get_device("ttl_camera_trigger_vertical")
-
     @kernel
     def run_once(self):
         self.core.break_realtime()
 
-        with parallel:
-            self.camera_trigger_h.pulse(1e-3)
-            self.camera_trigger_v.pulse(1e-3)
-
         delay(20e-3)
 
-        with parallel:
-            self.camera_trigger_h.pulse(1e-3)
-            self.camera_trigger_v.pulse(1e-3)
+        self.camera_bg_corrected.trigger_background()
+
+        delay(20e-3)
+        self.camera_bg_corrected.trigger_signal()
 
         # Wait for all RTIO events to complete
         self.core.break_realtime()

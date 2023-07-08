@@ -168,7 +168,7 @@ class BGCorrectedMeasurement(Fragment):
                 self.bg_index,
             )
 
-        self._trigger_rpc()
+        self._trigger()
 
         self.signal_index = self.image_index
         self.image_index += 1
@@ -197,13 +197,13 @@ class BGCorrectedMeasurement(Fragment):
                 self.bg_index,
             )
 
-        self._trigger_rpc()
+        self._trigger()
 
         self.bg_index = self.image_index
         self.image_index += 1
 
-    @rpc(flags={"async"})
-    def _trigger_rpc(self):
+    @kernel
+    def _trigger(self):
         self.mot_measurer_camera_horizontal.trigger()
         self.mot_measurer_camera_vertical.trigger()
 
