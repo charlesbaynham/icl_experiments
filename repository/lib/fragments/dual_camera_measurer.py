@@ -29,7 +29,7 @@ class BGCorrectedMeasurement(Fragment):
     Background-corrected image aquisition with the FLIR cameras
     """
 
-    def build_fragment(self):
+    def build_fragment(self, hardware_trigger=False):
         self.setattr_device("core")
         self.core: Core
 
@@ -62,11 +62,17 @@ class BGCorrectedMeasurement(Fragment):
         # %% Fragments
 
         self.setattr_fragment(
-            "mot_measurer_camera_horizontal", Chamber2HorizontalCamera
+            "mot_measurer_camera_horizontal",
+            Chamber2HorizontalCamera,
+            hardware_trigger=hardware_trigger,
         )
         self.mot_measurer_camera_horizontal: Chamber2HorizontalCamera
 
-        self.setattr_fragment("mot_measurer_camera_vertical", Chamber2VerticalCamera)
+        self.setattr_fragment(
+            "mot_measurer_camera_vertical",
+            Chamber2VerticalCamera,
+            hardware_trigger=hardware_trigger,
+        )
         self.mot_measurer_camera_vertical: Chamber2VerticalCamera
 
         # %%  Results

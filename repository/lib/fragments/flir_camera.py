@@ -78,11 +78,13 @@ class CameraFrag(Fragment):
         self._validate_class_attrs()
         super().__init__(*args, **kwargs)
 
-    def build_fragment(self):
+    def build_fragment(self, hardware_trigger=False):
         for feature, value in self.default_features.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
 
         self.setattr_device("ccb")
+
+        self.hardware_trigger = hardware_trigger
 
     def host_setup(self):
         # This import happens here because, for some reason, importing the
@@ -150,7 +152,9 @@ class CameraFrag(Fragment):
         self.num_images = num_images
         self.cam.set_exposure_time(exposure_us)
 
-        self.cam.start_acquisition_trigger(nb_buffers=num_images)
+        self.start_acquisition_selectable_trigger(
+            nb_buffers=num_images, hardware_trigger=self.hardware_trigger
+        )
 
         # Read out any images still in the buffer
         while self.cam.try_pop_frame() is not None:
