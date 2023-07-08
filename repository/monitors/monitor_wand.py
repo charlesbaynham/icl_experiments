@@ -1,15 +1,8 @@
 import logging
 
-
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
-
-import logging
-
-
 from sipyco.pc_rpc import Client as RPCClient
-
-
 from wand.tools import WLMMeasurementStatus
 
 
@@ -25,16 +18,6 @@ class MonitorWAND(Calibration):
     Most of this code is taken from WAND's built-in influx logger, but adapted
     for our database structure / monitor framework
     """
-
-    controller_name: str = None
-
-    def __init__(self, *args, **kwargs):
-        if self.controller_name is None:
-            raise NotImplementedError(
-                "You must subclass this interface class and set cls.controller_name"
-            )
-
-        super().__init__(*args, **kwargs)
 
     def build_calibration(self):
         self.set_timeout(10)
