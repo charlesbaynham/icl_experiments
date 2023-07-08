@@ -154,6 +154,7 @@ class SliceRedMOTFrag(ExpFragment):
         # End of RTIO sequencing. Now we are in real-time.
 
         # Save the photos
+        self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.save_data()
 
 
