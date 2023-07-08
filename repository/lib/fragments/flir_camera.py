@@ -95,10 +95,7 @@ class CameraFrag(Fragment):
         self.setattr_device("ccb")
 
         self.hardware_trigger = hardware_trigger
-        if hardware_trigger:
-            self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
-        else:
-            self.ttl_trigger: TTLOut = None  # type: ignore
+        self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
 
         # Kernel variables
         self.exposure = 0.0
