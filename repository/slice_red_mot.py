@@ -2,9 +2,12 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay, parallel, sequential
+from artiq.experiment import at_mu
+from artiq.experiment import delay
 from artiq.experiment import kernel
-from artiq.experiment import now_mu, at_mu
+from artiq.experiment import now_mu
+from artiq.experiment import parallel
+from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -139,6 +142,7 @@ class SliceRedMOTFrag(ExpFragment):
         delay(20e-3)
 
         # TODO: this does nothing. Make it do something or remove it
+        delay(100e-3)
         with parallel:
             self.camera_trigger_h.pulse(1e-3)
             self.camera_trigger_v.pulse(1e-3)
