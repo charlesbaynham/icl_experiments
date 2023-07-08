@@ -13,17 +13,15 @@ from repository.monitors.monitor_ion_pump import MonitorIonPump
 from repository.monitors.monitor_ionpump_duplicate import MonitorIonPumpDup
 from repository.monitors.monitor_lab_temperature import MonitorLabTemperature
 from repository.monitors.monitor_turbopump import MonitorTurbo
-from repository.monitors.monitor_weather import MonitorWeather
 from repository.monitors.monitor_wand import MonitorWAND
+from repository.monitors.monitor_weather import MonitorWeather
 
 logger = logging.getLogger(__name__)
 
 
 def my_db_logger(self, name, state, data_list):
     # Convert into a list of measurements if not already formatted like this
-    try:
-        iter(data_list)
-    except TypeError:
+    if not isinstance(data_list, list):
         data_list = [data_list]
 
     for data in data_list:
@@ -44,7 +42,7 @@ def my_db_logger(self, name, state, data_list):
             pass
         else:
             raise ValueError(
-                "Data type %s not supported - only floats and dicts are accepted", data
+                f'Data "{data}" of type {type(data)} not supported - only floats and dicts are accepted'
             )
 
         tags["type"] = name
