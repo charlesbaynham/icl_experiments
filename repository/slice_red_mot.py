@@ -61,15 +61,6 @@ class SliceRedMOTFrag(ExpFragment):
         )
         self.red_gradient_current: FloatParamHandle
 
-        self.setattr_param(
-            "fluorescence_pulse_length",
-            FloatParam,
-            "Length of fluorescence pulse",
-            default=200e-6,
-            unit="us",
-        )
-        self.fluorescence_pulse_length: FloatParamHandle
-
         # %% Convenience rebound parameters
         self.setattr_param_rebind("ramp_low", self.red_mot_controller)
         self.setattr_param_rebind("ramp_high", self.red_mot_controller)
@@ -85,6 +76,7 @@ class SliceRedMOTFrag(ExpFragment):
             self.camera_bg_corrected,
             "exposure_horiz",
             default=200e-6,
+            description="Camera exposure and fluorescence pulse length",
         )
         self.camera_bg_corrected.bind_param(
             "exposure_vert",
@@ -154,7 +146,7 @@ class SliceRedMOTFrag(ExpFragment):
     def pulse_blue_for_image(self):
         # Flash on the blue light
         self.blue_mot_controller.turn_on_3d_beams()
-        delay(self.fluorescence_pulse_length.get())
+        delay(self.camera_exposure.get())
         self.blue_mot_controller.turn_off_3d_beams()
         delay(self.camera_exposure.get())
 
