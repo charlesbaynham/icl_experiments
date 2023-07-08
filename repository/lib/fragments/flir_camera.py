@@ -170,7 +170,7 @@ class CameraFrag(Fragment):
 
         self.cam.set_feature("AcquisitionMode", "Continuous")  # no acquisition limits
         self.cam.set_feature(
-            "TriggerSource", "Hardware" if hardware_trigger else "Software"
+            "TriggerSource", "Line0" if hardware_trigger else "Software"
         )
         self.cam.set_feature("TriggerMode", "On")  # Not documented but necesary
         self.cam.start_acquisition(nb_buffers)
