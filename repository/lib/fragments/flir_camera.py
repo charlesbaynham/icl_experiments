@@ -98,6 +98,9 @@ class CameraFrag(Fragment):
         if hardware_trigger:
             self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
 
+        # Kernel variables
+        self.exposure = 0.0
+
     def host_setup(self):
         # This import happens here because, for some reason, importing the
         # gi.repository Aravis (which happens in python-aravis) breaks if you do
@@ -153,7 +156,7 @@ class CameraFrag(Fragment):
 
         super().host_cleanup()
 
-    @rpc(flags={"async"})
+    @kernel
     def ready_for_trigger(self, exposure_us, num_images):
         """
         Prepare the camera for taking images
@@ -161,10 +164,22 @@ class CameraFrag(Fragment):
         Image acquisition should then be triggered via :meth:`.trigger` and read
         out by :meth:`.get_frames`.
         """
-        self.num_images = num_images
-        self.cam.set_exposure_time(exposure_us)
+        # Save exposure time - this is used for hardware triggering to determine the TTL pulse length
+        self.exposure = 1e-6 * exposure_us
 
-        self.start_acquisition_selectable_trigger(
+        # Set the rest of the parameters on the camera itself via an RPC
+        self._ready_for_trigger_rpc(exposure_us, num_images)
+
+    @rpc(flags={"async"})
+    def _ready_for_trigger_rpc(self, exposure_us, num_images):
+        self.num_images = num_images
+
+        # In hardware trigger mode, the exposure time is determined by the
+        # length of the TTL pulse
+        if not self.hardware_trigger:
+            self.cam.set_exposure_time(exposure_us)
+
+        self._start_acquisition_selectable_trigger(
             nb_buffers=num_images, hardware_trigger=self.hardware_trigger
         )
 
@@ -173,7 +188,7 @@ class CameraFrag(Fragment):
             pass
 
     @host_only
-    def start_acquisition_selectable_trigger(
+    def _start_acquisition_selectable_trigger(
         self, nb_buffers=1, hardware_trigger=False
     ):
         """
@@ -181,10 +196,15 @@ class CameraFrag(Fragment):
         """
 
         self.cam.set_feature("AcquisitionMode", "Continuous")  # no acquisition limits
-        self.cam.set_feature(
-            "TriggerSource", "Line0" if hardware_trigger else "Software"
-        )
         self.cam.set_feature("TriggerMode", "On")  # Not documented but necesary
+
+        if hardware_trigger:
+            self.cam.set_feature("ExposureMode", "TriggerWidth")
+            self.cam.set_feature("TriggerSource", "Line0")
+        else:
+            self.cam.set_feature("ExposureMode", "Timed")
+            self.cam.set_feature("TriggerSource", "Software")
+
         self.cam.start_acquisition(nb_buffers)
 
     @kernel
@@ -195,8 +215,11 @@ class CameraFrag(Fragment):
         The camera must have been set up via :meth:`.ready_for_trigger` first.
         """
         if self.hardware_trigger:
-            logger.debug("Triggering hardware measurement")
-            self.ttl_trigger.pulse(10e-6)
+            logger.debug(
+                "Triggering hardware measurement with exposure = %.1us",
+                1e6 * self.exposure,
+            )
+            self.ttl_trigger.pulse(self.exposure)
         else:
             logger.debug("Triggering software measurement")
             self._software_trigger()
