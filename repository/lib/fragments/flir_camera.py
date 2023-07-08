@@ -7,10 +7,8 @@ from typing import Type
 
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import at_mu
 from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
@@ -221,9 +219,7 @@ class CameraFrag(Fragment):
                 "Triggering hardware measurement with exposure = %.1us",
                 1e6 * self.exposure,
             )
-            t_mu = now_mu()
             self.ttl_trigger.pulse(self.exposure)
-            at_mu(t_mu)
         else:
             logger.debug("Triggering software measurement")
             self._software_trigger()
