@@ -39,7 +39,7 @@ def my_db_logger(self, name, state, data_list):
         elif isinstance(data, float):
             fields = {"value": data}
         elif data is None:
-            pass
+            continue
         else:
             raise ValueError(
                 f'Data "{data}" of type {type(data)} not supported - only floats and dicts are accepted'
