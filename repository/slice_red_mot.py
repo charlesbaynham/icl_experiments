@@ -122,7 +122,7 @@ class SliceRedMOTFrag(ExpFragment):
         delay(20e-3)
 
         with parallel:
-            self.pulse_blue_for_image()
+            # self.pulse_blue_for_image()  # Don't actually pulse the blue light - it's not helping our signal, it's just adding more shot noise
             self.camera_bg_corrected.trigger_background()
 
         # Turn the fields back on so eddy currents are gone by the next shot
