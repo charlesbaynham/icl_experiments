@@ -39,16 +39,19 @@ class DisplayInjectionMonitors(ExpFragment):
         sampler_name, _ = monitors["blue_IJD1_controller"]
         self.sampler: Sampler = self.get_device(sampler_name)
 
-        self.sampler_channels = [
-            monitors["blue_IJD1_controller"],
-            monitors["blue_IJD2_controller"],
-            monitors["blue_IJD3_controller"],
-        ]
+        # Not used - I've hacked this a bit...
+        # self.sampler_channels = [
+        #     monitors["blue_IJD1_controller"],
+        #     monitors["blue_IJD2_controller"],
+        #     monitors["blue_IJD3_controller"],
+        #     monitors["red_IJD1_controller"],
+        # ]
 
         # Define result channels as outputs
-        self.setattr_result("v_IJD1")
-        self.setattr_result("v_IJD2")
-        self.setattr_result("v_IJD3")
+        self.setattr_result("blue_1")
+        self.setattr_result("blue_2")
+        self.setattr_result("blue_3")
+        self.setattr_result("red_1")
         self.voltage: ResultChannel
 
     @kernel
@@ -66,9 +69,10 @@ class DisplayInjectionMonitors(ExpFragment):
 
         self.sampler.sample(samples)
 
-        self.v_IJD1.push(samples[0])
-        self.v_IJD2.push(samples[1])
-        self.v_IJD3.push(samples[2])
+        self.blue_1.push(samples[0])
+        self.blue_2.push(samples[1])
+        self.blue_3.push(samples[2])
+        self.red_1.push(samples[3])
 
 
 DisplayInjectionMonitors = make_fragment_scan_exp(DisplayInjectionMonitors)
