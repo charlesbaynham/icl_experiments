@@ -62,7 +62,7 @@ class MeasureBlueMOTFrag(ExpFragment):
         self._before_start_load_hook()
 
         # Load MOT and start measuring signal immediately
-        self.mot_controller.turn_on_3d_and_2d_beams()
+        self.mot_controller.turn_on_all_beams()
 
         self._take_data(self.mot_loading_time.get())
 
@@ -166,7 +166,6 @@ class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
 
     @kernel
     def _take_data(self, loading_time):
-
         delay(loading_time)
 
         self.core.wait_until_mu(now_mu())

@@ -115,8 +115,7 @@ class MeasureMagneticTrapWithPDFrag(ExpFragment):
 
         # Load MOT with repumpers disabled to drain into mag. trap
         self.mot_controller.turn_on_3d_and_2d_beams()
-        self.repumper_707_shutter.off()
-        self.repumper_679_shutter.off()
+        self.mot_controller.turn_off_repumpers()
 
         # Wait for the MOT to load
         delay(self.magnetic_trap_loading_time.get())
@@ -253,14 +252,12 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         self.core.break_realtime()
         delay(20e-3)
-        
+
         self.mot_controller.init()
 
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
         self.mot_controller.enable_mot_defaults()
-        self.repumper_707_shutter.on()
-        self.repumper_679_shutter.on()
         delay(20e-9)
         self.mot_controller.turn_off_3d_and_2d_beams()
 
@@ -284,10 +281,9 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         delay(self.dark_time.get())
 
         # Turn on the MOT beams and the repumpers (but not the push beam)
-        self.repumper_707_shutter.on()
-        self.repumper_679_shutter.on()
-        delay(20e-9)
         self.mot_controller.turn_on_3d_beams()
+        delay(20e-9)
+        self.mot_controller.turn_on_repumpers()
 
         # Take a photo
         delay(self.wait_before_photo.get())

@@ -46,7 +46,7 @@ class Blue3DMOTFrag(Fragment):
         self.all_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment(
-            "all_mot_beams_setter",
+            "mot_all_beam_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
                 constants.AOM_BEAMS["blue_push_beam"],
@@ -59,7 +59,21 @@ class Blue3DMOTFrag(Fragment):
                 constants.AOM_BEAMS["repump_707"],
             ],
         )
-        self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
+        self.mot_all_beam_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
+            "mot_2d_and_3d_beams_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.AOM_BEAMS["blue_push_beam"],
+                constants.AOM_BEAMS["blue_3dmot_radial"],
+                constants.AOM_BEAMS["blue_3dmot_axialplus"],
+                constants.AOM_BEAMS["blue_3dmot_axialminus"],
+                constants.AOM_BEAMS["blue_2dmot_A"],
+                constants.AOM_BEAMS["blue_2dmot_B"],
+            ],
+        )
+        self.mot_2d_and_3d_beams_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
             "mot_3d_beams_setter",
@@ -200,11 +214,19 @@ class Blue3DMOTFrag(Fragment):
 
     @kernel
     def turn_on_3d_and_2d_beams(self):
-        self.all_mot_beams_setter.turn_beams_on()
+        self.mot_2d_and_3d_beams_setter.turn_beams_on()
 
     @kernel
     def turn_off_3d_and_2d_beams(self):
-        self.all_mot_beams_setter.turn_beams_off()
+        self.mot_2d_and_3d_beams_setter.turn_beams_off()
+
+    @kernel
+    def turn_on_all_beams(self):
+        self.mot_all_beam_setter.turn_beams_on()
+
+    @kernel
+    def turn_off_all_beams(self):
+        self.mot_all_beam_setter.turn_beams_off()
 
     @kernel
     def turn_on_3d_beams(self):
@@ -252,5 +274,5 @@ class Blue3DMOTFrag(Fragment):
         if clearout:
             self.clear_ch2()
 
-        self.turn_on_3d_and_2d_beams()
+        self.turn_on_all_beams()
         delay(self.loading_time.get())
