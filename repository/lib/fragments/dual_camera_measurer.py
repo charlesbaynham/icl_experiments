@@ -25,9 +25,11 @@ DATASET_KEY_H = "latest_bg_corrected_image_horiz"
 DATASET_KEY_V = "latest_bg_corrected_image_vert"
 
 
-class BGCorrectedMeasurement(Fragment):
+class DualCameraMeasurement(Fragment):
     """
-    Background-corrected image aquisition with the FLIR cameras
+    Dual image aquisition with the FLIR cameras
+
+    Must be subclassed for single-shot or dual aquisition
     """
 
     def build_fragment(self, hardware_trigger=False):
@@ -101,16 +103,13 @@ class BGCorrectedMeasurement(Fragment):
         self.image_vertical_mean: ResultChannel
 
         # %% Kernel attributes
-        self.image_index = 0
-        self.bg_index = -1
-        self.signal_index = -1
-
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
 
     def host_setup(self) -> None:
         super().host_setup()
 
-        # Prepare cameras to be triggered for 2x acquisitions
+        # Prepare cameras to be triggered for 2x acquisitions.
+        # We might not use both, depending on how this Fragment is subclassed
         self.mot_measurer_camera_horizontal.ready_for_trigger(
             self.exposure_horiz.get() * 1e6, num_images=2
         )
@@ -146,14 +145,45 @@ class BGCorrectedMeasurement(Fragment):
         )
 
     @kernel
+    def _trigger(self):
+        with parallel:
+            self.mot_measurer_camera_horizontal.trigger()
+            self.mot_measurer_camera_vertical.trigger()
+
+    @host_only
+    def _update_monitor(self, img_h, img_v):
+        # convert to int instead of uint8 for plotting
+        self.set_dataset(
+            DATASET_KEY_H,
+            np.array(img_h).astype("int"),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        self.set_dataset(
+            DATASET_KEY_V,
+            np.array(img_v).astype("int"),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+
+class BGCorrectedMeasurement(DualCameraMeasurement):
+    def host_setup(self) -> None:
+        self.image_index = 0
+        self.bg_index = -1
+        self.signal_index = -1
+
+        return super().host_setup()
+
+    @kernel
     def trigger_signal(self):
         """
         Trigger signal pictures to be taken now on each camera
 
         Pictures are stored in the camera's internal buffer any must be read out
         using :meth:`.save_data` otherwise they will be lost.
-
-        Occurs at the time of calling via an RPC, not at the timeline.
         """
         if self.image_index > 1:
             # We've already taken two images - fail!
@@ -181,8 +211,6 @@ class BGCorrectedMeasurement(Fragment):
 
         Pictures are stored in the camera's internal buffer any must be read out
         using :meth:`.save_data` otherwise they will be lost.
-
-        Occurs at the time of calling via an RPC, not at the timeline.
         """
         if self.image_index > 1:
             # We've already taken two images - fail!
@@ -202,12 +230,6 @@ class BGCorrectedMeasurement(Fragment):
 
         self.bg_index = self.image_index
         self.image_index += 1
-
-    @kernel
-    def _trigger(self):
-        with parallel:
-            self.mot_measurer_camera_horizontal.trigger()
-            self.mot_measurer_camera_vertical.trigger()
 
     @kernel
     def clear(
@@ -298,21 +320,3 @@ class BGCorrectedMeasurement(Fragment):
         self.image_vertical.push(image_vert)
 
         self._update_monitor(image_horiz, image_vert)
-
-    @host_only
-    def _update_monitor(self, img_h, img_v):
-        # convert to int instead of uint8 for plotting
-        self.set_dataset(
-            DATASET_KEY_H,
-            np.array(img_h).astype("int"),
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
-        self.set_dataset(
-            DATASET_KEY_V,
-            np.array(img_v).astype("int"),
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )

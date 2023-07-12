@@ -1,9 +1,13 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import parallel
+from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -34,7 +38,9 @@ class MeasureRedMOTFrag(ExpFragment):
         )
         self.chamber_2_field_setter: SetMagneticFields
 
-        self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
+        self.setattr_fragment(
+            "camera_bg_corrected", BGCorrectedMeasurement, hardware_trigger=True
+        )
         self.camera_bg_corrected: BGCorrectedMeasurement
 
         self.setattr_param(
@@ -55,32 +61,14 @@ class MeasureRedMOTFrag(ExpFragment):
         )
         self.red_gradient_current: FloatParamHandle
 
-        self.setattr_param(
-            "camera_latency_margin",
-            FloatParam,
-            "Time to wait after triggering camera before turning on fluorescence probe",
-            default=10e-3,
-            unit="ms",
-        )
-        self.camera_latency_margin: FloatParamHandle
-
-        self.setattr_param(
-            "fluorescence_pulse_length",
-            FloatParam,
-            "Length of fluorescence pulse",
-            default=200e-6,
-            unit="us",
-        )
-        self.fluorescence_pulse_length: FloatParamHandle
-
-        # %% Convenience rebound parameters
-        self.setattr_param_rebind("ramp_low", self.red_mot_controller)
-        self.setattr_param_rebind("ramp_high", self.red_mot_controller)
-        self.setattr_param_rebind("ramp_frequency", self.red_mot_controller)
-        self.setattr_param_rebind("ramp_type", self.red_mot_controller)
-
+        # Ensure that both camera are on for the same length of time as the blue
+        # fluorescence is pulsed
         self.setattr_param_rebind(
-            "camera_exposure", self.camera_bg_corrected, "exposure_horiz", default=11e-3
+            "camera_exposure",
+            self.camera_bg_corrected,
+            "exposure_horiz",
+            default=200e-6,
+            description="Camera exposure and fluorescence pulse length",
         )
         self.camera_bg_corrected.bind_param(
             "exposure_vert",
@@ -89,7 +77,7 @@ class MeasureRedMOTFrag(ExpFragment):
         self.camera_exposure: FloatParamHandle
 
     @kernel
-    def run_once(self):
+    def prepare_and_load_blue_mot(self):
         self.core.break_realtime()
         self.blue_mot_controller.init()
         self.red_mot_controller.init()
@@ -104,47 +92,66 @@ class MeasureRedMOTFrag(ExpFragment):
         # Load a blue mot
         self.blue_mot_controller.load_mot(clearout=True)
 
-        # Start sweeping red IJD, turn on the beams and drop the gradient
+    @kernel
+    def start_red_loading(self):
+        """
+        Start sweeping red IJD, turn on the beams and drop the gradient
+
+        Does not advance the timeline
+        """
+
         self.red_mot_controller.turn_on_mot_beams()
         delay(10e-9)
         self.red_mot_controller.start_ramping_red()
         delay(10e-9)
-        self.blue_mot_controller.turn_off_3d_and_2d_beams()
+        self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
         delay(10e-9)
         self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
 
-        # Wait with atoms hopefully in the red mot
-        delay(self.red_loading_time.get())
+        delay(-30e9)
 
-        # Start taking picture (or rather, remember when to take a picture)
-        t_take_signal = now_mu()
-
-        delay(self.camera_latency_margin.get())
-
+    @kernel
+    def pulse_blue_for_image(self):
         # Flash on the blue light
         self.blue_mot_controller.turn_on_3d_beams()
-        delay(self.fluorescence_pulse_length.get())
+        delay(self.camera_exposure.get())
         self.blue_mot_controller.turn_off_3d_beams()
+        delay(self.camera_exposure.get())
+
+    @kernel
+    def run_once(self):
+        self.prepare_and_load_blue_mot()
+
+        self.start_red_loading()
+
+        # Note that red_loading_time may be negative
+        delay(self.red_loading_time.get())
+
+        with parallel:
+            self.camera_bg_corrected.trigger_signal()
+            self.pulse_blue_for_image()
+
+        # Wait for all RTIO events to complete
+        self.core.break_realtime()
 
         # Discard the MOT to take a background photo, allowing enough time for
-        # the gradient currents to dissipate
+        # the gradient currents and atoms to dissipate
         self.chamber_2_field_setter.set_mot_gradient(0.0)
+        self.red_mot_controller.turn_off_mot_beams()
+        self.blue_mot_controller.turn_off_3d_and_2d_beams()
         delay(20e-3)
 
-        # TODO: this does nothing. Make it do something or remove it
-        t_take_background = now_mu()
+        with parallel:
+            # self.pulse_blue_for_image()  # Don't actually pulse the blue light - it's not helping our signal, it's just adding more shot noise
+            self.camera_bg_corrected.trigger_background()
 
         # Turn the fields back on so eddy currents are gone by the next shot
-        delay(10e-3)
         self.blue_mot_controller.enable_mot_fields()
 
-        # End of RTIO sequencing. Now we are in real-time, taking the photos with RPCs
-        self.core.wait_until_mu(t_take_signal)
-        self.camera_bg_corrected.trigger_signal()
-        self.core.wait_until_mu(t_take_background)
-        self.camera_bg_corrected.trigger_background()
+        # End of RTIO sequencing. Now we are in real-time.
 
         # Save the photos
+        self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.save_data()
 
 

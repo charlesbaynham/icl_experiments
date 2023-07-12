@@ -4,7 +4,7 @@
 # from artiq.experiment import EnvExperiment
 # from artiq.experiment import NumberValue
 # from artiq.experiment import TerminationRequested
-from toptica.lasersdk.dlcpro.v2_6_0
+# from toptica.lasersdk.dlcpro.v2_6_0
 
 # from libs.lib_data_writer import DataWriter
 
