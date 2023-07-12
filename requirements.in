@@ -17,6 +17,7 @@
 uk-covid19
 pydantic
 retry
+toptica-lasersdk
 
 # Code linting
 pre-commit
