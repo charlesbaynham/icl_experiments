@@ -128,12 +128,12 @@ AOM_BEAMS = [
         24,
         "suservo_aom_doublepass_461_injection",
     ),
-    SUServoedBeam(
-        "blue_spectroscopy",
-        200e6,
-        20,
-        "suservo_aom_singlepass_461_spectroscopy",
-    ),
+    # SUServoedBeam(
+    #     "blue_spectroscopy",
+    #     200e6,
+    #     20,
+    #     "suservo_aom_singlepass_461_spectroscopy",
+    # ),
     ### RED ###
     SUServoedBeam(
         "red_mot_diagonal",
@@ -141,6 +141,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_689_red_mot_diagonal",
         shutter_device="ttl_shutter_red_mot_diagonal",
+        shutter_delay=10e-3,
     ),
     SUServoedBeam(
         "red_up",
@@ -148,6 +149,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_689_up",
         shutter_device="ttl_shutter_red_up",
+        shutter_delay=10e-3,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -155,6 +157,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
+        shutter_delay=10e-3,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -162,6 +165,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_689_red_mot_sigmaminus",
         shutter_device="ttl_shutter_red_sigmaminus",
+        shutter_delay=10e-3,
     ),
     ### OTHER ###
     SUServoedBeam(
@@ -170,6 +174,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_707",
         shutter_device="ttl_shutter_repump_707",
+        shutter_delay=10e-3,
     ),
     SUServoedBeam(
         "repump_679",
@@ -177,6 +182,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_679",
         shutter_device="ttl_shutter_repump_679",
+        shutter_delay=10e-3,
     ),
 ]
 
