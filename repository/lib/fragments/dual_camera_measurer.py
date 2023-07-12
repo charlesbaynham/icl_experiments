@@ -204,6 +204,12 @@ class BGCorrectedMeasurement(DualCameraMeasurement):
         self.signal_index = self.image_index
         self.image_index += 1
 
+        if self.debug_enabled:
+            logger.info(
+                "Signal image taken, new signal_index = %d",
+                self.signal_index,
+            )
+
     @kernel
     def trigger_background(self):
         """
