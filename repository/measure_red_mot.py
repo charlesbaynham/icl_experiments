@@ -21,7 +21,7 @@ from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
 logger = logging.getLogger(__name__)
 
 
-class SliceRedMOTFrag(ExpFragment):
+class MeasureRedMOTFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -81,8 +81,6 @@ class SliceRedMOTFrag(ExpFragment):
         self.core.break_realtime()
         self.blue_mot_controller.init()
         self.red_mot_controller.init()
-
-        i = 1.0 + "hello"
 
         self.red_mot_controller.turn_off_mot_beams()
 
@@ -147,4 +145,4 @@ class SliceRedMOTFrag(ExpFragment):
         delay(self.camera_exposure.get())
 
 
-SliceRedMOT = make_fragment_scan_exp(SliceRedMOTFrag)
+MeasureRedMOT = make_fragment_scan_exp(MeasureRedMOTFrag)
