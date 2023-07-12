@@ -82,6 +82,8 @@ class SliceRedMOTFrag(ExpFragment):
         self.blue_mot_controller.init()
         self.red_mot_controller.init()
 
+        i = 1.0 + "hello"
+
         self.red_mot_controller.turn_off_mot_beams()
 
         # Clear the camera buffer in case we quit a previous sequence midway
@@ -145,4 +147,4 @@ class SliceRedMOTFrag(ExpFragment):
         delay(self.camera_exposure.get())
 
 
-SliceRedMOTFrag = make_fragment_scan_exp(SliceRedMOTFrag)
+SliceRedMOT = make_fragment_scan_exp(SliceRedMOTFrag)
