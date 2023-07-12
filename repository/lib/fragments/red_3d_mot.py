@@ -65,8 +65,9 @@ class Red3DMOTFrag(Fragment):
         )
         self.injection_aom_ramper: AD9910Ramper
 
-        self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
-        self.laser_stab_system: LaserStabilisationSystem
+        # Commented out since the cavity EOM is currently driven by a Rigol
+        # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
+        # self.laser_stab_system: LaserStabilisationSystem
 
         # %% DEVICES
 
