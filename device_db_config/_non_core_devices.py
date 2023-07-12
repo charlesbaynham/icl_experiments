@@ -121,17 +121,16 @@ def get_non_core_devices(simulation_mode=False):
         #     "target": "TTIPowerSupply",
         #     "command": 'aqctl_TTIPowerSupply --port {port} --bind {bind} --id "USB VID:PID=103E:03E8 SER=TTTEO7KJA"',
         # },
-        # An example of connecting to a Toptica DLC Pro
-        # "ATopticaDLCPro": {
-        #     "type": "local",
-        #     "module": "icldrivers.peripherals.TopticaDLCPro",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "1.2.3.4",
-        #         "laser": "laser1",
-        #         "simulation": simulation_mode,
-        #     },
-        # },
+        "ATopticaDLCPro": {
+            "type": "local",
+            "module": "icldrivers.peripherals.TopticaDLCPro",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "1.2.3.4",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
     }
 
     return _non_core
