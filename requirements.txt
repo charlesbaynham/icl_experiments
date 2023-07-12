@@ -84,6 +84,8 @@ idna==3.3
     #   anyio
     #   jsonschema
     #   requests
+ifaddr==0.2.0
+    # via toptica-lasersdk
 imagesize==1.4.1
     # via sphinx
 importlib-metadata==6.6.0
@@ -250,6 +252,8 @@ pyproject-hooks==1.0.0
     # via build
 pyrsistent==0.19.3
     # via jsonschema
+pyserial==3.5
+    # via toptica-lasersdk
 pytest==7.3.1
     # via -r requirements.in
 python-dateutil==2.8.2
@@ -344,6 +348,8 @@ tomli==2.0.1
     #   build
     #   pyproject-hooks
     #   pytest
+toptica-lasersdk==3.1.0
+    # via -r requirements.in
 tornado==6.3.2
     # via
     #   ipykernel
