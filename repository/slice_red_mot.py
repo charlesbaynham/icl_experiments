@@ -111,9 +111,9 @@ class SliceRedMOTFrag(ExpFragment):
         at_mu(t_signal)
 
         with parallel:
-            self.red_mot_controller.turn_off_mot_beams()
+            # self.red_mot_controller.turn_off_mot_beams()
             self.camera_bg_corrected.trigger_signal()
-            self.pulse_blue_for_image()
+            # self.pulse_blue_for_image()
 
         # Take a nonsense background photo. This currently does nothing and
         # should be coded away
