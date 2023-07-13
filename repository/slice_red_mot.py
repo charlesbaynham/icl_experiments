@@ -80,8 +80,8 @@ class SliceRedMOTFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        self.blue_mot_controller.init()
-        self.red_mot_controller.init()
+        # self.blue_mot_controller.init()
+        # self.red_mot_controller.init()
 
         delay(0.5)
 
