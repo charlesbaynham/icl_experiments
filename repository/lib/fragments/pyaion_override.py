@@ -148,14 +148,11 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             suservo.set(en_out=0, en_iir=0)
 
-            # From experimentation, suservos seem to need one coarse cycle
-            # between write events to avoid making a new lane.
-            # delay_mu(int64(self.core.ref_multiplier))
+            # Delay by a coarse cycle to avoid using a new lane
+            delay_mu(int64(self.core.ref_multiplier))
 
-            delay_mu(8)  # FIXME
             shutter.on()
-            delay_mu(8)  # FIXME
-            delay_mu(1)
+            delay_mu(int64(self.core.ref_multiplier))
 
             delay(delay_by)
 
@@ -198,9 +195,8 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             suservo.set(en_out=0, en_iir=0)
 
-            # From experimentation, these seem to need one coarse cycle between them
-            # delay_mu(int64(self.core.ref_multiplier))
-            delay_mu(8)  # FIXME
+            # Delay by a coarse cycle to avoid using a new lane
+            delay_mu(int64(self.core.ref_multiplier))
 
         # Shutters closed
         for i in range(len(self.beam_delays)):
@@ -208,9 +204,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             shutter.off()
 
-            # These are ttls, so only need one mu between them
-            # delay_mu(1)
-            delay_mu(8)  # FIXME
+            delay_mu(int64(self.core.ref_multiplier))
 
         # AOMs back on
         for i in range(len(self.beam_delays)):
@@ -220,8 +214,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             delay(delay_by)
 
             suservo.set(en_out=1, en_iir=0)
-            # delay_mu(int64(self.core.ref_multiplier))
-            delay_mu(8)  # FIXME
+            delay_mu(int64(self.core.ref_multiplier))
 
             delay(-delay_by)
 
