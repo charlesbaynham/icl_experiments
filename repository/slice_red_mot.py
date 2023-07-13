@@ -121,7 +121,7 @@ class SliceRedMOTFrag(ExpFragment):
         # the gradient currents and atoms to dissipate
         # self.chamber_2_field_setter.set_mot_gradient(0.0)
         delay_mu(8)
-        self.red_mot_controller.turn_off_mot_beams()
+        # self.red_mot_controller.turn_off_mot_beams()
         delay_mu(8)
         # delay(100e-3)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
