@@ -1,21 +1,18 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
-from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
+from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFields
 from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
 
@@ -40,9 +37,9 @@ class MeasureRedMOTFrag(ExpFragment):
         self.chamber_2_field_setter: SetMagneticFields
 
         self.setattr_fragment(
-            "camera_bg_corrected", BGCorrectedMeasurement, hardware_trigger=True
+            "camera_interface", DualCameraMeasurement, hardware_trigger=True
         )
-        self.camera_bg_corrected: BGCorrectedMeasurement
+        self.camera_interface: DualCameraMeasurement
 
         self.setattr_param(
             "red_loading_time",
@@ -66,12 +63,12 @@ class MeasureRedMOTFrag(ExpFragment):
         # fluorescence is pulsed
         self.setattr_param_rebind(
             "camera_exposure",
-            self.camera_bg_corrected,
+            self.camera_interface,
             "exposure_horiz",
             default=200e-6,
             description="Camera exposure and fluorescence pulse length",
         )
-        self.camera_bg_corrected.bind_param(
+        self.camera_interface.bind_param(
             "exposure_vert",
             self.camera_exposure,
         )
@@ -88,7 +85,7 @@ class MeasureRedMOTFrag(ExpFragment):
         self.red_mot_controller.init()
 
         # Clear the camera buffer in case we quit a previous sequence midway
-        self.camera_bg_corrected.clear()
+        self.camera_interface.clear()
 
         self.core.break_realtime()
 
@@ -132,13 +129,8 @@ class MeasureRedMOTFrag(ExpFragment):
 
         with parallel:
             self.red_mot_controller.turn_off_mot_beams()
-            self.camera_bg_corrected.trigger_signal()
+            self.camera_interface.trigger()
             self.pulse_blue_for_image()
-
-        # Take a nonsense background photo. This currently does nothing and
-        # should be coded away
-        delay(20e-3)
-        self.camera_bg_corrected.trigger_background()
 
         # Turn the fields back to defaults so eddy currents are gone by the next shot
         self.blue_mot_controller.enable_mot_fields()
@@ -147,7 +139,7 @@ class MeasureRedMOTFrag(ExpFragment):
 
         # Save the photos
         self.core.wait_until_mu(now_mu())
-        self.camera_bg_corrected.save_data()
+        self.camera_interface.save_data()
 
 
 MeasureRedMOTFrag = make_fragment_scan_exp(MeasureRedMOTFrag)
