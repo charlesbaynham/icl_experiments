@@ -11,12 +11,12 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.cavity_control import LaserStabilisationSystem
+from repository.lib.fragments.pyaion_override import ControlBeamsWithoutCoolingAOM
 
 
 logger = logging.getLogger(__name__)

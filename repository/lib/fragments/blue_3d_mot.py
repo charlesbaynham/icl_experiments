@@ -7,11 +7,11 @@ from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFields
+from repository.lib.fragments.pyaion_override import ControlBeamsWithoutCoolingAOM
 
 logger = logging.getLogger(__name__)
 
