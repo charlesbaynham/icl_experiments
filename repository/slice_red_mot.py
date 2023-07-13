@@ -94,9 +94,9 @@ class SliceRedMOTFrag(ExpFragment):
 
         # Start sweeping red IJD, turn on the beams and drop the gradient
         t_start_red_mot = now_mu()
-        # self.red_mot_controller.turn_on_mot_beams()
+        self.red_mot_controller.turn_on_mot_beams()
         delay(10e-9)
-        # self.red_mot_controller.start_ramping_red()
+        self.red_mot_controller.start_ramping_red()
         delay(10e-9)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
         delay(10e-9)
@@ -145,4 +145,4 @@ class SliceRedMOTFrag(ExpFragment):
         delay(self.camera_exposure.get())
 
 
-SliceRedMOT = make_fragment_scan_exp(SliceRedMOTFrag)
+SliceRedMOTFrag = make_fragment_scan_exp(SliceRedMOTFrag)
