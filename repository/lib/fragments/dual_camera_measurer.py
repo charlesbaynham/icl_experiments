@@ -25,12 +25,15 @@ DATASET_KEY_H = "latest_bg_corrected_image_horiz"
 DATASET_KEY_V = "latest_bg_corrected_image_vert"
 
 
-class DualCameraMeasurement(Fragment):
+class _DualCameraBase(Fragment):
     """
     Dual image aquisition with the FLIR cameras
 
     Must be subclassed for single-shot or dual aquisition
     """
+
+    num_images = None
+    "Number of images to take. Must be set by the subclass before host_setup is run"
 
     def build_fragment(self, hardware_trigger=False):
         self.setattr_device("core")
@@ -108,13 +111,16 @@ class DualCameraMeasurement(Fragment):
     def host_setup(self) -> None:
         super().host_setup()
 
+        if self.num_images is None:
+            raise TypeError("num_images is not set - it must be set by the subclass")
+
         # Prepare cameras to be triggered for 2x acquisitions.
         # We might not use both, depending on how this Fragment is subclassed
         self.mot_measurer_camera_horizontal.ready_for_trigger(
-            self.exposure_horiz.get() * 1e6, num_images=2
+            self.exposure_horiz.get() * 1e6, num_images=self.num_images
         )
         self.mot_measurer_camera_vertical.ready_for_trigger(
-            self.exposure_vert.get() * 1e6, num_images=2
+            self.exposure_vert.get() * 1e6, num_images=self.num_images
         )
 
         # Launch bg-corrected monitors
@@ -168,8 +174,81 @@ class DualCameraMeasurement(Fragment):
             archive=False,
         )
 
+    @kernel
+    def clear(self):
+        """
+        Clear the frame buffer
 
-class BGCorrectedMeasurement(DualCameraMeasurement):
+        Can be overridden by subclasses if required.
+        """
+        pass
+
+
+class DualCameraMeasurement(_DualCameraBase):
+    num_images = 1
+
+    @kernel
+    def trigger(self):
+        """
+        Trigger a picture to be taken now on each camera
+
+        Pictures are stored in the camera's internal buffer any must be read out
+        using :meth:`.save_data` otherwise they will be lost.
+        """
+
+        if self.debug_enabled:
+            logger.info(
+                "Taking image now",
+            )
+
+        self._trigger()
+
+    @kernel
+    def save_data(
+        self,
+    ):
+        """
+        Retrieve the images from the cameras and save them to ndscan ResultChannels
+        """
+        self._save_data_rpc()
+
+    @rpc
+    def _save_data_rpc(self):
+        """
+        Retrieve images from the cameras and save it to the ndscan ResultChannels
+        """
+        (
+            timestamp_horiz,
+            image_horiz,
+        ) = self.mot_measurer_camera_horizontal.get_one_frame(
+            timeout=1 + self.exposure_horiz.get()
+        )
+
+        timestamp_vert, image_vert = self.mot_measurer_camera_vertical.get_one_frame(
+            timeout=1 + self.exposure_vert.get()
+        )
+
+        image_horiz_mean = np.mean(np.array(image_horiz).flat)
+        image_vert_mean = np.mean(np.array(image_vert).flat)
+
+        logger.debug("image_horiz.shape = %s", image_horiz.shape)
+        logger.debug("image_vert.shape = %s", image_vert.shape)
+
+        self.image_horizontal_timestamp.push(timestamp_horiz)
+        self.image_vertical_timestamp.push(timestamp_vert)
+
+        self.image_horizontal_mean.push(image_horiz_mean)
+        self.image_vertical_mean.push(image_vert_mean)
+
+        self.image_horizontal.push(image_horiz)
+        self.image_vertical.push(image_vert)
+
+        self._update_monitor(image_horiz, image_vert)
+
+
+class BGCorrectedMeasurement(_DualCameraBase):
+    num_images = 2
+
     def host_setup(self) -> None:
         self.image_index = 0
         self.bg_index = -1
