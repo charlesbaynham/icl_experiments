@@ -149,6 +149,16 @@ class MeasureRedMOTExpansion(_MeasureRedMOTBase):
         super().build_fragment()
 
         self.setattr_param(
+            "red_loading_time",
+            FloatParam,
+            "Delay after loading red MOT before taking fluorescence measurement",
+            default=10e-3,
+            min=0,
+            unit="ms",
+        )
+        self.red_loading_time: FloatParamHandle
+
+        self.setattr_param(
             "red_expansion_time",
             FloatParam,
             "Expansion time before imaging MOT",
@@ -159,11 +169,14 @@ class MeasureRedMOTExpansion(_MeasureRedMOTBase):
 
     @kernel
     def run_once(self):
+        if self.red_loading_time.get() < 0:
+            raise RuntimeError("red_loading_time must be greater than zero")
+
         self.prepare_and_load_blue_mot()
 
         self.start_red_loading()
 
-        # Note that red_loading_time may be negative
+        # Unlike for MeasureRedMOT, here we require that red_loading_time be positive
         delay(self.red_loading_time.get())
 
         self.red_mot_controller.turn_off_mot_beams()
