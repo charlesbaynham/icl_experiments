@@ -18,7 +18,7 @@ class TestLoadBlueMOT(ExpFragment):
 
     @kernel
     def run_once(self):
-        self.core.break_realtime()
+        self.core.reset()
         self.blue_mot_controller.load_mot(clearout=True)
 
 
