@@ -4,6 +4,7 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import at_mu
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
@@ -95,11 +96,11 @@ class SliceRedMOTFrag(ExpFragment):
         # Start sweeping red IJD, turn on the beams and drop the gradient
         t_start_red_mot = now_mu()
         self.red_mot_controller.turn_on_mot_beams()
-        delay(10e-9)
+        delay_mu(8)
         self.red_mot_controller.start_ramping_red()
-        delay(10e-9)
+        delay_mu(8)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
-        delay(10e-9)
+        delay_mu(8)
         self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
 
         # Go back in time to trigger photos. Note that red_loading_time may be negative
@@ -119,8 +120,10 @@ class SliceRedMOTFrag(ExpFragment):
         # Discard the MOT to take a background photo, allowing enough time for
         # the gradient currents and atoms to dissipate
         self.chamber_2_field_setter.set_mot_gradient(0.0)
+        delay_mu(8)
         self.red_mot_controller.turn_off_mot_beams()
-        # self.blue_mot_controller.turn_off_3d_and_2d_beams()
+        delay_mu(8)
+        self.blue_mot_controller.turn_off_3d_and_2d_beams()
         delay(20e-3)
 
         with parallel:
