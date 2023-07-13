@@ -19,7 +19,7 @@ from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
 logger = logging.getLogger(__name__)
 
 
-class MeasureRedMOTFrag(ExpFragment):
+class _MeasureRedMOTBase(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -118,6 +118,8 @@ class MeasureRedMOTFrag(ExpFragment):
         self.blue_mot_controller.turn_off_3d_beams()
         delay(self.camera_exposure.get())
 
+
+class MeasureRedMOTFrag(_MeasureRedMOTBase):
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
@@ -142,4 +144,45 @@ class MeasureRedMOTFrag(ExpFragment):
         self.camera_interface.save_data()
 
 
+class MeasureRedMOTExpansion(_MeasureRedMOTBase):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "red_expansion_time",
+            FloatParam,
+            "Expansion time before imaging MOT",
+            default=100e-6,
+            unit="us",
+        )
+        self.red_expansion_time: FloatParamHandle
+
+    @kernel
+    def run_once(self):
+        self.prepare_and_load_blue_mot()
+
+        self.start_red_loading()
+
+        # Note that red_loading_time may be negative
+        delay(self.red_loading_time.get())
+
+        self.red_mot_controller.turn_off_mot_beams()
+
+        delay(self.red_expansion_time.get())
+
+        with parallel:
+            self.camera_interface.trigger()
+            self.pulse_blue_for_image()
+
+        # Turn the fields back to defaults so eddy currents are gone by the next shot
+        self.blue_mot_controller.enable_mot_fields()
+
+        # End of RTIO sequencing. Now we are in real-time.
+
+        # Save the photos
+        self.core.wait_until_mu(now_mu())
+        self.camera_interface.save_data()
+
+
 MeasureRedMOTFrag = make_fragment_scan_exp(MeasureRedMOTFrag)
+MeasureRedMOTExpansion = make_fragment_scan_exp(MeasureRedMOTExpansion)
