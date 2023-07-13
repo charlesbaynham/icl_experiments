@@ -2,8 +2,10 @@ import logging
 from typing import List
 from typing import Optional
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
@@ -65,8 +67,11 @@ class SetBeamsToDefaults(Fragment):
 
         If `sw_state == False`, turn on the AOMs but turn off the shutters.
 
-        This method does not advance the timeline and does not respect
-        shutter delays - it just turns everything on immediately.
+        This method does not advance the timeline and does not respect shutter
+        delays - it just turns everything on immediately.
+
+        This method advances the timeline by the time required to perform
+        several suservo writes and ttl updates separated by 8mu each
         """
         for i in range(len(self.beam_infos)):
             setter = self.suservo_setters[i]
@@ -78,3 +83,4 @@ class SetBeamsToDefaults(Fragment):
 
         for ttl in self.ttls:
             ttl.set_o(shutter_state)
+            delay_mu(8)
