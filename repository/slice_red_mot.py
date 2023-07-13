@@ -80,12 +80,8 @@ class SliceRedMOTFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        # self.blue_mot_controller.init()
-        # self.red_mot_controller.init()
-
-        delay(0.5)
-
-        # at_mu(self.red_mot_controller.turn_off_mot_beams())
+        self.blue_mot_controller.init()
+        self.red_mot_controller.init()
 
         # Clear the camera buffer in case we quit a previous sequence midway
         self.camera_bg_corrected.clear()
