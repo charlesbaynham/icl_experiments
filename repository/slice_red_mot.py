@@ -123,6 +123,7 @@ class SliceRedMOTFrag(ExpFragment):
         delay_mu(8)
         self.red_mot_controller.turn_off_mot_beams()
         delay_mu(8)
+        delay(100e-3)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()
         delay(20e-3)
 
