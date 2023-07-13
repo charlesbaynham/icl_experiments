@@ -112,7 +112,7 @@ class SliceRedMOTFrag(ExpFragment):
 
         with parallel:
             self.camera_bg_corrected.trigger_signal()
-            self.pulse_blue_for_image()
+            # self.pulse_blue_for_image()
 
         # Wait for all RTIO events to complete
         self.core.break_realtime()
