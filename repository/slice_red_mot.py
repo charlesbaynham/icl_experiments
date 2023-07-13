@@ -119,7 +119,7 @@ class SliceRedMOTFrag(ExpFragment):
         self.camera_bg_corrected.trigger_background()
 
         # Turn the fields back to defaults so eddy currents are gone by the next shot
-        # self.blue_mot_controller.enable_mot_fields()
+        self.blue_mot_controller.enable_mot_fields()
 
         # End of RTIO sequencing. Now we are in real-time.
 
