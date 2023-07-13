@@ -111,27 +111,16 @@ class SliceRedMOTFrag(ExpFragment):
         at_mu(t_signal)
 
         with parallel:
+            self.red_mot_controller.turn_off_mot_beams()
             self.camera_bg_corrected.trigger_signal()
             self.pulse_blue_for_image()
 
-        # Wait for all RTIO events to complete
-        self.core.break_realtime()
-
-        # Discard the MOT to take a background photo, allowing enough time for
-        # the gradient currents and atoms to dissipate
-        self.chamber_2_field_setter.set_mot_gradient(0.0)
-        delay_mu(8)
-        self.red_mot_controller.turn_off_mot_beams()
-        delay_mu(8)
-        # delay(100e-3)
-        self.blue_mot_controller.turn_off_3d_and_2d_beams()
+        # Take a nonsense background photo. This currently does nothing and
+        # should be coded away
         delay(20e-3)
+        self.camera_bg_corrected.trigger_background()
 
-        with parallel:
-            # self.pulse_blue_for_image()  # Don't actually pulse the blue light - it's not helping our signal, it's just adding more shot noise
-            self.camera_bg_corrected.trigger_background()
-
-        # Turn the fields back on so eddy currents are gone by the next shot
+        # Turn the fields back to defaults so eddy currents are gone by the next shot
         self.blue_mot_controller.enable_mot_fields()
 
         # End of RTIO sequencing. Now we are in real-time.
@@ -142,11 +131,18 @@ class SliceRedMOTFrag(ExpFragment):
 
     @kernel
     def pulse_blue_for_image(self):
-        # Flash on the blue light
+        """
+        Flash on the blue light
+
+        Returns the latest RTIO event, corresponding to the final blue AOM
+        turning back on after the shutters have closed
+        """
         self.blue_mot_controller.turn_on_3d_beams()
         delay(self.camera_exposure.get())
-        self.blue_mot_controller.turn_off_3d_beams()
+        t_latest = self.blue_mot_controller.turn_off_3d_and_2d_beams()
         delay(self.camera_exposure.get())
+
+        return t_latest
 
 
 SliceRedMOTFrag = make_fragment_scan_exp(SliceRedMOTFrag)
