@@ -22,7 +22,7 @@ from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
 logger = logging.getLogger(__name__)
 
 
-class SliceRedMOTFrag(ExpFragment):
+class MeasureRedMOTFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -78,7 +78,7 @@ class SliceRedMOTFrag(ExpFragment):
         self.camera_exposure: FloatParamHandle
 
     @kernel
-    def run_once(self):
+    def prepare_and_load_blue_mot(self):
         self.core.break_realtime()
         self.blue_mot_controller.init()
         self.red_mot_controller.init()
@@ -91,8 +91,14 @@ class SliceRedMOTFrag(ExpFragment):
         # Load a blue mot
         self.blue_mot_controller.load_mot(clearout=True)
 
-        # Start sweeping red IJD, turn on the beams and drop the gradient
-        t_start_red_mot = now_mu()
+    @kernel
+    def start_red_loading(self):
+        """
+        Start sweeping red IJD, turn on the beams and drop the gradient
+
+        Does not advance the timeline
+        """
+
         self.red_mot_controller.turn_on_mot_beams()
         delay_mu(8)
         self.red_mot_controller.start_ramping_red()
@@ -101,12 +107,24 @@ class SliceRedMOTFrag(ExpFragment):
         delay_mu(8)
         self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
 
-        # Go back in time to trigger photos. Note that red_loading_time may be negative
-        t_signal = t_start_red_mot + self.core.seconds_to_mu(
-            self.red_loading_time.get()
-        )
+        delay_mu(-3 * 8)
 
-        at_mu(t_signal)
+    @kernel
+    def pulse_blue_for_image(self):
+        # Flash on the blue light
+        self.blue_mot_controller.turn_on_3d_beams()
+        delay(self.camera_exposure.get())
+        self.blue_mot_controller.turn_off_3d_beams()
+        delay(self.camera_exposure.get())
+
+    @kernel
+    def run_once(self):
+        self.prepare_and_load_blue_mot()
+
+        self.start_red_loading()
+
+        # Note that red_loading_time may be negative
+        delay(self.red_loading_time.get())
 
         with parallel:
             self.red_mot_controller.turn_off_mot_beams()
@@ -127,20 +145,5 @@ class SliceRedMOTFrag(ExpFragment):
         self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.save_data()
 
-    @kernel
-    def pulse_blue_for_image(self):
-        """
-        Flash on the blue light
 
-        Returns the latest RTIO event, corresponding to the final blue AOM
-        turning back on after the shutters have closed
-        """
-        self.blue_mot_controller.turn_on_3d_beams()
-        delay(self.camera_exposure.get())
-        t_latest = self.blue_mot_controller.turn_off_3d_and_2d_beams()
-        delay(self.camera_exposure.get())
-
-        return t_latest
-
-
-SliceRedMOTFrag = make_fragment_scan_exp(SliceRedMOTFrag)
+MeasureRedMOTFrag = make_fragment_scan_exp(MeasureRedMOTFrag)
