@@ -146,7 +146,7 @@
               # This is an extra instance of ctlmgr which searches for controllers assigned to "155.198.206.96" instead of "::1"
               # This is only relevant for moninj since we must hard-code the IP of the labserver in the moninj proxy otherwise dashboards
               # don't know where to connect to it.
-              moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\\* -v --host-filter 155.198.206.96 --port-control 3250";
+              moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\\* -v --host-filter 155.198.206.96 --port-control 32490";
             in
             generated_outputs.apps.full_stack.override (prev: {
               commands = prev.commands // {
