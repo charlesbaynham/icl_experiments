@@ -114,7 +114,8 @@ class SetAnalogCurrentSupplies(Fragment):
         Set currents in amps.
 
         This method does not advance the timeline but does require at least
-        1.5us + 808ns * len(currents) on a Kasli 1.x.
+        1.5us + 808ns * len(currents) on a Kasli 1.x as SPI events are written
+        into the past.
         """
 
         voltages = [0.0] * len(self.current_configs)

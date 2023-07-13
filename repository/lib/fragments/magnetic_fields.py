@@ -49,8 +49,9 @@ class SetMagneticFields(Fragment):
         """
         Sets the bias field currents
 
-        Requires at least 3924ns of slack, in which time the Zotino cannot be
-        written to by other methods.
+        This method does not advance the timeline but does require at least
+        1.5us + 808ns * len(currents) on a Kasli 1.x as SPI events are written
+        into the past.
         """
 
         self.current_setter_bias.set_currents([current_x, current_y, current_z])
@@ -60,7 +61,8 @@ class SetMagneticFields(Fragment):
         """
         Sets the chamber 2 field gradient current
 
-        This method does not advance the timeline but it does write SPI events
+        This method does not advance the timeline but does require at least
+        1.5us + 808ns * len(currents) on a Kasli 1.x as SPI events are written
         into the past.
         """
         self.current_setter_mot.set_current(current)
