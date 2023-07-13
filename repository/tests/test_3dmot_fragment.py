@@ -8,36 +8,18 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 
 
-class TestBlue3DMOTPushBeamFrag(ExpFragment):
+class TestLoadBlueMOT(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("frag_blue_3d_mot", Blue3DMOTFrag)
-        self.frag_blue_3d_mot: Blue3DMOTFrag
-
-    @kernel
-    def device_setup(self) -> None:
-        self.core.reset()
-        self.device_setup_subfragments()
+        self.setattr_fragment("blue_mot_controller", Blue3DMOTFrag)
+        self.blue_mot_controller: Blue3DMOTFrag
 
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        self.frag_blue_3d_mot.init()
-        self.frag_blue_3d_mot.enable_mot_defaults()
-
-        for _ in range(10):
-            delay(1.0)
-            self.frag_blue_3d_mot.turn_on_3d_mot_beams()
-            delay(1.0)
-            self.frag_blue_3d_mot.turn_on_push_beam()
-            delay(1.0)
-            self.frag_blue_3d_mot.turn_off_3d_mot_beams()
-            delay(1.0)
-            self.frag_blue_3d_mot.turn_off_push_beam()
-
-        self.core.wait_until_mu(now_mu())
+        self.blue_mot_controller.load_mot(clearout=True)
 
 
-TestBlue3DMOTPushBeam = make_fragment_scan_exp(TestBlue3DMOTPushBeamFrag)
+TestLoadBlueMOT = make_fragment_scan_exp(TestLoadBlueMOT)
