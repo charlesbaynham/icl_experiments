@@ -119,7 +119,7 @@ class SliceRedMOTFrag(ExpFragment):
 
         # Discard the MOT to take a background photo, allowing enough time for
         # the gradient currents and atoms to dissipate
-        self.chamber_2_field_setter.set_mot_gradient(0.0)
+        # self.chamber_2_field_setter.set_mot_gradient(0.0)
         delay_mu(8)
         self.red_mot_controller.turn_off_mot_beams()
         delay_mu(8)
