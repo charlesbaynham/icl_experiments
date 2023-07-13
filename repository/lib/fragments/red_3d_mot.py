@@ -214,11 +214,11 @@ class Red3DMOTFrag(Fragment):
 
     @kernel
     def turn_on_mot_beams(self):
-        self.all_mot_beams_setter.turn_beams_on()
+        return self.all_mot_beams_setter.turn_beams_on()
 
     @kernel
     def turn_off_mot_beams(self):
-        self.all_mot_beams_setter.turn_beams_off()
+        return self.all_mot_beams_setter.turn_beams_off()
 
     @kernel
     def start_ramping_red(self):

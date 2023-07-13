@@ -214,35 +214,35 @@ class Blue3DMOTFrag(Fragment):
 
     @kernel
     def turn_on_3d_and_2d_beams(self):
-        self.mot_2d_and_3d_beams_setter.turn_beams_on()
+        return self.mot_2d_and_3d_beams_setter.turn_beams_on()
 
     @kernel
     def turn_off_3d_and_2d_beams(self):
-        self.mot_2d_and_3d_beams_setter.turn_beams_off()
+        return self.mot_2d_and_3d_beams_setter.turn_beams_off()
 
     @kernel
     def turn_on_all_beams(self):
-        self.mot_all_beam_setter.turn_beams_on()
+        return self.mot_all_beam_setter.turn_beams_on()
 
     @kernel
     def turn_off_all_beams(self):
-        self.mot_all_beam_setter.turn_beams_off()
+        return self.mot_all_beam_setter.turn_beams_off()
 
     @kernel
     def turn_on_3d_beams(self):
-        self.mot_3d_beams_setter.turn_beams_on()
+        return self.mot_3d_beams_setter.turn_beams_on()
 
     @kernel
     def turn_off_3d_beams(self):
-        self.mot_3d_beams_setter.turn_beams_off()
+        return self.mot_3d_beams_setter.turn_beams_off()
 
     @kernel
     def turn_on_repumpers(self):
-        self.repump_beam_setter.turn_beams_on()
+        return self.repump_beam_setter.turn_beams_on()
 
     @kernel
     def turn_off_repumpers(self):
-        self.repump_beam_setter.turn_beams_off()
+        return self.repump_beam_setter.turn_beams_off()
 
     @kernel
     def clear_ch2(self):
