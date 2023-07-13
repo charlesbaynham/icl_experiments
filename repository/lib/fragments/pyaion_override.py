@@ -8,6 +8,7 @@ from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import TInt64
 from ndscan.experiment import Fragment
 from pyaion.models import SUServoedBeam
 
@@ -114,7 +115,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         logger.debug("sorted_tupled = %s", sorted_tupled)
 
     @kernel
-    def turn_beams_on(self):
+    def turn_beams_on(self) -> TInt64:
         """
         Turn on the beams using the AOM and shutter
 
@@ -129,6 +130,8 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         to write shutter opening into the past. You should therefore make sure
         that there is at least "shutter_delay_time" slack, ideally with no
         queued RTIO events to prevent using a new RTIO lane.
+
+        Returns the RTIO timestamp furthest into the future
         """
 
         start_mu = now_mu()
@@ -149,8 +152,6 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
         for i in range(len(self.beam_delays) - 1, -1, -1):
             suservo = self.beam_suservos[i]
-            shutter = self.beam_shutters[i]
-            delay_by = self.beam_delays[i]
 
             suservo.set(en_out=1, en_iir=0)
 
@@ -158,10 +159,13 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
         # Cancel out the accumulated tiny delays so that we do not affect the
         # cursor position
+        t_latest = now_mu()
         at_mu(start_mu)
 
+        return t_latest
+
     @kernel
-    def turn_beams_off(self):
+    def turn_beams_off(self) -> TInt64:
         """
         Turn off the beams using the AOM and shutter
 
@@ -170,23 +174,31 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
         This method will not advance the cursor BUT will write shutter closing
         events into the future by "shutter_delay_time" seconds.
+
+        Returns the RTIO timestamp furthest into the future
         """
 
         start_mu = now_mu()
 
+        delay_by = 0.0
+
+        # AOMs off
         for i in range(len(self.beam_delays)):
             suservo = self.beam_suservos[i]
-            shutter = self.beam_shutters[i]
-            delay_by = self.beam_delays[i]
 
             suservo.set(en_out=0, en_iir=0)
             delay(DELAY_BETWEEN_RTIO_EVENTS)
+
+        # Shutters closed
+        for i in range(len(self.beam_delays)):
+            shutter = self.beam_shutters[i]
+
             shutter.off()
             delay(DELAY_BETWEEN_RTIO_EVENTS)
 
+        # AOMs back on
         for i in range(len(self.beam_delays)):
             suservo = self.beam_suservos[i]
-            shutter = self.beam_shutters[i]
             delay_by = self.beam_delays[i]
 
             delay(delay_by)
@@ -196,6 +208,10 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             delay(-delay_by)
 
+        t_latest = now_mu() + self.core.seconds_to_mu(delay_by)
+
         # Cancel out the accumulated tiny delays so that we do not affect the
         # cursor position
         at_mu(start_mu)
+
+        return t_latest
