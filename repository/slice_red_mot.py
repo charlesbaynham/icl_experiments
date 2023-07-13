@@ -90,8 +90,8 @@ class SliceRedMOTFrag(ExpFragment):
 
         self.core.break_realtime()
 
-        # # Load a blue mot
-        # self.blue_mot_controller.load_mot(clearout=True)
+        # Load a blue mot
+        self.blue_mot_controller.load_mot(clearout=True)
 
         # # Start sweeping red IJD, turn on the beams and drop the gradient
         t_start_red_mot = now_mu()
