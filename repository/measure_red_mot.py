@@ -79,6 +79,10 @@ class MeasureRedMOTFrag(ExpFragment):
 
     @kernel
     def prepare_and_load_blue_mot(self):
+        """
+        Advances the timeline to the end of "blue loading time" and leave all
+        the blue beams on
+        """
         self.core.break_realtime()
         self.blue_mot_controller.init()
         self.red_mot_controller.init()
