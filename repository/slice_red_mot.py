@@ -103,31 +103,31 @@ class SliceRedMOTFrag(ExpFragment):
         delay_mu(8)
         self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
 
-        # # Go back in time to trigger photos. Note that red_loading_time may be negative
-        # t_signal = t_start_red_mot + self.core.seconds_to_mu(
-        #     self.red_loading_time.get()
-        # )
+        # Go back in time to trigger photos. Note that red_loading_time may be negative
+        t_signal = t_start_red_mot + self.core.seconds_to_mu(
+            self.red_loading_time.get()
+        )
 
-        # at_mu(t_signal)
+        at_mu(t_signal)
 
-        # with parallel:
-        #     # self.red_mot_controller.turn_off_mot_beams()
-        #     self.camera_bg_corrected.trigger_signal()
-        #     # self.pulse_blue_for_image()
+        with parallel:
+            # self.red_mot_controller.turn_off_mot_beams()
+            self.camera_bg_corrected.trigger_signal()
+            # self.pulse_blue_for_image()
 
-        # # Take a nonsense background photo. This currently does nothing and
-        # # should be coded away
-        # delay(20e-3)
-        # self.camera_bg_corrected.trigger_background()
+        # Take a nonsense background photo. This currently does nothing and
+        # should be coded away
+        delay(20e-3)
+        self.camera_bg_corrected.trigger_background()
 
-        # # Turn the fields back to defaults so eddy currents are gone by the next shot
-        # # self.blue_mot_controller.enable_mot_fields()
+        # Turn the fields back to defaults so eddy currents are gone by the next shot
+        # self.blue_mot_controller.enable_mot_fields()
 
-        # # End of RTIO sequencing. Now we are in real-time.
+        # End of RTIO sequencing. Now we are in real-time.
 
-        # # Save the photos
-        # self.core.wait_until_mu(now_mu())
-        # self.camera_bg_corrected.save_data()
+        # Save the photos
+        self.core.wait_until_mu(now_mu())
+        self.camera_bg_corrected.save_data()
 
     @kernel
     def pulse_blue_for_image(self):
