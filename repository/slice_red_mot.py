@@ -87,34 +87,34 @@ class SliceRedMOTFrag(ExpFragment):
         # Clear the camera buffer in case we quit a previous sequence midway
         # self.camera_bg_corrected.clear()
 
-        self.core.break_realtime()
+        # self.core.break_realtime()
 
         # Load a blue mot
         # self.blue_mot_controller.load_mot(clearout=True)
 
         # Start sweeping red IJD, turn on the beams and drop the gradient
-        t_start_red_mot = now_mu()
-        self.red_mot_controller.turn_on_mot_beams()
-        delay(10e-9)
-        self.red_mot_controller.start_ramping_red()
-        delay(10e-9)
-        # self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
-        delay(10e-9)
-        # self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
+        # t_start_red_mot = now_mu()
+        # self.red_mot_controller.turn_on_mot_beams()
+        # delay(10e-9)
+        # self.red_mot_controller.start_ramping_red()
+        # delay(10e-9)
+        # # self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
+        # delay(10e-9)
+        # # self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
 
-        # Go back in time to trigger photos. Note that red_loading_time may be negative
-        t_signal = t_start_red_mot + self.core.seconds_to_mu(
-            self.red_loading_time.get()
-        )
+        # # Go back in time to trigger photos. Note that red_loading_time may be negative
+        # t_signal = t_start_red_mot + self.core.seconds_to_mu(
+        #     self.red_loading_time.get()
+        # )
 
-        at_mu(t_signal)
+        # at_mu(t_signal)
 
-        # with parallel:
-        # self.camera_bg_corrected.trigger_signal()
-        # self.pulse_blue_for_image()
+        # # with parallel:
+        # # self.camera_bg_corrected.trigger_signal()
+        # # self.pulse_blue_for_image()
 
-        # Wait for all RTIO events to complete
-        self.core.break_realtime()
+        # # Wait for all RTIO events to complete
+        # self.core.break_realtime()
 
         # Discard the MOT to take a background photo, allowing enough time for
         # the gradient currents and atoms to dissipate
@@ -136,13 +136,13 @@ class SliceRedMOTFrag(ExpFragment):
         # self.core.wait_until_mu(now_mu())
         # self.camera_bg_corrected.save_data()
 
-    @kernel
-    def pulse_blue_for_image(self):
-        # Flash on the blue light
-        self.blue_mot_controller.turn_on_3d_beams()
-        delay(self.camera_exposure.get())
-        self.blue_mot_controller.turn_off_3d_beams()
-        delay(self.camera_exposure.get())
+    # @kernel
+    # def pulse_blue_for_image(self):
+    #     # Flash on the blue light
+    #     self.blue_mot_controller.turn_on_3d_beams()
+    #     delay(self.camera_exposure.get())
+    #     self.blue_mot_controller.turn_off_3d_beams()
+    #     delay(self.camera_exposure.get())
 
 
 SliceRedMOTFrag = make_fragment_scan_exp(SliceRedMOTFrag)
