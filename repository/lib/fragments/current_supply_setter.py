@@ -54,7 +54,9 @@ class SetAnalogCurrentSupply(Fragment):
     def set_current(self, current):
         """
         Set a current in amps.
-        This method does not advance the timeline.
+
+        This method does not advance the timeline but it does write SPI events
+        into the past.
         """
         voltage = current / self.current_config.gain
 

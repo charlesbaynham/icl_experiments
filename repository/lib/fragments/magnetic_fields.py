@@ -59,5 +59,8 @@ class SetMagneticFields(Fragment):
     def set_mot_gradient(self, current: TFloat):
         """
         Sets the chamber 2 field gradient current
+
+        This method does not advance the timeline but it does write SPI events
+        into the past.
         """
         self.current_setter_mot.set_current(current)
