@@ -187,5 +187,64 @@ class MeasureRedMOTExpansion(_MeasureRedMOTBase):
         self.camera_interface.save_data()
 
 
+class MeasureRedMOTSpectroscopy(_MeasureRedMOTBase):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "red_expansion_time",
+            FloatParam,
+            "Expansion time before pulsing 689",
+            default=10e-3,
+            unit="ms",
+        )
+        self.red_expansion_time: FloatParamHandle
+
+        self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=50e-6,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
+
+    @kernel
+    def run_once(self):
+        if self.red_loading_time.get() < 0:
+            raise RuntimeError("red_loading_time must be greater than zero")
+
+        self.prepare_and_load_blue_mot()
+
+        self.start_red_loading()
+
+        # Unlike for MeasureRedMOT, here we require that red_loading_time be positive
+        delay(self.red_loading_time.get())
+
+        with parallel:
+            self.chamber_2_field_setter.set_mot_gradient(0.0)
+            self.red_mot_controller.turn_off_mot_beams(ignore_shutters=True)
+            self.red_mot_controller.stop_ramping_red()
+
+        delay(self.red_expansion_time.get())
+
+        self.red_mot_controller.turn_on_mot_beams(ignore_shutters=True)
+        delay(self.spectroscopy_pulse_time.get())
+        self.red_mot_controller.turn_off_mot_beams()
+
+        with parallel:
+            self.camera_interface.trigger()
+            self.pulse_blue_for_image()
+
+        # Turn the fields back to defaults so eddy currents are gone by the next shot
+        self.blue_mot_controller.enable_mot_fields()
+
+        # End of RTIO sequencing. Now we are in real-time.
+
+        # Save the photos
+        self.core.wait_until_mu(now_mu())
+        self.camera_interface.save_data()
+
+
 MeasureRedMOTFrag = make_fragment_scan_exp(MeasureRedMOTFrag)
 MeasureRedMOTExpansion = make_fragment_scan_exp(MeasureRedMOTExpansion)

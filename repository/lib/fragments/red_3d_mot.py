@@ -213,12 +213,12 @@ class Red3DMOTFrag(Fragment):
         delay(self.all_beam_default_setter.get_max_shutter_delay())
 
     @kernel
-    def turn_on_mot_beams(self):
-        return self.all_mot_beams_setter.turn_beams_on()
+    def turn_on_mot_beams(self, ignore_shutters=False):
+        return self.all_mot_beams_setter.turn_beams_on(ignore_shutters)
 
     @kernel
-    def turn_off_mot_beams(self):
-        return self.all_mot_beams_setter.turn_beams_off()
+    def turn_off_mot_beams(self, ignore_shutters=False):
+        return self.all_mot_beams_setter.turn_beams_off(ignore_shutters)
 
     @kernel
     def start_ramping_red(self):
