@@ -234,9 +234,13 @@ class Red3DMOTFrag(Fragment):
         )
 
     @kernel
-    def stop_ramping_red(self):
+    def stop_ramping_red(self, freq=0.0):
         """
-        Stop modulation of the 689 DDS and return to default frequency
+        Stop modulation of the 689 DDS and return to default (or specified) frequency
         """
         self.injection_aom_ramper.stop_ramp()
-        self.injection_aom.set_frequency(self.injection_aom_static_frequency.get())
+
+        if freq == 0.0:
+            self.injection_aom.set_frequency(self.injection_aom_static_frequency.get())
+        else:
+            self.injection_aom.set_frequency(freq)

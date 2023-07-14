@@ -209,6 +209,15 @@ class MeasureRedMOTSpectroscopy(_MeasureRedMOTBase):
         )
         self.spectroscopy_pulse_time: FloatParamHandle
 
+        self.setattr_param(
+            "spectroscopy_pulse_aom_frequency",
+            FloatParam,
+            "Frequency of AOM during spectroscopy pulse",
+            default=340e6,
+            unit="MHz",
+        )
+        self.spectroscopy_pulse_aom_frequency: FloatParamHandle
+
     @kernel
     def run_once(self):
         if self.red_loading_time.get() < 0:
@@ -224,7 +233,9 @@ class MeasureRedMOTSpectroscopy(_MeasureRedMOTBase):
         with parallel:
             self.chamber_2_field_setter.set_mot_gradient(0.0)
             self.red_mot_controller.turn_off_mot_beams(ignore_shutters=True)
-            self.red_mot_controller.stop_ramping_red()
+            self.red_mot_controller.stop_ramping_red(
+                freq=self.spectroscopy_pulse_aom_frequency.get()
+            )
 
         delay(self.red_expansion_time.get())
 
@@ -248,3 +259,4 @@ class MeasureRedMOTSpectroscopy(_MeasureRedMOTBase):
 
 MeasureRedMOTFrag = make_fragment_scan_exp(MeasureRedMOTFrag)
 MeasureRedMOTExpansion = make_fragment_scan_exp(MeasureRedMOTExpansion)
+MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopy)
