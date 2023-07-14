@@ -153,6 +153,7 @@ class MeasureRedMOTExpansion(_MeasureRedMOTBase):
             FloatParam,
             "Expansion time before imaging MOT",
             default=100e-6,
+            min=0.0,
             unit="us",
         )
         self.red_expansion_time: FloatParamHandle
