@@ -159,9 +159,6 @@ class MeasureRedMOTExpansion(_MeasureRedMOTBase):
 
     @kernel
     def run_once(self):
-        if self.red_loading_time.get() < 0:
-            raise RuntimeError("red_loading_time must be greater than zero")
-
         self.prepare_and_load_blue_mot()
 
         self.start_red_loading()
