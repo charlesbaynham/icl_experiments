@@ -18,7 +18,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.chamber_photodiode import MOTPhotodiodeMeasurement
-from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
+from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 
 
 logger = logging.getLogger(__name__)
@@ -122,57 +122,32 @@ class MeasureBlueMOTWithPDFrag(MeasureBlueMOTFrag):
 
 class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
     def build_fragment(self):
-        self.setattr_param(
+        self.setattr_fragment(
+            "dual_cameras", DualCameraMeasurement, hardware_trigger=True
+        )
+        self.dual_cameras: DualCameraMeasurement
+
+        self.setattr_param_rebind(
+            "exposure",
+            self.dual_cameras,
             "exposure_horiz",
-            FloatParam,
-            description="Image exposure horizontal",
-            default=1e-3,
-            min=0,
-            unit="us",
-            step=1,
+            description="Camera exposures",
         )
-        self.exposure_horiz: FloatParamHandle
+        self.exposure: FloatParamHandle
 
-        self.setattr_param(
-            "exposure_vert",
-            FloatParam,
-            description="Image exposure vertical",
-            default=1e-3,
-            min=0,
-            unit="us",
-            step=1,
-        )
-        self.exposure_vert: FloatParamHandle
-
-        self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
-        self.camera_bg_corrected: BGCorrectedMeasurement
+        self.dual_cameras.bind_param("exposure_vert", self.exposure)
 
         super().build_fragment()
-
-    @kernel
-    def _before_start_load_hook(self):
-        """
-        Before the MOT is loaded, take a background picture
-        """
-        delay(-50e-3)
-
-        # Turn on just the 3d beams for a background picture
-        self.mot_controller.turn_on_3d_beams()
-
-        self.core.wait_until_mu(now_mu())
-        self.camera_bg_corrected.trigger_background()
-
-        delay(50e-3)
 
     @kernel
     def _take_data(self, loading_time):
         delay(loading_time)
 
+        self.dual_cameras.trigger()
+
         self.core.wait_until_mu(now_mu())
 
-        self.camera_bg_corrected.trigger_signal()
-
-        self.camera_bg_corrected.save_data()
+        self.dual_cameras.save_data()
 
 
 MeasureBlueMOTWithPD = make_fragment_scan_exp(MeasureBlueMOTWithPDFrag)
