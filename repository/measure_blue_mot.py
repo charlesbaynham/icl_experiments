@@ -10,6 +10,8 @@ from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
@@ -47,6 +49,16 @@ class MeasureBlueMOTFrag(ExpFragment):
         )
         self.delay_between_points: FloatParamHandle
 
+        self.setattr_param(
+            "clearout",
+            BoolParam,
+            "Clear out atoms between shots",
+            default="False",
+        )
+        self.clearout: BoolParamHandle
+
+        self.first_run = True
+
     @kernel
     def _take_data(self, loading_time):
         raise NotImplementedError
@@ -55,9 +67,12 @@ class MeasureBlueMOTFrag(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
 
-        self.mot_controller.init()
-        self.mot_controller.enable_mot_fields()
-        self.mot_controller.clear_ch2()
+        if self.first_run or self.clearout.get():
+            self.first_run = False
+
+            self.mot_controller.init()
+            self.mot_controller.enable_mot_fields()
+            self.mot_controller.clear_ch2()
 
         self._before_start_load_hook()
 
