@@ -6,8 +6,8 @@
             "channel": 4,
             "display_colour": "blue",
             "exposure": [
-                2,
-                1
+                20,
+                5
             ],
             "f_ref": 650.503218e12,
             "fast_enabled_at": 0,
