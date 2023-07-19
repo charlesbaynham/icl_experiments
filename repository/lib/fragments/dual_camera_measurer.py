@@ -141,12 +141,12 @@ class _DualCameraBase(Fragment):
 
         self.ccb.issue(
             "create_applet",
-            "BG-corrected horizontal image",
+            "Dual-camera horizontal image",
             f"${{artiq_applet}}image {DATASET_KEY_H}",
         )
         self.ccb.issue(
             "create_applet",
-            "BG-corrected vertical image",
+            "Dual-camera vertical image",
             f"${{artiq_applet}}image {DATASET_KEY_V}",
         )
 
