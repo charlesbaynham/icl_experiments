@@ -8,7 +8,7 @@ from typing import Type
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
-from artiq.experiment import kernel
+from artiq.experiment import kernel, portable
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
@@ -87,15 +87,16 @@ class CameraFrag(Fragment):
         super().__init__(*args, **kwargs)
 
     def build_fragment(self, hardware_trigger=False):
-        self.setattr_device("core")
-
         for feature, value in self.default_features.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
 
         self.setattr_device("ccb")
 
         self.hardware_trigger = hardware_trigger
-        self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
+
+        if hardware_trigger:
+            self.setattr_device("core")
+            self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
 
         # Kernel variables
         self.exposure = 0.0
@@ -157,7 +158,7 @@ class CameraFrag(Fragment):
 
         super().host_cleanup()
 
-    @kernel
+    @portable
     def ready_for_trigger(self, exposure_us, num_images):
         """
         Prepare the camera for taking images
@@ -349,7 +350,7 @@ class MonitorCamera(ExpFragment):
         logger.info("Starting camera measurement")
         self.camera.ready_for_trigger(self.exposure.get() * 1e6, 1)
 
-        self.camera.trigger()
+        self.camera._software_trigger()
 
         logger.info("Camera measurement completed")
 
