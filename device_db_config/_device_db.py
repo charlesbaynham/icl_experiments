@@ -2,12 +2,12 @@
 core_addr = "192.168.1.75"
 
 device_db = {
-    # "core": {
-    #     "type": "local",
-    #     "module": "artiq.coredevice.core",
-    #     "class": "Core",
-    #     "arguments": {"host": core_addr, "ref_period": 1e-09, "target": "rv32g"},
-    # },
+    "core": {
+        "type": "local",
+        "module": "artiq.coredevice.core",
+        "class": "Core",
+        "arguments": {"host": None, "ref_period": 1e-09, "target": "rv32g"},
+    },
     "core_log": {
         "type": "controller",
         "host": "::1",
