@@ -8,12 +8,12 @@ device_db = {
         "class": "Core",
         "arguments": {"host": None, "ref_period": 1e-09, "target": "rv32g"},
     },
-    "core_log": {
-        "type": "controller",
-        "host": "::1",
-        "port": 1068,
-        "command": "aqctl_corelog -p {port} --bind {bind} " + core_addr,
-    },
+    # "core_log": {
+    #     "type": "controller",
+    #     "host": "::1",
+    #     "port": 1068,
+    #     "command": "aqctl_corelog -p {port} --bind {bind} " + core_addr,
+    # },
     # "core_moninj": {
     #     "type": "controller",
     #     "host": "155.198.206.96",
