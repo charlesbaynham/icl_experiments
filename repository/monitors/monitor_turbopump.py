@@ -22,7 +22,7 @@ class MonitorTurbo(Calibration):
             "monitor_ip",
             StringParam,
             "IP of pump",
-            default='"192.168.1.15"',
+            default='"10.137.1.15"',
         )
         self.setattr_param(
             "description",

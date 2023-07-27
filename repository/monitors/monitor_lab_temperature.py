@@ -18,7 +18,7 @@ class MonitorLabTemperature(Calibration):
             "monitor_url",
             StringParam,
             "URL to access",
-            default='"http://192.168.1.3/temp1.txt"',
+            default='"http://10.137.1.3/temp1.txt"',
         )
         self.setattr_param(
             "description",

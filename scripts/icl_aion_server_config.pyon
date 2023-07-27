@@ -22,7 +22,7 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "192.168.1.7",
+            "host": "10.137.1.7",
             "target": "laser1",
         },
         "707": {
@@ -46,7 +46,7 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "192.168.1.5",
+            "host": "10.137.1.5",
             "target": "laser1",
         },
         "679": {
@@ -70,7 +70,7 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "192.168.1.7",
+            "host": "10.137.1.7",
             "target": "laser2",
         },
         "689": {
@@ -94,7 +94,7 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "192.168.1.5",
+            "host": "10.137.1.5",
             "target": "laser2",
         },
         "689_IJD": {

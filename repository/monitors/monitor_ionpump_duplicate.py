@@ -19,7 +19,7 @@ class MonitorIonPumpDup(Calibration):
 
     def build_calibration(self):
         self.setattr_param(
-            "ip", StringParam, "IP of the ion pump", default='"192.168.1.16"'
+            "ip", StringParam, "IP of the ion pump", default='"10.137.1.16"'
         )
         self.setattr_param(
             "description",
