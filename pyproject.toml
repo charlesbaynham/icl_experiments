@@ -2,3 +2,4 @@
 testpaths = [
     "tests",
 ]
+xfail_strict = true
