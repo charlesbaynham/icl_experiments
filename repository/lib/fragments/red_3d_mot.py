@@ -6,6 +6,7 @@ from artiq.coredevice.urukul import CPLD
 from artiq.coredevice.urukul import urukul_sta_pll_lock
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -255,3 +256,20 @@ class Red3DMOTFrag(Fragment):
             )
         else:
             self.injection_aom.set_frequency(freq)
+
+    @kernel
+    def set_mot_detuning(self, detuning: TFloat):
+        """Set the detuning of the MOT beams from the nominal frequency
+
+        Does not affect ramp settings and so will have no effect if ramping is
+        enabled.
+
+        This method advances the timeline by the duration of an AD9910 SPI
+        transaction.
+
+        Args:
+            detuning (float): Detuning in Hz
+        """
+        self.injection_aom.set_frequency(
+            constants.RED_INJECTION_AOM_FREQUENCY + detuning
+        )
