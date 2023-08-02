@@ -6,7 +6,7 @@ device_db = {
         "type": "local",
         "module": "artiq.coredevice.core",
         "class": "Core",
-        "arguments": {"host": None, "ref_period": 1e-09, "target": "rv32g"},
+        "arguments": {"host": core_addr, "ref_period": 1e-09, "target": "rv32g"},
     },
     # "core_log": {
     #     "type": "controller",
