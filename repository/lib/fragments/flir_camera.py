@@ -8,7 +8,8 @@ from typing import Type
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
-from artiq.experiment import kernel, portable
+from artiq.experiment import kernel
+from artiq.experiment import portable
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
