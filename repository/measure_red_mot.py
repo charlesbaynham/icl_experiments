@@ -42,13 +42,13 @@ class _MeasureRedMOTBase(ExpFragment):
         self.camera_interface: DualCameraMeasurement
 
         self.setattr_param(
-            "red_loading_time",
+            "red_broadband_time",
             FloatParam,
-            "Delay after loading red MOT before taking fluorescence measurement",
+            "Time to spend in the broadband red mot",
             default=10e-3,
             unit="ms",
         )
-        self.red_loading_time: FloatParamHandle
+        self.red_broadband_time: FloatParamHandle
 
         self.setattr_param(
             "red_gradient_current",
@@ -126,8 +126,8 @@ class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
 
         self.start_red_loading()
 
-        # Note that red_loading_time may be negative
-        delay(self.red_loading_time.get())
+        # Note that red_broadband_time may be negative if we're imaging the blue MOT
+        delay(self.red_broadband_time.get())
 
         with parallel:
             self.red_mot_controller.turn_off_mot_beams()
@@ -164,8 +164,8 @@ class MeasureBBRedMOTExpansion(_MeasureRedMOTBase):
 
         self.start_red_loading()
 
-        # Unlike for MeasureRedMOT, here we require that red_loading_time be positive
-        delay(self.red_loading_time.get())
+        # Unlike for MeasureRedMOT, here we require that red_broadband_time be positive
+        delay(self.red_broadband_time.get())
 
         self.red_mot_controller.turn_off_mot_beams()
 
@@ -219,15 +219,15 @@ class MeasureBBRedMOTExpansion(_MeasureRedMOTBase):
 
 #     @kernel
 #     def run_once(self):
-#         if self.red_loading_time.get() < 0:
-#             raise RuntimeError("red_loading_time must be greater than zero")
+#         if self.red_broadband_time.get() < 0:
+#             raise RuntimeError("red_broadband_time must be greater than zero")
 
 #         self.prepare_and_load_blue_mot()
 
 #         self.start_red_loading()
 
-#         # Unlike for MeasureRedMOT, here we require that red_loading_time be positive
-#         delay(self.red_loading_time.get())
+#         # Unlike for MeasureRedMOT, here we require that red_broadband_time be positive
+#         delay(self.red_broadband_time.get())
 
 #         with parallel:
 #             self.chamber_2_field_setter.set_mot_gradient(0.0)
