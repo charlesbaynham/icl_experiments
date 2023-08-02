@@ -62,11 +62,17 @@ RED_INJECTION_AOM_ATTENUATION = 0.0
 "Default attenuation for the 689 injection AOM"
 
 RED_INJECTION_AOM_FREQUENCY = 340e6
-"Default frequency for the 689 injection AOM"
+"Nominal frequency for the 689 injection AOM"
+
+RED_INJECTION_AOM_RAMP_FREQUENCY = 10e3
+"Default ramp frequency for the broadband red MOT"
 
 OFFSET_FREQUENCY_689 = 553e6
-"Default cavity offset frequency for the 689's laser stabilization"
+"""
+Default cavity offset frequency for the 689's laser stabilization
 
+Note - this is currently (2023-08-02) unused since the EOM is driven statically by a RIGOL
+"""
 
 OFFSET_ATTENUATION_689 = 7.0
 "Default cavity offset attenuation for the 689's laser stabilization"

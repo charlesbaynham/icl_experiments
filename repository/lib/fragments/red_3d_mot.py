@@ -89,34 +89,34 @@ class Red3DMOTFrag(Fragment):
         self.chamber_2_field_gradient: FloatParamHandle
 
         self.setattr_param(
-            "injection_aom_static_frequency",
+            "injection_aom_static_detuning",
             FloatParam,
-            "689 injection AOM static frequency",
+            "Detuning of 689 injection AOM static frequency from nominal",
             unit="MHz",
-            default=constants.RED_INJECTION_AOM_FREQUENCY,
+            default=0.0,
         )
-        self.injection_aom_static_frequency: FloatParamHandle
+        self.injection_aom_static_detuning: FloatParamHandle
 
         self.setattr_param(
             "ramp_frequency",
             FloatParam,
             "689 injection AOM ramp frequency",
             unit="kHz",
-            default=10e3,
+            default=constants.RED_INJECTION_AOM_RAMP_FREQUENCY,
         )
         self.setattr_param(
-            "ramp_low",
+            "ramp_start_detuning",
             FloatParam,
-            "689 injection AOM ramp lower limit",
+            "Detuning of 689 injection AOM from nominal frequency at start of ramp",
             unit="MHz",
-            default=constants.RED_INJECTION_AOM_FREQUENCY,
+            default=0.0,
         )
         self.setattr_param(
-            "ramp_high",
+            "ramp_stop_detuning",
             FloatParam,
-            "689 injection AOM ramp upper limit",
+            "Detuning of 689 injection AOM from nominal frequency at end of ramp",
             unit="MHz",
-            default=constants.RED_INJECTION_AOM_FREQUENCY + 3e6,
+            default=3e6,
         )
         self.setattr_param(
             "ramp_type",
@@ -126,11 +126,16 @@ class Red3DMOTFrag(Fragment):
         )
 
         self.ramp_frequency: FloatParamHandle
-        self.ramp_low: FloatParamHandle
-        self.ramp_high: FloatParamHandle
+        self.ramp_start_detuning: FloatParamHandle
+        self.ramp_stop_detuning: FloatParamHandle
         self.ramp_type: IntParamHandle
 
+        # %% Kernel parameters
+
+        # Initialised here so that it's available across kernels, but calculated
+        # in device_setup in case it's varied in a scan
         self.ramp_rate = 0.0
+
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
     def host_setup(self):
@@ -143,7 +148,7 @@ class Red3DMOTFrag(Fragment):
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = (
-            self.ramp_high.get() - self.ramp_low.get()
+            self.ramp_start_detuning.get() - self.ramp_stop_detuning.get()
         ) * self.ramp_frequency.get()
 
         if self.ramp_type.get() == 0:
@@ -154,7 +159,10 @@ class Red3DMOTFrag(Fragment):
 
         # Ensure the RF switch is on and the frequency is correct.
         # These are glitch free, so we do them each time
-        self.injection_aom.set(self.injection_aom_static_frequency.get())
+        self.injection_aom.set(
+            constants.RED_INJECTION_AOM_FREQUENCY
+            + self.injection_aom_static_detuning.get()
+        )
         self.injection_aom.cfg_sw(True)
         self.injection_aom.sw.on()
 
@@ -228,19 +236,22 @@ class Red3DMOTFrag(Fragment):
 
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
-            self.ramp_low.get(),
-            self.ramp_high.get(),
+            self.ramp_start_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
+            self.ramp_stop_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
             self.ramp_type.get(),
         )
 
     @kernel
     def stop_ramping_red(self, freq=0.0):
         """
-        Stop modulation of the 689 DDS and return to default (or specified) frequency
+        Stop modulation of the 689 DDS and return to static (or specified) frequency
         """
         self.injection_aom_ramper.stop_ramp()
 
         if freq == 0.0:
-            self.injection_aom.set_frequency(self.injection_aom_static_frequency.get())
+            self.injection_aom.set_frequency(
+                self.injection_aom_static_detuning.get()
+                + constants.RED_INJECTION_AOM_FREQUENCY
+            )
         else:
             self.injection_aom.set_frequency(freq)
