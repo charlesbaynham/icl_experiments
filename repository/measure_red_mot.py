@@ -8,6 +8,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -127,6 +128,91 @@ class _BroadbandBase(ExpFragment):
                 self.blue_mot_controller.turn_on_3d_beams()
                 delay(self.camera_exposure.get())
                 self.blue_mot_controller.turn_off_3d_beams()
+
+
+class _RampingPhase(Fragment):
+    """Template fragment for a phase of the red mot
+
+    Allows:
+        * Ramping of beam intensitites
+        * Ramping of gradient currents
+        * Ramping of MOT beam detunings (via double-passed injection AOM)
+
+    This fragment should be subclassed for each desired phase. Default settings
+    for its parameters can be set by setting the appropriate class variable.
+    """
+
+    duration_default = 100e-3
+    start_detuning_default = 0.0
+    end_detuning_default = 0.0
+    start_gradient_default = 0.0
+    end_gradient_default = 0.0
+    start_suservo_nominal_multiple_default = 1.0
+    end_suservo_nominal_multiple_default = 1.0
+
+    def build_fragment(self):
+        self.setattr_param(
+            "duration",
+            FloatParam,
+            "Duration of phase",
+            default=self.duration_default,
+            min=0.0,
+            unit="ms",
+        )
+        self.setattr_param(
+            "start_detuning",
+            FloatParam,
+            description="Initial detuning of red beams",
+            default=self.start_detuning_default,
+            unit="MHz",
+        )
+        self.setattr_param(
+            "end_detuning",
+            FloatParam,
+            description="Final detuning of red beams",
+            default=self.end_detuning_default,
+            unit="MHz",
+        )
+
+        self.setattr_param(
+            "start_gradient",
+            FloatParam,
+            description="Initial gradient current",
+            default=self.start_gradient_default,
+            min=0.0,
+            unit="A",
+        )
+        self.setattr_param(
+            "end_gradient",
+            FloatParam,
+            description="Final gradient current",
+            default=self.end_gradient_default,
+            min=0.0,
+            unit="A",
+        )
+
+        self.setattr_param(
+            "start_suservo_nominal_multiple",
+            FloatParam,
+            description="Initial suservo intensity as multiple of nominal intensity",
+            default=self.start_suservo_nominal_multiple_default,
+            min=0.0,
+        )
+        self.setattr_param(
+            "end_suservo_nominal_multiple",
+            FloatParam,
+            description="Final suservo intensity as multiple of nominal intensity",
+            default=self.end_suservo_nominal_multiple_default,
+            min=0.0,
+        )
+
+        self.duration: FloatParamHandle
+        self.start_detuning: FloatParamHandle
+        self.end_detuning: FloatParamHandle
+        self.start_gradient: FloatParamHandle
+        self.end_gradient: FloatParamHandle
+        self.start_suservo_nominal_multiple: FloatParamHandle
+        self.end_suservo_nominal_multiple: FloatParamHandle
 
 
 class MeasureBBRedMOTFrag(_BroadbandBase):
