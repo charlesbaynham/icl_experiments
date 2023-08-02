@@ -20,7 +20,7 @@ from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
 logger = logging.getLogger(__name__)
 
 
-class _MeasureRedMOTBase(ExpFragment):
+class _MeasureRedMOTBroadbandBase(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -129,7 +129,7 @@ class _MeasureRedMOTBase(ExpFragment):
                 self.blue_mot_controller.turn_off_3d_beams()
 
 
-class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
+class MeasureBBRedMOTFrag(_MeasureRedMOTBroadbandBase):
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
@@ -153,7 +153,7 @@ class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
         self.camera_interface.save_data()
 
 
-class MeasureBBRedMOTExpansion(_MeasureRedMOTBase):
+class MeasureBBRedMOTExpansion(_MeasureRedMOTBroadbandBase):
     def build_fragment(self):
         super().build_fragment()
 
