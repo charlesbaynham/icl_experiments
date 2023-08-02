@@ -127,7 +127,6 @@ class _MeasureRedMOTBase(ExpFragment):
                 self.blue_mot_controller.turn_on_3d_beams()
                 delay(self.camera_exposure.get())
                 self.blue_mot_controller.turn_off_3d_beams()
-                delay(self.camera_exposure.get())
 
 
 class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
