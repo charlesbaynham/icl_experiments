@@ -51,13 +51,13 @@ class _MeasureRedMOTBase(ExpFragment):
         self.red_broadband_time: FloatParamHandle
 
         self.setattr_param(
-            "red_gradient_current",
+            "red_broadband_gradient_current",
             FloatParam,
-            "Current for gradient coils for red MOT stage",
+            "Current for gradient coils for broadband red MOT stage",
             default=10,
             unit="A",
         )
-        self.red_gradient_current: FloatParamHandle
+        self.red_broadband_gradient_current: FloatParamHandle
 
         # Ensure that both camera are on for the same length of time as the blue
         # fluorescence is pulsed
@@ -106,7 +106,9 @@ class _MeasureRedMOTBase(ExpFragment):
         delay_mu(8)
         self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
         delay_mu(8)
-        self.chamber_2_field_setter.set_mot_gradient(self.red_gradient_current.get())
+        self.chamber_2_field_setter.set_mot_gradient(
+            self.red_broadband_gradient_current.get()
+        )
 
         delay_mu(-3 * 8)
 
