@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.xfail
 def test_red_mot(fragment_factory):
-    from repository.measure_red_mot import MeasureRedMOTFrag
+    from repository.measure_red_mot import MeasureBBRedMOTFrag
 
     def precompile(self):
         precompiled_setup = self.core.precompile(self.device_setup)
@@ -15,9 +15,9 @@ def test_red_mot(fragment_factory):
         print(precompiled_run)
         print(precompiled_cleanup)
 
-    setattr(MeasureRedMOTFrag, "precompile", precompile)
+    setattr(MeasureBBRedMOTFrag, "precompile", precompile)
 
-    exp = fragment_factory(MeasureRedMOTFrag)
+    exp = fragment_factory(MeasureBBRedMOTFrag)
 
     exp.host_setup()
 

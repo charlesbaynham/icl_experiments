@@ -119,7 +119,7 @@ class _MeasureRedMOTBase(ExpFragment):
         delay(self.camera_exposure.get())
 
 
-class MeasureRedMOTFrag(_MeasureRedMOTBase):
+class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
@@ -144,7 +144,7 @@ class MeasureRedMOTFrag(_MeasureRedMOTBase):
         self.camera_interface.save_data()
 
 
-class MeasureRedMOTExpansion(_MeasureRedMOTBase):
+class MeasureBBRedMOTExpansion(_MeasureRedMOTBase):
     def build_fragment(self):
         super().build_fragment()
 
@@ -256,5 +256,5 @@ class MeasureRedMOTExpansion(_MeasureRedMOTBase):
 #         self.camera_interface.save_data()
 
 
-MeasureRedMOTFrag = make_fragment_scan_exp(MeasureRedMOTFrag)
-MeasureRedMOTExpansion = make_fragment_scan_exp(MeasureRedMOTExpansion)
+MeasureBBRedMOTFrag = make_fragment_scan_exp(MeasureBBRedMOTFrag)
+MeasureBBRedMOTExpansion = make_fragment_scan_exp(MeasureBBRedMOTExpansion)
