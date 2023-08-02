@@ -6,6 +6,7 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
+from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -113,12 +114,20 @@ class _MeasureRedMOTBase(ExpFragment):
         delay_mu(-3 * 8)
 
     @kernel
-    def pulse_blue_for_image(self):
-        # Flash on the blue light
-        self.blue_mot_controller.turn_on_3d_beams()
-        delay(self.camera_exposure.get())
-        self.blue_mot_controller.turn_off_3d_beams()
-        delay(self.camera_exposure.get())
+    def pulse_blue_and_image(self):
+        """
+        Flash on the blue light and pulse the camera triggers
+
+        Advances the timeline by the duration of the imaging pulse and consumes
+        a lane
+        """
+        with parallel:
+            self.camera_interface.trigger()
+            with sequential:
+                self.blue_mot_controller.turn_on_3d_beams()
+                delay(self.camera_exposure.get())
+                self.blue_mot_controller.turn_off_3d_beams()
+                delay(self.camera_exposure.get())
 
 
 class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
@@ -133,8 +142,7 @@ class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
 
         with parallel:
             self.red_mot_controller.turn_off_mot_beams()
-            self.camera_interface.trigger()
-            self.pulse_blue_for_image()
+            self.pulse_blue_and_image()
 
         # Turn the fields back to defaults so eddy currents are gone by the next shot
         self.blue_mot_controller.enable_mot_fields()
@@ -173,9 +181,7 @@ class MeasureBBRedMOTExpansion(_MeasureRedMOTBase):
 
         delay(self.red_expansion_time.get())
 
-        with parallel:
-            self.camera_interface.trigger()
-            self.pulse_blue_for_image()
+        self.pulse_blue_and_image()
 
         # Turn the fields back to defaults so eddy currents are gone by the next shot
         self.blue_mot_controller.enable_mot_fields()
