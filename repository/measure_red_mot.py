@@ -93,7 +93,7 @@ class _MeasureRedMOTBase(ExpFragment):
         self.blue_mot_controller.load_mot(clearout=True)
 
     @kernel
-    def start_red_loading(self):
+    def start_red_broadband(self):
         """
         Start sweeping red IJD, turn on the beams and drop the gradient
 
@@ -126,7 +126,7 @@ class MeasureBBRedMOTFrag(_MeasureRedMOTBase):
     def run_once(self):
         self.prepare_and_load_blue_mot()
 
-        self.start_red_loading()
+        self.start_red_broadband()
 
         # Note that red_broadband_time may be negative if we're imaging the blue MOT
         delay(self.red_broadband_time.get())
@@ -164,7 +164,7 @@ class MeasureBBRedMOTExpansion(_MeasureRedMOTBase):
     def run_once(self):
         self.prepare_and_load_blue_mot()
 
-        self.start_red_loading()
+        self.start_red_broadband()
 
         # Unlike for MeasureRedMOT, here we require that red_broadband_time be positive
         delay(self.red_broadband_time.get())
