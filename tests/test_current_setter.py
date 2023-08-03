@@ -88,3 +88,32 @@ def test_current_to_volts_convertion_is_linear(fragment_factory):
         voltages[i] = exp._single_current_to_volts(currents[i], 0)
 
     assert voltages[1] - voltages[0] == voltages[2] - voltages[1]
+
+
+def test_current_ramp_compiles(fragment_factory):
+    current_config_a = VoltageControlledCurrentSupply("zotino_plant_room", 0, -2.0)
+    current_config_b = VoltageControlledCurrentSupply("zotino_plant_room", 1, -10.0)
+    current_config_c = VoltageControlledCurrentSupply("zotino_plant_room", 2, -1)
+
+    current_configs = [current_config_a, current_config_b, current_config_c]
+
+    def precompile(self):
+        precompiled_ramp = self.core.precompile(
+            self.set_currents_ramping,
+            currents_start=[0.0, 10.0, 5.0],
+            currents_end=[10.0, 0.0, 5.0],
+            duration=100e-3,
+        )
+
+        print("Experiment was precompiled:")
+        print(precompiled_ramp)
+
+    setattr(SetAnalogCurrentSupplies, "precompile", precompile)
+
+    exp: SetAnalogCurrentSupplies = fragment_factory(
+        SetAnalogCurrentSupplies, current_configs=current_configs
+    )
+
+    exp.host_setup()
+
+    exp.precompile()
