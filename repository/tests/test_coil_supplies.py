@@ -79,6 +79,14 @@ class RampGradientCoilsFrag(ExpFragment):
             min=0.0,
             unit="A",
         )
+        self.setattr_param(
+            "ramp_step",
+            FloatParam,
+            description="Time step between ramp steps",
+            default=1 / 75e3,
+            min=0.0,
+            unit="us",
+        )
 
         self.setattr_param(
             "slack_before_ramp",
@@ -93,9 +101,12 @@ class RampGradientCoilsFrag(ExpFragment):
         self.start_gradient: FloatParamHandle
         self.end_gradient: FloatParamHandle
         self.slack_before_ramp: FloatParamHandle
+        self.ramp_step: FloatParamHandle
 
     @kernel
     def run_once(self):
+        logger.info("Starting ramp")
+
         self.core.break_realtime()
         delay(self.slack_before_ramp.get())
 
@@ -103,7 +114,10 @@ class RampGradientCoilsFrag(ExpFragment):
             currents_start=[self.start_gradient.get()],
             currents_end=[self.end_gradient.get()],
             duration=self.duration.get(),
+            ramp_step=self.ramp_step.get(),
         )
+
+        logger.info("Ramp completed")
 
 
 RampGradientCoils = make_fragment_scan_exp(RampGradientCoilsFrag)
