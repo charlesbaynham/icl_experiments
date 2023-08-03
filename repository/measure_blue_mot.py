@@ -74,6 +74,9 @@ class MeasureBlueMOTFrag(ExpFragment):
             self.mot_controller.enable_mot_fields()
             self.mot_controller.clear_ch2()
 
+        # Delay long enough that we can write shutter closures into the past
+        delay(self.mot_controller.mot_all_beam_setter.get_longest_shutter_delay())
+
         self._before_start_load_hook()
 
         # Load MOT and start measuring signal immediately
