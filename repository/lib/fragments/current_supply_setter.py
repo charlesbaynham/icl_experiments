@@ -7,6 +7,7 @@ from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from artiq.experiment import portable
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
@@ -146,6 +147,9 @@ class SetAnalogCurrentSupplies(Fragment):
                 Zotino has a 75 kHz low-pass filter.
         """
 
+        if self.debug_enabled:
+            logger.info("Starting ramp for %.3f ms", 1e3 * duration)
+
         # Compute grid for writes
         num_points = 1 + int(duration // ramp_step)
         actual_time_step_mu = self.core.seconds_to_mu(duration / float(num_points))
@@ -177,6 +181,14 @@ class SetAnalogCurrentSupplies(Fragment):
                 currents_start[i_supply], i_supply
             )
 
+        if self.debug_enabled:
+            logger.info(
+                "Precomputation completed: %d points with steps of %s A = %s V",
+                num_points,
+                current_steps,
+                voltage_steps,
+            )
+
         # Queue the points, including an initial and final point
         for _ in range(num_points):
             # Set voltages
@@ -187,6 +199,9 @@ class SetAnalogCurrentSupplies(Fragment):
                 voltages_now[i_supply] += voltage_steps[i_supply]
 
             delay_mu(actual_time_step_mu)
+
+        if self.debug_enabled:
+            logger.info("RTIO events queued - now_mu() = %d", now_mu())
 
 
 class SetAnalogCurrentSupplyExpFrag(ExpFragment):
