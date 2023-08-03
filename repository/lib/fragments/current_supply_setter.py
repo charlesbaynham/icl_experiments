@@ -23,57 +23,6 @@ from device_db_config.configuration import VoltageControlledCurrentSupply
 logger = logging.getLogger(__name__)
 
 
-class SetAnalogCurrentSupply(Fragment):
-    """
-    Set a current supply that's controlled by an analog voltage
-    """
-
-    def build_fragment(self, current_config: VoltageControlledCurrentSupply):
-        self.setattr_device("core")
-        self.core: Core
-
-        self.current_config = current_config
-
-        self.zotino = self.get_device(self.current_config.zotino)
-        self.zotino: Zotino
-
-        self.first_run = True
-        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-
-    @kernel
-    def device_setup(self) -> None:
-        if self.first_run:
-            if self.debug_enabled:
-                logger.info("Initiating Zotino %s", self.zotino)
-
-            self.core.break_realtime()
-            self.zotino.init()
-
-            self.first_run = False
-
-        self.device_setup_subfragments()
-
-    @kernel
-    def set_current(self, current):
-        """
-        Set a current in amps.
-
-        This method does not advance the timeline but it does write SPI events
-        into the past.
-        """
-        voltage = current / self.current_config.gain
-
-        if self.debug_enabled:
-            logger.info(
-                "Setting current = %.2f with voltage = %.3f on channel %i",
-                current,
-                voltage,
-                self.current_config.zotino_channel,
-            )
-
-        self.zotino.set_dac([voltage], [self.current_config.zotino_channel])
-
-
 class SetAnalogCurrentSupplies(Fragment):
     """
     Set multiple current supplies that are controlled by a analog voltages.
@@ -265,8 +214,8 @@ class SetAnalogCurrentSupplyExpFrag(ExpFragment):
         else:
             current_config = list(current_configs.values())[0]
 
-        self.setattr_fragment("setter", SetAnalogCurrentSupply, current_config)
-        self.setter: SetAnalogCurrentSupply
+        self.setattr_fragment("setter", SetAnalogCurrentSupplies, [current_config])
+        self.setter: SetAnalogCurrentSupplies
 
         self.setattr_param(
             "current", FloatParam, "Current to set", default=0.0, unit="A"
@@ -277,7 +226,7 @@ class SetAnalogCurrentSupplyExpFrag(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
         delay(10e-3)
-        self.setter.set_current(self.current.get())
+        self.setter.set_current([self.current.get()])
 
 
 SetAnalogCurrentSupplyExp = make_fragment_scan_exp(SetAnalogCurrentSupplyExpFrag)

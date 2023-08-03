@@ -7,7 +7,7 @@ from ndscan.experiment import Fragment
 
 from device_db_config import get_configuration_from_db
 from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupplies
-from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupply
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +39,10 @@ class SetMagneticFields(Fragment):
 
         self.setattr_fragment(
             "current_setter_mot",
-            SetAnalogCurrentSupply,
-            current_config=current_config_mot,
+            SetAnalogCurrentSupplies,
+            current_configs=[current_config_mot],
         )
-        self.current_setter_mot: SetAnalogCurrentSupply
+        self.current_setter_mot: SetAnalogCurrentSupplies
 
     @kernel
     def set_bias_fields(self, current_x, current_y, current_z):
@@ -65,4 +65,4 @@ class SetMagneticFields(Fragment):
         1.5us + 808ns * len(currents) on a Kasli 1.x as SPI events are written
         into the past.
         """
-        self.current_setter_mot.set_current(current)
+        self.current_setter_mot.set_currents([current])
