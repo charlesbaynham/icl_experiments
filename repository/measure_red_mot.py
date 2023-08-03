@@ -143,6 +143,7 @@ class _RampingPhase(Fragment):
     """
 
     duration_default = 100e-3
+    time_step_default = 1e-6
     start_detuning_default = 0.0
     end_detuning_default = 0.0
     start_gradient_default = 0.0
@@ -172,6 +173,14 @@ class _RampingPhase(Fragment):
             default=self.duration_default,
             min=0.0,
             unit="ms",
+        )
+        self.setattr_param(
+            "time_step",
+            FloatParam,
+            "Gap between steps",
+            default=self.time_step_default,
+            min=0.0,
+            unit="us",
         )
         self.setattr_param(
             "start_detuning",
@@ -221,6 +230,7 @@ class _RampingPhase(Fragment):
         )
 
         self.duration: FloatParamHandle
+        self.time_step: FloatParamHandle
         self.start_detuning: FloatParamHandle
         self.end_detuning: FloatParamHandle
         self.start_gradient: FloatParamHandle
@@ -228,11 +238,15 @@ class _RampingPhase(Fragment):
         self.start_suservo_nominal_multiple: FloatParamHandle
         self.end_suservo_nominal_multiple: FloatParamHandle
 
+    def _calculate_current(self, fraction_through_ramp):
+        return NotImplementedError
+
     def do_phase(self):
         """
         Perform the ramps (or steps) associated with this phase, as configured
         by the parameters
         """
+
         self.gradient_current_setter.set_currents_ramping(
             currents_start=[self.start_gradient.get()],
             currents_end=[self.end_gradient.get()],
