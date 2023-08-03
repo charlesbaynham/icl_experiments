@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.coredevice.dma import CoreDMA
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -164,6 +165,14 @@ class _RampingPhase(Fragment):
         self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
         self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
 
+        # %% Devices
+
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_device("core_dma")
+        self.core_dma: CoreDMA
+
         # %% Parameters
 
         self.setattr_param(
@@ -238,20 +247,65 @@ class _RampingPhase(Fragment):
         self.start_suservo_nominal_multiple: FloatParamHandle
         self.end_suservo_nominal_multiple: FloatParamHandle
 
-    def _calculate_current(self, fraction_through_ramp):
-        return NotImplementedError
+        # %% Kernel variables
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "debug_enabled",
+            "red_mot_controller",
+            "chamber_2_field_setter",
+            "gradient_current_setter",
+        }
+
+    @kernel
+    def device_setup(self):
+        # Compute grid for writes
+        num_points = 1 + int(self.duration.get() // self.time_step.get())
+        time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
+
+        # Compute step sizes for the gradient coils...
+        current_step = (self.end_gradient.get() - self.start_gradient.get()) / float(
+            num_points - 1
+        )
+
+        # ...the detunings...
+        detuning_step = (self.end_detuning.get() - self.start_detuning.get()) / float(
+            num_points - 1
+        )
+
+        # ...and the SUServo amplitudes
+        # FIXME: Not yet implemented
+        # self.suservo_step = (self.end_detuning - self.start_detuning) / float(
+        #     num_points - 1
+        # )
+
+        # Record these ramping parameters into a DMA sequence
+        with self.core_dma.record(self.fqn):
+            # Initialise
+            this_current = self.start_gradient.get()
+            this_detuning = self.start_detuning.get()
+
+            # Play the ramp
+            for _ in range(num_points):
+                self.gradient_current_setter.set_currents([this_current])
+                self.red_mot_controller.set_mot_detuning(this_detuning)
+
+                this_current += current_step
+                this_detuning += detuning_step
+
+                delay_mu(time_step_mu)
 
     def do_phase(self):
         """
         Perform the ramps (or steps) associated with this phase, as configured
         by the parameters
+
+        Advances the timeline to the end of the ramp
         """
 
-        self.gradient_current_setter.set_currents_ramping(
-            currents_start=[self.start_gradient.get()],
-            currents_end=[self.end_gradient.get()],
-            duration=self.duration.get(),
-        )
+        self.core_dma.playback(self.fqn)
 
         # TODO: Write AD9910 single ramp code
         # TODO: Consider how the Fastino CIC interpolator could be used to implement ramps more efficiently
