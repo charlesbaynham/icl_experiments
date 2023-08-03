@@ -4,6 +4,7 @@ from artiq.coredevice.ttl import TTLInOut
 from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
+from artiq.experiment import NumberValue
 
 
 class DMAPulses(EnvExperiment):
@@ -17,14 +18,17 @@ class DMAPulses(EnvExperiment):
         self.setattr_device("ttl12")
         self.ttl12: TTLInOut
 
+        self.setattr_argument("delay", NumberValue(1e-6, unit="us", ndecimals=3))
+        self.delay: float
+
     @kernel
     def record(self):
         with self.core_dma.record("pulses"):
             # all RTIO operations now go to the "pulses"
             # DMA buffer, instead of being executed immediately.
             for _ in range(50):
-                self.ttl12.pulse(1000e-9)
-                delay(1000e-9)
+                self.ttl12.pulse(self.delay)
+                delay(self.delay)
 
     @kernel
     def run(self):
