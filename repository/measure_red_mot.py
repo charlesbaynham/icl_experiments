@@ -249,7 +249,7 @@ class _RampingPhase(Fragment):
         # * Ramping of MOT beam detunings (via double-passed injection AOM)
 
 
-class _NarrowRedCapturePhase(_RampingPhase):
+class NarrowRedCapturePhase(_RampingPhase):
     duration_default = 50e-3
     start_detuning_default = 150e3
     end_detuning_default = 50e3
@@ -266,11 +266,11 @@ class _NarrowbandBase(_BroadbandBase):
         # Add one red MOT phase as a test
         self.setattr_fragment(
             "narrow_red_capture_phase",
-            _NarrowRedCapturePhase,
+            NarrowRedCapturePhase,
             self.red_mot_controller,
             self.chamber_2_field_setter,
         )
-        self.narrow_red_capture_phase: _NarrowRedCapturePhase
+        self.narrow_red_capture_phase: NarrowRedCapturePhase
 
 
 class NarrowbandTestFrag(_NarrowbandBase):
