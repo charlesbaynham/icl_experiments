@@ -35,7 +35,6 @@ class DMAPulses(EnvExperiment):
         pulses_handle = self.core_dma.get_handle("pulses")
 
         self.core.break_realtime()
-        delay(1.0)
         while True:
             # execute RTIO operations in the DMA buffer
             # each playback advances the timeline by 50*(100+100) ns
