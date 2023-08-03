@@ -281,7 +281,8 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
 
-        self.narrow_red_capture_phase.do_phase()
+        # FIXME
+        # self.narrow_red_capture_phase.do_phase()
 
 
 class MeasureBBRedMOTFrag(_BroadbandBase):
