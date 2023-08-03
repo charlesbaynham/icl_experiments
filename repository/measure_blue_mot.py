@@ -73,6 +73,8 @@ class MeasureBlueMOTFrag(ExpFragment):
             self.mot_controller.init()
             self.mot_controller.enable_mot_fields()
             self.mot_controller.clear_ch2()
+        else:
+            delay(1e-3)
 
         self._before_start_load_hook()
 
