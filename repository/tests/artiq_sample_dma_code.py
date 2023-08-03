@@ -23,8 +23,8 @@ class DMAPulses(EnvExperiment):
             # all RTIO operations now go to the "pulses"
             # DMA buffer, instead of being executed immediately.
             for _ in range(50):
-                self.ttl3.pulse(100e-9)
-                delay(100e-9)
+                self.ttl3.pulse(1000e-9)
+                delay(1000e-9)
 
     @kernel
     def run(self):
