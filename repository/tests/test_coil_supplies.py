@@ -6,7 +6,13 @@ from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import NumberValue
+from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 
+from device_db_config import get_configuration_from_db
+from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupplies
 
 logger = logging.getLogger(__name__)
 
@@ -32,3 +38,59 @@ class SetZotinoVoltage(EnvExperiment):
         self.zotino_plant_room.set_dac([0.0] * 32)
         delay(200e-6)
         self.zotino_plant_room.set_dac([self.voltage], [self.channel])
+
+
+class RampGradientCoilsFrag(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        current_config_mot = get_configuration_from_db("chamber_2_coil_mot")
+
+        self.setattr_fragment(
+            "current_setter_mot",
+            SetAnalogCurrentSupplies,
+            current_configs=[current_config_mot],
+        )
+        self.current_setter_mot: SetAnalogCurrentSupplies
+
+        self.setattr_param(
+            "duration",
+            FloatParam,
+            "Duration of phase",
+            default=1.0,
+            min=0.0,
+            unit="ms",
+        )
+
+        self.setattr_param(
+            "start_gradient",
+            FloatParam,
+            description="Initial gradient current",
+            default=0.0,
+            min=0.0,
+            unit="A",
+        )
+        self.setattr_param(
+            "end_gradient",
+            FloatParam,
+            description="Final gradient current",
+            default=10.0,
+            min=0.0,
+            unit="A",
+        )
+
+        self.duration: FloatParamHandle
+        self.start_gradient: FloatParamHandle
+        self.end_gradient: FloatParamHandle
+
+    @kernel
+    def run_once(self):
+        self.current_setter_mot.set_currents_ramping(
+            currents_start=[self.start_gradient.get()],
+            currents_end=[self.end_gradient.get()],
+            duration=self.duration.get(),
+        )
+
+
+RampGradientCoils = make_fragment_scan_exp(RampGradientCoilsFrag)
