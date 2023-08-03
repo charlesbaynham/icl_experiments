@@ -150,7 +150,21 @@ class _RampingPhase(Fragment):
     start_suservo_nominal_multiple_default = 1.0
     end_suservo_nominal_multiple_default = 1.0
 
-    def build_fragment(self):
+    def build_fragment(self, red_mot_controller, chamber_2_field_setter):
+        # %% Fragments
+        #
+        # Unusually, here we pass fragments in via arguments to build_fragment
+        # instead of recreasing them ourselves with self.setattr_fragment. This
+        # is to prevent lots of device_setup calls being made for duplicate
+        # subfragments, and to prevent proliferation of arguments in the ndscan
+        # interface which don't need to be there (without having to do loads of
+        # rebinding). Time will tell whether this is a good idea or not.
+        self.red_mot_controller: Red3DMOTFrag = red_mot_controller
+        self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
+        self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
+
+        # %% Parameters
+
         self.setattr_param(
             "duration",
             FloatParam,
@@ -219,8 +233,7 @@ class _RampingPhase(Fragment):
         Perform the ramps (or steps) associated with this phase, as configured
         by the parameters
         """
-        pass
-
+        self.gradient_current_setter
         # TODO: Write AD9910 single ramp code
         # TODO: Write dumb Zotino ramp code, bearing in mind the 75 kHz lowpass
         # TODO: Consider how the Fastino CIC interpolator could be used to implement ramps more efficiently
