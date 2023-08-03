@@ -9,6 +9,7 @@ from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import portable
 from ndscan.experiment import Fragment
 from pyaion.models import SUServoedBeam
 
@@ -112,6 +113,8 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         self.beam_shutters = list(self.beam_shutters)
         self.beam_delays = list(self.beam_delays)
 
+        self.longest_beam_delay = max(self.beam_delays)
+
         logger.debug("sorted_tupled = %s", sorted_tupled)
 
     @kernel
@@ -211,3 +214,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         # Cancel out the accumulated tiny delays so that we do not affect the
         # cursor position
         at_mu(start_mu)
+
+    @portable
+    def get_longest_shutter_delay(self):
+        return self.longest_beam_delay
