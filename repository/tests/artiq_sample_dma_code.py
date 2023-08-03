@@ -14,8 +14,8 @@ class DMAPulses(EnvExperiment):
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
 
-        self.setattr_device("ttl3")
-        self.ttl3: TTLInOut
+        self.setattr_device("ttl12")
+        self.ttl12: TTLInOut
 
     @kernel
     def record(self):
@@ -23,7 +23,7 @@ class DMAPulses(EnvExperiment):
             # all RTIO operations now go to the "pulses"
             # DMA buffer, instead of being executed immediately.
             for _ in range(50):
-                self.ttl3.pulse(1000e-9)
+                self.ttl12.pulse(1000e-9)
                 delay(1000e-9)
 
     @kernel
