@@ -214,6 +214,23 @@ class _RampingPhase(Fragment):
         self.start_suservo_nominal_multiple: FloatParamHandle
         self.end_suservo_nominal_multiple: FloatParamHandle
 
+    def do_phase(self):
+        """
+        Perform the ramps (or steps) associated with this phase, as configured
+        by the parameters
+        """
+        pass
+
+        # TODO: Write AD9910 single ramp code
+        # TODO: Write dumb Zotino ramp code, bearing in mind the 75 kHz lowpass
+        # TODO: Consider how the Fastino CIC interpolator could be used to implement ramps more efficiently
+        # TODO: Tune SUServos
+        # TODO: Ramp SUServos
+
+        # * Ramping of beam intensitites
+        # * Ramping of gradient currents
+        # * Ramping of MOT beam detunings (via double-passed injection AOM)
+
 
 class MeasureBBRedMOTFrag(_BroadbandBase):
     @kernel

@@ -6,6 +6,7 @@ from artiq.coredevice.zotino import Zotino
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
+from artiq.experiment import portable
 from artiq.experiment import TFloat
 from artiq.experiment import TList
 from ndscan.experiment import ExpFragment
@@ -108,6 +109,18 @@ class SetAnalogCurrentSupplies(Fragment):
 
         self.device_setup_subfragments()
 
+    @portable
+    def _currents_to_volts(self, currents: TList(TFloat)) -> TList(TFloat):
+        voltages = [0.0] * len(self.current_configs)
+
+        if len(currents) != len(self.current_configs):
+            raise ValueError("Wrong number of currents")
+
+        for i in range(len(self.current_configs)):
+            voltages[i] = currents[i] / self.current_configs[i].gain
+
+        return voltages
+
     @kernel
     def set_currents(self, currents: TList(TFloat)):
         """
@@ -135,6 +148,31 @@ class SetAnalogCurrentSupplies(Fragment):
             )
 
         self.zotino.set_dac(voltages, self.zotino_channels)
+
+        @kernel
+        def set_currents_ramping(
+            self,
+            currents_start: TList(TFloat),
+            currents_end: TList(TFloat),
+            duration: TFloat,
+            ramp_step: TFloat = 1 / 75e3,
+        ):
+            """
+            Queue a linear ramp of the currents controlled by this object
+
+            This method will write lots of RTIO events for the `duration` of the
+            ramp and will advance the timeline until the end of the ramp. It
+            will also require quite a lot of time to compute and queue the ramp,
+            so users should consider DMA if performance is limiting.
+
+            Args:
+                currents_start (TList): List of starting currents / A
+                currents_end (TList): List of ending currents / A duration
+                (TFloat): Time to perform the ramp for ramp_step (TFloat,
+                optional): Timestamp of RTIO writes / s. Defaults to 1/75e3
+                since the Zotino has a 75 kHz low-pass filter.
+            """
+            pass
 
 
 class SetAnalogCurrentSupplyExpFrag(ExpFragment):
