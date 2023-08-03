@@ -297,6 +297,7 @@ class _RampingPhase(Fragment):
 
                 delay_mu(time_step_mu)
 
+    @kernel
     def do_phase(self):
         """
         Perform the ramps (or steps) associated with this phase, as configured
