@@ -284,6 +284,11 @@ class NarrowbandTestFrag(_NarrowbandBase):
         # FIXME
         # self.narrow_red_capture_phase.do_phase()
 
+        self.pulse_blue_and_image()
+
+        self.core.wait_until_mu(now_mu())
+        self.camera_interface.save_data()
+
 
 class MeasureBBRedMOTFrag(_BroadbandBase):
     @kernel
