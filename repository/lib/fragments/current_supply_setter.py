@@ -110,16 +110,16 @@ class SetAnalogCurrentSupplies(Fragment):
         self.device_setup_subfragments()
 
     @portable
-    def _currents_to_volts(self, currents: TList(TFloat)) -> TList(TFloat):
-        voltages = [0.0] * len(self.current_configs)
+    def _currents_to_volts(self, currents: TList(TFloat), voltages_out: TList(TFloat)):
 
         if len(currents) != len(self.current_configs):
             raise ValueError("Wrong number of currents")
 
-        for i in range(len(self.current_configs)):
-            voltages[i] = currents[i] / self.current_configs[i].gain
+        if len(currents) != len(voltages_out):
+            raise ValueError("Output array is wrong size")
 
-        return voltages
+        for i in range(len(self.current_configs)):
+            voltages_out[i] = currents[i] / self.current_configs[i].gain
 
     @kernel
     def set_currents(self, currents: TList(TFloat)):
