@@ -256,7 +256,7 @@ class MeasureBBRedMOTFrag(_BroadbandBase):
         self.camera_interface.save_data()
 
 
-class MeasureBBRedMOTExpansion(_BroadbandBase):
+class MeasureBBRedMOTExpansionFrag(_BroadbandBase):
     def build_fragment(self):
         super().build_fragment()
 
@@ -366,5 +366,5 @@ class MeasureBBRedMOTExpansion(_BroadbandBase):
 #         self.camera_interface.save_data()
 
 
-MeasureBBRedMOTFrag = make_fragment_scan_exp(MeasureBBRedMOTFrag)
-MeasureBBRedMOTExpansion = make_fragment_scan_exp(MeasureBBRedMOTExpansion)
+MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
+MeasureBBRedMOTExpansion = make_fragment_scan_exp(MeasureBBRedMOTExpansionFrag)

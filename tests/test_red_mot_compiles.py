@@ -1,7 +1,9 @@
 import pytest
 
 
-@pytest.mark.xfail
+@pytest.mark.xfail(
+    reason="Cameras are not mocked and will fail when tested not on the local network"
+)
 def test_red_mot(fragment_factory):
     from repository.measure_red_mot import MeasureBBRedMOTFrag
 
