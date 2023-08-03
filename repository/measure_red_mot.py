@@ -233,9 +233,13 @@ class _RampingPhase(Fragment):
         Perform the ramps (or steps) associated with this phase, as configured
         by the parameters
         """
-        self.gradient_current_setter
+        self.gradient_current_setter.set_currents_ramping(
+            currents_start=[self.start_gradient.get()],
+            currents_end=[self.end_gradient.get()],
+            duration=self.duration.get(),
+        )
+
         # TODO: Write AD9910 single ramp code
-        # TODO: Write dumb Zotino ramp code, bearing in mind the 75 kHz lowpass
         # TODO: Consider how the Fastino CIC interpolator could be used to implement ramps more efficiently
         # TODO: Tune SUServos
         # TODO: Ramp SUServos
