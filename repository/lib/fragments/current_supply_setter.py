@@ -210,30 +210,32 @@ class SetAnalogCurrentSupplies(Fragment):
         # Here we convert the current steps to voltage steps. This assumes that
         # the current to voltage conversion function _currents_to_volts is
         # linear. If this is not true, this will break. This is tested in
-        # `test_current_to_volts_convertion_is_linear`. We also assume that the
-        # Zotino is linear, but that's not tested.
-        voltage_steps_mu = [0.0] * self.num_supplies
+        # `test_current_to_volts_convertion_is_linear`. Note that we don't
+        # calculate the voltage steps in machine units. That would be vulnerable
+        # to rounding errors. This means that we have to call the zotino's
+        # "voltage_to_mu" function for each write which is wasteful, but assures
+        # that we actually get the currents we expect.
+        voltage_steps = [0.0] * self.num_supplies
         for i_supply in range(self.num_supplies):
-            voltage_step = self._single_current_to_volts(
+            voltage_steps[i_supply] = self._single_current_to_volts(
                 current_steps[i_supply], i_supply
             )
-            voltage_steps_mu[i_supply] = self.zotino.voltage_to_mu(voltage_step)
 
-        # Now we queue the points, including an initial and final point
-        voltages_now_mu = [0.0] * self.num_supplies
+        # Calculate the starting voltages
+        voltages_now = [0.0] * self.num_supplies
         for i_supply in range(self.num_supplies):
-            initial_voltage = self._single_current_to_volts(
+            voltages_now[i_supply] = self._single_current_to_volts(
                 currents_start[i_supply], i_supply
             )
-            voltages_now_mu[i_supply] = self.zotino.voltage_to_mu(initial_voltage)
 
+        # Queue the points, including an initial and final point
         for _ in range(num_points):
             # Set voltages
-            self.zotino.set_dac_mu(voltages_now_mu, self.zotino_channels)
+            self.zotino.set_dac(voltages_now, self.zotino_channels)
 
             # Calculate next voltages
             for i_supply in range(self.num_supplies):
-                voltages_now_mu[i_supply] += voltage_steps_mu[i_supply]
+                voltages_now[i_supply] += voltage_steps[i_supply]
 
             delay_mu(actual_time_step_mu)
 
