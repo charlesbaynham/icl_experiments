@@ -80,12 +80,25 @@ class RampGradientCoilsFrag(ExpFragment):
             unit="A",
         )
 
+        self.setattr_param(
+            "slack_before_ramp",
+            FloatParam,
+            description="How much slack to create before queuing the ramp",
+            default=1.0,
+            min=0.0,
+            unit="s",
+        )
+
         self.duration: FloatParamHandle
         self.start_gradient: FloatParamHandle
         self.end_gradient: FloatParamHandle
+        self.slack_before_ramp: FloatParamHandle
 
     @kernel
     def run_once(self):
+        self.core.break_realtime()
+        delay(self.slack_before_ramp.get())
+
         self.current_setter_mot.set_currents_ramping(
             currents_start=[self.start_gradient.get()],
             currents_end=[self.end_gradient.get()],
