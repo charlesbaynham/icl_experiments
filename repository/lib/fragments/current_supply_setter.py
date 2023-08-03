@@ -1,10 +1,10 @@
 import logging
 from typing import List
 
-import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.zotino import Zotino
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import portable
@@ -178,9 +178,12 @@ class SetAnalogCurrentSupplies(Fragment):
         also require quite a lot of time to compute and queue the ramp, so users
         should consider DMA if performance is limiting.
 
-        Note that time_step will be approximate - this method will ensure that
+        Note that `time_step` will be approximate - this method will ensure that
         initial and final writes occurs at the start and end of the `duration`
-        period, with time_step varied slightly to ensure that.
+        period, with `time_step` varied slightly to ensure that. Note also that
+        this means you cannot immediately start a new ramp when the old one ends
+        - it must be spaced at least one Zotino write away
+        (`1.5us + 808ns * len(currents)` at time of writing).
 
         Args:
             currents_start (TList): List of starting currents / A
@@ -190,7 +193,7 @@ class SetAnalogCurrentSupplies(Fragment):
             duration (TFloat): Time to perform the ramp for
 
             ramp_step (TFloat, optional):
-                Timestamp of RTIO writes / s. Defaults to 1/75e3 since the
+                Timestamp of RTIO writes / s. Defaults to `1/75e3` since the
                 Zotino has a 75 kHz low-pass filter.
         """
 
@@ -199,23 +202,40 @@ class SetAnalogCurrentSupplies(Fragment):
         actual_time_step_mu = self.core.seconds_to_mu(duration / float(num_points))
 
         current_steps = [0.0] * self.num_supplies
-        for i in range(self.num_supplies):
-            current_steps[i] = (currents_end[i] - currents_start[i]) / float(
-                num_points - 1
-            )
+        for i_supply in range(self.num_supplies):
+            current_steps[i_supply] = (
+                currents_end[i_supply] - currents_start[i_supply]
+            ) / float(num_points - 1)
 
         # Here we convert the current steps to voltage steps. This assumes that
         # the current to voltage conversion function _currents_to_volts is
-        # linear. If this is not true, this will break
-        voltage_steps = [0.0] * self.num_supplies
+        # linear. If this is not true, this will break. This is tested in
+        # `test_current_to_volts_convertion_is_linear`. We also assume that the
+        # Zotino is linear, but that's not tested.
+        voltage_steps_mu = [0.0] * self.num_supplies
+        for i_supply in range(self.num_supplies):
+            voltage_step = self._single_current_to_volts(
+                current_steps[i_supply], i_supply
+            )
+            voltage_steps_mu[i_supply] = self.zotino.voltage_to_mu(voltage_step)
 
-        voltages = [[0.0] * self.num_supplies] * num_points
+        # Now we queue the points, including an initial and final point
+        voltages_now_mu = [0.0] * self.num_supplies
+        for i_supply in range(self.num_supplies):
+            initial_voltage = self._single_current_to_volts(
+                currents_start[i_supply], i_supply
+            )
+            voltages_now_mu[i_supply] = self.zotino.voltage_to_mu(initial_voltage)
 
-        for i in range(num_points):
-            these_voltages = voltages[i]
-            self._currents_to_volts()
+        for _ in range(num_points):
+            # Set voltages
+            self.zotino.set_dac_mu(voltages_now_mu, self.zotino_channels)
 
-        # Precompute currents for each timestep
+            # Calculate next voltages
+            for i_supply in range(self.num_supplies):
+                voltages_now_mu[i_supply] += voltage_steps_mu[i_supply]
+
+            delay_mu(actual_time_step_mu)
 
 
 class SetAnalogCurrentSupplyExpFrag(ExpFragment):
