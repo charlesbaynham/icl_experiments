@@ -249,6 +249,41 @@ class _RampingPhase(Fragment):
         # * Ramping of MOT beam detunings (via double-passed injection AOM)
 
 
+class _NarrowRedCapturePhase(_RampingPhase):
+    duration_default = 50e-3
+    start_detuning_default = 150e3
+    end_detuning_default = 50e3
+    start_gradient_default = 5.0
+    end_gradient_default = 1.0
+    start_suservo_nominal_multiple_default = 100.0
+    end_suservo_nominal_multiple_default = 10.0
+
+
+class _NarrowbandBase(_BroadbandBase):
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Add one red MOT phase as a test
+        self.setattr_fragment(
+            "narrow_red_capture_phase",
+            _NarrowRedCapturePhase,
+            self.red_mot_controller,
+            self.chamber_2_field_setter,
+        )
+        self.narrow_red_capture_phase: _NarrowRedCapturePhase
+
+
+class NarrowbandTestFrag(_NarrowbandBase):
+    @kernel
+    def run_once(self):
+        self.prepare_and_load_blue_mot()
+
+        self.start_red_broadband()
+        delay(self.red_broadband_time.get())
+
+        self.narrow_red_capture_phase.do_phase()
+
+
 class MeasureBBRedMOTFrag(_BroadbandBase):
     @kernel
     def run_once(self):
@@ -385,3 +420,4 @@ class MeasureBBRedMOTExpansionFrag(_BroadbandBase):
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
 MeasureBBRedMOTExpansion = make_fragment_scan_exp(MeasureBBRedMOTExpansionFrag)
+NarrowbandTest = make_fragment_scan_exp(NarrowbandTestFrag)
