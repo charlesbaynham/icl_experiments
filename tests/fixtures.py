@@ -69,9 +69,9 @@ def argument_mgr():
 def fragment_factory(
     device_mgr, dataset_mgr, argument_mgr
 ) -> Callable[[Type["Fragment"]], Fragment]:
-    def fac(exp_class):
+    def fac(exp_class, **kwargs):
         frag = exp_class(
-            (device_mgr, dataset_mgr, argument_mgr, None), fragment_path=[]
+            (device_mgr, dataset_mgr, argument_mgr, None), fragment_path=[], **kwargs
         )
         frag.init_params()
         return frag
