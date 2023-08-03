@@ -1,20 +1,30 @@
-from artiq.experiment import *
+from artiq.coredevice.core import Core
+from artiq.coredevice.dma import CoreDMA
+from artiq.coredevice.ttl import TTLInOut
+from artiq.experiment import delay
+from artiq.experiment import EnvExperiment
+from artiq.experiment import kernel
 
 
 class DMAPulses(EnvExperiment):
     def build(self):
         self.setattr_device("core")
+        self.core: Core
+
         self.setattr_device("core_dma")
-        self.setattr_device("ttl0")
+        self.core_dma: CoreDMA
+
+        self.setattr_device("ttl3")
+        self.ttl3: TTLInOut
 
     @kernel
     def record(self):
         with self.core_dma.record("pulses"):
             # all RTIO operations now go to the "pulses"
             # DMA buffer, instead of being executed immediately.
-            for i in range(50):
-                self.ttl0.pulse(100 * ns)
-                delay(100 * ns)
+            for _ in range(50):
+                self.ttl3.pulse(100e-9)
+                delay(100e-9)
 
     @kernel
     def run(self):
@@ -23,6 +33,7 @@ class DMAPulses(EnvExperiment):
         # prefetch the address of the DMA buffer
         # for faster playback trigger
         pulses_handle = self.core_dma.get_handle("pulses")
+
         self.core.break_realtime()
         while True:
             # execute RTIO operations in the DMA buffer
