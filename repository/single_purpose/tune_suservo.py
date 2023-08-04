@@ -80,7 +80,7 @@ class TuneSUServo(EnvExperiment):
         )
         self.setattr_argument(
             "setpoint",
-            NumberValue(default=1.0, ndecimals=1, type="float", unit="V"),
+            NumberValue(default=1.0, ndecimals=3, type="float", unit="V"),
         )
         self.kp: float
         self.ki: float
