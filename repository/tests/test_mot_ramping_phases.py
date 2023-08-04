@@ -79,9 +79,14 @@ class TestRampingPhaseFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        logger.info("Starting test phase")
+        logger.info("Setting detuning to -300 kHz")
 
         self.core.reset()
+        self.red_mot_controller.set_mot_detuning(-300e-3)
+
+        logger.info("Starting test phase")
+
+        self.core.break_realtime()
 
         for _ in range(self.num_repeats.get()):
             delay(self.delay_between_phases.get())
