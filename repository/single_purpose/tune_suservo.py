@@ -71,11 +71,13 @@ class TuneSUServo(EnvExperiment):
 
         self.suservo_channel.set(en_out=1, en_iir=1, profile=PROFILE_NUM)
 
-        self.set_dataset("voltages", [0.0], broadcast=True)
-
-        for _ in range(self.num_points):
+        for i in range(self.num_points):
+            val = self.suservo_channel.get_y(PROFILE_NUM)
             delay(100e-3)
-            self.append_to_dataset("voltages", self.suservo_channel.get_y(PROFILE_NUM))
+            if i == 0:
+                self.set_dataset("voltages", [val], broadcast=True)
+            else:
+                self.append_to_dataset("voltages", val)
 
     @kernel
     def set_all_attenuations(self, attenuation: TFloat):
