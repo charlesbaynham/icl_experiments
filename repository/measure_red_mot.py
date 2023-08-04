@@ -9,11 +9,15 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
+from artiq.experiment import TInt32
+from artiq.experiment import TInt64
+from artiq.experiment import TTuple
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int32
 from numpy import int64
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
@@ -332,8 +336,12 @@ class _RampingPhase(Fragment):
 
                 t_this_cycle_mu += time_step_mu
 
+        dma_handle = self.core_dma.get_handle(self.fqn)
+
         if self.debug_enabled:
-            logger.info('Saving dma trace as "%s"', self.fqn)
+            logger.info(
+                'Saving dma trace as "%s", with handle "%s"', self.fqn, dma_handle
+            )
 
     @kernel
     def do_phase(self):
