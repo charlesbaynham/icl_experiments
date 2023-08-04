@@ -1,5 +1,6 @@
 import logging
 
+from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.experiment import delay
@@ -96,7 +97,7 @@ class TestRampingPhaseFrag(ExpFragment):
         # self.red_mot_controller.set_mot_detuning(-300e3)
 
         self.injection_aom.init()
-        self.injection_aom.set_frequency(freq)
+        self.injection_aom.set(freq)
 
         # logger.info("Starting test phase")
 
