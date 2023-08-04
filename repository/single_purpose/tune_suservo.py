@@ -35,26 +35,32 @@ class TuneSUServo(EnvExperiment):
         self.setattr_argument(
             "channel_name", EnumerationValue(get_local_devices(self, Channel))
         )
+        self.channel_name: str
         self.setattr_argument(
             "adc_channel",
             NumberValue(default=0, scale=1, ndecimals=0, step=1, type="int"),
         )
+        self.adc_channel: int
 
         self.setattr_argument(
             "frequency",
             NumberValue(default=100e6, ndecimals=1, type="float", unit="MHz"),
         )
+        self.frequency: float
         self.setattr_argument(
             "attenuation",
             NumberValue(default=30.0, ndecimals=1, type="float", unit="dB"),
         )
+        self.attenuation: float
 
         self.setattr_argument(
             "num_points",
             NumberValue(default=0, scale=1, ndecimals=0, step=1, type="int"),
         )
+        self.num_points: int
 
         self.setattr_argument("enable_iir", BooleanValue(default=False))
+        self.enable_iir: bool
 
     def prepare(self):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
@@ -72,6 +78,7 @@ class TuneSUServo(EnvExperiment):
         self.set_this_attenuation(self.attenuation)
 
         self.set_dds_params(self.frequency, 1.0, False)
+        self.set_loop_params()
 
         self.suservo_channel.set(
             en_out=1, en_iir=(1 if self.enable_iir else 0), profile=PROFILE_NUM
@@ -137,3 +144,8 @@ class TuneSUServo(EnvExperiment):
         self.suservo_channel.set(
             en_out=(1 if rf_switch_state else 0), en_iir=0, profile=PROFILE_NUM
         )
+
+    @kernel
+    def set_loop_params(self):
+
+        self.suservo_channel.set_iir(PROFILE_NUM, self.ad)
