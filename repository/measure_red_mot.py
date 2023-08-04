@@ -365,8 +365,8 @@ class _NarrowbandBase(_BroadbandBase):
         self.setattr_fragment(
             "narrow_red_capture_phase",
             NarrowRedCapturePhase,
-            self.red_mot_controller,
-            self.chamber_2_field_setter,
+            red_mot_controller=self.red_mot_controller,
+            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
 
@@ -379,8 +379,7 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
 
-        # FIXME
-        # self.narrow_red_capture_phase.do_phase()
+        self.narrow_red_capture_phase.do_phase()
 
         self.pulse_blue_and_image()
 
