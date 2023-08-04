@@ -13,6 +13,7 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
@@ -315,12 +316,15 @@ class _RampingPhase(Fragment):
             # Play the ramp
             for _ in range(num_points):
                 self.gradient_current_setter.set_currents([this_current])
+                delay_mu(
+                    int64(self.core.ref_multiplier)
+                )  # Try to avoid using multiple lanes
                 self.red_mot_controller.set_mot_detuning(this_detuning)
 
                 this_current += current_step
                 this_detuning += detuning_step
 
-                delay_mu(time_step_mu)
+                delay_mu(time_step_mu - int64(self.core.ref_multiplier))
 
     @kernel
     def do_phase(self):
