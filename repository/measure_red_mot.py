@@ -411,12 +411,6 @@ class _NarrowbandBase(_BroadbandBase):
 
 
 class NarrowbandTestFrag(_NarrowbandBase):
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_device("core_dma")
-        self.core_dma: CoreDMA
-
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
