@@ -34,7 +34,7 @@ class TestPhase(_RampingPhase):
     end_suservo_nominal_multiple_default = 10.0
 
 
-class TestRampingPhase(ExpFragment):
+class TestRampingPhaseFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -68,3 +68,6 @@ class TestRampingPhase(ExpFragment):
         self.core.wait_until_mu(now_mu())
 
         logger.info("Phase output completed")
+
+
+TestRampingPhase = make_fragment_scan_exp(TestRampingPhaseFrag)
