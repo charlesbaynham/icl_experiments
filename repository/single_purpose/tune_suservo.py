@@ -161,13 +161,15 @@ class TuneSUServo(EnvExperiment):
         frequency: TFloat,
         amplitude: TFloat,
         rf_switch_state: TBool,
-        setpoint: TFloat,
+        setpoint_v: TFloat,
     ):
+        # Setpoints are stored in units of full scale, where 1.0 -> +10V, -1.0 -> -10V
+        setpoint = -1.0 * setpoint_v / 10.0
         # Configure profile 0 to have the requested amplitude and frequency
         self.suservo_channel.set_y(profile=0, y=amplitude)
         self.suservo_channel.set_dds(
             profile=PROFILE_NUM,
-            offset=-1.0 * setpoint,
+            offset=setpoint,
             frequency=frequency,
             phase=0.0,
         )
