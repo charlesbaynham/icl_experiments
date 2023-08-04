@@ -82,12 +82,14 @@ class TestRampingPhaseFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        logger.info("Setting detuning to -300 kHz")
+        detuning = -300e3
+        logger.info("Setting detuning to %f kHz", 1e-3 * detuning)
 
         self.core.reset()
         # self.red_mot_controller.set_mot_detuning(-300e3)
 
-        self.injection_aom.set_frequency(-300e3)
+        self.injection_aom.init()
+        self.injection_aom.set_frequency(340e6 + detuning)
 
         # logger.info("Starting test phase")
 
