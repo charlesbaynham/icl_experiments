@@ -61,6 +61,7 @@ class TestRampingPhaseFrag(ExpFragment):
         logger.info("Starting test phase")
 
         self.core.reset()
+        delay(1.0)
         self.test_phase.do_phase()
 
         logger.info("Phase queuing completed")
