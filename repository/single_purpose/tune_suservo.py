@@ -72,7 +72,7 @@ class TuneSUServo(EnvExperiment):
         self.suservo_channel.set(en_out=1, en_iir=1, profile=PROFILE_NUM)
 
         for i in range(self.num_points):
-            val = self.suservo_channel.get_y(PROFILE_NUM)
+            val = self.suservo.get_adc(self.adc_channel)
             delay(100e-3)
             if i == 0:
                 self.set_dataset("voltages", [val], broadcast=True)
