@@ -139,6 +139,12 @@ class Red3DMOTFrag(Fragment):
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "debug_mode",
+        }
+
     def host_setup(self):
         super().host_setup()
         assert self.ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
@@ -270,6 +276,9 @@ class Red3DMOTFrag(Fragment):
         Args:
             detuning (float): Detuning in Hz
         """
+        if self.debug_mode:
+            logger.info("Setting AOM detuning to %.3f kHz", detuning * 1e-3)
+
         self.injection_aom.set_frequency(
             constants.RED_INJECTION_AOM_FREQUENCY + detuning
         )
