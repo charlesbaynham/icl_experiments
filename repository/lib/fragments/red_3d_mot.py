@@ -285,4 +285,4 @@ class Red3DMOTFrag(Fragment):
                 self.injection_aom,
             )
 
-        self.injection_aom.set_frequency(freq)
+        self.injection_aom.set(freq)
