@@ -388,7 +388,7 @@ class NarrowRedCompressionPhase(_RampingPhase):
     end_suservo_nominal_multiple_default = 1.0
 
 
-class _NarrowbandBase(_BroadbandBase):
+class NarrowbandTestFrag(_BroadbandBase):
     def build_fragment(self):
         super().build_fragment()
 
@@ -409,8 +409,6 @@ class _NarrowbandBase(_BroadbandBase):
         )
         self.narrow_red_compression_phase: NarrowRedCapturePhase
 
-
-class NarrowbandTestFrag(_NarrowbandBase):
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
