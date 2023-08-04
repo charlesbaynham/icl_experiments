@@ -330,6 +330,9 @@ class _RampingPhase(Fragment):
 
                 t_this_cycle_mu += time_step_mu
 
+        if self.debug_enabled:
+            logger.info('Saving dma trace as "%s"', self.fqn)
+
     @kernel
     def do_phase(self):
         """
