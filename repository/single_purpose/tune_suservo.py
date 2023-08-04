@@ -63,6 +63,7 @@ class TuneSUServo(EnvExperiment):
 
         self.core.reset()
         self.suservo.init()
+        self.suservo.set_config(enable=1)
 
         self.set_all_attenuations(30.0)
         self.set_this_attenuation(self.attenuation)
