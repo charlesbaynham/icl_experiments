@@ -152,9 +152,9 @@ class _RampingPhase(Fragment):
     start_suservo_nominal_multiple_default = 1.0
     end_suservo_nominal_multiple_default = 1.0
 
-    def build_fragment(self, red_mot_controller, chamber_2_field_setter):
-        print(f"Hello, I'm {self} of type {self.__class__} and my fqn is {self.fqn}")
-        print(f"self.__class__.__qualname__ = {self.__class__.__qualname__}")
+    def build_fragment(
+        self, *args, red_mot_controller=None, chamber_2_field_setter=None
+    ):
         # %% Fragments
         #
         # Unusually, here we pass fragments in via arguments to build_fragment
@@ -163,7 +163,7 @@ class _RampingPhase(Fragment):
         # subfragments, and to prevent proliferation of arguments in the ndscan
         # interface which don't need to be there (without having to do loads of
         # rebinding). Time will tell whether this is a good idea or not.
-
+        #
         # Note from future Charles - this decision seems to cause ndscan to not
         # know how to display this fragment's parameters, treating them for some
         # reason as children of the SetMagneticFields object. So far, this seems
@@ -171,6 +171,21 @@ class _RampingPhase(Fragment):
         #
         # N.B.B. It also seems like this prevents me from overriding these
         # parameters. Dang, that's not usable therefore.
+        #
+        # N.B.B.B. This can be hacked... The problem comes from ndscan's attempt
+        # to mangle arguments to fragments into its FQN. If I get around this by
+        # passing the objects as keyword arguments instead of arguments then I
+        # can avoid this. This is horribly ugly though, and is abusing a
+        # "feature" of ndscan which they actively intend to fix at some point
+        # according to comments.
+
+        if red_mot_controller is None or chamber_2_field_setter is None:
+            raise TypeError(
+                "You must pass instances of Red3DMOTFrag and SetMagneticFields "
+                "as keyword arguments to the build_fragment method of this subfragment. "
+                "This is a hack - see inline comments."
+            )
+
         self.red_mot_controller: Red3DMOTFrag = red_mot_controller
         self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
         self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
