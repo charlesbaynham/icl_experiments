@@ -15,10 +15,10 @@ import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.cavity_control import LaserStabilisationSystem
-from repository.lib.fragments.pyaion_override import ControlBeamsWithoutCoolingAOM
-from repository.lib.fragments.urukul_default_attenuation import (
+from repository.lib.fragments.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
+from repository.lib.fragments.pyaion_override import ControlBeamsWithoutCoolingAOM
 
 
 logger = logging.getLogger(__name__)
