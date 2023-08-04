@@ -343,7 +343,6 @@ class _RampingPhase(Fragment):
             logger.info(
                 'Saving dma trace as "%s", with handle "%s"', self.fqn, self.dma_handle
             )
-            logger.info("whereas self.dma_handle = %s", self.dma_handle)
 
     @kernel
     def do_phase(self):
@@ -354,7 +353,7 @@ class _RampingPhase(Fragment):
         Advances the timeline to the end of the ramp
         """
 
-        self.core_dma.playback(self.fqn)
+        self.core_dma.playback_handle(self.dma_handle)
 
         # TODO: Write AD9910 single ramp code
         # TODO: Consider how the Fastino CIC interpolator could be used to implement ramps more efficiently
