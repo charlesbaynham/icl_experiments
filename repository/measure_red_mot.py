@@ -146,7 +146,7 @@ class _RampingPhase(Fragment):
     """
 
     duration_default = 100e-3
-    time_step_default = 1e-6
+    time_step_default = 100e-6
     start_detuning_default = 0.0
     end_detuning_default = 0.0
     start_gradient_default = 0.0
