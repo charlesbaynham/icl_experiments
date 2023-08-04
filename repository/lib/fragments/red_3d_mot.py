@@ -2,8 +2,6 @@ import logging
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.coredevice.urukul import CPLD
-from artiq.coredevice.urukul import urukul_sta_pll_lock
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
@@ -18,6 +16,9 @@ from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.cavity_control import LaserStabilisationSystem
 from repository.lib.fragments.pyaion_override import ControlBeamsWithoutCoolingAOM
+from repository.lib.fragments.urukul_default_attenuation import (
+    GlitchFreeUrukulDefaultAttenuation,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -65,6 +66,14 @@ class Red3DMOTFrag(Fragment):
             "urukul9910_aom_doublepass_689_red_injection",
         )
         self.injection_aom_ramper: AD9910Ramper
+
+        self.setattr_fragment(
+            "GlitchFreeUrukulDefaultAttenuation",
+            GlitchFreeUrukulDefaultAttenuation,
+            "urukul9910_aom_doublepass_689_red_injection",
+            constants.RED_INJECTION_AOM_ATTENUATION,
+        )
+        self.GlitchFreeUrukulDefaultAttenuation: GlitchFreeUrukulDefaultAttenuation
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
@@ -171,47 +180,6 @@ class Red3DMOTFrag(Fragment):
         )
         self.injection_aom.cfg_sw(True)
         self.injection_aom.sw.on()
-
-        # Read the status register from the CPLD - we'll use this to detect
-        # whether the PLL is locked and treat this as a proxy for "has this DDS
-        # been set up already?" so we can avoid glitches from doing it again
-        # which might e.g. unlock injected diodes
-        status = self.injection_aom.cpld.sta_read()
-
-        if urukul_sta_pll_lock(status):
-            if self.debug_mode:
-                logger.info(
-                    "Skipping Urukul attenuation setting - we're assuming it is unchanged from %.1f",
-                    constants.RED_INJECTION_AOM_ATTENUATION,
-                )
-        else:
-            logger.warning(
-                "Urukul PLL unlocked - reinitiating DDS and CPLD and setting attenuation to %.1f",
-                constants.RED_INJECTION_AOM_ATTENUATION,
-            )
-
-            # Initiate the CPLD and DDS. This won't happen again since next time
-            # this code runs the PLL will be locked
-            self.core.break_realtime()
-            self.injection_aom.cpld.init()
-            self.injection_aom.init()
-
-            # Start the injection AOM in static mode. Every write to the
-            # attenuator (including the write that happens when you just
-            # "read"!) caused a small glitch on the output which is enough to
-            # unlock IJDs. The proper fix for this is documented in our Onenote
-            # 2023-07-04 but hasn't been implemented yet.
-            #
-            # For now, we just assume that if the PLL is locked then the
-            # attenuation has already been set, and we remove the user's ability
-            # to change the attenuation. If the attenuation is changed in code,
-            # you should power cycle the crate to prompt a reload.
-            self.injection_aom.cpld.get_att_mu()  # retrive current attenuation settings for other registers
-            self.injection_aom.set_att(constants.RED_INJECTION_AOM_ATTENUATION)
-
-            if self.debug_mode:
-                logger.info("Read status register: 0x%X", status)
-                logger.info("Urukul PLL status = %s", urukul_sta_pll_lock(status))
 
     @kernel
     def init(self):
