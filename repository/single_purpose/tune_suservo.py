@@ -1,10 +1,11 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
 from artiq.coredevice.urukul import CPLD
-from artiq.experiment import BooleanValue
+from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
@@ -47,9 +48,15 @@ class TuneSUServo(EnvExperiment):
             NumberValue(default=30.0, ndecimals=1, type="float", unit="dB"),
         )
 
+        self.setattr_argument(
+            "num_points",
+            NumberValue(default=0, scale=1, ndecimals=0, step=1, type="int"),
+        )
+
     def prepare(self):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
         self.suservo: SUServo = self.suservo_channel.servo
+        self.set_dataset("voltages", np.array([], dtype=float))
 
     @kernel
     def run(self):
@@ -64,6 +71,10 @@ class TuneSUServo(EnvExperiment):
         self.set_dds_params(self.frequency, 1.0, False)
 
         self.suservo_channel.set(en_out=1, en_iir=1, profile=PROFILE_NUM)
+
+        for _ in range(self.num_points):
+            delay(100e-3)
+            self.append_to_dataset("voltages", self.suservo_channel.get_y(PROFILE_NUM))
 
     @kernel
     def set_all_attenuations(self, attenuation: TFloat):
