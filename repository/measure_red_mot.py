@@ -360,8 +360,6 @@ class _RampingPhase(Fragment):
 
         self.core_dma.playback_handle(self.dma_handle)
 
-        # TODO: Write AD9910 single ramp code
-        # TODO: Consider how the Fastino CIC interpolator could be used to implement ramps more efficiently
         # TODO: Tune SUServos
         # TODO: Ramp SUServos
 
