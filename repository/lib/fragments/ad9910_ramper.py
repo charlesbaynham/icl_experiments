@@ -40,21 +40,6 @@ class AD9910Ramper(Fragment):
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
-    def device_setup(self) -> None:
-        self.device_setup_subfragments()
-
-        # Read the Urukul CPLD and see if any DDSs have unlocked PLLs. If not,
-        # assume that they have already been init()ed and don't do it again to
-        # avoid glitches
-
-        self.core.break_realtime()
-        status = self.urukul.sta_read()
-
-        if self.debug_mode:
-            logger.info("Read status register: 0x%X", status)
-            logger.info("Urukul PLL status = %s", urukul_sta_pll_lock(status))
-
-    @kernel
     def _extended_set_cfr2(
         self,
         asf_profile_enable: TInt32 = 1,
