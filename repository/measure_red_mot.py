@@ -161,6 +161,11 @@ class _RampingPhase(Fragment):
         # subfragments, and to prevent proliferation of arguments in the ndscan
         # interface which don't need to be there (without having to do loads of
         # rebinding). Time will tell whether this is a good idea or not.
+
+        # Note from future Charles - this decision seems to cause ndscan to not
+        # know how to display this fragment's parameters, treating them for some
+        # reason as children of the SetMagneticFields object. So far, this seems
+        # to be the only adverse effect. Still might be worth avoiding however.
         self.red_mot_controller: Red3DMOTFrag = red_mot_controller
         self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
         self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
