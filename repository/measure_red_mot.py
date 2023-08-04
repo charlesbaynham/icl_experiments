@@ -314,7 +314,6 @@ class _RampingPhase(Fragment):
             this_current = self.start_gradient.get()
             this_detuning = self.start_detuning.get()
 
-            t_start = now_mu()
             t_this_cycle_mu = now_mu()
 
             # Play the ramp
@@ -330,11 +329,6 @@ class _RampingPhase(Fragment):
                 this_detuning += detuning_step
 
                 t_this_cycle_mu += time_step_mu
-
-            t_stop = now_mu()
-
-        logger.info("t_start = %d", t_start)
-        logger.info("t_stop = %d", t_stop)
 
     @kernel
     def do_phase(self):
@@ -389,18 +383,12 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
 
-        t1 = now_mu()
         self.narrow_red_capture_phase.do_phase()
-        t2 = now_mu()
 
-        print(t1)
-        print(t2)
-        print(t2 - t1)
+        self.pulse_blue_and_image()
 
-        # self.pulse_blue_and_image()
-
-        # self.core.wait_until_mu(now_mu())
-        # self.camera_interface.save_data()
+        self.core.wait_until_mu(now_mu())
+        self.camera_interface.save_data()
 
 
 class MeasureBBRedMOTFrag(_BroadbandBase):
