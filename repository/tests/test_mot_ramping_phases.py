@@ -84,19 +84,19 @@ class TestRampingPhaseFrag(ExpFragment):
         self.core.reset()
         self.red_mot_controller.set_mot_detuning(-300e-3)
 
-        logger.info("Starting test phase")
+        # logger.info("Starting test phase")
 
-        self.core.break_realtime()
+        # self.core.break_realtime()
 
-        for _ in range(self.num_repeats.get()):
-            delay(self.delay_between_phases.get())
-            self.test_phase.do_phase()
+        # for _ in range(self.num_repeats.get()):
+        #     delay(self.delay_between_phases.get())
+        #     self.test_phase.do_phase()
 
-        logger.info("Phase queuing completed")
+        # logger.info("Phase queuing completed")
 
-        self.core.wait_until_mu(now_mu())
+        # self.core.wait_until_mu(now_mu())
 
-        logger.info("Phase output completed")
+        # logger.info("Phase output completed")
 
 
 TestRampingPhase = make_fragment_scan_exp(TestRampingPhaseFrag)
