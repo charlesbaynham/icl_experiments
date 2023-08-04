@@ -337,11 +337,11 @@ class _RampingPhase(Fragment):
 
                 t_this_cycle_mu += time_step_mu
 
-        dma_handle = self.core_dma.get_handle(self.fqn)
+        self.dma_handle = self.core_dma.get_handle(self.fqn)
 
         if self.debug_enabled:
             logger.info(
-                'Saving dma trace as "%s", with handle "%s"', self.fqn, dma_handle
+                'Saving dma trace as "%s", with handle "%s"', self.fqn, self.dma_handle
             )
             logger.info("whereas self.dma_handle = %s", self.dma_handle)
 
