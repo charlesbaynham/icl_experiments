@@ -279,10 +279,11 @@ class Red3DMOTFrag(Fragment):
 
         if self.debug_mode:
             logger.info(
-                "Setting AOM detuning to %.3f kHz = %.6f MHz on %s",
+                "[BR] Setting AOM detuning to %.3f kHz = %.6f MHz on %s",
                 detuning * 1e-3,
                 freq * 1e-6,
                 self.injection_aom,
             )
+            self.core.break_realtime()
 
         self.injection_aom.set_frequency(freq)
