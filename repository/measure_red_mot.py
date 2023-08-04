@@ -339,10 +339,10 @@ class _RampingPhase(Fragment):
 
         self.dma_handle = self.core_dma.get_handle(self.fqn)
 
-        # if self.debug_enabled:
-        logger.warning(
-            'Saving dma trace as "%s", with handle "%s"', self.fqn, self.dma_handle
-        )
+        if self.debug_enabled:
+            logger.info(
+                'Saving dma trace as "%s", with handle "%s"', self.fqn, self.dma_handle
+            )
 
     @kernel
     def do_phase(self):
@@ -437,16 +437,6 @@ class NarrowbandTestFrag(_NarrowbandBase):
 
     @kernel
     def run_once(self):
-        logger.warning(
-            "handle from toplevel: %s",
-            self.core_dma.get_handle("measure_red_mot.NarrowRedCapturePhase"),
-        )
-        logger.warning(
-            "handle from toplevel: %s",
-            self.core_dma.get_handle("measure_red_mot.NarrowRedCompressionPhase"),
-        )
-
-        self.core.break_realtime()
         self.prepare_and_load_blue_mot()
 
         self.start_red_broadband()
