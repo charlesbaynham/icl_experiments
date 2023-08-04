@@ -51,8 +51,8 @@ class TestRampingPhaseFrag(ExpFragment):
         self.setattr_fragment(
             "test_phase",
             TestPhase,
-            # self.red_mot_controller,
-            # self.chamber_2_field_setter,
+            red_mot_controller=self.red_mot_controller,
+            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.test_phase: TestPhase
 
