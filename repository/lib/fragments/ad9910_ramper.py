@@ -50,12 +50,13 @@ class AD9910Ramper(Fragment):
         self.core.break_realtime()
         status = self.urukul.sta_read()
 
-        if not urukul_sta_pll_lock(status):
-            logger.warning("Urukul PLL unlocked - reinitiating DDS and CPLD")
+        # FIXME: Undo comment
+        # if not urukul_sta_pll_lock(status):
+        #     logger.warning("Urukul PLL unlocked - reinitiating DDS and CPLD")
 
-            self.core.break_realtime()
-            self.urukul.init()
-            self.dds.init()
+        #     self.core.break_realtime()
+        #     self.urukul.init()
+        #     self.dds.init()
 
         if self.debug_mode:
             logger.info("Read status register: 0x%X", status)
