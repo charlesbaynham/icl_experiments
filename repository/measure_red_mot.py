@@ -433,6 +433,8 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
 
+        self.red_mot_controller.stop_ramping_red()
+
         # This funny structure exists so that the imaging pulse happens after
         # the phase is completed, despite the phase ending with only a small
         # amount of slack and the shutter pre-opening requiring at least 20ms
