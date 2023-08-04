@@ -398,6 +398,13 @@ class _NarrowbandBase(_BroadbandBase):
 
 class NarrowbandTestFrag(_NarrowbandBase):
     @kernel
+    def print_slack(self):
+        logger.info(
+            "slack = %.3f us",
+            1e6 * self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu()),
+        )
+
+    @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
 
@@ -405,6 +412,8 @@ class NarrowbandTestFrag(_NarrowbandBase):
         delay(self.red_broadband_time.get())
 
         self.narrow_red_capture_phase.do_phase()
+
+        self.print_slack()
 
         # This funny structure exists so that the imaging pulse happens after
         # the phase is completed, despite the phase ending with only a small
