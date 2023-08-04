@@ -68,11 +68,11 @@ class TuneSUServo(EnvExperiment):
         )
         self.setattr_argument(
             "ki",
-            NumberValue(default=1.0, ndecimals=5, type="float"),
+            NumberValue(default=0.0, ndecimals=5, type="float"),
         )
         self.setattr_argument(
             "gain_limit",
-            NumberValue(default=1.0, ndecimals=1, type="float"),
+            NumberValue(default=0.0, ndecimals=1, type="float"),
         )
         self.setattr_argument(
             "delay",
