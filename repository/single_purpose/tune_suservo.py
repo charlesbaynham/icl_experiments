@@ -61,7 +61,7 @@ class TuneSUServo(EnvExperiment):
         self.set_all_attenuations(30.0)
         self.set_this_attenuation(self.attenuation)
 
-        self.set_dds_params(self.frequency, 0.0, False)
+        self.set_dds_params(self.frequency, 1.0, False)
 
         self.suservo_channel.set(en_out=1, en_iir=1, profile=PROFILE_NUM)
 
@@ -82,7 +82,7 @@ class TuneSUServo(EnvExperiment):
 
         self.core.break_realtime()
         cpld = self.suservo_channel.dds.cpld  # type: CPLD
-        cpld.get_all_att_mu(att_reg)
+        cpld.get_att_mu()
         attenuation_mu = cpld.att_to_mu(attenuation)
         att_reg = (
             attenuation_mu
