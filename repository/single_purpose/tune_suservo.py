@@ -56,10 +56,13 @@ class TuneSUServo(EnvExperiment):
     def prepare(self):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
         self.suservo: SUServo = self.suservo_channel.servo
+
+    def run(self):
         self.set_dataset("voltages", np.array([], dtype=float))
+        self.run_core()
 
     @kernel
-    def run(self):
+    def run_core(self):
         # Initiate the suservo itself (i.e. all four channels)
 
         self.core.reset()
