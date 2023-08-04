@@ -72,9 +72,8 @@ class Red3DMOTFrag(Fragment):
 
         # %% DEVICES
 
-        self.injection_aom: AD9910 = self.get_device(
-            "urukul9910_aom_doublepass_689_red_injection"
-        )
+        self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
+        self.injection_aom: AD9910 = self.urukul9910_aom_doublepass_689_red_injection
 
         # %% PARAMETERS
 
@@ -276,9 +275,13 @@ class Red3DMOTFrag(Fragment):
         Args:
             detuning (float): Detuning in Hz
         """
-        if self.debug_mode:
-            logger.info("Setting AOM detuning to %.3f kHz", detuning * 1e-3)
+        freq = constants.RED_INJECTION_AOM_FREQUENCY + detuning
 
-        self.injection_aom.set_frequency(
-            constants.RED_INJECTION_AOM_FREQUENCY + detuning
-        )
+        if self.debug_mode:
+            logger.info(
+                "Setting AOM detuning to %.3f kHz = %.6f MHz",
+                detuning * 1e-3,
+                freq * 1e-6,
+            )
+
+        self.injection_aom.set_frequency(freq)
