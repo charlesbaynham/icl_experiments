@@ -152,7 +152,7 @@ class _RampingPhase(Fragment):
     start_suservo_nominal_multiple_default = 1.0
     end_suservo_nominal_multiple_default = 1.0
 
-    def build_fragment(self, red_mot_controller, chamber_2_field_setter):
+    def build_fragment(self):  # , red_mot_controller, chamber_2_field_setter):
         print(f"Hello, I'm {self} of type {self.__class__} and my fqn is {self.fqn}")
         # %% Fragments
         #
@@ -170,9 +170,9 @@ class _RampingPhase(Fragment):
         #
         # N.B.B. It also seems like this prevents me from overriding these
         # parameters. Dang, that's not usable therefore.
-        self.red_mot_controller: Red3DMOTFrag = red_mot_controller
-        self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
-        self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
+        # self.red_mot_controller: Red3DMOTFrag = red_mot_controller
+        # self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
+        # self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
 
         # %% Devices
 
