@@ -383,12 +383,24 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
 
+        t_start = now_mu()
+
         self.narrow_red_capture_phase.do_phase()
 
-        self.pulse_blue_and_image()
+        t_arrive = self.core.get_rtio_counter_mu()
 
-        self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
+        t_end = now_mu()
+
+        logger.info("t_start = %s", t_start)
+        logger.info("t_arrive = %s", t_arrive)
+        logger.info("t_end = %s", t_end)
+        logger.info("t_end - t_start = %s", self.core.mu_to_seconds(t_end - t_start))
+        logger.info("t_end - t_arrive = %s", self.core.mu_to_seconds(t_end - t_arrive))
+
+        # self.pulse_blue_and_image()
+
+        # self.core.wait_until_mu(now_mu())
+        # self.camera_interface.save_data()
 
 
 class MeasureBBRedMOTFrag(_BroadbandBase):
