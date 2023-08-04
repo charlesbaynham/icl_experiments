@@ -56,12 +56,22 @@ class TestRampingPhaseFrag(ExpFragment):
         )
         self.test_phase: TestPhase
 
+        self.setattr_param(
+            "delay_before_playback",
+            FloatParam,
+            description="Delay before starting DMA playback",
+            default=1.0,
+            unit="ms",
+            min=0.0,
+        )
+        self.delay_before_playback: FloatParamHandle
+
     @kernel
     def run_once(self):
         logger.info("Starting test phase")
 
         self.core.reset()
-        delay(1.0)
+        delay(self.delay_before_playback.get())
         self.test_phase.do_phase()
 
         logger.info("Phase queuing completed")
