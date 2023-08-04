@@ -280,6 +280,7 @@ class _RampingPhase(Fragment):
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        self.dma_handle = (int32(0), int64(0), int32(0))
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -342,6 +343,7 @@ class _RampingPhase(Fragment):
             logger.info(
                 'Saving dma trace as "%s", with handle "%s"', self.fqn, dma_handle
             )
+            logger.info("whereas self.dma_handle = %s", self.dma_handle)
 
     @kernel
     def do_phase(self):
