@@ -152,8 +152,9 @@ class _RampingPhase(Fragment):
     start_suservo_nominal_multiple_default = 1.0
     end_suservo_nominal_multiple_default = 1.0
 
-    def build_fragment(self):  # , red_mot_controller, chamber_2_field_setter):
+    def build_fragment(self, red_mot_controller=None, chamber_2_field_setter=None):
         print(f"Hello, I'm {self} of type {self.__class__} and my fqn is {self.fqn}")
+        print(f"self.__class__.__qualname__ = {self.__class__.__qualname__}")
         # %% Fragments
         #
         # Unusually, here we pass fragments in via arguments to build_fragment
