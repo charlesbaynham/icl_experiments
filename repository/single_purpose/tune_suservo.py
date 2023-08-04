@@ -64,11 +64,11 @@ class TuneSUServo(EnvExperiment):
 
         self.setattr_argument(
             "kp",
-            NumberValue(default=1.0, ndecimals=1, type="float"),
+            NumberValue(default=1.0, ndecimals=5, type="float"),
         )
         self.setattr_argument(
             "ki",
-            NumberValue(default=1.0, ndecimals=1, type="float"),
+            NumberValue(default=1.0, ndecimals=5, type="float"),
         )
         self.setattr_argument(
             "gain_limit",
@@ -78,10 +78,15 @@ class TuneSUServo(EnvExperiment):
             "delay",
             NumberValue(default=0.0, ndecimals=1, type="float", unit="us"),
         )
+        self.setattr_argument(
+            "setpoint",
+            NumberValue(default=1.0, ndecimals=1, type="float", unit="V"),
+        )
         self.kp: float
         self.ki: float
         self.gain_limit: float
         self.delay: float
+        self.setpoint: float
 
     def prepare(self):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
@@ -98,7 +103,7 @@ class TuneSUServo(EnvExperiment):
         self.set_all_attenuations(30.0)
         self.set_this_attenuation(self.attenuation)
 
-        self.set_dds_params(self.frequency, 1.0, False)
+        self.set_dds_params(self.frequency, 1.0, False, self.setpoint)
         self.suservo_channel.set_iir(
             PROFILE_NUM, self.adc_channel, self.kp, self.ki, self.gain_limit, self.delay
         )
@@ -152,13 +157,17 @@ class TuneSUServo(EnvExperiment):
 
     @kernel
     def set_dds_params(
-        self, frequency: TFloat, amplitude: TFloat, rf_switch_state: TBool
+        self,
+        frequency: TFloat,
+        amplitude: TFloat,
+        rf_switch_state: TBool,
+        setpoint: TFloat,
     ):
         # Configure profile 0 to have the requested amplitude and frequency
         self.suservo_channel.set_y(profile=0, y=amplitude)
         self.suservo_channel.set_dds(
             profile=PROFILE_NUM,
-            offset=-0.5,  # Not used
+            offset=-1.0 * setpoint,
             frequency=frequency,
             phase=0.0,
         )
