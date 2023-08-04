@@ -399,6 +399,18 @@ class _NarrowbandBase(_BroadbandBase):
 
 
 class NarrowbandTestFrag(_NarrowbandBase):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "gap_between_phases",
+            FloatParam,
+            description="gap_between_phases",
+            default=0.0,
+            unit="us",
+        )
+        self.gap_between_phases: FloatParamHandle
+
     @kernel
     def print_slack(self):
         logger.info(
@@ -415,7 +427,7 @@ class NarrowbandTestFrag(_NarrowbandBase):
 
         self.narrow_red_capture_phase.do_phase()
 
-        self.print_slack()
+        delay(self.gap_between_phases.get())
 
         # This funny structure exists so that the imaging pulse happens after
         # the phase is completed, despite the phase ending with only a small
