@@ -77,12 +77,17 @@ class TestRampingPhaseFrag(ExpFragment):
         )
         self.num_repeats: IntParamHandle
 
+        self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
+        self.injection_aom: AD9910 = self.urukul9910_aom_doublepass_689_red_injection
+
     @kernel
     def run_once(self):
         logger.info("Setting detuning to -300 kHz")
 
         self.core.reset()
-        self.red_mot_controller.set_mot_detuning(-300e3)
+        # self.red_mot_controller.set_mot_detuning(-300e3)
+
+        self.injection_aom.set_frequency(-300e3)
 
         # logger.info("Starting test phase")
 
