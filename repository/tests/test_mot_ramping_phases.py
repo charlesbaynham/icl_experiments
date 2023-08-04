@@ -82,7 +82,7 @@ class TestRampingPhaseFrag(ExpFragment):
         logger.info("Setting detuning to -300 kHz")
 
         self.core.reset()
-        self.red_mot_controller.set_mot_detuning(-300e-3)
+        self.red_mot_controller.set_mot_detuning(-300e3)
 
         # logger.info("Starting test phase")
 
