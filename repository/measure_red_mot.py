@@ -446,18 +446,20 @@ class NarrowbandTestFrag(_NarrowbandBase):
 
         delay(self.gap_between_phases.get())
 
-        # This funny structure exists so that the imaging pulse happens after
-        # the phase is completed, despite the phase ending with only a small
-        # amount of slack and the shutter pre-opening requiring at least 20ms
-        with parallel:
-            with sequential:
-                delay(self.narrow_red_compression_phase.duration.get())
-                self.pulse_blue_and_image()
+        self.narrow_red_compression_phase.do_phase()
 
-            self.narrow_red_compression_phase.do_phase()
+        # # This funny structure exists so that the imaging pulse happens after
+        # # the phase is completed, despite the phase ending with only a small
+        # # amount of slack and the shutter pre-opening requiring at least 20ms
+        # with parallel:
+        #     with sequential:
+        #         delay(self.narrow_red_compression_phase.duration.get())
+        #         self.pulse_blue_and_image()
 
-        self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
+        #     self.narrow_red_compression_phase.do_phase()
+
+        # self.core.wait_until_mu(now_mu())
+        # self.camera_interface.save_data()
 
 
 class MeasureBBRedMOTFrag(_BroadbandBase):
