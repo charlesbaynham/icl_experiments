@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -314,9 +315,11 @@ class _RampingPhase(Fragment):
             this_detuning = self.start_detuning.get()
 
             t_start = now_mu()
+            t_this_cycle_mu = now_mu()
 
             # Play the ramp
             for _ in range(num_points):
+                at_mu(t_this_cycle_mu)
                 self.gradient_current_setter.set_currents([this_current])
                 delay_mu(
                     int64(self.core.ref_multiplier)
@@ -326,7 +329,7 @@ class _RampingPhase(Fragment):
                 this_current += current_step
                 this_detuning += detuning_step
 
-                delay_mu(time_step_mu - int64(self.core.ref_multiplier))
+                t_this_cycle_mu += time_step_mu
 
             t_stop = now_mu()
 
