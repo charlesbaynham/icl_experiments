@@ -3,6 +3,7 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import urukul_sta_pll_lock
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 
@@ -92,6 +93,7 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
             # to change the attenuation. If the attenuation is changed in code,
             # you should power cycle the crate to prompt a reload.
             self.dds.cpld.get_att_mu()  # retrive current attenuation settings for other registers
+            self.core.break_realtime()
             self.dds.set_att(self.default_attenuation)
 
             if self.debug_mode:
