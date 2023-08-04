@@ -288,6 +288,8 @@ class _RampingPhase(Fragment):
 
     @kernel
     def device_setup(self):
+        self.device_setup_subfragments()
+
         # Compute grid for writes
         num_points = 1 + int(self.duration.get() // self.time_step.get())
         time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
