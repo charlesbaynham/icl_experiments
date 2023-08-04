@@ -94,7 +94,7 @@ class _BroadbandBase(ExpFragment):
         self.red_mot_controller.init()
 
         # Clear the camera buffer in case we quit a previous sequence midway
-        self.camera_interface.clear()
+        self.camera_interface.clear()  # FIXME: move to device_setup of dual camera interface
 
         self.core.break_realtime()
 
