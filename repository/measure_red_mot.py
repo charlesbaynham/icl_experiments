@@ -353,7 +353,10 @@ class _RampingPhase(Fragment):
         Advances the timeline to the end of the ramp
         """
 
-        logger.warning(self.dma_handle)
+        # Mangle the DMA handle so that the epoch matches. This seems like a bug
+        # in ARTIQ that I'm working around
+        _, h1, h2 = self.dma_handle
+        self.dma_handle = (self.core_dma.epoch, h1, h2)
 
         self.core_dma.playback_handle(self.dma_handle)
 
