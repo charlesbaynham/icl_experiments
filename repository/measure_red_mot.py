@@ -364,11 +364,21 @@ class NarrowRedCapturePhase(_RampingPhase):
     end_suservo_nominal_multiple_default = 10.0
 
 
+class NarrowRedCompressionPhase(_RampingPhase):
+    duration_default = 100e-3
+    start_detuning_default = 50e3
+    end_detuning_default = 10e3
+    start_gradient_default = 1.0
+    end_gradient_default = 1.0
+    start_suservo_nominal_multiple_default = 10.0
+    end_suservo_nominal_multiple_default = 1.0
+
+
 class _NarrowbandBase(_BroadbandBase):
     def build_fragment(self):
         super().build_fragment()
 
-        # Add one red MOT phase as a test
+        # Add red phase fragments
         self.setattr_fragment(
             "narrow_red_capture_phase",
             NarrowRedCapturePhase,
@@ -376,6 +386,14 @@ class _NarrowbandBase(_BroadbandBase):
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
+
+        self.setattr_fragment(
+            "narrow_red_compression_phase",
+            NarrowRedCompressionPhase,
+            red_mot_controller=self.red_mot_controller,
+            chamber_2_field_setter=self.chamber_2_field_setter,
+        )
+        self.narrow_red_compression_phase: NarrowRedCapturePhase
 
 
 class NarrowbandTestFrag(_NarrowbandBase):
@@ -386,15 +404,17 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
 
+        self.narrow_red_capture_phase.do_phase()
+
         # This funny structure exists so that the imaging pulse happens after
         # the phase is completed, despite the phase ending with only a small
         # amount of slack and the shutter pre-opening requiring at least 20ms
         with parallel:
             with sequential:
-                delay(self.narrow_red_capture_phase.duration.get())
+                delay(self.narrow_red_compression_phase.duration.get())
                 self.pulse_blue_and_image()
 
-            self.narrow_red_capture_phase.do_phase()
+            self.narrow_red_compression_phase.do_phase()
 
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
