@@ -81,6 +81,11 @@ class TestRampingPhaseFrag(ExpFragment):
         self.injection_aom: AD9910 = self.urukul9910_aom_doublepass_689_red_injection
 
     @kernel
+    def device_setup(self):
+        # Prevent all other device_setups
+        pass
+
+    @kernel
     def run_once(self):
         detuning = -300e3
         logger.info("Setting detuning to %f kHz", 1e-3 * detuning)
