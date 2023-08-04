@@ -429,13 +429,6 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.gap_between_phases: FloatParamHandle
 
     @kernel
-    def print_slack(self):
-        logger.info(
-            "slack = %.3f us",
-            1e6 * self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu()),
-        )
-
-    @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
 
