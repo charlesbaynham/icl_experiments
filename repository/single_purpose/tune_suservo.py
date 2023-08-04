@@ -31,10 +31,11 @@ class TuneSUServo(EnvExperiment):
         self.core: Core
 
         self.setattr_argument(
-            "channel_name", EnumerationValue(get_local_devices(Channel))
+            "channel_name", EnumerationValue(get_local_devices(self, Channel))
         )
         self.setattr_argument(
-            "adc_channel", NumberValue(default=0, scale=1, ndecimals=0, type="int")
+            "adc_channel",
+            NumberValue(default=0, scale=1, ndecimals=0, step=1, type="int"),
         )
 
         self.setattr_argument(
