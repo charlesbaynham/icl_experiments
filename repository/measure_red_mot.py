@@ -153,6 +153,7 @@ class _RampingPhase(Fragment):
     end_suservo_nominal_multiple_default = 1.0
 
     def build_fragment(self, red_mot_controller, chamber_2_field_setter):
+        print(f"Hello, I'm {self} of type {self.__class__} and my fqn is {self.fqn}")
         # %% Fragments
         #
         # Unusually, here we pass fragments in via arguments to build_fragment
@@ -166,6 +167,9 @@ class _RampingPhase(Fragment):
         # know how to display this fragment's parameters, treating them for some
         # reason as children of the SetMagneticFields object. So far, this seems
         # to be the only adverse effect. Still might be worth avoiding however.
+        #
+        # N.B.B. It also seems like this prevents me from overriding these
+        # parameters. Dang, that's not usable therefore.
         self.red_mot_controller: Red3DMOTFrag = red_mot_controller
         self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
         self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
