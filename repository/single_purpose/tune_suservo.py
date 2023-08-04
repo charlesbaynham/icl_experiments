@@ -61,7 +61,7 @@ class TuneSUServo(EnvExperiment):
         self.set_all_attenuations(30.0)
         self.set_this_attenuation(self.attenuation)
 
-        self.set_dds_params(self.frequency, self.initial_amplitude, False)
+        self.set_dds_params(self.frequency, 0.0, False)
 
         self.suservo_channel.set(en_out=1, en_iir=1, profile=PROFILE_NUM)
 
