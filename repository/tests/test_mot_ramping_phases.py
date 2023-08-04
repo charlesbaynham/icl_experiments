@@ -13,6 +13,8 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
@@ -66,13 +68,24 @@ class TestRampingPhaseFrag(ExpFragment):
         )
         self.delay_before_playback: FloatParamHandle
 
+        self.setattr_param(
+            "num_repeats",
+            IntParam,
+            description="Number of times to repeat phase",
+            default=10,
+            min=1,
+        )
+        self.num_repeats: IntParamHandle
+
     @kernel
     def run_once(self):
         logger.info("Starting test phase")
 
         self.core.reset()
         delay(self.delay_before_playback.get())
-        self.test_phase.do_phase()
+
+        for _ in range(self.num_repeats.get()):
+            self.test_phase.do_phase()
 
         logger.info("Phase queuing completed")
 
