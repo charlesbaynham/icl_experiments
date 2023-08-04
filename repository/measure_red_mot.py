@@ -417,15 +417,6 @@ class NarrowbandTestFrag(_NarrowbandBase):
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
 
-        self.setattr_param(
-            "gap_between_phases",
-            FloatParam,
-            description="gap_between_phases",
-            default=0.0,
-            unit="us",
-        )
-        self.gap_between_phases: FloatParamHandle
-
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
