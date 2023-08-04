@@ -57,12 +57,8 @@ class TuneSUServo(EnvExperiment):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
         self.suservo: SUServo = self.suservo_channel.servo
 
-    def run(self):
-        self.set_dataset("voltages", np.array([], dtype=float))
-        self.run_core()
-
     @kernel
-    def run_core(self):
+    def run(self):
         # Initiate the suservo itself (i.e. all four channels)
 
         self.core.reset()
@@ -74,6 +70,8 @@ class TuneSUServo(EnvExperiment):
         self.set_dds_params(self.frequency, 1.0, False)
 
         self.suservo_channel.set(en_out=1, en_iir=1, profile=PROFILE_NUM)
+
+        self.set_dataset("voltages", [0.0])
 
         for _ in range(self.num_points):
             delay(100e-3)
