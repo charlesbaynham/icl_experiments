@@ -294,7 +294,9 @@ class _RampingPhase(Fragment):
     @kernel
     def device_setup(self):
         """
-        Records the ramps to DMA, creating self.dma_handle for later playback. Write events are staggered by 4 ns (self.core.ref_multiplier) to use only one lane
+        Records the ramps to DMA, creating self.dma_handle for later playback.
+        Write events are staggered by 8 ns (self.core.ref_multiplier) to use
+        only one lane
         """
         self.device_setup_subfragments()
 
