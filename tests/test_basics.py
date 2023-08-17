@@ -19,9 +19,7 @@ def test_import_all_modules(module_name):
     importlib.import_module(module_name)
 
 
-@pytest.mark.xfail(
-    reason="Device db has been temporarily edited to avoid clashing with the training course"
-)
+
 def test_device_db():
     from device_db import device_db
 
