@@ -241,7 +241,7 @@ class SetAnalogCurrentSupplyExpFrag(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
         delay(10e-3)
-        self.setter.set_current([self.current.get()])
+        self.setter.set_currents([self.current.get()])
 
 
 SetAnalogCurrentSupplyExp = make_fragment_scan_exp(SetAnalogCurrentSupplyExpFrag)
