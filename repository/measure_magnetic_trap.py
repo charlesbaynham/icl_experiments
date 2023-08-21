@@ -197,6 +197,17 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         )
         self.dark_time: FloatParamHandle
 
+        self.setattr_param(
+            "repump_shutter_time",
+            FloatParam,
+            description="Time to wait after repumping before imaging",
+            default=10e-3,
+            min=0,
+            unit="ms",
+            step=1,
+        )
+        self.repump_shutter_time: FloatParamHandle
+
         # Ensure that both cameras are on for the same length of time as the blue
         # fluorescence is pulsed
         self.setattr_param_rebind(
@@ -223,21 +234,6 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         self.setattr_result("mot_integrated_brightness", FloatChannel)
         self.mot_integrated_brightness: ResultChannel
-
-    @kernel
-    def pulse_blue_and_image(self):
-        """
-        Flash on the blue light and pulse the camera triggers
-
-        Advances the timeline by the duration of the imaging pulse and consumes
-        a lane
-        """
-        with parallel:
-            self.camera_interface.trigger()
-            with sequential:
-                self.mot_controller.turn_on_3d_beams()
-                delay(self.exposure.get())
-                self.mot_controller.turn_off_3d_beams()
 
     @kernel
     def run_once(self):
@@ -275,9 +271,10 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.mot_controller.turn_on_3d_beams()
         delay(20e-9)
         self.mot_controller.turn_on_repumpers()
+        delay(self.repump_shutter_time.get())
 
         # Take a photo
-        self.pulse_blue_and_image()
+        self.camera_interface.trigger()
 
         # Trigger the host to retrieve the data
         self.core.wait_until_mu(now_mu() + 1e-3)
