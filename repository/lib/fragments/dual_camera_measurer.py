@@ -114,8 +114,7 @@ class _DualCameraBase(Fragment):
         if self.num_images is None:
             raise TypeError("num_images is not set - it must be set by the subclass")
 
-        # Prepare cameras to be triggered for 2x acquisitions.
-        # We might not use both, depending on how this Fragment is subclassed
+        # Prepare cameras to be triggered for num_images acquisitions.
         self.mot_measurer_camera_horizontal.ready_for_trigger(
             self.exposure_horiz.get() * 1e6, num_images=self.num_images
         )
