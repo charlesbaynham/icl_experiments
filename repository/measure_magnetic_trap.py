@@ -21,8 +21,8 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.chamber_photodiode import MOTPhotodiodeMeasurement
-from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
+from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
+
 
 logger = logging.getLogger(__name__)
 
@@ -167,9 +167,9 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.mot_controller: Blue3DMOTFrag
 
         self.setattr_fragment(
-            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+            "camera_interface", BGCorrectedMeasurement, hardware_trigger=True
         )
-        self.camera_interface: DualCameraMeasurement
+        self.camera_interface: BGCorrectedMeasurement
 
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
         self.repumper_707_shutter: TTLOut = self.get_device("ttl_shutter_repump_707")
@@ -262,17 +262,19 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         delay(self.repump_shutter_time.get())
 
         # Take a photo
-        self.camera_interface.trigger()
+        self.camera_interface.trigger_signal()
+
+        # Clear out the atoms
+        delay(100e-3)
+        self.mot_controller.turn_off_3d_beams()  # but leave repumps on
+        delay(50e-3)
+        self.mot_controller.turn_on_3d_beams()
+        delay(10e-3)
+        self.camera_interface.trigger_background()
 
         # Trigger the host to retrieve the data
         self.core.wait_until_mu(now_mu() + 1e-3)
         self.camera_interface.save_data()
-
-        # Deluxe:
-        # Turn off the MOT beams again and turn on the repumpers
-        # Wait for atoms to disappear
-        # Turn on the MOT beams again
-        # Take background photodiode measurement
 
 
 MeasureMagneticTrapWithPhotodiode = make_fragment_scan_exp(
