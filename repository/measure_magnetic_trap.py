@@ -172,12 +172,8 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.camera_interface: DualCameraMeasurement
 
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
-        self.repumper_707_shutter: TTLOut = self.get_device(
-            "TTL_shutter_707_temporary_shutter"
-        )
-        self.repumper_679_shutter: TTLOut = self.get_device(
-            "TTL_shutter_679_temporary_shutter"
-        )
+        self.repumper_707_shutter: TTLOut = self.get_device("ttl_shutter_repump_707")
+        self.repumper_679_shutter: TTLOut = self.get_device("ttl_shutter_repump_679")
 
         self.setattr_param(
             "mot_loading_time",
