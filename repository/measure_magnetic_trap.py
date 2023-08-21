@@ -245,10 +245,6 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        self.camera_frag.ready_for_trigger(
-            exposure_us=self.exposure.get() * 1e6, num_images=1
-        )
-
         self.core.break_realtime()
         delay(20e-3)
 
