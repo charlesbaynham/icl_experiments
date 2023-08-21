@@ -6,7 +6,9 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import parallel
 from artiq.experiment import rpc
+from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -19,6 +21,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.chamber_photodiode import MOTPhotodiodeMeasurement
+from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
 
 logger = logging.getLogger(__name__)
@@ -163,8 +166,10 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.setattr_fragment("mot_controller", Blue3DMOTFrag)
         self.mot_controller: Blue3DMOTFrag
 
-        self.setattr_fragment("camera_frag", Chamber2HorizontalCamera)
-        self.camera_frag: Chamber2HorizontalCamera
+        self.setattr_fragment(
+            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+        )
+        self.camera_interface: DualCameraMeasurement
 
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
         self.repumper_707_shutter: TTLOut = self.get_device(
@@ -196,25 +201,18 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         )
         self.dark_time: FloatParamHandle
 
-        self.setattr_param(
-            "wait_before_photo",
-            FloatParam,
-            description="Time to wait before imaging",
-            default=20e-3,
-            min=0,
-            unit="ms",
-            step=1,
-        )
-        self.wait_before_photo: FloatParamHandle
-
-        self.setattr_param(
+        # Ensure that both cameras are on for the same length of time as the blue
+        # fluorescence is pulsed
+        self.setattr_param_rebind(
             "exposure",
-            FloatParam,
-            description="Image exposure",
+            self.camera_interface,
+            "exposure_horiz",
             default=1e-3,
-            min=0,
-            unit="ms",
-            step=1,
+            description="Camera exposure and fluorescence pulse length",
+        )
+        self.camera_interface.bind_param(
+            "exposure_vert",
+            self.exposure,
         )
         self.exposure: FloatParamHandle
 
@@ -230,19 +228,20 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.setattr_result("mot_integrated_brightness", FloatChannel)
         self.mot_integrated_brightness: ResultChannel
 
-    @rpc
-    def save_data(self):
-        image_data = self.camera_frag.get_frames(timeout=100e-3 + self.exposure.get())
-        assert len(image_data) == 1
+    @kernel
+    def pulse_blue_and_image(self):
+        """
+        Flash on the blue light and pulse the camera triggers
 
-        timestamp, image = image_data[0]
-        brightness = np.sum(np.array(image).flatten())
-
-        self.mot_image_timestamps.push(timestamp)
-        self.mot_images.push(image)
-        self.mot_integrated_brightness.push(brightness)
-
-        logger.debug("Saving data completed")
+        Advances the timeline by the duration of the imaging pulse and consumes
+        a lane
+        """
+        with parallel:
+            self.camera_interface.trigger()
+            with sequential:
+                self.mot_controller.turn_on_3d_beams()
+                delay(self.exposure.get())
+                self.mot_controller.turn_off_3d_beams()
 
     @kernel
     def run_once(self):
@@ -286,13 +285,11 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.mot_controller.turn_on_repumpers()
 
         # Take a photo
-        delay(self.wait_before_photo.get())
-        self.core.wait_until_mu(now_mu())
-
-        self.camera_frag.trigger()
+        self.pulse_blue_and_image()
 
         # Trigger the host to retrieve the data
-        self.save_data()
+        self.core.wait_until_mu(now_mu() + 1e-3)
+        self.camera_interface.save_data()
 
         # Deluxe:
         # Turn off the MOT beams again and turn on the repumpers
