@@ -213,6 +213,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.last_current: TFloat = -1.0
         self.last_attenuation: TFloat = -1.0
 
+        self.urukul_has_been_initted = False
+
     def host_setup(self):
         if not self.controller.status():
             logger.warning("CTL200 controller was off - turning on...")
@@ -226,7 +228,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
     @kernel
     def device_setup(self):
-        if self.change_aom.get():
+        if self.change_aom.get() and not self.urukul_has_been_initted:
+            self.urukul_has_been_initted = True
             self.core.break_realtime()
             self.urukul9910_aom_doublepass_689_red_injection.init()
 
