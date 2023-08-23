@@ -3,6 +3,7 @@ import time
 from typing import Optional
 
 import numpy as np
+from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.experiment import BooleanValue
 from artiq.experiment import delay
@@ -198,12 +199,10 @@ class ScanKoheronCurrentFrag(ExpFragment):
             )
             self.adc_reader: ReadSamplerADC
 
-        self.setattr_fragment(
-            "injection_aom_setter",
-            LibSetSUServoStatic,
-            "suservo_aom_doublepass_461_injection",
+        self.setattr_device(
+            "urukul_red_injection_aom", "urukul9910_aom_doublepass_689_red_injection"
         )
-        self.injection_aom_setter: LibSetSUServoStatic
+        self.urukul_red_injection_aom: AD9910
 
         # And define a results channel as output
         self.setattr_result("voltage")
@@ -227,6 +226,12 @@ class ScanKoheronCurrentFrag(ExpFragment):
         return super().host_setup()
 
     @kernel
+    def device_setup(self):
+        if self.change_aom.get():
+            self.core.break_realtime()
+            self.urukul_red_injection_aom.init()
+
+    @kernel
     def run_once(self):
         self.set_current(self.current.get())
         self.set_temperature(self.temperature.get())
@@ -240,11 +245,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.core.break_realtime()
 
         if self.change_aom.get():
-            self.injection_aom_setter.set_suservo(
-                self.injection_frequency,
-                1.0,
-                self.aom_attenuation.get(),
-            )
+            self.urukul_red_injection_aom.set_amplitude(self.aom_attenuation.get())
 
         if current_waittime > 0.0:
             delay(current_waittime)
