@@ -199,10 +199,8 @@ class ScanKoheronCurrentFrag(ExpFragment):
             )
             self.adc_reader: ReadSamplerADC
 
-        self.setattr_device(
-            "urukul_red_injection_aom", "urukul9910_aom_doublepass_689_red_injection"
-        )
-        self.urukul_red_injection_aom: AD9910
+        self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
+        self.urukul9910_aom_doublepass_689_red_injection: AD9910
 
         # And define a results channel as output
         self.setattr_result("voltage")
@@ -229,7 +227,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
     def device_setup(self):
         if self.change_aom.get():
             self.core.break_realtime()
-            self.urukul_red_injection_aom.init()
+            self.urukul9910_aom_doublepass_689_red_injection.init()
 
     @kernel
     def run_once(self):
@@ -245,7 +243,9 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.core.break_realtime()
 
         if self.change_aom.get():
-            self.urukul_red_injection_aom.set_amplitude(self.aom_attenuation.get())
+            self.urukul9910_aom_doublepass_689_red_injection.set_amplitude(
+                self.aom_attenuation.get()
+            )
 
         if current_waittime > 0.0:
             delay(current_waittime)
