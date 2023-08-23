@@ -130,7 +130,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             FloatParam,
             description="Attenuation of injection AOM",
             default=20,
-            min=18,
+            min=0,
             max=30,
             unit="dB",
             step=0.1,
