@@ -211,6 +211,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         self.last_temperature: TFloat = -1.0
         self.last_current: TFloat = -1.0
+        self.last_attenuation: TFloat = -1.0
 
     def host_setup(self):
         if not self.controller.status():
@@ -243,9 +244,12 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.core.break_realtime()
 
         if self.change_aom.get():
-            self.urukul9910_aom_doublepass_689_red_injection.set_att(
-                self.aom_attenuation.get()
-            )
+            attenuation = self.aom_attenuation.get()
+            if attenuation != self.last_attenuation:
+                self.last_attenuation = attenuation
+                self.urukul9910_aom_doublepass_689_red_injection.set_att(
+                    self.aom_attenuation.get()
+                )
 
         if current_waittime > 0.0:
             delay(current_waittime)
