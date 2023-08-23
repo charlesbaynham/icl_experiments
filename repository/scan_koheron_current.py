@@ -243,7 +243,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.core.break_realtime()
 
         if self.change_aom.get():
-            self.urukul9910_aom_doublepass_689_red_injection.set_amplitude(
+            self.urukul9910_aom_doublepass_689_red_injection.set_att(
                 self.aom_attenuation.get()
             )
 
