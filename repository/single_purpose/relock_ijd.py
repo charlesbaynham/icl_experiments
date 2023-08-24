@@ -235,9 +235,11 @@ class RelockAllIJDsFrag(ExpFragment):
         for frag, ijd_controller_name in zip(
             self.ijd_controller_frags, ijd_controller_names
         ):
-            default_temperature, default_window_position = IJD_DEFAULTS[
-                ijd_controller_name
-            ]
+            (
+                default_temperature,
+                default_window_scan_max,
+                default_window_scan_min,
+            ) = IJD_DEFAULTS[ijd_controller_name]
 
             frag.bind_param("num_points", self.num_points)
 
@@ -245,14 +247,14 @@ class RelockAllIJDsFrag(ExpFragment):
                 f"{ijd_controller_name}_start_current",
                 frag,
                 original_name="i_start_scan",
-                default=default_window_position + 5e-3,
+                default=default_window_scan_max,
             )
 
             self.setattr_param_rebind(
                 f"{ijd_controller_name}_end_current",
                 frag,
                 original_name="i_end_scan",
-                default=default_window_position - 2e-3,
+                default=default_window_scan_min,
             )
 
             self.setattr_param_rebind(

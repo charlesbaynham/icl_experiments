@@ -18,13 +18,13 @@ from collections import OrderedDict
 
 from pyaion.models import SUServoedBeam
 
-# Injected diode default temperatures and window positions
+# Injected diode default temperatures and window scan ranges
 
 IJD_DEFAULTS = {
-    "blue_IJD1_controller": (8500, 345e-3),
-    "blue_IJD2_controller": (8800, 345e-3),
-    "blue_IJD3_controller": (9000, 346e-3),
-    "red_IJD1_controller": (6500, 62.0e-3),
+    "blue_IJD1_controller": (8500, 350e-3, 343e-3),
+    "blue_IJD2_controller": (8800, 350e-3, 343e-3),
+    "blue_IJD3_controller": (9000, 350e-3, 343e-3),
+    "red_IJD1_controller": (6500, 72.0e-3, 67.0e-3),
 }
 
 # Order matters here since this is the order in which they are applied to the
