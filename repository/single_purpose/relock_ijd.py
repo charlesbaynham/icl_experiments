@@ -4,9 +4,9 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-from artiq.experiment import EnvExperiment
 from artiq.experiment import portable
 from artiq.experiment import TList
+from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import ExpFragment
@@ -113,6 +113,9 @@ class RelockIJDFrag(ExpFragment):
         self.setattr_device("influx_logger")
         self.influx_logger: InfluxController
 
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
+
         self.controller_name = controller_name
 
     def host_setup(self):
@@ -171,7 +174,11 @@ class RelockIJDFrag(ExpFragment):
 
         # Log action
         self.influx_logger.write(
-            tags={"type": self.__class__.__name__, "controller": self.controller_name},
+            tags={
+                "type": self.__class__.__name__,
+                "controller": self.controller_name,
+                "rid": self.scheduler.rid,
+            },
             fields={
                 "i_lock": lock_point,
                 "i_start": window_start,
