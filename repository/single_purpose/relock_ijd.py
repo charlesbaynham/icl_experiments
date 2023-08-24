@@ -234,6 +234,7 @@ class RelockAllIJDsFrag(ExpFragment):
             "blue_IJD1_controller",
             "blue_IJD2_controller",
             "blue_IJD3_controller",
+            "red_IJD1_controller",
         ]
 
         self.ijd_controller_frags: List[RelockIJDFrag] = []
