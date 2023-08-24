@@ -133,6 +133,7 @@ class RelockIJDFrag(ExpFragment):
             urukul_channel_name, freq, att = IJD_AOMS[self.controller_name]
 
             self.urukul_channel: AD9910 = self.get_device(urukul_channel_name)
+            self.urukul_channel_name = urukul_channel_name
             self.aom_freq, self.aom_attenuation = freq, att
 
     def host_setup(self):
@@ -154,6 +155,12 @@ class RelockIJDFrag(ExpFragment):
     def relock(self) -> None:
         # Set AOM if required
         if hasattr(self, "urukul_channel"):
+            logger.info(
+                "Setting AOM %s to %.0f MHz, %.1f dB",
+                self.urukul_channel_name,
+                1e-6 * self.aom_freq,
+                self.aom_attenuation,
+            )
             self.set_aom(self.aom_freq, self.aom_attenuation)
 
         # scan over a range of currents on the IJD
