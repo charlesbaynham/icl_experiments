@@ -176,6 +176,7 @@ class RelockIJDFrag(ExpFragment):
                 "i_lock": lock_point,
                 "i_start": window_start,
                 "i_end": window_end,
+                "i_window_size": window_end - window_start,
                 "v_window": v_window_start,
             },
         )
