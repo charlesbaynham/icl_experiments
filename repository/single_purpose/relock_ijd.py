@@ -2,10 +2,12 @@ import logging
 import time
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 from artiq.experiment import EnvExperiment
 from artiq.experiment import portable
 from artiq.experiment import TList
+from artiq_influx_generic import InfluxController
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
@@ -108,6 +110,11 @@ class RelockIJDFrag(ExpFragment):
         )
         self.scan_ijd_current: Subscan
 
+        self.setattr_device("influx_logger")
+        self.influx_logger: InfluxController
+
+        self.controller_name = controller_name
+
     def host_setup(self):
         super().host_setup()
 
@@ -148,7 +155,7 @@ class RelockIJDFrag(ExpFragment):
         logger.debug(voltages)
 
         # Find the optimum current
-        lock_point = self.find_lock_point(currents, voltages)  # type: ignore
+        lock_point, window_start, window_end, v_window_start = self.find_lock_point(currents, voltages)  # type: ignore
         start_point = lock_point + self.i_jump_above_window.get()
         t_wait = self.t_relock_waittime.get()
 
@@ -162,8 +169,21 @@ class RelockIJDFrag(ExpFragment):
         logger.info("Lock - Setting I = %.2f mA", lock_point * 1e3)
         self.ijd_controller.set_current_mA(lock_point * 1e3)  # type: ignore
 
+        # Log action
+        self.influx_logger.write(
+            tags={"type": self.__class__.__name__, "controller": self.controller_name},
+            fields={
+                "i_lock": lock_point,
+                "i_start": window_start,
+                "i_end": window_end,
+                "v_window": v_window_start,
+            },
+        )
+
     @portable
-    def find_lock_point(self, current: TList, voltage: TList):
+    def find_lock_point(
+        self, current: TList, voltage: TList
+    ) -> Tuple[float, float, float, float]:
         """
         Datapoints should be in descending order of current
         """
@@ -189,7 +209,10 @@ class RelockIJDFrag(ExpFragment):
                 break
 
         return (
-            window_start + (window_end - window_start) * self.frac_through_window.get()
+            window_start + (window_end - window_start) * self.frac_through_window.get(),
+            window_start,
+            window_end,
+            v_window_start,
         )
 
 
