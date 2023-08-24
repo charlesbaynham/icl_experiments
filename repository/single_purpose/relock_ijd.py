@@ -4,7 +4,11 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.core import Core
+from artiq.experiment import kernel
 from artiq.experiment import portable
+from artiq.experiment import TFloat
 from artiq.experiment import TList
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
@@ -20,6 +24,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
+from repository.lib.constants import IJD_AOMS
 from repository.lib.constants import IJD_DEFAULTS
 from repository.scan_koheron_current import ScanKoheronCurrentFrag
 
@@ -102,6 +107,9 @@ class RelockIJDFrag(ExpFragment):
         )
         self.frag_ijd_scanner: ScanKoheronCurrentFrag
 
+        # Disable AOM setting by the scanner - we'll handle it here
+        self.frag_ijd_scanner.override_param("change_aom", False)
+
         setattr_subscan(
             self,
             "scan_ijd_current",
@@ -116,7 +124,16 @@ class RelockIJDFrag(ExpFragment):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
+        self.setattr_device("core")
+        self.core: Core
+
         self.controller_name = controller_name
+
+        if self.controller_name in IJD_AOMS:
+            urukul_channel_name, freq, att = IJD_AOMS[self.controller_name]
+
+            self.urukul_channel: AD9910 = self.get_device(urukul_channel_name)
+            self.aom_freq, self.aom_attenuation = freq, att
 
     def host_setup(self):
         super().host_setup()
@@ -127,7 +144,18 @@ class RelockIJDFrag(ExpFragment):
     def run_once(self) -> None:
         self.relock()
 
+    @kernel
+    def set_aom(self, freq: TFloat, att: TFloat):
+        self.core.break_realtime()
+        self.urukul_channel.init()
+        self.urukul_channel.set(frequency=freq, amplitude=1.0)
+        self.urukul_channel.set_att(att)
+
     def relock(self) -> None:
+        # Set AOM if required
+        if hasattr(self, "urukul_channel"):
+            self.set_aom(self.aom_freq, self.aom_attenuation)
+
         # scan over a range of currents on the IJD
         coordinates, values, analysis_results = self.scan_ijd_current.run(  # type: ignore
             [
@@ -300,9 +328,6 @@ class RelockAllIJDsFrag(ExpFragment):
             # will just have to be run again if it fails because of temperature
             # and we don't want to delay the other IJDs
             frag.frag_ijd_scanner.override_param("temperature_waittime", 0)
-
-            # Don't change the injection AOM
-            frag.frag_ijd_scanner.override_param("change_aom", False)
 
         self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
 

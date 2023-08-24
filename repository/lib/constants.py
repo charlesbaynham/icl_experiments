@@ -18,7 +18,11 @@ from collections import OrderedDict
 
 from pyaion.models import SUServoedBeam
 
-# Injected diode default temperatures and window scan ranges
+
+IJD_AOMS = {
+    "red_IJD1_controller": ("urukul9910_aom_doublepass_689_red_injection", 340.0e6, 0.0)
+}
+"Urukul outputs (name, freq, attenuation) required for injection locks"
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": (8500, 350e-3, 343e-3),
@@ -26,6 +30,7 @@ IJD_DEFAULTS = {
     "blue_IJD3_controller": (9000, 350e-3, 343e-3),
     "red_IJD1_controller": (6300, 72.0e-3, 67.0e-3),
 }
+"Injected diode default temperatures and window scan ranges"
 
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state
