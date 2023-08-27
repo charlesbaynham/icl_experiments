@@ -24,8 +24,6 @@ class BlueSystemOn(ExpFragment):
         self.setattr_fragment("Blue3DMOTFrag", Blue3DMOTFrag)
         self.Blue3DMOTFrag: Blue3DMOTFrag
 
-        self.setattr_device("TTL_shutter_461_2dmot_is_it_b")
-
     @kernel
     def run_once(self):
         logger.info("Loading a blue MOT")
@@ -33,12 +31,10 @@ class BlueSystemOn(ExpFragment):
         self.core.break_realtime()
         self.Blue3DMOTFrag.init()
         self.core.break_realtime()
-        self.TTL_shutter_461_2dmot_is_it_b.on()
 
-        # FIXME Comments
-        # delay(self.Blue3DMOTFrag.all_beam_default_setter.get_max_shutter_delay() + 1e-3)
-        # self.Blue3DMOTFrag.load_mot(clearout=False)
-        # self.core.wait_until_mu(now_mu())
+        delay(self.Blue3DMOTFrag.all_beam_default_setter.get_max_shutter_delay() + 1e-3)
+        self.Blue3DMOTFrag.load_mot(clearout=False)
+        self.core.wait_until_mu(now_mu())
 
 
 BlueSystemOnExp = make_fragment_scan_exp(BlueSystemOn)

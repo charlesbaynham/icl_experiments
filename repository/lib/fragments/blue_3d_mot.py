@@ -22,16 +22,15 @@ class BlueBeamSetter(SetBeamsToDefaults):
     beam_infos = [
         constants.AOM_BEAMS[beam]
         for beam in [
-            # FIXME: commented out most blue beams
-            # "blue_push_beam",
-            # "blue_2dmot_A",
+            "blue_push_beam",
+            "blue_2dmot_A",
             "blue_2dmot_B",
-            # "blue_3dmot_radial",
-            # "blue_3dmot_axialplus",
-            # "blue_3dmot_axialminus",
-            # "blue_injection",
-            # "repump_707",
-            # "repump_679",
+            "blue_3dmot_radial",
+            "blue_3dmot_axialplus",
+            "blue_3dmot_axialminus",
+            "blue_injection",
+            "repump_707",
+            "repump_679",
         ]
     ]
 
@@ -54,15 +53,14 @@ class Blue3DMOTFrag(Fragment):
             "mot_all_beam_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                # FIXME: comments
-                # constants.AOM_BEAMS["blue_push_beam"],
-                # constants.AOM_BEAMS["blue_3dmot_radial"],
-                # constants.AOM_BEAMS["blue_3dmot_axialplus"],
-                # constants.AOM_BEAMS["blue_3dmot_axialminus"],
-                # constants.AOM_BEAMS["blue_2dmot_A"],
+                constants.AOM_BEAMS["blue_push_beam"],
+                constants.AOM_BEAMS["blue_3dmot_radial"],
+                constants.AOM_BEAMS["blue_3dmot_axialplus"],
+                constants.AOM_BEAMS["blue_3dmot_axialminus"],
+                constants.AOM_BEAMS["blue_2dmot_A"],
                 constants.AOM_BEAMS["blue_2dmot_B"],
-                # constants.AOM_BEAMS["repump_679"],
-                # constants.AOM_BEAMS["repump_707"],
+                constants.AOM_BEAMS["repump_679"],
+                constants.AOM_BEAMS["repump_707"],
             ],
         )
         self.mot_all_beam_setter: ControlBeamsWithoutCoolingAOM
@@ -277,12 +275,10 @@ class Blue3DMOTFrag(Fragment):
             logger.info("Loading a blue MOT with clearout = %s", clearout)
             at_mu(self.core.get_rtio_counter_mu() + slack_mu)
 
-        # FIXME: debug comments
+        self.enable_mot_fields()
 
-        # self.enable_mot_fields()
-
-        # if clearout:
-        #     self.clear_ch2()
+        if clearout:
+            self.clear_ch2()
 
         self.turn_on_all_beams()
         delay(self.loading_time.get())
