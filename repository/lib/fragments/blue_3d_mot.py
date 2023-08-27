@@ -1,9 +1,11 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -20,15 +22,16 @@ class BlueBeamSetter(SetBeamsToDefaults):
     beam_infos = [
         constants.AOM_BEAMS[beam]
         for beam in [
-            "blue_push_beam",
-            "blue_2dmot_A",
+            # FIXME: commented out most blue beams
+            # "blue_push_beam",
+            # "blue_2dmot_A",
             "blue_2dmot_B",
-            "blue_3dmot_radial",
-            "blue_3dmot_axialplus",
-            "blue_3dmot_axialminus",
-            "blue_injection",
-            "repump_707",
-            "repump_679",
+            # "blue_3dmot_radial",
+            # "blue_3dmot_axialplus",
+            # "blue_3dmot_axialminus",
+            # "blue_injection",
+            # "repump_707",
+            # "repump_679",
         ]
     ]
 
@@ -269,12 +272,16 @@ class Blue3DMOTFrag(Fragment):
         """
 
         if self.debug_mode:
+            slack_mu = now_mu() - self.core.get_rtio_counter_mu()
             logger.info("Loading a blue MOT with clearout = %s", clearout)
+            at_mu(self.core.get_rtio_counter_mu() + slack_mu)
 
-        self.enable_mot_fields()
+        # FIXME: debug comments
 
-        if clearout:
-            self.clear_ch2()
+        # self.enable_mot_fields()
+
+        # if clearout:
+        #     self.clear_ch2()
 
         self.turn_on_all_beams()
         delay(self.loading_time.get())

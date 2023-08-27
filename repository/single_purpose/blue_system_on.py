@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
@@ -30,6 +31,7 @@ class BlueSystemOn(ExpFragment):
         self.core.break_realtime()
         self.Blue3DMOTFrag.init()
         self.core.break_realtime()
+        delay(self.Blue3DMOTFrag.all_beam_default_setter.get_max_shutter_delay() + 1e-3)
         self.Blue3DMOTFrag.load_mot(clearout=False)
         self.core.wait_until_mu(now_mu())
 
