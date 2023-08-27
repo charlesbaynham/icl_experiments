@@ -120,6 +120,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_461_3DMOT_radial",
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=3.5,
     ),
     SUServoedBeam(
         "blue_3dmot_axialplus",
@@ -136,6 +138,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_461_3DMOT_axialminus",
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=5.0,
     ),
     SUServoedBeam(
         "blue_injection",
@@ -190,6 +194,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_707",
         shutter_device="ttl_shutter_repump_707",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=0.75,
     ),
     SUServoedBeam(
         "repump_679",
@@ -198,6 +204,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_679",
         shutter_device="ttl_shutter_repump_679",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=0.33,
     ),
 ]
 
