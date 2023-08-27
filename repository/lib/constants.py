@@ -101,7 +101,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_2dmot_is_it_a",
         shutter_delay=20e-3,
         setpoint=1.5,
-        # servo_enabled=True,
+        servo_enabled=True,
     ),
     SUServoedBeam(
         "blue_2dmot_B",
