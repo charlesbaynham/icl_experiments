@@ -1,5 +1,5 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=cb_working";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
