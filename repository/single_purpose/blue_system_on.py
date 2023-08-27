@@ -25,8 +25,10 @@ class BlueSystemOn(ExpFragment):
 
     @kernel
     def run_once(self):
-        logger.info('Calling "load_mot()"')
+        logger.info("Loading a blue MOT")
 
+        self.core.break_realtime()
+        self.Blue3DMOTFrag.init()
         self.core.break_realtime()
         self.Blue3DMOTFrag.load_mot(clearout=False)
         self.core.wait_until_mu(now_mu())

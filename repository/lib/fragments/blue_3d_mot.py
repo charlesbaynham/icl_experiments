@@ -36,6 +36,8 @@ class BlueBeamSetter(SetBeamsToDefaults):
 class Blue3DMOTFrag(Fragment):
     """
     Methods for making and controlling the blue 3D MOT
+
+    Note that the user must call init() before this object is used
     """
 
     def build_fragment(self):
