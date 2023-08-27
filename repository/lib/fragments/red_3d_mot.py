@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class RedBeamSetter(SetBeamsToDefaults):
-    beam_infos = [
+    default_beam_infos = [
         constants.AOM_BEAMS[beam]
         for beam in [
             "red_mot_diagonal",

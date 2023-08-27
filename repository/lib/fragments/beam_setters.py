@@ -22,14 +22,17 @@ class SetBeamsToDefaults(Fragment):
     settings
 
     To use this fragment you must subclass it and provide a class attribute
-    "beam_infos" which is a list of :class:`pyaion.models.SUServoedBeam`
+    "default_beam_infos" which is a list of :class:`pyaion.models.SUServoedBeam`
     objects describing the beams that this class instance will control.
+
+    This class will define ndscan parameters which allow the user to override
+    these default settings.
     """
 
-    beam_infos: List[SUServoedBeam] = None  # type: ignore
+    default_beam_infos: List[SUServoedBeam] = None  # type: ignore
 
     def build_fragment(self):
-        if self.beam_infos is None:
+        if self.default_beam_infos is None:
             raise TypeError(
                 "You must create a subclass of SetBeamsToDefaults to use it - see the documentation"
             )
@@ -41,7 +44,7 @@ class SetBeamsToDefaults(Fragment):
 
         self.ttls: List[TTLOut] = []
 
-        for beam_info in self.beam_infos:
+        for beam_info in self.default_beam_infos:
             self.setattr_fragment(
                 beam_info.name, LibSetSUServoStatic, beam_info.suservo_device
             )
@@ -50,7 +53,7 @@ class SetBeamsToDefaults(Fragment):
                 self.ttls.append(self.get_device(beam_info.shutter_device))
 
         self.max_shutter_delay = max(
-            [beam_info.shutter_delay for beam_info in self.beam_infos]
+            [beam_info.shutter_delay for beam_info in self.default_beam_infos]
         )
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
@@ -79,10 +82,10 @@ class SetBeamsToDefaults(Fragment):
         if self.debug_mode:
             logger.info("SetBeamsToDefault.turn_on_all()")
 
-        for i in range(len(self.beam_infos)):
+        for i in range(len(self.default_beam_infos)):
 
             setter = self.suservo_setters[i]
-            beam_info = self.beam_infos[i]
+            beam_info = self.default_beam_infos[i]
 
             if self.debug_mode:
                 logger.info("Setter (%s) - beam_info %s", setter, beam_info)
