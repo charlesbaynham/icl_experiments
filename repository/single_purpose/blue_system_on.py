@@ -1,5 +1,4 @@
 import logging
-import re
 
 from artiq.coredevice.core import Core
 from artiq.experiment import kernel
@@ -7,38 +6,29 @@ from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-import repository.lib.constants as constants
-from repository.lib.fragments.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 
 logger = logging.getLogger(__name__)
-
-# Get all the beams from constants whose name begins with "blue_"
-BLUE_BEAMS = [k for k in constants.AOM_BEAMS.keys() if re.match(r"^blue_", k)]
-
-
-class BlueBeamSetter(SetBeamsToDefaults):
-    beam_infos = [constants.AOM_BEAMS[k] for k in BLUE_BEAMS]
 
 
 class BlueSystemOn(ExpFragment):
     """
-    Turn the blue system AOMs and shutters on to their default settings
+    Load a blue 3D MOT
     """
 
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("SetBeamsToDefaults", BlueBeamSetter)
-        self.SetBeamsToDefaults: SetBeamsToDefaults
+        self.setattr_fragment("Blue3DMOTFrag", Blue3DMOTFrag)
+        self.Blue3DMOTFrag: Blue3DMOTFrag
 
     @kernel
     def run_once(self):
-        logger.info("Enabling AOMS:")
-        logger.info(BLUE_BEAMS)
+        logger.info('Calling "load_mot()"')
 
         self.core.break_realtime()
-        self.SetBeamsToDefaults.turn_on_all()
+        self.Blue3DMOTFrag.load_mot(clearout=False)
         self.core.wait_until_mu(now_mu())
 
 
