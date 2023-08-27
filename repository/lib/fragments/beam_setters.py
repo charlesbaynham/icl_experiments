@@ -12,7 +12,6 @@ from ndscan.experiment import Fragment
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
-import repository.lib.constants as constants
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ class SetBeamsToDefaults(Fragment):
         """
         Turn on the pre-configured beams to their default values
 
-        If `sw_state == False`, turn on the AOMs but turn off the shutters.
+        If `shutter_state == False`, turn on the AOMs but turn off the shutters.
 
         This method does not advance the timeline and does not respect shutter
         delays - it just turns everything on immediately.
@@ -78,7 +77,11 @@ class SetBeamsToDefaults(Fragment):
             beam_info = self.beam_infos[i]
 
             setter.set_suservo(
-                float(beam_info.frequency), 1.0, float(beam_info.attenuation)
+                float(beam_info.frequency),
+                1.0,
+                float(beam_info.attenuation),
+                setpoint_v=float(beam_info.setpoint),
+                enable_iir=beam_info.servo_enabled,
             )
 
         for ttl in self.ttls:
