@@ -26,8 +26,6 @@ class SetBeamsToDefaults(Fragment):
     objects describing the beams that this class instance will control.
     """
 
-    kernel_invariants = {"max_shutter_delay"}
-
     beam_infos: List[SUServoedBeam] = None  # type: ignore
 
     def build_fragment(self):
@@ -55,6 +53,12 @@ class SetBeamsToDefaults(Fragment):
             [beam_info.shutter_delay for beam_info in self.beam_infos]
         )
 
+        self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {"debug_mode", "max_shutter_delay"}
+
     @portable
     def get_max_shutter_delay(self):
         return self.max_shutter_delay
@@ -72,9 +76,16 @@ class SetBeamsToDefaults(Fragment):
         This method advances the timeline by the time required to perform
         several suservo writes and ttl updates separated by 8mu each
         """
+        if self.debug_mode:
+            logger.info("SetBeamsToDefault.turn_on_all()")
+
         for i in range(len(self.beam_infos)):
+
             setter = self.suservo_setters[i]
             beam_info = self.beam_infos[i]
+
+            if self.debug_mode:
+                logger.info("Setter (%s) - beam_info %s", setter, beam_info)
 
             setter.set_suservo(
                 float(beam_info.frequency),
