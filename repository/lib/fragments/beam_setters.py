@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from typing import Optional
+from typing import Tuple
 
 import numpy as np
 from artiq.coredevice.core import Core
@@ -9,6 +9,10 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
@@ -40,17 +44,30 @@ class SetBeamsToDefaults(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.suservo_setters: List[LibSetSUServoStatic] = []
+        self.suservo_setters_and_param_handles: List[
+            Tuple[LibSetSUServoStatic, FloatParamHandle, BoolParamHandle]
+        ] = []
 
         self.ttls: List[TTLOut] = []
 
         for beam_info in self.default_beam_infos:
-            self.setattr_fragment(
+            setter = self.setattr_fragment(
                 beam_info.name, LibSetSUServoStatic, beam_info.suservo_device
             )
-            self.suservo_setters.append(getattr(self, beam_info.name))
+
             if beam_info.shutter_device:
                 self.ttls.append(self.get_device(beam_info.shutter_device))
+
+            setpoint_handle = self.setattr_param(
+                f"setpoint_{beam_info.name}",
+                FloatParam,
+                f"SUServo setpoint for {beam_info.name}",
+                min=0,
+                unit="V",
+                default=beam_info.setpoint,
+            )
+
+            self.suservo_setters_and_param_handles.append((setter, setpoint_handle))
 
         self.max_shutter_delay = max(
             [beam_info.shutter_delay for beam_info in self.default_beam_infos]
@@ -83,8 +100,10 @@ class SetBeamsToDefaults(Fragment):
             logger.info("SetBeamsToDefault.turn_on_all()")
 
         for i in range(len(self.default_beam_infos)):
-
-            setter = self.suservo_setters[i]
+            (
+                setter,
+                setpoint_handle,
+            ) = self.suservo_setters_and_param_handles[i]
             beam_info = self.default_beam_infos[i]
 
             if self.debug_mode:
@@ -94,7 +113,7 @@ class SetBeamsToDefaults(Fragment):
                 float(beam_info.frequency),
                 1.0,
                 float(beam_info.attenuation),
-                setpoint_v=float(beam_info.setpoint),
+                setpoint_v=setpoint_handle.get(),
                 enable_iir=beam_info.servo_enabled,
             )
 
