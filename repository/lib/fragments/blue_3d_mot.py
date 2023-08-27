@@ -54,14 +54,15 @@ class Blue3DMOTFrag(Fragment):
             "mot_all_beam_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.AOM_BEAMS["blue_push_beam"],
-                constants.AOM_BEAMS["blue_3dmot_radial"],
-                constants.AOM_BEAMS["blue_3dmot_axialplus"],
-                constants.AOM_BEAMS["blue_3dmot_axialminus"],
-                constants.AOM_BEAMS["blue_2dmot_A"],
+                # FIXME: comments
+                # constants.AOM_BEAMS["blue_push_beam"],
+                # constants.AOM_BEAMS["blue_3dmot_radial"],
+                # constants.AOM_BEAMS["blue_3dmot_axialplus"],
+                # constants.AOM_BEAMS["blue_3dmot_axialminus"],
+                # constants.AOM_BEAMS["blue_2dmot_A"],
                 constants.AOM_BEAMS["blue_2dmot_B"],
-                constants.AOM_BEAMS["repump_679"],
-                constants.AOM_BEAMS["repump_707"],
+                # constants.AOM_BEAMS["repump_679"],
+                # constants.AOM_BEAMS["repump_707"],
             ],
         )
         self.mot_all_beam_setter: ControlBeamsWithoutCoolingAOM
