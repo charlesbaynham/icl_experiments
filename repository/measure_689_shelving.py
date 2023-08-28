@@ -35,7 +35,9 @@ class Measure689Shelving(ExpFragment):
         )
         self.chamber_2_field_setter: SetMagneticFields
 
-        self.setattr_fragment("camera_bg_corrected", BGCorrectedMeasurement)
+        self.setattr_fragment(
+            "camera_bg_corrected", BGCorrectedMeasurement, hardware_trigger=True
+        )
         self.camera_bg_corrected: BGCorrectedMeasurement
 
         self.setattr_param(
@@ -76,20 +78,18 @@ class Measure689Shelving(ExpFragment):
 
         # Measure
         delay(self.toggle_delay.get())
-        self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.trigger_signal()
 
         # Turn on the 689
-        self.core.break_realtime()
         delay(20e-3)
         self.red_mot_controller.turn_on_mot_beams()
 
         # Measure
         delay(self.toggle_delay.get())
-        self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.trigger_background()
 
         # Save the photos
+        self.core.wait_until_mu(now_mu())
         self.camera_bg_corrected.save_data()
 
 
