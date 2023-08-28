@@ -234,7 +234,7 @@ class CameraFrag(Fragment):
                     "Triggering hardware measurement with exposure = %.1us",
                     1e6 * self.exposure,
                 )
-            self._hardware_trigger()
+            self._hardware_trigger()  # TODO: This won't compile in software triggering mode - see e.g. red shelving @ 6e62e2
         else:
             if self.debug_enabled:
                 logger.info("Triggering software measurement")
