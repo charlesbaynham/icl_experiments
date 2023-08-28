@@ -100,7 +100,15 @@ class CameraFrag(Fragment):
             self.ttl_trigger: TTLOut = self.get_device(self.ttl_trigger_device)
 
         # Kernel variables
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
         self.exposure = 0.0
+
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "debug_enabled",
+            "exposure",
+        }
 
     def host_setup(self):
         # This import happens here because, for some reason, importing the
@@ -221,13 +229,15 @@ class CameraFrag(Fragment):
         time. In software trigger mode, it calls an RPC.
         """
         if self.hardware_trigger:
-            logger.debug(
-                "Triggering hardware measurement with exposure = %.1us",
-                1e6 * self.exposure,
-            )
+            if self.debug_enabled:
+                logger.info(
+                    "Triggering hardware measurement with exposure = %.1us",
+                    1e6 * self.exposure,
+                )
             self._hardware_trigger()
         else:
-            logger.debug("Triggering software measurement")
+            if self.debug_enabled:
+                logger.info("Triggering software measurement")
             self._software_trigger()
 
     @kernel
