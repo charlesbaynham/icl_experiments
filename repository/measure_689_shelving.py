@@ -82,7 +82,7 @@ class Measure689Shelving(ExpFragment):
 
         # Turn on the 689
         delay(20e-3)
-        # self.red_mot_controller.turn_on_mot_beams()
+        self.red_mot_controller.turn_on_mot_beams()
 
         # Measure
         delay(self.toggle_delay.get())
