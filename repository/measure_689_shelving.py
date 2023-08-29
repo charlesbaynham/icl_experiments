@@ -84,7 +84,7 @@ class Measure689Shelving(ExpFragment):
         delay(1e-3)
 
         # Update beam state (e.g. frequency, suservo setpoint)
-        self.red_mot_controller.all_beam_default_setter.turn_on_all(shutter_state=True)
+        self.red_mot_controller.all_beam_default_setter.turn_on_all(shutter_state=False)
         self.blue_mot_controller.all_beam_default_setter.turn_on_all(shutter_state=True)
 
         self.red_mot_controller.turn_off_mot_beams()
