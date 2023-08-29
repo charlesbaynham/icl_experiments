@@ -92,7 +92,6 @@ class Measure689Shelving(ExpFragment):
         self.camera_bg_corrected.trigger_signal()
 
         # Turn on the 689
-        delay(20e-3)
         self.red_mot_controller.turn_on_mot_beams()
 
         # Measure
