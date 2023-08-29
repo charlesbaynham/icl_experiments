@@ -81,6 +81,7 @@ class Measure689Shelving(ExpFragment):
         self.camera_bg_corrected.clear()
 
         self.core.break_realtime()
+        delay(1e-3)
 
         # Update beam state (e.g. frequency, suservo setpoint)
         self.red_mot_controller.all_beam_default_setter.turn_on_all(shutter_state=True)
