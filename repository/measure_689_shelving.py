@@ -41,6 +41,15 @@ class Measure689Shelving(ExpFragment):
         self.camera_bg_corrected: BGCorrectedMeasurement
 
         self.setattr_param(
+            "initial_delay",
+            FloatParam,
+            "Delay after first blue MOT load",
+            default=3,
+            unit="s",
+        )
+        self.initial_delay: FloatParamHandle
+
+        self.setattr_param(
             "toggle_delay",
             FloatParam,
             "Delay before / after 689 toggles",
@@ -66,6 +75,8 @@ class Measure689Shelving(ExpFragment):
             # Load a blue mot
             # logger.warning("Blue mot load...")
             self.blue_mot_controller.load_mot(clearout=False)
+
+            delay(self.initial_delay.get())
 
             self.first_run = False
 
