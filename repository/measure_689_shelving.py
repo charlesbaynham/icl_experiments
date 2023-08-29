@@ -66,10 +66,7 @@ class Measure689Shelving(ExpFragment):
             # logger.warning("Shelving run_once init section")
             self.core.break_realtime()
 
-            # logger.warning("Red init...")
             self.red_mot_controller.init()
-
-            # logger.warning("Blue init...")
             self.blue_mot_controller.init()
 
             # Load a blue mot
@@ -84,6 +81,10 @@ class Measure689Shelving(ExpFragment):
         self.camera_bg_corrected.clear()
 
         self.core.break_realtime()
+
+        # Update beam state (e.g. frequency, suservo setpoint)
+        self.red_mot_controller.all_beam_default_setter.turn_on_all(shutter_state=True)
+        self.blue_mot_controller.all_beam_default_setter.turn_on_all(shutter_state=True)
 
         self.red_mot_controller.turn_off_mot_beams()
 
