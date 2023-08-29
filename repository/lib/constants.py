@@ -185,6 +185,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_689_red_mot_sigmaminus",
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=2.0,
     ),
     ### OTHER ###
     SUServoedBeam(
