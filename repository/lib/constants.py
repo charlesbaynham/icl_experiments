@@ -130,6 +130,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_461_3DMOT_axialplus",
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=5.0,
     ),
     SUServoedBeam(
         "blue_3dmot_axialminus",
@@ -138,8 +140,6 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_461_3DMOT_axialminus",
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
-        servo_enabled=True,
-        setpoint=5.0,
     ),
     SUServoedBeam(
         "blue_injection",
