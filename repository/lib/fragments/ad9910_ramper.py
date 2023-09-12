@@ -177,6 +177,11 @@ class AD9910Ramper(Fragment):
         :param wave_type: Type of scan. 0 (default) = triangle, 1 = positive-ramping sawtooth, 2 = negative-ramping sawtooth
         """
 
+        if rate < 0.0:
+            raise ValueError(
+                "Ramp rate must be positive - choose the sign by changing the wave_type"
+            )
+
         factor = (4.0 * (2.0**32.0)) * rate / self.dds.sysclk**2.0
 
         # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting

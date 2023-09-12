@@ -162,9 +162,10 @@ class Red3DMOTFrag(Fragment):
         self.device_setup_subfragments()
 
         # Precalculate the ramp rate required to get the requested modulation frequency
-        self.ramp_rate = (
-            self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get()
-        ) * self.ramp_frequency.get()
+        self.ramp_rate = abs(
+            (self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get())
+            * self.ramp_frequency.get()
+        )
 
         if self.ramp_type.get() == 0:
             # Triangle waves will need to ramp twice as quickly
