@@ -13,10 +13,9 @@ from artiq.experiment import kernel
 from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
-from numpy import ceil
 from numpy import int32
-from numpy import int64
 
+from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 
 logger = logging.getLogger(__name__)
 
@@ -190,11 +189,9 @@ class AD9910Ramper(EnvExperiment):
         :param wave_type: Type of scan. 0 (default) = triangle, 1 = positive-ramping sawtooth, 2 = negative-ramping sawtooth
         """
 
-        factor = (4.0 * (2.0**32.0)) * rate / self.dds.sysclk**2.0
-
-        # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
-        freq_step_mu = int32(max(ceil(factor), 1000.0))
-        delay_mu = int32(round(freq_step_mu / factor))
+        freq_step_mu, delay_mu = AD9910Ramper.calculate_step_and_delay(
+            rate, self.dds.sysclk
+        )
 
         logger.info("freq_step_mu = %s", freq_step_mu)
         logger.info("delay_mu = %s", delay_mu)

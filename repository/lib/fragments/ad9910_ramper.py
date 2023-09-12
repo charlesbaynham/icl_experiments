@@ -9,6 +9,7 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CPLD
 from artiq.coredevice.urukul import urukul_sta_pll_lock
 from artiq.experiment import kernel
+from artiq.experiment import portable
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from ndscan.experiment import Fragment
@@ -114,6 +115,20 @@ class AD9910Ramper(Fragment):
         ramp_rate = (pos_delay_mu & 0xFFFF) | (((neg_delay_mu) & 0xFFFF) << 16)
         self.dds.write32(_AD9910_REG_RAMP_RATE, ramp_rate)
 
+    @portable
+    def calculate_step_and_delay(rate, clk):
+        """
+        Given a desired ramp rate and a system clock, calculate the number of LSBs
+        to step and how long to delay between each step
+        """
+        factor = (4.0 * (2.0**32.0)) * rate / clk**2.0
+
+        # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
+        freq_step_mu = int32(max(ceil(factor), 1000.0))
+        delay_mu = int32(round(freq_step_mu / factor))
+
+        return freq_step_mu, delay_mu
+
     @kernel
     def set_ramp_parameters(self, freq_step: TFloat, delay: TFloat):
         """Sets the upwards and downwards DRG ramp step sizes and delays
@@ -171,17 +186,18 @@ class AD9910Ramper(Fragment):
 
         This function enables the DRG immediately.
 
-        :param rate: Ramp rate in Hz/s
+        :param rate: Ramp rate in Hz/s. Must be positive - the sign is determined by the ramp type
         :param freq_low: Low extent of the ramp in Hz
         :param freq_high: High extent of the ramp in Hz
         :param wave_type: Type of scan. 0 (default) = triangle, 1 = positive-ramping sawtooth, 2 = negative-ramping sawtooth
         """
 
-        factor = (4.0 * (2.0**32.0)) * rate / self.dds.sysclk**2.0
+        if rate < 0.0:
+            raise ValueError(
+                "Ramp rate must be positive - choose the sign by changing the wave_type"
+            )
 
-        # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
-        freq_step_mu = int32(max(ceil(factor), 1000.0))
-        delay_mu = int32(round(freq_step_mu / factor))
+        freq_step_mu, delay_mu = self.calculate_step_and_delay(rate, self.dds.sysclk)
 
         self.set_ramp_limits(freq_low, freq_high)
 
