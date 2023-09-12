@@ -83,6 +83,20 @@ class _BroadbandBase(ExpFragment):
         )
         self.camera_exposure: FloatParamHandle
 
+        # Expose the ramp rates too
+        self.setattr_param_rebind(
+            "ramp_lower_detuning",
+            self.red_mot_controller,
+        )
+        self.setattr_param_rebind(
+            "ramp_upper_detuning",
+            self.red_mot_controller,
+        )
+        self.setattr_param_rebind(
+            "ramp_frequency",
+            self.red_mot_controller,
+        )
+
     @kernel
     def prepare_and_load_blue_mot(self):
         """
