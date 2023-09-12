@@ -437,6 +437,16 @@ class NarrowbandTestFrag(_BroadbandBase):
         )
         self.final_narrow_hold_time: FloatParamHandle
 
+        self.setattr_param(
+            "red_expansion_time",
+            FloatParam,
+            "Expansion time before imaging MOT",
+            default=100e-6,
+            min=0.0,
+            unit="us",
+        )
+        self.red_expansion_time: FloatParamHandle
+
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
@@ -455,11 +465,15 @@ class NarrowbandTestFrag(_BroadbandBase):
                     self.narrow_red_capture_phase.duration.get()
                     + self.narrow_red_compression_phase.duration.get()
                     + self.final_narrow_hold_time.get()
+                    + self.red_expansion_time.get()
                 )
                 self.pulse_blue_and_image()
             with sequential:
                 self.narrow_red_capture_phase.do_phase()
                 self.narrow_red_compression_phase.do_phase()
+
+                delay(self.red_expansion_time.get())
+                self.red_mot_controller.turn_off_mot_beams()
 
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
