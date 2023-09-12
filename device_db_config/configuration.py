@@ -52,7 +52,6 @@ config = {
         "blue_IJD3_controller": ("sampler2", 2),
         "red_IJD1_controller": ("sampler2", 3),
     },
-    "mot_photodiode_sampler_config": ("suservo0", 0),
     "zotino_plant_room_channels": {
         "ch1_coils_MOT": 0,
         "ch2_coils_x": 26,

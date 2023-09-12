@@ -1,3 +1,8 @@
+"""
+Fragment to read a photodiode that measures the MOT fluorescence. This is no
+longer in the system (2023-09-12) so this code is left in case it's useful
+later.
+"""
 import logging
 
 from artiq.coredevice.core import Core
@@ -15,7 +20,7 @@ from repository.lib.fragments.read_adc import ReadSUServoADC
 logger = logging.getLogger(__name__)
 
 
-class MOTPhotodiodeMeasurement(Fragment):
+class _MOTPhotodiodeMeasurement(Fragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core

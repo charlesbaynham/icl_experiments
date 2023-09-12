@@ -40,7 +40,6 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             for k, v in self.get_device_db().items()
             if "suservo" in k and isinstance(v, str)
         }
-        device_db_suservo_aliases["mot_photodiode_monitor"] = "suservo0_ch0"
 
         self.setattr_argument(
             "suservo_channel_name",

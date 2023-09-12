@@ -19,7 +19,6 @@ from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.chamber_photodiode import MOTPhotodiodeMeasurement
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 
 
@@ -92,52 +91,6 @@ class MeasureBlueMOTFrag(ExpFragment):
         pass
 
 
-class MeasureBlueMOTWithPDFrag(MeasureBlueMOTFrag):
-    def build_fragment(self):
-        self.setattr_param(
-            "delay_between_trace_points",
-            FloatParam,
-            description="Delay between points in the photodiode trace",
-            default=1 * ms,
-            unit="ms",
-            min=1 * ms,
-            step=1,
-        )
-        self.delay_between_trace_points: FloatParamHandle
-
-        self.setattr_fragment("mot_measurer_pd", MOTPhotodiodeMeasurement)
-        self.mot_measurer_pd: MOTPhotodiodeMeasurement
-
-        self.setattr_result("photodiode_voltage", OpaqueChannel)
-        self.photodiode_voltage: ResultChannel
-
-        self.setattr_result("photodiode_mean_voltage", FloatChannel)
-        self.photodiode_mean_voltage: ResultChannel
-
-        super().build_fragment()
-
-    @kernel
-    def _take_data(self, loading_time):
-        num_points = int(loading_time / self.delay_between_trace_points.get())
-
-        trace_data = [0.0] * num_points
-
-        self.mot_measurer_pd.measure_MOT_fluorescence(
-            num_points=num_points,
-            delay_between_points_mu=self.core.seconds_to_mu(
-                self.delay_between_trace_points.get()
-            ),
-            data=trace_data,
-        )
-
-        self.photodiode_voltage.push(np.array(trace_data))
-        mean_voltage = 0.0
-        for i in range(len(trace_data)):
-            mean_voltage += trace_data[i]
-        mean_voltage /= len(trace_data)
-        self.photodiode_mean_voltage.push(mean_voltage)
-
-
 class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
     def build_fragment(self):
         self.setattr_fragment(
@@ -168,5 +121,4 @@ class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
         self.dual_cameras.save_data()
 
 
-MeasureBlueMOTWithPD = make_fragment_scan_exp(MeasureBlueMOTWithPDFrag)
 MeasureBlueMOTWithCamera = make_fragment_scan_exp(MeasureBlueMOTWithCameraFrag)
