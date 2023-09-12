@@ -238,7 +238,7 @@ class Red3DMOTFrag(Fragment):
 
     @kernel
     def set_mot_detuning(self, detuning: TFloat):
-        """Set the detuning of the MOT beams from the nominal frequency
+        """Set the detuning of the MOT beams from the static frequency
 
         Does not affect ramp settings and so will have no effect if ramping is
         enabled.
@@ -249,7 +249,11 @@ class Red3DMOTFrag(Fragment):
         Args:
             detuning (float): Detuning in Hz
         """
-        freq = constants.RED_INJECTION_AOM_FREQUENCY + detuning
+        freq = (
+            constants.RED_INJECTION_AOM_FREQUENCY
+            + self.injection_aom_static_detuning.get()
+            + detuning
+        )
 
         if self.debug_mode:
             logger.info(
