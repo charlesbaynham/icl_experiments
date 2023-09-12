@@ -114,16 +114,16 @@ class Red3DMOTFrag(Fragment):
             default=constants.RED_INJECTION_AOM_RAMP_FREQUENCY,
         )
         self.setattr_param(
-            "ramp_start_detuning",
+            "ramp_lower_detuning",
             FloatParam,
-            "Detuning of 689 injection AOM from nominal frequency at start of ramp",
+            "Detuning of 689 injection AOM from nominal frequency at lowest point of ramp",
             unit="MHz",
             default=0.0,
         )
         self.setattr_param(
-            "ramp_stop_detuning",
+            "ramp_upper_detuning",
             FloatParam,
-            "Detuning of 689 injection AOM from nominal frequency at end of ramp",
+            "Detuning of 689 injection AOM from nominal frequency at highest point of ramp",
             unit="MHz",
             default=3e6,
         )
@@ -135,8 +135,8 @@ class Red3DMOTFrag(Fragment):
         )
 
         self.ramp_frequency: FloatParamHandle
-        self.ramp_start_detuning: FloatParamHandle
-        self.ramp_stop_detuning: FloatParamHandle
+        self.ramp_lower_detuning: FloatParamHandle
+        self.ramp_upper_detuning: FloatParamHandle
         self.ramp_type: IntParamHandle
 
         # %% Kernel parameters
@@ -163,7 +163,7 @@ class Red3DMOTFrag(Fragment):
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = (
-            self.ramp_start_detuning.get() - self.ramp_stop_detuning.get()
+            self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get()
         ) * self.ramp_frequency.get()
 
         if self.ramp_type.get() == 0:
@@ -210,8 +210,8 @@ class Red3DMOTFrag(Fragment):
 
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
-            self.ramp_start_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
-            self.ramp_stop_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
+            self.ramp_lower_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
+            self.ramp_upper_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
             self.ramp_type.get(),
         )
 
