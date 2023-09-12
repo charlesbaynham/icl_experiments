@@ -170,6 +170,11 @@ class Red3DMOTFrag(Fragment):
             # Triangle waves will need to ramp twice as quickly
             self.ramp_rate *= 2
 
+        if self.debug_mode:
+            logger.info(
+                "Calculated required ramp_rate = %s kHz/s", self.ramp_rate * 1e-3
+            )
+
         self.core.break_realtime()
 
         # Ensure the RF switch is on and the frequency is correct.

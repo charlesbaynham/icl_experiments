@@ -95,6 +95,15 @@ class AD9910Ramper(Fragment):
         This function does not enable the DRG.
         """
 
+        if self.debug_mode:
+            logger.info(
+                "Configuring AOM ramp with pos_freq_step_mu=%s, pos_delay_mu=%s, neg_freq_step_mu=%s, neg_delay_mu=%s",
+                pos_freq_step_mu,
+                pos_delay_mu,
+                neg_freq_step_mu,
+                neg_delay_mu,
+            )
+
         if neg_freq_step_mu == 0:
             neg_freq_step_mu = pos_freq_step_mu
         if neg_delay_mu == 0:
@@ -111,6 +120,12 @@ class AD9910Ramper(Fragment):
 
         This function does not enable the DRG.
         """
+
+        if self.debug_mode:
+            logger.info(
+                "Configuring AOM ramp with freq_step=%s, delay=%s", freq_step, delay
+            )
+
         freq_step_mu = self.dds.frequency_to_ftw(freq_step)
         delay_mu = int32(round(self.dds.sysclk / 4 * delay))
 
@@ -130,6 +145,14 @@ class AD9910Ramper(Fragment):
 
         This function does not enable the DRG.
         """
+
+        if self.debug_mode:
+            logger.info(
+                "Configuring AOM ramp limits with frequency_low=%s, frequency_high=%s",
+                frequency_low,
+                frequency_high,
+            )
+
         self.set_ramp_limits_mu(
             self.dds.frequency_to_ftw(frequency_low),
             self.dds.frequency_to_ftw(frequency_high),
