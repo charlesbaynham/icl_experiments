@@ -472,8 +472,9 @@ class NarrowbandTestFrag(_BroadbandBase):
                 self.narrow_red_capture_phase.do_phase()
                 self.narrow_red_compression_phase.do_phase()
 
-                delay(self.red_expansion_time.get())
+                delay(self.final_narrow_hold_time.get())
                 self.red_mot_controller.turn_off_mot_beams()
+                delay(self.red_expansion_time.get())
 
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
