@@ -29,6 +29,7 @@ class SUServoedBeam:
     shutter_device: Optional[str] = None
     shutter_delay: float = 0.0
     setpoint: float = 0.0
+    "A setpoint in volts which should be attainable under all circumstances. If this power cannot be reached, the experiment has permission to misbehave"
     servo_enabled: bool = False
     photodiode_offset: float = 0.0
     """

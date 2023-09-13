@@ -409,8 +409,8 @@ class NarrowRedCapturePhase(_RampingPhase):
     end_detuning_default = 50e3
     start_gradient_default = 5.0
     end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 100.0
-    end_suservo_nominal_multiple_default = 10.0
+    start_suservo_nominal_multiple_default = 1.0
+    end_suservo_nominal_multiple_default = 0.1
 
 
 class NarrowRedCompressionPhase(_RampingPhase):
@@ -419,8 +419,8 @@ class NarrowRedCompressionPhase(_RampingPhase):
     end_detuning_default = 10e3
     start_gradient_default = 1.0
     end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 10.0
-    end_suservo_nominal_multiple_default = 1.0
+    start_suservo_nominal_multiple_default = 0.1
+    end_suservo_nominal_multiple_default = 0.02
 
 
 class NarrowbandTestFrag(_BroadbandBase):
