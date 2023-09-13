@@ -88,12 +88,6 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.setattr_result("voltage")
         self.voltage: ResultChannel
 
-        # Get SUServo reader fragment
-        self.setattr_fragment(
-            "adc_reader", ReadSUServoADC, self.suservo, self.sampler_channel_number
-        )
-        self.adc_reader: ReadSUServoADC
-
         # Get beam setter fragment
         self.setattr_fragment(
             "beam_default_setter",
@@ -109,6 +103,12 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             channel=self.beam_info.suservo_device,
         )
         self.suservo_controller: LibSetSUServoStatic
+
+        # Get SUServo reader fragment
+        self.setattr_fragment(
+            "adc_reader", ReadSUServoADC, self.suservo, self.sampler_channel_number
+        )
+        self.adc_reader: ReadSUServoADC
 
         self.setattr_param(
             "pgia_gain",

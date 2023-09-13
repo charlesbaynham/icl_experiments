@@ -188,14 +188,14 @@ class LibSetSUServoStatic(Fragment):
         # Set channel output state
         self.set_channel_state(rf_switch_state, enable_iir)
 
-    @kernel
-    def set_pgia_gain_mu(self, gain_mu):
-        """
-        Set the PGIA gain of this channel
+    # @kernel
+    # def set_pgia_gain_mu(self, gain_mu):
+    #     """
+    #     Set the PGIA gain of this channel
 
-        See :meth:`artiq.coredevice.suservo.SUServo.set_pgia_mu` for details.
-        """
-        self.suservo.set_pgia_mu(self.sampler_channel, gain_mu)
+    #     See :meth:`artiq.coredevice.suservo.SUServo.set_pgia_mu` for details.
+    #     """
+    #     self.suservo.set_pgia_mu(self.sampler_channel, gain_mu)
 
     @kernel
     def set_setpoint(self, new_setpoint: TFloat):
