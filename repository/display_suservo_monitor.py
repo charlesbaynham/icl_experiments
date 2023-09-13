@@ -2,17 +2,20 @@ import logging
 import re
 
 from artiq.coredevice.core import Core
+from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib import constants
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
@@ -35,36 +38,29 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         )
         self.waittime: FloatParamHandle
 
-        device_db_suservo_aliases = {
-            k: v
-            for k, v in self.get_device_db().items()
-            if "suservo" in k and isinstance(v, str)
-        }
-
+        beam_info_names = list(constants.AOM_BEAMS.keys())
         self.setattr_argument(
-            "suservo_channel_name",
+            "beam_info_name",
             EnumerationValue(
-                list(device_db_suservo_aliases.keys()),
-                default=list(device_db_suservo_aliases.keys())[0],
+                beam_info_names,
+                default=beam_info_names[0],
             ),
         )
-        suservo_name = (
-            re.match(
-                r"(suservo\d+)_ch\d+",
-                device_db_suservo_aliases[self.suservo_channel_name],
-            )[1]
-            if self.suservo_channel_name is not None
-            else "suservo0"
+
+        beam_info = constants.AOM_BEAMS[self.beam_info_name or beam_info_names[0]]
+
+        self.suservo_channel_device: SUServoChannel = self.get_device(
+            beam_info.suservo_device
         )
-        self.suservo: SUServo = self.get_device(suservo_name)
-        self.suservo_channel = int(
-            re.match(
-                r"suservo\d+_ch(\d+)",
-                device_db_suservo_aliases[self.suservo_channel_name],
-            )[1]
-            if self.suservo_channel_name is not None
-            else 0
-        )
+
+        if isinstance(self.suservo_channel_device, DummyDevice):
+            # In building - use placeholder values
+            self.suservo: SUServo = DummyDevice()
+            self.sampler_channel_number = 0
+        else:
+            self.suservo = self.suservo_channel_device.servo
+            # This is a convention in the AION lab:
+            self.sampler_channel_number = self.suservo_channel_device.servo_channel
 
         # Define result channels as outputs
         self.setattr_result("voltage")
@@ -72,7 +68,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
 
         # Get SUServo reader fragment
         self.setattr_fragment(
-            "adc_reader", ReadSUServoADC, self.suservo, self.suservo_channel
+            "adc_reader", ReadSUServoADC, self.suservo, self.sampler_channel_number
         )
         self.adc_reader: ReadSUServoADC
 
