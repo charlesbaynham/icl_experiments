@@ -88,12 +88,6 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.setattr_result("voltage")
         self.voltage: ResultChannel
 
-        # Get SUServo reader fragment
-        self.setattr_fragment(
-            "adc_reader", ReadSUServoADC, self.suservo, self.sampler_channel_number
-        )
-        self.adc_reader: ReadSUServoADC
-
         # Get beam setter fragment
         self.setattr_fragment(
             "beam_default_setter",
@@ -101,6 +95,12 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             default_beam_infos=[self.beam_info],
         )
         self.beam_default_setter: SetBeamsToDefaults
+
+        # Get SUServo reader fragment
+        self.setattr_fragment(
+            "adc_reader", ReadSUServoADC, self.suservo, self.sampler_channel_number
+        )
+        self.adc_reader: ReadSUServoADC
 
         # FIXME: Hack to get suservo control too
         self.setattr_fragment(
