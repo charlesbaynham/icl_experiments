@@ -104,6 +104,8 @@ class ReadSUServoADC(ReadADC):
     """
 
     def build_fragment(self, suservo_device: SUServo, suservo_channel: int):
+        self.setattr_device("core")
+
         self.suservo_channel: int = suservo_channel
         self.suservo_device: SUServo = suservo_device
 
