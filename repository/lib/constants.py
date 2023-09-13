@@ -175,6 +175,7 @@ AOM_BEAMS = [
         shutter_delay=10e-3,
         servo_enabled=True,
         setpoint=2.0,
+        photodiode_offset=0.01326,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -185,6 +186,7 @@ AOM_BEAMS = [
         shutter_delay=10e-3,
         servo_enabled=True,
         setpoint=2.5,
+        photodiode_offset=0.0188,
     ),
     # These beams are not currently installed:
     SUServoedBeam(

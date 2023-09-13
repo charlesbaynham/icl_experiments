@@ -122,7 +122,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
     def run_once(self):
         delay(self.waittime.get())
 
-        v = self.adc_reader.read_adc()
+        v = self.adc_reader.read_adc() - self.beam_info.photodiode_offset
 
         self.voltage.push(v)
 
