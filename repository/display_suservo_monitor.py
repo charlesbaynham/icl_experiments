@@ -91,6 +91,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.beam_default_setter: SetBeamsToDefaults
 
     def host_setup(self):
+        super().host_setup()
         self.beam_default_setter.turn_on_all(shutter_state=True)
 
     @kernel
