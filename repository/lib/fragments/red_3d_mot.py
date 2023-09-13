@@ -19,20 +19,20 @@ from repository.lib.fragments.cavity_control import LaserStabilisationSystem
 from repository.lib.fragments.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
+from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 
 logger = logging.getLogger(__name__)
 
+RED_BEAMS = [
+    "red_mot_diagonal",
+    "red_mot_sigmaplus",
+    "red_mot_sigmaminus",
+]
+
 
 class RedBeamSetter(SetBeamsToDefaults):
-    default_beam_infos = [
-        constants.AOM_BEAMS[beam]
-        for beam in [
-            "red_mot_diagonal",
-            "red_mot_sigmaplus",
-            "red_mot_sigmaminus",
-        ]
-    ]
+    default_beam_infos = [constants.AOM_BEAMS[beam] for beam in [RED_BEAMS]]
 
 
 class Red3DMOTFrag(Fragment):
@@ -74,6 +74,12 @@ class Red3DMOTFrag(Fragment):
             constants.RED_INJECTION_AOM_ATTENUATION,
         )
         self.GlitchFreeUrukulDefaultAttenuation: GlitchFreeUrukulDefaultAttenuation
+
+        for beam in RED_BEAMS:
+            self.setattr_fragment(
+                "suservofrag_" + beam,
+                LibSetSUServoStatic,
+            )
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
@@ -254,6 +260,25 @@ class Red3DMOTFrag(Fragment):
             + self.injection_aom_static_detuning.get()
             + detuning
         )
+
+        if self.debug_mode:
+            logger.info(
+                "Setting AOM detuning to %.3f kHz = %.6f MHz on %s",
+                detuning * 1e-3,
+                freq * 1e-6,
+                self.injection_aom,
+            )
+
+        self.injection_aom.set(freq)
+
+    @kernel
+    def set_mot_suservo_amplitude(self, amplitude_multiple: TFloat):
+        """
+        Set the SUServo target amplitudes of all MOT beams
+
+        Args:
+            amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a multiple of the nominal amplitude
+        """
 
         if self.debug_mode:
             logger.info(

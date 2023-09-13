@@ -329,27 +329,30 @@ class _RampingPhase(Fragment):
         )
 
         # ...and the SUServo amplitudes
-        # FIXME: Not yet implemented
-        # self.suservo_step = (self.end_detuning - self.start_detuning) / float(
-        #     num_points - 1
-        # )
+        suservo_step = (
+            self.end_suservo_nominal_multiple - self.start_suservo_nominal_multiple
+        ) / float(num_points - 1)
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
             # Initialise
             this_current = self.start_gradient.get()
             this_detuning = self.start_detuning.get()
+            this_suservo_multiple = self.start_suservo_nominal_multiple.get()
 
             t_this_cycle_mu = now_mu()
 
             # Play the ramp
             for _ in range(num_points):
                 at_mu(t_this_cycle_mu)
+
                 self.gradient_current_setter.set_currents([this_current])
                 delay_mu(
                     int64(self.core.ref_multiplier)
                 )  # Try to avoid using multiple lanes
                 self.red_mot_controller.set_mot_detuning(this_detuning)
+                delay_mu(int64(self.core.ref_multiplier))
+                self.red_mot_controller.set_mot_suservo_amplitude(this_detuning)
 
                 this_current += current_step
                 this_detuning += detuning_step
@@ -382,9 +385,9 @@ class _RampingPhase(Fragment):
         # TODO: Tune SUServos
         # TODO: Ramp SUServos
 
-        # * Ramping of beam intensitites
-        # * Ramping of gradient currents
-        # * Ramping of MOT beam detunings (via double-passed injection AOM)
+        # [ ] Ramping of beam intensitites
+        # [x] Ramping of gradient currents
+        # [x] Ramping of MOT beam detunings (via double-passed injection AOM)
 
 
 class NarrowRedCapturePhase(_RampingPhase):
