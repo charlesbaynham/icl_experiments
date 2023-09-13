@@ -100,6 +100,7 @@ class LibSetSUServoStatic(Fragment):
                     self.suservo.channel,
                 )
 
+            # FIXME
             self.core.break_realtime()
 
             self.suservo.init()
@@ -108,10 +109,10 @@ class LibSetSUServoStatic(Fragment):
             cpld.get_att_mu()
             self.core.break_realtime()
 
-            self.suservo.set_config(enable=1)
+            # self.suservo.set_config(enable=1)
 
-            # Set default IIR settings
-            self.set_iir_params()
+            # # Set default IIR settings
+            # self.set_iir_params()
 
     @kernel
     def setpoint_to_offset(self, setpoint_v: TFloat) -> TFloat:
