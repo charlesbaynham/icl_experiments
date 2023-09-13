@@ -28,7 +28,7 @@ class _FakeTTL:
         self.core = core
 
     @kernel
-    def set_o(self, state: TBool):
+    def on(self):
         pass
 
 
@@ -90,9 +90,8 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.adc_reader: ReadSUServoADC
 
     def host_setup(self):
-        # Get a ttl device for the shutter if present
-        if False:
-            # if self.beam_info.shutter_device:
+        # Get a ttl device for the shutter if present and required
+        if self.beam_info.shutter_device and self.open_shutter:
             self.shutter_ttl = self.get_device(self.beam_info.shutter_device)
         else:
             self.shutter_ttl = _FakeTTL(self.core)
@@ -100,8 +99,9 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
+        self.core.break_realtime()
         delay(10 * ms)
-        self.shutter_ttl.set_o(True)
+        self.shutter_ttl.on()
 
     @kernel
     def run_once(self):
