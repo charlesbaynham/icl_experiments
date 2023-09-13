@@ -105,9 +105,12 @@ class LibSetSUServoStatic(Fragment):
 
             self.suservo.init()
 
-            # cpld = self.suservo_channel.dds.cpld  # type: CPLD
-            # cpld.get_att_mu()
-            # self.core.break_realtime()
+            cpld = self.suservo_channel.dds.cpld  # type: CPLD
+            att_mu = cpld.get_att_mu()
+            if self.debug_enabled:
+                logger.info("att_mu = %d", att_mu)
+
+            self.core.break_realtime()
 
             self.suservo.set_config(enable=1)
 
