@@ -79,8 +79,9 @@ class Red3DMOTFrag(Fragment):
         )
         self.GlitchFreeUrukulDefaultAttenuation: GlitchFreeUrukulDefaultAttenuation
 
-        self.suservo_nominal_amplitudes: List[float] = []
         self.suservo_fragments: List[LibSetSUServoStatic] = []
+        self.suservo_setpoint_offsets: List[float] = []
+        self.suservo_nominal_amplitudes: List[float] = []
         for beam_info in RED_BEAM_INFOS:
             f = self.setattr_fragment(
                 "suservofrag_" + beam_info.name,
@@ -88,6 +89,7 @@ class Red3DMOTFrag(Fragment):
                 channel=beam_info.suservo_device,
             )
             self.suservo_fragments.append(f)
+            self.suservo_setpoint_offsets.append(beam_info.photodiode_offset)
             self.suservo_nominal_amplitudes.append(beam_info.setpoint)
 
         # Commented out since the cavity EOM is currently driven by a Rigol
@@ -293,14 +295,17 @@ class Red3DMOTFrag(Fragment):
 
             suservo_frag = self.suservo_fragments[i]
             nominal_setpoint = self.suservo_nominal_amplitudes[i]
+            photodiode_offset = self.suservo_setpoint_offsets[i]
 
-            setpoint = nominal_setpoint * amplitude_multiple
+            setpoint = nominal_setpoint * amplitude_multiple + photodiode_offset
 
             if self.debug_mode:
                 logger.info(
-                    "Setting %s setpoint to %.2 x nom = %.3f V",
+                    "Setting %s setpoint to %.2f x %.2f + %.4f = %.3f V",
                     suservo_frag,
                     amplitude_multiple,
+                    nominal_setpoint,
+                    photodiode_offset,
                     setpoint,
                 )
 

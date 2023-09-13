@@ -16,7 +16,9 @@ this module.
 """
 from collections import OrderedDict
 
-from pyaion.models import SUServoedBeam
+from repository.lib.models import SUServoedBeam
+
+# from pyaion.models import SUServoedBeam # FIXME
 
 
 IJD_AOMS = {
