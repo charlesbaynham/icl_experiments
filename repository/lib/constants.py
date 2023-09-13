@@ -171,6 +171,8 @@ AOM_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
         shutter_device="ttl_shutter_red_mot_diagonal",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
