@@ -4,10 +4,12 @@ import re
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
+from artiq.experiment import BooleanValue
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.experiment import TBool
 from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
@@ -19,6 +21,15 @@ from repository.lib import constants
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
+
+
+class _FakeTTL:
+    def __init__(self, core) -> None:
+        self.core = core
+
+    @kernel
+    def set_o(self, state: TBool):
+        pass
 
 
 class DisplaySUServoMonitorsFrag(ExpFragment):
@@ -47,10 +58,16 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             ),
         )
 
-        beam_info = constants.AOM_BEAMS[self.beam_info_name or beam_info_names[0]]
+        self.setattr_argument(
+            "open_shutter",
+            BooleanValue(True),
+        )
+        self.open_shutter: bool
+
+        self.beam_info = constants.AOM_BEAMS[self.beam_info_name or beam_info_names[0]]
 
         self.suservo_channel_device: SUServoChannel = self.get_device(
-            beam_info.suservo_device
+            self.beam_info.suservo_device
         )
 
         if isinstance(self.suservo_channel_device, DummyDevice):
@@ -72,10 +89,19 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         )
         self.adc_reader: ReadSUServoADC
 
+    def host_setup(self):
+        # Get a ttl device for the shutter if present
+        if False:
+            # if self.beam_info.shutter_device:
+            self.shutter_ttl = self.get_device(self.beam_info.shutter_device)
+        else:
+            self.shutter_ttl = _FakeTTL(self.core)
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         delay(10 * ms)
+        # self.shutter_ttl.set_o(True)
 
     @kernel
     def run_once(self):
