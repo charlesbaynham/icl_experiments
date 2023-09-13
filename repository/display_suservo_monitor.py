@@ -57,6 +57,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
                 default=beam_info_names[0],
             ),
         )
+        self.beam_info_name: str
 
         self.setattr_argument(
             "open_shutter",
@@ -95,6 +96,12 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             self.shutter_ttl = self.get_device(self.beam_info.shutter_device)
         else:
             self.shutter_ttl = _FakeTTL(self.core)
+
+            if self.open_shutter:
+                logger.warning(
+                    "Shutter opening requested but there is no shutter stored in the beam_info for beam %s",
+                    self.beam_info_name,
+                )
 
     @kernel
     def device_setup(self) -> None:
