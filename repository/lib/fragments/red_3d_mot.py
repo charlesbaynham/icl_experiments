@@ -285,12 +285,14 @@ class Red3DMOTFrag(Fragment):
             amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a multiple of the nominal amplitude
         """
 
-        if self.debug_mode:
-            logger.info(
-                "Setting AOM detuning to %.3f kHz = %.6f MHz on %s",
-                detuning * 1e-3,
-                freq * 1e-6,
-                self.injection_aom,
-            )
+        pass  # FIXME
 
-        self.injection_aom.set(freq)
+        # if self.debug_mode:
+        #     logger.info(
+        #         "Setting AOM detuning to %.3f kHz = %.6f MHz on %s",
+        #         detuning * 1e-3,
+        #         freq * 1e-6,
+        #         self.injection_aom,
+        #     )
+
+        # self.injection_aom.set(freq)
