@@ -90,17 +90,13 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         )
         self.beam_default_setter: SetBeamsToDefaults
 
-    def host_setup(self):
-        super().host_setup()
-        self.beam_default_setter.turn_on_all(shutter_state=True)
-
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         self.core.break_realtime()
         delay(10 * ms)
         if self.turn_on_beam_with_default_settings:
-            self.beam_default_setter.turn_on_all()
+            self.beam_default_setter.turn_on_all(shutter_state=True)
 
     @kernel
     def run_once(self):
