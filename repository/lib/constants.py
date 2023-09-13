@@ -58,7 +58,7 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 
 
 # Default field in chamber 2
-B_FIELD_BIAS_X = 0.25  # A
+B_FIELD_BIAS_X = 0.1  # A
 B_FIELD_BIAS_Y = -0.025  # A
 B_FIELD_BIAS_Z = -0.68  # A
 B_FIELD_GRADIENT = 100.0  # A
