@@ -69,8 +69,14 @@ RED_INJECTION_AOM_ATTENUATION = 0.0
 RED_INJECTION_AOM_FREQUENCY = 340e6
 "Nominal frequency for the 689 injection AOM"
 
-RED_INJECTION_AOM_RAMP_FREQUENCY = 10e3
+RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
 "Default ramp frequency for the broadband red MOT"
+
+RED_BROADBAND_CURRENT = 3.0
+"Default current for broadband red MOT"
+
+RED_BROADBAND_TIME = 100e-3
+"Default time in broadband red MOT"
 
 OFFSET_FREQUENCY_689 = 553e6
 """

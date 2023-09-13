@@ -20,6 +20,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int32
 from numpy import int64
 
+from repository.lib import constants
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFields
@@ -54,7 +55,7 @@ class _BroadbandBase(ExpFragment):
             "red_broadband_time",
             FloatParam,
             "Time to spend in the broadband red mot",
-            default=10e-3,
+            default=constants.RED_BROADBAND_TIME,
             unit="ms",
         )
         self.red_broadband_time: FloatParamHandle
@@ -63,7 +64,7 @@ class _BroadbandBase(ExpFragment):
             "red_broadband_gradient_current",
             FloatParam,
             "Current for gradient coils for broadband red MOT stage",
-            default=10,
+            default=constants.RED_BROADBAND_CURRENT,
             unit="A",
         )
         self.red_broadband_gradient_current: FloatParamHandle
