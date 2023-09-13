@@ -28,7 +28,8 @@ class LibSetSUServoStatic(Fragment):
     """
     Set a static SUServo output
 
-    The channel to be set should be passed as an argument to :meth:`.build_fragment`, e.g.::
+    The channel to be set should be passed as an argument to
+    :meth:`.build_fragment`, e.g.::
 
         self.setattr_fragment(
             "LibSetSUServoStatic", LibSetSUServoStatic, "suservo0_ch0",
@@ -38,6 +39,14 @@ class LibSetSUServoStatic(Fragment):
     :class:`~ndscan.experiment.fragment.ExpFragment` will reinitialise the
     entire SUServo device. This Fragment then provides a :meth:`.set_suservo`
     method which can be used to set the specified channel's output.
+
+    Unfortunately, it's not possible to read out the attenuation register from
+    an Urukul in SUServo mode (see
+    https://github.com/quartiq/urukul/blob/af67d56c0158d61d0232a491cf123a5e6767ecbf/urukul.py#L254-L282).
+    This class must therefore reset the attenuations of all channels when it
+    changes the attenuation of one - i.e. all SUServo outputs that share an
+    Urukul with the one being written and that have not had their attenuation
+    set during the current ARTIQ experiment will have their attenuations reset.
     """
 
     # A set of which suservos have been initiated, stored as a class variable
@@ -100,17 +109,9 @@ class LibSetSUServoStatic(Fragment):
                     self.suservo.channel,
                 )
 
-            # FIXME
             self.core.break_realtime()
 
             self.suservo.init()
-
-            cpld = self.suservo_channel.dds.cpld  # type: CPLD
-            att_mu = cpld.get_att_mu()
-            if self.debug_enabled:
-                logger.info("att_mu = %d", att_mu)
-
-            self.core.break_realtime()
 
             self.suservo.set_config(enable=1)
 
