@@ -166,37 +166,38 @@ AOM_BEAMS = [
     ### RED ###
     SUServoedBeam(
         "red_mot_diagonal",
-        100e6,
-        0,
-        "suservo_aom_singlepass_689_red_mot_diagonal",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
         shutter_device="ttl_shutter_red_mot_diagonal",
         shutter_delay=10e-3,
     ),
     SUServoedBeam(
+        "red_mot_sigmaminus",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaminus",
+        shutter_device="ttl_shutter_red_sigmaminus",
+        shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=2.0,
+    ),
+    # These beams are not currently installed:
+    SUServoedBeam(
         "red_up",
         100e6,
-        0,
-        "suservo_aom_singlepass_689_up",
+        attenuation=30,  # This beam is not currently used - turn it off here to avoid confusion
+        suservo_device="suservo_aom_singlepass_689_up",
         shutter_device="ttl_shutter_red_up",
         shutter_delay=10e-3,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
         100e6,
-        0,
-        "suservo_aom_singlepass_689_red_mot_sigmaplus",
+        attenuation=30,  # This beam is not currently used - turn it off here to avoid confusion
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=10e-3,
-    ),
-    SUServoedBeam(
-        "red_mot_sigmaminus",
-        100e6,
-        0,
-        "suservo_aom_singlepass_689_red_mot_sigmaminus",
-        shutter_device="ttl_shutter_red_sigmaminus",
-        shutter_delay=10e-3,
-        servo_enabled=True,
-        setpoint=2.0,
     ),
     ### OTHER ###
     SUServoedBeam(
