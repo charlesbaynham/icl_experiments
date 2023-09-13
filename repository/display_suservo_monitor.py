@@ -1,5 +1,4 @@
 import logging
-import re
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
@@ -12,14 +11,16 @@ from artiq.experiment import ms
 from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
+from ndscan.experiment import IntParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
-
+from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,22 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         )
         self.beam_default_setter: SetBeamsToDefaults
 
+        # FIXME: Hack to get suservo control too
+        self.setattr_fragment(
+            "suservo_controller",
+            LibSetSUServoStatic,
+            channel=self.beam_info.suservo_device,
+        )
+        self.suservo_controller: LibSetSUServoStatic
+
+        self.setattr_param(
+            "pgia_gain",
+            IntParam,
+            description="PGA gain",
+            default=1,
+        )
+        self.pgia_gain: IntParamHandle
+
         # %% Kernel params
 
         self.first_run = True
@@ -114,6 +131,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             delay(10 * ms)
             if self.turn_on_beam_with_default_settings:
                 self.beam_default_setter.turn_on_all(shutter_state=True)
+                self.suservo_controller.set_pgia_gain_mu(self.pgia_gain.get())
 
             self.first_run = False
 
