@@ -101,7 +101,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         delay(10 * ms)
-        # self.shutter_ttl.set_o(True)
+        self.shutter_ttl.set_o(True)
 
     @kernel
     def run_once(self):
