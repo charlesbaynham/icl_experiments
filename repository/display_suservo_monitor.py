@@ -57,7 +57,18 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         )
         self.turn_on_beam_with_default_settings: bool
 
+        self.setattr_argument(
+            "disable_servoing",
+            BooleanValue(True),
+        )
+        self.disable_servoing: bool
+
+        # %% devices
+
         self.beam_info = constants.AOM_BEAMS[self.beam_info_name or beam_info_names[0]]
+
+        if self.disable_servoing:
+            self.beam_info.servo_enabled = False
 
         self.suservo_channel_device: SUServoChannel = self.get_device(
             self.beam_info.suservo_device
