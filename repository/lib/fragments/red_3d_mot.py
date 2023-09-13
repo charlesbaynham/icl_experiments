@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
@@ -78,13 +79,16 @@ class Red3DMOTFrag(Fragment):
         )
         self.GlitchFreeUrukulDefaultAttenuation: GlitchFreeUrukulDefaultAttenuation
 
+        self.suservo_nominal_amplitudes: List[float] = []
+        self.suservo_fragments: List[LibSetSUServoStatic] = []
         for beam_info in RED_BEAM_INFOS:
-            self.setattr_fragment(
+            f = self.setattr_fragment(
                 "suservofrag_" + beam_info.name,
                 LibSetSUServoStatic,
                 channel=beam_info.suservo_device,
             )
-            # TODO: Finish this
+            self.suservo_fragments.append(f)
+            self.suservo_nominal_amplitudes.append(beam_info.setpoint)
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
@@ -285,14 +289,19 @@ class Red3DMOTFrag(Fragment):
             amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a multiple of the nominal amplitude
         """
 
-        pass  # FIXME
+        for i in range(len(self.suservo_fragments)):
 
-        # if self.debug_mode:
-        #     logger.info(
-        #         "Setting AOM detuning to %.3f kHz = %.6f MHz on %s",
-        #         detuning * 1e-3,
-        #         freq * 1e-6,
-        #         self.injection_aom,
-        #     )
+            suservo_frag = self.suservo_fragments[i]
+            nominal_setpoint = self.suservo_nominal_amplitudes[i]
 
-        # self.injection_aom.set(freq)
+            setpoint = nominal_setpoint * amplitude_multiple
+
+            if self.debug_mode:
+                logger.info(
+                    "Setting %s setpoint to %.2 x nom = %.3f V",
+                    suservo_frag,
+                    amplitude_multiple,
+                    setpoint,
+                )
+
+            suservo_frag.set_setpoint(setpoint)
