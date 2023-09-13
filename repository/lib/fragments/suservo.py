@@ -119,6 +119,10 @@ class LibSetSUServoStatic(Fragment):
             # Set default IIR settings
             self.set_iir_params()
 
+            # Set the PGIA to 1x - there's no way to read it, so we have to have
+            # a deterministic initialisation
+            self.set_pgia_gain_mu(0)
+
     @kernel
     def setpoint_to_offset(self, setpoint_v: TFloat) -> TFloat:
         """Convert a setpoint in volts to a SUServo offset
