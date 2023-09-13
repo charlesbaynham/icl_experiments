@@ -180,7 +180,7 @@ AOM_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=2.0,
+        setpoint=2.5,
     ),
     # These beams are not currently installed:
     SUServoedBeam(

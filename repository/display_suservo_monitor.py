@@ -9,7 +9,6 @@ from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import ms
-from artiq.experiment import TBool
 from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
@@ -18,18 +17,11 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
+
 logger = logging.getLogger(__name__)
-
-
-class _FakeTTL:
-    def __init__(self, core) -> None:
-        self.core = core
-
-    @kernel
-    def on(self):
-        pass
 
 
 class DisplaySUServoMonitorsFrag(ExpFragment):
@@ -60,10 +52,10 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.beam_info_name: str
 
         self.setattr_argument(
-            "open_shutter",
+            "turn_on_beam_with_default_settings",
             BooleanValue(True),
         )
-        self.open_shutter: bool
+        self.turn_on_beam_with_default_settings: bool
 
         self.beam_info = constants.AOM_BEAMS[self.beam_info_name or beam_info_names[0]]
 
@@ -90,25 +82,24 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         )
         self.adc_reader: ReadSUServoADC
 
-    def host_setup(self):
-        # Get a ttl device for the shutter if present and required
-        if self.beam_info.shutter_device and self.open_shutter:
-            self.shutter_ttl = self.get_device(self.beam_info.shutter_device)
-        else:
-            self.shutter_ttl = _FakeTTL(self.core)
+        # Get beam setter fragment
+        self.setattr_fragment(
+            "beam_default_setter",
+            SetBeamsToDefaults,
+            default_beam_infos=[self.beam_info],
+        )
+        self.beam_default_setter: SetBeamsToDefaults
 
-            if self.open_shutter:
-                logger.warning(
-                    "Shutter opening requested but there is no shutter stored in the beam_info for beam %s",
-                    self.beam_info_name,
-                )
+    def host_setup(self):
+        self.beam_default_setter.turn_on_all(shutter_state=True)
 
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         self.core.break_realtime()
         delay(10 * ms)
-        self.shutter_ttl.on()
+        if self.turn_on_beam_with_default_settings:
+            self.beam_default_setter.turn_on_all()
 
     @kernel
     def run_once(self):

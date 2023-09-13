@@ -9,7 +9,6 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
-from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -25,9 +24,12 @@ class SetBeamsToDefaults(Fragment):
     Turn on a list of suservoed beams, possibly with shutters, to their default
     settings
 
-    To use this fragment you must subclass it and provide a class attribute
+    To use this fragment you must either subclass it and provide a class attribute
     "default_beam_infos" which is a list of :class:`pyaion.models.SUServoedBeam`
-    objects describing the beams that this class instance will control.
+    objects describing the beams that this class instance will control, or pass this
+    list to the constructor.
+
+    If you do both, the list passed to the constructor will take priority.
 
     This class will define ndscan parameters which allow the user to override
     these default settings.
@@ -35,10 +37,12 @@ class SetBeamsToDefaults(Fragment):
 
     default_beam_infos: List[SUServoedBeam] = None  # type: ignore
 
-    def build_fragment(self):
+    def build_fragment(self, default_beam_infos=None):
+        self.default_beam_infos = default_beam_infos or self.default_beam_infos
+
         if self.default_beam_infos is None:
             raise TypeError(
-                "You must create a subclass of SetBeamsToDefaults to use it - see the documentation"
+                "You must either create a subclass of SetBeamsToDefaults or pass in a list of default_beam_infos - see the documentation"
             )
 
         self.setattr_device("core")
