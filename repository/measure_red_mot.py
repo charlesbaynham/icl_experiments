@@ -84,7 +84,7 @@ class _BroadbandBase(ExpFragment):
         )
         self.camera_exposure: FloatParamHandle
 
-        # Expose the ramp rates too
+        # Expose various parameters for convenience
         self.setattr_param_rebind(
             "ramp_lower_detuning",
             self.red_mot_controller,
@@ -95,6 +95,10 @@ class _BroadbandBase(ExpFragment):
         )
         self.setattr_param_rebind(
             "ramp_frequency",
+            self.red_mot_controller,
+        )
+        self.setattr_param_rebind(
+            "injection_aom_static_detuning",
             self.red_mot_controller,
         )
 
