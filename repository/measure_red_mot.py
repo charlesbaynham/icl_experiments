@@ -341,7 +341,8 @@ class _RampingPhase(Fragment):
 
         # ...and the SUServo amplitudes
         suservo_step = (
-            self.end_suservo_nominal_multiple - self.start_suservo_nominal_multiple
+            self.end_suservo_nominal_multiple.get()
+            - self.start_suservo_nominal_multiple.get()
         ) / float(num_points - 1)
 
         # Record these ramping parameters into a DMA sequence
