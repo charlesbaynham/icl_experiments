@@ -12,8 +12,9 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
+
+from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 
 logger = logging.getLogger(__name__)
