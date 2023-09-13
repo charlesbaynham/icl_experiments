@@ -24,15 +24,18 @@ from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
-RED_BEAMS = [
-    "red_mot_diagonal",
-    "red_mot_sigmaplus",
-    "red_mot_sigmaminus",
+RED_BEAM_INFOS = [
+    constants.AOM_BEAMS[beam]
+    for beam in [
+        "red_mot_diagonal",
+        "red_mot_sigmaplus",
+        "red_mot_sigmaminus",
+    ]
 ]
 
 
 class RedBeamSetter(SetBeamsToDefaults):
-    default_beam_infos = [constants.AOM_BEAMS[beam] for beam in RED_BEAMS]
+    default_beam_infos = RED_BEAM_INFOS
 
 
 class Red3DMOTFrag(Fragment):
@@ -75,11 +78,13 @@ class Red3DMOTFrag(Fragment):
         )
         self.GlitchFreeUrukulDefaultAttenuation: GlitchFreeUrukulDefaultAttenuation
 
-        for beam in RED_BEAMS:
+        for beam_info in RED_BEAM_INFOS:
             self.setattr_fragment(
-                "suservofrag_" + beam,
+                "suservofrag_" + beam_info.name,
                 LibSetSUServoStatic,
+                channel=beam_info.suservo_device,
             )
+            # TODO: Finish this
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
