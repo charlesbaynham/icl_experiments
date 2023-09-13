@@ -32,7 +32,7 @@ RED_BEAMS = [
 
 
 class RedBeamSetter(SetBeamsToDefaults):
-    default_beam_infos = [constants.AOM_BEAMS[beam] for beam in [RED_BEAMS]]
+    default_beam_infos = [constants.AOM_BEAMS[beam] for beam in RED_BEAMS]
 
 
 class Red3DMOTFrag(Fragment):
