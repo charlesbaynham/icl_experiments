@@ -86,6 +86,12 @@ class _BroadbandBase(ExpFragment):
 
         # Expose various parameters for convenience
         self.setattr_param_rebind(
+            "blue_loading_time",
+            self.blue_mot_controller,
+            "loading_time",
+            description="Loading time in blue MOT",
+        )
+        self.setattr_param_rebind(
             "ramp_lower_detuning",
             self.red_mot_controller,
         )

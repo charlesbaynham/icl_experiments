@@ -162,7 +162,7 @@ class Blue3DMOTFrag(Fragment):
             "loading_time",
             FloatParam,
             "Time to load atoms for",
-            default=300e-3,
+            default=constants.BLUE_LOADING_TIME,
             unit="ms",
             min=0,
         )

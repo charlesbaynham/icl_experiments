@@ -63,6 +63,10 @@ B_FIELD_BIAS_Y = -0.025  # A
 B_FIELD_BIAS_Z = -0.68  # A
 B_FIELD_GRADIENT = 100.0  # A
 
+
+BLUE_LOADING_TIME = 500e-3
+"Default blue MOT loading time"
+
 RED_INJECTION_AOM_ATTENUATION = 0.0
 "Default attenuation for the 689 injection AOM"
 
