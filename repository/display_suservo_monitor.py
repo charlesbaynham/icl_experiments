@@ -131,7 +131,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             delay(10 * ms)
             if self.turn_on_beam_with_default_settings:
                 self.beam_default_setter.turn_on_all(shutter_state=True)
-                self.suservo_controller.set_pgia_gain_mu(self.pgia_gain.get())
+                # self.suservo_controller.set_pgia_gain_mu(self.pgia_gain.get())
 
             self.first_run = False
 
