@@ -134,6 +134,7 @@ class LibSetSUServoStatic(Fragment):
                 )
 
             # Set default IIR settings
+            self.core.break_realtime()
             self.set_iir_params()
 
             # Set the PGIA to 1x - there's no way to read it, so we have to have
