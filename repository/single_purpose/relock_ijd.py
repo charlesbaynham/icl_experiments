@@ -251,6 +251,8 @@ class RelockIJDFrag(ExpFragment):
                 window_end = current[i + 1]
                 break
 
+        logger.debug("window_start=%.3f, window_end=%.3f", window_start, window_end)
+
         return (
             window_start + (window_end - window_start) * self.frac_through_window.get(),
             window_start,
