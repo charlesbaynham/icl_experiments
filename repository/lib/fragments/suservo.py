@@ -122,6 +122,12 @@ class LibSetSUServoStatic(Fragment):
             # Set the PGIA to 1x - there's no way to read it, so we have to have
             # a deterministic initialisation
             self.set_pgia_gain_mu(0)
+        else:
+            if self.debug_enabled:
+                logger.info(
+                    "Skipping suservo %s  - already initiated",
+                    self.channel,
+                )
 
     @kernel
     def setpoint_to_offset(self, setpoint_v: TFloat) -> TFloat:
