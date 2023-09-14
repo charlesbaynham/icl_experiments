@@ -67,6 +67,7 @@ class LibSetSUServoStatic(Fragment):
         self.previous_attenuation = (
             -1.0
         )  # An invalid value - replaced when the attenuation is set through this object
+        self.first_run = True
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -116,18 +117,28 @@ class LibSetSUServoStatic(Fragment):
 
             self.suservo.set_config(enable=1)
 
-            # Set default IIR settings
-            self.set_iir_params()
-
-            # Set the PGIA to 1x - there's no way to read it, so we have to have
-            # a deterministic initialisation
-            self.set_pgia_gain_mu(0)
         else:
             if self.debug_enabled:
                 logger.info(
                     "Skipping suservo %s  - already initiated",
                     self.channel,
                 )
+
+        if self.first_run:
+            self.first_run = False
+
+            if self.debug_enabled:
+                logger.info(
+                    "Initiating suservo %s with default IIR and PGIA settings",
+                    self.channel,
+                )
+
+            # Set default IIR settings
+            self.set_iir_params()
+
+            # Set the PGIA to 1x - there's no way to read it, so we have to have
+            # a deterministic initialisation
+            self.set_pgia_gain_mu(0)
 
     @kernel
     def setpoint_to_offset(self, setpoint_v: TFloat) -> TFloat:
