@@ -395,13 +395,6 @@ class _RampingPhase(Fragment):
 
         self.core_dma.playback_handle(self.dma_handle)
 
-        # TODO: Tune SUServos
-        # TODO: Ramp SUServos
-
-        # [ ] Ramping of beam intensitites
-        # [x] Ramping of gradient currents
-        # [x] Ramping of MOT beam detunings (via double-passed injection AOM)
-
 
 class NarrowRedCapturePhase(_RampingPhase):
     duration_default = 50e-3
