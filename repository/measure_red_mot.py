@@ -153,6 +153,8 @@ class _BroadbandBase(ExpFragment):
 
         Advances the timeline by the duration of the imaging pulse and consumes
         a lane
+
+        TODO: Use only one beam (or a dedicated beam)
         """
         with parallel:
             self.camera_interface.trigger()
