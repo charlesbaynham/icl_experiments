@@ -62,7 +62,6 @@ MonitorMaster = make_monitor_controller(
         "temperature": MonitorLabTemperature,
         "ion_pump": MonitorIonPump,
         "ion_pump_cham2": MonitorIonPumpDup,
-        "covid": MonitorCOVID,
         "heartbeat": MonitorHeartbeat,
         "turbopump": MonitorTurbo,
         "blue_ijd1": MonitorBlueIJD1,
