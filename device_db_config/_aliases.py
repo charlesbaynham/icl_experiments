@@ -25,8 +25,8 @@ aliases = {
     "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
     "suservo_aom_singlepass_461_2dmot_b": "suservo1_ch1",
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
-    "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch5",
-    "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch6",
+    "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
+    "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch6",
     "suservo_aom_singlepass_461_chamber2_imaging": "suservo0_ch0",
     # Red
     "urukul9910_aom_doublepass_689_red_injection": "urukul8_ch0",
@@ -55,6 +55,7 @@ aliases = {
     "ttl_transfer_cavity_trigger": "ttl1",
     "dds_transfer_cavity_aom": "urukul2_ch0",
     "eom_cavity_offset_689": "mirny0_ch0",
+    "ttl_camera_trigger_andor": "ttl12",
     "ttl_camera_trigger_horizontal": "ttl14",
     "ttl_camera_trigger_vertical": "ttl15",
 }
