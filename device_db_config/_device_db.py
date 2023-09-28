@@ -163,7 +163,6 @@ device_db["ttl15"] = {
     "arguments": {"channel": 0x000011},
 }
 
-# Disabled while training gateware is flashed
 device_db["suservo0_ch0"] = {
     "type": "local",
     "module": "artiq.coredevice.suservo",
