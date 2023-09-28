@@ -20,14 +20,14 @@ aliases = {
     # %% SUServos
     # Blue
     "suservo_aom_doublepass_461_injection": "suservo1_ch3",
-    "suservo_aom_singlepass_461_spectroscopy": "suservo1_ch7",
+    "suservo_aom_singlepass_461_imaging_delivery": "suservo1_ch7",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
     "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
     "suservo_aom_singlepass_461_2dmot_b": "suservo1_ch1",
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch6",
-    "suservo_aom_singlepass_461_chamber2_imaging": "suservo0_ch0",
+    "suservo_aom_singlepass_461_imaging_switch": "suservo0_ch0",
     # Red
     "urukul9910_aom_doublepass_689_red_injection": "urukul8_ch0",
     "suservo_aom_singlepass_689_red_mot_diagonal": "suservo2_ch4",
