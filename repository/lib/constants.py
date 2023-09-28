@@ -159,12 +159,20 @@ AOM_BEAMS = [
         24,
         "suservo_aom_doublepass_461_injection",
     ),
-    # SUServoedBeam(
-    #     "blue_spectroscopy",
-    #     200e6,
-    #     20,
-    #     "suservo_aom_singlepass_461_spectroscopy",
-    # ),
+    SUServoedBeam(
+        "blue_imaging_delivery",
+        116e6,
+        22,
+        "suservo_aom_singlepass_461_imaging_delivery",
+        servo_enabled=True,
+        setpoint=5.0,
+    ),
+    SUServoedBeam(
+        "blue_imaging_switch",
+        100e6,
+        22,
+        "suservo_aom_singlepass_461_imaging_switch",
+    ),
     ### RED ###
     SUServoedBeam(
         "red_mot_diagonal",
