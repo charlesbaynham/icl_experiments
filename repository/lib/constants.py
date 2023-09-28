@@ -170,7 +170,7 @@ AOM_BEAMS = [
     SUServoedBeam(
         "blue_imaging_switch",
         100e6,
-        22,
+        13,
         "suservo_aom_singlepass_461_imaging_switch",
     ),
     ### RED ###
