@@ -12,7 +12,7 @@
               artiq-http = [ "setuptools" ];
               koheron-ctl200-laser-driver = [ "setuptools" ];
               qbutler = [ "setuptools" ];
-              wand = [ "setuptools" ];
+              wand = [ "setuptools" ]; # FIXME: probably needs some QT wrapping
             };
           });
 
