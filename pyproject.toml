@@ -12,6 +12,9 @@ artiq-http = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_ht
 koheron-ctl200-laser-driver = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"}
 qbutler = {git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"}
 wand = {git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "adapt_for_linux"}
+# We build python-aravis in the flake and override it into nixpkgs, so just tell
+# poetry that it's required but not where to get it from:
+python-aravis = { version = "*" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
