@@ -1,15 +1,24 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+file:///home/charles/pyaion";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   outputs = { self, nixpkgs, flake-utils, pyaion, ... }:
     flake-utils.lib.eachSystem [ "x86_64-linux" ]
       (system:
         let
-          outputs = pyaion.lib.${system}.artiq_flake_builder { poetry_app = self; };
+          originalOutputs = pyaion.lib.${system}.artiq_flake_builder { poetry_app = self; };
+          overriddenOutputs = originalOutputs.override (prev: {
+            extra-build-requirements = {
+              artiq-http = [ "setuptools" ];
+              koheron-ctl200-laser-driver = [ "setuptools" ];
+              qbutler = [ "setuptools" ];
+              wand = [ "setuptools" ];
+            };
+          });
+
         in
         {
-          inherit (outputs) packages apps formatter devShells;
+          inherit (overriddenOutputs) packages apps formatter devShells;
         }
       );
 }
