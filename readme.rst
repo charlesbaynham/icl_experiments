@@ -1,7 +1,7 @@
 Readme
 ######
 
-**The ICL ARTIQ experiments repository.**
+**The XYZ ARTIQ experiments repository.**
 
 This repository holds the ARTIQ experiments, imported by ARTIQ as an
 "experiment repository" and whose hash is embedded into datasets. This
@@ -11,13 +11,13 @@ required to run ARTIQ, thus pinning all dependencies as well.
 Overview
 ========
 
-This repository contains the ICL ARTIQ experiments, and also defines the
-software environment in which the ICL ARTIQ system runs. It is a nix flake:
+This repository contains the XYZ ARTIQ experiments, and also defines the
+software environment in which the XYZ ARTIQ system runs. It is a nix flake:
 to launch ARTIQ, see the :ref:`Launching ARTIQ` section below. This repository has an
 opinionated structure and provides the following features, in approximately
 descending order of importance:
 
-#. This is one of several repositories that make up the complete ICL ARTIQ
+#. This is one of several repositories that make up the complete XYZ ARTIQ
    installation. For the complete structure, see `the PyAION documentation
    <https://aion-physics.gitlab.io/code/artiq/pyaion/>`__.
 
@@ -88,7 +88,17 @@ descending order of importance:
 Updates
 =======
 
-To update to the latest version of PyAION, use `nix flake lock --update-input pyaion`.
+To update to the latest version of all packages, use::
+
+   nix run .#update
+
+This will update both nix and poetry inputs, keeping them in sync.
+
+If you just want to update e.g. pyaion, run::
+
+   nix flake lock --update-input pyaion
+   poetry update pyaion
+
 
 Contributing
 ============
@@ -167,21 +177,7 @@ of:
 To launch this stack, use `nix run .#full_stack` or run the script in this
 repository called `run_artiq.sh`.
 
-Development usage
------------------
 
-Nix environments are 100% reproducable which makes them excellent for performing
-well-defined experiments. However, when debugging / developing, it's often
-useful to run in a less strict environment where python packages can be quickly
-installed / edited (e.g. using pip's `pip install --editable` option).
-
-For this purpose, there is an alternative devShell available called "artiqDev" which can be entered via::
-
-  nix develop .#artiqDev
-
-__Do not use this for normal usage!__ Doing so will break the reproducibility
-guarantees which Nix otherwise provides and will mean than changes you make to
-your environment cannot be used by others. You have been warned...
 
 Dependencies
 ============
@@ -189,27 +185,12 @@ Dependencies
 Adding dependencies
 -------------------
 
-To add python dependencies to your ARTIQ environment, alter the list in
-`requirements.in`. This automatically results in pinned package version in nix.
-Once you've done this, run `nix run .#update_requirements` to automatically
-regenerate the `requirements.txt` file, keeping it in sync with the pinned nix
-packages.
+To add python dependencies to your ARTIQ environment, run e.g.::
+   poetry add my-package
 
-If you forget to do this, the CI pipeline will remind you by having one of the
-jobs fail.
+to alter the spec in `pyproject.toml`.
+This automatically results in pinned package versions in nix.
 
-Updating dependencies
----------------------
-
-To update all packages to the latest version, use `nix flake update`. This will
-remake your `flake.lock` file: once you've committed this file, future launches
-will use the new package versions instead.
-
-Note that since packages are pinned to a common version by PyAION, this will
-just update you to the latest AION pin. If you need a specific package for some
-reason, you should add it as a requirement bound in your requirements.in file. E.g.::
-
-  some-unusual-package >= 3.1
 
 Documentation
 =============
@@ -245,11 +226,9 @@ these.
 Authors
 =======
 
-`icl_experiments` was written by `Charles Baynham
-<c.baynham@imperial.ac.uk>`_.
+`xyz_experiments` was written by `Author Name
+<authoremail@example.com>`_.
 
 The `template
-<https://gitlab.com/aion-physics/code/artiq/device-packages/aion-experiments-template>`_
-from which this package was generated was written by Charles Baynham and
-inspired by `cookiecutter-pypackage-minimal
-<https://github.com/kragniz/cookiecutter-pypackage-minimal>`_
+<https://gitlab.com/aion-physics/code/artiq/pyaion>`_
+from which this package was generated was written by Charles Baynham.
