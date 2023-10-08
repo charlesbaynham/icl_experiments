@@ -12,8 +12,14 @@ artiq-http = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_ht
 koheron-ctl200-laser-driver = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"}
 qbutler = {git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"}
 wand = {git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "adapt_for_linux"}
+
 # We build python-aravis in the flake and override it into nixpkgs, so just tell
-# poetry that it's required but not where to get it from:
+# poetry that it's required but not where to get it from. This is an annoying
+# solution because poetry cannot update its lock file anymore! This entry is
+# here to get poetry2nix to install the package from (patched) nixpkgs, but raw
+# poetry cannot access it and therefore fails. To update dependencies, you must
+# therefore comment out this line, update deps, then put it back. Definitely:
+# FIXME python-aravis needs patching in better
 python-aravis = { version = "*" }
 
 [tool.poetry.group.dev.dependencies]
