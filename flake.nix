@@ -28,6 +28,9 @@
                     numpy = final.numpy;
                   };
 
+                # Our fork of wand used poetry for packaging, so we don't need
+                # to worry about deps. But it does have a graphical interface
+                # which needs patching:
                 wand = prev.wand.overridePythonAttrs {
                   nativeBuildInputs = prev.wand.nativeBuildInputs ++ [ pkgs.qt5.wrapQtAppsHook ];
                   dontWrapQtApps = true;
