@@ -9,7 +9,7 @@ html_out
 report.xml
 
 # ARTIQ outputs
-dataset_db.mdb-lock
+dataset_db.mdb*
 /*.pyon
 results
 
