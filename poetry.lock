@@ -1107,7 +1107,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://github.com/OxfordIonTrapGroup/ndscan.git"
 reference = "HEAD"
-resolved_reference = "27b2238a526248340b14fcf791470a217e617f06"
+resolved_reference = "67ab132e42247336e99f6e20df66f6be5ff5ef1f"
 
 [[package]]
 name = "networkx"
@@ -1385,8 +1385,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "poetry"
-resolved_reference = "56e34020d45069390da3754ca9bfc88d4dfb723e"
+reference = "HEAD"
+resolved_reference = "3e62f4e5e1c08d4020e9af5b71cc192627637ee7"
 
 [[package]]
 name = "pycparser"
@@ -1871,18 +1871,14 @@ files = [
 
 [[package]]
 name = "qasync"
-version = "0.24.2"
+version = "0.23.0"
 description = "Implementation of the PEP 3156 Event-Loop with Qt."
 optional = false
 python-versions = "~=3.6"
-files = []
-develop = false
-
-[package.source]
-type = "git"
-url = "https://github.com/dnadlinger/qasync.git"
-reference = "windows-fixes"
-resolved_reference = "d59585a817477962fa7d0fa04d6a8431c98ac4c3"
+files = [
+    {file = "qasync-0.23.0-py3-none-any.whl", hash = "sha256:7968d3485678d2ebcb5d6cdfdd36515425a02062ca9db7bb2e0e6bd1aaad6ec1"},
+    {file = "qasync-0.23.0.tar.gz", hash = "sha256:8965ec313e0107148d98e8ac1e77a77dce74de3cd97055a1aa62d513a3793a14"},
+]
 
 [[package]]
 name = "qbutler"
@@ -2414,18 +2410,26 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 
 [[package]]
 name = "wand"
-version = "0.1"
+version = "0.1.0"
 description = "Wavelength Analysis 'Nd Display"
 optional = false
-python-versions = "*"
+python-versions = "^3.9"
 files = []
 develop = false
+
+[package.dependencies]
+numpy = "^1.23.5"
+pyqt5 = "^5.15.4"
+pyqtgraph = "^0.13.0"
+qasync = "^0.23.0"
+scipy = "^1.9.3"
+sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
 reference = "adapt_for_linux"
-resolved_reference = "811edd86470d7a801e673fd8f174fae6a3c84027"
+resolved_reference = "facc48b6c76e56e152ecc462fd4900bd675db8ce"
 
 [[package]]
 name = "wcwidth"
@@ -2528,4 +2532,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "d464fe19125747ffa4645a4b2a79f80ef60019e37d50af13f292137e501be0f7"
+content-hash = "c57de425ff17c8c25438f05c02ff07b95ca99b35353b3a1fd61a0fa717326c59"
