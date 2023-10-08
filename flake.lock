@@ -211,11 +211,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1696705662,
-        "narHash": "sha256-1rzYggabNuHmd6HC9sJ+CwZYxiCJVX1I1aDRHLUGGVA=",
+        "lastModified": 1696762644,
+        "narHash": "sha256-lQHGBfvD42Hou+qH2trdfKKOPUerRvJlbjBGG1kECEc=",
         "ref": "refs/heads/overiding-usability",
-        "rev": "89ab7db542f7772330c4f7b3d70e1631e7b97779",
-        "revCount": 103,
+        "rev": "68c1d051591195cca3074e9b594e8cf849fc00d2",
+        "revCount": 108,
         "type": "git",
         "url": "file:///home/charles/pyaion"
       },

@@ -20,7 +20,7 @@
               qbutler = [ "setuptools" ];
               wand = [ "setuptools" ]; # FIXME: probably needs some QT wrapping
             };
-            extra-overrides = { inherit python-aravis; };
+            extra-overrides = [ (final: prev: { inherit python-aravis; }) ];
           });
 
         in
