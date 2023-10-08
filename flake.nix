@@ -25,14 +25,15 @@
             extra-overrides = [
               # Patch python-aravis to use poetry-resolved dependencies
               (final: prev: {
-                python-aravis = python-aravis.override
-                  {
-                    numpy = final.numpy;
-                    pygobject3 = final.pygobject3;
-                  };
+                python-aravis = python-aravis.overridePythonAttrs {
+                  propagatedBuildInputs = prev.python-aravis.propagatedBuildInputs;
+                };
                 # Annoyingly pygobject3 depends on pycairo which also requires special treatment.
                 # Fortunately nixpkgs has handled this. So:
                 pycairo = pkgs.python3Packages.pycairo.overridePythonAttrs {
+                  # the nixpkgs derivation has "meson" in the nativeBuildInputs
+                  # but poetry puts it in "propagatedBuildInputs". This would
+                  # cause a clash so:
                   nativeBuildInputs = [ ];
                   propagatedBuildInputs = prev.pycairo.propagatedBuildInputs;
                 };
