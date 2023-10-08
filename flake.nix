@@ -27,6 +27,17 @@
                   {
                     numpy = final.numpy;
                   };
+
+                wand = prev.wand.overridePythonAttrs {
+                  nativeBuildInputs = prev.wand.nativeBuildInputs ++ [ pkgs.qt5.wrapQtAppsHook ];
+                  dontWrapQtApps = true;
+                  propagatedBuildInputs = prev.wand.propagatedBuildInputs ++ [
+                    final.pyqt5
+                  ];
+                  postFixup = ''
+                    wrapQtApp "$out/bin/wand_gui"
+                  '';
+                };
               })
             ];
           });
