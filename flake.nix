@@ -1,5 +1,5 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=poetry-again";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   outputs = { self, nixpkgs, flake-utils, pyaion, ... }:

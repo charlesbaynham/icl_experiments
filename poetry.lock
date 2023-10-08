@@ -2498,8 +2498,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "HEAD"
-resolved_reference = "ebe90669db01b1cf0b4c205ad1083f29852115a1"
+reference = "poetry-again"
+resolved_reference = "d4f5b69bb9002617b1a595df923fe5e200fdbf2f"
 
 [[package]]
 name = "pycparser"
@@ -4096,4 +4096,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "4fc933bab1e7214eef63e2139b67ea7267491c4e583c8f9c1d4c6fbd1abaabab"
+content-hash = "7f14a8d4f490900989e464ff3bb23c27b18d1e4bb8771b4af56868f1b3c6b9bf"
