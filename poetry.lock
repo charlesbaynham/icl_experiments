@@ -1871,14 +1871,18 @@ files = [
 
 [[package]]
 name = "qasync"
-version = "0.23.0"
+version = "0.24.2"
 description = "Implementation of the PEP 3156 Event-Loop with Qt."
 optional = false
 python-versions = "~=3.6"
-files = [
-    {file = "qasync-0.23.0-py3-none-any.whl", hash = "sha256:7968d3485678d2ebcb5d6cdfdd36515425a02062ca9db7bb2e0e6bd1aaad6ec1"},
-    {file = "qasync-0.23.0.tar.gz", hash = "sha256:8965ec313e0107148d98e8ac1e77a77dce74de3cd97055a1aa62d513a3793a14"},
-]
+files = []
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/dnadlinger/qasync.git"
+reference = "windows-fixes"
+resolved_reference = "d59585a817477962fa7d0fa04d6a8431c98ac4c3"
 
 [[package]]
 name = "qbutler"
@@ -2420,8 +2424,8 @@ develop = false
 [package.dependencies]
 numpy = "^1.23.5"
 pyqt5 = "^5.15.4"
-pyqtgraph = "^0.13.0"
-qasync = "^0.23.0"
+pyqtgraph = ">=0.12.0"
+qasync = ">=0.23.0"
 scipy = "^1.9.3"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
@@ -2429,7 +2433,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
 reference = "adapt_for_linux"
-resolved_reference = "facc48b6c76e56e152ecc462fd4900bd675db8ce"
+resolved_reference = "6a19893576c9e6b5d83be989c441d91cf973a7f7"
 
 [[package]]
 name = "wcwidth"
