@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "xyz-experiments"
+name = "icl-experiments"
 version = "0.1.0"
 description = ""
 authors = ["Charles Baynham <c.baynham@imperial.ac.uk>"]

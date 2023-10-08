@@ -1,7 +1,7 @@
 Readme
 ######
 
-**The XYZ ARTIQ experiments repository.**
+**The Imperial ARTIQ experiments repository.**
 
 This repository holds the ARTIQ experiments, imported by ARTIQ as an
 "experiment repository" and whose hash is embedded into datasets. This
@@ -11,13 +11,13 @@ required to run ARTIQ, thus pinning all dependencies as well.
 Overview
 ========
 
-This repository contains the XYZ ARTIQ experiments, and also defines the
-software environment in which the XYZ ARTIQ system runs. It is a nix flake:
+This repository contains the ICL ARTIQ experiments, and also defines the
+software environment in which the ICL ARTIQ system runs. It is a nix flake:
 to launch ARTIQ, see the :ref:`Launching ARTIQ` section below. This repository has an
 opinionated structure and provides the following features, in approximately
 descending order of importance:
 
-#. This is one of several repositories that make up the complete XYZ ARTIQ
+#. This is one of several repositories that make up the complete ICL ARTIQ
    installation. For the complete structure, see `the PyAION documentation
    <https://aion-physics.gitlab.io/code/artiq/pyaion/>`__.
 
@@ -226,8 +226,8 @@ these.
 Authors
 =======
 
-`xyz_experiments` was written by `Author Name
-<authoremail@example.com>`_.
+`ICL_experiments` was written by `Charles Baynham
+<c.baynham@imperial.ac.uk>`_.
 
 The `template
 <https://gitlab.com/aion-physics/code/artiq/pyaion>`_
