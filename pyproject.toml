@@ -22,7 +22,7 @@ aravis = {git = "https://gitlab.com/aion-physics/code/artiq/forks/python-aravis.
 # https://github.com/pydantic/pydantic/issues/6584.
 # Such a dramatic pin is probably not required, but it'll fix it and we don't
 # use pydantic much
-pydantic = "<2.0"
+pydantic = "1.10.2"
 
 uk-covid19 = "^1.2.2"
 retry = "^0.9.2"
