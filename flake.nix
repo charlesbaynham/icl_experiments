@@ -18,7 +18,7 @@
               artiq-http = [ "setuptools" ];
               koheron-ctl200-laser-driver = [ "setuptools" ];
               qbutler = [ "setuptools" ];
-              wand = [ "setuptools" ]; # FIXME: probably needs some QT wrapping
+              wand = [ "poetry-core" ];
             };
             extra-overrides = [
               # Patch python-aravis to use the same numpy version as the other poetry packages
@@ -31,9 +31,6 @@
                 wand = prev.wand.overridePythonAttrs {
                   nativeBuildInputs = prev.wand.nativeBuildInputs ++ [ pkgs.qt5.wrapQtAppsHook ];
                   dontWrapQtApps = true;
-                  propagatedBuildInputs = prev.wand.propagatedBuildInputs ++ [
-                    final.pyqt5
-                  ];
                   postFixup = ''
                     wrapQtApp "$out/bin/wand_gui"
                   '';
