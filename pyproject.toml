@@ -13,14 +13,9 @@ koheron-ctl200-laser-driver = {git = "https://gitlab.com/aion-physics/code/artiq
 qbutler = {git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"}
 wand = {git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "adapt_for_linux"}
 
-# We build python-aravis in the flake and override it into nixpkgs, so just tell
-# poetry that it's required but not where to get it from. This is an annoying
-# solution because poetry cannot update its lock file anymore! This entry is
-# here to get poetry2nix to install the package from (patched) nixpkgs, but raw
-# poetry cannot access it and therefore fails. To update dependencies, you must
-# therefore comment out this line, update deps, then put it back. Definitely:
-# FIXME python-aravis needs patching in better
-python-aravis = { version = "*" }
+# As with artiq, aravis needs some nix packaging too. For now, this is in this
+# repo - see python-aravis.nix and its use in flake.nix
+aravis = {git = "https://gitlab.com/aion-physics/code/artiq/forks/python-aravis.git"}
 
 # The pin is to avoid bugs from strict checks in "PyO3" See e.g.
 # https://github.com/sphinx-doc/sphinx/issues/11662
@@ -32,6 +27,7 @@ pydantic = "<2.0"
 uk-covid19 = "^1.2.2"
 retry = "^0.9.2"
 toptica-lasersdk = "^3.1.1"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"

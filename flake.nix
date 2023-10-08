@@ -18,6 +18,7 @@
               artiq-http = [ "setuptools" ];
               koheron-ctl200-laser-driver = [ "setuptools" ];
               qbutler = [ "setuptools" ];
+              python-aravis = [ "setuptools" ];
               wand = [ "poetry-core" ];
             };
             extra-overrides = [
