@@ -18,16 +18,24 @@
               artiq-http = [ "setuptools" ];
               koheron-ctl200-laser-driver = [ "setuptools" ];
               qbutler = [ "setuptools" ];
-              python-aravis = [ "setuptools" ];
+              aravis = [ "setuptools" ];
+              pygobject = [ "setuptools" ];
               wand = [ "poetry-core" ];
             };
             extra-overrides = [
-              # Patch python-aravis to use the same numpy version as the other poetry packages
+              # Patch python-aravis to use poetry-resolved dependencies
               (final: prev: {
                 python-aravis = python-aravis.override
                   {
                     numpy = final.numpy;
+                    pygobject3 = final.pygobject3;
                   };
+                # Annoyingly pygobject3 depends on pycairo which also requires special treatment.
+                # Fortunately nixpkgs has handled this. So:
+                pycairo = pkgs.python3Packages.pycairo.overridePythonAttrs {
+                  nativeBuildInputs = [ ];
+                  propagatedBuildInputs = prev.pycairo.propagatedBuildInputs;
+                };
 
                 # Our fork of wand used poetry for packaging, so we don't need
                 # to worry about deps. But it does have a graphical interface
