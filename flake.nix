@@ -25,8 +25,8 @@
             extra-overrides = [
               # Patch python-aravis to use poetry-resolved dependencies
               (final: prev: {
-                python-aravis = python-aravis.overridePythonAttrs {
-                  propagatedBuildInputs = prev.python-aravis.propagatedBuildInputs;
+                aravis = python-aravis.overridePythonAttrs {
+                  propagatedBuildInputs = prev.aravis.propagatedBuildInputs ++ [ pkgs.aravis ];
                 };
                 # Annoyingly pygobject3 depends on pycairo which also requires special treatment.
                 # Fortunately nixpkgs has handled this. So:
