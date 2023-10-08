@@ -20,7 +20,15 @@
               qbutler = [ "setuptools" ];
               wand = [ "setuptools" ]; # FIXME: probably needs some QT wrapping
             };
-            extra-overrides = [ (final: prev: { inherit python-aravis; }) ];
+            extra-overrides = [
+              # Patch python-aravis to use the same numpy version as the other poetry packages
+              (final: prev: {
+                python-aravis = python-aravis.override
+                  {
+                    numpy = final.numpy;
+                  };
+              })
+            ];
           });
 
         in
