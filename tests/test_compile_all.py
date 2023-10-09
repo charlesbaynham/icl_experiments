@@ -62,14 +62,10 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 )
 def test_build_all_fragments(module, exp, fragment_factory):
     def precompile(self):
-        precompiled_setup = self.core.precompile(self.device_setup)
-        precompiled_run = self.core.precompile(self.run_once)
-        precompiled_cleanup = self.core.precompile(self.device_cleanup)
-
-        print("Experiment was precompiled:")
-        print(precompiled_setup)
-        print(precompiled_run)
-        print(precompiled_cleanup)
+        for func in [self.device_setup, self.run_once, self.device_cleanup]:
+            if hasattr(func, "artiq_embedded"):
+                precompiled = self.core.precompile(func)
+                print(precompiled)
 
     setattr(exp, "precompile", precompile)
 
