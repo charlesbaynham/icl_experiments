@@ -222,8 +222,6 @@ class ScanKoheronCurrentFrag(ExpFragment):
 
         logger.debug(f"Current = {self.current.get()}")
 
-        self.injection_frequency = constants.AOM_BEAMS["blue_injection"].frequency
-
         return super().host_setup()
 
     @kernel
