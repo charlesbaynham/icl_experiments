@@ -1,11 +1,10 @@
 import importlib
-
-from ndscan.experiment import ExpFragment
 import inspect
 import pkgutil
 from pathlib import Path
-import pytest
 
+import pytest
+from ndscan.experiment import ExpFragment
 from qbutler.calibration import Calibration
 
 path_to_repo = Path(__file__, "../../repository").resolve()

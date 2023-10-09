@@ -26,9 +26,8 @@ from sipyco.sync_struct import Notifier
 from sipyco.sync_struct import process_mod
 
 from tests.marker_exp import MarkerExperiment
-from tests.wait_for_port import wait_for_port
-
 from tests.mock_device import MockDevice
+from tests.wait_for_port import wait_for_port
 
 logger = logging.getLogger(__name__)
 

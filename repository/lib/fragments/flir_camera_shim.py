@@ -1,6 +1,7 @@
-from aravis import Camera as _Camera
 from typing import Any
 from unittest.mock import MagicMock
+
+from aravis import Camera as _Camera
 
 
 class Camera(_Camera):

@@ -3,7 +3,8 @@ import time
 from typing import Dict
 from typing import List
 from typing import Tuple
-from typing import Type, TYPE_CHECKING
+from typing import Type
+from typing import TYPE_CHECKING
 
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
