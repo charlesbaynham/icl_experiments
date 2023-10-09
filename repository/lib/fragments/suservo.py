@@ -1,7 +1,7 @@
 import warnings
 
 # FIXME
-warnings.warn("Using PyAION override for suservo fragment")
+# warnings.warn("Using PyAION override for suservo fragment")
 
 
 import logging
