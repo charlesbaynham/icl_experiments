@@ -52,10 +52,11 @@ class CameraFrag(Fragment):
     monitor_dataset_description: str
     "Description for the monitor applet"
 
-    camera_id: str
-    """The camera's ID string for connecting via Aravis
+    camera_device: str
+    """The camera's device name in device_db
 
-    To find this, run `arv-tool` (part of Aravis which is in the AION ARTIQ
+    To add a camera to device_db, you'll need the camera's unique ID which you
+    can find by running `arv-tool` (part of Aravis which is in the AION ARTIQ
     environments) from a computer on the same LAN as the camera.
     """
 
@@ -71,7 +72,7 @@ class CameraFrag(Fragment):
             "default_features",
             "monitor_dataset_key",
             "monitor_dataset_description",
-            "camera_id",
+            "camera_device",
         ]
         for attr in attrs:
             if not hasattr(cls, attr):
@@ -131,10 +132,7 @@ class CameraFrag(Fragment):
             f"${{artiq_applet}}image {self.monitor_dataset_key}",
         )
 
-        self.cam = Camera(
-            self.camera_id,
-            loglevel=logger.getEffectiveLevel(),
-        )
+        self.cam = self.get_device(self.camera_device)
 
         # Set sensible defaults. The user might change these
         self.cam.set_feature("ExposureMode", "Timed")
@@ -308,7 +306,7 @@ class Chamber2HorizontalCamera(CameraFrag):
     default_features = CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
     monitor_dataset_key = "latest_ch2_horiz_image"
     monitor_dataset_description = "Chamber 2 horizontal camera"
-    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018873"
+    camera_device = "flir_camera_ch2_horizontal"
     ttl_trigger_device = "ttl_camera_trigger_horizontal"
 
 
@@ -316,7 +314,7 @@ class Chamber2VerticalCamera(CameraFrag):
     default_features = CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
     monitor_dataset_key = "latest_ch2_vert_image"
     monitor_dataset_description = "Chamber 2 vertical camera"
-    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
+    camera_device = "flir_camera_ch2_vertical"
     ttl_trigger_device = "ttl_camera_trigger_vertical"
 
 
