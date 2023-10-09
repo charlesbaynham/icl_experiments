@@ -18,7 +18,7 @@ class DMAPulses(EnvExperiment):
         self.setattr_device("ttl12")
         self.ttl12: TTLInOut
 
-        self.setattr_argument("delay", NumberValue(1e-6, unit="us", ndecimals=3))
+        self.setattr_argument("delay", NumberValue(1e-6, unit="us", precision=3))
         self.delay: float
 
     @kernel

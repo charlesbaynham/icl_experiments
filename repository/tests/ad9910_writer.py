@@ -25,7 +25,7 @@ class AD9910Writer(EnvExperiment):
 
         self.setattr_argument("freq", NumberValue(default=10e6, unit="MHz"))
         self.setattr_argument(
-            "amp", NumberValue(default=1, max=1.0, min=0.0, ndecimals=2)
+            "amp", NumberValue(default=1, max=1.0, min=0.0, precision=2)
         )
         self.setattr_argument("att", NumberValue(default=30.0, unit="dB"))
 
