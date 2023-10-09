@@ -28,11 +28,21 @@ from sipyco.sync_struct import process_mod
 from tests.marker_exp import MarkerExperiment
 from tests.wait_for_port import wait_for_port
 
-from tests.mock_controller import MockController
+from tests.mock_device import MockDevice
 
 logger = logging.getLogger(__name__)
 
 ARTIQ_MASTER_CHECK_PORT = 3251
+
+MOCKED_DEVICE_DESC = {
+    "type": "local",
+    "module": "tests.mock_device",
+    "class": "MockDevice",
+    "mocked": True,
+}
+LOCAL_MOCKED_DEVICES = {
+    ("repository.lib.fragments.flir_camera_shim", "Camera"),
+}
 
 
 @fixture
@@ -130,16 +140,15 @@ def device_mgr(mock_db_writer):
     }
 
     for key, desc in mock_device_db.items():
-        if "type" in desc and desc["type"] == "controller":
-            new_desc = desc.copy()
-            new_desc.update(
-                {
-                    "type": "local",
-                    "module": "tests.mock_controller",
-                    "class": "MockController",
-                    "mocked": True,
-                }
+        if "type" in desc and (
+            desc["type"] == "controller"
+            or (
+                desc["type"] == "local"
+                and (desc["module"], desc["class"]) in LOCAL_MOCKED_DEVICES
             )
+        ):
+            new_desc = desc.copy()
+            new_desc.update(MOCKED_DEVICE_DESC)
 
             mock_device_db[key] = new_desc
 

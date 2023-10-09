@@ -102,7 +102,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "flir_camera_ch2_horizontal": {
             "type": "local",
-            "module": "repository.lib.shims",
+            "module": "repository.lib.fragments.flir_camera_shim",
             "class": "Camera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
@@ -111,7 +111,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "flir_camera_ch2_vertical": {
             "type": "local",
-            "module": "repository.lib.shims",
+            "module": "repository.lib.fragments.flir_camera_shim",
             "class": "Camera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
