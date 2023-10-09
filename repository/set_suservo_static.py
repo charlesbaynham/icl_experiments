@@ -94,7 +94,10 @@ class SetSUServoStatic(ExpFragment):
         suservo_channels = get_local_devices(self, SUServoChannel)
         if not suservo_channels:
             raise ValueError("No suservo channels found in device_db")
-        self.setattr_argument("channel", EnumerationValue(suservo_channels))
+        self.setattr_argument(
+            "channel",
+            EnumerationValue(suservo_channels, default=suservo_channels[0]),
+        )
 
         self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic, self.channel)
         self.LibSetSUServoStatic: LibSetSUServoStatic
