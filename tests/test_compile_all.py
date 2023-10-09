@@ -6,6 +6,7 @@ import pkgutil
 from pathlib import Path
 import pytest
 from artiq.experiment import EnvExperiment
+from qbutler.calibration import Calibration
 
 path_to_repo = Path(__file__, "../../repository").resolve()
 
@@ -17,15 +18,16 @@ def get_all_repo_modules():
     ]
 
 
-def get_all_of_class_from_module(module, cls):
+def get_all_of_class_from_module(module, cls, exceptions=[]):
     out = []
     for obj_name in dir(module):
         obj = getattr(module, obj_name)
         if (
             inspect.isclass(obj)
-            and issubclass(obj, cls)  # Is this an ExpFragment?
-            and obj is not cls  # But not the ExpFragment class itself
+            and issubclass(obj, cls)  # Is this a cls?
+            and obj is not cls  # But not the cls class itself
             and obj.__name__[0] != "_"  # nor marked as private
+            and obj not in exceptions  # nor one of the exceptions
         ):
             out.append(obj)
     return out
@@ -34,7 +36,9 @@ def get_all_of_class_from_module(module, cls):
 def get_all_of_class_from_repository(cls):
     out = []
     for module in get_all_repo_modules():
-        env_experiments = get_all_of_class_from_module(module, cls)
+        env_experiments = get_all_of_class_from_module(
+            module, cls, exceptions=[Calibration]
+        )
         for exp in env_experiments:
             out.append((module, exp))
     return out
