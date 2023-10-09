@@ -320,7 +320,7 @@ class Chamber2VerticalCamera(CameraFrag):
     ttl_trigger_device = "ttl_camera_trigger_vertical"
 
 
-class MonitorCamera(ExpFragment):
+class _MonitorCamera(ExpFragment):
     camera_class: Type[CameraFrag]
 
     def __init__(self, managers_or_parent, *args, **kwargs):
@@ -380,11 +380,11 @@ class MonitorCamera(ExpFragment):
         time.sleep(max(self.delay.get() - (t_end - t_start), 0))
 
 
-class MonitorChamber2HorizCamera(MonitorCamera):
+class MonitorChamber2HorizCamera(_MonitorCamera):
     camera_class = Chamber2HorizontalCamera
 
 
-class MonitorChamber2VertCamera(MonitorCamera):
+class MonitorChamber2VertCamera(_MonitorCamera):
     camera_class = Chamber2VerticalCamera
 
 

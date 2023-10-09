@@ -21,7 +21,12 @@ def get_all_of_class_from_module(module, cls):
     out = []
     for obj_name in dir(module):
         obj = getattr(module, obj_name)
-        if inspect.isclass(obj) and issubclass(obj, cls) and obj is not cls:
+        if (
+            inspect.isclass(obj)
+            and issubclass(obj, cls)  # Is this an ExpFragment?
+            and obj is not cls  # But not the ExpFragment class itself
+            and obj.__name__[0] != "_"  # nor marked as private
+        ):
             out.append(obj)
     return out
 
