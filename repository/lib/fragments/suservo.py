@@ -1,9 +1,3 @@
-import warnings
-
-# FIXME
-warnings.warn("Using PyAION override for suservo fragment")
-
-
 import logging
 import re
 from typing import Set
@@ -23,6 +17,9 @@ from ndscan.experiment import Fragment
 
 
 logger = logging.getLogger(__name__)
+
+# FIXME
+logger.warn("Using PyAION override for suservo fragment")
 
 
 class LibSetSUServoStatic(Fragment):
