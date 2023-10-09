@@ -41,15 +41,15 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 # all_env_experiments = all_env_experiments[0:1]
 # all_exp_fragments = all_exp_fragments[0:1]
 
-from repository.measure_red_mot import _BroadbandBase
+# from repository.measure_red_mot import _BroadbandBase
 
-all_exp_fragments = [(None, _BroadbandBase)]
+# all_exp_fragments = [(None, _BroadbandBase)]
 
 
 @pytest.mark.parametrize(
     "module, exp",
     all_exp_fragments,
-    ids=[exp for _, exp in all_exp_fragments],
+    ids=[f"{module.__name__} / {exp}" for module, exp in all_exp_fragments],
 )
 def test_build_all_fragments(module, exp, fragment_factory):
     def precompile(self):
