@@ -37,6 +37,7 @@ black = "^23.9.1"
 coverage = "^7.3.2"
 ipython = "^8.16.1"
 notebook = "^7.0.4"
+pytest-mock = "^3.11.1"
 
 [build-system]
 requires = ["poetry-core"]
