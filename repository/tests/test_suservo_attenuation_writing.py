@@ -23,11 +23,12 @@ class TestSUServoAttenuationReading(EnvExperiment):
         )
 
         self.suservo_channel: SUServoChannel = self.get_device(self.channel_name)
+
+    def prepare(self):
         self.suservo: SUServo = self.suservo_channel.servo
 
     @kernel
     def run(self):
-
         self.core.break_realtime()
         self.suservo.init()
 
