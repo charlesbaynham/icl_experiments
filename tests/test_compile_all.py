@@ -58,7 +58,7 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 @pytest.mark.parametrize(
     "module, exp",
     all_exp_fragments,
-    ids=[f"{module.__name__} / {exp}" for module, exp in all_exp_fragments],
+    ids=[f"{module.__name__} / {exp.__name__}" for module, exp in all_exp_fragments],
 )
 def test_build_all_fragments(module, exp, fragment_factory):
     def precompile(self):

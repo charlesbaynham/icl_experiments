@@ -28,6 +28,8 @@ from sipyco.sync_struct import process_mod
 from tests.marker_exp import MarkerExperiment
 from tests.wait_for_port import wait_for_port
 
+from tests.mock_controller import MockController
+
 logger = logging.getLogger(__name__)
 
 ARTIQ_MASTER_CHECK_PORT = 3251
@@ -117,7 +119,6 @@ def mock_db_writer():
 
 @fixture
 def device_mgr(mock_db_writer):
-
     from device_db import device_db
 
     mock_device_db = device_db.copy()
@@ -134,8 +135,8 @@ def device_mgr(mock_db_writer):
             new_desc.update(
                 {
                     "type": "local",
-                    "module": "unittest.mock",
-                    "class": "Mock",
+                    "module": "tests.mock_controller",
+                    "class": "MockController",
                     "mocked": True,
                 }
             )
