@@ -3,7 +3,7 @@ import time
 from typing import Dict
 from typing import List
 from typing import Tuple
-from typing import Type
+from typing import Type, TYPE_CHECKING
 
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
@@ -23,6 +23,9 @@ from numpy.typing import ArrayLike
 
 from repository.lib.constants import CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
 from repository.lib.constants import CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
+
+if TYPE_CHECKING:
+    from aravis import Camera
 
 
 logger = logging.getLogger(__name__)
@@ -112,12 +115,6 @@ class CameraFrag(Fragment):
         }
 
     def host_setup(self):
-        # This import happens here because, for some reason, importing the
-        # gi.repository Aravis (which happens in python-aravis) breaks if you do
-        # it from multiple processes at the same time, which ARTIQ will trigger
-        # when scanning for experiments
-        from aravis import Camera
-
         # Open the monitoring applet
         self.set_dataset(
             self.monitor_dataset_key,
@@ -132,7 +129,7 @@ class CameraFrag(Fragment):
             f"${{artiq_applet}}image {self.monitor_dataset_key}",
         )
 
-        self.cam = self.get_device(self.camera_device)
+        self.cam: Camera = self.get_device(self.camera_device)
 
         # Set sensible defaults. The user might change these
         self.cam.set_feature("ExposureMode", "Timed")
