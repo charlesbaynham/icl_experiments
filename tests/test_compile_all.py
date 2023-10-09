@@ -1,11 +1,11 @@
 import importlib
-from artiq.language.environment import is_public_experiment
+
 from ndscan.experiment import ExpFragment
 import inspect
 import pkgutil
 from pathlib import Path
 import pytest
-from artiq.experiment import EnvExperiment
+
 from qbutler.calibration import Calibration
 
 path_to_repo = Path(__file__, "../../repository").resolve()
@@ -44,15 +44,7 @@ def get_all_of_class_from_repository(cls):
     return out
 
 
-# all_env_experiments = get_all_of_class_from_repository(EnvExperiment)
 all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
-
-# all_env_experiments = all_env_experiments[0:1]
-# all_exp_fragments = all_exp_fragments[0:1]
-
-# from repository.measure_red_mot import _BroadbandBase
-
-# all_exp_fragments = [(None, _BroadbandBase)]
 
 
 @pytest.mark.parametrize(
@@ -76,23 +68,3 @@ def test_build_all_fragments(module, exp, fragment_factory):
 
     exp_built.host_setup()
     exp_built.precompile()
-
-
-# @pytest.mark.parametrize(
-#     "module, exp",
-#     all_env_experiments,
-#     ids=[exp for _, exp in all_env_experiments],
-# )
-# def test_all_fragments_compile(module, exp, fragment_factory):
-#     def precompile(self):
-#         precompiled_setup = self.core.precompile(self.device_setup)
-#         precompiled_run = self.core.precompile(self.run_once)
-#         precompiled_cleanup = self.core.precompile(self.device_cleanup)
-#         print("Experiment was precompiled:")
-#         print(precompiled_setup)
-#         print(precompiled_run)
-#         print(precompiled_cleanup)
-#     setattr(MeasureRedMOTFrag, "precompile", precompile)
-#     exp = fragment_factory(MeasureRedMOTFrag)
-#     exp.precompile()
-#     experiment_factory(exp)
