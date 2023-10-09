@@ -32,7 +32,7 @@ class FlashSUServo(ExpFragment):
             max=400e6,  # from AD9910 specs
             unit="MHz",
             step=1,
-            # ndecimals=2,
+            # precision=2,
         )
 
         self.setattr_param(
@@ -42,7 +42,7 @@ class FlashSUServo(ExpFragment):
             default=1.0,
             min=0,
             max=1,
-            # ndecimals=1,
+            # precision=1,
         )
         self.setattr_param(
             "attenuation",
@@ -52,7 +52,7 @@ class FlashSUServo(ExpFragment):
             unit="dB",
             min=0,
             max=31.5,
-            # ndecimals=1,
+            # precision=1,
         )
 
         self.setattr_param(
