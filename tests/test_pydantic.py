@@ -14,5 +14,7 @@ def test_import_double_examine(device_mgr, dataset_mgr):
 
     test_file = Path("repository/lib/constants.py").resolve()
 
-    examine(device_mgr, dataset_mgr, str(test_file))
-    examine(device_mgr, dataset_mgr, str(test_file))
+    a = examine(device_mgr, dataset_mgr, str(test_file))
+    b = examine(device_mgr, dataset_mgr, str(test_file))
+
+    pass

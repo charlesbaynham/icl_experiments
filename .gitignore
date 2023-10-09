@@ -3,7 +3,8 @@ todo.txt
 *.swp
 result
 _build
-.vscode
+.vscode/*
+!.vscode/launch.json
 .direnv
 html_out
 report.xml
