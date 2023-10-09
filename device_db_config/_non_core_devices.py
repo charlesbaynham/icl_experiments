@@ -104,6 +104,8 @@ def get_non_core_devices(simulation_mode=False):
             "type": "local",
             "module": "repository.lib.fragments.flir_camera_shim",
             "class": "Camera",
+            "mockmodule": "repository.lib.fragments.flir_camera_shim",
+            "mockclass": "MockCamera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
                 "loglevel": logger.getEffectiveLevel(),
@@ -113,6 +115,8 @@ def get_non_core_devices(simulation_mode=False):
             "type": "local",
             "module": "repository.lib.fragments.flir_camera_shim",
             "class": "Camera",
+            "mockmodule": "repository.lib.fragments.flir_camera_shim",
+            "mockclass": "MockCamera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
                 "loglevel": logger.getEffectiveLevel(),

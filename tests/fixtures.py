@@ -40,9 +40,6 @@ MOCKED_DEVICE_DESC = {
     "class": "MockDevice",
     "mocked": True,
 }
-LOCAL_MOCKED_DEVICES = {
-    ("repository.lib.fragments.flir_camera_shim", "Camera"),
-}
 
 
 @fixture
@@ -144,11 +141,20 @@ def device_mgr(mock_db_writer):
             desc["type"] == "controller"
             or (
                 desc["type"] == "local"
-                and (desc["module"], desc["class"]) in LOCAL_MOCKED_DEVICES
+                and ("mockmodule" in desc and "mockclass" in desc)
             )
         ):
             new_desc = desc.copy()
+
             new_desc.update(MOCKED_DEVICE_DESC)
+
+            if "mockmodule" in desc and "mockclass" in desc:
+                new_desc.update(
+                    {
+                        "module": desc["mockmodule"],
+                        "class": desc["mockclass"],
+                    }
+                )
 
             mock_device_db[key] = new_desc
 
