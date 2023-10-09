@@ -7,7 +7,7 @@ readme = "readme.rst"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
-pyaion = {git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git", rev = "poetry-again"}
+# FIXME pyaion = {git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git", rev = "poetry-again"}
 artiq-http = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git"}
 koheron-ctl200-laser-driver = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"}
 qbutler = {git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"}
@@ -22,7 +22,7 @@ aravis = {git = "https://gitlab.com/aion-physics/code/artiq/forks/python-aravis.
 # https://github.com/pydantic/pydantic/issues/6584.
 # Such a dramatic pin is probably not required, but it'll fix it and we don't
 # use pydantic much
-pydantic = "<2.0"
+# FIXME pydantic = "<2.0"
 
 uk-covid19 = "^1.2.2"
 retry = "^0.9.2"
