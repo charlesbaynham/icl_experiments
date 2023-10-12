@@ -19,7 +19,7 @@ information like "optimal drive power for this AOM": that information belongs in
 aliases = {
     # %% SUServos
     # Blue
-    "suservo_aom_doublepass_461_injection": "urukul5_ch0",
+    # "suservo_aom_doublepass_461_injection": "urukul5_ch0",
     "suservo_aom_singlepass_461_imaging_delivery": "suservo1_ch3",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
     "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
