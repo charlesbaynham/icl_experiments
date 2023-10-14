@@ -26,11 +26,19 @@ from sipyco.sync_struct import Notifier
 from sipyco.sync_struct import process_mod
 
 from tests.marker_exp import MarkerExperiment
+from tests.mock_device import MockDevice
 from tests.wait_for_port import wait_for_port
 
 logger = logging.getLogger(__name__)
 
 ARTIQ_MASTER_CHECK_PORT = 3251
+
+MOCKED_DEVICE_DESC = {
+    "type": "local",
+    "module": "tests.mock_device",
+    "class": "MockDevice",
+    "mocked": True,
+}
 
 
 @fixture
@@ -117,7 +125,6 @@ def mock_db_writer():
 
 @fixture
 def device_mgr(mock_db_writer):
-
     from device_db import device_db
 
     mock_device_db = device_db.copy()
@@ -129,16 +136,24 @@ def device_mgr(mock_db_writer):
     }
 
     for key, desc in mock_device_db.items():
-        if "type" in desc and desc["type"] == "controller":
-            new_desc = desc.copy()
-            new_desc.update(
-                {
-                    "type": "local",
-                    "module": "unittest.mock",
-                    "class": "Mock",
-                    "mocked": True,
-                }
+        if "type" in desc and (
+            desc["type"] == "controller"
+            or (
+                desc["type"] == "local"
+                and ("mockmodule" in desc and "mockclass" in desc)
             )
+        ):
+            new_desc = desc.copy()
+
+            new_desc.update(MOCKED_DEVICE_DESC)
+
+            if "mockmodule" in desc and "mockclass" in desc:
+                new_desc.update(
+                    {
+                        "module": desc["mockmodule"],
+                        "class": desc["mockclass"],
+                    }
+                )
 
             mock_device_db[key] = new_desc
 

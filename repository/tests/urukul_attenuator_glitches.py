@@ -30,12 +30,12 @@ class SetUrukulAttenuatorRepeatedly(EnvExperiment):
         )
 
         self.setattr_argument(
-            "n_repeats", NumberValue(default=10, ndecimals=0, step=1, type="int")
+            "n_repeats", NumberValue(default=10, precision=0, step=1, type="int")
         )
         self.n_repeats: int
 
         self.setattr_argument(
-            "att", NumberValue(default=0.0, ndecimals=1, step=0.1, type="float")
+            "att", NumberValue(default=0.0, precision=1, step=0.1, type="float")
         )
         self.att: float
 

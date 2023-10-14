@@ -4,6 +4,7 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Type
+from typing import TYPE_CHECKING
 
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
@@ -23,6 +24,9 @@ from numpy.typing import ArrayLike
 
 from repository.lib.constants import CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
 from repository.lib.constants import CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
+
+if TYPE_CHECKING:
+    from aravis import Camera
 
 
 logger = logging.getLogger(__name__)
@@ -52,10 +56,11 @@ class CameraFrag(Fragment):
     monitor_dataset_description: str
     "Description for the monitor applet"
 
-    camera_id: str
-    """The camera's ID string for connecting via Aravis
+    camera_device: str
+    """The camera's device name in device_db
 
-    To find this, run `arv-tool` (part of Aravis which is in the AION ARTIQ
+    To add a camera to device_db, you'll need the camera's unique ID which you
+    can find by running `arv-tool` (part of Aravis which is in the AION ARTIQ
     environments) from a computer on the same LAN as the camera.
     """
 
@@ -71,7 +76,7 @@ class CameraFrag(Fragment):
             "default_features",
             "monitor_dataset_key",
             "monitor_dataset_description",
-            "camera_id",
+            "camera_device",
         ]
         for attr in attrs:
             if not hasattr(cls, attr):
@@ -111,12 +116,6 @@ class CameraFrag(Fragment):
         }
 
     def host_setup(self):
-        # This import happens here because, for some reason, importing the
-        # gi.repository Aravis (which happens in python-aravis) breaks if you do
-        # it from multiple processes at the same time, which ARTIQ will trigger
-        # when scanning for experiments
-        from aravis import Camera
-
         # Open the monitoring applet
         self.set_dataset(
             self.monitor_dataset_key,
@@ -131,10 +130,7 @@ class CameraFrag(Fragment):
             f"${{artiq_applet}}image {self.monitor_dataset_key}",
         )
 
-        self.cam = Camera(
-            self.camera_id,
-            loglevel=logger.getEffectiveLevel(),
-        )
+        self.cam: Camera = self.get_device(self.camera_device)
 
         # Set sensible defaults. The user might change these
         self.cam.set_feature("ExposureMode", "Timed")
@@ -308,7 +304,7 @@ class Chamber2HorizontalCamera(CameraFrag):
     default_features = CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
     monitor_dataset_key = "latest_ch2_horiz_image"
     monitor_dataset_description = "Chamber 2 horizontal camera"
-    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018873"
+    camera_device = "flir_camera_ch2_horizontal"
     ttl_trigger_device = "ttl_camera_trigger_horizontal"
 
 
@@ -316,11 +312,11 @@ class Chamber2VerticalCamera(CameraFrag):
     default_features = CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
     monitor_dataset_key = "latest_ch2_vert_image"
     monitor_dataset_description = "Chamber 2 vertical camera"
-    camera_id = "FLIR-Blackfly S BFS-PGE-50S5M-22018872"
+    camera_device = "flir_camera_ch2_vertical"
     ttl_trigger_device = "ttl_camera_trigger_vertical"
 
 
-class MonitorCamera(ExpFragment):
+class _MonitorCamera(ExpFragment):
     camera_class: Type[CameraFrag]
 
     def __init__(self, managers_or_parent, *args, **kwargs):
@@ -380,11 +376,11 @@ class MonitorCamera(ExpFragment):
         time.sleep(max(self.delay.get() - (t_end - t_start), 0))
 
 
-class MonitorChamber2HorizCamera(MonitorCamera):
+class MonitorChamber2HorizCamera(_MonitorCamera):
     camera_class = Chamber2HorizontalCamera
 
 
-class MonitorChamber2VertCamera(MonitorCamera):
+class MonitorChamber2VertCamera(_MonitorCamera):
     camera_class = Chamber2VerticalCamera
 
 

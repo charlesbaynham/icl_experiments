@@ -22,9 +22,15 @@ from repository.lib.models import SUServoedBeam
 
 
 IJD_AOMS = {
-    "red_IJD1_controller": ("urukul9910_aom_doublepass_689_red_injection", 340.0e6, 0.0)
+    "red_IJD1_controller": (
+        "urukul9910_aom_doublepass_689_red_injection",
+        340.0e6,
+        0.0,
+    ),
+    "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 24.0),
 }
 "Urukul outputs (name, freq, attenuation) required for injection locks"
+
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": (8500, 350e-3, 343e-3),
@@ -154,12 +160,6 @@ AOM_BEAMS = [
         shutter_delay=10e-3,
         servo_enabled=True,
         setpoint=3.2,
-    ),
-    SUServoedBeam(
-        "blue_injection",
-        200e6,
-        24,
-        "suservo_aom_doublepass_461_injection",
     ),
     SUServoedBeam(
         "blue_imaging_delivery",

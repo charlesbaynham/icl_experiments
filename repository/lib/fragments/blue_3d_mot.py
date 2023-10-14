@@ -28,7 +28,6 @@ class BlueBeamSetter(SetBeamsToDefaults):
             "blue_3dmot_radial",
             "blue_3dmot_axialplus",
             "blue_3dmot_axialminus",
-            "blue_injection",
             "repump_707",
             "repump_679",
         ]

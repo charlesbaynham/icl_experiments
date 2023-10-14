@@ -1,15 +1,18 @@
 ## added by CFAB:
-tags
 todo.txt
 *.swp
 result
-results
 _build
-/*.pyon
-.vscode
+.vscode/*
+!.vscode/launch.json
 .direnv
 html_out
 report.xml
+
+# ARTIQ outputs
+dataset_db.mdb*
+/*.pyon
+results
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python

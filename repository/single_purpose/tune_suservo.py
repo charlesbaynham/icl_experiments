@@ -38,24 +38,24 @@ class TuneSUServo(EnvExperiment):
         self.channel_name: str
         self.setattr_argument(
             "adc_channel",
-            NumberValue(default=0, scale=1, ndecimals=0, step=1, type="int"),
+            NumberValue(default=0, scale=1, precision=0, step=1, type="int"),
         )
         self.adc_channel: int
 
         self.setattr_argument(
             "frequency",
-            NumberValue(default=100e6, ndecimals=1, type="float", unit="MHz"),
+            NumberValue(default=100e6, precision=1, type="float", unit="MHz"),
         )
         self.frequency: float
         self.setattr_argument(
             "attenuation",
-            NumberValue(default=30.0, ndecimals=1, type="float", unit="dB"),
+            NumberValue(default=30.0, precision=1, type="float", unit="dB"),
         )
         self.attenuation: float
 
         self.setattr_argument(
             "num_points",
-            NumberValue(default=0, scale=1, ndecimals=0, step=1, type="int"),
+            NumberValue(default=0, scale=1, precision=0, step=1, type="int"),
         )
         self.num_points: int
 
@@ -64,23 +64,23 @@ class TuneSUServo(EnvExperiment):
 
         self.setattr_argument(
             "kp",
-            NumberValue(default=1.0, ndecimals=5, type="float"),
+            NumberValue(default=1.0, precision=5, type="float"),
         )
         self.setattr_argument(
             "ki",
-            NumberValue(default=0.0, ndecimals=5, type="float"),
+            NumberValue(default=0.0, precision=5, type="float"),
         )
         self.setattr_argument(
             "gain_limit",
-            NumberValue(default=0.0, ndecimals=1, type="float"),
+            NumberValue(default=0.0, precision=1, type="float"),
         )
         self.setattr_argument(
             "delay",
-            NumberValue(default=0.0, ndecimals=1, type="float", unit="us"),
+            NumberValue(default=0.0, precision=1, type="float", unit="us"),
         )
         self.setattr_argument(
             "setpoint",
-            NumberValue(default=1.0, ndecimals=3, type="float", unit="V"),
+            NumberValue(default=1.0, precision=3, type="float", unit="V"),
         )
         self.kp: float
         self.ki: float
