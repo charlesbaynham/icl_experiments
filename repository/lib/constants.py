@@ -113,8 +113,8 @@ AOM_BEAMS = [
     ),
     SUServoedBeam(
         "blue_2dmot_A",
-        100e6,
-        20,
+        120e6,
+        21,
         "suservo_aom_singlepass_461_2dmot_a",
         "TTL_shutter_461_2dmot_is_it_a",
         shutter_delay=20e-3,
@@ -123,8 +123,8 @@ AOM_BEAMS = [
     ),
     SUServoedBeam(
         "blue_2dmot_B",
-        100e6,
-        20,
+        120e6,
+        21,
         "suservo_aom_singlepass_461_2dmot_b",
         "TTL_shutter_461_2dmot_is_it_b",
         shutter_delay=20e-3,
