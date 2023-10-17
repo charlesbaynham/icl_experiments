@@ -1,5 +1,3 @@
-import warnings
-
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import kernel
 from ndscan.experiment import BoolParam
@@ -14,8 +12,6 @@ from ndscan.experiment.parameters import IntParamHandle
 from pyaion.lib.utils import get_local_devices
 
 from repository.lib.fragments.suservo import LibSetSUServoStatic
-
-warnings.warn("Using overridden local set_suservo_static")
 
 
 class SetSUServoStatic(ExpFragment):
@@ -98,7 +94,10 @@ class SetSUServoStatic(ExpFragment):
         suservo_channels = get_local_devices(self, SUServoChannel)
         if not suservo_channels:
             raise ValueError("No suservo channels found in device_db")
-        self.setattr_argument("channel", EnumerationValue(suservo_channels))
+        self.setattr_argument(
+            "channel",
+            EnumerationValue(suservo_channels, default=suservo_channels[0]),
+        )
 
         self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic, self.channel)
         self.LibSetSUServoStatic: LibSetSUServoStatic

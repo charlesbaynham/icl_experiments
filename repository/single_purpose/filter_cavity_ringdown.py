@@ -26,20 +26,20 @@ class TTLRingdown(EnvExperiment):
 
         self.setattr_argument(
             "frequency",
-            NumberValue(default=20e6, unit="MHz", step=0.1e6, ndecimals=1, min=0),
+            NumberValue(default=20e6, unit="MHz", step=0.1e6, precision=1, min=0),
         )
         self.setattr_argument(
             "attenuation",
-            NumberValue(default=0, unit="dB", step=0.1, ndecimals=1, min=0),
+            NumberValue(default=0, unit="dB", step=0.1, precision=1, min=0),
         )
         self.setattr_argument(
             "runtime",
-            NumberValue(default=60, unit="s", step=1, ndecimals=0, min=1, type="float"),
+            NumberValue(default=60, unit="s", step=1, precision=0, min=1, type="float"),
         )
         self.setattr_argument(
             "response_time",
             NumberValue(
-                default=10e-6, unit="us", step=0.1e-6, ndecimals=1, min=0, type="float"
+                default=10e-6, unit="us", step=0.1e-6, precision=1, min=0, type="float"
             ),
         )
 

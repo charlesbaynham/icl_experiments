@@ -1,4 +1,7 @@
-{ fetchFromGitHub, substituteAll, aravis, buildPythonPackage, numpy, pygobject3 }:
+{ fetchFromGitHub, substituteAll, aravis, python3Packages }:
+let
+inherit (python3Packages) buildPythonPackage numpy pygobject3;
+in
 buildPythonPackage rec {
   pname = "python-aravis";
   version = "0.5";

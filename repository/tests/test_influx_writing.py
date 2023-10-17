@@ -15,13 +15,12 @@ class WriteToInflux(EnvExperiment):
         self.setattr_device("core")
 
         self.setattr_argument(
-            "length_of_dataset", NumberValue(ndecimals=0, min=1, scale=1, step=1)
+            "length_of_dataset", NumberValue(precision=0, min=1, scale=1, step=1)
         )
 
         self.setattr_device("influx_logger")
 
     def run(self):
-
         self.influx_logger: InfluxController
 
         test_data = np.random.random(self.length_of_dataset)

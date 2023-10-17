@@ -1,5 +1,5 @@
 # Default image, if not specified
-image: "nixpkgs/nix-flakes"
+image: "nixpkgs/cachix-flakes"
 
 stages:
   - Static Analysis
@@ -17,8 +17,6 @@ stages:
     - echo [user] > ~/.gitconfig
     - echo name = Gitlabs CI Testing >> ~/.gitconfig
     - echo email = test@example.com >> ~/.gitconfig
-    # Install cachix
-    - nix profile install nixpkgs/nixos-22.11#cachix
     # If a Cachix cache was passed, use it
     - if [ ! -z '$CACHIX_CACHE_NAME' ]; then cachix use $CACHIX_CACHE_NAME; fi
 
@@ -30,28 +28,20 @@ cache:
 ### Linting ###
 
 pre-commit:
-  image: python:3.9
+  extends: .deps
+  needs: []
   stage: Static Analysis
   variables:
     PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
   script:
-    - pip install pre-commit
-    - pre-commit run --all
+    - nix run .#pre-commit
   allow_failure: true
-  needs: []
 
-check-requirements:
-  extends: .deps
-  stage: Static Analysis
-  script:
-    - nix run .#update_requirements
-    - git diff --exit-code  # Fail here if the generated requirements differ from the currently pinned ones
-  needs: []
 
 ### Builder ###
 
 # If the environmental variables CACHIX_CACHE_NAME and CACHIX_AUTH_TOKEN are set,
-# build the devShell and push the results to cachix
+# build the package and the devShell and push the results to cachix
 nix_build:
   extends: .deps
   needs: []
@@ -60,6 +50,9 @@ nix_build:
     - if: $CACHIX_CACHE_NAME && $CACHIX_AUTH_TOKEN && $CI_PIPELINE_SOURCE == "push"
   script:
     - cachix watch-exec $CACHIX_CACHE_NAME -- nix develop -c echo Build complete
+  # We shouldn't have to do this, but the cachix upload is broken. It's ok, the
+  # pytest stage will still catch nix errors
+  allow_failure: true
 
 ### Tests ###
 

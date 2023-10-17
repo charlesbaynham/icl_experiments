@@ -1,163 +1,152 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=poetry-again";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  inputs.artiq-http.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git";
-  inputs.artiq-http.flake = false;
+  outputs = { self, nixpkgs, flake-utils, pyaion, ... }:
+    flake-utils.lib.eachSystem [ "x86_64-linux" ]
+      (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          callPackage = pyaion.lib.${system}.callPackage;
 
-  inputs.koheron_driver.url = "git+https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git";
-  inputs.koheron_driver.flake = false;
+          # Build the python bindings for aravis
+          python-aravis = callPackage ./nix/aravis/python-aravis.nix { };
 
-  inputs.qbutler.url = "git+https://gitlab.com/aion-physics/code/artiq/qbutler.git";
-  inputs.qbutler.flake = false;
-
-  inputs.wand.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/wand.git?ref=adapt_for_linux";
-  inputs.wand.flake = false;
-
-  # Hack in a newer version of nixpkgs just for aravis
-  inputs.newer_nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
-
-  outputs = { self, nixpkgs, newer_nixpkgs, pyaion, flake-utils, artiq-http, koheron_driver, qbutler, wand }:
-
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        # Add our newer version of aravis to our packages
-        aravis = (pkgs.callPackage (import "${newer_nixpkgs}/pkgs/development/libraries/aravis") { });
-        pkgs = nixpkgs.legacyPackages.${system}.extend (final: prev: {
-          inherit aravis;
-        });
-
-        # Build the python bindings for aravis
-        python-aravis = pkgs.python3Packages.callPackage (import ./nix/aravis/python-aravis.nix) { };
-
-        requirements = builtins.readFile ./requirements.in;
-        generated_outputs = pyaion.lib.${system}.build_institute_outputs
-          {
-            institute_flake = self;
-            system = system;
-            extra_requirements = requirements;
-            extra_machnix_packages = [
-              # The following are plain source files, built by mach-nix
-              artiq-http
-              koheron_driver
-              qbutler
-              wand
-            ];
-            extra_non_PyPI_packages = [
-              python-aravis
-            ];
-            extra_non_python_deps = [ pkgs.aravis ];
-            overridesPre = [
-              # There is already a package called "Wand" (not "wand") in nixpkgs
-              # which breaks wand, so we remove it:
+          originalOutputs = pyaion.lib.${system}.artiq_flake_builder { poetry_app = self; };
+          overriddenOutputs = originalOutputs.override (prev: {
+            extra-build-requirements = {
+              artiq-http = [ "setuptools" ];
+              koheron-ctl200-laser-driver = [ "setuptools" ];
+              qbutler = [ "setuptools" ];
+              aravis = [ "setuptools" ];
+              pygobject = [ "setuptools" ];
+              wand = [ "poetry-core" ];
+            };
+            extra-overrides = [
+              # Patch python-aravis to use poetry-resolved dependencies
               (final: prev: {
-                Wand = { };
+                aravis = python-aravis.overridePythonAttrs {
+                  propagatedBuildInputs = prev.aravis.propagatedBuildInputs ++ [ pkgs.aravis ];
+                };
+                # Annoyingly pygobject3 depends on pycairo which also requires special treatment.
+                # Fortunately nixpkgs has handled this. So:
+                pycairo = pkgs.python3Packages.pycairo.overridePythonAttrs {
+                  # the nixpkgs derivation has "meson" in the nativeBuildInputs
+                  # but poetry puts it in "propagatedBuildInputs". This would
+                  # cause a clash so:
+                  nativeBuildInputs = [ ];
+                  propagatedBuildInputs = prev.pycairo.propagatedBuildInputs;
+                };
+
+                # Our fork of wand used poetry for packaging, so we don't need
+                # to worry about deps. But it does have a graphical interface
+                # which needs patching:
+                wand = prev.wand.overridePythonAttrs {
+                  nativeBuildInputs = prev.wand.nativeBuildInputs ++ [ pkgs.qt5.wrapQtAppsHook ];
+                  dontWrapQtApps = true;
+                  postFixup = ''
+                    wrapQtApp "$out/bin/wand_gui"
+                  '';
+                };
               })
             ];
-          };
+          });
 
-      in
-      {
-        inherit (generated_outputs) devShells formatter;
-        packages = generated_outputs.packages // {
-          aravis = pkgs.aravis;
-          python-aravis = python-aravis;
-        };
+        in
+        {
+          inherit (overriddenOutputs) packages formatter devShells;
 
-        apps = generated_outputs.apps // {
-          backup_datasets =
-            let
-              script = pkgs.writeShellScriptBin "run" ''
-                export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
+          apps = overriddenOutputs.apps // {
+            backup_datasets =
+              let
+                script = pkgs.writeShellScriptBin "run" ''
+                  export PATH=${pkgs.lib.makeBinPath [pkgs.rsync]}:$PATH
 
-                # Unlike the other scripts, this one is launched w.r.t. the working directory
-                # so that if the working dir isn't correct, it'll fail with an error message
-                # rather than looking like it's working and then not actuall backing up the data.
-                exec ./scripts/backup_datasets.sh
-              '';
-            in
-            { type = "app"; program = "${script}/bin/run"; };
-
-          backup_database =
-            let
-              script = pkgs.writeShellScriptBin "run" ''
-                export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
-
-                exec ${self}/scripts/backup_database.sh
-              '';
-            in
-            { type = "app"; program = "${script}/bin/run"; };
-
-          grafana = flake-utils.lib.mkApp {
-            drv = (pkgs.writeShellScriptBin "script" ''
-              # Add some grafana config
-              export GF_DEFAULT_INSTANCE_NAME=aion-icl-grafana
-              export GF_AUTH_ANONYMOUS_ORG_NAME=Imperial_USL
-              export GF_AUTH_ANONYMOUS_ENABLED=true
-
-              # Configure for internal Imperial email alerting
-              export GF_SMTP_ENABLED=true
-              export GF_SMTP_HOST=automail.cc.ic.ac.uk:25
-              export GF_SMTP_FROM_ADDRESS=grafana@aionlabserver.ph.ic.ac.uk
-
-              exec ${generated_outputs.apps.grafana.program}
-            '');
-          };
-
-          # Temporary hack to get the dashboard to launch with "nix run" and
-          # default to ICL's settings
-          default = flake-utils.lib.mkApp {
-            drv = (pkgs.writeShellScriptBin "script" ''
-              exec ${generated_outputs.apps.dashboard.program} -s ph-cb2409-2.ph.ic.ac.uk
-            '');
-          };
-
-          wand = flake-utils.lib.mkApp {
-            drv =
-              let config_file = "${self}/scripts/icl_aion_gui_config.pyon";
+                  # Unlike the other scripts, this one is launched w.r.t. the working directory
+                  # so that if the working dir isn't correct, it'll fail with an error message
+                  # rather than looking like it's working and then not actuall backing up the data.
+                  exec ./scripts/backup_datasets.sh
+                '';
               in
-              (pkgs.writeShellScriptBin "script" ''
-                export PATH=${pkgs.lib.makeBinPath generated_outputs.devShells.artiq.buildInputs}:$PATH
+              { type = "app"; program = "${script}/bin/run"; };
 
-                export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
-                cp "${config_file}" "$WAND_CONFIG_PATH"
-                exec wand_gui -n icl_aion "$@"
-              '');
-          };
+            backup_database =
+              let
+                script = pkgs.writeShellScriptBin "run" ''
+                  export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
 
-          wand_server = flake-utils.lib.mkApp {
-            drv =
-              let config_file = "${self}/scripts/icl_aion_server_config.pyon";
+                  exec ${self}/scripts/backup_database.sh
+                '';
               in
-              (pkgs.writeShellScriptBin "script" ''
-                export PATH=${pkgs.lib.makeBinPath generated_outputs.devShells.artiq.buildInputs}:$PATH
+              { type = "app"; program = "${script}/bin/run"; };
 
-                export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
-                cp "${config_file}" "$WAND_CONFIG_PATH"
-                exec wand_server "$@"
+            grafana = flake-utils.lib.mkApp {
+              drv = (pkgs.writeShellScriptBin "script" ''
+                # Add some grafana config
+                export GF_DEFAULT_INSTANCE_NAME=aion-icl-grafana
+                export GF_AUTH_ANONYMOUS_ORG_NAME=Imperial_USL
+                export GF_AUTH_ANONYMOUS_ENABLED=true
+
+                # Configure for internal Imperial email alerting
+                export GF_SMTP_ENABLED=true
+                export GF_SMTP_HOST=automail.cc.ic.ac.uk:25
+                export GF_SMTP_FROM_ADDRESS=grafana@aionlabserver.ph.ic.ac.uk
+
+                exec ${overriddenOutputs.apps.grafana.program}
               '');
+            };
+
+            # Temporary hack to get the dashboard to launch with "nix run" and
+            # default to ICL's settings
+            default = flake-utils.lib.mkApp {
+              drv = (pkgs.writeShellScriptBin "script" ''
+                exec ${overriddenOutputs.apps.dashboard.program} -s ph-cb2409-2.ph.ic.ac.uk
+              '');
+            };
+
+            wand = flake-utils.lib.mkApp {
+              drv =
+                let config_file = "${self}/scripts/icl_aion_gui_config.pyon";
+                in
+                (pkgs.writeShellScriptBin "script" ''
+                  export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
+
+                  export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
+                  cp "${config_file}" "$WAND_CONFIG_PATH"
+                  exec wand_gui -n icl_aion "$@"
+                '');
+            };
+
+            wand_server = flake-utils.lib.mkApp {
+              drv =
+                let config_file = "${self}/scripts/icl_aion_server_config.pyon";
+                in
+                (pkgs.writeShellScriptBin "script" ''
+                  export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
+
+                  export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
+                  cp "${config_file}" "$WAND_CONFIG_PATH"
+                  exec wand_server "$@"
+                '');
+            };
+
+            full_stack =
+              let
+                backup_database = "nix run .#backup_database";
+                backup_datasets = "nix run .#backup_datasets";
+
+                # This is an extra instance of ctlmgr which searches for controllers assigned to "10.137.1.252" instead of "::1"
+                # This is only relevant for moninj since we must hard-code the IP of the labserver in the moninj proxy otherwise dashboards
+                # don't know where to connect to it.
+                moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\\* -v --host-filter 10.137.1.252 --port-control 32490";
+              in
+              overriddenOutputs.apps.full_stack.override (prev: {
+                commands = prev.commands // {
+                  inherit backup_database backup_datasets moninj_proxy_ctlmgr;
+                  ndscan_janitor = "ndscan_dataset_janitor --timeout 7200"; # 2 hours
+                };
+              });
           };
-
-          full_stack =
-            let
-              backup_database = "nix run .#backup_database";
-              backup_datasets = "nix run .#backup_datasets";
-
-              # This is an extra instance of ctlmgr which searches for controllers assigned to "10.137.1.252" instead of "::1"
-              # This is only relevant for moninj since we must hard-code the IP of the labserver in the moninj proxy otherwise dashboards
-              # don't know where to connect to it.
-              moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\\* -v --host-filter 10.137.1.252 --port-control 32490";
-            in
-            generated_outputs.apps.full_stack.override (prev: {
-              commands = prev.commands // {
-                inherit backup_database backup_datasets moninj_proxy_ctlmgr;
-                ndscan_janitor = "ndscan_dataset_janitor --timeout 7200"; # 2 hours
-              };
-            });
-        };
-
-        nixConfig = {
-          bash-prompt = "\\[\\e[1m\\e[32m\\]ICL ARTIQ \\[\\e[0m\\e[94m\\](\\w)\\[\\e[0m\\] $ ";
-        };
-      });
+        }
+      );
 }

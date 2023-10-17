@@ -100,6 +100,28 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040081'",
         },
+        "flir_camera_ch2_horizontal": {
+            "type": "local",
+            "module": "repository.lib.fragments.flir_camera_shim",
+            "class": "Camera",
+            "mockmodule": "repository.lib.fragments.flir_camera_shim",
+            "mockclass": "MockCamera",
+            "arguments": {
+                "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
+                "loglevel": logger.getEffectiveLevel(),
+            },
+        },
+        "flir_camera_ch2_vertical": {
+            "type": "local",
+            "module": "repository.lib.fragments.flir_camera_shim",
+            "class": "Camera",
+            "mockmodule": "repository.lib.fragments.flir_camera_shim",
+            "mockclass": "MockCamera",
+            "arguments": {
+                "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
+                "loglevel": logger.getEffectiveLevel(),
+            },
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
@@ -121,16 +143,16 @@ def get_non_core_devices(simulation_mode=False):
         #     "target": "TTIPowerSupply",
         #     "command": 'aqctl_TTIPowerSupply --port {port} --bind {bind} --id "USB VID:PID=103E:03E8 SER=TTTEO7KJA"',
         # },
-        "ATopticaDLCPro": {
-            "type": "local",
-            "module": "icldrivers.peripherals.TopticaDLCPro",
-            "class": "TopticaDLCPro",
-            "arguments": {
-                "ip": "1.2.3.4",
-                "laser": "laser1",
-                "simulation": simulation_mode,
-            },
-        },
+        # "ATopticaDLCPro": {
+        #     "type": "local",
+        #     "module": "icldrivers.peripherals.TopticaDLCPro",
+        #     "class": "TopticaDLCPro",
+        #     "arguments": {
+        #         "ip": "1.2.3.4",
+        #         "laser": "laser1",
+        #         "simulation": simulation_mode,
+        #     },
+        # },
     }
 
     return _non_core

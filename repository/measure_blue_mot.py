@@ -25,7 +25,7 @@ from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 logger = logging.getLogger(__name__)
 
 
-class MeasureBlueMOTFrag(ExpFragment):
+class _MeasureBlueMOTFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -91,7 +91,7 @@ class MeasureBlueMOTFrag(ExpFragment):
         pass
 
 
-class MeasureBlueMOTWithCameraFrag(MeasureBlueMOTFrag):
+class MeasureBlueMOTWithCameraFrag(_MeasureBlueMOTFrag):
     def build_fragment(self):
         self.setattr_fragment(
             "dual_cameras", DualCameraMeasurement, hardware_trigger=True

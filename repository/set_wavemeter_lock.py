@@ -32,7 +32,7 @@ class EnableWavemeterLock(EnvExperiment):
             self.setattr_argument(
                 _laser_name_to_offset_param(laser),
                 NumberValue(
-                    default=0.0, unit="MHz", ndecimals=1, type="float", step=1e5
+                    default=0.0, unit="MHz", precision=1, type="float", step=1e5
                 ),
                 group=laser,
             )

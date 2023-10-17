@@ -9,7 +9,7 @@ AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD = 0.05  # k
 logger = logging.getLogger(__name__)
 
 
-class MonitorKoheron(Calibration):
+class _MonitorKoheron(Calibration):
     """
     Monitor for a Koheron CTL200 current controller, connected via USB
 
@@ -68,22 +68,25 @@ class MonitorKoheron(Calibration):
             result = CalibrationResult.BAD_DATA
 
         return result, {
-            "tags": {"device": self.controller_name, "parent": MonitorKoheron.__name__},
+            "tags": {
+                "device": self.controller_name,
+                "parent": _MonitorKoheron.__name__,
+            },
             "fields": out,
         }
 
 
-class MonitorBlueIJD1(MonitorKoheron):
+class MonitorBlueIJD1(_MonitorKoheron):
     controller_name = "blue_IJD1_controller"
 
 
-class MonitorBlueIJD2(MonitorKoheron):
+class MonitorBlueIJD2(_MonitorKoheron):
     controller_name = "blue_IJD2_controller"
 
 
-class MonitorBlueIJD3(MonitorKoheron):
+class MonitorBlueIJD3(_MonitorKoheron):
     controller_name = "blue_IJD3_controller"
 
 
-class MonitorRedIJD1(MonitorKoheron):
+class MonitorRedIJD1(_MonitorKoheron):
     controller_name = "red_IJD1_controller"

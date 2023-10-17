@@ -1,5 +1,47 @@
+[tool.poetry]
+name = "icl-experiments"
+version = "0.1.0"
+description = ""
+authors = ["Charles Baynham <c.baynham@imperial.ac.uk>"]
+readme = "readme.rst"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+pyaion = {git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git", rev = "poetry-again"}
+artiq-http = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git"}
+koheron-ctl200-laser-driver = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"}
+qbutler = {git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"}
+wand = {git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "adapt_for_linux"}
+
+# As with artiq, aravis needs some nix packaging too. For now, this is in this
+# repo - see python-aravis.nix and its use in flake.nix
+aravis = {git = "https://gitlab.com/aion-physics/code/artiq/forks/python-aravis.git"}
+
+# The pin is to avoid bugs from strict checks in "PyO3" See e.g.
+# https://github.com/sphinx-doc/sphinx/issues/11662
+# https://github.com/pydantic/pydantic/issues/6584.
+# Such a dramatic pin is probably not required, but it'll fix it and we don't
+# use pydantic much
+pydantic = "1.10.2"
+
+uk-covid19 = "^1.2.2"
+retry = "^0.9.2"
+toptica-lasersdk = "^3.1.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.2"
+pre-commit = "^3.4.0"
+black = "^23.9.1"
+coverage = "^7.3.2"
+ipython = "^8.16.1"
+notebook = "^7.0.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
 xfail_strict = true
+testpaths = "tests"
+pythonpath = "."

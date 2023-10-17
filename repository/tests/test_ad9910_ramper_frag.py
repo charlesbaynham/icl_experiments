@@ -35,13 +35,13 @@ class TestAD9910Ramper(ExpFragment):
         self.ramper: AD9910Ramper
 
         self.setattr_argument(
-            "f_min", NumberValue(default=10e6, unit="MHz", ndecimals=6)
+            "f_min", NumberValue(default=10e6, unit="MHz", precision=6)
         )
         self.setattr_argument(
-            "f_max", NumberValue(default=20e6, unit="MHz", ndecimals=6)
+            "f_max", NumberValue(default=20e6, unit="MHz", precision=6)
         )
         self.setattr_argument(
-            "df_dt", NumberValue(default=1e6, unit="MHz", ndecimals=6)
+            "df_dt", NumberValue(default=1e6, unit="MHz", precision=6)
         )
 
         self.setattr_argument(
