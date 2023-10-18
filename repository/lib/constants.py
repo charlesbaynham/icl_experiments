@@ -27,7 +27,7 @@ IJD_AOMS = {
         340.0e6,
         0.0,
     ),
-    "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 24.0),
+    # "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 24.0), # TODO: Fix blue injection AOM Urukul
 }
 "Urukul outputs (name, freq, attenuation) required for injection locks"
 
