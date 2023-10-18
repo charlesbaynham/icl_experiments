@@ -3,7 +3,6 @@ import logging
 from artiq_influx_generic import InfluxController
 from qbutler.monitoring import make_monitor_controller
 
-from repository.monitors.monitor_covid import MonitorCOVID
 from repository.monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.monitors.monitor_ijds import MonitorBlueIJD1
 from repository.monitors.monitor_ijds import MonitorBlueIJD2
