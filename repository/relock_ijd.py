@@ -24,8 +24,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
-from repository.lib.constants import IJD_AOMS
-from repository.lib.constants import IJD_DEFAULTS
+import repository.lib.constants as constants
 from repository.scan_koheron_current import ScanKoheronCurrentFrag
 
 logger = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ class RelockIJDFrag(ExpFragment):
             FloatParam,
             "How long to wait after initial jump when relocking",
             unit="ms",
-            default=300 * 1e-3,
+            default=1000,
         )
         self.t_relock_waittime: FloatParamHandle
 
@@ -129,8 +128,8 @@ class RelockIJDFrag(ExpFragment):
 
         self.controller_name = controller_name
 
-        if self.controller_name in IJD_AOMS:
-            urukul_channel_name, freq, att = IJD_AOMS[self.controller_name]
+        if self.controller_name in constants.IJD_AOMS:
+            urukul_channel_name, freq, att = constants.IJD_AOMS[self.controller_name]
 
             self.urukul_channel: AD9910 = self.get_device(urukul_channel_name)
             self.urukul_channel_name = urukul_channel_name
@@ -304,11 +303,7 @@ class RelockAllIJDsFrag(ExpFragment):
         for frag, ijd_controller_name in zip(
             self.ijd_controller_frags, ijd_controller_names
         ):
-            (
-                default_temperature,
-                default_window_scan_max,
-                default_window_scan_min,
-            ) = IJD_DEFAULTS[ijd_controller_name]
+            settings = constants.IJD_DEFAULTS[ijd_controller_name]
 
             frag.bind_param("num_points", self.num_points)
 
@@ -316,21 +311,35 @@ class RelockAllIJDsFrag(ExpFragment):
                 f"{ijd_controller_name}_start_current",
                 frag,
                 original_name="i_start_scan",
-                default=default_window_scan_max,
+                default=settings.window_high,
             )
 
             self.setattr_param_rebind(
                 f"{ijd_controller_name}_end_current",
                 frag,
                 original_name="i_end_scan",
-                default=default_window_scan_min,
+                default=settings.window_low,
             )
 
             self.setattr_param_rebind(
                 f"{ijd_controller_name}_temperature",
                 frag.frag_ijd_scanner,
                 original_name="temperature",
-                default=default_temperature,
+                default=settings.temperature,
+            )
+
+            self.setattr_param_rebind(
+                f"{ijd_controller_name}_t_relock_waittime",
+                frag,
+                original_name="t_relock_waittime",
+                default=settings.relock_waittime,
+            )
+
+            self.setattr_param_rebind(
+                f"{ijd_controller_name}_i_jump_above_window",
+                frag,
+                original_name="i_jump_above_window",
+                default=settings.relock_step,
             )
 
             # Disable waiting for temperature to settle - the relock algorithm

@@ -15,8 +15,10 @@ If it makes sense to have hardware and experimental constants stored together
 this module.
 """
 from collections import OrderedDict
+from dataclasses import dataclass
 
 from repository.lib.models import SUServoedBeam
+
 
 # from pyaion.models import SUServoedBeam # FIXME
 
@@ -32,13 +34,28 @@ IJD_AOMS = {
 "Urukul outputs (name, freq, attenuation) required for injection locks"
 
 
+@dataclass
+class IJDSettings:
+    temperature: float
+    "Temperature / Ohms"
+    window_high: float
+    "Top end of window / A"
+    window_low: float
+    "Bottom end of window / A"
+    relock_step: float
+    "Current step to make above lockpoint for relocking / A"
+    relock_waittime: float = 1.0
+    "Time to wait between relock steps / s. Default = 1.0"
+
+
 IJD_DEFAULTS = {
-    "blue_IJD1_controller": (8500, 350e-3, 343e-3),
-    "blue_IJD2_controller": (8800, 350e-3, 343e-3),
-    "blue_IJD3_controller": (9000, 350e-3, 343e-3),
-    "red_IJD1_controller": (6300, 71.0e-3, 67.0e-3),
+    "blue_IJD1_controller": IJDSettings(8500, 350e-3, 343e-3, 3e-3),
+    "blue_IJD2_controller": IJDSettings(8800, 350e-3, 343e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(9000, 350e-3, 343e-3, 3e-3),
+    "red_IJD1_controller": IJDSettings(6300, 71.0e-3, 67.0e-3, 3e-3),
 }
-"Injected diode default temperatures and window scan ranges"
+"Injected diode default settings"
+
 
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state
