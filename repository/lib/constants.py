@@ -227,7 +227,7 @@ AOM_BEAMS = [
     SUServoedBeam(
         "red_mot_sigmaplus",
         100e6,
-        attenuation=30,  # This beam is not currently used - turn it off here to avoid confusion
+        attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=10e-3,
