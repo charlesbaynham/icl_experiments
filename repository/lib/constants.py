@@ -212,7 +212,7 @@ AOM_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=2.5,
+        setpoint=1.75,
         photodiode_offset=0.0188,
     ),
     # These beams are not currently installed:
@@ -231,6 +231,8 @@ AOM_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=10e-3,
+        setpoint=1.75,
+        photodiode_offset=0.0188,  # FIXME: This is a guess
     ),
     ### OTHER ###
     SUServoedBeam(
