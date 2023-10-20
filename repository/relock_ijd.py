@@ -150,6 +150,7 @@ class RelockIJDFrag(ExpFragment):
         self.urukul_channel.init()
         self.urukul_channel.set(frequency=freq, amplitude=1.0)
         self.urukul_channel.set_att(att)
+        self.urukul_channel.sw.on()
 
     def relock(self) -> None:
         # Set AOM if required
