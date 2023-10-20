@@ -49,10 +49,10 @@ class TestDMAReturnValues(EnvExperiment):
         delay(1.0)
         self.core.wait_until_mu(now_mu())
 
-        # self.core.break_realtime()
+        self.core.break_realtime()
 
-        # # execute RTIO operations in the DMA buffer
-        # # each playback advances the timeline by 50*(100+100) ns
-        # self.core_dma.playback_handle(dma_handle_1a)
+        # execute RTIO operations in the DMA buffer
+        # each playback advances the timeline by 50*(100+100) ns
+        self.core_dma.playback_handle(dma_handle_1a)
 
-        # self.core_dma.playback_handle(dma_handle_2)
+        self.core_dma.playback_handle(dma_handle_2)
