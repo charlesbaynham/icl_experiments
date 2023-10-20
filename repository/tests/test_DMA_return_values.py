@@ -53,6 +53,6 @@ class TestDMAReturnValues(EnvExperiment):
 
         # execute RTIO operations in the DMA buffer
         # each playback advances the timeline by 50*(100+100) ns
-        self.core_dma.playback_handle(dma_handle_1a)
+        self.core_dma.playback_handle(dma_handle_1b)
 
         self.core_dma.playback_handle(dma_handle_2)
