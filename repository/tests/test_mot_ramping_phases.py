@@ -79,6 +79,9 @@ class TestRampingPhaseFrag(ExpFragment):
 
     @kernel
     def run_once(self):
+        logger.info("Precomputing handle")
+        self.test_phase.precalculate_dma_handle()
+
         logger.info("Starting test phase")
 
         self.core.reset()
