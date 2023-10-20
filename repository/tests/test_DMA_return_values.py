@@ -3,7 +3,7 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.coredevice.ttl import TTLInOut
-from artiq.experiment import delay
+from artiq.experiment import *
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import NumberValue
@@ -24,27 +24,35 @@ class TestDMAReturnValues(EnvExperiment):
         self.delay: float
 
     @kernel
-    def record(self):
+    def run(self):
+        self.core.reset()
+
         with self.core_dma.record("pulses"):
-            # all RTIO operations now go to the "pulses"
-            # DMA buffer, instead of being executed immediately.
             for _ in range(50):
                 self.ttl12.pulse(self.delay)
                 delay(self.delay)
 
-        dma_handle = self.core_dma.get_handle("pulses")
-        logging.info("Handle: %s", dma_handle)
+        dma_handle_1a = self.core_dma.get_handle("dma1")
 
-    @kernel
-    def run(self):
-        self.core.reset()
-        self.record()
-        # prefetch the address of the DMA buffer
-        # for faster playback trigger
-        pulses_handle = self.core_dma.get_handle("pulses")
+        with self.core_dma.record("pulses"):
+            for _ in range(50):
+                self.ttl12.pulse(self.delay)
+                delay(self.delay)
+
+        dma_handle_2 = self.core_dma.get_handle("dma2")
+        dma_handle_1b = self.core_dma.get_handle("dma2")
+
+        logging.info("dma_handle_1a: %s", dma_handle_1a)
+        logging.info("dma_handle_1b: %s", dma_handle_1b)
+        logging.info("dma_handle_2: %s", dma_handle_2)
+
+        delay(1.0)
+        self.core.wait_until_mu(now_mu())
 
         self.core.break_realtime()
-        while True:
-            # execute RTIO operations in the DMA buffer
-            # each playback advances the timeline by 50*(100+100) ns
-            self.core_dma.playback_handle(pulses_handle)
+
+        # execute RTIO operations in the DMA buffer
+        # each playback advances the timeline by 50*(100+100) ns
+        self.core_dma.playback_handle(dma_handle_1a)
+
+        self.core_dma.playback_handle(dma_handle_2)
