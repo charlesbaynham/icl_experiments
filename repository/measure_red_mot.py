@@ -175,6 +175,10 @@ class _RampingPhase(Fragment):
 
     This fragment should be subclassed for each desired phase. Default settings
     for its parameters can be set by setting the appropriate class variable.
+
+    Lookup of pre-recorded sequences is slow, but can be done before the
+    sequence runs. To do this, use :meth:`~.precalculate_dma_handle` before
+    calling :meth:`~.do_phase`.
     """
 
     duration_default = 100e-3
@@ -308,6 +312,8 @@ class _RampingPhase(Fragment):
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        self.dma_handle = (False, int32(0), int64(0), int32(0))
+        self.dma_handle_valid = False
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -378,6 +384,11 @@ class _RampingPhase(Fragment):
             logger.info('Saving dma trace as "%s"', self.fqn)
 
     @kernel
+    def precalculate_dma_handle(self):
+        self.dma_handle = self.core_dma.get_handle(self.fqn)
+        self.dma_handle_valid = True
+
+    @kernel
     def do_phase(self):
         """
         Perform the ramps (or steps) associated with this phase, as configured
@@ -385,11 +396,17 @@ class _RampingPhase(Fragment):
 
         Advances the timeline to the end of the ramp
         """
-        # It would be nice to use handles here instead of string lookup.
+
+        # It's nicer to use handles here instead of string lookup.
         # Unfortunately, the DMA handle changes whenever another DMA sequence is
         # recorded, so this Fragment can't handle the case that another Fragment
-        # uses DMA after this Fragment's device_setup completes. So, we use strings instead :(
-        self.core_dma.playback(self.fqn)
+        # uses DMA after this Fragment's device_setup completes. If the user
+        # needs the performance of pre-pre-computed handles, they should call
+        # precalculate_dma_handle before this method.
+        if self.dma_handle_valid:
+            self.core_dma.playback_handle(self.dma_handle)
+        else:
+            self.core_dma.playback(self.fqn)
 
 
 class NarrowRedCapturePhase(_RampingPhase):
