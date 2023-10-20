@@ -27,14 +27,14 @@ class TestDMAReturnValues(EnvExperiment):
     def run(self):
         self.core.reset()
 
-        with self.core_dma.record("pulses"):
+        with self.core_dma.record("dma1"):
             for _ in range(50):
                 self.ttl12.pulse(self.delay)
                 delay(self.delay)
 
         dma_handle_1a = self.core_dma.get_handle("dma1")
 
-        with self.core_dma.record("pulses"):
+        with self.core_dma.record("dma2"):
             for _ in range(50):
                 self.ttl12.pulse(self.delay)
                 delay(self.delay)
