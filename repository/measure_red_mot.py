@@ -473,6 +473,14 @@ class NarrowbandTestFrag(_BroadbandBase):
         self.ttl_camera_trigger_andor: TTLOut
 
     @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        # Preload phases' handles
+        self.narrow_red_capture_phase.precalculate_dma_handle()
+        self.narrow_red_compression_phase.precalculate_dma_handle()
+
+    @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
 
