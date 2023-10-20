@@ -308,7 +308,6 @@ class _RampingPhase(Fragment):
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.dma_handle = (int32(0), int64(0), int32(0))
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -322,7 +321,7 @@ class _RampingPhase(Fragment):
     @kernel
     def device_setup(self):
         """
-        Records the ramps to DMA, creating self.dma_handle for later playback.
+        Records the ramps to DMA.
         Write events are staggered by 8 ns (self.core.ref_multiplier) to use
         only one lane
         """
@@ -375,12 +374,8 @@ class _RampingPhase(Fragment):
 
                 t_this_cycle_mu += time_step_mu
 
-        self.dma_handle = self.core_dma.get_handle(self.fqn)
-
         if self.debug_enabled:
-            logger.info(
-                'Saving dma trace as "%s", with handle "%s"', self.fqn, self.dma_handle
-            )
+            logger.info('Saving dma trace as "%s"', self.fqn)
 
     @kernel
     def do_phase(self):
@@ -390,13 +385,11 @@ class _RampingPhase(Fragment):
 
         Advances the timeline to the end of the ramp
         """
-
-        # Mangle the DMA handle so that the epoch matches. This seems like a bug
-        # in ARTIQ that I'm working around
-        _, h1, h2 = self.dma_handle
-        self.dma_handle = (self.core_dma.epoch, h1, h2)
-
-        self.core_dma.playback_handle(self.dma_handle)
+        # It would be nice to use handles here instead of string lookup.
+        # Unfortunately, the DMA handle changes whenever another DMA sequence is
+        # recorded, so this Fragment can't handle the case that another Fragment
+        # uses DMA after this Fragment's device_setup completes. So, we use strings instead :(
+        self.core_dma.playback(self.fqn)
 
 
 class NarrowRedCapturePhase(_RampingPhase):
