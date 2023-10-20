@@ -312,7 +312,7 @@ class _RampingPhase(Fragment):
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.dma_handle = (False, int64(0), int32(0), False)
+        self.dma_handle = (int64(0), int64(0), int32(0), False)
         self.dma_handle_valid = False
 
         # %% Kernel invariants
