@@ -6,6 +6,8 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
@@ -41,15 +43,6 @@ class Measure689Shelving(ExpFragment):
         self.camera_bg_corrected: BGCorrectedMeasurement
 
         self.setattr_param(
-            "initial_delay",
-            FloatParam,
-            "Delay after first blue MOT load",
-            default=3,
-            unit="s",
-        )
-        self.initial_delay: FloatParamHandle
-
-        self.setattr_param(
             "toggle_delay",
             FloatParam,
             "Delay before / after 689 toggles",
@@ -58,24 +51,23 @@ class Measure689Shelving(ExpFragment):
         )
         self.toggle_delay: FloatParamHandle
 
+        self.setattr_param(
+            "clearout",
+            BoolParam,
+            "Clearout between shots",
+            default=False,
+        )
+        self.clearout: BoolParamHandle
+
         self.first_run = True
 
     @kernel
     def run_once(self):
-        if self.first_run:
-            # logger.warning("Shelving run_once init section")
-            self.core.break_realtime()
+        self.red_mot_controller.init()
+        self.blue_mot_controller.init()
 
-            self.red_mot_controller.init()
-            self.blue_mot_controller.init()
-
-            # Load a blue mot
-            # logger.warning("Blue mot load...")
-            self.blue_mot_controller.load_mot(clearout=False)
-
-            delay(self.initial_delay.get())
-
-            self.first_run = False
+        # Load a blue mot
+        self.blue_mot_controller.load_mot(clearout=self.clearout.get())
 
         # Clear the camera buffer in case we quit a previous sequence midway
         self.camera_bg_corrected.clear()
