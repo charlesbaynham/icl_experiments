@@ -3,7 +3,6 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
