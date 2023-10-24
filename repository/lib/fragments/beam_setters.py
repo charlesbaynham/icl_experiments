@@ -12,6 +12,7 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.lib.utils import get_local_devices
 from pyaion.models import SUServoedBeam
 
 from repository.lib.fragments.suservo import LibSetSUServoStatic
@@ -53,7 +54,10 @@ class SetBeamsToDefaults(Fragment):
             Tuple[LibSetSUServoStatic, FloatParamHandle, BoolParamHandle]
         ] = []
 
-        self.ttls: List[TTLOut] = []
+        # Get a random TTL output and store it in the list so that ARTIQ can infer the list's type.
+        # See https://github.com/m-labs/artiq/issues/1669
+        random_ttlout = get_local_devices(self, TTLOut)[0]
+        self.ttls = [self.get_device(random_ttlout)]
 
         for beam_info in self.default_beam_infos:
             setter = self.setattr_fragment(
@@ -122,6 +126,8 @@ class SetBeamsToDefaults(Fragment):
                 enable_iir=beam_info.servo_enabled,
             )
 
-        for ttl in self.ttls:
+        # Skip the first element - it's a random TTL, present to work around https://github.com/m-labs/artiq/issues/1669
+        for i in range(1, len(self.ttls)):
+            ttl = self.ttls[i]
             ttl.set_o(shutter_state)
             delay_mu(8)
