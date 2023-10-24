@@ -1,3 +1,5 @@
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from artiq.experiment import delay, now_mu
 from artiq.experiment import kernel, parallel, sequential
@@ -69,3 +71,6 @@ class ImageBlueMOT(ExpFragment):
         self.core.wait_until_mu(now_mu())
 
         self.dual_cameras.save_data()
+
+
+ImageBlueMOTExp = make_fragment_scan_exp(ImageBlueMOT)
