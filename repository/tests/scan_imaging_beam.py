@@ -7,11 +7,13 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.parameters import FloatParam, FloatParamHandle
 from repository.lib.fragments.suservo import LibSetSUServoStatic
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from artiq.coredevice.core import Core
 
 
 class ImageBlueMOT(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
+        self.core: Core
 
         self.setattr_fragment("blue_mot", Blue3DMOTFrag)
         self.blue_mot: Blue3DMOTFrag
@@ -47,6 +49,8 @@ class ImageBlueMOT(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
+        self.core.break_realtime()
+
         self.blue_mot.init()
         self.blue_mot.load_mot(clearout=False)
 
