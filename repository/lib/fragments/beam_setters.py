@@ -50,9 +50,16 @@ class SetBeamsToDefaults(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.suservo_setters_and_param_handles: List[
-            Tuple[LibSetSUServoStatic, FloatParamHandle, BoolParamHandle]
+        self.suservo_setters_and_info: List[
+            Tuple[LibSetSUServoStatic, FloatParamHandle, bool]
         ] = []
+        """
+        Tuple of (
+            LibSetSUServoStatic - setter interface
+            FloatParamHandle - handle to setpoint parameter
+            bool - does this SUServo have a shutter?
+        )
+        """
 
         # Get a random TTL output and store it in the list so that ARTIQ can infer the list's type.
         # See https://github.com/m-labs/artiq/issues/1669
@@ -76,7 +83,7 @@ class SetBeamsToDefaults(Fragment):
                 default=beam_info.setpoint,
             )
 
-            self.suservo_setters_and_param_handles.append((setter, setpoint_handle))
+            self.suservo_setters_and_info.append((setter, setpoint_handle, bool(beam_info.shutter_device)))
 
         self.max_shutter_delay = max(
             [beam_info.shutter_delay for beam_info in self.default_beam_infos]
@@ -114,16 +121,20 @@ class SetBeamsToDefaults(Fragment):
             (
                 setter,
                 setpoint_handle,
-            ) = self.suservo_setters_and_param_handles[i]
+                shutter_present
+            ) = self.suservo_setters_and_info[i]
             beam_info = self.default_beam_infos[i]
 
             if self.debug_mode:
                 logger.info("Setter (%s) - beam_info %s", setter, beam_info)
 
+            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
+
             setter.set_suservo(
                 float(beam_info.frequency),
                 1.0,
                 float(beam_info.attenuation),
+                rf_switch_state=rf_switch_state,
                 setpoint_v=setpoint_handle.get(),
                 enable_iir=beam_info.servo_enabled,
             )
