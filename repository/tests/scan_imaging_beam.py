@@ -20,6 +20,6 @@ class ImageBlueMOT(ExpFragment):
         self.blue_mot.init()
         self.blue_mot.load_mot(clearout=False)
 
-        delay(1.0)
+        delay(1.0 + "abc")
 
         self.suservo.set()

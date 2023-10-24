@@ -62,6 +62,9 @@ def test_build_all_fragments(module, exp, fragment_factory):
 
     exp_built = fragment_factory(exp)
 
+    if hasattr(exp_built.run_once, "artiq_embedded") and not hasattr(exp_built, "core"):
+        raise TypeError("Kernel run_once but no core device")
+
     if not hasattr(exp_built, "core"):
         return  # This Fragment has no kernel code
 
