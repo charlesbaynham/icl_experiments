@@ -212,7 +212,7 @@ class Red3DMOTFrag(Fragment):
         This is not in device_setup so that the user can choose when / whether to call it during each scan cycle
         """
         # Turn on all the AOMs but close all the shutters
-        self.all_beam_default_setter.turn_on_all(shutter_state=False)
+        self.all_beam_default_setter.turn_on_all(light_enabled=False)
 
         # Make sure that the shutters are closed before run_once starts
         delay(self.all_beam_default_setter.get_max_shutter_delay())

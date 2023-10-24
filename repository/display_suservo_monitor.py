@@ -114,7 +114,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             self.core.break_realtime()
             delay(10 * ms)
             if self.turn_on_beam_with_default_settings:
-                self.beam_default_setter.turn_on_all(shutter_state=True)
+                self.beam_default_setter.turn_on_all(light_enabled=True)
 
             self.first_run = False
 

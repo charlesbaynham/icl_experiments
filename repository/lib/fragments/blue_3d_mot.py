@@ -30,6 +30,8 @@ class BlueBeamSetter(SetBeamsToDefaults):
             "blue_3dmot_axialminus",
             "repump_707",
             "repump_679",
+            "blue_imaging_delivery",
+            "blue_imaging_switch",
         ]
     ]
 
@@ -172,14 +174,19 @@ class Blue3DMOTFrag(Fragment):
     @kernel
     def init(self):
         """
-        Set up beam state for the blue MOT, i.e. set up AOMs and close all shutters
+        Set up beam state for the blue MOT
 
-        This is not in device_setup so that the user can choose when / whether to call it during each scan cycle
+        This configured all SUServos to the right frequency, setpoint and
+        attenuation. If a shutter exists, the shutter is closed and the AOM is
+        turned on. If there is no shutter, the SUServo's RF switch is set to off.
+
+        This is not in device_setup so that the user can choose when / whether
+        to call it during each scan cycle
         """
 
         # Turn on all the AOMs but close all the shutters
         delay(200e-6)  # We need some slack - create it deterministically
-        self.all_beam_default_setter.turn_on_all(shutter_state=False)
+        self.all_beam_default_setter.turn_on_all(light_enabled=False)
 
     @kernel
     def enable_mot_fields(self):

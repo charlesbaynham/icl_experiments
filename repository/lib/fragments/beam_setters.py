@@ -93,11 +93,13 @@ class SetBeamsToDefaults(Fragment):
         return self.max_shutter_delay
 
     @kernel
-    def turn_on_all(self, shutter_state=True):
+    def turn_on_all(self, light_enabled=True):
         """
         Turn on the pre-configured beams to their default values
 
-        If `shutter_state == False`, turn on the AOMs but turn off the shutters.
+        If `light_enabled == False` and a shutter is present, close the shutter and enable the AOM.
+
+        If `light_enabled == False` and no shutter is present, disable the AOM.
 
         This method does not advance the timeline and does not respect shutter
         delays - it just turns everything on immediately.
@@ -129,5 +131,5 @@ class SetBeamsToDefaults(Fragment):
         # Skip the first element - it's a random TTL, present to work around https://github.com/m-labs/artiq/issues/1669
         for i in range(1, len(self.ttls)):
             ttl = self.ttls[i]
-            ttl.set_o(shutter_state)
+            ttl.set_o(light_enabled)
             delay_mu(8)
