@@ -8,6 +8,8 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 
 class ImageBlueMOT(ExpFragment):
     def build_fragment(self, *args, **kwargs) -> None:
+        self.setattr_device("core")
+
         self.setattr_fragment("blue_mot", Blue3DMOTFrag)
         self.blue_mot: Blue3DMOTFrag
 
@@ -20,6 +22,6 @@ class ImageBlueMOT(ExpFragment):
         self.blue_mot.init()
         self.blue_mot.load_mot(clearout=False)
 
-        delay(1.0 + "abc")
+        delay(1.0)
 
         self.suservo.set()
