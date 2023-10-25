@@ -26,7 +26,10 @@ class ImagingBeamSetter(SetBeamsToDefaults):
 
 class FlourescencePulse(Fragment):
     """
-    Pulse the imaging beam onto the atoms
+    Pulse imaging beam(s) onto the atoms
+
+    This class can take a list of
+
     """
 
     def build_fragment(self) -> None:

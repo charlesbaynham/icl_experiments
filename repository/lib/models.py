@@ -15,17 +15,18 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class SUServoedBeam:
+class BeamInfo:
     """
-    A simple class that holds information about a beam to be controlled via a
-    SUServo.
+    A simple class that holds information about a beam delivered via an AOM
 
+    This describes AOMs driven by SUServos or Urukuls, with or without supporting shutters
     """
 
     name: str
     frequency: float
     attenuation: float
-    suservo_device: str
+    urukul_or_suservo_device: str
+    is_urukul: bool = False
     shutter_device: Optional[str] = None
     shutter_delay: float = 0.0
     setpoint: float = 0.0
