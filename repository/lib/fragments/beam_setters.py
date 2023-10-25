@@ -83,7 +83,9 @@ class SetBeamsToDefaults(Fragment):
                 default=beam_info.setpoint,
             )
 
-            self.suservo_setters_and_info.append((setter, setpoint_handle, bool(beam_info.shutter_device)))
+            self.suservo_setters_and_info.append(
+                (setter, setpoint_handle, bool(beam_info.shutter_device))
+            )
 
         self.max_shutter_delay = max(
             [beam_info.shutter_delay for beam_info in self.default_beam_infos]
@@ -115,14 +117,14 @@ class SetBeamsToDefaults(Fragment):
         several suservo writes and ttl updates separated by 8mu each
         """
         if self.debug_mode:
-            logger.info("SetBeamsToDefault.turn_on_all()")
+            logger.info(
+                "SetBeamsToDefault.turn_on_all(light_enabled=%s)", light_enabled
+            )
 
         for i in range(len(self.default_beam_infos)):
-            (
-                setter,
-                setpoint_handle,
-                shutter_present
-            ) = self.suservo_setters_and_info[i]
+            (setter, setpoint_handle, shutter_present) = self.suservo_setters_and_info[
+                i
+            ]
             beam_info = self.default_beam_infos[i]
 
             if self.debug_mode:
