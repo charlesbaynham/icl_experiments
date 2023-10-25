@@ -27,7 +27,7 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch6",
-    "suservo_aom_singlepass_461_imaging_switch": "suservo0_ch0",
+    "suservo_aom_singlepass_461_imaging_switch": "suservo0_ch0",  # TODO: This should be on an Urukul, but our SUServoedBeam model doesn't support nice specification for this
     # Red
     "urukul9910_aom_doublepass_689_red_injection": "urukul8_ch0",
     "suservo_aom_singlepass_689_red_mot_diagonal": "suservo2_ch4",

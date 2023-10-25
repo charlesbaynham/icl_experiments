@@ -13,6 +13,9 @@ from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.flourescence_pulse import FlourescencePulse
 
 
+# FIXME: This class should accept a list of beams which will be used for the imaging, so we can choose either flourescence beam or MOT beams depending on our purposes. It must therefore handle the difference between suservoed beams with shutters, unservoed beams that have no shutters and, ideally, also urukulled veams with/without shutters
+
+
 class ImageBlueMOT(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
