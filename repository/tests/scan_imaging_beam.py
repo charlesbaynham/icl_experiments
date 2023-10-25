@@ -41,10 +41,13 @@ class ImageBlueMOT(ExpFragment):
         )
         self.expansion_time: FloatParamHandle
 
+        # Expose some important parameters
         self.setattr_param_rebind(
             "flourescence_pulse_duration",
             self.flourescence_pulse,
         )
+        self.setattr_param_rebind("exposure_horiz", self.dual_cameras)
+        self.setattr_param_rebind("exposure_vert", self.dual_cameras)
 
     @kernel
     def run_once(self) -> None:
