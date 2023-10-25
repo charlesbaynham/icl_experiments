@@ -107,6 +107,9 @@ RED_BROADBAND_CURRENT = 3.0
 RED_BROADBAND_TIME = 100e-3
 "Default time in broadband red MOT"
 
+DEFAULT_IMAGING_PULSE = 250e-6
+"Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
+
 OFFSET_FREQUENCY_689 = 553e6
 """
 Default cavity offset frequency for the 689's laser stabilization

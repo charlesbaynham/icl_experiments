@@ -29,8 +29,6 @@ class BlueBeamSetter(SetBeamsToDefaults):
             "blue_3dmot_axialminus",
             "repump_707",
             "repump_679",
-            "blue_imaging_delivery",
-            "blue_imaging_switch",
         ]
     ]
 
