@@ -11,6 +11,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
+from repository.lib.fragments.flourescence_pulse import FlourescencePulse
 from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 
@@ -27,10 +28,8 @@ class ImageBlueMOT(ExpFragment):
         )
         self.dual_cameras: DualCameraMeasurement
 
-        self.suservo_setter: LibSetSUServoStatic = self.setattr_fragment(
-            "suservo_setter",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_imaging_switch",
+        self.flourescence_pulse: FlourescencePulse = self.setattr_fragment(
+            "flourescence_pulse", FlourescencePulse
         )
 
         self.setattr_param(
@@ -42,14 +41,10 @@ class ImageBlueMOT(ExpFragment):
         )
         self.expansion_time: FloatParamHandle
 
-        self.setattr_param(
-            "image_time",
-            FloatParam,
-            "Expansion time of blue MOT",
-            default=200e-6,
-            unit="us",
+        self.setattr_param_rebind(
+            "flourescence_pulse_duration",
+            self.flourescence_pulse,
         )
-        self.image_time: FloatParamHandle
 
     @kernel
     def run_once(self) -> None:
@@ -65,15 +60,7 @@ class ImageBlueMOT(ExpFragment):
         delay(self.expansion_time.get())
 
         with parallel:
-            with sequential:
-                self.suservo_setter.set_channel_state(
-                    rf_switch_state=True, enable_iir=False
-                )
-                delay(self.image_time.get())
-                self.suservo_setter.set_channel_state(
-                    rf_switch_state=False, enable_iir=False
-                )
-
+            self.flourescence_pulse.do_imaging_pulse()
             self.dual_cameras.trigger()
 
         self.core.wait_until_mu(now_mu())

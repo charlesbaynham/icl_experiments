@@ -79,7 +79,7 @@ class FlourescencePulse(Fragment):
         self.delivery_suservo.set_channel_state(True, True)
 
     @kernel
-    def imaging_pulse(self):
+    def do_imaging_pulse(self):
         """
         Do an imaging pulse. Camera control is left to the user.
 
