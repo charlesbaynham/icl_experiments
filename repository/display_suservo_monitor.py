@@ -72,7 +72,7 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             self.beam_info.servo_enabled = False
 
         self.suservo_channel_device: SUServoChannel = self.get_device(
-            self.beam_info.urukul_or_suservo_device
+            self.beam_info.suservo_device
         )
 
         if isinstance(self.suservo_channel_device, DummyDevice):

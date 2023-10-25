@@ -17,7 +17,7 @@ this module.
 from collections import OrderedDict
 from dataclasses import dataclass
 
-from repository.lib.models import BeamInfo
+from repository.lib.models import SUServoedBeam
 
 
 # from pyaion.models import SUServoedBeam # FIXME
@@ -123,7 +123,7 @@ OFFSET_ATTENUATION_689 = 7.0
 # Information about beams controlled by AOMs
 AOM_BEAMS = [
     ### BLUE ###
-    BeamInfo(
+    SUServoedBeam(
         "blue_push_beam",
         150e6,
         20,
@@ -131,7 +131,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "blue_2dmot_A",
         120e6,
         21,
@@ -141,7 +141,7 @@ AOM_BEAMS = [
         setpoint=1.9,
         servo_enabled=True,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "blue_2dmot_B",
         120e6,
         21,
@@ -151,7 +151,7 @@ AOM_BEAMS = [
         setpoint=2.9,
         servo_enabled=True,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "blue_3dmot_radial",
         150e6,
         20,
@@ -161,7 +161,7 @@ AOM_BEAMS = [
         servo_enabled=True,
         setpoint=3.5,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "blue_3dmot_axialminus",
         150e6,
         20,
@@ -171,7 +171,7 @@ AOM_BEAMS = [
         servo_enabled=True,
         setpoint=5.0,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "blue_3dmot_axialplus",
         150e6,
         20,
@@ -181,7 +181,7 @@ AOM_BEAMS = [
         servo_enabled=True,
         setpoint=3.2,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "blue_imaging_delivery",
         116e6,
         22,
@@ -189,29 +189,29 @@ AOM_BEAMS = [
         servo_enabled=True,
         setpoint=2.8,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "blue_imaging_switch",
         100e6,
         13,
         "suservo_aom_singlepass_461_imaging_switch",
     ),
     ### RED ###
-    BeamInfo(
+    SUServoedBeam(
         "red_mot_diagonal",
         frequency=100e6,
         attenuation=0.0,
-        urukul_or_suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
+        suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
         shutter_device="ttl_shutter_red_mot_diagonal",
         shutter_delay=10e-3,
         servo_enabled=True,
         setpoint=2.0,
         photodiode_offset=0.01326,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "red_mot_sigmaminus",
         frequency=100e6,
         attenuation=0.0,
-        urukul_or_suservo_device="suservo_aom_singlepass_689_red_mot_sigmaminus",
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaminus",
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=10e-3,
         servo_enabled=True,
@@ -219,26 +219,26 @@ AOM_BEAMS = [
         photodiode_offset=0.0188,
     ),
     # These beams are not currently installed:
-    BeamInfo(
+    SUServoedBeam(
         "red_up",
         100e6,
         attenuation=30,  # This beam is not currently used - turn it off here to avoid confusion
-        urukul_or_suservo_device="suservo_aom_singlepass_689_up",
+        suservo_device="suservo_aom_singlepass_689_up",
         shutter_device="ttl_shutter_red_up",
         shutter_delay=10e-3,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "red_mot_sigmaplus",
         100e6,
         attenuation=0.0,
-        urukul_or_suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=10e-3,
         setpoint=1.75,
         photodiode_offset=0.0188,  # FIXME: This is a guess
     ),
     ### OTHER ###
-    BeamInfo(
+    SUServoedBeam(
         "repump_707",
         100e6,
         0,
@@ -248,7 +248,7 @@ AOM_BEAMS = [
         servo_enabled=True,
         setpoint=0.75,
     ),
-    BeamInfo(
+    SUServoedBeam(
         "repump_679",
         100e6,
         0,

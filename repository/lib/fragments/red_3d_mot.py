@@ -86,7 +86,7 @@ class Red3DMOTFrag(Fragment):
             f = self.setattr_fragment(
                 "suservofrag_" + beam_info.name,
                 LibSetSUServoStatic,
-                channel=beam_info.urukul_or_suservo_device,
+                channel=beam_info.suservo_device,
             )
             self.suservo_fragments.append(f)
             self.suservo_setpoint_offsets.append(beam_info.photodiode_offset)
@@ -292,6 +292,7 @@ class Red3DMOTFrag(Fragment):
         """
 
         for i in range(len(self.suservo_fragments)):
+
             suservo_frag = self.suservo_fragments[i]
             nominal_setpoint = self.suservo_nominal_amplitudes[i]
             photodiode_offset = self.suservo_setpoint_offsets[i]
