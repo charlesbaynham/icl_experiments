@@ -1,3 +1,4 @@
+from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 import logging
 
 from artiq.coredevice.core import Core
@@ -8,20 +9,16 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults, ToggleListOfBeams
 from repository.lib.fragments.suservo import LibSetSUServoStatic
+from repository.lib.models import SUServoedBeam
+
+from typing import List
 
 logger = logging.getLogger(__name__)
 
-
-class ImagingBeamSetter(SetBeamsToDefaults):
-    default_beam_infos = [
-        constants.AOM_BEAMS[beam]
-        for beam in [
-            "blue_imaging_delivery",
-            "blue_imaging_switch",
-        ]
-    ]
+# By default, use the imaging beam switch AOM
+DEFAULT_BEAM_INFOS = [constants["blue_imaging_switch"]]
 
 
 class FlourescencePulse(Fragment):
@@ -29,24 +26,26 @@ class FlourescencePulse(Fragment):
     Pulse the imaging beam onto the atoms
     """
 
-    def build_fragment(self) -> None:
+    def build_fragment(
+        self, beam_infos: List[SUServoedBeam] = DEFAULT_BEAM_INFOS
+    ) -> None:
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("all_beam_default_setter", ImagingBeamSetter)
+        # Accept a list of SUServoedBeams describing which beams to flash for the flourescence
+        self.setattr_fragment("all_beam_default_setter", SetBeamsToDefaults, beam_infos)
         self.all_beam_default_setter: SetBeamsToDefaults
 
-        self.delivery_suservo: LibSetSUServoStatic = self.setattr_fragment(
-            "delivery_suservo",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_imaging_delivery",
-        )
+        self.setattr_fragment("all_beam_toggler", ToggleListOfBeams, beam_infos)
+        self.all_beam_toggler: ToggleListOfBeams
 
-        self.switch_suservo: LibSetSUServoStatic = self.setattr_fragment(
-            "switch_suservo",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_461_imaging_switch",
+        # Also set up the flourescence delivery AOM, regardless of which beams we're flashing
+        self.setattr_fragment(
+            "delivery_beam_setter",
+            SetBeamsToDefaults,
+            [constants["blue_imaging_delivery"]],
         )
+        self.delivery_beam_setter: SetBeamsToDefaults
 
         self.setattr_param(
             "flourescence_pulse_duration",
@@ -64,10 +63,9 @@ class FlourescencePulse(Fragment):
 
         self.core.break_realtime()
 
-        # Configure and enable the SUServos for both AOMs
+        # Configure and enable the SUServos for all configured beams, and also the delivery beam
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
-        # Turn on the "delivery" SUServo immediately - this light does not reach the atoms
-        self.delivery_suservo.set_channel_state(True, True)
+        self.delivery_beam_setter.turn_on_all(light_enabled=True)
 
     @kernel
     def do_imaging_pulse(self):
@@ -76,6 +74,6 @@ class FlourescencePulse(Fragment):
 
         Advances the timeline by `flourescence_pulse_duration`.
         """
-        self.switch_suservo.set_channel_state(True, False)
+        self.all_beam_toggler.turn_on_beams()
         delay(self.flourescence_pulse_duration.get())
-        self.switch_suservo.set_channel_state(False, False)
+        self.all_beam_toggler.turn_off_beams()
