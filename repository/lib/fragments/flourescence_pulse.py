@@ -18,7 +18,7 @@ from typing import List
 logger = logging.getLogger(__name__)
 
 # By default, use the imaging beam switch AOM
-DEFAULT_BEAM_INFOS = [constants["blue_imaging_switch"]]
+DEFAULT_BEAM_INFOS = [constants.AOM_BEAMS["blue_imaging_switch"]]
 
 
 class FlourescencePulse(Fragment):

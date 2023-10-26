@@ -186,10 +186,10 @@ class ToggleListOfBeams(Fragment):
 
         # Filter our suservoed beams into ones with shutters and ones without
         self.beaminfos_with_shutters: List[SUServoedBeam] = filter(
-            lambda i: bool(i.shutter_device), self.beam_infos
+            lambda i: bool(i.shutter_device), self.default_beam_infos
         )
         self.beaminfos_without_shutters: List[SUServoedBeam] = filter(
-            lambda i: not bool(i.shutter_device), self.beam_infos
+            lambda i: not bool(i.shutter_device), self.default_beam_infos
         )
 
         # Delegate to ControlBeamsWithoutCoolingAOM for the shutter-enabled beams
