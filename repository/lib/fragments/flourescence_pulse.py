@@ -1,6 +1,7 @@
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 import logging
 
+
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
@@ -77,3 +78,31 @@ class FlourescencePulse(Fragment):
         self.all_beam_toggler.turn_on_beams()
         delay(self.flourescence_pulse_duration.get())
         self.all_beam_toggler.turn_off_beams()
+
+
+class FlourescencePulseWithoutShutter(FlourescencePulse):
+    DEFAULT_BEAM_INFOS = [
+        SUServoedBeam(
+            "blue_3dmot_axialminus",
+            150e6,
+            20,
+            "suservo_aom_singlepass_461_3DMOT_axialminus",
+            "TTL_shutter_461_3dmot",
+            shutter_delay=10e-3,
+            servo_enabled=True,
+            setpoint=5.0,
+        ),
+    ]
+
+
+class FlourescencePulseWithoutShutter(FlourescencePulse):
+    DEFAULT_BEAM_INFOS = [
+        SUServoedBeam(
+            "blue_3dmot_axialminus",
+            150e6,
+            20,
+            "suservo_aom_singlepass_461_3DMOT_axialminus",
+            servo_enabled=True,
+            setpoint=5.0,
+        ),
+    ]
