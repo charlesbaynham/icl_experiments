@@ -33,20 +33,20 @@ class FlourescencePulse(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        # # Accept a list of SUServoedBeams describing which beams to flash for the flourescence
-        # self.setattr_fragment("all_beam_default_setter", SetBeamsToDefaults, beam_infos)
-        # self.all_beam_default_setter: SetBeamsToDefaults
+        # Accept a list of SUServoedBeams describing which beams to flash for the flourescence
+        self.setattr_fragment("all_beam_default_setter", SetBeamsToDefaults, beam_infos)
+        self.all_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment("all_beam_toggler", ToggleListOfBeams, beam_infos)
         self.all_beam_toggler: ToggleListOfBeams
 
-        # Also set up the flourescence delivery AOM, regardless of which beams we're flashing
-        self.setattr_fragment(
-            "delivery_beam_setter",
-            SetBeamsToDefaults,
-            [constants.AOM_BEAMS["blue_imaging_delivery"]],
-        )
-        self.delivery_beam_setter: SetBeamsToDefaults
+        # # Also set up the flourescence delivery AOM, regardless of which beams we're flashing
+        # self.setattr_fragment(
+        #     "delivery_beam_setter",
+        #     SetBeamsToDefaults,
+        #     [constants.AOM_BEAMS["blue_imaging_delivery"]],
+        # )
+        # self.delivery_beam_setter: SetBeamsToDefaults
 
         self.setattr_param(
             "flourescence_pulse_duration",
@@ -65,8 +65,8 @@ class FlourescencePulse(Fragment):
         self.core.break_realtime()
 
         # # Configure and enable the SUServos for all configured beams, and also the delivery beam
-        # self.all_beam_default_setter.turn_on_all(light_enabled=False)
-        self.delivery_beam_setter.turn_on_all(light_enabled=True)
+        self.all_beam_default_setter.turn_on_all(light_enabled=False)
+        # self.delivery_beam_setter.turn_on_all(light_enabled=True)
 
     @kernel
     def do_imaging_pulse(self):
