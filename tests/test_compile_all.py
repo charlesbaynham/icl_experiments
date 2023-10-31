@@ -46,12 +46,7 @@ def get_all_of_class_from_repository(cls):
 all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 
 
-@pytest.mark.parametrize(
-    "module, exp",
-    all_exp_fragments,
-    ids=[f"{module.__name__} / {exp.__name__}" for module, exp in all_exp_fragments],
-)
-def test_build_all_fragments(module, exp, fragment_factory):
+def fragment_precompiler(fragment_factory, exp):
     def precompile(self):
         for func in [self.device_setup, self.run_once, self.device_cleanup]:
             if hasattr(func, "artiq_embedded"):
@@ -70,3 +65,12 @@ def test_build_all_fragments(module, exp, fragment_factory):
 
     exp_built.host_setup()
     exp_built.precompile()
+
+
+@pytest.mark.parametrize(
+    "module, exp",
+    all_exp_fragments,
+    ids=[f"{module.__name__} / {exp.__name__}" for module, exp in all_exp_fragments],
+)
+def test_build_all_fragments(module, exp, fragment_factory):
+    fragment_precompiler(fragment_factory, exp)
