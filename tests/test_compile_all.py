@@ -46,31 +46,10 @@ def get_all_of_class_from_repository(cls):
 all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 
 
-def fragment_precompiler(fragment_factory, exp):
-    def precompile(self):
-        for func in [self.device_setup, self.run_once, self.device_cleanup]:
-            if hasattr(func, "artiq_embedded"):
-                precompiled = self.core.precompile(func)
-                print(precompiled)
-
-    setattr(exp, "precompile", precompile)
-
-    exp_built = fragment_factory(exp)
-
-    if hasattr(exp_built.run_once, "artiq_embedded") and not hasattr(exp_built, "core"):
-        raise TypeError("Kernel run_once but no core device")
-
-    if not hasattr(exp_built, "core"):
-        return  # This Fragment has no kernel code
-
-    exp_built.host_setup()
-    exp_built.precompile()
-
-
 @pytest.mark.parametrize(
     "module, exp",
     all_exp_fragments,
     ids=[f"{module.__name__} / {exp.__name__}" for module, exp in all_exp_fragments],
 )
-def test_build_all_fragments(module, exp, fragment_factory):
-    fragment_precompiler(fragment_factory, exp)
+def test_build_all_fragments(module, exp, fragment_precompiler):
+    fragment_precompiler(exp)

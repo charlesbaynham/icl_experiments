@@ -98,6 +98,33 @@ def experiment_factory(
 
 
 @fixture
+def fragment_precompiler(fragment_factory):
+    def do(exp):
+        def precompile(self):
+            for func in [self.device_setup, self.run_once, self.device_cleanup]:
+                if hasattr(func, "artiq_embedded"):
+                    precompiled = self.core.precompile(func)
+                    print(precompiled)
+
+        setattr(exp, "precompile", precompile)
+
+        exp_built = fragment_factory(exp)
+
+        if hasattr(exp_built.run_once, "artiq_embedded") and not hasattr(
+            exp_built, "core"
+        ):
+            raise TypeError("Kernel run_once but no core device")
+
+        if not hasattr(exp_built, "core"):
+            return  # This Fragment has no kernel code
+
+        exp_built.host_setup()
+        exp_built.precompile()
+
+    return do
+
+
+@fixture
 def plot_graph(tmp_path):
     def func(name=None):
         import matplotlib.pyplot as plt
