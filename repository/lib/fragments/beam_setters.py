@@ -233,3 +233,15 @@ class ToggleListOfBeams(Fragment):
             suservo_frag.set_channel_state(
                 rf_switch_state=True, enable_iir=beam_info.servo_enabled
             )
+
+    @kernel
+    def turn_off_beams(self, ignore_shutters=False):
+        # Turn off the shuttered beams
+        self.shuttered_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
+
+        # And the unshuttered beams
+        for i in range(len(self.suservo_frags)):
+            beam_info = self.beaminfos_without_shutters[i]
+            suservo_frag = self.suservo_frags[i]
+
+            suservo_frag.set_channel_state(rf_switch_state=False, enable_iir=False)
