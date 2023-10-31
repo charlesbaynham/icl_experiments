@@ -213,7 +213,6 @@ class ToggleListOfBeams(Fragment):
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
-            "debug_enabled",
             "shuttered_beams_setter",
             "suservo_frags",
             "beaminfos_with_shutters",
