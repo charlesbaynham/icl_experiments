@@ -1,4 +1,5 @@
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
+from artiq.experiment import HasEnvironment
 import logging
 from typing import List
 from typing import Tuple
@@ -149,6 +150,22 @@ class SetBeamsToDefaults(Fragment):
             delay_mu(8)
 
 
+class DummySUServoFrag(HasEnvironment):
+    """
+    A dummy class that copies the interface of LibSetSUServoStatic
+
+    This is used by ToggleListOfBeams when an empty list is passed to work
+    around the ARTIQ compiler's bad handling of empty lists / arrays.
+    """
+
+    def build(self):
+        self.setattr_device("core")
+
+    @kernel
+    def set_channel_state(self, rf_switch_state=True, enable_iir=True):
+        pass
+
+
 class ToggleListOfBeams(Fragment):
     """
     Provides methods to turn on / off a list of beams simultaneously, with or
@@ -209,6 +226,8 @@ class ToggleListOfBeams(Fragment):
                 channel=beam.suservo_device,
             )
             self.suservo_frags.append(f)
+        if not self.suservo_frags:
+            self.suservo_frags = [DummySUServoFrag(self)]
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
