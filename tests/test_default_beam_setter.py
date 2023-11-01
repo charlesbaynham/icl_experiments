@@ -27,6 +27,29 @@ SAMPLE_BEAM_INFOS = [
 ]
 
 
+class BeamSetterUsedOnce(ExpFragment):
+    def build_fragment(self) -> None:
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment(
+            "all_beam_default_setter_a", SetBeamsToDefaults, [SAMPLE_BEAM_INFOS[0]]
+        )
+        self.all_beam_default_setter_a: SetBeamsToDefaults
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        self.core.break_realtime()
+
+        # Configure and enable the SUServos for all configured beams, and also the delivery beam
+        self.all_beam_default_setter_a.turn_on_all(light_enabled=False)
+
+    def run_once(self) -> None:
+        pass
+
+
 class BeamSetterUsedTwice(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
@@ -54,6 +77,10 @@ class BeamSetterUsedTwice(ExpFragment):
 
     def run_once(self) -> None:
         pass
+
+
+def test_beamsetter_single_use(fragment_precompiler):
+    fragment_precompiler(BeamSetterUsedOnce)
 
 
 def test_beamsetter_double_use(fragment_precompiler):
