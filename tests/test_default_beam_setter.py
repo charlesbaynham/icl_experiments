@@ -1,13 +1,13 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import kernel
-from ndscan.experiment import Fragment
+from ndscan.experiment import ExpFragment
 
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.models import SUServoedBeam
 
 SAMPLE_BEAM_INFOS = [
     SUServoedBeam(
-        "blue_3dmot_axialminus",
+        "beam_1",
         150e6,
         20,
         "suservo_aom_singlepass_461_3DMOT_axialminus",
@@ -15,7 +15,7 @@ SAMPLE_BEAM_INFOS = [
         setpoint=5.0,
     ),
     SUServoedBeam(
-        "blue_3dmot_axialplus",
+        "beam_2",
         150e6,
         20,
         "suservo_aom_singlepass_461_3DMOT_axialplus",
@@ -27,18 +27,18 @@ SAMPLE_BEAM_INFOS = [
 ]
 
 
-class BeamSetterUsedTwice(Fragment):
+class BeamSetterUsedTwice(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.core: Core
 
         self.setattr_fragment(
-            "all_beam_default_setter_a", SetBeamsToDefaults, SAMPLE_BEAM_INFOS[0]
+            "all_beam_default_setter_a", SetBeamsToDefaults, [SAMPLE_BEAM_INFOS[0]]
         )
         self.all_beam_default_setter_a: SetBeamsToDefaults
 
         self.setattr_fragment(
-            "all_beam_default_setter_b", SetBeamsToDefaults, SAMPLE_BEAM_INFOS[1]
+            "all_beam_default_setter_b", SetBeamsToDefaults, [SAMPLE_BEAM_INFOS[1]]
         )
         self.all_beam_default_setter_b: SetBeamsToDefaults
 
@@ -51,3 +51,10 @@ class BeamSetterUsedTwice(Fragment):
         # Configure and enable the SUServos for all configured beams, and also the delivery beam
         self.all_beam_default_setter_a.turn_on_all(light_enabled=False)
         self.all_beam_default_setter_b.turn_on_all(light_enabled=False)
+
+    def run_once(self) -> None:
+        pass
+
+
+def test_beamsetter_double_use(fragment_precompiler):
+    fragment_precompiler(BeamSetterUsedTwice)
