@@ -68,7 +68,7 @@ class SetBeamsToDefaults(Fragment):
         self.ttls = [self.get_device(random_ttlout)]
 
         for beam_info in self.default_beam_infos:
-            setter = self.setattr_fragment(
+            setter = self.make_subfragment(
                 beam_info.name, LibSetSUServoStatic, beam_info.suservo_device
             )
 
