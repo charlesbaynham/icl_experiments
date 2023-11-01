@@ -17,7 +17,7 @@ this module.
 from collections import OrderedDict
 from dataclasses import dataclass
 
-from repository.lib.models import SUServoedBeam
+from pyaion.models import SUServoedBeam
 
 
 # from pyaion.models import SUServoedBeam # FIXME

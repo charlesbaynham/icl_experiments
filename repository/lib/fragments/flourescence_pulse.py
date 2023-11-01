@@ -12,7 +12,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults, ToggleListOfBeams
 from repository.lib.fragments.suservo import LibSetSUServoStatic
-from repository.lib.models import SUServoedBeam
+from pyaion.models import SUServoedBeam
+
 
 from typing import List
 
