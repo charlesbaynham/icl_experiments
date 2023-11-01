@@ -72,9 +72,6 @@ class SetBeamsToDefaults(Fragment):
                 beam_info.name, LibSetSUServoStatic, beam_info.suservo_device
             )
 
-            # Hack alert! FIXME: Document if it works
-            delattr(self, beam_info.name)
-
             if beam_info.shutter_device:
                 self.ttls.append(self.get_device(beam_info.shutter_device))
 
