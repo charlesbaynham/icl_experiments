@@ -94,19 +94,12 @@ class SetBeamsToDefaults(Fragment):
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
         # Add a dummy element to self.ttls to trick the ARTIQ compiler in the
-        # case of empty lists. It's immediately removed in device_setup
+        # case of empty lists. We loop from 1 onwards
         self.ttls.insert(0, self.get_device(get_local_devices(self, TTLOut)[0]))
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {"debug_mode", "max_shutter_delay"}
-
-    @kernel
-    def device_setup(self) -> None:
-        # Remove dummy element
-        self.ttls = self.ttls[1:]
-
-        self.device_setup_subfragments()
 
     @portable
     def get_max_shutter_delay(self):
@@ -152,7 +145,7 @@ class SetBeamsToDefaults(Fragment):
                 enable_iir=beam_info.servo_enabled,
             )
 
-        for i in range(len(self.ttls)):
+        for i in range(1, len(self.ttls)):
             ttl = self.ttls[i]
             ttl.set_o(light_enabled)
             delay_mu(8)
