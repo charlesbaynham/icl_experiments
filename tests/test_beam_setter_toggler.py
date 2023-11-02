@@ -79,6 +79,14 @@ class ToggleOneOfEach(ExpFragment):
         self.all_beam_toggler.turn_on_beams()
 
 
+class _DoubleToggler(ToggleListOfBeams):
+    default_beam_infos = [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+
+
+class _SingleToggler(ToggleListOfBeams):
+    default_beam_infos = [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+
+
 class ToggleMultipleCombos(ExpFragment):
     @kernel
     def run_once(self) -> None:
@@ -89,16 +97,8 @@ class ToggleMultipleCombos(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment(
-            "both_beam_toggler",
-            ToggleListOfBeams,
-            [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER],
-        )
-        self.setattr_fragment(
-            "one_beam_toggler",
-            ToggleListOfBeams,
-            [BEAM_INFO_SUSERVO_WITH_SHUTTER],
-        )
+        self.setattr_fragment("both_beam_toggler", _DoubleToggler)
+        self.setattr_fragment("one_beam_toggler", _SingleToggler)
         self.both_beam_toggler: ToggleListOfBeams
         self.one_beam_toggler: ToggleListOfBeams
 

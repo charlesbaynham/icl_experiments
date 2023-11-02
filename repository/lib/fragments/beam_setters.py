@@ -187,6 +187,10 @@ class ToggleListOfBeams(Fragment):
 
     If you do both, the list passed to the constructor will take priority.
 
+    Note - you should prefer the subclass method if possible. This helps avoid
+    problems with ARTIQ's compiler struggling with classes of the same type
+    which have different attributes.
+
     For each beam_info passed, this Fragment will either use
     :class:`pyaion.fragments.beam_setters.ControlBeamsWithoutCoolingAOM` to open
     / close the shutters in sequence with the toggling to AOM, respecting beam
