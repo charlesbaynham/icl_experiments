@@ -1,3 +1,5 @@
+from artiq.coredevice.suservo import Channel as SUServoChannel
+
 import logging
 from typing import List
 from typing import Tuple
@@ -233,8 +235,20 @@ class ToggleListOfBeams(Fragment):
                 channel=beam.suservo_device,
             )
             self.suservo_frags.append(f)
+
+        # Add a dummy beam / SUServo frag to the list if it's empty - see ARTIQ #1626
         if not self.suservo_frags:
             self.suservo_frags = [DummySUServoFrag(self)]
+
+            dummy_beaminfo = SUServoedBeam(
+                name="dummy",
+                frequency=0,
+                attenuation=0.0,
+                shutter_device=get_local_devices(self, TTLOut)[0],
+                suservo_device=get_local_devices(self, SUServoChannel)[0],
+                shutter_delay=0,
+            )
+            self.beaminfos_without_shutters.insert(0, dummy_beaminfo)
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
