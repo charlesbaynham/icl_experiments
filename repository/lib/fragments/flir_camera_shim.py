@@ -1,12 +1,15 @@
 from typing import Any
 from unittest.mock import MagicMock
 
-from aravis import Camera as _Camera
+try:
+    from aravis import Camera as _Camera
 
+    class Camera(_Camera):
+        def __init__(self, device_mgr, name, loglevel):
+            super().__init__(name, loglevel)
 
-class Camera(_Camera):
-    def __init__(self, device_mgr, name, loglevel):
-        super().__init__(name, loglevel)
+except ImportError:
+    pass
 
 
 class MockCamera(MagicMock):
