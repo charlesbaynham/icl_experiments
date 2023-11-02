@@ -1,0 +1,49 @@
+from artiq.experiment import kernel
+from ndscan.experiment import Fragment, ExpFragment
+
+
+class TopLevelFrag(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+
+        self.setattr_fragment("subfrag_1", MidLevelFrag, ["hello", "world"])
+        self.setattr_fragment(
+            "subfrag_2", MidLevelFrag, ["different", "strings", "here"]
+        )
+
+    @kernel
+    def run_once(self) -> None:
+        print("Hello")
+
+
+class MidLevelFrag(Fragment):
+    def build_fragment(self, list_of_strings):
+        self.setattr_device("core")
+
+        self.subfrags = []
+        for my_string in list_of_strings:
+            self.subfrags.append(
+                self.setattr_fragment(
+                    "subfrag_" + my_string, BottomLevelFrag, bottom_frag_arg=my_string
+                )
+            )
+
+    @kernel
+    def do_many_somethings(self):
+        for frag in self.subfrags:
+            frag.do_something()
+
+
+class BottomLevelFrag(Fragment):
+    def build_fragment(self, bottom_frag_arg=None):
+        self.setattr_device("core")
+
+        self.arg = bottom_frag_arg
+
+    @kernel
+    def do_something(self):
+        print(self.arg)
+
+
+def test_ndscan_polymorphism_bug(fragment_precompiler):
+    fragment_precompiler(TopLevelFrag)
