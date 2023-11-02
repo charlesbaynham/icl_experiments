@@ -1,5 +1,6 @@
 from artiq.experiment import kernel
-from ndscan.experiment import Fragment, ExpFragment
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
 
 
 class TopLevelFrag(ExpFragment):

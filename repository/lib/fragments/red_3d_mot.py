@@ -292,7 +292,6 @@ class Red3DMOTFrag(Fragment):
         """
 
         for i in range(len(self.suservo_fragments)):
-
             suservo_frag = self.suservo_fragments[i]
             nominal_setpoint = self.suservo_nominal_amplitudes[i]
             photodiode_offset = self.suservo_setpoint_offsets[i]

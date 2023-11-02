@@ -1,11 +1,10 @@
-from artiq.coredevice.suservo import Channel as SUServoChannel
-
 import logging
 from typing import List
 from typing import Tuple
 
 import numpy as np
 from artiq.coredevice.core import Core
+from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import HasEnvironment
