@@ -31,6 +31,11 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
     For now though, we make the rule that Urukuls that contain such delicate
     outputs must never have their attenuation initialized by any method other
     than the ones in this Fragment.
+
+    TODO: This could be improved by e.g. writing the current attenuation into
+    the Urukul's phase register and reading it back from there. This obviously
+    breaks any code which actually uses the phase register, but would be more
+    reliable than just hoping for the best.
     """
 
     def build_fragment(self, urukul_channel: str, default_attenuation: float):
