@@ -1,9 +1,16 @@
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.models import SUServoedBeam
 
+from repository.lib.constants import AOM_BEAMS
 from repository.lib.fragments.flourescence_pulse import FlourescencePulse
+
+MOT_BEAM_NO_SHUTTER = AOM_BEAMS["blue_3dmot_axialminus"]
+MOT_BEAM_NO_SHUTTER.shutter_device = None
+MOT_BEAM_WITH_SHUTTER = AOM_BEAMS["blue_3dmot_axialminus"]
+IMAGING_BEAM = AOM_BEAMS["blue_imaging_switch"]
 
 
 class _TestFlourescencePulse(ExpFragment):
@@ -21,16 +28,7 @@ class FlourescencePulseWithoutShutter(_TestFlourescencePulse):
         self.setattr_fragment(
             "frag",
             FlourescencePulse,
-            beam_infos=[
-                SUServoedBeam(
-                    "blue_3dmot_axialminus",
-                    150e6,
-                    20,
-                    "suservo_aom_singlepass_461_3DMOT_axialminus",
-                    servo_enabled=True,
-                    setpoint=5.0,
-                ),
-            ],
+            beam_infos=[MOT_BEAM_NO_SHUTTER],
         )
         self.frag: FlourescencePulse
 
@@ -41,18 +39,7 @@ class FlourescencePulseWithShutter(_TestFlourescencePulse):
         self.setattr_fragment(
             "frag",
             FlourescencePulse,
-            beam_infos=[
-                SUServoedBeam(
-                    "blue_3dmot_axialminus",
-                    150e6,
-                    20,
-                    "suservo_aom_singlepass_461_3DMOT_axialminus",
-                    "TTL_shutter_461_3dmot",
-                    shutter_delay=10e-3,
-                    servo_enabled=True,
-                    setpoint=5.0,
-                ),
-            ],
+            beam_infos=[MOT_BEAM_WITH_SHUTTER],
         )
 
 
@@ -62,25 +49,9 @@ class FlourescencePulseWithBoth(_TestFlourescencePulse):
         self.setattr_fragment(
             "frag",
             FlourescencePulse,
-            beam_infos=[
-                SUServoedBeam(
-                    "blue_3dmot_axialminus",
-                    150e6,
-                    20,
-                    "suservo_aom_singlepass_461_3DMOT_axialminus",
-                    servo_enabled=True,
-                    setpoint=5.0,
-                ),
-                SUServoedBeam(
-                    "blue_3dmot_axialplus",
-                    150e6,
-                    20,
-                    "suservo_aom_singlepass_461_3DMOT_axialplus",
-                    "TTL_shutter_461_3dmot",
-                    shutter_delay=10e-3,
-                    servo_enabled=True,
-                    setpoint=3.2,
-                ),
-            ],
+            beam_infos=[IMAGING_BEAM, MOT_BEAM_WITH_SHUTTER],
         )
         self.frag: FlourescencePulse
+
+
+TestFlourescencePulse = make_fragment_scan_exp(FlourescencePulseWithBoth)
