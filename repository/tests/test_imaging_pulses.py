@@ -1,3 +1,4 @@
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
@@ -5,12 +6,16 @@ from pyaion.models import SUServoedBeam
 from repository.lib.fragments.flourescence_pulse import FlourescencePulse
 
 
-class FlourescencePulseWithoutShutter(ExpFragment):
+class _TestFlourescencePulse(ExpFragment):
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
-        self.frag.do_imaging_pulse()
+        for _ in range(10):
+            delay(1.0)
+            self.frag.do_imaging_pulse()
 
+
+class FlourescencePulseWithoutShutter(_TestFlourescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.setattr_fragment(
@@ -30,13 +35,7 @@ class FlourescencePulseWithoutShutter(ExpFragment):
         self.frag: FlourescencePulse
 
 
-# FIXME: I think this fails because I'm attempting polymorphism with ARTIQ via the SetDefaultSettings class
-class FlourescencePulseWithShutter(ExpFragment):
-    @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
-        self.frag.do_imaging_pulse()
-
+class FlourescencePulseWithShutter(_TestFlourescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.setattr_fragment(
@@ -57,12 +56,7 @@ class FlourescencePulseWithShutter(ExpFragment):
         )
 
 
-class FlourescencePulseWithBoth(ExpFragment):
-    @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
-        self.frag.do_imaging_pulse()
-
+class FlourescencePulseWithBoth(_TestFlourescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.setattr_fragment(

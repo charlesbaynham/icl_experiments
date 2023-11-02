@@ -18,6 +18,7 @@ from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
+
 # By default, use the imaging beam switch AOM
 DEFAULT_BEAM_INFOS = [constants.AOM_BEAMS["blue_imaging_switch"]]
 
@@ -27,17 +28,21 @@ class FlourescencePulse(Fragment):
     Pulse the imaging beam onto the atoms
     """
 
-    def build_fragment(
-        self, beam_infos: List[SUServoedBeam] = DEFAULT_BEAM_INFOS
-    ) -> None:
+    def build_fragment(self, beam_infos=DEFAULT_BEAM_INFOS) -> None:
+        class _ImagingBeamsToggler(ToggleListOfBeams):
+            default_beam_infos = beam_infos
+
+        class _ImagingBeamsSetter(SetBeamsToDefaults):
+            default_beam_infos = beam_infos
+
         self.setattr_device("core")
         self.core: Core
 
         # Accept a list of SUServoedBeams describing which beams to flash for the flourescence
-        self.setattr_fragment("all_beam_default_setter", SetBeamsToDefaults, beam_infos)
+        self.setattr_fragment("all_beam_default_setter", _ImagingBeamsSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
 
-        self.setattr_fragment("all_beam_toggler", ToggleListOfBeams, beam_infos)
+        self.setattr_fragment("all_beam_toggler", _ImagingBeamsToggler)
         self.all_beam_toggler: ToggleListOfBeams
 
         # Also set up the flourescence delivery AOM, regardless of which beams we're flashing
