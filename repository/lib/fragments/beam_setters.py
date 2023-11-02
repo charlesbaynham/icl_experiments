@@ -63,10 +63,7 @@ class SetBeamsToDefaults(Fragment):
         )
         """
 
-        # Get a random TTL output and store it in the list so that ARTIQ can infer the list's type.
-        # See https://github.com/m-labs/artiq/issues/1669
-        random_ttlout = get_local_devices(self, TTLOut)[0]
-        self.ttls = [self.get_device(random_ttlout)]
+        self.ttls = []
 
         for beam_info in self.default_beam_infos:
             setter = self.make_subfragment(
@@ -143,8 +140,7 @@ class SetBeamsToDefaults(Fragment):
                 enable_iir=beam_info.servo_enabled,
             )
 
-        # Skip the first element - it's a random TTL, present to work around https://github.com/m-labs/artiq/issues/1669
-        for i in range(1, len(self.ttls)):
+        for i in range(len(self.ttls)):
             ttl = self.ttls[i]
             ttl.set_o(light_enabled)
             delay_mu(8)
