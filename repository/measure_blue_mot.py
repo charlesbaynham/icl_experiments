@@ -6,6 +6,7 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import ms
 from artiq.experiment import now_mu
+from artiq.experiment import parallel
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import ResultChannel
@@ -14,13 +15,10 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.result_channels import FloatChannel
-from ndscan.experiment.result_channels import IntChannel
-from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-
+from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
 
 logger = logging.getLogger(__name__)
 
@@ -121,4 +119,51 @@ class MeasureBlueMOTWithCameraFrag(_MeasureBlueMOTFrag):
         self.dual_cameras.save_data()
 
 
+class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
+    def build_fragment(self):
+        self.setattr_fragment(
+            "dual_cameras", DualCameraMeasurement, hardware_trigger=True
+        )
+        self.dual_cameras: DualCameraMeasurement
+
+        self.setattr_param_rebind(
+            "exposure",
+            self.dual_cameras,
+            "exposure_horiz",
+            description="Camera exposures",
+        )
+        self.exposure: FloatParamHandle
+
+        self.dual_cameras.bind_param("exposure_vert", self.exposure)
+
+        self.setattr_param(
+            "expansion_time",
+            FloatParam,
+            description="Expansion time of MOT",
+            default=0.0,
+            unit="us",
+        )
+        self.expansion_time: FloatParamHandle
+
+        self.setattr_fragment("fluorescence_pulse", FluorescencePulse)
+        self.fluorescence_pulse: FluorescencePulse
+
+        super().build_fragment()
+
+    @kernel
+    def _take_data(self, loading_time):
+        delay(loading_time)
+        self.mot_controller.turn_off_3d_and_2d_beams()
+        delay(self.expansion_time.get())
+
+        with parallel:
+            self.dual_cameras.trigger()
+            self.fluorescence_pulse.do_imaging_pulse()
+
+        self.core.wait_until_mu(now_mu())
+
+        self.dual_cameras.save_data()
+
+
 MeasureBlueMOTWithCamera = make_fragment_scan_exp(MeasureBlueMOTWithCameraFrag)
+MeasureBlueMOTWithExpansion = make_fragment_scan_exp(MeasureBlueMOTWithExpansionFrag)
