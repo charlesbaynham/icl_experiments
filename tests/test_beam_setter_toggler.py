@@ -8,6 +8,7 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.result_channels import ResultChannel
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 from pyaion.models import SUServoedBeam
 
@@ -24,6 +25,13 @@ from repository.lib.fragments.flourescence_pulse import FlourescencePulse
 
 BEAM_INFO_SUSERVO_NO_SHUTTER = SUServoedBeam(
     "no_shutter_suservo", 0.0, 0.0, "suservo0_ch0"
+)
+BEAM_INFO_SUSERVO_WITH_SHUTTER = SUServoedBeam(
+    "shutter_suservo",
+    0.0,
+    0.0,
+    "suservo0_ch0",
+    shutter_device="ttl12",  # This is our first ttl output
 )
 
 
@@ -42,6 +50,72 @@ class ToggleSingleSUServoedBeam(ExpFragment):
         )
         self.all_beam_toggler: ToggleListOfBeams
 
+    @kernel
+    def run_once(self):
+        self.core.break_realtime()
+        self.all_beam_toggler.turn_on_beams()
 
-def test_all_beam_toggler(fragment_precompiler):
+
+class ToggleOneOfEach(ExpFragment):
+    @kernel
+    def run_once(self) -> None:
+        self.core.break_realtime()
+        self.all_beam_toggler.turn_on_beams()
+
+    def build_fragment(self) -> None:
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment(
+            "all_beam_toggler",
+            ToggleListOfBeams,
+            [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER],
+        )
+        self.all_beam_toggler: ToggleListOfBeams
+
+    @kernel
+    def run_once(self):
+        self.core.break_realtime()
+        self.all_beam_toggler.turn_on_beams()
+
+
+class ToggleMultipleCombos(ExpFragment):
+    @kernel
+    def run_once(self) -> None:
+        self.core.break_realtime()
+        self.all_beam_toggler.turn_on_beams()
+
+    def build_fragment(self) -> None:
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment(
+            "both_beam_toggler",
+            ToggleListOfBeams,
+            [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER],
+        )
+        self.setattr_fragment(
+            "one_beam_toggler",
+            ToggleListOfBeams,
+            [BEAM_INFO_SUSERVO_WITH_SHUTTER],
+        )
+        self.both_beam_toggler: ToggleListOfBeams
+        self.one_beam_toggler: ToggleListOfBeams
+
+    @kernel
+    def run_once(self):
+        self.core.break_realtime()
+        self.both_beam_toggler.turn_on_beams()
+        self.one_beam_toggler.turn_on_beams()
+
+
+def test_single_beam_toggler(fragment_precompiler):
     fragment_precompiler(ToggleSingleSUServoedBeam)
+
+
+def test_two_beam_toggler(fragment_precompiler):
+    fragment_precompiler(ToggleOneOfEach)
+
+
+def test_combos(fragment_precompiler):
+    fragment_precompiler(ToggleMultipleCombos)
