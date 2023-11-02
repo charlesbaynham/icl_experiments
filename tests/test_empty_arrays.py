@@ -1,9 +1,10 @@
-from artiq.coredevice.ttl import TTLOut
-import pytest
-from artiq.experiment import TFloat, TList
-from ndscan.experiment import ExpFragment
-from artiq.experiment import kernel
 import numpy as np
+import pytest
+from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import kernel
+from artiq.experiment import TFloat
+from artiq.experiment import TList
+from ndscan.experiment import ExpFragment
 
 
 class EmptyFloatArray(ExpFragment):
@@ -65,9 +66,10 @@ def test_empty_float_array_with_hints(fragment_precompiler):
 class EmptyTTLArrayWithDummy(ExpFragment):
     """
     Sadly, the hack above doesn't work: I can't type annotate arbitary objects. :(
-    
-    So I have to use this even-uglier hack. 
+
+    So I have to use this even-uglier hack.
     """
+
     def build_fragment(self):
         self.core = self.get_device("core")
         self.ttls = [self.get_device("ttl0")]
@@ -75,7 +77,7 @@ class EmptyTTLArrayWithDummy(ExpFragment):
     @kernel
     def run_once(self):
         self.ttls = self.ttls[1:]
-    
+
         for ttl in self.ttls:
             ttl.set_o(True)
 

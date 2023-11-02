@@ -1,7 +1,7 @@
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
-
 from pyaion.models import SUServoedBeam
+
 from repository.lib.fragments.flourescence_pulse import FlourescencePulse
 
 

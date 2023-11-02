@@ -24,7 +24,7 @@ class SetSUServoStatic(ExpFragment):
 
     def build_fragment(self):
         self.setattr_device("core")
-        
+
         self.setattr_param(
             "frequency",
             FloatParam,

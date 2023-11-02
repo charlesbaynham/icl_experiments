@@ -1,9 +1,9 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
+from pyaion.models import SUServoedBeam
 
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
-from pyaion.models import SUServoedBeam
 
 SAMPLE_BEAM_INFOS = [
     SUServoedBeam(
