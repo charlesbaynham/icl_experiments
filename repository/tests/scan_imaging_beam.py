@@ -10,7 +10,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.flourescence_pulse import FlourescencePulse
+from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
 
 
 class ImageBlueMOT(ExpFragment):
@@ -26,8 +26,8 @@ class ImageBlueMOT(ExpFragment):
         )
         self.dual_cameras: DualCameraMeasurement
 
-        self.flourescence_pulse: FlourescencePulse = self.setattr_fragment(
-            "flourescence_pulse", FlourescencePulse
+        self.flourescence_pulse: FluorescencePulse = self.setattr_fragment(
+            "flourescence_pulse", FluorescencePulse
         )
 
         self.setattr_param(

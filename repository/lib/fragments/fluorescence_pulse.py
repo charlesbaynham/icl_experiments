@@ -1,14 +1,11 @@
 import logging
 
-
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
-
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
@@ -22,7 +19,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_BEAM_INFOS = [constants.AOM_BEAMS["blue_imaging_switch"]]
 
 
-class FlourescencePulse(Fragment):
+class FluorescencePulse(Fragment):
     """
     Pulse the imaging beam onto the atoms
     """

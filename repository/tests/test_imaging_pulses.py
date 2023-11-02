@@ -5,7 +5,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.models import SUServoedBeam
 
 from repository.lib.constants import AOM_BEAMS
-from repository.lib.fragments.flourescence_pulse import FlourescencePulse
+from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
 
 MOT_BEAM_NO_SHUTTER = AOM_BEAMS["blue_3dmot_axialminus"]
 MOT_BEAM_NO_SHUTTER.shutter_device = None
@@ -13,7 +13,7 @@ MOT_BEAM_WITH_SHUTTER = AOM_BEAMS["blue_3dmot_axialminus"]
 IMAGING_BEAM = AOM_BEAMS["blue_imaging_switch"]
 
 
-class _TestFlourescencePulse(ExpFragment):
+class _TestFluorescencePulse(ExpFragment):
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
@@ -22,36 +22,36 @@ class _TestFlourescencePulse(ExpFragment):
             self.frag.do_imaging_pulse()
 
 
-class FlourescencePulseWithoutShutter(_TestFlourescencePulse):
+class FluorescencePulseWithoutShutter(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.setattr_fragment(
             "frag",
-            FlourescencePulse,
+            FluorescencePulse,
             beam_infos=[MOT_BEAM_NO_SHUTTER],
         )
-        self.frag: FlourescencePulse
+        self.frag: FluorescencePulse
 
 
-class FlourescencePulseWithShutter(_TestFlourescencePulse):
+class FluorescencePulseWithShutter(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.setattr_fragment(
             "frag",
-            FlourescencePulse,
+            FluorescencePulse,
             beam_infos=[MOT_BEAM_WITH_SHUTTER],
         )
 
 
-class FlourescencePulseWithBoth(_TestFlourescencePulse):
+class FluorescencePulseWithBoth(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.setattr_fragment(
             "frag",
-            FlourescencePulse,
+            FluorescencePulse,
             beam_infos=[IMAGING_BEAM, MOT_BEAM_WITH_SHUTTER],
         )
-        self.frag: FlourescencePulse
+        self.frag: FluorescencePulse
 
 
-TestFlourescencePulse = make_fragment_scan_exp(FlourescencePulseWithBoth)
+TestFlourescencePulse = make_fragment_scan_exp(FluorescencePulseWithBoth)

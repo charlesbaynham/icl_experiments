@@ -15,7 +15,7 @@ from pyaion.models import SUServoedBeam
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.beam_setters import ToggleListOfBeams
-from repository.lib.fragments.flourescence_pulse import FlourescencePulse
+from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
 from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 BEAM_INFO_SUSERVO_NO_SHUTTER = SUServoedBeam(
