@@ -204,7 +204,7 @@ AOM_BEAMS = [
         shutter_device="ttl_shutter_red_mot_diagonal",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=2.0,
+        setpoint=1.8,
         photodiode_offset=0.01326,
     ),
     SUServoedBeam(
