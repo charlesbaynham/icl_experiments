@@ -52,12 +52,8 @@ class SetBeamsToDefaults(Fragment):
     Turn on a list of suservoed beams, possibly with shutters, to their default
     settings
 
-    To use this fragment you must either subclass it and provide a class attribute
-    "default_beam_infos" which is a list of :class:`pyaion.models.SUServoedBeam`
-    objects describing the beams that this class instance will control, or pass this
-    list to the constructor.
-
-    If you do both, the list passed to the constructor will take priority.
+    Don't use this fragment directly: instead, construct it using
+    :meth:`make_toggle_list_of_beams`.
 
     This class will define ndscan parameters which allow the user to override
     these default settings.
@@ -199,21 +195,27 @@ class DummySUServoFrag(HasEnvironment):
         pass
 
 
+def make_toggle_list_of_beams(
+    beam_infos: List[SUServoedBeam],
+) -> Type["ToggleListOfBeams"]:
+    """
+    Factory function for :class:`~ToggleListOfBeams`. See documentation for
+    :meth:`~make_set_beams_to_default` for reasoning.
+    """
+
+    class ToggleListOfBeamsCustomised(ToggleListOfBeams):
+        default_beam_infos = beam_infos
+
+    return ToggleListOfBeams
+
+
 class ToggleListOfBeams(Fragment):
     """
     Provides methods to turn on / off a list of beams simultaneously, with or
     without shutters
 
-    To use this fragment you must either subclass it and provide a class
-    attribute "default_beam_infos" which is a list of
-    :class:`pyaion.models.SUServoedBeam` objects describing the beams that this
-    class instance will control, or pass this list to the constructor.
-
-    If you do both, the list passed to the constructor will take priority.
-
-    Note - you should prefer the subclass method if possible. This helps avoid
-    problems with ARTIQ's compiler struggling with classes of the same type
-    which have different attributes.
+    Don't use this fragment directly: instead, construct it using
+    :meth:`make_toggle_list_of_beams`.
 
     For each beam_info passed, this Fragment will either use
     :class:`pyaion.fragments.beam_setters.ControlBeamsWithoutCoolingAOM` to open
@@ -226,6 +228,15 @@ class ToggleListOfBeams(Fragment):
     default_beam_infos: List[SUServoedBeam] = None  # type: ignore
 
     def build_fragment(self, default_beam_infos=None):
+        if not self.default_beam_infos and default_beam_infos:
+            warnings.warn(
+                (
+                    "Building ToggleListOfBeams with parameters passed to build_fragment. "
+                    "This is not recommended: use the factory function instead"
+                ),
+                DeprecationWarning,
+            )
+
         self.default_beam_infos = default_beam_infos or self.default_beam_infos
 
         if self.default_beam_infos is None:
