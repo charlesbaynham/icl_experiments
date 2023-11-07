@@ -1,10 +1,12 @@
 import logging
 from typing import List
-from typing import Tuple, Type
+from typing import Tuple
+from typing import Type
 
 import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
+import warnings
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import HasEnvironment
@@ -65,8 +67,12 @@ class SetBeamsToDefaults(Fragment):
 
     def build_fragment(self, default_beam_infos=None):
         if not self.default_beam_infos and default_beam_infos:
-            logger.warning(
-                "Building SetBeamsToDefault with parameters passed to build_fragment. This is not recommended: use the factory function instead"
+            warnings.warn(
+                (
+                    "Building SetBeamsToDefault with parameters passed to build_fragment. "
+                    "This is not recommended: use the factory function instead"
+                ),
+                DeprecationWarning,
             )
 
         self.default_beam_infos = default_beam_infos or self.default_beam_infos

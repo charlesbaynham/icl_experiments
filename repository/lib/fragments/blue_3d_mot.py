@@ -11,14 +11,15 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
+from repository.lib.fragments.beam_setters import make_set_beams_to_default
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFields
 
 logger = logging.getLogger(__name__)
 
 
-class BlueBeamSetter(SetBeamsToDefaults):
-    default_beam_infos = [
+BlueBeamSetter = make_set_beams_to_default(
+    [
         constants.AOM_BEAMS[beam]
         for beam in [
             "blue_push_beam",
@@ -31,6 +32,7 @@ class BlueBeamSetter(SetBeamsToDefaults):
             "repump_679",
         ]
     ]
+)
 
 
 class Blue3DMOTFrag(Fragment):

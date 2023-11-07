@@ -1,10 +1,11 @@
+from copy import deepcopy
+
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.models import SUServoedBeam
 
-from copy import deepcopy
 from repository.lib.constants import AOM_BEAMS
 from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
 
