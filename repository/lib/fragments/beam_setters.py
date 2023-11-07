@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from typing import Tuple
+from typing import Tuple, Type
 
 import numpy as np
 from artiq.coredevice.core import Core
@@ -24,6 +24,27 @@ from repository.lib.fragments.suservo import LibSetSUServoStatic
 logger = logging.getLogger(__name__)
 
 
+def make_set_beams_to_default(
+    beam_infos: List[SUServoedBeam],
+) -> Type["SetBeamsToDefaults"]:
+    """
+    Return a SetBeamsToDefaults Fragment class with the given beams set
+
+    This is a factory method while builds a new class with the given beams
+    configured. This is required because ARTIQ needs all instances of a given
+    class to have the exact same attributes, and ndscan assumes that all
+    `setattr_fragment` calls in a Fragment's `build_fragment` will have the same
+    order, number and type-signatures. That's not true for this Fragment: we'll
+    be setting up variable numbers of LibSetSUServoStatic subfragments, so need
+    a subclass for each instance.
+    """
+
+    class SetBeamsToDefaultsCustomised(SetBeamsToDefaults):
+        default_beam_infos = beam_infos
+
+    return SetBeamsToDefaultsCustomised
+
+
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of suservoed beams, possibly with shutters, to their default
@@ -43,6 +64,11 @@ class SetBeamsToDefaults(Fragment):
     default_beam_infos: List[SUServoedBeam] = None  # type: ignore
 
     def build_fragment(self, default_beam_infos=None):
+        if not self.default_beam_infos and default_beam_infos:
+            logger.warning(
+                "Building SetBeamsToDefault with parameters passed to build_fragment. This is not recommended: use the factory function instead"
+            )
+
         self.default_beam_infos = default_beam_infos or self.default_beam_infos
 
         if self.default_beam_infos is None:
