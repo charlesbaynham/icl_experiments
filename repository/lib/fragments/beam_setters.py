@@ -1,10 +1,12 @@
 import logging
 from typing import List
 from typing import Tuple
+from typing import Type
 
 import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
+import warnings
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import HasEnvironment
@@ -24,17 +26,34 @@ from repository.lib.fragments.suservo import LibSetSUServoStatic
 logger = logging.getLogger(__name__)
 
 
+def make_set_beams_to_default(
+    beam_infos: List[SUServoedBeam],
+) -> Type["SetBeamsToDefaults"]:
+    """
+    Return a SetBeamsToDefaults Fragment class with the given beams set
+
+    This is a factory method while builds a new class with the given beams
+    configured. This is required because ARTIQ needs all instances of a given
+    class to have the exact same attributes, and ndscan assumes that all
+    `setattr_fragment` calls in a Fragment's `build_fragment` will have the same
+    order, number and type-signatures. That's not true for this Fragment: we'll
+    be setting up variable numbers of LibSetSUServoStatic subfragments, so need
+    a subclass for each instance.
+    """
+
+    class SetBeamsToDefaultsCustomised(SetBeamsToDefaults):
+        default_beam_infos = beam_infos
+
+    return SetBeamsToDefaultsCustomised
+
+
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of suservoed beams, possibly with shutters, to their default
     settings
 
-    To use this fragment you must either subclass it and provide a class attribute
-    "default_beam_infos" which is a list of :class:`pyaion.models.SUServoedBeam`
-    objects describing the beams that this class instance will control, or pass this
-    list to the constructor.
-
-    If you do both, the list passed to the constructor will take priority.
+    Don't use this fragment directly: instead, construct it using
+    :meth:`make_toggle_list_of_beams`.
 
     This class will define ndscan parameters which allow the user to override
     these default settings.
@@ -43,6 +62,15 @@ class SetBeamsToDefaults(Fragment):
     default_beam_infos: List[SUServoedBeam] = None  # type: ignore
 
     def build_fragment(self, default_beam_infos=None):
+        if not self.default_beam_infos and default_beam_infos:
+            warnings.warn(
+                (
+                    "Building SetBeamsToDefault with parameters passed to build_fragment. "
+                    "This is not recommended: use the factory function instead"
+                ),
+                DeprecationWarning,
+            )
+
         self.default_beam_infos = default_beam_infos or self.default_beam_infos
 
         if self.default_beam_infos is None:
@@ -167,21 +195,27 @@ class DummySUServoFrag(HasEnvironment):
         pass
 
 
+def make_toggle_list_of_beams(
+    beam_infos: List[SUServoedBeam],
+) -> Type["ToggleListOfBeams"]:
+    """
+    Factory function for :class:`~ToggleListOfBeams`. See documentation for
+    :meth:`~make_set_beams_to_default` for reasoning.
+    """
+
+    class ToggleListOfBeamsCustomised(ToggleListOfBeams):
+        default_beam_infos = beam_infos
+
+    return ToggleListOfBeamsCustomised
+
+
 class ToggleListOfBeams(Fragment):
     """
     Provides methods to turn on / off a list of beams simultaneously, with or
     without shutters
 
-    To use this fragment you must either subclass it and provide a class
-    attribute "default_beam_infos" which is a list of
-    :class:`pyaion.models.SUServoedBeam` objects describing the beams that this
-    class instance will control, or pass this list to the constructor.
-
-    If you do both, the list passed to the constructor will take priority.
-
-    Note - you should prefer the subclass method if possible. This helps avoid
-    problems with ARTIQ's compiler struggling with classes of the same type
-    which have different attributes.
+    Don't use this fragment directly: instead, construct it using
+    :meth:`make_toggle_list_of_beams`.
 
     For each beam_info passed, this Fragment will either use
     :class:`pyaion.fragments.beam_setters.ControlBeamsWithoutCoolingAOM` to open
@@ -194,6 +228,15 @@ class ToggleListOfBeams(Fragment):
     default_beam_infos: List[SUServoedBeam] = None  # type: ignore
 
     def build_fragment(self, default_beam_infos=None):
+        if not self.default_beam_infos and default_beam_infos:
+            warnings.warn(
+                (
+                    "Building ToggleListOfBeams with parameters passed to build_fragment. "
+                    "This is not recommended: use the factory function instead"
+                ),
+                DeprecationWarning,
+            )
+
         self.default_beam_infos = default_beam_infos or self.default_beam_infos
 
         if self.default_beam_infos is None:
@@ -240,8 +283,8 @@ class ToggleListOfBeams(Fragment):
                 name="dummy",
                 frequency=0,
                 attenuation=0.0,
-                shutter_device=get_local_devices(self, TTLOut)[0],
-                suservo_device=get_local_devices(self, SUServoChannel)[0],
+                shutter_device="dummy_shutter",
+                suservo_device="dummy_suservo",
                 shutter_delay=0,
             )
             self.beaminfos_without_shutters.insert(0, dummy_beaminfo)

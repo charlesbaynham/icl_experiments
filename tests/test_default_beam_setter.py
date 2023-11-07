@@ -3,7 +3,10 @@ from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
 
-from repository.lib.fragments.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beam_setters import (
+    SetBeamsToDefaults,
+    make_set_beams_to_default,
+)
 
 SAMPLE_BEAM_INFOS = [
     SUServoedBeam(
@@ -33,7 +36,8 @@ class BeamSetterUsedOnce(ExpFragment):
         self.core: Core
 
         self.setattr_fragment(
-            "all_beam_default_setter_a", SetBeamsToDefaults, [SAMPLE_BEAM_INFOS[0]]
+            "all_beam_default_setter_a",
+            make_set_beams_to_default([SAMPLE_BEAM_INFOS[0]]),
         )
         self.all_beam_default_setter_a: SetBeamsToDefaults
 
@@ -56,12 +60,14 @@ class BeamSetterUsedTwice(ExpFragment):
         self.core: Core
 
         self.setattr_fragment(
-            "all_beam_default_setter_a", SetBeamsToDefaults, [SAMPLE_BEAM_INFOS[0]]
+            "all_beam_default_setter_a",
+            make_set_beams_to_default([SAMPLE_BEAM_INFOS[0]]),
         )
         self.all_beam_default_setter_a: SetBeamsToDefaults
 
         self.setattr_fragment(
-            "all_beam_default_setter_b", SetBeamsToDefaults, [SAMPLE_BEAM_INFOS[1]]
+            "all_beam_default_setter_b",
+            make_set_beams_to_default([SAMPLE_BEAM_INFOS[1]]),
         )
         self.all_beam_default_setter_b: SetBeamsToDefaults
 

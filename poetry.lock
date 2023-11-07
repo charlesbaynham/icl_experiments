@@ -2171,7 +2171,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git"
 reference = "HEAD"
-resolved_reference = "86dfe7267d9156d7704b424d9e6653c0b5e68116"
+resolved_reference = "530918cbbde4007743287bb9f733a0756df47f29"
 
 [[package]]
 name = "nest-asyncio"
@@ -2667,7 +2667,7 @@ toptica-lasersdk = "^3.1.1"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
 reference = "poetry-again"
-resolved_reference = "5d5de94c93c626eae3b3218d59ea272b4ffcd730"
+resolved_reference = "f608841a5f560c9fb389477f54768ecefd1374da"
 
 [[package]]
 name = "pycairo"
