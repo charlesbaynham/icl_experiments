@@ -1,5 +1,4 @@
 import logging
-import warnings
 from typing import List
 from typing import Tuple
 from typing import Type
@@ -7,6 +6,7 @@ from typing import Type
 import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
+import warnings
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import HasEnvironment
@@ -206,7 +206,7 @@ def make_toggle_list_of_beams(
     class ToggleListOfBeamsCustomised(ToggleListOfBeams):
         default_beam_infos = beam_infos
 
-    return ToggleListOfBeams
+    return ToggleListOfBeamsCustomised
 
 
 class ToggleListOfBeams(Fragment):
