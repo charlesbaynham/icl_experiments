@@ -240,8 +240,8 @@ class ToggleListOfBeams(Fragment):
                 name="dummy",
                 frequency=0,
                 attenuation=0.0,
-                shutter_device=get_local_devices(self, TTLOut)[0],
-                suservo_device=get_local_devices(self, SUServoChannel)[0],
+                shutter_device="dummy_shutter",
+                suservo_device="dummy_suservo",
                 shutter_delay=0,
             )
             self.beaminfos_without_shutters.insert(0, dummy_beaminfo)
