@@ -59,7 +59,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",  # For supporting Google-style docstrings
     "sphinx.ext.autodoc",  # For automatically documenting the APIs of python code
-    "sphinxcontrib.rsvgconverter",  # For converting svg images for the pdf generation
+    # "sphinxcontrib.rsvgconverter",  # For converting svg images for the pdf generation
     "sphinx.ext.intersphinx",  # For linking to docs in other projects
     "sphinx.ext.autosectionlabel",  # For automatically labelling sections, for internal references
 ]
