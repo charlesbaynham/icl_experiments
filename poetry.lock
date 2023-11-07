@@ -276,7 +276,7 @@ scipy = "*"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
 reference = "HEAD"
-resolved_reference = "252ad8d84f0ee185d8a5cfbee24a88d612c3cdd5"
+resolved_reference = "e9dc6da7d2ce356403566db34075b7be71096a0a"
 
 [[package]]
 name = "artiq-comtools"
