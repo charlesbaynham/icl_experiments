@@ -8,15 +8,15 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beam_setters import (
+    SetBeamsToDefaults,
+    make_set_beams_to_default,
+    make_toggle_list_of_beams,
+)
 from repository.lib.fragments.beam_setters import ToggleListOfBeams
 
 
 logger = logging.getLogger(__name__)
-
-
-# By default, use the imaging beam switch AOM
-DEFAULT_BEAM_INFOS = [constants.AOM_BEAMS["blue_imaging_switch"]]
 
 
 class FluorescencePulse(Fragment):
@@ -24,12 +24,12 @@ class FluorescencePulse(Fragment):
     Pulse the imaging beam onto the atoms
     """
 
-    def build_fragment(self, beam_infos=DEFAULT_BEAM_INFOS) -> None:
-        class _ImagingBeamsToggler(ToggleListOfBeams):
-            default_beam_infos = beam_infos
+    beam_infos = [constants.AOM_BEAMS["blue_imaging_switch"]]
+    "By default, use the imaging beam switch AOM"
 
-        class _ImagingBeamsSetter(SetBeamsToDefaults):
-            default_beam_infos = beam_infos
+    def build_fragment(self) -> None:
+        _ImagingBeamsToggler = make_toggle_list_of_beams(self.beam_infos)
+        _ImagingBeamsSetter = make_set_beams_to_default(self.beam_infos)
 
         self.setattr_device("core")
         self.core: Core

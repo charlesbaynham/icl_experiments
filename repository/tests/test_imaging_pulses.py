@@ -27,10 +27,13 @@ class _TestFluorescencePulse(ExpFragment):
 class FluorescencePulseWithoutShutter(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
+
+        class _FluorPulse(FluorescencePulse):
+            beam_infos = [MOT_BEAM_NO_SHUTTER]
+
         self.setattr_fragment(
             "frag",
-            FluorescencePulse,
-            beam_infos=[MOT_BEAM_NO_SHUTTER],
+            _FluorPulse,
         )
         self.frag: FluorescencePulse
 
@@ -38,20 +41,26 @@ class FluorescencePulseWithoutShutter(_TestFluorescencePulse):
 class FluorescencePulseWithShutter(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
+
+        class _FluorPulse(FluorescencePulse):
+            beam_infos = [MOT_BEAM_WITH_SHUTTER]
+
         self.setattr_fragment(
             "frag",
-            FluorescencePulse,
-            beam_infos=[MOT_BEAM_WITH_SHUTTER],
+            _FluorPulse,
         )
 
 
 class FluorescencePulseWithBoth(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
+
+        class _FluorPulse(FluorescencePulse):
+            beam_infos = [IMAGING_BEAM, MOT_BEAM_WITH_SHUTTER]
+
         self.setattr_fragment(
             "frag",
-            FluorescencePulse,
-            beam_infos=[IMAGING_BEAM, MOT_BEAM_WITH_SHUTTER],
+            _FluorPulse,
         )
         self.frag: FluorescencePulse
 
