@@ -229,11 +229,12 @@ AOM_BEAMS = [
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
-        100e6,
+        frequency=100e6,
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=10e-3,
+        servo_enabled=True,
         setpoint=1.5,
         photodiode_offset=0.0188,  # FIXME: This is a guess
     ),
