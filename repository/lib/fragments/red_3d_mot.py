@@ -233,8 +233,12 @@ class Red3DMOTFrag(Fragment):
 
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
-            self.ramp_lower_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
-            self.ramp_upper_detuning.get() + constants.RED_INJECTION_AOM_FREQUENCY,
+            self.injection_aom_static_detuning.get()
+            + self.ramp_lower_detuning.get()
+            + constants.RED_INJECTION_AOM_FREQUENCY,
+            self.injection_aom_static_detuning.get()
+            + self.ramp_upper_detuning.get()
+            + constants.RED_INJECTION_AOM_FREQUENCY,
             self.ramp_type.get(),
         )
 
