@@ -276,7 +276,7 @@ scipy = "*"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
 reference = "HEAD"
-resolved_reference = "252ad8d84f0ee185d8a5cfbee24a88d612c3cdd5"
+resolved_reference = "e9dc6da7d2ce356403566db34075b7be71096a0a"
 
 [[package]]
 name = "artiq-comtools"
@@ -890,13 +890,13 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "executing"
-version = "2.0.0"
+version = "2.0.1"
 description = "Get the currently executing AST node of a frame, and other information"
 optional = false
-python-versions = "*"
+python-versions = ">=3.5"
 files = [
-    {file = "executing-2.0.0-py2.py3-none-any.whl", hash = "sha256:06df6183df67389625f4e763921c6cf978944721abf3e714000200aab95b0657"},
-    {file = "executing-2.0.0.tar.gz", hash = "sha256:0ff053696fdeef426cda5bd18eacd94f82c91f49823a2e9090124212ceea9b08"},
+    {file = "executing-2.0.1-py2.py3-none-any.whl", hash = "sha256:eac49ca94516ccc753f9fb5ce82603156e590b27525a8bc32cce8ae302eb61bc"},
+    {file = "executing-2.0.1.tar.gz", hash = "sha256:35afe2ce3affba8ee97f2d69927fa823b08b472b7b994e36a52a964b93d16147"},
 ]
 
 [package.extras]
@@ -2160,18 +2160,18 @@ develop = false
 artiq = "8.*"
 h5py = "^3.8.0"
 numpy = "^1.24.2"
-oitg = {git = "https://gitlab.com/aion-physics/code/artiq/forks/oitg.git"}
+oitg = {git = "https://github.com/oxfordiontrapgroup/oitg.git"}
 pyqt5 = {version = "^5.15.9", markers = "sys_platform != \"darwin\""}
 pyqt6 = {version = "^6.5.2", markers = "sys_platform == \"darwin\""}
 pyqtgraph = "^0.13.3"
-qasync = {git = "https://gitlab.com/aion-physics/code/artiq/forks/qasync.git", branch = "windows-fixes"}
+qasync = {git = "https://github.com/dnadlinger/qasync.git", branch = "windows-fixes"}
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
 [package.source]
 type = "git"
-url = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git"
+url = "https://github.com/OxfordIonTrapGroup/ndscan.git"
 reference = "HEAD"
-resolved_reference = "530918cbbde4007743287bb9f733a0756df47f29"
+resolved_reference = "b20864d832a4b8163fc51a8ac3a44f747129259e"
 
 [[package]]
 name = "nest-asyncio"
@@ -2311,9 +2311,9 @@ statsmodels = "*"
 
 [package.source]
 type = "git"
-url = "https://gitlab.com/aion-physics/code/artiq/forks/oitg.git"
+url = "https://github.com/oxfordiontrapgroup/oitg.git"
 reference = "HEAD"
-resolved_reference = "1193e2cb415ce4c1a22aab09573b8af5531afee8"
+resolved_reference = "f72e9de767bc2e846ec72e27d9fe5941da4ca302"
 
 [[package]]
 name = "overrides"
@@ -2655,7 +2655,7 @@ generic-scpi-driver = ">=1.3"
 microscope = {git = "https://github.com/m-labs/microscope.git"}
 migen = {git = "https://github.com/m-labs/migen.git"}
 misoc = {git = "https://github.com/m-labs/misoc.git"}
-ndscan = {git = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git"}
+ndscan = {git = "https://github.com/OxfordIonTrapGroup/ndscan.git"}
 numpy = "^1.26.0"
 pydantic = "1.10.2"
 pyqt5 = "^5.15.9"
@@ -2667,7 +2667,7 @@ toptica-lasersdk = "^3.1.1"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
 reference = "poetry-again"
-resolved_reference = "f608841a5f560c9fb389477f54768ecefd1374da"
+resolved_reference = "e4978aa43753b5004ec55ea93a0b9e458dbb1ee6"
 
 [[package]]
 name = "pycairo"
@@ -3281,7 +3281,7 @@ develop = false
 
 [package.source]
 type = "git"
-url = "https://gitlab.com/aion-physics/code/artiq/forks/qasync.git"
+url = "https://github.com/dnadlinger/qasync.git"
 reference = "windows-fixes"
 resolved_reference = "d59585a817477962fa7d0fa04d6a8431c98ac4c3"
 
