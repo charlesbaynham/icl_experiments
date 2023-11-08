@@ -70,6 +70,15 @@ class _BroadbandBase(ExpFragment):
         )
         self.red_broadband_gradient_current: FloatParamHandle
 
+        self.setattr_param(
+            "red_broadband_suservo_multiple",
+            FloatParam,
+            "Multiple of nominal setpoint for suservo beams in broadband MOT",
+            default=1.0,
+            min=0.0,
+        )
+        self.red_broadband_suservo_multiple: FloatParamHandle
+
         # Ensure that both camera are on for the same length of time as the blue
         # fluorescence is pulsed
         self.setattr_param_rebind(
@@ -135,6 +144,10 @@ class _BroadbandBase(ExpFragment):
         Does not advance the timeline
         """
 
+        self.red_mot_controller.set_mot_suservo_amplitude(
+            self.red_broadband_suservo_multiple.get()
+        )
+        delay_mu(8)
         self.red_mot_controller.turn_on_mot_beams()
         delay_mu(8)
         self.red_mot_controller.start_ramping_red()
@@ -145,7 +158,7 @@ class _BroadbandBase(ExpFragment):
             self.red_broadband_gradient_current.get()
         )
 
-        delay_mu(-3 * 8)
+        delay_mu(-4 * 8)
 
     @kernel
     def pulse_blue_and_image(self):
