@@ -16,7 +16,7 @@
           overriddenOutputs = originalOutputs.override (prev: {
             extra-build-requirements = {
               artiq-http = [ "setuptools" ];
-              koheron-ctl200-laser-driver = [ "setuptools" ];
+              koheron-ctl200-laser-driver = [ "poetry-core" ];
               qbutler = [ "setuptools" ];
               aravis = [ "setuptools" ];
               pygobject = [ "setuptools" ];
