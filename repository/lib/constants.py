@@ -81,6 +81,8 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
 
+# Default field in chamber 1
+B_FIELD_CH1_AXIAL = 0.0  # A
 
 # Default field in chamber 2
 B_FIELD_BIAS_X = 0.1  # A

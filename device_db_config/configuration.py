@@ -52,12 +52,6 @@ config = {
         "blue_IJD3_controller": ("sampler2", 2),
         "red_IJD1_controller": ("sampler2", 3),
     },
-    "zotino_plant_room_channels": {
-        "ch1_coils_MOT": 0,
-        "ch2_coils_x": 26,
-        "ch2_coils_y": 25,
-        "ch2_coils_z": 24,
-    },
     "chamber_2_coil_x": VoltageControlledCurrentSupply("zotino_plant_room", 26, -2.0),
     "chamber_2_coil_y": VoltageControlledCurrentSupply("zotino_plant_room", 25, -2.0),
     "chamber_2_coil_z": VoltageControlledCurrentSupply("zotino_plant_room", 24, -1.0),
