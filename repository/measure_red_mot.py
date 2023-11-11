@@ -24,7 +24,7 @@ from numpy import int64
 from repository.lib import constants
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.magnetic_fields import SetMagneticFields
+from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
 
 logger = logging.getLogger(__name__)
@@ -43,9 +43,9 @@ class _BroadbandBase(ExpFragment):
 
         self.setattr_fragment(
             "chamber_2_field_setter",
-            SetMagneticFields,
+            SetMagneticFieldsQuick,
         )
-        self.chamber_2_field_setter: SetMagneticFields
+        self.chamber_2_field_setter: SetMagneticFieldsQuick
 
         self.setattr_fragment(
             "camera_interface", DualCameraMeasurement, hardware_trigger=True
@@ -238,7 +238,7 @@ class _RampingPhase(Fragment):
             )
 
         self.red_mot_controller: Red3DMOTFrag = red_mot_controller
-        self.chamber_2_field_setter: SetMagneticFields = chamber_2_field_setter
+        self.chamber_2_field_setter: SetMagneticFieldsQuick = chamber_2_field_setter
         self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
 
         # %% Devices

@@ -12,9 +12,9 @@ from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSuppl
 logger = logging.getLogger(__name__)
 
 
-class SetMagneticFields(Fragment):
+class SetMagneticFieldsQuick(Fragment):
     """
-    Set magnetic fields and field gradients
+    Set zotino-controlled magnetic fields and field gradients
     """
 
     def build_fragment(self):
