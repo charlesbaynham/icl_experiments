@@ -3914,6 +3914,20 @@ develop = ["colorama", "cython (>=0.29.26)", "cython (>=0.29.28,<3.0.0)", "flake
 docs = ["ipykernel", "jupyter-client", "matplotlib", "nbconvert", "nbformat", "numpydoc", "pandas-datareader", "sphinx"]
 
 [[package]]
+name = "tenma-power-supply"
+version = "1.1.1"
+description = "Driver for the TENMA power supply"
+optional = false
+python-versions = ">=3.9,<3.13"
+files = [
+    {file = "tenma_power_supply-1.1.1-py3-none-any.whl", hash = "sha256:ad9997b23d16d8fa209c2fe1b5a7e6005f56a6b5746017e4019c1be31beb518c"},
+    {file = "tenma_power_supply-1.1.1.tar.gz", hash = "sha256:8b4690aeedf2d458f7c8fb1988b4ce6c8b480cdea3fb0135ac806c598c03bfbd"},
+]
+
+[package.dependencies]
+generic-scpi-driver = ">=1.5,<2.0"
+
+[[package]]
 name = "terminado"
 version = "0.17.1"
 description = "Tornado websocket backend for the Xterm.js Javascript terminal emulator library."
@@ -4296,4 +4310,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "de51fc9b820d785007e1a85180538e2179913a7ff99582264f22c6f3e15ae2c0"
+content-hash = "ed24ea7482001a5ce280db2a74cf8d3ee3a7521ddbb9e12a1d2f8e1c665762f2"
