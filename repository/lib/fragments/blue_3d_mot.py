@@ -13,7 +13,10 @@ from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import make_set_beams_to_default
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
-from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
+from repository.lib.fragments.magnetic_fields import (
+    SetMagneticFieldsQuick,
+    SetMagneticFieldsSlow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +108,12 @@ class Blue3DMOTFrag(Fragment):
             SetMagneticFieldsQuick,
         )
         self.chamber_2_field_setter: SetMagneticFieldsQuick
+
+        self.setattr_fragment(
+            "chamber_1_field_setter",
+            SetMagneticFieldsSlow,
+        )
+        self.chamber_1_field_setter: SetMagneticFieldsSlow
 
         self.setattr_param(
             "chamber_2_bias_x",

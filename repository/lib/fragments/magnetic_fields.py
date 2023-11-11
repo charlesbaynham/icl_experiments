@@ -1,13 +1,15 @@
+from ndscan.experiment.parameters import FloatParam, FloatParamHandle
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import kernel
+from artiq.experiment import kernel, rpc
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 
 from device_db_config import get_configuration_from_db
 from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupplies
-
+from tenma_power_supply import TENMAPowerSupply
+from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
@@ -66,3 +68,54 @@ class SetMagneticFieldsQuick(Fragment):
         into the past.
         """
         self.current_setter_mot.set_currents([current])
+
+
+class SetMagneticFieldsSlow(Fragment):
+    """
+    Set serial / ethernet magnetic fields and field gradients
+    """
+
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_device("chamber_1_axial_coil_driver")
+        self.chamber_1_axial_coil_driver: TENMAPowerSupply
+
+        self.setattr_param(
+            "ch1_axial_current",
+            FloatParam,
+            "Current in ch1 axial coils",
+            unit="A",
+            min=0,
+            max=10,
+            default=constants.B_FIELD_CH1_AXIAL,
+        )
+        self.ch1_axial_current: FloatParamHandle
+
+        # %% Kernel variables
+        self.coils_initiated = False
+        self.ch1_axial_last_value = 0.0
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+        self.set_fields_if_required()
+
+    @kernel
+    def set_fields_if_required(self):
+        """
+        Sets fields to their pre-configured static values
+
+        Trys to avoid doing this, since it's slow and requires an RPC
+        """
+        axial_field = self.ch1_axial_current.get()
+
+        if not self.coils_initiated or self.ch1_axial_last_value != axial_field:
+            self.set_ch1_axial(axial_field)
+            self.coils_initiated = True
+            self.ch1_axial_last_value = axial_field
+
+    @rpc
+    def set_ch1_axial(self, current: TFloat):
+        self.chamber_1_axial_coil_driver.set_current(current)
