@@ -122,6 +122,16 @@ def get_non_core_devices(simulation_mode=False):
                 "loglevel": logger.getEffectiveLevel(),
             },
         },
+        "chamber_1_axial_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "arguments": {
+                "id": "tenma-powersupply-1.lan",
+                "port": 18200,
+                "simulation": simulation_mode,
+            },
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
