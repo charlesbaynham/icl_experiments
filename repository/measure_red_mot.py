@@ -442,7 +442,7 @@ class NarrowRedCompressionPhase(_RampingPhase):
     end_suservo_nominal_multiple_default = 0.02
 
 
-class NarrowbandTestFrag(_BroadbandBase):
+class NarrowbandRedMOTFrag(_BroadbandBase):
     def build_fragment(self):
         super().build_fragment()
 
@@ -668,4 +668,4 @@ class MeasureBBRedMOTExpansionFrag(_BroadbandBase):
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
 MeasureBBRedMOTExpansion = make_fragment_scan_exp(MeasureBBRedMOTExpansionFrag)
-NarrowbandTest = make_fragment_scan_exp(NarrowbandTestFrag)
+MeasureNarrowbandRedMOT = make_fragment_scan_exp(NarrowbandRedMOTFrag)
