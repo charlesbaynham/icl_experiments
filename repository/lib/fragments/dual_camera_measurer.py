@@ -150,6 +150,13 @@ class _DualCameraBase(Fragment):
         )
 
     @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        # Clear the camera buffer in case we quit a previous sequence midway
+        self.clear()
+
+    @kernel
     def _trigger(self):
         with parallel:
             self.mot_measurer_camera_horizontal.trigger()
