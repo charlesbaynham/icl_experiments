@@ -104,17 +104,6 @@ class Red3DMOTFrag(Fragment):
         # %% PARAMETERS
 
         self.setattr_param(
-            "chamber_2_field_gradient",
-            FloatParam,
-            "Field gradient current for chamber 2",
-            default=constants.B_FIELD_GRADIENT,
-            unit="A",
-            min=0,
-            max=100,
-        )
-        self.chamber_2_field_gradient: FloatParamHandle
-
-        self.setattr_param(
             "injection_aom_static_detuning",
             FloatParam,
             "Detuning of 689 injection AOM static frequency from nominal",
