@@ -35,11 +35,11 @@ RED_BEAM_INFOS = [
 ]
 
 
-class RedBeamSetter(SetBeamsToDefaults):
+class _RedBeamDefaultSetter(SetBeamsToDefaults):
     default_beam_infos = RED_BEAM_INFOS
 
 
-class Red3DMOTFrag(Fragment):
+class RedBeamController(Fragment):
     """
     Methods for making and controlling the red 3D MOT
     """
@@ -50,7 +50,7 @@ class Red3DMOTFrag(Fragment):
 
         # %% FRAGMENTS
 
-        self.setattr_fragment("all_beam_default_setter", RedBeamSetter)
+        self.setattr_fragment("all_beam_default_setter", _RedBeamDefaultSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment(

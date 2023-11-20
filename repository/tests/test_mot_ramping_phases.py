@@ -19,7 +19,7 @@ from ndscan.experiment.parameters import IntParamHandle
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
+from repository.lib.fragments.red_beam_controller import RedBeamController
 from repository.measure_red_mot import RampingRedPhase
 
 
@@ -41,8 +41,8 @@ class TestRampingPhaseFrag(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
-        self.red_mot_controller: Red3DMOTFrag
+        self.setattr_fragment("red_mot_controller", RedBeamController)
+        self.red_mot_controller: RedBeamController
 
         self.setattr_fragment(
             "chamber_2_field_setter",

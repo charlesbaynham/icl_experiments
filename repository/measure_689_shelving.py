@@ -15,7 +15,7 @@ from ndscan.experiment.result_channels import FloatChannel
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
+from repository.lib.fragments.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,8 @@ class Measure689Shelving(ExpFragment):
         self.setattr_fragment("blue_mot_controller", Blue3DMOTFrag)
         self.blue_mot_controller: Blue3DMOTFrag
 
-        self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
-        self.red_mot_controller: Red3DMOTFrag
+        self.setattr_fragment("red_mot_controller", RedBeamController)
+        self.red_mot_controller: RedBeamController
 
         self.setattr_fragment(
             "chamber_2_field_setter",

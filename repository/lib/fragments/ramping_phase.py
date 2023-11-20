@@ -13,7 +13,7 @@ from numpy import int32
 from numpy import int64
 
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
+from repository.lib.fragments.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
 
@@ -72,12 +72,12 @@ class RampingRedPhase(Fragment):
 
         if red_mot_controller is None or chamber_2_field_setter is None:
             raise TypeError(
-                "You must pass instances of Red3DMOTFrag and SetMagneticFields "
+                "You must pass instances of RedBeamController and SetMagneticFields "
                 "as keyword arguments to the build_fragment method of this subfragment. "
                 "This is a hack - see inline comments."
             )
 
-        self.red_mot_controller: Red3DMOTFrag = red_mot_controller
+        self.red_mot_controller: RedBeamController = red_mot_controller
         self.chamber_2_field_setter: SetMagneticFieldsQuick = chamber_2_field_setter
         self.gradient_current_setter = self.chamber_2_field_setter.current_setter_mot
 
