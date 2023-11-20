@@ -132,6 +132,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_461_pushbeam",
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
+        setpoint=0.36,
+        servo_enabled=True,
     ),
     SUServoedBeam(
         "blue_2dmot_A",
