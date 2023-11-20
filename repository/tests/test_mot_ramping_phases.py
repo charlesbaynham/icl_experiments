@@ -20,13 +20,13 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.red_3d_mot import Red3DMOTFrag
-from repository.measure_red_mot import _RampingPhase
+from repository.measure_red_mot import RampingRedPhase
 
 
 logger = logging.getLogger(__name__)
 
 
-class TestPhase(_RampingPhase):
+class TestPhase(RampingRedPhase):
     duration_default = 50e-3
     start_detuning_default = 150e3
     end_detuning_default = 50e3
