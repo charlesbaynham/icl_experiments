@@ -4027,6 +4027,20 @@ docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=3.0.3)", "mypy (>=1.5.1)", "pre-commit", "pytest (>=7.0,<7.5)", "pytest-mock", "pytest-mypy-testing"]
 
 [[package]]
+name = "tti-power-supply"
+version = "1.0.2"
+description = "Driver for the TTI QL355P power supply, via USB or LAN"
+optional = false
+python-versions = ">=3.9,<3.13"
+files = [
+    {file = "tti_power_supply-1.0.2-py3-none-any.whl", hash = "sha256:52b55146a0506233bf3b13ee45e98e047cae75884b487d8a13f20e7f45d7e442"},
+    {file = "tti_power_supply-1.0.2.tar.gz", hash = "sha256:5780e949c78978b62edd21af64c0d1c9be3f764606f27ff1c7b41069642d74d2"},
+]
+
+[package.dependencies]
+generic-scpi-driver = ">=1.5,<2.0"
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.8.19.14"
 description = "Typing stubs for python-dateutil"
@@ -4310,4 +4324,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "ed24ea7482001a5ce280db2a74cf8d3ee3a7521ddbb9e12a1d2f8e1c665762f2"
+content-hash = "b809f2296cff9263dbb576f65c3c37dc388c17f0e162f278b3fcf2086c1bf643"
