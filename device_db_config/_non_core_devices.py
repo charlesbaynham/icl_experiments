@@ -132,6 +132,15 @@ def get_non_core_devices(simulation_mode=False):
                 "simulation": simulation_mode,
             },
         },
+        "chamber_1_radial_coil_driver": {
+            "type": "local",
+            "module": "tti_power_supply",
+            "class": "TTIPowerSupplyTCP",
+            "arguments": {
+                "id": "10.137.1.28",
+                "simulation": simulation_mode,
+            },
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
