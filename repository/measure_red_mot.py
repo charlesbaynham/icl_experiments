@@ -2,7 +2,6 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
@@ -482,9 +481,6 @@ class NarrowbandRedMOTFrag(_BroadbandBase):
         )
         self.red_expansion_time: FloatParamHandle
 
-        self.setattr_device("ttl_camera_trigger_andor")
-        self.ttl_camera_trigger_andor: TTLOut
-
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
@@ -515,11 +511,6 @@ class NarrowbandRedMOTFrag(_BroadbandBase):
                 )
                 with parallel:
                     self.pulse_blue_and_image()
-                    with sequential:
-                        # FIXME: Remove this hack
-                        self.ttl_camera_trigger_andor.pulse(1e-6)
-                        # delay(10e-6)
-                        # self.ttl_camera_trigger_andor.pulse(1e-6)
             with sequential:
                 self.narrow_red_capture_phase.do_phase()
                 self.narrow_red_compression_phase.do_phase()

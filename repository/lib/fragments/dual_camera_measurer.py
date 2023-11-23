@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import parallel
@@ -81,6 +82,11 @@ class _DualCameraBase(Fragment):
         )
         self.mot_measurer_camera_vertical: Chamber2VerticalCamera
 
+        # %% Devices
+        # TODO: Improve Andor control
+        self.setattr_device("ttl_camera_trigger_andor")
+        self.ttl_camera_trigger_andor: TTLOut
+
         # %%  Results
 
         self.setattr_result("image_horizontal", OpaqueChannel)
@@ -154,6 +160,7 @@ class _DualCameraBase(Fragment):
         with parallel:
             self.mot_measurer_camera_horizontal.trigger()
             self.mot_measurer_camera_vertical.trigger()
+            self.ttl_camera_trigger_andor.pulse(1e-6)
 
     @host_only
     def _update_monitor(self, img_h, img_v):
