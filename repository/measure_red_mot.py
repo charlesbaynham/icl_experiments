@@ -518,8 +518,8 @@ class NarrowbandRedMOTFrag(_BroadbandBase):
                     with sequential:
                         # FIXME: Remove this hack
                         self.ttl_camera_trigger_andor.pulse(1e-6)
-                        delay(10e-6)
-                        self.ttl_camera_trigger_andor.pulse(1e-6)
+                        # delay(10e-6)
+                        # self.ttl_camera_trigger_andor.pulse(1e-6)
             with sequential:
                 self.narrow_red_capture_phase.do_phase()
                 self.narrow_red_compression_phase.do_phase()
