@@ -88,14 +88,25 @@ class _BroadbandBase(ExpFragment):
             "camera_exposure",
             self.camera_interface,
             "exposure_horiz",
-            default=200e-6,
-            description="Camera exposure and fluorescence pulse length",
+            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+            description="Camera exposure time",
+            unit="us",
         )
         self.camera_interface.bind_param(
             "exposure_vert",
             self.camera_exposure,
         )
         self.camera_exposure: FloatParamHandle
+
+        self.setattr_param(
+            "fluorescence_pulse_length",
+            FloatParam,
+            "Length of fluorescence pulse",
+            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+            min=0.0,
+            unit="us",
+        )
+        self.fluorescence_pulse_length: FloatParamHandle
 
         # Expose various parameters for convenience
         self.setattr_param_rebind(
@@ -178,7 +189,7 @@ class _BroadbandBase(ExpFragment):
             self.camera_interface.trigger()
             with sequential:
                 self.blue_mot_controller.turn_on_3d_beams()
-                delay(self.camera_exposure.get())
+                delay(self.fluorescence_pulse_length.get())
                 self.blue_mot_controller.turn_off_3d_beams()
 
 

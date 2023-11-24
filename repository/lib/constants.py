@@ -125,6 +125,9 @@ OFFSET_ATTENUATION_689 = 7.0
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 15e-3
 "Pre-open delay for the Andor camera's external protective shutter"
 
+DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
+"Camera exposure time, also used for length of fluorescence pulse by default"
+
 # Information about beams controlled by AOMs
 AOM_BEAMS = [
     ### BLUE ###
