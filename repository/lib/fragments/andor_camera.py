@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
@@ -24,11 +26,11 @@ from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 from numpy.typing import ArrayLike
 
-from repository.lib.constants import CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
-from repository.lib.constants import CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
-
+from repository.lib import constants
 
 logger = logging.getLogger(__name__)
+
+ANDOR_TRIGGER_LENGTH = 1.0e-6
 
 
 class AndorCameraControl(Fragment):
@@ -45,7 +47,19 @@ class AndorCameraControl(Fragment):
         self.ttl_trigger: TTLOut = self.get_device("ttl_camera_trigger_andor")
         self.ttl_shutter: TTLOut = self.get_device("ttl_shutter_andor")
 
-        # Kernel variables
+        # %% Params
+
+        self.setattr_param(
+            "shutter_delay",
+            FloatParam,
+            "Time to allow for shutter to open before imaging",
+            default=constants.ANDOR_CAMERA_SHUTTER_OPEN_TIME,
+            unit="ms",
+            min=0.0,
+        )
+        self.shutter_delay: FloatParamHandle
+
+        # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
 
         # %% Kernel invariants
@@ -55,6 +69,20 @@ class AndorCameraControl(Fragment):
             "ttl_trigger",
             "ttl_shutter",
         }
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        self.core.break_realtime()
+
+        self.ttl_shutter.off()
+        delay(self.core.coarse_ref_period)
+        self.ttl_trigger.off()
+        delay(self.core.coarse_ref_period)
+        self.ttl_shutter.output()
+        delay(self.core.coarse_ref_period)
+        self.ttl_trigger.output()
 
     @kernel
     def device_cleanup(self) -> None:
@@ -76,13 +104,25 @@ class AndorCameraControl(Fragment):
         self.ttl_shutter.set_o(state)
 
     @kernel
-    def trigger(self):
+    def trigger(self, control_shutter=False):
         """
         Trigger an aquisition
 
         For now, you must manually set up the camera to respond to triggers and
         store the data yourself.
 
-        TODO: Finish Andor fragment
+        If control_shutter == True, open the shutter <shutter_delay> in advance and then close if afterwards.
+
+        TODO: Finish Andor fragment to fully control camera, including readout
         """
-        self.trigger.pulse(1e-6)
+
+        if control_shutter:
+            shutter_delay_mu = self.core.seconds_to_mu(self.shutter_delay.get())
+            delay_mu(shutter_delay_mu)
+            self.ttl_shutter.on()
+            delay_mu(-shutter_delay_mu)
+
+        self.ttl_trigger.pulse(ANDOR_TRIGGER_LENGTH)
+
+        if control_shutter:
+            self.ttl_shutter.off()

@@ -122,6 +122,9 @@ Note - this is currently (2023-08-02) unused since the EOM is driven statically 
 OFFSET_ATTENUATION_689 = 7.0
 "Default cavity offset attenuation for the 689's laser stabilization"
 
+ANDOR_CAMERA_SHUTTER_OPEN_TIME = 15e-3
+"Pre-open delay for the Andor camera's external protective shutter"
+
 # Information about beams controlled by AOMs
 AOM_BEAMS = [
     ### BLUE ###

@@ -21,6 +21,7 @@ from numpy import int32
 from numpy import int64
 
 from repository.lib import constants
+from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
@@ -39,6 +40,9 @@ class _BroadbandBase(ExpFragment):
 
         self.setattr_fragment("red_mot_controller", Red3DMOTFrag)
         self.red_mot_controller: Red3DMOTFrag
+
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
 
         self.setattr_fragment(
             "chamber_2_field_setter",
@@ -170,6 +174,7 @@ class _BroadbandBase(ExpFragment):
         TODO: Use only one beam (or a dedicated beam)
         """
         with parallel:
+            self.andor_camera_control.trigger(control_shutter=True)
             self.camera_interface.trigger()
             with sequential:
                 self.blue_mot_controller.turn_on_3d_beams()
