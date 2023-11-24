@@ -118,9 +118,9 @@ class AndorCameraControl(Fragment):
 
         if control_shutter:
             shutter_delay_mu = self.core.seconds_to_mu(self.shutter_delay.get())
-            delay_mu(shutter_delay_mu)
-            self.ttl_shutter.on()
             delay_mu(-shutter_delay_mu)
+            self.ttl_shutter.on()
+            delay_mu(shutter_delay_mu)
 
         self.ttl_trigger.pulse(ANDOR_TRIGGER_LENGTH)
 
