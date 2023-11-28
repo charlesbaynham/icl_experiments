@@ -1,15 +1,17 @@
-from ndscan.experiment.parameters import FloatParam, FloatParamHandle
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import kernel, rpc
+from artiq.experiment import kernel
+from artiq.experiment import rpc
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+from tenma_power_supply import TENMAPowerSupply
 
 from device_db_config import get_configuration_from_db
-from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupplies
-from tenma_power_supply import TENMAPowerSupply
 from repository.lib import constants
+from repository.lib.fragments.current_supply_setter import SetAnalogCurrentSupplies
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +81,6 @@ class SetMagneticFieldsSlow(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_device("chamber_1_axial_coil_driver")
-        self.chamber_1_axial_coil_driver: TENMAPowerSupply
-
         self.setattr_param(
             "ch1_axial_current",
             FloatParam,
@@ -96,6 +95,15 @@ class SetMagneticFieldsSlow(Fragment):
         # %% Kernel variables
         self.coils_initiated = False
         self.ch1_axial_last_value = 0.0
+
+    def host_setup(self):
+        # TODO: this is in host_setup because the __init__ method of the driver
+        # creates a connection immediately, i.e. during the "prepare" phase of
+        # ARTIQ. This is bad!
+        self.setattr_device("chamber_1_axial_coil_driver")
+        self.chamber_1_axial_coil_driver: TENMAPowerSupply
+
+        return super().host_setup()
 
     @kernel
     def device_setup(self) -> None:
