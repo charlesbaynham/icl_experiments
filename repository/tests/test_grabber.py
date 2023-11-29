@@ -16,8 +16,9 @@ class TestGrabber(EnvExperiment):
     def run(self):
         self.core.reset()
 
-        # Setup grabber ROI 0
-        self.grabber0.setup_roi(0, 138, 148, 263, 350)
+        # Setup all grabber ROIs
+        for i in range(0, 16):
+            self.grabber0.setup_roi(i, 138, 148, 263, 350)
 
         delay(1.0)
 
