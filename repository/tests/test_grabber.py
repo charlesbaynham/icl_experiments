@@ -25,12 +25,18 @@ class TestGrabber(EnvExperiment):
         self.grabber0.gate_roi(0x01)
 
         # get data
-        data = [0]
-        self.grabber0.input_mu(data)
+        data0 = [0]
+        data1 = [0]
+        data2 = [0]
+        self.grabber0.input_mu(data0)
+        self.grabber0.input_mu(data1)
+        self.grabber0.input_mu(data2)
 
         # Disable the ROI again
         self.core.break_realtime()
         self.grabber0.gate_roi(0x00)
 
         self.core.reset()
-        print(data)
+        print(data0)
+        print(data1)
+        print(data2)
