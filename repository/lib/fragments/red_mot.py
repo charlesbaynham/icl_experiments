@@ -15,7 +15,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import RampingRedPhase
@@ -48,9 +47,6 @@ class NarrowbandRedMOTFrag(Fragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
-
-        self.setattr_fragment("blue_mot_controller", Blue3DMOTFrag)
-        self.blue_mot_controller: Blue3DMOTFrag
 
         self.setattr_fragment("red_mot_controller", RedBeamController)
         self.red_mot_controller: RedBeamController
@@ -108,13 +104,6 @@ class NarrowbandRedMOTFrag(Fragment):
         )
         self.camera_exposure: FloatParamHandle
 
-        # Expose various parameters for convenience
-        self.setattr_param_rebind(
-            "blue_loading_time",
-            self.blue_mot_controller,
-            "loading_time",
-            description="Loading time in blue MOT",
-        )
         self.setattr_param_rebind(
             "ramp_lower_detuning",
             self.red_mot_controller,
@@ -183,13 +172,14 @@ class NarrowbandRedMOTFrag(Fragment):
 
         # Setup beam state
         self.core.break_realtime()
-        self.blue_mot_controller.init()
         self.red_mot_controller.init()
 
     @kernel
     def start_red_broadband(self):
         """
         Start sweeping red IJD, turn on the beams and drop the gradient
+
+        Does not turn off blue beams - you should do this elsewhere.
 
         Does not advance the timeline
         """
@@ -201,8 +191,6 @@ class NarrowbandRedMOTFrag(Fragment):
         self.red_mot_controller.turn_on_mot_beams()
         delay_mu(8)
         self.red_mot_controller.start_ramping_red()
-        delay_mu(8)
-        self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
         delay_mu(8)
         self.chamber_2_field_setter.set_mot_gradient(
             self.red_broadband_gradient_current.get()
@@ -246,6 +234,8 @@ class NarrowbandRedMOTFrag(Fragment):
         """
         From a blue MOT, load a narrowband MOT
 
+        Does not turn off the blue beams - you must do this elsewhere
+
         Advances the timeline by the total duration of all ramping phases and
         hold times configured in this fragment
         """
@@ -263,27 +253,27 @@ class NarrowbandRedMOTFrag(Fragment):
             + self.final_narrow_hold_time.get()
         )
 
-    @kernel
-    def run_once(self):
-        self.prepare_and_load_blue_mot()
+    # @kernel
+    # def run_once(self):
+    #     self.prepare_and_load_blue_mot()
 
-        self.load_narrowband_mot_from_blue_mot()
+    #     self.load_narrowband_mot_from_blue_mot()
 
-        # This funny structure exists so that the imaging pulse happens after
-        # the phase is completed, despite the phase ending with only a small
-        # amount of slack and the shutter pre-opening requiring at least 20ms
-        with parallel:
-            with sequential:
-                delay(
-                    self.get_total_narrowband_duration() + self.red_expansion_time.get()
-                )
-                with parallel:
-                    self.pulse_blue_and_image()
-                    with sequential:
-                        # FIXME: Remove this hack
-                        self.ttl_camera_trigger_andor.pulse(1e-6)
-                        delay(10e-6)
-                        self.ttl_camera_trigger_andor.pulse(1e-6)
+    #     # This funny structure exists so that the imaging pulse happens after
+    #     # the phase is completed, despite the phase ending with only a small
+    #     # amount of slack and the shutter pre-opening requiring at least 20ms
+    #     with parallel:
+    #         with sequential:
+    #             delay(
+    #                 self.get_total_narrowband_duration() + self.red_expansion_time.get()
+    #             )
+    #             with parallel:
+    #                 self.pulse_blue_and_image()
+    #                 with sequential:
+    #                     # FIXME: Remove this hack
+    #                     self.ttl_camera_trigger_andor.pulse(1e-6)
+    #                     delay(10e-6)
+    #                     self.ttl_camera_trigger_andor.pulse(1e-6)
 
-        self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
+    #     self.core.wait_until_mu(now_mu())
+    #     self.camera_interface.save_data()
