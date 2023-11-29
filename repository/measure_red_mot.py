@@ -1,26 +1,43 @@
 import logging
 
-from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
-from artiq.experiment import sequential
-from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib import constants
-from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase import RampingRedPhase
-from repository.lib.fragments.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
+
+
+# FIXME
+# # Ensure that both camera are on for the same length of time as the blue
+# # fluorescence is pulsed
+# self.setattr_param_rebind(
+#     "camera_exposure",
+#     self.camera_interface,
+#     "exposure_horiz",
+#     default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+#     description="Camera exposure time",
+#     unit="us",
+# )
+# self.camera_interface.bind_param(
+#     "exposure_vert",
+#     self.camera_exposure,
+# )
+# self.camera_exposure: FloatParamHandle
+
+# self.setattr_param(
+#     "fluorescence_pulse_length",
+#     FloatParam,
+#     "Length of fluorescence pulse",
+#     default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+#     min=0.0,
+#     unit="us",
+# )
+# self.fluorescence_pulse_length: FloatParamHandle
 
 
 class MeasureBBRedMOTFrag(_BroadbandBase):

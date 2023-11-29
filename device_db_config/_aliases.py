@@ -57,6 +57,7 @@ aliases = {
     "ttl_shutter_red_up": "ttl29",
     "ttl_shutter_red_mot_diagonal": "ttl30",
     "ttl_shutter_red_axial_spin_pol": "ttl31",
+    "ttl_shutter_andor": "ttl8",
     "zotino_plant_room": "zotino0",
     "ttl_transfer_cavity_trigger": "ttl1",
     "dds_transfer_cavity_aom": "urukul2_ch0",

@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import parallel

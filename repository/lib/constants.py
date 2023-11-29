@@ -49,7 +49,7 @@ class IJDSettings:
 
 
 IJD_DEFAULTS = {
-    "blue_IJD1_controller": IJDSettings(8500, 353e-3, 343e-3, 3e-3),
+    "blue_IJD1_controller": IJDSettings(8400, 353e-3, 343e-3, 3e-3),
     "blue_IJD2_controller": IJDSettings(8800, 353e-3, 343e-3, 3e-3),
     "blue_IJD3_controller": IJDSettings(9000, 353e-3, 343e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(6300, 71.0e-3, 65.0e-3, 3e-3),
@@ -122,6 +122,12 @@ Note - this is currently (2023-08-02) unused since the EOM is driven statically 
 OFFSET_ATTENUATION_689 = 7.0
 "Default cavity offset attenuation for the 689's laser stabilization"
 
+ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
+"Pre-open delay for the Andor camera's external protective shutter"
+
+DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
+"Camera exposure time, also used for length of fluorescence pulse by default"
+
 # Information about beams controlled by AOMs
 AOM_BEAMS = [
     ### BLUE ###
@@ -132,6 +138,8 @@ AOM_BEAMS = [
         "suservo_aom_singlepass_461_pushbeam",
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
+        setpoint=0.36,
+        servo_enabled=True,
     ),
     SUServoedBeam(
         "blue_2dmot_A",
