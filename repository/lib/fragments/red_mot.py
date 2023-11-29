@@ -16,6 +16,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
+from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import RampingRedPhase
 from repository.lib.fragments.red_beam_controller import RedBeamController
@@ -57,11 +58,6 @@ class NarrowbandRedMOTFrag(Fragment):
         )
         self.chamber_2_field_setter: SetMagneticFieldsQuick
 
-        self.setattr_fragment(
-            "camera_interface", DualCameraMeasurement, hardware_trigger=True
-        )
-        self.camera_interface: DualCameraMeasurement
-
         self.setattr_param(
             "red_broadband_time",
             FloatParam,
@@ -88,21 +84,6 @@ class NarrowbandRedMOTFrag(Fragment):
             min=0.0,
         )
         self.red_broadband_suservo_multiple: FloatParamHandle
-
-        # Ensure that both camera are on for the same length of time as the blue
-        # fluorescence is pulsed
-        self.setattr_param_rebind(
-            "camera_exposure",
-            self.camera_interface,
-            "exposure_horiz",
-            default=200e-6,
-            description="Camera exposure and fluorescence pulse length",
-        )
-        self.camera_interface.bind_param(
-            "exposure_vert",
-            self.camera_exposure,
-        )
-        self.camera_exposure: FloatParamHandle
 
         self.setattr_param_rebind(
             "ramp_lower_detuning",
@@ -148,19 +129,6 @@ class NarrowbandRedMOTFrag(Fragment):
             unit="ms",
         )
         self.final_narrow_hold_time: FloatParamHandle
-
-        # self.setattr_param(
-        #     "red_expansion_time",
-        #     FloatParam,
-        #     "Expansion time before imaging MOT",
-        #     default=100e-6,
-        #     min=0.0,
-        #     unit="us",
-        # )
-        # self.red_expansion_time: FloatParamHandle
-
-        self.setattr_device("ttl_camera_trigger_andor")
-        self.ttl_camera_trigger_andor: TTLOut
 
     @kernel
     def device_setup(self) -> None:
@@ -212,22 +180,22 @@ class NarrowbandRedMOTFrag(Fragment):
 
         delay(self.final_narrow_hold_time.get())
 
-    @kernel
-    def pulse_blue_and_image(self):
-        """
-        Flash on the blue light and pulse the camera triggers
+    # @kernel
+    # def pulse_blue_and_image(self):
+    #     """
+    #     Flash on the blue light and pulse the camera triggers
 
-        Advances the timeline by the duration of the imaging pulse and consumes
-        a lane
+    #     Advances the timeline by the duration of the imaging pulse and consumes
+    #     a lane
 
-        TODO: Use only one beam (or a dedicated beam)
-        """
-        with parallel:
-            self.camera_interface.trigger()
-            with sequential:
-                self.blue_mot_controller.turn_on_3d_beams()
-                delay(self.camera_exposure.get())
-                self.blue_mot_controller.turn_off_3d_beams()
+    #     TODO: Use only one beam (or a dedicated beam)
+    #     """
+    #     with parallel:
+    #         self.camera_interface.trigger()
+    #         with sequential:
+    #             self.blue_mot_controller.turn_on_3d_beams()
+    #             delay(self.camera_exposure.get())
+    #             self.blue_mot_controller.turn_off_3d_beams()
 
     @kernel
     def load_narrowband_mot_from_blue_mot(self):
