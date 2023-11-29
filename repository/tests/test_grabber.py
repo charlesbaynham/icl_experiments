@@ -22,7 +22,7 @@ class TestGrabber(EnvExperiment):
         delay(1.0)
 
         # Turn grabber ROI 0 on
-        self.grabber0.gate_roi(0x01)
+        self.grabber0.gate_roi(0x00)
 
         # get data
         data = [0]
