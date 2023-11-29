@@ -12,6 +12,11 @@ class TestGrabber(EnvExperiment):
         self.setattr_device("grabber0")
         self.grabber0: Grabber
 
+        self.setattr_argument(
+            "num", NumberValue(default=1, precision=0, scale=1, step=1)
+        )
+        self.num: int
+
     @kernel
     def run(self):
         self.core.reset()
@@ -26,18 +31,14 @@ class TestGrabber(EnvExperiment):
         self.grabber0.gate_roi(0x01)
 
         # get data
-        data0 = [0]
-        data1 = [0]
-        data2 = [0]
-        self.grabber0.input_mu(data0)
-        self.grabber0.input_mu(data1)
-        self.grabber0.input_mu(data2)
+        data = [0] * self.num
+        for i in range(self.num):
+            self.grabber0.input_mu(data[i : i + 1])
 
         # Disable the ROI again
         self.core.break_realtime()
         self.grabber0.gate_roi(0x00)
 
         self.core.reset()
-        print(data0)
-        print(data1)
-        print(data2)
+        for i in range(self.num):
+            print(data[i])
