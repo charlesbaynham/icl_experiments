@@ -41,7 +41,7 @@ class _RedBeamDefaultSetter(SetBeamsToDefaults):
 
 class RedBeamController(Fragment):
     """
-    Methods for making and controlling the red 3D MOT
+    Methods for making and controlling the red beams in chamber 2
     """
 
     def build_fragment(self):

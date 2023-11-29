@@ -8,7 +8,8 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
-from ndscan.experiment import ExpFragment
+from artiq.experiment import TFloat
+from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -23,7 +24,27 @@ from repository.lib.fragments.red_beam_controller import RedBeamController
 logger = logging.getLogger(__name__)
 
 
-class _BroadbandBase(ExpFragment):
+class NarrowRedCapturePhase(RampingRedPhase):
+    duration_default = 50e-3
+    start_detuning_default = 150e3
+    end_detuning_default = 50e3
+    start_gradient_default = 5.0
+    end_gradient_default = 1.0
+    start_suservo_nominal_multiple_default = 1.0
+    end_suservo_nominal_multiple_default = 0.1
+
+
+class NarrowRedCompressionPhase(RampingRedPhase):
+    duration_default = 100e-3
+    start_detuning_default = 50e3
+    end_detuning_default = 10e3
+    start_gradient_default = 1.0
+    end_gradient_default = 1.0
+    start_suservo_nominal_multiple_default = 0.1
+    end_suservo_nominal_multiple_default = 0.02
+
+
+class NarrowbandRedMOTFrag(Fragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -111,86 +132,7 @@ class _BroadbandBase(ExpFragment):
             self.red_mot_controller,
         )
 
-    @kernel
-    def prepare_and_load_blue_mot(self):
-        """
-        Advances the timeline to the end of "blue loading time" and leave all
-        the blue beams on
-        """
-        self.core.break_realtime()
-        self.blue_mot_controller.init()
-        self.red_mot_controller.init()
-
-        self.core.break_realtime()
-
-        # Load a blue mot
-        self.blue_mot_controller.load_mot(clearout=True)
-
-    @kernel
-    def start_red_broadband(self):
-        """
-        Start sweeping red IJD, turn on the beams and drop the gradient
-
-        Does not advance the timeline
-        """
-
-        self.red_mot_controller.set_mot_suservo_amplitude(
-            self.red_broadband_suservo_multiple.get()
-        )
-        delay_mu(8)
-        self.red_mot_controller.turn_on_mot_beams()
-        delay_mu(8)
-        self.red_mot_controller.start_ramping_red()
-        delay_mu(8)
-        self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
-        delay_mu(8)
-        self.chamber_2_field_setter.set_mot_gradient(
-            self.red_broadband_gradient_current.get()
-        )
-
-        delay_mu(-4 * 8)
-
-    @kernel
-    def pulse_blue_and_image(self):
-        """
-        Flash on the blue light and pulse the camera triggers
-
-        Advances the timeline by the duration of the imaging pulse and consumes
-        a lane
-
-        TODO: Use only one beam (or a dedicated beam)
-        """
-        with parallel:
-            self.camera_interface.trigger()
-            with sequential:
-                self.blue_mot_controller.turn_on_3d_beams()
-                delay(self.camera_exposure.get())
-                self.blue_mot_controller.turn_off_3d_beams()
-
-
-class NarrowRedCapturePhase(RampingRedPhase):
-    duration_default = 50e-3
-    start_detuning_default = 150e3
-    end_detuning_default = 50e3
-    start_gradient_default = 5.0
-    end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 1.0
-    end_suservo_nominal_multiple_default = 0.1
-
-
-class NarrowRedCompressionPhase(RampingRedPhase):
-    duration_default = 100e-3
-    start_detuning_default = 50e3
-    end_detuning_default = 10e3
-    start_gradient_default = 1.0
-    end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 0.1
-    end_suservo_nominal_multiple_default = 0.02
-
-
-class NarrowbandRedMOTFrag(_BroadbandBase):
-    def build_fragment(self):
-        super().build_fragment()
+        # %% Narrowband stuff
 
         # Add red phase fragments
         self.setattr_fragment(
@@ -218,15 +160,15 @@ class NarrowbandRedMOTFrag(_BroadbandBase):
         )
         self.final_narrow_hold_time: FloatParamHandle
 
-        self.setattr_param(
-            "red_expansion_time",
-            FloatParam,
-            "Expansion time before imaging MOT",
-            default=100e-6,
-            min=0.0,
-            unit="us",
-        )
-        self.red_expansion_time: FloatParamHandle
+        # self.setattr_param(
+        #     "red_expansion_time",
+        #     FloatParam,
+        #     "Expansion time before imaging MOT",
+        #     default=100e-6,
+        #     min=0.0,
+        #     unit="us",
+        # )
+        # self.red_expansion_time: FloatParamHandle
 
         self.setattr_device("ttl_camera_trigger_andor")
         self.ttl_camera_trigger_andor: TTLOut
@@ -239,14 +181,93 @@ class NarrowbandRedMOTFrag(_BroadbandBase):
         self.narrow_red_capture_phase.precalculate_dma_handle()
         self.narrow_red_compression_phase.precalculate_dma_handle()
 
+        # Setup beam state
+        self.core.break_realtime()
+        self.blue_mot_controller.init()
+        self.red_mot_controller.init()
+
+    @kernel
+    def start_red_broadband(self):
+        """
+        Start sweeping red IJD, turn on the beams and drop the gradient
+
+        Does not advance the timeline
+        """
+
+        self.red_mot_controller.set_mot_suservo_amplitude(
+            self.red_broadband_suservo_multiple.get()
+        )
+        delay_mu(8)
+        self.red_mot_controller.turn_on_mot_beams()
+        delay_mu(8)
+        self.red_mot_controller.start_ramping_red()
+        delay_mu(8)
+        self.blue_mot_controller.turn_off_3d_and_2d_beams()  # ...but leave repumpers on
+        delay_mu(8)
+        self.chamber_2_field_setter.set_mot_gradient(
+            self.red_broadband_gradient_current.get()
+        )
+
+        delay_mu(-4 * 8)
+
+    @kernel
+    def transition_broadband_to_narrowband(self):
+        """
+        Perform all the ramping phases that occurs after the broadband red MOT
+        to create a narrowband MOT.
+
+        Advances the timeline by the duration of the phases + the final hold
+        time.
+        """
+        self.narrow_red_capture_phase.do_phase()
+        self.narrow_red_compression_phase.do_phase()
+
+        delay(self.final_narrow_hold_time.get())
+
+    @kernel
+    def pulse_blue_and_image(self):
+        """
+        Flash on the blue light and pulse the camera triggers
+
+        Advances the timeline by the duration of the imaging pulse and consumes
+        a lane
+
+        TODO: Use only one beam (or a dedicated beam)
+        """
+        with parallel:
+            self.camera_interface.trigger()
+            with sequential:
+                self.blue_mot_controller.turn_on_3d_beams()
+                delay(self.camera_exposure.get())
+                self.blue_mot_controller.turn_off_3d_beams()
+
+    @kernel
+    def load_narrowband_mot_from_blue_mot(self):
+        """
+        From a blue MOT, load a narrowband MOT
+
+        Advances the timeline by the total duration of all ramping phases and
+        hold times configured in this fragment
+        """
+        self.start_red_broadband()
+        delay(self.red_broadband_time.get())
+        self.red_mot_controller.stop_ramping_red()
+        self.transition_broadband_to_narrowband()
+
+    @kernel
+    def get_total_narrowband_duration(self) -> TFloat:
+        "Get the duration of all the narrowband stages"
+        return (
+            self.narrow_red_capture_phase.duration.get()
+            + self.narrow_red_compression_phase.duration.get()
+            + self.final_narrow_hold_time.get()
+        )
+
     @kernel
     def run_once(self):
         self.prepare_and_load_blue_mot()
 
-        self.start_red_broadband()
-        delay(self.red_broadband_time.get())
-
-        self.red_mot_controller.stop_ramping_red()
+        self.load_narrowband_mot_from_blue_mot()
 
         # This funny structure exists so that the imaging pulse happens after
         # the phase is completed, despite the phase ending with only a small
@@ -254,10 +275,7 @@ class NarrowbandRedMOTFrag(_BroadbandBase):
         with parallel:
             with sequential:
                 delay(
-                    self.narrow_red_capture_phase.duration.get()
-                    + self.narrow_red_compression_phase.duration.get()
-                    + self.final_narrow_hold_time.get()
-                    + self.red_expansion_time.get()
+                    self.get_total_narrowband_duration() + self.red_expansion_time.get()
                 )
                 with parallel:
                     self.pulse_blue_and_image()
@@ -266,13 +284,6 @@ class NarrowbandRedMOTFrag(_BroadbandBase):
                         self.ttl_camera_trigger_andor.pulse(1e-6)
                         delay(10e-6)
                         self.ttl_camera_trigger_andor.pulse(1e-6)
-            with sequential:
-                self.narrow_red_capture_phase.do_phase()
-                self.narrow_red_compression_phase.do_phase()
-
-                delay(self.final_narrow_hold_time.get())
-                self.red_mot_controller.turn_off_mot_beams()
-                delay(self.red_expansion_time.get())
 
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
