@@ -19,7 +19,7 @@ class TestGrabber(EnvExperiment):
         # Setup grabber ROI 0
         self.grabber0.setup_roi(0, 138, 148, 263, 350)
 
-        delay(1e-3)
+        delay(1.0)
 
         # Turn grabber ROI 0 on
         self.grabber0.gate_roi(0x01)
