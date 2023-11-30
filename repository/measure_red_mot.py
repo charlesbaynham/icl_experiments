@@ -32,7 +32,9 @@ class MeasureBBRedMOTFrag(ExpFragment):
         self.setattr_fragment("red_mot", NarrowbandRedMOTFrag)
         self.red_mot: NarrowbandRedMOTFrag
 
-        self.setattr_fragment("camera_interface", DualCameraMeasurement)
+        self.setattr_fragment(
+            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+        )
         self.camera_interface: DualCameraMeasurement
 
         self.setattr_fragment("fluorescence_pulse", FluorescencePulse)
