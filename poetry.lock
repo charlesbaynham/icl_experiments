@@ -3915,17 +3915,18 @@ docs = ["ipykernel", "jupyter-client", "matplotlib", "nbconvert", "nbformat", "n
 
 [[package]]
 name = "tenma-power-supply"
-version = "1.1.1"
+version = "1.2"
 description = "Driver for the TENMA power supply"
 optional = false
 python-versions = ">=3.9,<3.13"
 files = [
-    {file = "tenma_power_supply-1.1.1-py3-none-any.whl", hash = "sha256:ad9997b23d16d8fa209c2fe1b5a7e6005f56a6b5746017e4019c1be31beb518c"},
-    {file = "tenma_power_supply-1.1.1.tar.gz", hash = "sha256:8b4690aeedf2d458f7c8fb1988b4ce6c8b480cdea3fb0135ac806c598c03bfbd"},
+    {file = "tenma_power_supply-1.2-py3-none-any.whl", hash = "sha256:164951fe84043617a9649596bd9ed05f9f66f0ceb52308e47a1dc1e4c6b8dd8a"},
+    {file = "tenma_power_supply-1.2.tar.gz", hash = "sha256:4a72a5e6676dc7f99264efc824b89dc53951a968e01a9f2795dd6b363271dbb1"},
 ]
 
 [package.dependencies]
 generic-scpi-driver = ">=1.5,<2.0"
+retry = ">=0.9.2,<0.10.0"
 
 [[package]]
 name = "terminado"
