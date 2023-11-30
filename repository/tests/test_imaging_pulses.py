@@ -24,7 +24,7 @@ class _TestFluorescencePulse(ExpFragment):
             self.frag.do_imaging_pulse()
 
 
-class FluorescencePulseWithoutShutter(_TestFluorescencePulse):
+class FluorescencePulseMOTBeamWithoutShutter(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
@@ -38,7 +38,7 @@ class FluorescencePulseWithoutShutter(_TestFluorescencePulse):
         self.frag: FluorescencePulse
 
 
-class FluorescencePulseWithShutter(_TestFluorescencePulse):
+class FluorescencePulseMOTBeamWithShutter(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
@@ -51,7 +51,7 @@ class FluorescencePulseWithShutter(_TestFluorescencePulse):
         )
 
 
-class FluorescencePulseWithBoth(_TestFluorescencePulse):
+class FluorescencePulseMOTBeamAndImagingWithShutter(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
@@ -65,4 +65,12 @@ class FluorescencePulseWithBoth(_TestFluorescencePulse):
         self.frag: FluorescencePulse
 
 
-TestFlourescencePulse = make_fragment_scan_exp(FluorescencePulseWithBoth)
+FluorescencePulseMOTBeamWithoutShutter = make_fragment_scan_exp(
+    FluorescencePulseMOTBeamWithoutShutter
+)
+FluorescencePulseMOTBeamWithShutter = make_fragment_scan_exp(
+    FluorescencePulseMOTBeamWithShutter
+)
+FluorescencePulseMOTBeamAndImagingWithShutter = make_fragment_scan_exp(
+    FluorescencePulseMOTBeamAndImagingWithShutter
+)
