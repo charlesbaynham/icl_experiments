@@ -3,10 +3,8 @@ from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
 
-from repository.lib.fragments.beam_setters import (
-    SetBeamsToDefaults,
-    make_set_beams_to_default,
-)
+from repository.lib.fragments.beam_setters import make_set_beams_to_default
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 
 SAMPLE_BEAM_INFOS = [
     SUServoedBeam(
