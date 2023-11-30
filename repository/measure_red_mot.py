@@ -101,7 +101,7 @@ class MeasureBBRedMOTFrag(ExpFragment):
         self.red_broadband_time: FloatParamHandle
 
     def host_setup(self):
-        if self.image_with_mot_beams:
+        if self.image_with_mot_beams.get():
             self.fluorescence_pulse = self.fluorescence_pulse_mot
         else:
             self.fluorescence_pulse = self.fluorescence_pulse_imaging
