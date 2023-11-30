@@ -112,7 +112,7 @@ class MeasureBBRedMOTFrag(ExpFragment):
     def run_once(self):
         self.blue_3d_mot.load_mot(clearout=True)
 
-        self.blue_3d_mot.turn_off_3d_beams()
+        self.blue_3d_mot.turn_off_3d_and_2d_beams()
         self.red_mot.start_red_broadband()
         delay(self.red_broadband_time.get())
 
