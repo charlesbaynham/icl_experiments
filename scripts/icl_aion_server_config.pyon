@@ -123,7 +123,7 @@
         },
         "689_doubled1379": {
             "auto_exposure": true,
-            "channel": 8,
+            "channel": 7,
             "display_colour": "blue",
             "exposure": [
                 20,
