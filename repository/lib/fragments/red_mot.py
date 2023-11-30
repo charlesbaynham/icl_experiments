@@ -101,6 +101,7 @@ class NarrowbandRedMOTFrag(Fragment):
             "injection_aom_static_detuning",
             self.red_beam_controller,
         )
+        self.injection_aom_static_detuning: FloatParamHandle
 
         # %% Narrowband stuff
 

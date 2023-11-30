@@ -19,34 +19,6 @@ from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 logger = logging.getLogger(__name__)
 
 
-# FIXME
-# # Ensure that both camera are on for the same length of time as the blue
-# # fluorescence is pulsed
-# self.setattr_param_rebind(
-#     "camera_exposure",
-#     self.camera_interface,
-#     "exposure_horiz",
-#     default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
-#     description="Camera exposure time",
-#     unit="us",
-# )
-# self.camera_interface.bind_param(
-#     "exposure_vert",
-#     self.camera_exposure,
-# )
-# self.camera_exposure: FloatParamHandle
-
-# self.setattr_param(
-#     "fluorescence_pulse_length",
-#     FloatParam,
-#     "Length of fluorescence pulse",
-#     default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
-#     min=0.0,
-#     unit="us",
-# )
-# self.fluorescence_pulse_length: FloatParamHandle
-
-
 class MeasureBBRedMOTFrag(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
@@ -78,7 +50,8 @@ class MeasureBBRedMOTFrag(ExpFragment):
         )
         self.expansion_time: FloatParamHandle
 
-        # Expose both camera exposures
+        # %% Rebound params
+
         self.setattr_param_rebind(
             "exposure_horiz",
             self.camera_interface,
@@ -97,6 +70,11 @@ class MeasureBBRedMOTFrag(ExpFragment):
         )
         self.exposure_horiz: FloatParamHandle
         self.exposure_vert: FloatParamHandle
+
+        self.setattr_param_rebind(
+            "injection_aom_static_detuning",
+            self.red_mot,
+        )
 
     @kernel
     def run_once(self):

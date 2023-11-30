@@ -1,3 +1,4 @@
+import pytest
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
@@ -46,5 +47,6 @@ class BottomLevelFrag(Fragment):
         print(self.arg)
 
 
+@pytest.mark.xfail(reason="Expected behaviour, but watch out for it")
 def test_ndscan_polymorphism_bug(fragment_precompiler):
     fragment_precompiler(TopLevelFrag)
