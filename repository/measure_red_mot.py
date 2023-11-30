@@ -13,6 +13,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
+from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
@@ -39,6 +40,9 @@ class MeasureBBRedMOTFrag(ExpFragment):
             "camera_interface", DualCameraMeasurement, hardware_trigger=True
         )
         self.camera_interface: DualCameraMeasurement
+
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
 
         # Set up two imaging pulse fragments for using the MOT beam or the
         # imaging beam. We'll only use one, according to the value of
@@ -121,6 +125,7 @@ class MeasureBBRedMOTFrag(ExpFragment):
         delay(self.expansion_time.get())
 
         with parallel:
+            self.andor_camera_control.trigger(control_shutter=True)
             self.fluorescence_pulse.do_imaging_pulse()
             self.camera_interface.trigger()
 
