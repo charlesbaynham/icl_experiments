@@ -272,9 +272,13 @@ def device_mgr(mock_db_writer):
             nonlocal result
             result = new_result
 
-        embedding_map, kernel_library, symbolizer, demangler = self.compile(
-            function, args, kwargs, set_result
-        )
+        (
+            embedding_map,
+            kernel_library,
+            symbolizer,
+            demangler,
+            subkernel_arg_types,
+        ) = self.compile(function, args, kwargs, set_result)
         self._run_compiled(kernel_library, embedding_map, symbolizer, demangler)
 
         return MagicMock()
