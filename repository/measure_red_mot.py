@@ -168,119 +168,65 @@ class MeasureNarrowbandMOTFrag(_RedMOTBase):
         self._save_data()
 
 
-# class MeasureBBRedMOTExpansionFrag(_BroadbandBase):
-#     def build_fragment(self):
-#         super().build_fragment()
+class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
+    def build_fragment(self):
+        super().build_fragment()
 
-#         self.setattr_param(
-#             "red_expansion_time",
-#             FloatParam,
-#             "Expansion time before imaging MOT",
-#             default=100e-6,
-#             min=0.0,
-#             unit="us",
-#         )
-#         self.red_expansion_time: FloatParamHandle
+        self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=50e-6,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
 
-#     @kernel
-#     def run_once(self):
-#         self.prepare_and_load_blue_mot()
+        self.setattr_param(
+            "spectroscopy_pulse_aom_detuning",
+            FloatParam,
+            "Frequency detuning of AOM during spectroscopy pulse",
+            default=0,
+            unit="kHz",
+        )
+        self.spectroscopy_pulse_aom_detuning: FloatParamHandle
 
-#         self.start_red_broadband()
+    @kernel
+    def run_once(self):
+        narrowband_duration = self.red_mot.get_total_narrowband_duration()
 
-#         # Unlike for MeasureRedMOT, here we require that red_broadband_time be positive
-#         delay(self.red_broadband_time.get())
+        self.core.break_realtime()
+        self._from_start_to_end_of_broadband_mot()
 
-#         self.red_mot_controller.turn_off_mot_beams()
+        with parallel:
+            with sequential:
+                delay(
+                    narrowband_duration
+                    + self.spectroscopy_pulse_time.get()
+                    + self.expansion_time.get()
+                )
 
-#         delay(self.red_expansion_time.get())
+                with parallel:
+                    self.andor_camera_control.trigger(control_shutter=True)
+                    self.fluorescence_pulse.do_imaging_pulse()
+                    self.camera_interface.trigger()
 
-#         self.pulse_blue_and_image()
+            with sequential:
+                self.red_mot.transition_broadband_to_narrowband()
+                self.red_mot.red_beam_controller.turn_off_mot_beams(
+                    ignore_shutters=True
+                )
+                self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
+                self.red_mot.red_beam_controller.set_mot_detuning(
+                    self.spectroscopy_pulse_aom_detuning.get()
+                )
+                delay(self.expansion_time.get())
+                self.red_mot.red_beam_controller.turn_on_mot_beams(ignore_shutters=True)
+                delay(self.spectroscopy_pulse_time.get())
+                self.red_mot.red_beam_controller.turn_off_mot_beams()
 
-#         # Turn the fields back to defaults so eddy currents are gone by the next shot
-#         self.blue_mot_controller.enable_mot_fields()
-
-#         # End of RTIO sequencing. Now we are in real-time.
-
-#         # Save the photos
-#         self.core.wait_until_mu(now_mu())
-#         self.camera_interface.save_data()
-
-
-## % Commented out spectroscopy experiment - unusable until we have more red power
-# class MeasureRedMOTSpectroscopy(_MeasureRedMOTBase):
-#     def build_fragment(self):
-#         super().build_fragment()
-
-#         self.setattr_param(
-#             "red_expansion_time",
-#             FloatParam,
-#             "Expansion time before pulsing 689",
-#             default=10e-3,
-#             unit="ms",
-#         )
-#         self.red_expansion_time: FloatParamHandle
-
-#         self.setattr_param(
-#             "spectroscopy_pulse_time",
-#             FloatParam,
-#             "Length of spectroscopy pulse",
-#             default=50e-6,
-#             unit="us",
-#         )
-#         self.spectroscopy_pulse_time: FloatParamHandle
-
-#         self.setattr_param(
-#             "spectroscopy_pulse_aom_frequency",
-#             FloatParam,
-#             "Frequency of AOM during spectroscopy pulse",
-#             default=340e6,
-#             unit="MHz",
-#         )
-#         self.spectroscopy_pulse_aom_frequency: FloatParamHandle
-
-#     @kernel
-#     def run_once(self):
-#         if self.red_broadband_time.get() < 0:
-#             raise RuntimeError("red_broadband_time must be greater than zero")
-
-#         self.prepare_and_load_blue_mot()
-
-#         self.start_red_loading()
-
-#         # Unlike for MeasureRedMOT, here we require that red_broadband_time be positive
-#         delay(self.red_broadband_time.get())
-
-#         with parallel:
-#             self.chamber_2_field_setter.set_mot_gradient(0.0)
-#             self.red_mot_controller.turn_off_mot_beams(ignore_shutters=True)
-#             self.red_mot_controller.stop_ramping_red(
-#                 freq=self.spectroscopy_pulse_aom_frequency.get()
-#             )
-
-#         delay(self.red_expansion_time.get())
-
-#         self.red_mot_controller.turn_on_mot_beams(ignore_shutters=True)
-#         delay(self.spectroscopy_pulse_time.get())
-#         self.red_mot_controller.turn_off_mot_beams()
-
-#         with parallel:
-#             self.camera_interface.trigger()
-#             self.pulse_blue_for_image()
-
-#         # Turn the fields back to defaults so eddy currents are gone by the next shot
-#         self.blue_mot_controller.enable_mot_fields()
-
-#         # End of RTIO sequencing. Now we are in real-time.
-
-#         # Save the photos
-#         self.core.wait_until_mu(now_mu())
-#         self.camera_interface.save_data()
+        self._save_data()
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
-
-
-# MeasureBBRedMOTExpansion = make_fragment_scan_exp(MeasureBBRedMOTExpansionFrag)
-# MeasureNarrowbandRedMOT = make_fragment_scan_exp(NarrowbandRedMOTFrag)
+MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
