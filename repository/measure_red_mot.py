@@ -7,6 +7,8 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -14,6 +16,7 @@ from repository.lib import constants
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
+from repository.lib.fragments.fluorescence_pulse import MOTBeamFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 
 logger = logging.getLogger(__name__)
@@ -37,8 +40,14 @@ class MeasureBBRedMOTFrag(ExpFragment):
         )
         self.camera_interface: DualCameraMeasurement
 
-        self.setattr_fragment("fluorescence_pulse", FluorescencePulse)
-        self.fluorescence_pulse: FluorescencePulse
+        # Set up two imaging pulse fragments for using the MOT beam or the
+        # imaging beam. We'll only use one, according to the value of
+        # `image_with_mot_beams`
+        self.setattr_fragment("fluorescence_pulse_imaging", FluorescencePulse)
+        self.fluorescence_pulse_imaging: FluorescencePulse
+
+        self.setattr_fragment("fluorescence_pulse_mot", MOTBeamFluorescencePulse)
+        self.fluorescence_pulse_mot: FluorescencePulse
 
         # %% Params
 
@@ -51,6 +60,14 @@ class MeasureBBRedMOTFrag(ExpFragment):
             unit="us",
         )
         self.expansion_time: FloatParamHandle
+
+        self.setattr_param(
+            "image_with_mot_beams",
+            BoolParam,
+            "Image with MOT beams instead of fluorescence beam",
+            default=False,
+        )
+        self.image_with_mot_beams: BoolParamHandle
 
         # %% Rebound params
 
@@ -82,6 +99,14 @@ class MeasureBBRedMOTFrag(ExpFragment):
             self.red_mot,
         )
         self.red_broadband_time: FloatParamHandle
+
+    def host_setup(self):
+        if self.image_with_mot_beams:
+            self.fluorescence_pulse = self.fluorescence_pulse_mot
+        else:
+            self.fluorescence_pulse = self.fluorescence_pulse_imaging
+
+        return super().host_setup()
 
     @kernel
     def run_once(self):

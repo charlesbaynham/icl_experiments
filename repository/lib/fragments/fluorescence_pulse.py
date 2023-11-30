@@ -76,3 +76,7 @@ class FluorescencePulse(Fragment):
         self.all_beam_toggler.turn_on_beams()
         delay(self.flourescence_pulse_duration.get())
         self.all_beam_toggler.turn_off_beams()
+
+
+class MOTBeamFluorescencePulse(FluorescencePulse):
+    beam_infos = [constants.AOM_BEAMS["blue_3dmot_axialminus"]]
