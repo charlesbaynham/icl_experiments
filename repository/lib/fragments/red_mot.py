@@ -182,23 +182,6 @@ class NarrowbandRedMOTFrag(Fragment):
 
         delay(self.final_narrow_hold_time.get())
 
-    # @kernel
-    # def pulse_blue_and_image(self):
-    #     """
-    #     Flash on the blue light and pulse the camera triggers
-
-    #     Advances the timeline by the duration of the imaging pulse and consumes
-    #     a lane
-
-    #     TODO: Use only one beam (or a dedicated beam)
-    #     """
-    #     with parallel:
-    #         self.camera_interface.trigger()
-    #         with sequential:
-    #             self.blue_mot_controller.turn_on_3d_beams()
-    #             delay(self.camera_exposure.get())
-    #             self.blue_mot_controller.turn_off_3d_beams()
-
     @kernel
     def load_narrowband_mot_from_blue_mot(self):
         """
@@ -222,28 +205,3 @@ class NarrowbandRedMOTFrag(Fragment):
             + self.narrow_red_compression_phase.duration.get()
             + self.final_narrow_hold_time.get()
         )
-
-    # @kernel
-    # def run_once(self):
-    #     self.prepare_and_load_blue_mot()
-
-    #     self.load_narrowband_mot_from_blue_mot()
-
-    #     # This funny structure exists so that the imaging pulse happens after
-    #     # the phase is completed, despite the phase ending with only a small
-    #     # amount of slack and the shutter pre-opening requiring at least 20ms
-    #     with parallel:
-    #         with sequential:
-    #             delay(
-    #                 self.get_total_narrowband_duration() + self.red_expansion_time.get()
-    #             )
-    #             with parallel:
-    #                 self.pulse_blue_and_image()
-    #                 with sequential:
-    #                     # FIXME: Remove this hack
-    #                     self.ttl_camera_trigger_andor.pulse(1e-6)
-    #                     delay(10e-6)
-    #                     self.ttl_camera_trigger_andor.pulse(1e-6)
-
-    #     self.core.wait_until_mu(now_mu())
-    #     self.camera_interface.save_data()
