@@ -36,7 +36,7 @@ class _DualCameraBase(Fragment):
     num_images = None
     "Number of images to take. Must be set by the subclass before host_setup is run"
 
-    def build_fragment(self, hardware_trigger=False):
+    def build_fragment(self, hardware_trigger=True):
         self.setattr_device("core")
         self.core: Core
 
