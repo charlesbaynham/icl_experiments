@@ -13,10 +13,8 @@ from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import make_set_beams_to_default
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
-from repository.lib.fragments.magnetic_fields import (
-    SetMagneticFieldsQuick,
-    SetMagneticFieldsSlow,
-)
+from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
+from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
 
 logger = logging.getLogger(__name__)
 
@@ -252,6 +250,11 @@ class Blue3DMOTFrag(Fragment):
 
     @kernel
     def turn_off_3d_beams(self):
+        """Turn off the 3D blue MOT beams
+
+        This method will not advance the cursor BUT will write shutter closing
+        events into the future by "shutter_delay_time" seconds.
+        """
         return self.mot_3d_beams_setter.turn_beams_off()
 
     @kernel

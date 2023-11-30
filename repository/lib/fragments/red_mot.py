@@ -49,8 +49,8 @@ class NarrowbandRedMOTFrag(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("red_mot_controller", RedBeamController)
-        self.red_mot_controller: RedBeamController
+        self.setattr_fragment("red_beam_controller", RedBeamController)
+        self.red_beam_controller: RedBeamController
 
         self.setattr_fragment(
             "chamber_2_field_setter",
@@ -87,19 +87,19 @@ class NarrowbandRedMOTFrag(Fragment):
 
         self.setattr_param_rebind(
             "ramp_lower_detuning",
-            self.red_mot_controller,
+            self.red_beam_controller,
         )
         self.setattr_param_rebind(
             "ramp_upper_detuning",
-            self.red_mot_controller,
+            self.red_beam_controller,
         )
         self.setattr_param_rebind(
             "ramp_frequency",
-            self.red_mot_controller,
+            self.red_beam_controller,
         )
         self.setattr_param_rebind(
             "injection_aom_static_detuning",
-            self.red_mot_controller,
+            self.red_beam_controller,
         )
 
         # %% Narrowband stuff
@@ -108,7 +108,7 @@ class NarrowbandRedMOTFrag(Fragment):
         self.setattr_fragment(
             "narrow_red_capture_phase",
             NarrowRedCapturePhase,
-            red_mot_controller=self.red_mot_controller,
+            red_mot_controller=self.red_beam_controller,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
@@ -116,7 +116,7 @@ class NarrowbandRedMOTFrag(Fragment):
         self.setattr_fragment(
             "narrow_red_compression_phase",
             NarrowRedCompressionPhase,
-            red_mot_controller=self.red_mot_controller,
+            red_mot_controller=self.red_beam_controller,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_compression_phase: NarrowRedCapturePhase
@@ -140,7 +140,7 @@ class NarrowbandRedMOTFrag(Fragment):
 
         # Setup beam state
         self.core.break_realtime()
-        self.red_mot_controller.init()
+        self.red_beam_controller.init()
 
     @kernel
     def start_red_broadband(self):
@@ -152,13 +152,13 @@ class NarrowbandRedMOTFrag(Fragment):
         Does not advance the timeline
         """
 
-        self.red_mot_controller.set_mot_suservo_amplitude(
+        self.red_beam_controller.set_mot_suservo_amplitude(
             self.red_broadband_suservo_multiple.get()
         )
         delay_mu(8)
-        self.red_mot_controller.turn_on_mot_beams()
+        self.red_beam_controller.turn_on_mot_beams()
         delay_mu(8)
-        self.red_mot_controller.start_ramping_red()
+        self.red_beam_controller.start_ramping_red()
         delay_mu(8)
         self.chamber_2_field_setter.set_mot_gradient(
             self.red_broadband_gradient_current.get()
@@ -209,7 +209,7 @@ class NarrowbandRedMOTFrag(Fragment):
         """
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
-        self.red_mot_controller.stop_ramping_red()
+        self.red_beam_controller.stop_ramping_red()
         self.transition_broadband_to_narrowband()
 
     @kernel
