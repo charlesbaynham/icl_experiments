@@ -60,7 +60,7 @@ class _RedMOTBase(ExpFragment):
             "expansion_time",
             FloatParam,
             "Time to expand MOT for before imaging",
-            default=5e-3,
+            default=0.0,
             unit="us",
         )
         self.expansion_time: FloatParamHandle
@@ -271,5 +271,8 @@ class MeasureNarrowbandMOTFrag(_RedMOTBase):
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
+MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
+
+
 # MeasureBBRedMOTExpansion = make_fragment_scan_exp(MeasureBBRedMOTExpansionFrag)
 # MeasureNarrowbandRedMOT = make_fragment_scan_exp(NarrowbandRedMOTFrag)
