@@ -134,9 +134,9 @@ class _RedMOTBase(ExpFragment):
         delay(1e-3)
         self.blue_3d_mot.enable_mot_fields()
 
-        # End of RTIO sequencing. Now we are in real-time.
-
-        # Save the photos
+    @kernel
+    def _save_data(self):
+        "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
 
@@ -147,16 +147,16 @@ class MeasureBBRedMOTFrag(_RedMOTBase):
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
         self._expand_and_image()
+        self._save_data()
 
 
 class MeasureNarrowbandMOTFrag(_RedMOTBase):
     @kernel
     def run_once(self):
-        self.core.break_realtime()
-
-        self._from_start_to_end_of_broadband_mot()
-
         narrowband_duration = self.red_mot.get_total_narrowband_duration()
+
+        self.core.break_realtime()
+        self._from_start_to_end_of_broadband_mot()
 
         with parallel:
             with sequential:
@@ -164,6 +164,8 @@ class MeasureNarrowbandMOTFrag(_RedMOTBase):
                 self._expand_and_image()
 
             self.red_mot.transition_broadband_to_narrowband()
+
+        self._save_data()
 
 
 # class MeasureBBRedMOTExpansionFrag(_BroadbandBase):
