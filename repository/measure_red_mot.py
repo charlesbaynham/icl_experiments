@@ -139,15 +139,11 @@ class _RedMOTBase(ExpFragment):
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
 
-    @kernel
-    def run_once(self):
-        self._from_start_to_end_of_broadband_mot()
-        self._expand_and_image()
-
 
 class MeasureBBRedMOTFrag(_RedMOTBase):
     @kernel
     def run_once(self):
+        self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
         self._expand_and_image()
 
@@ -155,6 +151,7 @@ class MeasureBBRedMOTFrag(_RedMOTBase):
 class MeasureNarrowbandMOTFrag(_RedMOTBase):
     @kernel
     def run_once(self):
+        self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
         self.red_mot.transition_broadband_to_narrowband()
         self._expand_and_image()
