@@ -29,8 +29,6 @@ class BlueSystemOn(ExpFragment):
         logger.info("Loading a blue MOT")
 
         self.core.break_realtime()
-        self.Blue3DMOTFrag.init()
-        self.core.break_realtime()
 
         delay(self.Blue3DMOTFrag.all_beam_default_setter.get_max_shutter_delay() + 1e-3)
         self.Blue3DMOTFrag.load_mot(clearout=False)

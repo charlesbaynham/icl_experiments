@@ -25,7 +25,7 @@ class Measure689Shelving(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("blue_mot_controller", Blue3DMOTFrag)
+        self.setattr_fragment("blue_mot_controller", Blue3DMOTFrag, manual_init=True)
         self.blue_mot_controller: Blue3DMOTFrag
 
         self.setattr_fragment("red_mot_controller", RedBeamController)

@@ -50,8 +50,6 @@ class ImageBlueMOT(ExpFragment):
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
-
-        self.blue_mot.init()
         self.blue_mot.load_mot(clearout=False)
 
         delay(1.0)

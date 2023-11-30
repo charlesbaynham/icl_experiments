@@ -28,7 +28,7 @@ class _MeasureBlueMOTFrag(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("mot_controller", Blue3DMOTFrag)
+        self.setattr_fragment("mot_controller", Blue3DMOTFrag, manual_init=True)
         self.mot_controller: Blue3DMOTFrag
 
         self.setattr_param_rebind(

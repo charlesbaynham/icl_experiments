@@ -40,10 +40,11 @@ class Blue3DMOTFrag(Fragment):
     """
     Methods for making and controlling the blue 3D MOT
 
-    Note that the user must call init() before this object is used
+    If manual_init=True is passed to build_fragment, the user must call init()
+    before this object is used
     """
 
-    def build_fragment(self):
+    def build_fragment(self, manual_init=False):
         self.setattr_device("core")
         self.core: Core
 
@@ -176,6 +177,19 @@ class Blue3DMOTFrag(Fragment):
         self.loading_time: FloatParamHandle
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+        self.manual_init = manual_init
+
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {"debug_mode", "manual_init"}
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        if not self.manual_init:
+            self.core.break_realtime()
+            self.init()
 
     @kernel
     def init(self):
@@ -184,10 +198,11 @@ class Blue3DMOTFrag(Fragment):
 
         This configured all SUServos to the right frequency, setpoint and
         attenuation. If a shutter exists, the shutter is closed and the AOM is
-        turned on. If there is no shutter, the SUServo's RF switch is set to off.
+        turned on. If there is no shutter, the SUServo's RF switch is set to
+        off.
 
-        This is not in device_setup so that the user can choose when / whether
-        to call it during each scan cycle
+        This is called automatically by device_setup unless `manula_init=True`
+        was passed to build_fragment.
         """
 
         # Turn on all the AOMs but close all the shutters
