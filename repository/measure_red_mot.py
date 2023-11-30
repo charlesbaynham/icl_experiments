@@ -215,6 +215,7 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                 self.red_mot.red_beam_controller.turn_off_mot_beams(
                     ignore_shutters=True
                 )
+                self.blue_3d_mot.turn_off_repumpers()
                 self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
                 self.red_mot.red_beam_controller.set_mot_detuning(
                     self.spectroscopy_pulse_aom_detuning.get()
