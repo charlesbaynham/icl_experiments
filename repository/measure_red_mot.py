@@ -77,13 +77,19 @@ class MeasureBBRedMOTFrag(ExpFragment):
             "injection_aom_static_detuning",
             self.red_mot,
         )
+        self.setattr_param_rebind(
+            "red_broadband_time",
+            self.red_mot,
+        )
+        self.red_broadband_time: FloatParamHandle
 
     @kernel
     def run_once(self):
         self.blue_3d_mot.load_mot(clearout=True)
 
         self.blue_3d_mot.turn_off_3d_beams()
-        self.red_mot.load_narrowband_mot_from_blue_mot()
+        self.red_mot.start_red_broadband()
+        delay(self.red_broadband_time.get())
 
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
