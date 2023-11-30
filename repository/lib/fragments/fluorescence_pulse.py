@@ -8,11 +8,9 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beam_setters import (
-    SetBeamsToDefaults,
-    make_set_beams_to_default,
-    make_toggle_list_of_beams,
-)
+from repository.lib.fragments.beam_setters import make_set_beams_to_default
+from repository.lib.fragments.beam_setters import make_toggle_list_of_beams
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.beam_setters import ToggleListOfBeams
 
 
@@ -44,8 +42,7 @@ class FluorescencePulse(Fragment):
         # Also set up the flourescence delivery AOM, regardless of which beams we're flashing
         self.setattr_fragment(
             "delivery_beam_setter",
-            SetBeamsToDefaults,
-            [constants.AOM_BEAMS["blue_imaging_delivery"]],
+            make_set_beams_to_default([constants.AOM_BEAMS["blue_imaging_delivery"]]),
         )
         self.delivery_beam_setter: SetBeamsToDefaults
 
