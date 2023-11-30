@@ -176,6 +176,7 @@ class NarrowbandRedMOTFrag(Fragment):
         Advances the timeline by the duration of the phases + the final hold
         time.
         """
+        self.red_beam_controller.stop_ramping_red()
         self.narrow_red_capture_phase.do_phase()
         self.narrow_red_compression_phase.do_phase()
 
