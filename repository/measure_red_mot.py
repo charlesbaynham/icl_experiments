@@ -5,6 +5,7 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
+from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
@@ -152,9 +153,17 @@ class MeasureNarrowbandMOTFrag(_RedMOTBase):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+
         self._from_start_to_end_of_broadband_mot()
-        self.red_mot.transition_broadband_to_narrowband()
-        self._expand_and_image()
+
+        narrowband_duration = self.red_mot.get_total_narrowband_duration()
+
+        with parallel:
+            with sequential:
+                delay(narrowband_duration)
+                self._expand_and_image()
+
+            self.red_mot.transition_broadband_to_narrowband()
 
 
 # class MeasureBBRedMOTExpansionFrag(_BroadbandBase):
