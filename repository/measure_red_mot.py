@@ -23,7 +23,7 @@ from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 logger = logging.getLogger(__name__)
 
 
-class MeasureBBRedMOTFrag(ExpFragment):
+class _RedMOTBase(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.core: Core
@@ -113,15 +113,15 @@ class MeasureBBRedMOTFrag(ExpFragment):
         return super().host_setup()
 
     @kernel
-    def run_once(self):
+    def _from_start_to_end_of_broadband_mot(self):
         self.blue_3d_mot.load_mot(clearout=True)
-
         self.blue_3d_mot.turn_off_3d_and_2d_beams()
         self.red_mot.start_red_broadband()
         delay(self.red_broadband_time.get())
 
+    @kernel
+    def _expand_and_image(self):
         self.red_mot.red_beam_controller.turn_off_mot_beams()
-
         delay(self.expansion_time.get())
 
         with parallel:
@@ -138,6 +138,26 @@ class MeasureBBRedMOTFrag(ExpFragment):
         # Save the photos
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
+
+    @kernel
+    def run_once(self):
+        self._from_start_to_end_of_broadband_mot()
+        self._expand_and_image()
+
+
+class MeasureBBRedMOTFrag(_RedMOTBase):
+    @kernel
+    def run_once(self):
+        self._from_start_to_end_of_broadband_mot()
+        self._expand_and_image()
+
+
+class MeasureNarrowbandMOTFrag(_RedMOTBase):
+    @kernel
+    def run_once(self):
+        self._from_start_to_end_of_broadband_mot()
+        self.red_mot.transition_broadband_to_narrowband()
+        self._expand_and_image()
 
 
 # class MeasureBBRedMOTExpansionFrag(_BroadbandBase):
