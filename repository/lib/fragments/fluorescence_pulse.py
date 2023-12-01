@@ -6,6 +6,8 @@ from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.models import SUServoedBeam
@@ -106,3 +108,41 @@ class MOTBeamFluorescencePulse(FluorescencePulseBase):
         constants.AOM_BEAMS["blue_3dmot_axialplus"],
         constants.AOM_BEAMS["blue_3dmot_radial"],
     ]
+
+
+class ToggleableFluorescencePulse(Fragment):
+    """
+    Use either the blue MOT beams or the dedicated imaging beam for
+    fluorescence, controllable by a parameter
+    """
+
+    def build_fragment(self, *args, **kwargs) -> None:
+        self.setattr_fragment("imaging_beam", ImagingFluorescencePulse)
+        self.setattr_fragment("mot_beams", MOTBeamFluorescencePulse)
+        self.imaging_beam: FluorescencePulseBase
+        self.mot_beams: FluorescencePulseBase
+
+        # Rebind the pulse durations so they are both controlled from this fragment
+        self.setattr_param_like("flourescence_pulse_duration", self.imaging_beam)
+        self.bind_param("flourescence_pulse_duration", self.imaging_beam)
+        self.bind_param("flourescence_pulse_duration", self.mot_beams)
+
+        self.setattr_param(
+            "image_with_mot_beams",
+            BoolParam,
+            "Image with MOT beams instead of fluorescence beam",
+            default=False,
+        )
+        self.image_with_mot_beams: BoolParamHandle
+
+    @kernel
+    def do_imaging_pulse(self):
+        """
+        Do an imaging pulse with the requested beams. Camera control is left to the user.
+
+        Advances the timeline by `flourescence_pulse_duration`.
+        """
+        if self.image_with_mot_beams:
+            self.mot_beams.do_imaging_pulse()
+        else:
+            self.imaging_beam.do_imaging_pulse()

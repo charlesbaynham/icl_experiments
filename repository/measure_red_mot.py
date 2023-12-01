@@ -17,8 +17,7 @@ from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
-from repository.lib.fragments.fluorescence_pulse import MOTBeamFluorescencePulse
+from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 
 logger = logging.getLogger(__name__)
@@ -45,14 +44,8 @@ class _RedMOTBase(ExpFragment):
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
 
-        # Set up two imaging pulse fragments for using the MOT beam or the
-        # imaging beam. We'll only use one, according to the value of
-        # `image_with_mot_beams`
-        self.setattr_fragment("fluorescence_pulse_imaging", ImagingFluorescencePulse)
-        self.fluorescence_pulse_imaging: ImagingFluorescencePulse
-
-        self.setattr_fragment("fluorescence_pulse_mot", MOTBeamFluorescencePulse)
-        self.fluorescence_pulse_mot: ImagingFluorescencePulse
+        self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
+        self.fluorescence_pulse: ToggleableFluorescencePulse
 
         # %% Params
 
@@ -65,14 +58,6 @@ class _RedMOTBase(ExpFragment):
             unit="us",
         )
         self.expansion_time: FloatParamHandle
-
-        self.setattr_param(
-            "image_with_mot_beams",
-            BoolParam,
-            "Image with MOT beams instead of fluorescence beam",
-            default=False,
-        )
-        self.image_with_mot_beams: BoolParamHandle
 
         # %% Rebound params
 
@@ -104,14 +89,6 @@ class _RedMOTBase(ExpFragment):
             self.red_mot,
         )
         self.red_broadband_time: FloatParamHandle
-
-    def host_setup(self):
-        if self.image_with_mot_beams.get():
-            self.fluorescence_pulse = self.fluorescence_pulse_mot
-        else:
-            self.fluorescence_pulse = self.fluorescence_pulse_imaging
-
-        return super().host_setup()
 
     @kernel
     def _from_start_to_end_of_broadband_mot(self):
