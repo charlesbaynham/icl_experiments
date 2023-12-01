@@ -146,7 +146,7 @@ class ToggleableFluorescencePulse(Fragment):
 
         Advances the timeline by `flourescence_pulse_duration`.
         """
-        if self.image_with_mot_beams:
+        if self.image_with_mot_beams.get():
             self.mot_beams.do_imaging_pulse()
         else:
             self.imaging_beam.do_imaging_pulse()
