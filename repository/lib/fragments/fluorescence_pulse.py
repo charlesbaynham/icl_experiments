@@ -139,6 +139,17 @@ class ToggleableFluorescencePulse(Fragment):
         )
         self.image_with_mot_beams: BoolParamHandle
 
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "image_with_mot_beams_invariant",
+        }
+
+    def host_setup(self):
+        # Optimization - bools cannot be scanned, so bake it in as a kernel invariant
+        self.image_with_mot_beams_invariant = self.image_with_mot_beams.get()
+        return super().host_setup()
+
     @kernel
     def do_imaging_pulse(self):
         """
