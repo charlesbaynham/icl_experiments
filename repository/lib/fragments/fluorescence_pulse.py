@@ -124,11 +124,11 @@ class ToggleableFluorescencePulse(Fragment):
 
         # Rebind the pulse durations so they are both controlled from this fragment
         self.setattr_param_like("flourescence_pulse_duration", self.imaging_beam)
-        self.bind_param(
-            "flourescence_pulse_duration", self.imaging_beam.flourescence_pulse_duration
+        self.imaging_beam.bind_param(
+            "flourescence_pulse_duration", self.flourescence_pulse_duration
         )
-        self.bind_param(
-            "flourescence_pulse_duration", self.mot_beams.flourescence_pulse_duration
+        self.mot_beams.bind_param(
+            "flourescence_pulse_duration", self.flourescence_pulse_duration
         )
 
         self.setattr_param(
