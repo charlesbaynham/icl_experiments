@@ -17,13 +17,28 @@ class TestGrabber(EnvExperiment):
         )
         self.num: int
 
+        self.setattr_argument(
+            "roi_x1", NumberValue(default=1, precision=0, scale=1, step=1)
+        )
+        self.setattr_argument(
+            "roi_x2", NumberValue(default=1, precision=0, scale=1, step=1)
+        )
+        self.setattr_argument(
+            "roi_y1", NumberValue(default=1, precision=0, scale=1, step=1)
+        )
+        self.setattr_argument(
+            "roi_y2", NumberValue(default=1, precision=0, scale=1, step=1)
+        )
+
     @kernel
     def run(self):
         self.core.reset()
 
         # Setup all grabber ROIs
         for i in range(0, 16):
-            self.grabber0.setup_roi(i, 138, 148, 263, 350)
+            self.grabber0.setup_roi(
+                i, self.roi_x1, self.roi_y1, self.roi_x2, self.roi_y2
+            )
 
         delay(1.0)
 
