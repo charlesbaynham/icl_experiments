@@ -20,9 +20,6 @@ from dataclasses import dataclass
 from pyaion.models import SUServoedBeam
 
 
-# from pyaion.models import SUServoedBeam # FIXME
-
-
 IJD_AOMS = {
     "red_IJD1_controller": (
         "urukul9910_aom_doublepass_689_red_injection",

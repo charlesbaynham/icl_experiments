@@ -18,7 +18,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
+from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 
 logger = logging.getLogger(__name__)
 
@@ -145,8 +145,8 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         )
         self.expansion_time: FloatParamHandle
 
-        self.setattr_fragment("fluorescence_pulse", FluorescencePulse)
-        self.fluorescence_pulse: FluorescencePulse
+        self.setattr_fragment("fluorescence_pulse", ImagingFluorescencePulse)
+        self.fluorescence_pulse: ImagingFluorescencePulse
 
         super().build_fragment()
 

@@ -1,4 +1,6 @@
 import logging
+from typing import List
+from typing import Optional
 
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
@@ -6,6 +8,7 @@ from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.models import SUServoedBeam
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beam_setters import make_set_beams_to_default
@@ -17,15 +20,22 @@ from repository.lib.fragments.beam_setters import ToggleListOfBeams
 logger = logging.getLogger(__name__)
 
 
-class FluorescencePulse(Fragment):
+class FluorescencePulseBase(Fragment):
     """
-    Pulse the imaging beam onto the atoms
+    Pulse a beam onto the atoms
+
+    This must be subclassed to specify which beam you want
     """
 
-    beam_infos = [constants.AOM_BEAMS["blue_imaging_switch"]]
-    "By default, use the imaging beam switch AOM"
+    beam_infos: Optional[List[SUServoedBeam]] = None
+    "List of SUServoedBeam objects to use as fluorescence pulses. Must be provided by subclasses"
 
     def build_fragment(self) -> None:
+        if self.beam_infos is None:
+            raise TypeError(
+                "Do not use this class directly - you must subclass it and provide a list of beam_infos"
+            )
+
         _ImagingBeamsToggler = make_toggle_list_of_beams(self.beam_infos)
         _ImagingBeamsSetter = make_set_beams_to_default(self.beam_infos)
 
@@ -78,7 +88,19 @@ class FluorescencePulse(Fragment):
         self.all_beam_toggler.turn_off_beams()
 
 
-class MOTBeamFluorescencePulse(FluorescencePulse):
+class ImagingFluorescencePulse(FluorescencePulseBase):
+    """
+    Control a fluorescence pulse with the dedicated imaging beam
+    """
+
+    beam_infos = [constants.AOM_BEAMS["blue_imaging_switch"]]
+
+
+class MOTBeamFluorescencePulse(FluorescencePulseBase):
+    """
+    Control a fluorescence pulse with the blue MOT beams
+    """
+
     beam_infos = [
         constants.AOM_BEAMS["blue_3dmot_axialminus"],
         constants.AOM_BEAMS["blue_3dmot_axialplus"],

@@ -17,7 +17,7 @@ from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
+from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 from repository.lib.fragments.fluorescence_pulse import MOTBeamFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 
@@ -48,11 +48,11 @@ class _RedMOTBase(ExpFragment):
         # Set up two imaging pulse fragments for using the MOT beam or the
         # imaging beam. We'll only use one, according to the value of
         # `image_with_mot_beams`
-        self.setattr_fragment("fluorescence_pulse_imaging", FluorescencePulse)
-        self.fluorescence_pulse_imaging: FluorescencePulse
+        self.setattr_fragment("fluorescence_pulse_imaging", ImagingFluorescencePulse)
+        self.fluorescence_pulse_imaging: ImagingFluorescencePulse
 
         self.setattr_fragment("fluorescence_pulse_mot", MOTBeamFluorescencePulse)
-        self.fluorescence_pulse_mot: FluorescencePulse
+        self.fluorescence_pulse_mot: ImagingFluorescencePulse
 
         # %% Params
 

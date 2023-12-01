@@ -16,7 +16,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.fluorescence_pulse import FluorescencePulse
+from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import RampingRedPhase
 from repository.lib.fragments.red_beam_controller import RedBeamController
