@@ -8,8 +8,6 @@ from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import BoolParam
-from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -19,6 +17,7 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
+from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +146,14 @@ class MeasureNarrowbandMOTFrag(_RedMOTBase):
 
 class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
     def build_fragment(self):
+        # Set this frag up first, so that later fragments' device_setup override it
+        self.setattr_fragment(
+            "red_axial_minus",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_689_red_mot_sigmaminus",
+        )
+        self.red_axial_minus: LibSetSUServoStatic
+
         super().build_fragment()
 
         self.setattr_param(
@@ -198,7 +205,7 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                     self.spectroscopy_pulse_aom_detuning.get()
                 )
                 delay(self.expansion_time.get())
-                self.red_mot.red_beam_controller.turn_on_mot_beams(ignore_shutters=True)
+                self.red_axial_minus.set_channel_state(True, True)
                 delay(self.spectroscopy_pulse_time.get())
                 self.red_mot.red_beam_controller.turn_off_mot_beams()
 
