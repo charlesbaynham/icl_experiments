@@ -174,6 +174,14 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         )
         self.spectroscopy_pulse_aom_detuning: FloatParamHandle
 
+        self.setattr_param(
+            "spectroscopy_pulse_aom_intensity",
+            FloatParam,
+            "Intensity of spectroscopy pulse, in multiples of nominal intensity",
+            default=1.0,
+        )
+        self.spectroscopy_pulse_aom_intensity: FloatParamHandle
+
     @kernel
     def run_once(self):
         narrowband_duration = self.red_mot.get_total_narrowband_duration()
@@ -203,6 +211,9 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                 self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
                 self.red_mot.red_beam_controller.set_mot_detuning(
                     self.spectroscopy_pulse_aom_detuning.get()
+                )
+                self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
+                    self.spectroscopy_pulse_aom_intensity.get()
                 )
                 delay(self.expansion_time.get())
                 self.red_axial_minus.set_channel_state(True, True)
