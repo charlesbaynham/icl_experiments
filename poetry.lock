@@ -2653,7 +2653,9 @@ misoc = {git = "https://github.com/m-labs/misoc.git"}
 ndscan = {git = "https://github.com/OxfordIonTrapGroup/ndscan.git"}
 numpy = "^1.26.0"
 pydantic = "1.10.2"
-pyqt5 = "^5.15.9"
+pyqt5 = "5.15.9"
+pyqt5-qt5 = "5.15.2"
+pyqt5-sip = "12.12.2"
 requests = "^2.31.0"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 toptica-lasersdk = "^3.1.1"
@@ -2662,7 +2664,7 @@ toptica-lasersdk = "^3.1.1"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
 reference = "poetry-again"
-resolved_reference = "e4978aa43753b5004ec55ea93a0b9e458dbb1ee6"
+resolved_reference = "5ac2cce410faf807ad5480170efff0fc58202364"
 
 [[package]]
 name = "pycairo"
