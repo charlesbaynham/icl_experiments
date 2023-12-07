@@ -46,7 +46,7 @@ class IJDSettings:
 
 
 IJD_DEFAULTS = {
-    "blue_IJD1_controller": IJDSettings(8400, 353e-3, 343e-3, 3e-3),
+    "blue_IJD1_controller": IJDSettings(8600, 353e-3, 345e-3, 3e-3),
     "blue_IJD2_controller": IJDSettings(8800, 353e-3, 343e-3, 3e-3),
     "blue_IJD3_controller": IJDSettings(9000, 353e-3, 343e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(6300, 71.0e-3, 65.0e-3, 3e-3),
