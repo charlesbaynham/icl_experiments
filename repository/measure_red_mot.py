@@ -206,10 +206,10 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         self.red_mot.red_beam_controller.turn_off_mot_beams()
         with parallel:
             self.fluorescence_pulse.do_imaging_pulse()
-            # self.andor_camera_control.trigger(control_shutter=True)
-            # self.camera_interface.trigger()
+            self.andor_camera_control.trigger(control_shutter=True)
+            self.camera_interface.trigger()
 
-        # self._save_data()
+        self._save_data()
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
