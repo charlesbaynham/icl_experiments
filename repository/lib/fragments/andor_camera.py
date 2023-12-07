@@ -168,13 +168,11 @@ class AndorCameraControl(Fragment):
         Will consume all slack and break_realtime.
         """
         # Get data
-        data = [0]  # FIXME
-        # self.grabber.input_mu(data)  # TODO: Add a timeout to Grabber code
+        data = [0]
+        self.grabber.input_mu(data)  # TODO: Add a timeout to Grabber code
 
         # Disable the ROI again
         self.core.break_realtime()
         self.grabber.gate_roi(0x00)
 
-        # self.andor_roi_sum.push(data[0])  # FIXME
-
-        self.andor_roi_sum.push(0.0)
+        self.andor_roi_sum.push(data[0])
