@@ -51,8 +51,7 @@ class TestGrabber(EnvExperiment):
 
         # get data
         data = [0] * self.num
-        for i in range(self.num):
-            self.grabber0.input_mu(data[i : i + 1])
+        self.grabber0.input_mu(data)
 
         # Disable the ROI again
         self.core.break_realtime()
