@@ -104,10 +104,10 @@ class AndorCameraControl(Fragment):
         # Setup one grabber ROI
         self.grabber.setup_roi(
             0,
+            self.roi_x0.get(),
+            self.roi_y0.get(),
             self.roi_x1.get(),
             self.roi_y1.get(),
-            self.roi_x2.get(),
-            self.roi_y2.get(),
         )
 
     @kernel
