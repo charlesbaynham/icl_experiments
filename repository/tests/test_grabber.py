@@ -6,20 +6,18 @@ from artiq.language import MHz
 from artiq.language import ms
 from artiq.language import ns
 from artiq.language import us
+from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.result_channels import FloatChannel
 
 
-class TestGrabber(EnvExperiment):
-    def build(self):
+class TestGrabber(ExpFragment):
+    def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
         self.setattr_device("grabber0")
         self.grabber0: Grabber
-
-        self.setattr_argument(
-            "num", NumberValue(default=1, precision=0, scale=1, step=1)
-        )
-        self.num: int
 
         self.setattr_argument(
             "roi_x1", NumberValue(default=1, precision=0, scale=1, step=1)
@@ -34,23 +32,23 @@ class TestGrabber(EnvExperiment):
             "roi_y2", NumberValue(default=1, precision=0, scale=1, step=1)
         )
 
+        self.setattr_result("sum", FloatChannel)
+        self.sum: FloatChannel
+
     @kernel
-    def run(self):
+    def run_once(self):
         self.core.reset()
 
-        # Setup all grabber ROIs
-        for i in range(0, 16):
-            self.grabber0.setup_roi(
-                i, self.roi_x1, self.roi_y1, self.roi_x2, self.roi_y2
-            )
+        # Setup one grabber ROI
+        self.grabber0.setup_roi(0, self.roi_x1, self.roi_y1, self.roi_x2, self.roi_y2)
 
-        delay(1.0)
+        delay(10e-6)
 
         # Turn grabber ROI 0 on
         self.grabber0.gate_roi(0x01)
 
         # get data
-        data = [0] * self.num
+        data = [0]
         self.grabber0.input_mu(data)
 
         # Disable the ROI again
@@ -58,8 +56,11 @@ class TestGrabber(EnvExperiment):
         self.grabber0.gate_roi(0x00)
 
         self.core.reset()
-        for i in range(self.num):
-            print(data[i])
+
+        self.sum.push(data[0])
+
+
+TestGrabber = make_fragment_scan_exp(TestGrabber)
 
 
 class FrameGrabberExample(EnvExperiment):
