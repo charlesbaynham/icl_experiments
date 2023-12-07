@@ -115,6 +115,7 @@ class _RedMOTBase(ExpFragment):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
+        self.andor_camera_control.save_data()
 
 
 class MeasureBBRedMOTFrag(_RedMOTBase):

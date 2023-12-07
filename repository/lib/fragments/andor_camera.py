@@ -1,30 +1,18 @@
 import logging
-import time
-from typing import Dict
-from typing import List
-from typing import Tuple
-from typing import Type
-from typing import TYPE_CHECKING
 
-import numpy as np
 from artiq.coredevice.core import Core
+from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
-from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import portable
-from artiq.experiment import rpc
 from artiq.experiment import TBool
-from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
-from ndscan.experiment.result_channels import IntChannel
-from ndscan.experiment.result_channels import OpaqueChannel
-from numpy.typing import ArrayLike
 
 from repository.lib import constants
 
@@ -44,8 +32,14 @@ class AndorCameraControl(Fragment):
         self.setattr_device("core")
         self.core: Core
 
+        self.setattr_device("grabber0")
+        self.grabber: Grabber = self.grabber0
+
         self.ttl_trigger: TTLOut = self.get_device("ttl_camera_trigger_andor")
         self.ttl_shutter: TTLOut = self.get_device("ttl_shutter_andor")
+
+        self.setattr_result("andor_roi_sum", FloatChannel)
+        self.andor_roi_sum: FloatChannel
 
         # %% Params
 
@@ -58,6 +52,29 @@ class AndorCameraControl(Fragment):
             min=0.0,
         )
         self.shutter_delay: FloatParamHandle
+
+        self.setattr_param(
+            "roi_x0",
+            IntParam,
+            "Grabber ROI x0",
+            default=constants.ANDOR_ROI_X0,
+            min=0,
+            max=512,
+        )
+        self.setattr_param_like(
+            "roi_x1", self, "roi_x0", default=constants.ANDOR_ROI_X1
+        )
+        self.setattr_param_like(
+            "roi_y0", self, "roi_x0", default=constants.ANDOR_ROI_Y0
+        )
+        self.setattr_param_like(
+            "roi_y1", self, "roi_x0", default=constants.ANDOR_ROI_Y1
+        )
+
+        self.roi_x0: FloatParamHandle
+        self.roi_x1: FloatParamHandle
+        self.roi_y0: FloatParamHandle
+        self.roi_y1: FloatParamHandle
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
@@ -84,6 +101,15 @@ class AndorCameraControl(Fragment):
         delay(self.core.coarse_ref_period)
         self.ttl_trigger.output()
 
+        # Setup one grabber ROI
+        self.grabber.setup_roi(
+            0,
+            self.roi_x1.get(),
+            self.roi_y1.get(),
+            self.roi_x2.get(),
+            self.roi_y2.get(),
+        )
+
     @kernel
     def device_cleanup(self) -> None:
         self.device_cleanup_subfragments()
@@ -108,13 +134,17 @@ class AndorCameraControl(Fragment):
         """
         Trigger an aquisition
 
-        For now, you must manually set up the camera to respond to triggers and
-        store the data yourself.
+        For now, you must manually set up the camera to respond to external triggers.
+
+        You should call :meth:`~.save_data` to read out the configured ROI at the end of your sequence.
 
         If control_shutter == True, open the shutter <shutter_delay> in advance and then close if afterwards.
 
         TODO: Finish Andor fragment to fully control camera, including readout
         """
+
+        # Turn grabber ROI 0 on
+        self.grabber.gate_roi(0x01)
 
         if control_shutter:
             shutter_delay_mu = self.core.seconds_to_mu(self.shutter_delay.get())
@@ -126,3 +156,23 @@ class AndorCameraControl(Fragment):
 
         if control_shutter:
             self.ttl_shutter.off()
+
+    @kernel
+    def save_data(self):
+        """
+        Save data retrieved by Grabber
+
+        Must be run at the end of the sequence. Will block forever if no data
+        was taken, i.e. if the camera was set up incorrectly
+
+        Will consume all slack and break_realtime.
+        """
+        # Get data
+        data = [0]
+        self.grabber.input_mu(data)  # TODO: Add a timeout to Grabber code
+
+        # Disable the ROI again
+        self.core.break_realtime()
+        self.grabber.gate_roi(0x00)
+
+        self.andor_roi_sum.push(data[0])
