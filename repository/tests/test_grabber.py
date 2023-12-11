@@ -19,6 +19,8 @@ class TestGrabber(ExpFragment):
         self.setattr_device("grabber0")
         self.grabber0: Grabber
 
+        self.setattr_device("ttl_camera_trigger_andor")
+
         self.setattr_argument(
             "roi_x1", NumberValue(default=1, precision=0, scale=1, step=1)
         )
@@ -46,6 +48,9 @@ class TestGrabber(ExpFragment):
 
         # Turn grabber ROI 0 on
         self.grabber0.gate_roi(0x01)
+
+        # camera trigger
+        self.ttl_camera_trigger_andor.pulse(10 * us)
 
         # get data
         data = [0]
