@@ -41,6 +41,9 @@ class TestGrabberTimeout(ExpFragment):
         self.setattr_result("sum", FloatChannel)
         self.sum: FloatChannel
 
+        self.setattr_result("timestamp", FloatChannel, display_hints={"priority": -1})
+        self.timestamp: FloatChannel
+
     @kernel
     def input_timeout_mu(self, grabber, data, timeout_mu: TInt64):
         """
@@ -70,6 +73,8 @@ class TestGrabberTimeout(ExpFragment):
                 raise OutOfSyncException
             data[i] = roi_output
 
+        return timestamp
+
     @kernel
     def run_once(self):
         self.core.reset()
@@ -98,6 +103,7 @@ class TestGrabberTimeout(ExpFragment):
         self.core.reset()
 
         self.sum.push(data[0])
+        self.timestamp.push(timestamp)
 
 
 TestGrabberTimeout = make_fragment_scan_exp(TestGrabberTimeout)
