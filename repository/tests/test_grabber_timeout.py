@@ -5,6 +5,7 @@ from artiq.coredevice.rtio import rtio_input_data
 from artiq.coredevice.rtio import rtio_input_timestamped_data
 from artiq.experiment import *
 from artiq.experiment import delay
+from artiq.experiment import now_mu
 from artiq.language import MHz
 from artiq.language import ms
 from artiq.language import ns
@@ -86,7 +87,9 @@ class TestGrabberTimeout(ExpFragment):
 
         # get data
         data = [0]
-        self.input_timeout_mu(self.grabber0, data, self.core.seconds_to_mu(1.0))
+        self.input_timeout_mu(
+            self.grabber0, data, now_mu() + self.core.seconds_to_mu(1.0)
+        )
 
         # Disable the ROI again
         self.core.break_realtime()
