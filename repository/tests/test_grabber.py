@@ -70,6 +70,8 @@ TestGrabber = make_fragment_scan_exp(TestGrabber)
 
 class FrameGrabberExample(EnvExperiment):
     """
+    FrameGrabberExample
+
     Copied from https://github.com/m-labs/artiq/issues/1369
     """
 
