@@ -64,7 +64,7 @@ class TestGrabberTimeout(ExpFragment):
         for i in range(len(data)):
             timestamp, roi_output = rtio_input_timestamped_data(timeout_mu, channel)
             if timestamp == -1:
-                raise TimeoutError
+                raise RuntimeError
             if roi_output == grabber.sentinel:
                 raise OutOfSyncException
             data[i] = roi_output
@@ -86,7 +86,7 @@ class TestGrabberTimeout(ExpFragment):
 
         # get data
         data = [0]
-        self.grabber0.input_timeout_mu(self.grabber0, data)
+        self.input_timeout_mu(self.grabber0, data, self.core.seconds_to_mu(1.0))
 
         # Disable the ROI again
         self.core.break_realtime()
@@ -97,42 +97,4 @@ class TestGrabberTimeout(ExpFragment):
         self.sum.push(data[0])
 
 
-TestGrabber = make_fragment_scan_exp(TestGrabber)
-
-
-class FrameGrabberExample(EnvExperiment):
-    """
-    Copied from https://github.com/m-labs/artiq/issues/1369
-    """
-
-    def build(self):
-        self.setattr_device("core")
-        self.setattr_device("grabber0")
-        self.setattr_device("ttl_camera_trigger_andor")
-
-    @kernel
-    def run(self):
-        rois = [[227, 237, 237, 247], [247, 237, 257, 247]]
-        mask = 0
-        self.core.reset()
-        for i in range(len(rois)):
-            x0 = rois[i][0]
-            y0 = rois[i][1]
-            x1 = rois[i][2]
-            y1 = rois[i][3]
-            mask |= 1 << i
-            self.grabber0.setup_roi(i, x0, y0, x1, y1)
-        n = [0] * len(rois)
-
-        self.ttl_camera_trigger_andor.pulse(10 * us)  # camera trigger
-        delay(20 * ms)
-        self.grabber0.gate_roi(mask)
-        self.ttl_camera_trigger_andor.pulse(10 * us)  # camera trigger
-
-        self.grabber0.input_mu(n)
-
-        self.core.break_realtime()
-        self.grabber0.gate_roi(0)
-
-        print("ROI sums:", n)
-        print("ROI mask:", mask)
+TestGrabberTimeout = make_fragment_scan_exp(TestGrabberTimeout)
