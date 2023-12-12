@@ -49,9 +49,9 @@ class DisplayInjectionMonitors(ExpFragment):
 
         # Define result channels as outputs
         self.setattr_result("blue_1")
-        self.setattr_result("blue_2")
-        self.setattr_result("blue_3")
-        self.setattr_result("red_1")
+        self.setattr_result("blue_2", display_hints={"share_pane_with": "blue_1"})
+        self.setattr_result("blue_3", display_hints={"share_pane_with": "blue_1"})
+        self.setattr_result("red_1", display_hints={"share_pane_with": "blue_1"})
         self.voltage: ResultChannel
 
     @kernel
