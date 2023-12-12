@@ -2,6 +2,11 @@
   inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=poetry-again";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
+  # FIXME: Go back to pyaion artiq
+  inputs.alt_artiq.url = "github:charlesbaynham/artiq/grabber_timeout";
+  inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.pyaion.inputs.artiq.follows = "alt_artiq";
+
   outputs = { self, nixpkgs, flake-utils, pyaion, ... }:
     flake-utils.lib.eachSystem [ "x86_64-linux" ]
       (system:
