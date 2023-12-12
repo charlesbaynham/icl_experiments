@@ -28,7 +28,7 @@ class InputTimeout(EnvExperiment):
 
         # This should timeout since there's no input
         timestamp, data = rtio_input_timestamped_data(
-            np.int64(timeout_mu), self.channel
+            now_mu() + np.int64(timeout_mu), self.channel
         )
 
         print(timestamp)
