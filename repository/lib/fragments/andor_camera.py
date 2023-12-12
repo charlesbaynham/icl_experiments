@@ -40,6 +40,11 @@ class AndorCameraControl(Fragment):
         self.setattr_result("andor_roi_sum", FloatChannel)
         self.andor_roi_sum: FloatChannel
 
+        self.setattr_result(
+            "andor_roi_mean", FloatChannel, display_hints={"priority": -1}
+        )
+        self.andor_roi_mean: FloatChannel
+
         # %% Params
 
         self.setattr_param(
@@ -187,3 +192,10 @@ class AndorCameraControl(Fragment):
         self.grabber.gate_roi(0x00)
 
         self.andor_roi_sum.push(data[0])
+        area = (self.roi_x1.get() - self.roi_x0.get()) * (
+            self.roi_y1.get() - self.roi_y0.get()
+        )
+        if area == 0:
+            self.andor_roi_mean.push(0)
+        else:
+            self.andor_roi_mean.push(data[0] / area)
