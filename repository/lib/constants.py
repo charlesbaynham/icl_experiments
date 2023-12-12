@@ -123,10 +123,10 @@ ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
 
 # The Andor camera has a sensor size of 512x512
-ANDOR_ROI_X0 = 0
-ANDOR_ROI_X1 = 511
-ANDOR_ROI_Y0 = 0
-ANDOR_ROI_Y1 = 511
+ANDOR_ROI_X0 = 400
+ANDOR_ROI_X1 = 500
+ANDOR_ROI_Y0 = 200
+ANDOR_ROI_Y1 = 400
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
