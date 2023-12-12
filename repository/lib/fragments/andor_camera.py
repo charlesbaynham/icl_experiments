@@ -61,13 +61,25 @@ class AndorCameraControl(Fragment):
             max=512,
         )
         self.setattr_param_like(
-            "roi_x1", self, "roi_x0", default=constants.ANDOR_ROI_X1
+            "roi_x1",
+            self,
+            "roi_x0",
+            default=constants.ANDOR_ROI_X1,
+            description="Grabber ROI x1",
         )
         self.setattr_param_like(
-            "roi_y0", self, "roi_x0", default=constants.ANDOR_ROI_Y0
+            "roi_y0",
+            self,
+            "roi_x0",
+            default=constants.ANDOR_ROI_Y0,
+            description="Grabber ROI y0",
         )
         self.setattr_param_like(
-            "roi_y1", self, "roi_x0", default=constants.ANDOR_ROI_Y1
+            "roi_y1",
+            self,
+            "roi_x0",
+            default=constants.ANDOR_ROI_Y1,
+            description="Grabber ROI y1",
         )
 
         self.roi_x0: FloatParamHandle
