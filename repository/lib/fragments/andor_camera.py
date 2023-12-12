@@ -11,7 +11,6 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
 
 from repository.lib import constants
@@ -158,7 +157,7 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.off()
 
     @kernel
-    def save_data(self):
+    def save_data(self, timeout_mu):
         """
         Save data retrieved by Grabber
 
@@ -169,7 +168,7 @@ class AndorCameraControl(Fragment):
         """
         # Get data
         data = [0]
-        self.grabber.input_mu(data)  # TODO: Add a timeout to Grabber code
+        self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
         # Disable the ROI again
         self.core.break_realtime()
