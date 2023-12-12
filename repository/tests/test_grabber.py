@@ -57,7 +57,10 @@ class TestGrabber(ExpFragment):
 
         # get data
         data = [0]
-        timeout_mu = now_mu() + self.core.seconds_to_mu(self.timeout)
+        if self.timeout < 0.0:
+            timeout_mu = -1
+        else:
+            timeout_mu = now_mu() + self.core.seconds_to_mu(self.timeout)
         self.grabber0.input_mu(data, timeout_mu=timeout_mu)
 
         # Disable the ROI again
