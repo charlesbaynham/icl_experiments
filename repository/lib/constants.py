@@ -26,7 +26,7 @@ IJD_AOMS = {
         340.0e6,
         0.0,
     ),
-    "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 25.0),
+    "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 20.0),
 }
 "Urukul outputs (name, freq, attenuation) required for injection locks"
 
@@ -46,7 +46,7 @@ class IJDSettings:
 
 
 IJD_DEFAULTS = {
-    "blue_IJD1_controller": IJDSettings(8400, 353e-3, 343e-3, 3e-3),
+    "blue_IJD1_controller": IJDSettings(8600, 353e-3, 345e-3, 3e-3),
     "blue_IJD2_controller": IJDSettings(8800, 353e-3, 343e-3, 3e-3),
     "blue_IJD3_controller": IJDSettings(9000, 353e-3, 343e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(6300, 71.0e-3, 65.0e-3, 3e-3),
@@ -121,6 +121,12 @@ OFFSET_ATTENUATION_689 = 7.0
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
+
+# The Andor camera has a sensor size of 512x512
+ANDOR_ROI_X0 = 0
+ANDOR_ROI_X1 = 511
+ANDOR_ROI_Y0 = 0
+ANDOR_ROI_Y1 = 511
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
