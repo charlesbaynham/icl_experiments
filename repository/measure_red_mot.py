@@ -189,35 +189,50 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
 
     @kernel
     def run_once(self):
-        narrowband_duration = self.red_mot.get_total_narrowband_duration()
+        narrowband_and_spectroscopy_duration = (
+            self.red_mot.get_total_narrowband_duration()
+            + self.expansion_time.get()
+            + self.spectroscopy_pulse_time.get()
+        )
 
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
-        self.red_mot.transition_broadband_to_narrowband()
-
-        self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.set_mot_detuning(
-            self.spectroscopy_pulse_aom_detuning.get()
-        )
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
-            self.spectroscopy_pulse_aom_intensity.get()
-        )
-        delay_mu(int64(self.core.ref_multiplier))
-        self.blue_3d_mot.turn_off_repumpers()
-
-        delay(self.expansion_time.get())
-        self.red_axial_minus.set_channel_state(True, True)
-        delay(self.spectroscopy_pulse_time.get())
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
         with parallel:
-            self.fluorescence_pulse.do_imaging_pulse()
-            self.andor_camera_control.trigger(control_shutter=True)
-            self.camera_interface.trigger()
+            # the camera requires ~120ms of slack so that it can open the
+            # shutter in time, so schedule the imaging before all the rest of
+            # the sequencing
+            with sequential:
+                delay(narrowband_and_spectroscopy_duration)
+                with parallel:
+                    self.andor_camera_control.trigger(control_shutter=True)
+                    self.camera_interface.trigger()
+                    self.fluorescence_pulse.do_imaging_pulse()
+            # With the imaging scheduled, go back and execute the narrowband
+            # stages (these are RTIO-heavy and therefore end without much slack)
+            with sequential:
+                self.red_mot.transition_broadband_to_narrowband()
+
+                self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
+                delay_mu(int64(self.core.ref_multiplier))
+                self.red_mot.red_beam_controller.turn_off_mot_beams(
+                    ignore_shutters=True
+                )
+                delay_mu(int64(self.core.ref_multiplier))
+                self.red_mot.red_beam_controller.set_mot_detuning(
+                    self.spectroscopy_pulse_aom_detuning.get()
+                )
+                delay_mu(int64(self.core.ref_multiplier))
+                self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
+                    self.spectroscopy_pulse_aom_intensity.get()
+                )
+                delay_mu(int64(self.core.ref_multiplier))
+                self.blue_3d_mot.turn_off_repumpers()
+
+                delay(self.expansion_time.get())
+                self.red_axial_minus.set_channel_state(True, True)
+                delay(self.spectroscopy_pulse_time.get())
+                self.red_mot.red_beam_controller.turn_off_mot_beams()
 
         self._save_data()
 
