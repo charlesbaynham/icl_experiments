@@ -1,6 +1,10 @@
+import logging
+
 import numpy as np
 from artiq.coredevice.rtio import rtio_input_timestamped_data
 from artiq.experiment import *
+
+logger = logging.getLogger(__name__)
 
 
 class InputTimeout(EnvExperiment):
@@ -11,16 +15,20 @@ class InputTimeout(EnvExperiment):
             "channel", NumberValue(default=0, precision=0, scale=1, step=1)
         )
         self.setattr_argument(
-            "timeout_mu", NumberValue(default=100, precision=0, scale=1, step=1)
+            "timeout", NumberValue(default=1, precision=2, scale=1, unit="s")
         )
 
     @kernel
     def run(self):
+        timeout_mu = self.core.seconds_to_mu(self.timeout)
+
+        logger.info("timeout_mu = %s", timeout_mu)
+
         self.core.reset()
 
         # This should timeout since there's no input
         timestamp, data = rtio_input_timestamped_data(
-            np.int64(self.timeout_mu), self.channel
+            np.int64(timeout_mu), self.channel
         )
 
         print(timestamp)
