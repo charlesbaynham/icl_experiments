@@ -15,7 +15,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.result_channels import FloatChannel
 
 
-class TestGrabberTimeout(ExpFragment):
+class TestGrabberTimeoutFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -106,4 +106,4 @@ class TestGrabberTimeout(ExpFragment):
         self.timestamp.push(timestamp)
 
 
-TestGrabberTimeout = make_fragment_scan_exp(TestGrabberTimeout)
+TestGrabberTimeout = make_fragment_scan_exp(TestGrabberTimeoutFrag)
