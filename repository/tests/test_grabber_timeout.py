@@ -74,7 +74,7 @@ class TestGrabberTimeoutFrag(ExpFragment):
         logger.info("Timestamp = %s, sentinel = %s", timestamp, sentinel)
 
         if timestamp == -1:
-            raise RuntimeError
+            raise RuntimeError("Timeout before Grabber frame available")
 
         if sentinel != grabber.sentinel:
             raise OutOfSyncException
@@ -86,7 +86,7 @@ class TestGrabberTimeoutFrag(ExpFragment):
         for i in range(len(data)):
             timestamp, roi_output = rtio_input_timestamped_data(timeout_mu, channel)
             if timestamp == -1:
-                raise RuntimeError
+                raise RuntimeError("Timeout reached")
             if roi_output == grabber.sentinel:
                 raise OutOfSyncException
             data[i] = roi_output
