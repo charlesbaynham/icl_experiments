@@ -28,7 +28,7 @@ class TestGrabberTimeoutFrag(ExpFragment):
         self.setattr_device("ttl_camera_trigger_andor")
 
         self.setattr_argument(
-            "timeout", NumberValue(default=100, precision=0, scale=1, step=1)
+            "timeout", NumberValue(default=100, precision=0, scale=1, step=1, unit="s")
         )
 
         self.setattr_argument(
@@ -110,7 +110,9 @@ class TestGrabberTimeoutFrag(ExpFragment):
 
         # get data
         data = [0]
-        timestamp = self.input_timeout_mu(self.grabber0, data, int64(self.timeout))
+        timestamp = self.input_timeout_mu(
+            self.grabber0, data, self.core.seconds_to_mu(self.timeout)
+        )
 
         # Disable the ROI again
         self.core.break_realtime()
