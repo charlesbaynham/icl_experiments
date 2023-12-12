@@ -1,3 +1,5 @@
+import logging
+
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.grabber import OutOfSyncException
@@ -11,6 +13,8 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.result_channels import FloatChannel
 from numpy import int64
+
+logger = logging.getLogger(__name__)
 
 
 class TestGrabberTimeoutFrag(ExpFragment):
@@ -63,11 +67,15 @@ class TestGrabberTimeoutFrag(ExpFragment):
         """
         channel = grabber.channel_base + 1
 
+        logger.info("Getting sentinel")
+
         sentinel = rtio_input_data(channel)
         if sentinel != grabber.sentinel:
             raise OutOfSyncException
 
         timestamp = -1
+
+        logger.info("Getting input data")
 
         for i in range(len(data)):
             timestamp, roi_output = rtio_input_timestamped_data(timeout_mu, channel)
