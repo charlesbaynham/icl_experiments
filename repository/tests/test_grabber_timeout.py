@@ -6,13 +6,11 @@ from artiq.coredevice.rtio import rtio_input_timestamped_data
 from artiq.experiment import *
 from artiq.experiment import delay
 from artiq.experiment import now_mu
-from artiq.language import MHz
-from artiq.language import ms
-from artiq.language import ns
 from artiq.language import us
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.result_channels import FloatChannel
+from numpy import int64
 
 
 class TestGrabberTimeoutFrag(ExpFragment):
@@ -24,6 +22,10 @@ class TestGrabberTimeoutFrag(ExpFragment):
         self.grabber0: Grabber
 
         self.setattr_device("ttl_camera_trigger_andor")
+
+        self.setattr_argument(
+            "timeout", NumberValue(default=100, precision=0, scale=1, step=1)
+        )
 
         self.setattr_argument(
             "roi_x1", NumberValue(default=1, precision=0, scale=1, step=1)
@@ -94,9 +96,7 @@ class TestGrabberTimeoutFrag(ExpFragment):
 
         # get data
         data = [0]
-        timestamp = self.input_timeout_mu(
-            self.grabber0, data, now_mu() + self.core.seconds_to_mu(1.0)
-        )
+        timestamp = self.input_timeout_mu(self.grabber0, data, int64(self.timeout))
 
         # Disable the ROI again
         self.core.break_realtime()
