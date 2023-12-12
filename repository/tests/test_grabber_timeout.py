@@ -71,6 +71,8 @@ class TestGrabberTimeoutFrag(ExpFragment):
 
         timestamp, sentinel = rtio_input_timestamped_data(timeout_mu, channel)
 
+        logger.info("Timestamp = %s, sentinel = %s", timestamp, sentinel)
+
         if timestamp == -1:
             raise RuntimeError
 
