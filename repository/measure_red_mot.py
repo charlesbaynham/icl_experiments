@@ -234,7 +234,9 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                 )
 
                 delay(self.expansion_time.get())
-                self.red_axial_minus.set_channel_state(True, True)
+                self.red_axial_minus.set_channel_state(
+                    True, False
+                )  # FIXME: suservo amplitude disabled
                 delay(self.spectroscopy_pulse_time.get())
                 self.red_mot.red_beam_controller.turn_off_mot_beams()
 
