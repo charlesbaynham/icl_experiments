@@ -228,6 +228,10 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                 )
                 delay_mu(int64(self.core.ref_multiplier))
                 self.blue_3d_mot.turn_off_repumpers()
+                delay_mu(int64(self.core.ref_multiplier))
+                self.red_axial_minus.suservo_channel.set_y(
+                    profile=self.red_axial_minus.suservo_profile, y=1.0
+                )
 
                 delay(self.expansion_time.get())
                 self.red_axial_minus.set_channel_state(True, True)
