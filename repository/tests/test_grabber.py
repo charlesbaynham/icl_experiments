@@ -2,9 +2,8 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.experiment import *
 from artiq.experiment import delay
-from artiq.language import MHz
 from artiq.language import ms
-from artiq.language import ns
+from artiq.language import now_mu
 from artiq.language import us
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -58,7 +57,7 @@ class TestGrabber(ExpFragment):
 
         # get data
         data = [0]
-        timeout_mu = self.core.seconds_to_mu(self.timeout)
+        timeout_mu = now_mu() + self.core.seconds_to_mu(self.timeout)
         self.grabber0.input_mu(data, timeout_mu=timeout_mu)
 
         # Disable the ROI again
