@@ -217,7 +217,8 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                     self.camera_interface.trigger()
 
             # This method is very RTIO heavy, so queue the other things first
-            self.red_mot.transition_broadband_to_narrowband()
+            # FIXME
+            # self.red_mot.transition_broadband_to_narrowband()
 
         self._save_data()
 
