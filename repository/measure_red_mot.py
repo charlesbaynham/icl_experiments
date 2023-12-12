@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
@@ -10,6 +11,7 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
@@ -193,19 +195,21 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         self._from_start_to_end_of_broadband_mot()
 
         self.red_mot.transition_broadband_to_narrowband()
-        t_end = self.core.get_rtio_counter_mu()
-        logger.info("Remaining slack = %s", now_mu() - t_end)
-        logger.info("Remaining slack = %ss ", self.core.mu_to_seconds(now_mu() - t_end))
 
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-        self.blue_3d_mot.turn_off_repumpers()
         self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
+        delay_mu(int64(self.core.ref_multiplier))
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.red_beam_controller.set_mot_detuning(
             self.spectroscopy_pulse_aom_detuning.get()
         )
+        delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
             self.spectroscopy_pulse_aom_intensity.get()
         )
+        delay_mu(int64(self.core.ref_multiplier))
+        self.blue_3d_mot.turn_off_repumpers()
+
         delay(self.expansion_time.get())
         self.red_axial_minus.set_channel_state(True, True)
         delay(self.spectroscopy_pulse_time.get())
