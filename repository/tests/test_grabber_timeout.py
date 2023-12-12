@@ -92,7 +92,7 @@ class TestGrabberTimeout(ExpFragment):
 
         # get data
         data = [0]
-        self.input_timeout_mu(
+        timestamp = self.input_timeout_mu(
             self.grabber0, data, now_mu() + self.core.seconds_to_mu(1.0)
         )
 
