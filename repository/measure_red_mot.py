@@ -114,7 +114,13 @@ class _RedMOTBase(ExpFragment):
     def _save_data(self):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
+
+        logger.info("FLIR cameras:")
+
         self.camera_interface.save_data()
+
+        logger.info("Andor camera:")
+
         self.andor_camera_control.save_data(
             self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
         )
