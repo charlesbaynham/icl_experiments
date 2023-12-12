@@ -192,33 +192,28 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
+        self.red_mot.transition_broadband_to_narrowband()
+        t_end = self.core.get_rtio_counter_mu()
+        logger.info("Remaining slack = %s", now_mu() - t_end)
+        logger.info("Remaining slack = %ss ", self.core.mu_to_seconds(now_mu() - t_end))
+
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        self.blue_3d_mot.turn_off_repumpers()
+        self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
+        self.red_mot.red_beam_controller.set_mot_detuning(
+            self.spectroscopy_pulse_aom_detuning.get()
+        )
+        self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
+            self.spectroscopy_pulse_aom_intensity.get()
+        )
+        delay(self.expansion_time.get())
+        self.red_axial_minus.set_channel_state(True, True)
+        delay(self.spectroscopy_pulse_time.get())
+        self.red_mot.red_beam_controller.turn_off_mot_beams()
         with parallel:
-            with sequential:
-                delay(narrowband_duration)
-
-                self.red_mot.red_beam_controller.turn_off_mot_beams(
-                    ignore_shutters=True
-                )
-                self.blue_3d_mot.turn_off_repumpers()
-                self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
-                self.red_mot.red_beam_controller.set_mot_detuning(
-                    self.spectroscopy_pulse_aom_detuning.get()
-                )
-                self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
-                    self.spectroscopy_pulse_aom_intensity.get()
-                )
-                delay(self.expansion_time.get())
-                self.red_axial_minus.set_channel_state(True, True)
-                delay(self.spectroscopy_pulse_time.get())
-                self.red_mot.red_beam_controller.turn_off_mot_beams()
-                with parallel:
-                    self.fluorescence_pulse.do_imaging_pulse()
-                    self.andor_camera_control.trigger(control_shutter=True)
-                    self.camera_interface.trigger()
-
-            # This method is very RTIO heavy, so queue the other things first
-            # FIXME
-            # self.red_mot.transition_broadband_to_narrowband()
+            self.fluorescence_pulse.do_imaging_pulse()
+            self.andor_camera_control.trigger(control_shutter=True)
+            self.camera_interface.trigger()
 
         self._save_data()
 
