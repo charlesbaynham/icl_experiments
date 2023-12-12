@@ -198,7 +198,9 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
-        self.red_mot.transition_broadband_to_narrowband()
+        # FIXME
+        # self.red_mot.transition_broadband_to_narrowband()
+
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         self.blue_3d_mot.turn_off_repumpers()
         self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
