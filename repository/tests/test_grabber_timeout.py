@@ -65,6 +65,8 @@ class TestGrabberTimeoutFrag(ExpFragment):
         if sentinel != grabber.sentinel:
             raise OutOfSyncException
 
+        timestamp = -1
+
         for i in range(len(data)):
             timestamp, roi_output = rtio_input_timestamped_data(timeout_mu, channel)
             if timestamp == -1:
