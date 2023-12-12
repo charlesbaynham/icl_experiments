@@ -161,7 +161,7 @@ class AndorCameraControl(Fragment):
         """
         Save data retrieved by Grabber
 
-        Must be run at the end of the sequence. Will block forever if no data
+        Must be run at the end of the sequence. Will block until timeout_mu if no data
         was taken, i.e. if the camera was set up incorrectly
 
         Will consume all slack and break_realtime.
