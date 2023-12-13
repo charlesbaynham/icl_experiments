@@ -17,10 +17,9 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
 from pyaion.models import SUServoedBeam
-
-from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 
 logger = logging.getLogger(__name__)

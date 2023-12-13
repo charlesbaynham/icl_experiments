@@ -12,6 +12,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
@@ -20,7 +21,6 @@ from repository.lib.fragments.cavity_control import LaserStabilisationSystem
 from repository.lib.fragments.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
-from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 
 logger = logging.getLogger(__name__)

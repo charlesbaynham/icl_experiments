@@ -16,11 +16,11 @@ from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
-from repository.lib.fragments.suservo import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
