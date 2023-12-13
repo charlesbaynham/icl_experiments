@@ -56,6 +56,8 @@ class AD9910Ramper(Fragment):
 
         This method does not pulse IO_UPDATE.
 
+        This method advances the timeline by the duration of various SPI writes.
+
         :param asf_profile_enable: Enable amplitude scale from single tone profiles.
         :param drg_enable: Digital ramp enable.
         :param no_dwell_high: Set the NO-DWELL high bit.

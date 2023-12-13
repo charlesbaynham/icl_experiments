@@ -23,6 +23,9 @@ from repository.lib.fragments.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
 
+# Time to allow for ramp SPI transaction
+RAMP_SPI_DELAY = 10e-6
+
 
 class NarrowRedCapturePhase(RampingRedPhase):
     duration_default = 50e-3
@@ -176,7 +179,9 @@ class NarrowbandRedMOTFrag(Fragment):
         Advances the timeline by the duration of the phases + the final hold
         time.
         """
-        self.red_beam_controller.stop_ramping_red()
+        with parallel:
+            self.red_beam_controller.stop_ramping_red()
+            delay(RAMP_SPI_DELAY)  # Constant delay > SPI write duration
         self.narrow_red_capture_phase.do_phase()
         self.narrow_red_compression_phase.do_phase()
 
@@ -202,6 +207,7 @@ class NarrowbandRedMOTFrag(Fragment):
         "Get the duration of all the narrowband stages"
         return (
             self.narrow_red_capture_phase.duration.get()
+            + RAMP_SPI_DELAY
             + self.narrow_red_compression_phase.duration.get()
             + self.final_narrow_hold_time.get()
         )
