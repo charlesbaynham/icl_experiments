@@ -190,60 +190,51 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
 
     @kernel
     def run_once(self):
-        narrowband_and_spectroscopy_duration = (
-            self.red_mot.get_total_narrowband_duration()
-            + self.expansion_time.get()
-            + self.spectroscopy_pulse_time.get()
-        )
-
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
+        # The camera shutter needs ~120ms to open, so start this at the
+        # beginning of the red stages. If the total red mot sequence takes less
+        # time than this then we'll have problems
+        delay(-self.red_broadband_time.get())
+        self.andor_camera_control.set_shutter(True)
+        delay(+self.red_broadband_time.get())
+
+        self.red_mot.transition_broadband_to_narrowband()
+
+        self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
+        delay_mu(int64(self.core.ref_multiplier))
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        delay_mu(int64(self.core.ref_multiplier))
+        self.red_mot.red_beam_controller.set_mot_detuning(
+            self.spectroscopy_pulse_aom_detuning.get()
+        )
+        delay_mu(int64(self.core.ref_multiplier))
+        self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
+            self.spectroscopy_pulse_aom_intensity.get()
+        )
+        delay_mu(int64(self.core.ref_multiplier))
+        self.blue_3d_mot.turn_off_repumpers()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.red_axial_minus.suservo_channel.set_y(
+            profile=self.red_axial_minus.suservo_profile, y=1.0
+        )
+
+        delay(self.expansion_time.get())
+
+        self.red_axial_minus.set_channel_state(
+            True, False
+        )  # FIXME: suservo amplitude disabled
+        delay(self.spectroscopy_pulse_time.get())
+        self.red_mot.red_beam_controller.turn_off_mot_beams()
+
+        # Image immediately
         with parallel:
-            # the camera requires ~120ms of slack so that it can open the
-            # shutter in time, so schedule the imaging before all the rest of
-            # the sequencing
+            self.andor_camera_control.trigger(control_shutter=False)
+            self.camera_interface.trigger()
             with sequential:
-                delay(narrowband_and_spectroscopy_duration)
-                with parallel:
-                    self.andor_camera_control.trigger(control_shutter=True)
-                    self.camera_interface.trigger()
-                    self.fluorescence_pulse.do_imaging_pulse()
-            # With the imaging scheduled, go back and execute the narrowband
-            # stages (these are RTIO-heavy and therefore end without much slack)
-            with sequential:
-                self.red_mot.transition_broadband_to_narrowband()
-
-                t_end_narrowband_mu = now_mu()
-
-                self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
-                delay_mu(int64(self.core.ref_multiplier))
-                self.red_mot.red_beam_controller.turn_off_mot_beams(
-                    ignore_shutters=True
-                )
-                delay_mu(int64(self.core.ref_multiplier))
-                self.red_mot.red_beam_controller.set_mot_detuning(
-                    self.spectroscopy_pulse_aom_detuning.get()
-                )
-                delay_mu(int64(self.core.ref_multiplier))
-                self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
-                    self.spectroscopy_pulse_aom_intensity.get()
-                )
-                delay_mu(int64(self.core.ref_multiplier))
-                self.blue_3d_mot.turn_off_repumpers()
-                delay_mu(int64(self.core.ref_multiplier))
-                self.red_axial_minus.suservo_channel.set_y(
-                    profile=self.red_axial_minus.suservo_profile, y=1.0
-                )
-
-                at_mu(t_end_narrowband_mu)
-                delay(self.expansion_time.get())
-
-                self.red_axial_minus.set_channel_state(
-                    True, False
-                )  # FIXME: suservo amplitude disabled
-                delay(self.spectroscopy_pulse_time.get())
-                self.red_mot.red_beam_controller.turn_off_mot_beams()
+                self.fluorescence_pulse.do_imaging_pulse()
+                self.andor_camera_control.set_shutter(False)
 
         self._save_data()
 
