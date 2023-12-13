@@ -250,6 +250,8 @@ class RampingRedPhase(Fragment):
         Advances the timeline to the end of the ramp
         """
 
+        t_end_mu = now_mu() + self.core.seconds_to_mu(self.duration.get())
+
         # It's nicer to use handles here instead of string lookup.
         # Unfortunately, the DMA handle changes whenever another DMA sequence is
         # recorded, so this Fragment can't handle the case that another Fragment
@@ -260,3 +262,7 @@ class RampingRedPhase(Fragment):
             self.core_dma.playback_handle(self.dma_handle)
         else:
             self.core_dma.playback(self.fqn)
+
+        # Ensure that the timeline points to the end of the phase, not just the
+        # final RTIO point
+        at_mu(t_end_mu)
