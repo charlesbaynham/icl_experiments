@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -213,6 +214,8 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
             with sequential:
                 self.red_mot.transition_broadband_to_narrowband()
 
+                t_end_narrowband_mu = now_mu()
+
                 self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
                 delay_mu(int64(self.core.ref_multiplier))
                 self.red_mot.red_beam_controller.turn_off_mot_beams(
@@ -233,7 +236,9 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                     profile=self.red_axial_minus.suservo_profile, y=1.0
                 )
 
+                at_mu(t_end_narrowband_mu)
                 delay(self.expansion_time.get())
+
                 self.red_axial_minus.set_channel_state(
                     True, False
                 )  # FIXME: suservo amplitude disabled
