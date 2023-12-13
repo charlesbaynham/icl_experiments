@@ -2663,8 +2663,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "poetry-again"
-resolved_reference = "5ac2cce410faf807ad5480170efff0fc58202364"
+reference = "HEAD"
+resolved_reference = "b2c72139d099ae2cb5be09425f9897c6de47c3ba"
 
 [[package]]
 name = "pycairo"
@@ -4327,4 +4327,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "b809f2296cff9263dbb576f65c3c37dc388c17f0e162f278b3fcf2086c1bf643"
+content-hash = "07284caec5e09b79aafe84694d45e7e42fdcbe2d1ff48f7ed29ae25aab68926f"
