@@ -181,12 +181,14 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         self.spectroscopy_pulse_aom_detuning: FloatParamHandle
 
         self.setattr_param(
-            "spectroscopy_pulse_aom_intensity",
+            "spectroscopy_pulse_aom_amplitude",
             FloatParam,
-            "Intensity of spectroscopy pulse, in multiples of nominal intensity",
+            "Amplitude of delivery AOM during spectroscopy pulse. SUServoing is disabled",
             default=1.0,
+            min=0.0,
+            max=1.0,
         )
-        self.spectroscopy_pulse_aom_intensity: FloatParamHandle
+        self.spectroscopy_pulse_aom_amplitude: FloatParamHandle
 
     @kernel
     def run_once(self):
@@ -210,21 +212,16 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
             self.spectroscopy_pulse_aom_detuning.get()
         )
         delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.set_mot_suservo_amplitude(
-            self.spectroscopy_pulse_aom_intensity.get()
-        )
-        delay_mu(int64(self.core.ref_multiplier))
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_axial_minus.suservo_channel.set_y(
-            profile=self.red_axial_minus.suservo_profile, y=1.0
+            profile=self.red_axial_minus.suservo_profile,
+            y=self.spectroscopy_pulse_aom_amplitude.get(),
         )
 
         delay(self.expansion_time.get())
 
-        self.red_axial_minus.set_channel_state(
-            True, False
-        )  # FIXME: suservo amplitude disabled
+        self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
