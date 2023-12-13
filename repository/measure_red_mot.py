@@ -190,6 +190,15 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         )
         self.spectroscopy_pulse_aom_amplitude: FloatParamHandle
 
+        self.setattr_param(
+            "delay_after_spectroscopy",
+            FloatParam,
+            "Delay after spectroscopy before imaging",
+            default=6e-6,
+            unit="us",
+        )
+        self.delay_after_spectroscopy: FloatParamHandle
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -225,7 +234,8 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
         delay(self.spectroscopy_pulse_time.get())
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
-        # Image immediately
+        delay(self.delay_after_spectroscopy.get())
+
         with parallel:
             self.andor_camera_control.trigger(control_shutter=False)
             self.camera_interface.trigger()
