@@ -9,6 +9,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -198,6 +199,20 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
             unit="us",
         )
         self.delay_after_spectroscopy: FloatParamHandle
+
+    def get_default_analyses(self):
+        return [
+            OnlineFit(
+                "sinusoid",
+                data={
+                    "x": self.spectroscopy_pulse_time,
+                    "y": self.andor_camera_control.andor_roi_mean,
+                },
+                constants={
+                    "t_dead": 0,
+                },
+            )
+        ]
 
     @kernel
     def run_once(self):
