@@ -206,12 +206,22 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                 "sinusoid",
                 data={
                     "x": self.spectroscopy_pulse_time,
+                    "y": self.andor_camera_control.andor_roi_sum,
+                },
+                constants={
+                    "t_dead": 0,
+                },
+            ),
+            OnlineFit(
+                "sinusoid",
+                data={
+                    "x": self.spectroscopy_pulse_time,
                     "y": self.andor_camera_control.andor_roi_mean,
                 },
                 constants={
                     "t_dead": 0,
                 },
-            )
+            ),
         ]
 
     @kernel
