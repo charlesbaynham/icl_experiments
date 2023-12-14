@@ -36,7 +36,7 @@ descending order of importance:
   `ndscan <https://github.com/OxfordIonTrapGroup/ndscan>`__. This allows us to handle
    complexity without giving up deep control of our experiments.
 
-#. This repository uses mach-nix to handle python dependencies. Compared to
+#. This repository uses poetry2nix to handle python dependencies. Compared to
    plain nix, this give us dependency resolution, the ability to specify version
    constraints and the option to use newer / older versions of packages than
    would otherwise be available in nixpkgs.
@@ -77,27 +77,30 @@ descending order of importance:
    as a GitPod project, your environment will be pre-built for you for instant
    startup.
 
-#. **(Not implemented yet)** *ARTIQ experiments are importable with
+#. ARTIQ experiments are importable with
    absolute paths. Our ARTIQ fork includes an early merge of
    https://github.com/m-labs/artiq/pull/1805, enabling import of
    “repository” folder in this repository,
    e.g. ``from repository.mot import Load2DMot``. This makes your code
    more explicit and allows IDEs to provide code suggestions
-   automatically.*
+   automatically.
 
 Updates
 =======
 
-To update to the latest version of all packages, use::
+To update to the latest version of pyaion / artiq, use::
 
    nix run .#update
 
 This will update both nix and poetry inputs, keeping them in sync.
 
-If you just want to update e.g. pyaion, run::
+If you just want to your python packages, run::
 
-   nix flake lock --update-input pyaion
-   poetry update pyaion
+   poetry update
+
+or e.g. to update just one::
+
+   poetry update numpy
 
 
 Contributing
@@ -205,23 +208,19 @@ to `master`, as well as compiled into a pdf (downloadable from the pipeline).
 To preview documentation locally, run `nix run .#docs` to launch a webserver at
 http://127.0.0.1:8000.
 
-Other features
-==============
+To-do list
+==========
 
-This repository is set up with features to help you maintain a healthy codebase
-with a minimum of effort. The following features exist, and were set up
-automatically by `pypackage template
-<https://gitlab.com/aion-physics/code/pypackage-template>`_ (using this template
-to set up later packages, e.g. for specific device drivers, will ensure
-compatibility between all AION code, as well as encouraging some python best
-practices).
+This repository uses the convention that to-do items are marked with the string
+"TODO". Temporary bodges which should be not be left in the code for longer than
+a few hours are marked with "FIXME".
 
-This is an opinionated template - feel free to remove / change any of these
-features as you prefer!
+You can use e.g. the "TodoTree" extension to extract a list of these.
 
-See the documentation for `pypackage template
-<https://gitlab.com/aion-physics/code/pypackage-template>`_ for details of
-these.
+Here are some which don't fit into obvious locations in the code:
+
+TODO: Merge camera imaging so that only one applet is created per camera
+
 
 Authors
 =======
