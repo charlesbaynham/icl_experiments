@@ -13,18 +13,18 @@
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1702380594,
-        "narHash": "sha256-fPlSDS/blD8NG4AGv8UA0AUE/0QWFiFZBr0jixX+5oQ=",
-        "owner": "charlesbaynham",
-        "repo": "artiq",
-        "rev": "a74da87a49c522508133246d3abde8b3c71e8503",
-        "type": "github"
+        "lastModified": 1702563811,
+        "narHash": "sha256-qKDyct15VCmzsXebZyyQTa3aRKUstg7cOf1QOF7VGFQ=",
+        "ref": "icl",
+        "rev": "b4108a20a39a613ae1f5044c07d5142ad7b843ba",
+        "revCount": 8626,
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
       "original": {
-        "owner": "charlesbaynham",
-        "ref": "grabber_timeout",
-        "repo": "artiq",
-        "type": "github"
+        "ref": "icl",
+        "type": "git",
+        "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       }
     },
     "artiq-comtools": {

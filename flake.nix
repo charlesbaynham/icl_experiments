@@ -3,7 +3,7 @@
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # FIXME: Go back to pyaion artiq
-  inputs.alt_artiq.url = "github:charlesbaynham/artiq/grabber_timeout";
+  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=icl";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
