@@ -122,11 +122,12 @@ OFFSET_ATTENUATION_689 = 7.0
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
 
-# The Andor camera has a sensor size of 512x512
-ANDOR_ROI_X0 = 400
-ANDOR_ROI_X1 = 500
-ANDOR_ROI_Y0 = 200
-ANDOR_ROI_Y1 = 400
+# The Andor camera has a sensor size of 512x512. These are only true for EM gain
+# mode! It's different in conventional gain mode
+ANDOR_ROI_X0 = 74
+ANDOR_ROI_X1 = 98
+ANDOR_ROI_Y0 = 198
+ANDOR_ROI_Y1 = 224
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
