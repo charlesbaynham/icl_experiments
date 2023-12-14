@@ -130,7 +130,7 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
         with parallel:
             self.andor_camera_control.trigger(
                 exposure=self.fluorescence_pulse.flourescence_pulse_duration.get(),
-                control_shutter=True,
+                control_shutter=False,
             )
             self.camera_interface.trigger()
             with sequential:
