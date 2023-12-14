@@ -129,7 +129,7 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
 
         with parallel:
             self.andor_camera_control.trigger(
-                exposure=self.fluorescence_pulse.flourescence_pulse_duration.get(),
+                exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
                 control_shutter=False,
             )
             self.camera_interface.trigger()
@@ -198,7 +198,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         with parallel:
             andor_exposure = (
-                2 * self.fluorescence_pulse.flourescence_pulse_duration.get()
+                2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
                 + self.delay_between_fluoresence_pulses.get()
             )
             self.andor_camera_control.trigger(

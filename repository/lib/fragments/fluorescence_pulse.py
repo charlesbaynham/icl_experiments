@@ -44,14 +44,14 @@ class FluorescencePulseBase(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        # Accept a list of SUServoedBeams describing which beams to flash for the flourescence
+        # Accept a list of SUServoedBeams describing which beams to flash for the fluorescence
         self.setattr_fragment("all_beam_default_setter", _ImagingBeamsSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment("all_beam_toggler", _ImagingBeamsToggler)
         self.all_beam_toggler: ToggleListOfBeams
 
-        # Also set up the flourescence delivery AOM, regardless of which beams we're flashing
+        # Also set up the fluorescence delivery AOM, regardless of which beams we're flashing
         self.setattr_fragment(
             "delivery_beam_setter",
             make_set_beams_to_default([constants.AOM_BEAMS["blue_imaging_delivery"]]),
@@ -59,14 +59,14 @@ class FluorescencePulseBase(Fragment):
         self.delivery_beam_setter: SetBeamsToDefaults
 
         self.setattr_param(
-            "flourescence_pulse_duration",
+            "fluorescence_pulse_duration",
             FloatParam,
             "Duration of the imaging pulse",
             default=constants.DEFAULT_IMAGING_PULSE,
             unit="us",
             min=0,
         )
-        self.flourescence_pulse_duration: FloatParamHandle
+        self.fluorescence_pulse_duration: FloatParamHandle
 
     @kernel
     def device_setup(self) -> None:
@@ -83,10 +83,10 @@ class FluorescencePulseBase(Fragment):
         """
         Do an imaging pulse. Camera control is left to the user.
 
-        Advances the timeline by `flourescence_pulse_duration`.
+        Advances the timeline by `fluorescence_pulse_duration`.
         """
         self.all_beam_toggler.turn_on_beams()
-        delay(self.flourescence_pulse_duration.get())
+        delay(self.fluorescence_pulse_duration.get())
         self.all_beam_toggler.turn_off_beams()
 
 
@@ -123,14 +123,14 @@ class ToggleableFluorescencePulse(Fragment):
         self.mot_beams: FluorescencePulseBase
 
         # Rebind the pulse durations so they are both controlled from this fragment
-        self.setattr_param_like("flourescence_pulse_duration", self.imaging_beam)
+        self.setattr_param_like("fluorescence_pulse_duration", self.imaging_beam)
         self.imaging_beam.bind_param(
-            "flourescence_pulse_duration", self.flourescence_pulse_duration
+            "fluorescence_pulse_duration", self.fluorescence_pulse_duration
         )
         self.mot_beams.bind_param(
-            "flourescence_pulse_duration", self.flourescence_pulse_duration
+            "fluorescence_pulse_duration", self.fluorescence_pulse_duration
         )
-        self.flourescence_pulse_duration: FloatParamHandle
+        self.fluorescence_pulse_duration: FloatParamHandle
 
         self.setattr_param(
             "image_with_mot_beams",
@@ -156,7 +156,7 @@ class ToggleableFluorescencePulse(Fragment):
         """
         Do an imaging pulse with the requested beams. Camera control is left to the user.
 
-        Advances the timeline by `flourescence_pulse_duration`.
+        Advances the timeline by `fluorescence_pulse_duration`.
         """
         if self.image_with_mot_beams.get():
             self.mot_beams.do_imaging_pulse()

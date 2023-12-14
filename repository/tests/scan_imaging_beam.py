@@ -26,8 +26,8 @@ class ImageBlueMOT(ExpFragment):
         )
         self.dual_cameras: DualCameraMeasurement
 
-        self.flourescence_pulse: ImagingFluorescencePulse = self.setattr_fragment(
-            "flourescence_pulse", ImagingFluorescencePulse
+        self.fluorescence_pulse: ImagingFluorescencePulse = self.setattr_fragment(
+            "fluorescence_pulse", ImagingFluorescencePulse
         )
 
         self.setattr_param(
@@ -41,8 +41,8 @@ class ImageBlueMOT(ExpFragment):
 
         # Expose some important parameters
         self.setattr_param_rebind(
-            "flourescence_pulse_duration",
-            self.flourescence_pulse,
+            "fluorescence_pulse_duration",
+            self.fluorescence_pulse,
         )
         self.setattr_param_rebind("exposure_horiz", self.dual_cameras)
         self.setattr_param_rebind("exposure_vert", self.dual_cameras)
@@ -59,7 +59,7 @@ class ImageBlueMOT(ExpFragment):
         delay(self.expansion_time.get())
 
         with parallel:
-            self.flourescence_pulse.do_imaging_pulse()
+            self.fluorescence_pulse.do_imaging_pulse()
             self.dual_cameras.trigger()
 
         self.core.wait_until_mu(now_mu())

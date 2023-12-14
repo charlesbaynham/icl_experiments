@@ -107,7 +107,7 @@ class RedMOTBase(ExpFragment):
 
         with parallel:
             self.andor_camera_control.trigger(
-                exposure=self.fluorescence_pulse.flourescence_pulse_duration.get(),
+                exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
                 control_shutter=True,
             )
             self.fluorescence_pulse.do_imaging_pulse()
