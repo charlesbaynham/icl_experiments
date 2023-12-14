@@ -7,6 +7,7 @@ from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import TBool
+from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -16,8 +17,6 @@ from ndscan.experiment.result_channels import FloatChannel
 from repository.lib import constants
 
 logger = logging.getLogger(__name__)
-
-ANDOR_TRIGGER_LENGTH = 1.0e-6
 
 
 class AndorCameraControl(Fragment):
@@ -146,7 +145,7 @@ class AndorCameraControl(Fragment):
         self.ttl_shutter.set_o(state)
 
     @kernel
-    def trigger(self, control_shutter=False):
+    def trigger(self, exposure: TFloat, control_shutter=False):
         """
         Trigger an aquisition
 
@@ -168,7 +167,7 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.on()
             delay_mu(shutter_delay_mu)
 
-        self.ttl_trigger.pulse(ANDOR_TRIGGER_LENGTH)
+        self.ttl_trigger.pulse(exposure)
 
         if control_shutter:
             self.ttl_shutter.off()

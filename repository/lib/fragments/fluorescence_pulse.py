@@ -130,6 +130,7 @@ class ToggleableFluorescencePulse(Fragment):
         self.mot_beams.bind_param(
             "flourescence_pulse_duration", self.flourescence_pulse_duration
         )
+        self.flourescence_pulse_duration: FloatParamHandle
 
         self.setattr_param(
             "image_with_mot_beams",
