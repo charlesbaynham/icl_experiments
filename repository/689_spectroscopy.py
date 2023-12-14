@@ -138,7 +138,6 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
                 exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
                 control_shutter=False,
             )
-            self.camera_interface.trigger()
             with sequential:
                 self.fluorescence_pulse.do_imaging_pulse()
                 self.andor_camera_control.set_shutter(False)
