@@ -203,7 +203,7 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
     def get_default_analyses(self):
         return [
             OnlineFit(
-                "sinusoid",
+                "decaying_sinusoid",
                 data={
                     "x": self.spectroscopy_pulse_time,
                     "y": self.andor_camera_control.andor_roi_sum,
@@ -213,7 +213,7 @@ class MeasureRedMOTSpectroscopyFrag(_RedMOTBase):
                 },
             ),
             OnlineFit(
-                "sinusoid",
+                "decaying_sinusoid",
                 data={
                     "x": self.spectroscopy_pulse_time,
                     "y": self.andor_camera_control.andor_roi_mean,
