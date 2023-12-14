@@ -221,3 +221,4 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
 
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
+BlowAwayMOT = make_fragment_scan_exp(BlowAwayMOTFrag)
