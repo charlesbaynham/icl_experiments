@@ -95,7 +95,13 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
-        # The camera shutter needs ~120ms to open, so start this at the
+        # The FLIR cameras are not useful for the final imaging, so use them to
+        # image the blue MOT instead
+        delay(-self.red_broadband_time.get() - 10e-3)
+        self.camera_interface.trigger()
+        delay(+self.red_broadband_time.get() + 10e-3)
+
+        # The Andor camera shutter needs ~120ms to open, so start this at the
         # beginning of the red stages. If the total red mot sequence takes less
         # time than this then we'll have problems
         delay(-self.red_broadband_time.get())
