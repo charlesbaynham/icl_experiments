@@ -220,6 +220,8 @@ You can use e.g. the "TodoTree" extension to extract a list of these.
 Here are some which don't fit into obvious locations in the code:
 
 TODO: Merge camera imaging so that only one applet is created per camera
+TODO: Figure out how to not broadcast massive ndscan datasets to every client
+TODO: Blow away atoms in spectroscopy sequence, and reimage the remaining ones
 
 
 Authors
