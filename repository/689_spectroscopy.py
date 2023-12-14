@@ -213,8 +213,9 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
             with sequential:
                 self.fluorescence_pulse.do_imaging_pulse()
-                delay(self.delay_between_fluoresence_pulses.get())
-                self.fluorescence_pulse.do_imaging_pulse()
+                # FIXME
+                # delay(self.delay_between_fluoresence_pulses.get())
+                # self.fluorescence_pulse.do_imaging_pulse()
                 self.andor_camera_control.set_shutter(False)
 
         self._save_data()
