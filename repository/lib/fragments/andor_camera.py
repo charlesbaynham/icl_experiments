@@ -3,7 +3,6 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import TBool
@@ -13,6 +12,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.result_channels import FloatChannel
+from numpy import int64
 
 from repository.lib import constants
 
@@ -104,12 +104,13 @@ class AndorCameraControl(Fragment):
         self.core.break_realtime()
 
         self.ttl_shutter.off()
-        delay(self.core.coarse_ref_period)
+        delay_mu(int64(self.core.ref_multiplier))
         self.ttl_trigger.off()
-        delay(self.core.coarse_ref_period)
+        delay_mu(int64(self.core.ref_multiplier))
         self.ttl_shutter.output()
-        delay(self.core.coarse_ref_period)
+        delay_mu(int64(self.core.ref_multiplier))
         self.ttl_trigger.output()
+        delay_mu(int64(self.core.ref_multiplier))
 
         # Setup one grabber ROI
         self.grabber.setup_roi(
@@ -119,6 +120,9 @@ class AndorCameraControl(Fragment):
             self.roi_x1.get(),
             self.roi_y1.get(),
         )
+
+        # Turn grabber ROI 0 on
+        self.grabber.gate_roi(0x01)
 
     @kernel
     def device_cleanup(self) -> None:
@@ -150,9 +154,6 @@ class AndorCameraControl(Fragment):
 
         If control_shutter == True, open the shutter <shutter_delay> in advance and then close if afterwards.
         """
-
-        # Turn grabber ROI 0 on
-        self.grabber.gate_roi(0x01)
 
         if control_shutter:
             shutter_delay_mu = self.core.seconds_to_mu(self.shutter_delay.get())
