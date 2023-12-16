@@ -195,4 +195,5 @@ class AndorCameraControl(Fragment):
                 means[i] = data[0] / area
 
         # Disable the ROI
+        self.core.break_realtime()
         self.grabber.gate_roi(0x00)
