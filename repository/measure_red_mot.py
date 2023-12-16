@@ -151,7 +151,13 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
 
             self.red_mot.transition_broadband_to_narrowband()
 
-        self._save_data()
+        # Save 2x Andor pics
+        self.core.wait_until_mu(now_mu())
+        self.camera_interface.save_data()
+        for _ in range(2):
+            self.andor_camera_control.save_data(
+                self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
+            )
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
