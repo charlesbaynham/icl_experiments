@@ -23,7 +23,10 @@ class AndorCameraControl(Fragment):
     """
     Control the Andor camera and associated shutters / triggers
 
-    For now, just open the shutter and trigger - readout and setup is done manually on the Windows lab PC.
+    This Fragment handles triggering and readout (via Grabber). Setup is not yet
+    controlled.
+
+    TODO: Add Andor camera parameter control
     """
 
     def build_fragment(self):
@@ -146,8 +149,6 @@ class AndorCameraControl(Fragment):
         You should call :meth:`~.save_data` to read out the configured ROI at the end of your sequence.
 
         If control_shutter == True, open the shutter <shutter_delay> in advance and then close if afterwards.
-
-        TODO: Finish Andor fragment to fully control camera, including readout
         """
 
         # Turn grabber ROI 0 on
