@@ -9,6 +9,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatChannel
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -93,6 +94,11 @@ class RedMOTBase(ExpFragment):
         )
         self.red_broadband_time: FloatParamHandle
 
+        self.setattr_result("andor_sum", FloatChannel)
+        self.setattr_result("andor_mean", FloatChannel)
+        self.andor_sum: FloatChannel
+        self.andor_mean: FloatChannel
+
     @kernel
     def _from_start_to_end_of_broadband_mot(self):
         self.blue_3d_mot.load_mot(clearout=True)
@@ -129,6 +135,8 @@ class RedMOTBase(ExpFragment):
             means,
             timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
         )
+        self.andor_sum.push(sums[0])
+        self.andor_mean.push(means[0])
 
 
 class MeasureBBRedMOTFrag(RedMOTBase):
@@ -155,15 +163,7 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
 
             self.red_mot.transition_broadband_to_narrowband()
 
-        # Save 2x Andor pics
-        self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
-
-        sums = [0, 0]
-        means = [0.0, 0.0]
-        self.andor_camera_control.readout_images(
-            sums, means, self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
-        )
+        self._save_data()
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)

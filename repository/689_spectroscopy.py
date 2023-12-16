@@ -3,8 +3,10 @@ import logging
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
+from ndscan.experiment import FloatChannel
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -72,7 +74,7 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
                 "decaying_sinusoid",
                 data={
                     "x": self.spectroscopy_pulse_time,
-                    "y": self.andor_camera_control.andor_roi_sum,
+                    "y": self.andor_mean,
                 },
                 constants={
                     "t_dead": 0,
@@ -82,7 +84,7 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
                 "decaying_sinusoid",
                 data={
                     "x": self.spectroscopy_pulse_time,
-                    "y": self.andor_camera_control.andor_roi_mean,
+                    "y": self.andor_sum,
                 },
                 constants={
                     "t_dead": 0,
@@ -158,6 +160,14 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         )
         self.delay_between_fluoresence_pulses: FloatParamHandle
 
+        self.setattr_result("andor_sum_2", FloatChannel)
+        self.setattr_result("andor_mean_2", FloatChannel)
+        self.andor_sum_2: FloatChannel
+        self.andor_mean_2: FloatChannel
+
+        self.setattr_result("excitation_fraction", FloatChannel)
+        self.excitation_fraction: FloatChannel
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -230,7 +240,23 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
             self.andor_camera_control.set_shutter(False)
 
-        self._save_data()
+        # Save blue MOT pics
+        self.core.wait_until_mu(now_mu())
+        self.camera_interface.save_data()
+
+        # Save 2x Andor pics
+        sums = [0, 0]
+        means = [0.0, 0.0]
+        self.andor_camera_control.readout_images(
+            sums, means, self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
+        )
+
+        self.andor_sum.push(sums[0])
+        self.andor_sum_2.push(sums[1])
+        self.andor_mean.push(means[0])
+        self.andor_mean_2.push(means[1])
+
+        self.excitation_fraction.push(means[1] / (means[0] + means[1]))
 
 
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
