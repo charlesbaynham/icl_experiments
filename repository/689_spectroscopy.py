@@ -207,7 +207,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
+        self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
 
         delay(self.delay_after_spectroscopy.get())
 
@@ -259,6 +259,10 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.andor_mean_2.push(means[1])
 
         self.excitation_fraction.push(means[1] / (means[0] + means[1]))
+
+        # TODO: Move this closing of red mot shutters somewhere more sensible
+        self.core.break_realtime()
+        self.red_mot.red_beam_controller.turn_off_mot_beams()
 
 
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
