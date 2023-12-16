@@ -211,19 +211,14 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         delay(self.delay_after_spectroscopy.get())
 
-        # andor_exposure = (
-        #     2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-        #     + self.delay_between_fluoresence_pulses.get()
-        # )
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
-        # FIXME
-        # delay(-0.5 * andor_exposure)
-        # self.andor_camera_control.trigger(
-        #     exposure=andor_exposure,
-        #     control_shutter=False,
-        # )
-        # delay(0.5 * andor_exposure)
+        delay(-0.5 * andor_exposure)
+        self.andor_camera_control.trigger(
+            exposure=andor_exposure,
+            control_shutter=False,
+        )
+        delay(0.5 * andor_exposure)
         self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
         delay(self.delay_between_fluoresence_pulses.get())
@@ -234,8 +229,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
             control_shutter=False,
         )
         delay(0.5 * andor_exposure)
-        # FIXME
-        # self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
         self.andor_camera_control.set_shutter(False)
 
