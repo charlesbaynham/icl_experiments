@@ -236,7 +236,8 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
                 control_shutter=False,
             )
             delay(0.5 * andor_exposure)
-            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+            # FIXME
+            # self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
             self.andor_camera_control.set_shutter(False)
 
