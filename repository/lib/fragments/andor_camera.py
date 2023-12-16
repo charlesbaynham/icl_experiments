@@ -36,14 +36,6 @@ class AndorCameraControl(Fragment):
         self.ttl_trigger: TTLOut = self.get_device("ttl_camera_trigger_andor")
         self.ttl_shutter: TTLOut = self.get_device("ttl_shutter_andor")
 
-        self.setattr_result("andor_roi_sum", FloatChannel)
-        self.andor_roi_sum: FloatChannel
-
-        self.setattr_result(
-            "andor_roi_mean", FloatChannel, display_hints={"priority": -1}
-        )
-        self.andor_roi_mean: FloatChannel
-
         # %% Params
 
         self.setattr_param(
@@ -173,28 +165,33 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.off()
 
     @kernel
-    def save_data(self, timeout_mu):
+    def readout_images(self, sums, means, timeout_mu, num_images=1):
         """
-        Save data retrieved by Grabber
+        Read out data from camera
 
-        Must be run at the end of the sequence. Will block until timeout_mu if no data
-        was taken, i.e. if the camera was set up incorrectly
+        Must be run at the end of the sequence. Will block until timeout_mu if
+        no data was taken, i.e. if the camera was set up incorrectly
 
         Will consume all slack and break_realtime.
+
+        Sums and means must be arrays with length = num_images. They will be
+        altered with the results.
         """
-        # Get data
-        data = [0]
-        self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
-        # Disable the ROI again
-        self.core.break_realtime()
+        for i in range(num_images):
+            # Get data
+            data = [0]  # Assume 1x ROI for now
+            self.grabber.input_mu(data, timeout_mu=timeout_mu)
+
+            sums[i] = data[0]
+
+            area = (self.roi_x1.get() - self.roi_x0.get()) * (
+                self.roi_y1.get() - self.roi_y0.get()
+            )
+            if area == 0:
+                means[i] = 0.0
+            else:
+                means[i] = data[0] / area
+
+        # Disable the ROI
         self.grabber.gate_roi(0x00)
-
-        self.andor_roi_sum.push(data[0])
-        area = (self.roi_x1.get() - self.roi_x0.get()) * (
-            self.roi_y1.get() - self.roi_y0.get()
-        )
-        if area == 0:
-            self.andor_roi_mean.push(0)
-        else:
-            self.andor_roi_mean.push(data[0] / area)

@@ -122,8 +122,12 @@ class RedMOTBase(ExpFragment):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
-        self.andor_camera_control.save_data(
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
+        sums = [0]
+        means = [0.0]
+        self.andor_camera_control.readout_images(
+            sums,
+            means,
+            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
         )
 
 
@@ -154,10 +158,12 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
         # Save 2x Andor pics
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
-        for _ in range(2):
-            self.andor_camera_control.save_data(
-                self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
-            )
+
+        sums = [0, 0]
+        means = [0.0, 0.0]
+        self.andor_camera_control.readout_images(
+            sums, means, self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
+        )
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
