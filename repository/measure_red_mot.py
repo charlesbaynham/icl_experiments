@@ -94,7 +94,7 @@ class RedMOTBase(ExpFragment):
         )
         self.red_broadband_time: FloatParamHandle
 
-        self.setattr_result("andor_sum", FloatChannel)
+        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_mean", FloatChannel)
         self.andor_sum: FloatChannel
         self.andor_mean: FloatChannel
