@@ -227,6 +227,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
+        # Image gnd state atoms
         delay(-0.5 * andor_exposure)
         self.andor_camera_control.trigger(
             exposure=andor_exposure,
@@ -237,6 +238,17 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         delay(self.delay_between_fluoresence_pulses.get())
 
+        # Image excited state atoms
+        delay(-0.5 * andor_exposure)
+        self.andor_camera_control.trigger(
+            exposure=andor_exposure,
+            control_shutter=False,
+        )
+        delay(0.5 * andor_exposure)
+        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+
+        # Take background measurement
+        delay(self.delay_between_fluoresence_pulses.get())
         delay(-0.5 * andor_exposure)
         self.andor_camera_control.trigger(
             exposure=andor_exposure,
@@ -252,13 +264,12 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.camera_interface.save_data()
 
         # Save Andor data
-        sums = [0, 0]
-        means = [0.0, 0.0]
+        sums = [0] * 3
+        means = [0.0] * 3
         self.andor_camera_control.readout_ROIs(
             sums,
             means,
             self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-            num_rois=2,
         )
 
         self.andor_sum.push(sums[0])
@@ -266,7 +277,9 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.andor_mean.push(means[0])
         self.andor_mean_2.push(means[1])
 
-        self.excitation_fraction.push(means[1] / (means[0] + means[1]))
+        self.excitation_fraction.push(
+            (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
+        )
 
         # TODO: Move this closing of red mot shutters somewhere more sensible
         self.core.break_realtime()

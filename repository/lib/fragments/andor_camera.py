@@ -137,6 +137,13 @@ class AndorCameraControl(Fragment):
             self.grabber.setup_roi(
                 1,
                 constants.ANDOR_ROI_X0,
+                self.roi_x1.get(),
+                constants.ANDOR_ROI_X1,
+                self.roi_y0.get(),
+            )
+            self.grabber.setup_roi(
+                2,
+                constants.ANDOR_ROI_X0,
                 self.roi_y0.get(),
                 constants.ANDOR_ROI_X1,
                 self.roi_y1.get(),
@@ -144,7 +151,7 @@ class AndorCameraControl(Fragment):
             self.first_run = False
 
         # Turn grabber ROIs 0 and 1 on
-        self.grabber.gate_roi(0x03)
+        self.grabber.gate_roi(0x07)
 
     @kernel
     def device_cleanup(self) -> None:
@@ -192,7 +199,7 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.off()
 
     @kernel
-    def readout_ROIs(self, sums, means, timeout_mu, num_rois=1):
+    def readout_ROIs(self, sums, means, timeout_mu):
         """
         Read out data from camera
 
@@ -201,11 +208,12 @@ class AndorCameraControl(Fragment):
 
         Will consume all slack and break_realtime.
 
-        Sums and means must be arrays with length = num_rois. They will be
+        Sums and means must be arrays with length = number of ROIs. They will be
         altered with the results.
         """
 
-        if len(sums) != num_rois or len(means) != num_rois:
+        num_rois = len(sums)
+        if len(means) != num_rois:
             raise ValueError("sums and means must be arrays with length num_rois")
 
         # Get data
