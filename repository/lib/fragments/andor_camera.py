@@ -180,6 +180,9 @@ class AndorCameraControl(Fragment):
         altered with the results.
         """
 
+        if len(sums) != num_images or len(means) != num_images:
+            raise ValueError("sums and means must be arrays with length num_images")
+
         for i in range(num_images):
             # Get data
             data = [0]  # Assume 1x ROI for now
