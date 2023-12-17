@@ -127,8 +127,8 @@ class AndorCameraControl(Fragment):
 
         # FIXME: nasty hack
         if self.first_run:
-            self.grabber.setup_roi(0, 0, 0, 511, 100)
-            self.grabber.setup_roi(1, 0, 100, 511, 200)
+            self.grabber.setup_roi(0, 0, self.roi_x0.get(), 511, self.roi_x1.get())
+            self.grabber.setup_roi(1, 0, self.roi_y0.get(), 511, self.roi_y1.get())
             self.first_run = False
 
         # Turn grabber ROIs 0 and 1 on
