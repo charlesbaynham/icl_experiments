@@ -1,6 +1,6 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import *
-from ndscan.experiment import ExpFragment
+from ndscan.experiment import *
 from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
@@ -23,23 +23,25 @@ class MultipleGrabs(ExpFragment):
             unit="ms",
         )
 
+        self.setattr_param("num", IntParam, default=2, description="Num images")
+
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
 
         delay(1.0)
 
-        self.andor_interface.trigger(exposure=1e-6, control_shutter=False)
-        delay(self.delay.get())
-        self.andor_interface.trigger(exposure=1e-6, control_shutter=False)
+        for _ in range(self.num.get()):
+            self.andor_interface.trigger(exposure=1e-6, control_shutter=False)
+            delay(self.delay.get())
 
-        sums = [0, 0]
-        means = [0.0, 0.0]
+        sums = [0] * self.num.get()
+        means = [0.0] * self.num.get()
         self.andor_interface.readout_images(
             sums,
             means,
             timeout_mu=now_mu() + self.core.seconds_to_mu(1.0),
-            num_images=2,
+            num_images=self.num.get(),
         )
 
         print(sums)
