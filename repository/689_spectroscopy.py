@@ -241,7 +241,10 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         sums = [0, 0]
         means = [0.0, 0.0]
         self.andor_camera_control.readout_images(
-            sums, means, self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
+            sums,
+            means,
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+            num_images=2,
         )
 
         self.andor_sum.push(sums[0])
