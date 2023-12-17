@@ -129,7 +129,7 @@ class AndorCameraControl(Fragment):
         self.grabber.setup_roi(1, 0, 100, 511, 200)
 
         # Turn grabber ROIs 0 and 1 on
-        self.grabber.gate_roi(0x01)
+        self.grabber.gate_roi(0x03)
 
     @kernel
     def device_cleanup(self) -> None:
