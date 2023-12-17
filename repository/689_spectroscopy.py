@@ -148,6 +148,20 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
 
 
 class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
+    def get_default_analyses(self):
+        return [
+            OnlineFit(
+                "decaying_sinusoid",
+                data={
+                    "x": self.spectroscopy_pulse_time,
+                    "y": self.excitation_fraction,
+                },
+                constants={
+                    "t_dead": 0,
+                },
+            )
+        ]
+
     def build_fragment(self):
         super().build_fragment()
 
