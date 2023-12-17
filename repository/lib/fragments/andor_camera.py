@@ -112,17 +112,24 @@ class AndorCameraControl(Fragment):
         self.ttl_trigger.output()
         delay_mu(int64(self.core.ref_multiplier))
 
-        # Setup one grabber ROI
-        self.grabber.setup_roi(
-            0,
-            self.roi_x0.get(),
-            self.roi_y0.get(),
-            self.roi_x1.get(),
-            self.roi_y1.get(),
-        )
+        # # Setup one grabber ROI
+        # self.grabber.setup_roi(
+        #     0,
+        #     self.roi_x0.get(),
+        #     self.roi_y0.get(),
+        #     self.roi_x1.get(),
+        #     self.roi_y1.get(),
+        # )
 
-        # Turn grabber ROI 0 on
-        self.grabber.gate_roi(0x01)
+        # # Turn grabber ROI 0 on
+        # self.grabber.gate_roi(0x01)
+
+        # FIXME: nasty hack
+        self.grabber.setup_roi(0, 0, 0, 511, 100)
+        self.grabber.setup_roi(1, 0, 100, 511, 200)
+
+        # Turn grabber ROIs 0 and 1 on
+        self.grabber.gate_roi(0x03)
 
     @kernel
     def device_cleanup(self) -> None:
@@ -131,6 +138,9 @@ class AndorCameraControl(Fragment):
         # Ensure the camera's protective shutter is closed
         self.core.break_realtime()
         self.ttl_shutter.off()
+
+        # Disable the ROIs
+        self.grabber.gate_roi(0x00)
 
     @kernel
     def set_shutter(self, state: TBool):
@@ -167,37 +177,35 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.off()
 
     @kernel
-    def readout_images(self, sums, means, timeout_mu, num_images=1):
+    def readout_ROIs(self, sums, means, timeout_mu, num_rois=1):
         """
         Read out data from camera
 
         Must be run at the end of the sequence. Will block until timeout_mu if
-        no data was taken, i.e. if the camera was set up incorrectly
+        no data was taken, i.e. if the camera was set up incorrectly.
 
         Will consume all slack and break_realtime.
 
-        Sums and means must be arrays with length = num_images. They will be
+        Sums and means must be arrays with length = num_rois. They will be
         altered with the results.
         """
 
-        if len(sums) != num_images or len(means) != num_images:
-            raise ValueError("sums and means must be arrays with length num_images")
+        if len(sums) != num_rois or len(means) != num_rois:
+            raise ValueError("sums and means must be arrays with length num_rois")
 
-        for i in range(num_images):
-            # Get data
-            data = [0]  # Assume 1x ROI for now
-            self.grabber.input_mu(data, timeout_mu=timeout_mu)
+        # Get data
+        data = [0] * num_rois
+        self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
-            sums[i] = data[0]
+        # FIXME: assumes all ROIs have same area
+        area = (self.roi_x1.get() - self.roi_x0.get()) * (
+            self.roi_y1.get() - self.roi_y0.get()
+        )
 
-            area = (self.roi_x1.get() - self.roi_x0.get()) * (
-                self.roi_y1.get() - self.roi_y0.get()
-            )
+        for i in range(num_rois):
+            sums[i] = data[i]
+
             if area == 0:
                 means[i] = 0.0
             else:
-                means[i] = data[0] / area
-
-        # Disable the ROI
-        self.core.break_realtime()
-        self.grabber.gate_roi(0x00)
+                means[i] = data[i] / area

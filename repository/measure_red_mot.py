@@ -130,7 +130,7 @@ class RedMOTBase(ExpFragment):
         self.camera_interface.save_data()
         sums = [0]
         means = [0.0]
-        self.andor_camera_control.readout_images(
+        self.andor_camera_control.readout_ROIs(
             sums,
             means,
             timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),

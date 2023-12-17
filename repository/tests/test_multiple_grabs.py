@@ -45,11 +45,11 @@ class MultipleGrabs(ExpFragment):
 
         sums = [0] * self.num_reads.get()
         means = [0.0] * self.num_reads.get()
-        self.andor_interface.readout_images(
+        self.andor_interface.readout_ROIs(
             sums,
             means,
             timeout_mu=now_mu() + self.core.seconds_to_mu(1.0),
-            num_images=self.num_reads.get(),
+            num_rois=self.num_reads.get(),
         )
 
         print(sums)

@@ -237,22 +237,22 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
 
-        # Save 1x Andor pic
-        sums = [0]
-        means = [0.0]
-        self.andor_camera_control.readout_images(
+        # Save Andor data
+        sums = [0, 0]
+        means = [0.0, 0.0]
+        self.andor_camera_control.readout_ROIs(
             sums,
             means,
             self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-            num_images=1,
+            num_rois=2,
         )
 
         self.andor_sum.push(sums[0])
-        # self.andor_sum_2.push(sums[1])
+        self.andor_sum_2.push(sums[1])
         self.andor_mean.push(means[0])
-        # self.andor_mean_2.push(means[1])
+        self.andor_mean_2.push(means[1])
 
-        # self.excitation_fraction.push(means[1] / (means[0] + means[1]))
+        self.excitation_fraction.push(means[1] / (means[0] + means[1]))
 
         # TODO: Move this closing of red mot shutters somewhere more sensible
         self.core.break_realtime()
