@@ -88,6 +88,7 @@ class AndorCameraControl(Fragment):
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        self.first_run = True
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -125,8 +126,10 @@ class AndorCameraControl(Fragment):
         # self.grabber.gate_roi(0x01)
 
         # FIXME: nasty hack
-        self.grabber.setup_roi(0, 0, 0, 511, 100)
-        self.grabber.setup_roi(1, 0, 100, 511, 200)
+        if self.first_run:
+            self.grabber.setup_roi(0, 0, 0, 511, 100)
+            self.grabber.setup_roi(1, 0, 100, 511, 200)
+            self.first_run = False
 
         # Turn grabber ROIs 0 and 1 on
         self.grabber.gate_roi(0x03)
