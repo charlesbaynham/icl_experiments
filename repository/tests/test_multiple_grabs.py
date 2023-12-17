@@ -27,6 +27,8 @@ class MultipleGrabs(ExpFragment):
     def run_once(self) -> None:
         self.core.break_realtime()
 
+        delay(1.0)
+
         self.andor_interface.trigger(exposure=1e-6, control_shutter=False)
         delay(self.delay.get())
         self.andor_interface.trigger(exposure=1e-6, control_shutter=False)
