@@ -124,11 +124,8 @@ ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-# FIXME: Hack camera ROI
-# ANDOR_ROI_X0 = 74
-# ANDOR_ROI_X1 = 98
-ANDOR_ROI_X0 = 0
-ANDOR_ROI_X1 = 86
+ANDOR_ROI_X0 = 74
+ANDOR_ROI_X1 = 98
 ANDOR_ROI_Y0 = 198
 ANDOR_ROI_Y1 = 224
 
