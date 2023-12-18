@@ -376,7 +376,8 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
     @kernel
     def before_start_hook(self):
         self.core.break_realtime()
-        self.up_beam_default_setter.turn_on_all(light_enabled=False)
+        # FIXME
+        # self.up_beam_default_setter.turn_on_all(light_enabled=False)
 
     @kernel
     def setup_spectroscopy_beam_before_expansion(self):
