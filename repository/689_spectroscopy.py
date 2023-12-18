@@ -1,5 +1,6 @@
 import logging
 
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -204,6 +205,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
         delay_mu(int64(self.core.ref_multiplier))
+        t_light_off_mu = now_mu()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.red_beam_controller.set_mot_detuning(
@@ -217,6 +219,9 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
             y=self.spectroscopy_pulse_aom_amplitude.get(),
         )
 
+        # Ensure that the expansion time isn't affected by durations of SPI
+        # transfers etc.
+        at_mu(t_light_off_mu)
         delay(self.expansion_time.get())
 
         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
