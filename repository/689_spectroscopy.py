@@ -360,13 +360,6 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
         self.up_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment(
-            "up_beam_toggler",
-            ControlBeamsWithoutCoolingAOM,
-            beam_infos=[constants.AOM_BEAMS["red_up"]],
-        )
-        self.up_beam_toggler: ControlBeamsWithoutCoolingAOM
-
-        self.setattr_fragment(
             "up_beam_suservo",
             LibSetSUServoStatic,
             constants.AOM_BEAMS["red_up"].suservo_device,
@@ -375,22 +368,24 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
 
     @kernel
     def before_start_hook(self):
+        # Enable the Up beam with default settings, but turn off the AOM and open the shutter
         self.core.break_realtime()
-        # FIXME
-        # self.up_beam_default_setter.turn_on_all(light_enabled=False)
-
-    @kernel
-    def setup_spectroscopy_beam_before_expansion(self):
+        self.up_beam_default_setter.turn_on_all(light_enabled=True)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
         self.up_beam_suservo.suservo_channel.set_y(
             profile=self.up_beam_suservo.suservo_profile,
             y=self.spectroscopy_pulse_aom_amplitude.get(),
         )
 
     @kernel
+    def setup_spectroscopy_beam_before_expansion(self):
+        pass
+
+    @kernel
     def do_spectroscopy_pulse(self):
-        self.up_beam_toggler.turn_beams_on()
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
-        self.up_beam_toggler.turn_beams_off()
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)

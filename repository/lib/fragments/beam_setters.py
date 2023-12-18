@@ -137,12 +137,13 @@ class SetBeamsToDefaults(Fragment):
         """
         Turn on the pre-configured beams to their default values
 
-        If `light_enabled == False` and a shutter is present, close the shutter and enable the AOM.
+        If `light_enabled == False` and a shutter is present, close the shutter
+        and enable the AOM.
 
         If `light_enabled == False` and no shutter is present, disable the AOM.
 
-        This method does not advance the timeline and does not respect shutter
-        delays - it just turns everything on immediately.
+        This method does not respect shutter delays - it just turns everything
+        on immediately.
 
         This method advances the timeline by the time required to perform
         several suservo writes and ttl updates separated by 8mu each
