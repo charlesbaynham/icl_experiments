@@ -23,14 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
-    def build_fragment(self):
-        # Set this frag up first, so that later fragments' device_setup override it
+    def setup_spectroscopy_subfrag(self):
         self.setattr_fragment(
             "red_axial_minus",
             LibSetSUServoStatic,
             "suservo_aom_singlepass_689_red_mot_sigmaminus",
         )
         self.red_axial_minus: LibSetSUServoStatic
+
+    def build_fragment(self):
+        # Set this frag up first, so that later fragments' device_setup override it
+        self.setup_spectroscopy_subfrag()
 
         super().build_fragment()
 
@@ -253,19 +256,15 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         delay_mu(int64(self.core.ref_multiplier))
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
-        self.red_axial_minus.suservo_channel.set_y(
-            profile=self.red_axial_minus.suservo_profile,
-            y=self.spectroscopy_pulse_aom_amplitude.get(),
-        )
+
+        self.setup_spectroscopy_beam_before_expansion()
 
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
         delay(self.expansion_time.get())
 
-        self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
-        delay(self.spectroscopy_pulse_time.get())
-        self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
+        self.do_spectroscopy_pulse()
 
         delay(self.delay_after_spectroscopy.get())
 
@@ -327,6 +326,19 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         # TODO: Move this closing of red mot shutters somewhere more sensible
         self.core.break_realtime()
         self.red_mot.red_beam_controller.turn_off_mot_beams()
+
+    @kernel
+    def setup_spectroscopy_beam_before_expansion(self):
+        self.red_axial_minus.suservo_channel.set_y(
+            profile=self.red_axial_minus.suservo_profile,
+            y=self.spectroscopy_pulse_aom_amplitude.get(),
+        )
+
+    @kernel
+    def do_spectroscopy_pulse(self):
+        self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(self.spectroscopy_pulse_time.get())
+        self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
