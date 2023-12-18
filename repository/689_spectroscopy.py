@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
     def setup_spectroscopy_subfrag(self):
-        logger.warning("In MeasureRedMOTSpectroscopyFrag")
         self.setattr_fragment(
             "red_axial_minus",
             LibSetSUServoStatic,
@@ -346,8 +345,6 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
 class UpBeamBlowawayFrag(BlowAwayMOTFrag):
     def setup_spectroscopy_subfrag(self):
-        logger.warning("In BlowAwayMOTFrag")
-
         class _UpBeamSetter(SetBeamsToDefaults):
             default_beam_infos = [constants.AOM_BEAMS["red_up"]]
 
