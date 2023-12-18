@@ -420,7 +420,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
     def do_spectroscopy_pulse(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
         phase_constant = (
-            10.0  # Stolen from BHam - no idea why we would want this but I'm debugging
+            0.0  # Stolen from BHam - no idea why we would want this but I'm debugging
         )
 
         # Set frequency and offset manually so we can control the phase
