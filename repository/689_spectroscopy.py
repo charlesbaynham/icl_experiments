@@ -409,6 +409,9 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         )
         self.phase_step_for_pi_pulse: FloatParamHandle
 
+        # Kernel vars
+        self.up_beam_aom_freq = constants.AOM_BEAMS["red_up"].frequency
+
     @kernel
     def do_spectroscopy_pulse(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
@@ -416,7 +419,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         # Set frequency and offset manually so we can control the phase
         self.up_beam_suservo.suservo_channel.set_dds(
             profile=self.up_beam_suservo.suservo_profile,
-            frequency=constants.AOM_BEAMS["red_up"].frequency,
+            frequency=self.up_beam_aom_freq,
             offset=0.0,  # unused
             phase=0.0,
         )
@@ -429,7 +432,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         # Phase step
         self.up_beam_suservo.suservo_channel.set_dds(
             profile=self.up_beam_suservo.suservo_profile,
-            frequency=constants.AOM_BEAMS["red_up"].frequency,
+            frequency=self.up_beam_aom_freq,
             offset=0.0,  # unused
             phase=self.phase_step_for_pi_pulse.get(),
         )
@@ -443,7 +446,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         # Phase reset
         self.up_beam_suservo.suservo_channel.set_dds(
             profile=self.up_beam_suservo.suservo_profile,
-            frequency=constants.AOM_BEAMS["red_up"].frequency,
+            frequency=self.up_beam_aom_freq,
             offset=0.0,  # unused
             phase=0.0,
         )
