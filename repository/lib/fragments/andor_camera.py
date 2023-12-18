@@ -130,8 +130,8 @@ class AndorCameraControl(Fragment):
             param_prefix = f"roi_{i}_"
             rois[i, :] = [
                 getattr(self, param_prefix + "x0").get(),
-                getattr(self, param_prefix + "x1").get(),
                 getattr(self, param_prefix + "y0").get(),
+                getattr(self, param_prefix + "x1").get(),
                 getattr(self, param_prefix + "y1").get(),
             ]
 
