@@ -416,6 +416,22 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         # Kernel vars
         self.up_beam_aom_freq = constants.AOM_BEAMS["red_up"].frequency
 
+    def get_default_analyses(self):
+        super_analysis = super().get_default_analyses()
+
+        return super_analysis + [
+            OnlineFit(
+                "sinusoid",
+                data={
+                    "x": self.phase_step_for_pi_pulse,
+                    "y": self.excitation_fraction,
+                },
+                constants={
+                    "t_dead": 0,
+                },
+            )
+        ]
+
     @kernel
     def do_spectroscopy_pulse(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
