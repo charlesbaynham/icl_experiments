@@ -102,12 +102,13 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
 
     @kernel
     def before_start_hook(self):
-        pass
+        logger.warning("The wrong startup hook")
 
     @kernel
     def run_once(self):
-        self.core.break_realtime()
         self.before_start_hook()
+
+        self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
         # The FLIR cameras are not useful for the final imaging, so use them to
@@ -365,8 +366,9 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
 
     @kernel
     def before_start_hook(self):
-        self.up_beam_default_setter.turn_on_all(light_enabled=False)
+        logger.warning("Startup hook")
         self.core.break_realtime()
+        self.up_beam_default_setter.turn_on_all(light_enabled=False)
 
     @kernel
     def setup_spectroscopy_beam_before_expansion(self):
