@@ -431,6 +431,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         #     phase=0.0,
         # )
         self.urukul9910_aom_doublepass_689_red_injection.set_phase(phase_constant)
+        self.urukul9910_aom_doublepass_689_red_injection.cpld.io_update.pulse_mu(8)
 
         delay(self.delay_between_interferometry_pulses.get())
 
@@ -443,6 +444,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         self.urukul9910_aom_doublepass_689_red_injection.set_phase(
             0.5 * self.phase_step_for_pi_pulse.get() + phase_constant
         )
+        self.urukul9910_aom_doublepass_689_red_injection.cpld.io_update.pulse_mu(8)
 
         delay(self.delay_between_interferometry_pulses.get())
 
@@ -455,6 +457,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         self.urukul9910_aom_doublepass_689_red_injection.set_phase(
             2.0 * self.phase_step_for_pi_pulse.get() + phase_constant
         )
+        self.urukul9910_aom_doublepass_689_red_injection.cpld.io_update.pulse_mu(8)
 
         delay(self.delay_between_interferometry_pulses.get())
 
