@@ -366,6 +366,13 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
         )
         self.up_beam_toggler: ControlBeamsWithoutCoolingAOM
 
+        self.setattr_fragment(
+            "up_beam_suservo",
+            LibSetSUServoStatic,
+            constants.AOM_BEAMS["red_up"].suservo_device,
+        )
+        self.up_beam_suservo: LibSetSUServoStatic
+
     @kernel
     def before_start_hook(self):
         self.core.break_realtime()
@@ -373,7 +380,10 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
 
     @kernel
     def setup_spectroscopy_beam_before_expansion(self):
-        pass
+        self.up_beam_suservo.suservo_channel.set_y(
+            profile=self.up_beam_suservo.suservo_profile,
+            y=self.spectroscopy_pulse_aom_amplitude.get(),
+        )
 
     @kernel
     def do_spectroscopy_pulse(self):
