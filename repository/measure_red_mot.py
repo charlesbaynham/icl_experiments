@@ -10,12 +10,9 @@ from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatChannel
-from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
@@ -44,9 +41,6 @@ class RedMOTBase(ExpFragment):
             "camera_interface", DualCameraMeasurement, hardware_trigger=True
         )
         self.camera_interface: DualCameraMeasurement
-
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
 
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
@@ -93,6 +87,17 @@ class RedMOTBase(ExpFragment):
             self.red_mot,
         )
         self.red_broadband_time: FloatParamHandle
+
+        self._setup_andor()
+
+    def _setup_andor(self):
+        """
+        Setup the Andor camera
+
+        This is a method so that children classes can override it
+        """
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
 
         self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_mean", FloatChannel)

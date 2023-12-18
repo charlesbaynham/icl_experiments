@@ -42,8 +42,8 @@ class AndorCameraControl(Fragment):
         roi_defaults=[
             [
                 constants.ANDOR_ROI_X0,
-                constants.ANDOR_ROI_X1,
                 constants.ANDOR_ROI_Y0,
+                constants.ANDOR_ROI_X1,
                 constants.ANDOR_ROI_Y1,
             ]
         ],
@@ -69,7 +69,7 @@ class AndorCameraControl(Fragment):
         )
         self.shutter_delay: FloatParamHandle
 
-        for i, (x0, x1, y0, y1) in enumerate(roi_defaults):
+        for i, (x0, y0, x1, y1) in enumerate(roi_defaults):
             self.setattr_param(
                 f"roi_{i}_x0",
                 IntParam,

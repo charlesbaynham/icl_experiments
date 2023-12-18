@@ -15,6 +15,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
+from repository.lib import constants
+from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.measure_red_mot import RedMOTBase
 
 logger = logging.getLogger(__name__)
@@ -184,12 +186,38 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
-        self.setattr_result("andor_sum_2", FloatChannel)
-        self.setattr_result("andor_mean_2", FloatChannel)
-        self.andor_sum_2: FloatChannel
-        self.andor_mean_2: FloatChannel
+    def _setup_andor(self):
+        """
+        Setup the Andor camera
 
+        Overrides the parent implementation so that we have 3x ROIs
+
+        TODO: Set up Fast Kinetics mode here
+        """
+
+        # 3x ROIs
+        self.setattr_fragment(
+            "andor_camera_control",
+            AndorCameraControl,
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                    constants.ANDOR_ROI_X1,
+                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                ]
+                for i in range(3)
+            ],
+        )
+        self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum_gnd", FloatChannel)
+        self.setattr_result("andor_sum_ex", FloatChannel)
+        self.setattr_result("andor_sum_bg", FloatChannel)
         self.setattr_result("excitation_fraction", FloatChannel)
+        self.andor_sum_gnd: FloatChannel
+        self.andor_sum_ex: FloatChannel
+        self.andor_sum_bg: FloatChannel
         self.excitation_fraction: FloatChannel
 
     @kernel
@@ -288,10 +316,9 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
             self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
         )
 
-        self.andor_sum.push(sums[0])
-        self.andor_sum_2.push(sums[1])
-        self.andor_mean.push(means[0])
-        self.andor_mean_2.push(means[1])
+        self.andor_sum_gnd.push(sums[0])
+        self.andor_sum_ex.push(sums[1])
+        self.andor_sum_bg.push(sums[2])
 
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
