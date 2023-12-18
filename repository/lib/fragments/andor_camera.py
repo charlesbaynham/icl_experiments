@@ -158,10 +158,10 @@ class AndorCameraControl(Fragment):
         # # Setup one grabber ROI
         # self.grabber.setup_roi(
         #     0,
-        #     self.roi_x0.get(),
-        #     self.roi_y0.get(),
-        #     self.roi_x1.get(),
-        #     self.roi_y1.get(),
+        #     self.roi_0_x0.get(),
+        #     self.roi_0_y0.get(),
+        #     self.roi_0_x1.get(),
+        #     self.roi_0_y1.get(),
         # )
 
         # # Turn grabber ROI 0 on
@@ -172,23 +172,23 @@ class AndorCameraControl(Fragment):
             self.grabber.setup_roi(
                 0,
                 constants.ANDOR_ROI_X0,
-                self.roi_x0.get(),
+                self.roi_0_x0.get(),
                 constants.ANDOR_ROI_X1,
-                self.roi_x1.get(),
+                self.roi_0_x1.get(),
             )
             self.grabber.setup_roi(
                 1,
                 constants.ANDOR_ROI_X0,
-                self.roi_x1.get(),
+                self.roi_0_x1.get(),
                 constants.ANDOR_ROI_X1,
-                self.roi_y0.get(),
+                self.roi_0_y0.get(),
             )
             self.grabber.setup_roi(
                 2,
                 constants.ANDOR_ROI_X0,
-                self.roi_y0.get(),
+                self.roi_0_y0.get(),
                 constants.ANDOR_ROI_X1,
-                self.roi_y1.get(),
+                self.roi_0_y1.get(),
             )
             self.first_run = False
 
@@ -263,8 +263,8 @@ class AndorCameraControl(Fragment):
         self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
         # FIXME: assumes all ROIs have same area
-        area = (self.roi_x1.get() - self.roi_x0.get()) * (
-            self.roi_y1.get() - self.roi_y0.get()
+        area = (self.roi_0_x1.get() - self.roi_0_x0.get()) * (
+            self.roi_0_y1.get() - self.roi_0_y0.get()
         )
 
         for i in range(num_rois):
