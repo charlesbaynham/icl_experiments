@@ -424,6 +424,8 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
             phase=0.0,
         )
 
+        delay(self.delay_between_interferometry_pulses.get())
+
         # PI/2 PULSE
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(t_pi_pulse / 2)
