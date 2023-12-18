@@ -13,10 +13,12 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.measure_red_mot import RedMOTBase
 
 logger = logging.getLogger(__name__)
@@ -341,5 +343,32 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
+class UpBeamBlowawayFrag(BlowAwayMOTFrag):
+    def setup_spectroscopy_subfrag(self):
+        class _UpBeamSetter(SetBeamsToDefaults):
+            default_beam_infos = [constants.AOM_BEAMS["red_up"]]
+
+        self.setattr_fragment("up_beam_default_setter", _UpBeamSetter)
+        self.up_beam_default_setter: SetBeamsToDefaults
+
+        self.setattr_fragment(
+            "up_beam_toggler",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[constants.AOM_BEAMS["red_up"]],
+        )
+        self.up_beam_toggler: ControlBeamsWithoutCoolingAOM
+
+    @kernel
+    def setup_spectroscopy_beam_before_expansion(self):
+        pass
+
+    @kernel
+    def do_spectroscopy_pulse(self):
+        self.up_beam_toggler.turn_beams_on()
+        delay(self.spectroscopy_pulse_time.get())
+        self.up_beam_toggler.turn_beams_off()
+
+
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
 BlowAwayMOT = make_fragment_scan_exp(BlowAwayMOTFrag)
+UpBeamBlowaway = make_fragment_scan_exp(UpBeamBlowawayFrag)
