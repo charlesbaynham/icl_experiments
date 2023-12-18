@@ -423,6 +423,12 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
             0.0  # Stolen from BHam - no idea why we would want this but I'm debugging
         )
 
+        freq = (
+            constants.RED_INJECTION_AOM_FREQUENCY
+            + self.red_mot.red_beam_controller.injection_aom_static_detuning.get()
+            + self.spectroscopy_pulse_aom_detuning.get()
+        )
+
         # Set frequency and offset manually so we can control the phase
         # self.up_beam_suservo.suservo_channel.set_dds(
         #     profile=self.up_beam_suservo.suservo_profile,
@@ -430,9 +436,10 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         #     offset=0.0,  # unused
         #     phase=0.0,
         # )
-        self.urukul9910_aom_doublepass_689_red_injection.set_phase(phase_constant)
-        delay_mu(8)
-        self.urukul9910_aom_doublepass_689_red_injection.cpld.io_update.pulse_mu(8)
+
+        self.urukul9910_aom_doublepass_689_red_injection.set(
+            frequency=freq, phase=phase_constant
+        )
 
         delay(self.delay_between_interferometry_pulses.get())
 
@@ -442,11 +449,10 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
         # Phase step
-        self.urukul9910_aom_doublepass_689_red_injection.set_phase(
-            0.5 * self.phase_step_for_pi_pulse.get() + phase_constant
+        self.urukul9910_aom_doublepass_689_red_injection.set(
+            frequency=freq,
+            phase=0.5 * self.phase_step_for_pi_pulse.get() + phase_constant,
         )
-        delay_mu(8)
-        self.urukul9910_aom_doublepass_689_red_injection.cpld.io_update.pulse_mu(8)
 
         delay(self.delay_between_interferometry_pulses.get())
 
@@ -456,11 +462,10 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
         # Phase step
-        self.urukul9910_aom_doublepass_689_red_injection.set_phase(
-            2.0 * self.phase_step_for_pi_pulse.get() + phase_constant
+        self.urukul9910_aom_doublepass_689_red_injection.set(
+            frequency=freq,
+            phase=2.0 * self.phase_step_for_pi_pulse.get() + phase_constant,
         )
-        delay_mu(8)
-        self.urukul9910_aom_doublepass_689_red_injection.cpld.io_update.pulse_mu(8)
 
         delay(self.delay_between_interferometry_pulses.get())
 
