@@ -419,6 +419,9 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
     @kernel
     def do_spectroscopy_pulse(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
+        phase_constant = (
+            10.0  # Stolen from BHam - no idea why we would want this but I'm debugging
+        )
 
         # Set frequency and offset manually so we can control the phase
         # self.up_beam_suservo.suservo_channel.set_dds(
@@ -427,7 +430,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         #     offset=0.0,  # unused
         #     phase=0.0,
         # )
-        self.urukul9910_aom_doublepass_689_red_injection.set_phase(0.0)
+        self.urukul9910_aom_doublepass_689_red_injection.set_phase(phase_constant)
 
         delay(self.delay_between_interferometry_pulses.get())
 
@@ -438,7 +441,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
 
         # Phase step
         self.urukul9910_aom_doublepass_689_red_injection.set_phase(
-            self.phase_step_for_pi_pulse.get()
+            self.phase_step_for_pi_pulse.get() + phase_constant
         )
 
         delay(self.delay_between_interferometry_pulses.get())
@@ -450,7 +453,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
 
         # Phase step
         self.urukul9910_aom_doublepass_689_red_injection.set_phase(
-            4.0 * self.phase_step_for_pi_pulse.get()
+            4.0 * self.phase_step_for_pi_pulse.get() + phase_constant
         )
 
         delay(self.delay_between_interferometry_pulses.get())
