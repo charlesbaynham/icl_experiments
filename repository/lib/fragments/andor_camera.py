@@ -113,45 +113,45 @@ class AndorCameraControl(Fragment):
         self.ttl_trigger.output()
         delay_mu(int64(self.core.ref_multiplier))
 
-        # Setup one grabber ROI
-        self.grabber.setup_roi(
-            0,
-            self.roi_x0.get(),
-            self.roi_y0.get(),
-            self.roi_x1.get(),
-            self.roi_y1.get(),
-        )
+        # # Setup one grabber ROI
+        # self.grabber.setup_roi(
+        #     0,
+        #     self.roi_x0.get(),
+        #     self.roi_y0.get(),
+        #     self.roi_x1.get(),
+        #     self.roi_y1.get(),
+        # )
 
-        # Turn grabber ROI 0 on
-        self.grabber.gate_roi(0x01)
+        # # Turn grabber ROI 0 on
+        # self.grabber.gate_roi(0x01)
 
-        # # FIXME: nasty hack
-        # if self.first_run:
-        #     self.grabber.setup_roi(
-        #         0,
-        #         constants.ANDOR_ROI_X0,
-        #         self.roi_x0.get(),
-        #         constants.ANDOR_ROI_X1,
-        #         self.roi_x1.get(),
-        #     )
-        #     self.grabber.setup_roi(
-        #         1,
-        #         constants.ANDOR_ROI_X0,
-        #         self.roi_x1.get(),
-        #         constants.ANDOR_ROI_X1,
-        #         self.roi_y0.get(),
-        #     )
-        #     self.grabber.setup_roi(
-        #         2,
-        #         constants.ANDOR_ROI_X0,
-        #         self.roi_y0.get(),
-        #         constants.ANDOR_ROI_X1,
-        #         self.roi_y1.get(),
-        #     )
-        #     self.first_run = False
+        # FIXME: nasty hack
+        if self.first_run:
+            self.grabber.setup_roi(
+                0,
+                constants.ANDOR_ROI_X0,
+                self.roi_x0.get(),
+                constants.ANDOR_ROI_X1,
+                self.roi_x1.get(),
+            )
+            self.grabber.setup_roi(
+                1,
+                constants.ANDOR_ROI_X0,
+                self.roi_x1.get(),
+                constants.ANDOR_ROI_X1,
+                self.roi_y0.get(),
+            )
+            self.grabber.setup_roi(
+                2,
+                constants.ANDOR_ROI_X0,
+                self.roi_y0.get(),
+                constants.ANDOR_ROI_X1,
+                self.roi_y1.get(),
+            )
+            self.first_run = False
 
-        # # Turn grabber ROIs 0 and 1 on
-        # self.grabber.gate_roi(0x07)
+        # Turn grabber ROIs 0 and 1 on
+        self.grabber.gate_roi(0x07)
 
     @kernel
     def device_cleanup(self) -> None:
