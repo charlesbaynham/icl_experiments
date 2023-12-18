@@ -388,6 +388,74 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
+class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_between_interferometry_pulses",
+            FloatParam,
+            "Delay between interferometry pulses",
+            default=100e-9,
+            unit="us",
+        )
+        self.delay_between_interferometry_pulses: FloatParamHandle
+
+        self.setattr_param(
+            "phase_step_for_pi_pulse",
+            FloatParam,
+            "Phase step for pi pulse",
+            default=0.0,
+        )
+        self.phase_step_for_pi_pulse: FloatParamHandle
+
+    @kernel
+    def do_spectroscopy_pulse(self):
+        t_pi_pulse = self.spectroscopy_pulse_time.get()
+
+        # Set frequency and offset manually so we can control the phase
+        self.up_beam_suservo.suservo_channel.set_dds(
+            profile=self.up_beam_suservo.suservo_profile,
+            frequency=constants.AOM_BEAMS["red_up"].frequency,
+            offset=0.0,  # unused
+            phase=0.0,
+        )
+
+        # PI/2 PULSE
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(t_pi_pulse / 2)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        # Phase step
+        self.up_beam_suservo.suservo_channel.set_dds(
+            profile=self.up_beam_suservo.suservo_profile,
+            frequency=constants.AOM_BEAMS["red_up"].frequency,
+            offset=0.0,  # unused
+            phase=self.phase_step_for_pi_pulse.get(),
+        )
+        delay(self.delay_between_interferometry_pulses.get())
+
+        # PI PULSE
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(t_pi_pulse)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        # Phase reset
+        self.up_beam_suservo.suservo_channel.set_dds(
+            profile=self.up_beam_suservo.suservo_profile,
+            frequency=constants.AOM_BEAMS["red_up"].frequency,
+            offset=0.0,  # unused
+            phase=0.0,
+        )
+        delay(self.delay_between_interferometry_pulses.get())
+
+        # PI/2 PULSE
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(t_pi_pulse / 2)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
 BlowAwayMOT = make_fragment_scan_exp(BlowAwayMOTFrag)
 UpBeamBlowaway = make_fragment_scan_exp(UpBeamBlowawayFrag)
+UpBeamInterferometry = make_fragment_scan_exp(UpBeamInterferometryFrag)
