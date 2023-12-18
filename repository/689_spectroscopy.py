@@ -102,7 +102,7 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
 
     @kernel
     def before_start_hook(self):
-        logger.warning("The wrong startup hook")
+        pass
 
     @kernel
     def run_once(self):
@@ -368,7 +368,6 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
 
     @kernel
     def before_start_hook(self):
-        logger.warning("Startup hook")
         self.core.break_realtime()
         self.up_beam_default_setter.turn_on_all(light_enabled=False)
 
