@@ -45,25 +45,10 @@ class RedMOTBase(ExpFragment):
         )
         self.camera_interface: DualCameraMeasurement
 
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
-
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
 
         # %% Params
-
-        # Expansion time - can be negative
-        self.setattr_param(
-            "expansion_time",
-            FloatParam,
-            "Time to expand MOT for before imaging",
-            default=0.0,
-            unit="us",
-        )
-        self.expansion_time: FloatParamHandle
-
-        # %% Rebound params
 
         self.setattr_param_rebind(
             "exposure_horiz",
@@ -84,6 +69,18 @@ class RedMOTBase(ExpFragment):
         self.exposure_horiz: FloatParamHandle
         self.exposure_vert: FloatParamHandle
 
+        # Expansion time - can be negative
+        self.setattr_param(
+            "expansion_time",
+            FloatParam,
+            "Time to expand MOT for before imaging",
+            default=0.0,
+            unit="us",
+        )
+        self.expansion_time: FloatParamHandle
+
+        # %% Rebound params
+
         self.setattr_param_rebind(
             "injection_aom_static_detuning",
             self.red_mot,
@@ -94,17 +91,25 @@ class RedMOTBase(ExpFragment):
         )
         self.red_broadband_time: FloatParamHandle
 
-        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_mean", FloatChannel)
-        self.andor_sum: FloatChannel
-        self.andor_mean: FloatChannel
-
     @kernel
     def _from_start_to_end_of_broadband_mot(self):
         self.blue_3d_mot.load_mot(clearout=True)
         self.blue_3d_mot.turn_off_3d_and_2d_beams()
         self.red_mot.start_red_broadband()
         delay(self.red_broadband_time.get())
+
+
+class RedMOTBaseWithImaging(RedMOTBase):
+    def build_fragment(self) -> None:
+        super().build_fragment()
+
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_mean", FloatChannel)
+        self.andor_sum: FloatChannel
+        self.andor_mean: FloatChannel
 
     @kernel
     def _expand_and_image(self):
@@ -139,7 +144,7 @@ class RedMOTBase(ExpFragment):
         self.andor_mean.push(means[0])
 
 
-class MeasureBBRedMOTFrag(RedMOTBase):
+class MeasureBBRedMOTFrag(RedMOTBaseWithImaging):
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -148,7 +153,7 @@ class MeasureBBRedMOTFrag(RedMOTBase):
         self._save_data()
 
 
-class MeasureNarrowbandMOTFrag(RedMOTBase):
+class MeasureNarrowbandMOTFrag(RedMOTBaseWithImaging):
     @kernel
     def run_once(self):
         narrowband_duration = self.red_mot.get_total_narrowband_duration()
