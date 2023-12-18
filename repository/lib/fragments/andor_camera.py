@@ -141,7 +141,13 @@ class AndorCameraControl(Fragment):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
+        # Here we sadly need an RPC. That make this scan a bit slower, but only
+        # by a ms or so which is small compared to most (all?) of our sequences
+        roi_config = self.calculate_roi_config()
+
         self.core.break_realtime()
+
+        # Close the shutter and init the trigger
 
         self.ttl_shutter.off()
         delay_mu(int64(self.core.ref_multiplier))
@@ -154,9 +160,6 @@ class AndorCameraControl(Fragment):
 
         # %% Setup ROIs
 
-        # Here we sadly need an RPC. That make this scan a bit slower, but only
-        # by a ms or so which is small compared to most (all?) of our sequences
-        roi_config = self.calculate_roi_config()
         mask = 0
 
         for i in range(self.num_rois):
