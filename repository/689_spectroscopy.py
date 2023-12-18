@@ -233,6 +233,8 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
     @kernel
     def run_once(self):
+        self.before_start_hook()
+
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
