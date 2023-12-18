@@ -105,7 +105,6 @@ class AndorCameraControl(Fragment):
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.first_run = True
         self.num_rois = len(roi_defaults)
 
         # %% Kernel invariants
@@ -118,7 +117,7 @@ class AndorCameraControl(Fragment):
         }
 
     @rpc
-    def calculate_roi_array(self) -> TArray(TInt32, 2):
+    def calculate_roi_config(self) -> TArray(TInt32, 2):
         """
         Populate an ROI array from the generated NDScan parameters
 
@@ -142,8 +141,6 @@ class AndorCameraControl(Fragment):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        print(self.calculate_roi_array())
-
         self.core.break_realtime()
 
         self.ttl_shutter.off()
@@ -155,45 +152,25 @@ class AndorCameraControl(Fragment):
         self.ttl_trigger.output()
         delay_mu(int64(self.core.ref_multiplier))
 
-        # # Setup one grabber ROI
-        # self.grabber.setup_roi(
-        #     0,
-        #     self.roi_0_x0.get(),
-        #     self.roi_0_y0.get(),
-        #     self.roi_0_x1.get(),
-        #     self.roi_0_y1.get(),
-        # )
+        # %% Setup ROIs
 
-        # # Turn grabber ROI 0 on
-        # self.grabber.gate_roi(0x01)
+        # Here we sadly need an RPC. That make this scan a bit slower, but only
+        # by a ms or so which is small compared to most (all?) of our sequences
+        roi_config = self.calculate_roi_config()
+        mask = 0
 
-        # FIXME: nasty hack
-        if self.first_run:
+        for i in range(self.num_rois):
             self.grabber.setup_roi(
-                0,
-                constants.ANDOR_ROI_X0,
-                self.roi_0_x0.get(),
-                constants.ANDOR_ROI_X1,
-                self.roi_0_x1.get(),
+                i,
+                roi_config[i, 0],
+                roi_config[i, 1],
+                roi_config[i, 2],
+                roi_config[i, 3],
             )
-            self.grabber.setup_roi(
-                1,
-                constants.ANDOR_ROI_X0,
-                self.roi_0_x1.get(),
-                constants.ANDOR_ROI_X1,
-                self.roi_0_y0.get(),
-            )
-            self.grabber.setup_roi(
-                2,
-                constants.ANDOR_ROI_X0,
-                self.roi_0_y0.get(),
-                constants.ANDOR_ROI_X1,
-                self.roi_0_y1.get(),
-            )
-            self.first_run = False
+            mask = mask | (1 << i)
 
-        # Turn grabber ROIs 0 and 1 on
-        self.grabber.gate_roi(0x07)
+        # Enable appropriate ROIs
+        self.grabber.gate_roi(mask)
 
     @kernel
     def device_cleanup(self) -> None:
@@ -254,12 +231,11 @@ class AndorCameraControl(Fragment):
         altered with the results.
         """
 
-        num_rois = len(sums)
-        if len(means) != num_rois:
+        if len(means) != self.num_rois or len(sums) != self.num_rois:
             raise ValueError("sums and means must be arrays with length num_rois")
 
         # Get data
-        data = [0] * num_rois
+        data = [0] * self.num_rois
         self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
         # FIXME: assumes all ROIs have same area
@@ -267,7 +243,7 @@ class AndorCameraControl(Fragment):
             self.roi_0_y1.get() - self.roi_0_y0.get()
         )
 
-        for i in range(num_rois):
+        for i in range(self.num_rois):
             sums[i] = data[i]
 
             if area == 0:
