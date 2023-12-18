@@ -431,14 +431,6 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         delay(t_pi_pulse / 2)
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
-        # Phase step
-        self.up_beam_suservo.suservo_channel.set_dds(
-            profile=self.up_beam_suservo.suservo_profile,
-            frequency=self.up_beam_aom_freq,
-            offset=0.0,  # unused
-            phase=self.phase_step_for_pi_pulse.get(),
-        )
-
         delay(self.delay_between_interferometry_pulses.get())
 
         # PI PULSE
@@ -446,13 +438,13 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         delay(t_pi_pulse)
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
-        # # Phase reset
-        # self.up_beam_suservo.suservo_channel.set_dds(
-        #     profile=self.up_beam_suservo.suservo_profile,
-        #     frequency=self.up_beam_aom_freq,
-        #     offset=0.0,  # unused
-        #     phase=0.0,
-        # )
+        # Phase step
+        self.up_beam_suservo.suservo_channel.set_dds(
+            profile=self.up_beam_suservo.suservo_profile,
+            frequency=self.up_beam_aom_freq,
+            offset=0.0,  # unused
+            phase=self.phase_step_for_pi_pulse.get(),
+        )
 
         delay(self.delay_between_interferometry_pulses.get())
 
