@@ -1,12 +1,16 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
+from artiq.experiment import rpc
+from artiq.experiment import TArray
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
+from artiq.experiment import TInt32
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -27,9 +31,23 @@ class AndorCameraControl(Fragment):
     controlled.
 
     TODO: Add Andor camera parameter control
+
+    By default, this fragment produces 1x ROI with the region set in
+    :module:`~.constants`. To override this, pass "roi_defaults" to
+    :meth:`~.setattr_fragment`.
     """
 
-    def build_fragment(self):
+    def build_fragment(
+        self,
+        roi_defaults=[
+            [
+                constants.ANDOR_ROI_X0,
+                constants.ANDOR_ROI_X1,
+                constants.ANDOR_ROI_Y0,
+                constants.ANDOR_ROI_Y1,
+            ]
+        ],
+    ):
         self.setattr_device("core")
         self.core: Core
 
@@ -51,56 +69,80 @@ class AndorCameraControl(Fragment):
         )
         self.shutter_delay: FloatParamHandle
 
-        self.setattr_param(
-            "roi_x0",
-            IntParam,
-            "Grabber ROI x0",
-            default=constants.ANDOR_ROI_X0,
-            min=0,
-            max=512,
-        )
-        self.setattr_param_like(
-            "roi_x1",
-            self,
-            "roi_x0",
-            default=constants.ANDOR_ROI_X1,
-            description="Grabber ROI x1",
-        )
-        self.setattr_param_like(
-            "roi_y0",
-            self,
-            "roi_x0",
-            default=constants.ANDOR_ROI_Y0,
-            description="Grabber ROI y0",
-        )
-        self.setattr_param_like(
-            "roi_y1",
-            self,
-            "roi_x0",
-            default=constants.ANDOR_ROI_Y1,
-            description="Grabber ROI y1",
-        )
-
-        self.roi_x0: FloatParamHandle
-        self.roi_x1: FloatParamHandle
-        self.roi_y0: FloatParamHandle
-        self.roi_y1: FloatParamHandle
+        for i, (x0, x1, y0, y1) in enumerate(roi_defaults):
+            self.setattr_param(
+                f"roi_{i}_x0",
+                IntParam,
+                "Grabber ROI {i} x0",
+                default=x0,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"roi_{i}_x1",
+                IntParam,
+                "Grabber ROI {i} x1",
+                default=x1,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"roi_{i}_y0",
+                IntParam,
+                "Grabber ROI {i} y0",
+                default=y0,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"roi_{i}_y1",
+                IntParam,
+                "Grabber ROI {i} y1",
+                default=y1,
+                min=0,
+                max=512,
+            )
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
         self.first_run = True
+        self.num_rois = len(roi_defaults)
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
             "debug_enabled",
+            "num_rois",
             "ttl_trigger",
             "ttl_shutter",
         }
 
+    @rpc
+    def calculate_roi_array(self) -> TArray(TInt32, 2):
+        """
+        Populate an ROI array from the generated NDScan parameters
+
+        This unfortunately has to happen on the host since it uses various
+        python features that aren't available in kernels
+        """
+
+        rois = np.zeros((self.num_rois, 4), dtype=int)
+        for i in range(self.num_rois):
+            param_prefix = f"roi_{i}_"
+            rois[i, :] = [
+                getattr(self, param_prefix + "x0").get(),
+                getattr(self, param_prefix + "x1").get(),
+                getattr(self, param_prefix + "y0").get(),
+                getattr(self, param_prefix + "y1").get(),
+            ]
+
+        return rois
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
+
+        print(self.calculate_roi_array())
 
         self.core.break_realtime()
 
