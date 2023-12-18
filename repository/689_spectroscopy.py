@@ -175,6 +175,15 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         )
         self.delay_between_fluoresence_pulses: FloatParamHandle
 
+        self.setattr_param(
+            "spectroscopy_field_gradient",
+            FloatParam,
+            "MOT coil current during spectroscopy",
+            default=0.0,
+            unit="A",
+        )
+        self.spectroscopy_field_gradient: FloatParamHandle
+
         self.setattr_result("andor_sum_2", FloatChannel)
         self.setattr_result("andor_mean_2", FloatChannel)
         self.andor_sum_2: FloatChannel
@@ -203,7 +212,9 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         self.red_mot.transition_broadband_to_narrowband()
 
-        self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
+        self.red_mot.chamber_2_field_setter.set_mot_gradient(
+            self.spectroscopy_field_gradient.get()
+        )
         delay_mu(int64(self.core.ref_multiplier))
         t_light_off_mu = now_mu()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
