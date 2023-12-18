@@ -436,6 +436,11 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         delay(t_pi_pulse / 2)
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
+        # Phase step
+        self.urukul9910_aom_doublepass_689_red_injection.set_phase(
+            self.phase_step_for_pi_pulse.get()
+        )
+
         delay(self.delay_between_interferometry_pulses.get())
 
         # PI PULSE
@@ -445,7 +450,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
 
         # Phase step
         self.urukul9910_aom_doublepass_689_red_injection.set_phase(
-            self.phase_step_for_pi_pulse.get()
+            4.0 * self.phase_step_for_pi_pulse.get()
         )
 
         delay(self.delay_between_interferometry_pulses.get())
