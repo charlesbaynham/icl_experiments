@@ -543,34 +543,30 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Ensure we're on profile 0
-        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=0)
+        self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
         delay(self.delay_between_interferometry_pulses.get())
 
         # PI/2 PULSE
-        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=0)
         delay(t_pi_pulse / 2)
-        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
-
-        # Phase step
-        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=1)
+        # Phase step & turn off
+        self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=1)
 
         delay(self.delay_between_interferometry_pulses.get())
 
         # PI PULSE
-        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=1)
         delay(t_pi_pulse)
-        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
-
-        # Phase step again
-        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=2)
+        # Phase step and turn off
+        self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=2)
 
         delay(self.delay_between_interferometry_pulses.get())
 
         # PI/2 PULSE
-        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=2)
         delay(t_pi_pulse / 2)
-        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+        self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
 
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
