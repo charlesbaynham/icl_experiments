@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import at_mu
@@ -426,10 +427,13 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
 
         return super_analysis + [
             OnlineFit(
-                "cos",
+                "sinusoid",
                 data={
                     "x": self.phase_step,
                     "y": self.excitation_fraction,
+                },
+                constants={
+                    "t_dead": -np.inf,
                 },
             )
         ]
