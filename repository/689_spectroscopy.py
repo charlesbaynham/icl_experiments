@@ -275,7 +275,6 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
-        delay(self.expansion_time.get())
 
         self.do_spectroscopy_pulse()
 
@@ -349,6 +348,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
+        delay(self.expansion_time.get())
         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
@@ -386,6 +386,7 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
+        delay(self.expansion_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
@@ -440,6 +441,8 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
+        delay(self.expansion_time.get())
+
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Allow negative phases up to -10
@@ -496,6 +499,18 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
     Up beam interferometry - delivery phase shift
     """
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "y_coil_boost",
+            FloatParam,
+            default=0.0,
+            description="Boost to y coil current",
+            unit="A",
+        )
+        self.y_coil_boost: FloatParamHandle
+
     def host_setup(self):
         super().host_setup()
 
@@ -541,6 +556,14 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
+        self.red_mot.chamber_2_field_setter.set_bias_fields(
+            self.blue_3d_mot.chamber_2_bias_x.get(),
+            self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
+            self.blue_3d_mot.chamber_2_bias_z.get(),
+        )
+
+        delay(self.expansion_time.get())
+
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Ensure we're on profile 0
