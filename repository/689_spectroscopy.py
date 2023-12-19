@@ -434,7 +434,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
                     "y": self.excitation_fraction,
                 },
                 constants={
-                    "t_dead": -np.inf,
+                    "t_dead": -100.0,
                 },
             )
         ]
