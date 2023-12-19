@@ -200,6 +200,15 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
+        self.setattr_param(
+            "y_coil_boost",
+            FloatParam,
+            default=0.0,
+            description="Boost to y coil current",
+            unit="A",
+        )
+        self.y_coil_boost: FloatParamHandle
+
     def _setup_andor(self):
         """
         Setup the Andor camera
@@ -275,6 +284,12 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
+
+        self.red_mot.chamber_2_field_setter.set_bias_fields(
+            self.blue_3d_mot.chamber_2_bias_x.get(),
+            self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
+            self.blue_3d_mot.chamber_2_bias_z.get(),
+        )
 
         self.do_spectroscopy_pulse()
 
@@ -499,18 +514,6 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
     Up beam interferometry - delivery phase shift
     """
 
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "y_coil_boost",
-            FloatParam,
-            default=0.0,
-            description="Boost to y coil current",
-            unit="A",
-        )
-        self.y_coil_boost: FloatParamHandle
-
     def host_setup(self):
         super().host_setup()
 
@@ -556,12 +559,6 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
-        self.red_mot.chamber_2_field_setter.set_bias_fields(
-            self.blue_3d_mot.chamber_2_bias_x.get(),
-            self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
-            self.blue_3d_mot.chamber_2_bias_z.get(),
-        )
-
         delay(self.expansion_time.get())
 
         t_pi_pulse = self.spectroscopy_pulse_time.get()
