@@ -200,14 +200,17 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
-        self.setattr_param(
-            "y_coil_boost",
-            FloatParam,
-            default=0.0,
-            description="Boost to y coil current",
-            unit="A",
-        )
+        for c in "xyz":
+            self.setattr_param(
+                f"{c}_coil_boost",
+                FloatParam,
+                default=0.0,
+                description=f"Boost to {c} coil current",
+                unit="A",
+            )
+        self.x_coil_boost: FloatParamHandle
         self.y_coil_boost: FloatParamHandle
+        self.z_coil_boost: FloatParamHandle
 
     def _setup_andor(self):
         """
@@ -286,9 +289,9 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         at_mu(t_light_off_mu)
 
         self.red_mot.chamber_2_field_setter.set_bias_fields(
-            self.blue_3d_mot.chamber_2_bias_x.get(),
+            self.blue_3d_mot.chamber_2_bias_x.get() + self.x_coil_boost.get(),
             self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
-            self.blue_3d_mot.chamber_2_bias_z.get(),
+            self.blue_3d_mot.chamber_2_bias_z.get() + self.z_coil_boost.get(),
         )
 
         self.do_spectroscopy_pulse()
