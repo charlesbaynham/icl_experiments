@@ -403,12 +403,12 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         self.delay_between_interferometry_pulses: FloatParamHandle
 
         self.setattr_param(
-            "phase_step_for_pi_pulse",
+            "phase_step",
             FloatParam,
-            "Phase step for pi pulse",
+            "Phase step in interferometry sequence",
             default=0.0,
         )
-        self.phase_step_for_pi_pulse: FloatParamHandle
+        self.phase_step: FloatParamHandle
 
         self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
         self.urukul9910_aom_doublepass_689_red_injection: AD9910
@@ -423,7 +423,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
             OnlineFit(
                 "sinusoid",
                 data={
-                    "x": self.phase_step_for_pi_pulse,
+                    "x": self.phase_step,
                     "y": self.excitation_fraction,
                 },
                 constants={
@@ -467,7 +467,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         # Phase step
         self.urukul9910_aom_doublepass_689_red_injection.set(
             frequency=freq,
-            phase=0.5 * self.phase_step_for_pi_pulse.get() + phase_constant,
+            phase=0.5 * self.phase_step.get() + phase_constant,
         )
 
         delay(self.delay_between_interferometry_pulses.get())
@@ -480,7 +480,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         # Phase step
         self.urukul9910_aom_doublepass_689_red_injection.set(
             frequency=freq,
-            phase=2.0 * self.phase_step_for_pi_pulse.get() + phase_constant,
+            phase=2.0 * self.phase_step.get() + phase_constant,
         )
 
         delay(self.delay_between_interferometry_pulses.get())
