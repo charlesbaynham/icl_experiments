@@ -426,13 +426,10 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
 
         return super_analysis + [
             OnlineFit(
-                "sinusoid",
+                "cos",
                 data={
                     "x": self.phase_step,
                     "y": self.excitation_fraction,
-                },
-                constants={
-                    "t_dead": 0,
                 },
             )
         ]
