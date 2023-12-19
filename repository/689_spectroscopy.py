@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
@@ -390,6 +391,10 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
 
 
 class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
+    """
+    Up beam interferometry - IJD phase shift
+    """
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -410,11 +415,11 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         )
         self.phase_step: FloatParamHandle
 
+    def host_setup(self):
+        super().host_setup()
+
         self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
         self.urukul9910_aom_doublepass_689_red_injection: AD9910
-
-        # Kernel vars
-        self.up_beam_aom_freq = constants.AOM_BEAMS["red_up"].frequency
 
     def get_default_analyses(self):
         super_analysis = super().get_default_analyses()
@@ -485,7 +490,93 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
+class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
+    """
+    Up beam interferometry - delivery phase shift
+    """
+
+    def host_setup(self):
+        super().host_setup()
+
+        self.setattr_device("suservo_aom_singlepass_689_up")
+        self.suservo_aom_singlepass_689_up: SUServoChannel
+
+        # Kernel vars
+        self.suservo_freq = constants.AOM_BEAMS["red_up"].frequency
+        # Allow negative phases up to -10
+        self.phase_constant = 10.0
+
+    @kernel
+    def before_start_hook(self):
+        # Enable the Up beam with default settings, but turn off the AOM and open the shutter
+        self.core.break_realtime()
+        self.up_beam_default_setter.turn_on_all(light_enabled=True)
+
+        # Set up SUServo profiles manually with config options for different phases
+        self.suservo_aom_singlepass_689_up.set_dds(
+            0, frequency=self.suservo_freq, offset=0.0, phase=self.phase_constant
+        )
+        self.suservo_aom_singlepass_689_up.set_dds(
+            1,
+            frequency=self.suservo_freq,
+            offset=0.0,
+            phase=self.phase_constant + 1.0 * self.phase_step.get(),
+        )
+        self.suservo_aom_singlepass_689_up.set_dds(
+            2,
+            frequency=self.suservo_freq,
+            offset=0.0,
+            phase=self.phase_constant + 4.0 * self.phase_step.get(),
+        )
+
+        for i in range(3):
+            self.suservo_aom_singlepass_689_up.set_y(
+                profile=i,
+                y=self.spectroscopy_pulse_aom_amplitude.get(),
+            )
+
+        # Start on profile 0
+        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=0)
+
+    @kernel
+    def do_spectroscopy_pulse(self):
+        t_pi_pulse = self.spectroscopy_pulse_time.get()
+
+        # Ensure we're on profile 0
+        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=0)
+
+        delay(self.delay_between_interferometry_pulses.get())
+
+        # PI/2 PULSE
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(t_pi_pulse / 2)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        # Phase step
+        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=1)
+
+        delay(self.delay_between_interferometry_pulses.get())
+
+        # PI PULSE
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(t_pi_pulse)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        # Phase step again
+        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=2)
+
+        delay(self.delay_between_interferometry_pulses.get())
+
+        # PI/2 PULSE
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(t_pi_pulse / 2)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+
 MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
 BlowAwayMOT = make_fragment_scan_exp(BlowAwayMOTFrag)
 UpBeamBlowaway = make_fragment_scan_exp(UpBeamBlowawayFrag)
 UpBeamInterferometry = make_fragment_scan_exp(UpBeamInterferometryFrag)
+UpBeamInterferometrySUServoPhase = make_fragment_scan_exp(
+    UpBeamInterferometrySUServoPhaseFrag
+)
