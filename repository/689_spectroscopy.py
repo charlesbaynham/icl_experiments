@@ -435,24 +435,18 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
     @kernel
     def do_spectroscopy_pulse(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
-        phase_constant = (
-            10.0  # Stolen from BHam - no idea why we would want this but I'm debugging
-        )
 
+        # Allow negative phases up to -10
+        phase_constant = 10.0
+
+        # A bit fragile, but recalculate the injection AOM's frequency here
         freq = (
             constants.RED_INJECTION_AOM_FREQUENCY
             + self.red_mot.red_beam_controller.injection_aom_static_detuning.get()
             + self.spectroscopy_pulse_aom_detuning.get()
         )
 
-        # Set frequency and offset manually so we can control the phase
-        # self.up_beam_suservo.suservo_channel.set_dds(
-        #     profile=self.up_beam_suservo.suservo_profile,
-        #     frequency=self.up_beam_aom_freq,
-        #     offset=0.0,  # unused
-        #     phase=0.0,
-        # )
-
+        # Set initial phase
         self.urukul9910_aom_doublepass_689_red_injection.set(
             frequency=freq, phase=phase_constant
         )
@@ -467,7 +461,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         # Phase step
         self.urukul9910_aom_doublepass_689_red_injection.set(
             frequency=freq,
-            phase=0.5 * self.phase_step.get() + phase_constant,
+            phase=self.phase_step.get() + phase_constant,
         )
 
         delay(self.delay_between_interferometry_pulses.get())
@@ -476,12 +470,6 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(t_pi_pulse)
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
-
-        # Phase step
-        self.urukul9910_aom_doublepass_689_red_injection.set(
-            frequency=freq,
-            phase=2.0 * self.phase_step.get() + phase_constant,
-        )
 
         delay(self.delay_between_interferometry_pulses.get())
 
