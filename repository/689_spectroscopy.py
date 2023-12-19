@@ -535,8 +535,8 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
                 y=self.spectroscopy_pulse_aom_amplitude.get(),
             )
 
-        # Start on profile 0
-        self.suservo_aom_singlepass_689_up.set(en_out=1, en_iir=0, profile=0)
+        # Start on profile 0 with AOM off
+        self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
     @kernel
     def do_spectroscopy_pulse(self):
