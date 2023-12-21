@@ -9,6 +9,8 @@ from artiq.experiment import parallel
 from artiq.experiment import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment import ResultChannel
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
@@ -36,7 +38,9 @@ class _DualCameraBase(Fragment):
     num_images = None
     "Number of images to take. Must be set by the subclass before host_setup is run"
 
-    def build_fragment(self, hardware_trigger=True):
+    def build_fragment(self, hardware_trigger=True, save_raw=True):
+        self.save_raw = save_raw
+
         self.setattr_device("core")
         self.core: Core
 
@@ -66,6 +70,14 @@ class _DualCameraBase(Fragment):
         )
         self.exposure_vert: FloatParamHandle
 
+        self.setattr_param(
+            "save_raw_images",
+            BoolParam,
+            description="Save raw camera data",
+            default=True,
+        )
+        self.save_raw_images: BoolParamHandle
+
         # %% Fragments
 
         self.setattr_fragment(
@@ -87,6 +99,9 @@ class _DualCameraBase(Fragment):
         self.setattr_result("image_horizontal", OpaqueChannel)
         self.image_horizontal: ResultChannel
 
+        self.setattr_result("image_vertical", OpaqueChannel)
+        self.image_vertical: ResultChannel
+
         self.setattr_result(
             "image_horizontal_timestamp", IntChannel, display_hints={"priority": -1}
         )
@@ -94,9 +109,6 @@ class _DualCameraBase(Fragment):
 
         self.setattr_result("image_horizontal_mean", FloatChannel)
         self.image_horizontal_mean: ResultChannel
-
-        self.setattr_result("image_vertical", OpaqueChannel)
-        self.image_vertical: ResultChannel
 
         self.setattr_result(
             "image_vertical_timestamp", IntChannel, display_hints={"priority": -1}
@@ -112,6 +124,8 @@ class _DualCameraBase(Fragment):
     def host_setup(self) -> None:
         super().host_setup()
 
+        self.save_raw = self.save_raw_images.get()
+
         if self.num_images is None:
             raise TypeError("num_images is not set - it must be set by the subclass")
 
@@ -123,7 +137,8 @@ class _DualCameraBase(Fragment):
             self.exposure_vert.get() * 1e6, num_images=self.num_images
         )
 
-        # Launch bg-corrected monitors
+        # Launch monitors
+        # Always launch these even if we're not saving raw data - we'll write zeros if not
         self.set_dataset(
             DATASET_KEY_H,
             np.array([[0.0]]),
@@ -165,17 +180,16 @@ class _DualCameraBase(Fragment):
 
     @host_only
     def _update_monitor(self, img_h, img_v):
-        # convert to int instead of uint8 for plotting
         self.set_dataset(
             DATASET_KEY_H,
-            np.array(img_h).astype("int"),
+            img_h,
             broadcast=True,
             persist=False,
             archive=False,
         )
         self.set_dataset(
             DATASET_KEY_V,
-            np.array(img_v).astype("int"),
+            img_v,
             broadcast=True,
             persist=False,
             archive=False,
@@ -247,10 +261,18 @@ class DualCameraMeasurement(_DualCameraBase):
         self.image_horizontal_mean.push(image_horiz_mean)
         self.image_vertical_mean.push(image_vert_mean)
 
-        self.image_horizontal.push(image_horiz)
-        self.image_vertical.push(image_vert)
+        # convert to int instead of uint8 for saving
+        if self.save_raw:
+            h_data = np.array(image_horiz).astype("int")
+            v_data = np.array(image_vert).astype("int")
+        else:
+            h_data = np.array([[0]]).astype("int")
+            v_data = np.array([[0]]).astype("int")
 
-        self._update_monitor(image_horiz, image_vert)
+        self.image_horizontal.push(h_data)
+        self.image_vertical.push(v_data)
+
+        self._update_monitor(h_data, v_data)
 
 
 class BGCorrectedMeasurement(_DualCameraBase):
@@ -408,7 +430,11 @@ class BGCorrectedMeasurement(_DualCameraBase):
         self.image_horizontal_mean.push(image_horiz_mean)
         self.image_vertical_mean.push(image_vert_mean)
 
-        self.image_horizontal.push(image_horiz)
-        self.image_vertical.push(image_vert)
+        if self.save_raw:
+            self.image_horizontal.push(image_horiz)
+            self.image_vertical.push(image_vert)
+        else:
+            self.image_horizontal.push(np.array([[0]]).astype("int"))
+            self.image_vertical.push(np.array([[0]]).astype("int"))
 
         self._update_monitor(image_horiz, image_vert)
