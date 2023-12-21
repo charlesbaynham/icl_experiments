@@ -79,6 +79,15 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
         )
         self.delay_after_spectroscopy: FloatParamHandle
 
+        self.setattr_param(
+            "extra_repump_time",
+            FloatParam,
+            "Time to keep repumps on during expansion",
+            default=0,
+            unit="us",
+        )
+        self.extra_repump_time: FloatParamHandle
+
     def get_default_analyses(self):
         return [
             OnlineFit(
@@ -137,14 +146,17 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
             self.spectroscopy_pulse_aom_detuning.get()
         )
         delay_mu(int64(self.core.ref_multiplier))
-        self.blue_3d_mot.turn_off_repumpers()
-        delay_mu(int64(self.core.ref_multiplier))
         self.red_axial_minus.suservo_channel.set_y(
             profile=self.red_axial_minus.suservo_profile,
             y=self.spectroscopy_pulse_aom_amplitude.get(),
         )
 
-        delay(self.expansion_time.get())
+        delay_mu(int64(self.core.ref_multiplier))
+
+        delay(self.extra_repump_time.get())
+        self.blue_3d_mot.turn_off_repumpers()
+
+        delay(self.expansion_time.get() - self.extra_repump_time.get())
 
         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
@@ -279,8 +291,10 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
             self.spectroscopy_pulse_aom_detuning.get()
         )
         delay_mu(int64(self.core.ref_multiplier))
+
+        delay(self.extra_repump_time.get())
         self.blue_3d_mot.turn_off_repumpers()
-        delay_mu(int64(self.core.ref_multiplier))
+        delay(-self.extra_repump_time.get())
 
         self.setup_spectroscopy_beam_before_expansion()
 
