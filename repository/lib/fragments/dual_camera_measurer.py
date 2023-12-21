@@ -92,6 +92,13 @@ class _DualCameraBase(Fragment):
         )
         self.mot_measurer_camera_vertical: Chamber2VerticalCamera
 
+        self.mot_measurer_camera_horizontal.bind_param(
+            "save_raw_images", self.save_raw_images
+        )
+        self.mot_measurer_camera_vertical.bind_param(
+            "save_raw_images", self.save_raw_images
+        )
+
         # %%  Results
 
         self.setattr_result("image_horizontal", OpaqueChannel)

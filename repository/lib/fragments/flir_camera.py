@@ -15,6 +15,8 @@ from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
@@ -96,6 +98,14 @@ class CameraFrag(Fragment):
         for feature, value in self.default_features.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
 
+        self.setattr_param(
+            "save_raw_images",
+            BoolParam,
+            description="Save raw camera data",
+            default=True,
+        )
+        self.save_raw_images: BoolParamHandle
+
         self.setattr_device("ccb")
 
         self.hardware_trigger = hardware_trigger
@@ -116,6 +126,8 @@ class CameraFrag(Fragment):
         }
 
     def host_setup(self):
+        self.save_raw = self.save_raw_images.get()
+
         # Open the monitoring applet
         self.set_dataset(
             self.monitor_dataset_key,
@@ -290,10 +302,16 @@ class CameraFrag(Fragment):
 
     @host_only
     def _update_monitor(self, img):
+        # convert to int instead of uint8 for saving
+        if self.save_raw:
+            data = np.array(img).astype("int")
+        else:
+            data = np.array([[0]]).astype("int")
+
         # convert to int instead of uint8 for plotting
         self.set_dataset(
             self.monitor_dataset_key,
-            np.array(img).astype("int"),
+            data,
             broadcast=True,
             persist=False,
             archive=False,
