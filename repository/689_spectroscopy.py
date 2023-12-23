@@ -204,6 +204,15 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.delay_between_fluoresence_pulses: FloatParamHandle
 
         self.setattr_param(
+            "delay_before_background_pulse",
+            FloatParam,
+            "Delay after final fluorescence pulse before background measurement",
+            default=10e-3,
+            unit="ms",
+        )
+        self.delay_before_background_pulse: FloatParamHandle
+
+        self.setattr_param(
             "spectroscopy_field_gradient",
             FloatParam,
             "MOT coil current during spectroscopy",
@@ -335,7 +344,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
         # Take background measurement
-        delay(self.delay_between_fluoresence_pulses.get())
+        delay(self.delay_before_background_pulse.get())
         delay(-0.5 * andor_exposure)
         self.andor_camera_control.trigger(
             exposure=andor_exposure,
