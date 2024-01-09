@@ -114,13 +114,12 @@ class RedMOTBase(ExpFragment):
     @kernel
     def _expand_and_image(self):
         self.red_mot.red_beam_controller.turn_off_mot_beams()
-        delay(self.expansion_time.get())
 
         # FIXME: This is a horrible hack, to get the axial 461 MOT beam turned
         # off during the fluorescence pulse
-        delay(-500e-6)
         self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=True)
-        delay(500e-6)
+
+        delay(self.expansion_time.get())
 
         with parallel:
             self.andor_camera_control.trigger(
