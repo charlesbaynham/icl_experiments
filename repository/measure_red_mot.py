@@ -136,7 +136,7 @@ class RedMOTBase(ExpFragment):
 
         # FIXME: Undoing the horrible hack from above. Also needs removing
         delay(1e-3)
-        self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=False)
+        # self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=False)
 
     @kernel
     def _save_data(self):
