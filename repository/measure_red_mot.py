@@ -116,6 +116,12 @@ class RedMOTBase(ExpFragment):
         self.red_mot.red_beam_controller.turn_off_mot_beams()
         delay(self.expansion_time.get())
 
+        # FIXME: This is a horrible hack, to get the axial 461 MOT beam turned
+        # off during the fluorescence pulse
+        delay(-500e-6)
+        self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=True)
+        delay(500e-6)
+
         with parallel:
             self.andor_camera_control.trigger(
                 exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
@@ -127,6 +133,10 @@ class RedMOTBase(ExpFragment):
         # Turn the fields back to defaults so eddy currents are gone by the next shot
         delay(1e-3)
         self.blue_3d_mot.enable_mot_fields()
+
+        # FIXME: Undoing the horrible hack from above. Also needs removing
+        delay(1e-3)
+        self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=False)
 
     @kernel
     def _save_data(self):
