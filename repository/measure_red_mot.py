@@ -117,7 +117,7 @@ class RedMOTBase(ExpFragment):
 
         # FIXME: This is a horrible hack, to get the axial 461 MOT beam turned
         # off during the fluorescence pulse
-        self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=True)
+        # self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=True)
 
         delay(self.expansion_time.get())
 
@@ -134,7 +134,7 @@ class RedMOTBase(ExpFragment):
         self.blue_3d_mot.enable_mot_fields()
 
         # FIXME: Undoing the horrible hack from above. Also needs removing
-        delay(1e-3)
+        # delay(1e-3)
         # self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=False)
 
     @kernel
