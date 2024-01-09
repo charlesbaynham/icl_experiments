@@ -108,8 +108,9 @@ class MOTBeamFluorescencePulse(FluorescencePulseBase):
     """
 
     beam_infos = [
-        constants.AOM_BEAMS["blue_3dmot_axialminus"],
-        constants.AOM_BEAMS["blue_3dmot_axialplus"],
+        constants.AOM_BEAMS["blue_2dmot_A"],
+        # constants.AOM_BEAMS["blue_3dmot_axialminus"],
+        # constants.AOM_BEAMS["blue_3dmot_axialplus"],
         # constants.AOM_BEAMS["blue_3dmot_radial"],
     ]
 
