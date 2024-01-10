@@ -9,15 +9,16 @@ from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.experiment import rpc
+from artiq.experiment import TArray
+from artiq.experiment import TFloat
 from artiq.master.worker_db import DummyDevice
+from artiq_influx_generic import InfluxController
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
-from ndscan.experiment import IntParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
@@ -165,9 +166,14 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
         # %% devices
 
+        self.setattr_device("influx_logger")
+        self.influx_logger: InfluxController
+
+        self.setattr_device("scheduler")
+
         from copy import deepcopy
 
-        self.beam_infos = list(deepcopy(constants.AOM_BEAMS).values())
+        self.beam_infos = deepcopy(list(constants.AOM_BEAMS.values()))
 
         if self.disable_servoing:
             for info in self.beam_infos:
@@ -253,13 +259,29 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 - self.beam_infos[i_beam].photodiode_offset
             )
 
-        for i_beam in range(len(self.adc_readers)):
+        self.save_data(voltages)
+
+    @rpc(flags={"async"})
+    def save_data(self, voltages: TArray(TFloat)):
+        for i_beam, beam_info in enumerate(self.beam_infos):
+            voltage = voltages[i_beam]
+
             if self.subtract_setpoint:
-                self.results_channels[i_beam].push(
-                    voltages[i_beam] - self.beam_infos[i_beam].setpoint
-                )
+                self.results_channels[i_beam].push(voltage - beam_info.setpoint)
             else:
-                self.results_channels[i_beam].push(voltages[i_beam])
+                self.results_channels[i_beam].push(voltage)
+
+            self.influx_logger.write(
+                tags={
+                    "type": self.__class__.__name__,
+                    "beam": beam_info.name,
+                    "rid": self.scheduler.rid,
+                },
+                fields={
+                    "setpoint": beam_info.setpoint,
+                    "reading": voltage,
+                },
+            )
 
 
 DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
