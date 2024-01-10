@@ -197,7 +197,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 )
             )
 
-        # Get beam setter fragment
+        # Get beam setter fragment for all the beams
         self.setattr_fragment(
             "beam_default_setter",
             SetBeamsToDefaults,
@@ -225,9 +225,13 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
     def run_once(self):
         delay(self.waittime.get())
 
-        v = self.adc_reader.read_adc() - self.beam_info.photodiode_offset
+        for i_beam in range(len(self.adc_readers)):
+            v = (
+                self.adc_readers[i_beam].read_adc()
+                - self.beam_infos[i_beam].photodiode_offset
+            )
+            self.results_channels[i_beam].push(v)
 
-        self.voltage.push(v)
 
-
-DisplaySUServoMonitors = make_fragment_scan_exp(DisplaySUServoMonitorsFrag)
+DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
+DisplayAllSUServoMonitors = make_fragment_scan_exp(DisplayAllSUServoMonitorsFrag)
