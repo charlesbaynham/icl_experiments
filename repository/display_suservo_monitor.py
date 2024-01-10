@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
@@ -25,7 +26,7 @@ from repository.lib.fragments.read_adc import ReadSUServoADC
 logger = logging.getLogger(__name__)
 
 
-class DisplaySUServoMonitorsFrag(ExpFragment):
+class DisplaySingleSUServoMonitorFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -114,6 +115,108 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
             self.core.break_realtime()
             delay(10 * ms)
             if self.turn_on_beam_with_default_settings:
+                self.beam_default_setter.turn_on_all(light_enabled=True)
+
+            self.first_run = False
+
+    @kernel
+    def run_once(self):
+        delay(self.waittime.get())
+
+        v = self.adc_reader.read_adc() - self.beam_info.photodiode_offset
+
+        self.voltage.push(v)
+
+
+class DisplayAllSUServoMonitorsFrag(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_param(
+            "waittime",
+            FloatParam,
+            description="Time between measurements",
+            default=0.1,
+            min=0,
+            max=1000,
+            unit="s",
+            step=0.01,
+        )
+        self.waittime: FloatParamHandle
+
+        self.setattr_argument(
+            "turn_on_beams_with_default_settings",
+            BooleanValue(True),
+        )
+        self.turn_on_beams_with_default_settings: bool
+
+        self.setattr_argument(
+            "disable_servoing",
+            BooleanValue(True),
+        )
+        self.disable_servoing: bool
+
+        # %% devices
+
+        from copy import deepcopy
+
+        self.beam_infos = deepcopy(constants.AOM_BEAMS)
+
+        if self.disable_servoing:
+            for info in self.beam_infos:
+                info.servo_enabled = False
+
+        self.adc_readers: List[ReadSUServoADC] = []
+        self.results_channels: List[ResultChannel] = []
+
+        for beam_info in self.beam_infos:
+            suservo_channel_device: SUServoChannel = self.get_device(
+                beam_info.suservo_device
+            )
+
+            if isinstance(suservo_channel_device, DummyDevice):
+                # In building - use placeholder values
+                suservo: SUServo = DummyDevice()
+                sampler_channel_number = 0
+            else:
+                suservo = self.suservo_channel_device.servo
+                # This is a convention in the AION lab:
+                sampler_channel_number = suservo_channel_device.servo_channel
+
+            # Define a result channel for output
+            self.results_channels.append(self.setattr_result(beam_info.name))
+
+            # Get SUServo reader fragment
+            self.adc_readers.append(
+                self.setattr_fragment(
+                    f"{beam_info.name}_adc_reader",
+                    ReadSUServoADC,
+                    suservo,
+                    sampler_channel_number,
+                )
+            )
+
+        # Get beam setter fragment
+        self.setattr_fragment(
+            "beam_default_setter",
+            SetBeamsToDefaults,
+            default_beam_infos=[self.beam_infos],
+        )
+        self.beam_default_setter: SetBeamsToDefaults
+
+        # %% Kernel params
+
+        self.first_run = True
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        if self.first_run:
+            self.core.break_realtime()
+            delay(10 * ms)
+            if self.turn_on_beams_with_default_settings:
                 self.beam_default_setter.turn_on_all(light_enabled=True)
 
             self.first_run = False
