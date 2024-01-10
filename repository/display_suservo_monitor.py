@@ -157,6 +157,12 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         )
         self.disable_servoing: bool
 
+        self.setattr_argument(
+            "subtract_setpoint",
+            BooleanValue(False),
+        )
+        self.subtract_setpoint: bool
+
         # %% devices
 
         from copy import deepcopy
@@ -248,7 +254,12 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             )
 
         for i_beam in range(len(self.adc_readers)):
-            self.results_channels[i_beam].push(voltages[i_beam])
+            if self.subtract_setpoint:
+                self.results_channels[i_beam].push(
+                    voltages[i_beam] - self.beam_infos[i_beam].setpoint
+                )
+            else:
+                self.results_channels[i_beam].push(voltages[i_beam])
 
 
 DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
