@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
@@ -25,7 +26,7 @@ from repository.lib.fragments.read_adc import ReadSUServoADC
 logger = logging.getLogger(__name__)
 
 
-class DisplaySUServoMonitorsFrag(ExpFragment):
+class DisplaySingleSUServoMonitorFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -127,4 +128,139 @@ class DisplaySUServoMonitorsFrag(ExpFragment):
         self.voltage.push(v)
 
 
-DisplaySUServoMonitors = make_fragment_scan_exp(DisplaySUServoMonitorsFrag)
+class DisplayAllSUServoMonitorsFrag(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_param(
+            "waittime",
+            FloatParam,
+            description="Time between measurements",
+            default=0.1,
+            min=0,
+            max=1000,
+            unit="s",
+            step=0.01,
+        )
+        self.waittime: FloatParamHandle
+
+        self.setattr_argument(
+            "turn_on_beams_with_default_settings",
+            BooleanValue(True),
+        )
+        self.turn_on_beams_with_default_settings: bool
+
+        self.setattr_argument(
+            "disable_servoing",
+            BooleanValue(True),
+        )
+        self.disable_servoing: bool
+
+        self.setattr_argument(
+            "subtract_setpoint",
+            BooleanValue(False),
+        )
+        self.subtract_setpoint: bool
+
+        # %% devices
+
+        from copy import deepcopy
+
+        self.beam_infos = list(deepcopy(constants.AOM_BEAMS).values())
+
+        if self.disable_servoing:
+            for info in self.beam_infos:
+                info.servo_enabled = False
+
+        self.adc_readers: List[ReadSUServoADC] = []
+        self.results_channels: List[ResultChannel] = []
+
+        for i, beam_info in enumerate(self.beam_infos):
+            suservo_channel_device: SUServoChannel = self.get_device(
+                beam_info.suservo_device
+            )
+
+            if isinstance(suservo_channel_device, DummyDevice):
+                # In building - use placeholder values
+                suservo: SUServo = DummyDevice()
+                sampler_channel_number = 0
+            else:
+                suservo = suservo_channel_device.servo
+                # This is a convention in the AION lab:
+                sampler_channel_number = suservo_channel_device.servo_channel
+
+            # Define a result channel for output
+            if i == 0:
+                r = self.setattr_result(
+                    beam_info.name,
+                )
+            else:
+                r = self.setattr_result(
+                    beam_info.name,
+                    display_hints={
+                        "priority": -1,
+                        "share_pane_with": self.beam_infos[0].name,
+                    },
+                )
+
+            self.results_channels.append(r)
+
+            # Get SUServo reader fragment
+            self.adc_readers.append(
+                self.setattr_fragment(
+                    f"{beam_info.name}_adc_reader",
+                    ReadSUServoADC,
+                    suservo,
+                    sampler_channel_number,
+                )
+            )
+
+        # Get beam setter fragment for all the beams
+        self.setattr_fragment(
+            "beam_default_setter",
+            SetBeamsToDefaults,
+            default_beam_infos=self.beam_infos,
+        )
+        self.beam_default_setter: SetBeamsToDefaults
+
+        # %% Kernel params
+
+        self.first_run = True
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        if self.first_run:
+            self.core.break_realtime()
+            delay(10 * ms)
+            if self.turn_on_beams_with_default_settings:
+                self.beam_default_setter.turn_on_all(light_enabled=True)
+
+            self.first_run = False
+
+    @kernel
+    def run_once(self):
+        delay(self.waittime.get())
+
+        voltages = [0.0] * len(self.adc_readers)
+
+        for i_beam in range(len(self.adc_readers)):
+            self.core.break_realtime()
+            voltages[i_beam] = (
+                self.adc_readers[i_beam].read_adc()
+                - self.beam_infos[i_beam].photodiode_offset
+            )
+
+        for i_beam in range(len(self.adc_readers)):
+            if self.subtract_setpoint:
+                self.results_channels[i_beam].push(
+                    voltages[i_beam] - self.beam_infos[i_beam].setpoint
+                )
+            else:
+                self.results_channels[i_beam].push(voltages[i_beam])
+
+
+DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
+DisplayAllSUServoMonitors = make_fragment_scan_exp(DisplayAllSUServoMonitorsFrag)
