@@ -170,7 +170,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         self.adc_readers: List[ReadSUServoADC] = []
         self.results_channels: List[ResultChannel] = []
 
-        for beam_info in self.beam_infos:
+        for i, beam_info in enumerate(self.beam_infos):
             suservo_channel_device: SUServoChannel = self.get_device(
                 beam_info.suservo_device
             )
@@ -185,7 +185,20 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 sampler_channel_number = suservo_channel_device.servo_channel
 
             # Define a result channel for output
-            self.results_channels.append(self.setattr_result(beam_info.name))
+            if i == 0:
+                r = self.setattr_result(
+                    beam_info.name,
+                )
+            else:
+                r = self.setattr_result(
+                    beam_info.name,
+                    display_hints={
+                        "priority": -1,
+                        "share_pane_with": self.beam_infos[0].name,
+                    },
+                )
+
+            self.results_channels.append(r)
 
             # Get SUServo reader fragment
             self.adc_readers.append(
