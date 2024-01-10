@@ -225,12 +225,17 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
     def run_once(self):
         delay(self.waittime.get())
 
+        voltages = [0.0] * len(self.adc_readers)
+
         for i_beam in range(len(self.adc_readers)):
-            v = (
+            self.core.break_realtime()
+            voltages[i_beam] = (
                 self.adc_readers[i_beam].read_adc()
                 - self.beam_infos[i_beam].photodiode_offset
             )
-            self.results_channels[i_beam].push(v)
+
+        for i_beam in range(len(self.adc_readers)):
+            self.results_channels[i_beam].push(voltages[i_beam])
 
 
 DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
