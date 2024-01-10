@@ -161,7 +161,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
         from copy import deepcopy
 
-        self.beam_infos = deepcopy(constants.AOM_BEAMS)
+        self.beam_infos = list(deepcopy(constants.AOM_BEAMS).values())
 
         if self.disable_servoing:
             for info in self.beam_infos:
@@ -180,7 +180,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 suservo: SUServo = DummyDevice()
                 sampler_channel_number = 0
             else:
-                suservo = self.suservo_channel_device.servo
+                suservo = suservo_channel_device.servo
                 # This is a convention in the AION lab:
                 sampler_channel_number = suservo_channel_device.servo_channel
 
@@ -201,7 +201,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         self.setattr_fragment(
             "beam_default_setter",
             SetBeamsToDefaults,
-            default_beam_infos=[self.beam_infos],
+            default_beam_infos=self.beam_infos,
         )
         self.beam_default_setter: SetBeamsToDefaults
 
