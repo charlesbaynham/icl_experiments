@@ -82,9 +82,9 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 B_FIELD_CH1_AXIAL = 0.0  # A
 
 # Default field in chamber 2
-B_FIELD_BIAS_X = 0.1  # A
-B_FIELD_BIAS_Y = -0.025  # A
-B_FIELD_BIAS_Z = -0.68  # A
+B_FIELD_BIAS_X = 0.11  # A
+B_FIELD_BIAS_Y = -0.014  # A
+B_FIELD_BIAS_Z = -0.75  # A
 B_FIELD_GRADIENT = 100.0  # A
 
 
@@ -124,10 +124,10 @@ ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-ANDOR_ROI_X0 = 74
-ANDOR_ROI_X1 = 98
-ANDOR_ROI_Y0 = 198
-ANDOR_ROI_Y1 = 224
+ANDOR_ROI_X0 = 42
+ANDOR_ROI_X1 = 118
+ANDOR_ROI_Y0 = 252
+ANDOR_ROI_Y1 = 316
 
 ANDOR_FAST_KINETICS_HEIGHT = 100
 
