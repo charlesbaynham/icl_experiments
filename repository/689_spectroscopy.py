@@ -553,7 +553,7 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
         self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
 
-BlowAwayMOT = make_fragment_scan_exp(TripleImageMOTFrag)
+SpectroscopyWithKineticsExp = make_fragment_scan_exp(SpectroscopyWithKinetics)
 UpBeamBlowaway = make_fragment_scan_exp(UpBeamBlowawayFrag)
 UpBeamInterferometry = make_fragment_scan_exp(UpBeamInterferometryFrag)
 UpBeamInterferometrySUServoPhase = make_fragment_scan_exp(
