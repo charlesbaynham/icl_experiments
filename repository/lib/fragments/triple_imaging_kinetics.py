@@ -252,14 +252,14 @@ class TripleImageMOTFrag(RedMOTBase):
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
-        self.andor_sum_2.push(sums[2])
+        # self.andor_sum_2.push(sums[2]) # FIXME: Horrible
 
         self.after_sequence_hook(
-            sums[0], sums[1], sums[2], means[0], means[1], means[2]
+            sums[0], sums[1], 0, means[0], means[1], 0.0  # FIXME: Horrible
         )
 
         self.excitation_fraction.push(
-            (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
+            (means[1] - 0.0) / (means[0] + means[1] - 2 * 0.0)  # FIXME: Horrible
         )
 
         # TODO: Move this closing of red mot shutters somewhere more sensible
