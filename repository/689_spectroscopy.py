@@ -88,12 +88,8 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
         )
         self.extra_repump_time: FloatParamHandle
 
-    @kernel
-    def before_start_hook(self):
-        pass
 
-
-class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
+class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
     def get_default_analyses(self):
         return [
             OnlineFit(
@@ -149,6 +145,10 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.x_coil_boost: FloatParamHandle
         self.y_coil_boost: FloatParamHandle
         self.z_coil_boost: FloatParamHandle
+
+    @kernel
+    def before_start_hook(self):
+        pass
 
     def _setup_andor(self):
         """
@@ -222,7 +222,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.blue_3d_mot.turn_off_repumpers()
         delay(-self.extra_repump_time.get())
 
-        self.setup_spectroscopy_beam_before_expansion()
+        self.pre_expansion_hook()
 
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
@@ -233,6 +233,8 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
             self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
             self.blue_3d_mot.chamber_2_bias_z.get() + self.z_coil_boost.get(),
         )
+
+        delay(self.expansion_time.get())
 
         self.do_spectroscopy_pulse()
 
@@ -298,7 +300,7 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
     @kernel
-    def setup_spectroscopy_beam_before_expansion(self):
+    def pre_expansion_hook(self):
         self.red_axial_minus.suservo_channel.set_y(
             profile=self.red_axial_minus.suservo_profile,
             y=self.spectroscopy_pulse_aom_amplitude.get(),
@@ -306,13 +308,12 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
-        delay(self.expansion_time.get())
         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-class UpBeamBlowawayFrag(BlowAwayMOTFrag):
+class UpBeamBlowawayFrag(TripleImageMOTFrag):
     def setup_spectroscopy_subfrag(self):
         class _UpBeamSetter(SetBeamsToDefaults):
             default_beam_infos = [constants.AOM_BEAMS["red_up"]]
@@ -339,12 +340,11 @@ class UpBeamBlowawayFrag(BlowAwayMOTFrag):
         )
 
     @kernel
-    def setup_spectroscopy_beam_before_expansion(self):
+    def pre_expansion_hook(self):
         pass
 
     @kernel
     def do_spectroscopy_pulse(self):
-        delay(self.expansion_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
@@ -399,8 +399,6 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
-        delay(self.expansion_time.get())
-
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Allow negative phases up to -10
@@ -502,8 +500,6 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
 
     @kernel
     def do_spectroscopy_pulse(self):
-        delay(self.expansion_time.get())
-
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Ensure we're on profile 0
@@ -533,7 +529,7 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
         self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
 
-BlowAwayMOT = make_fragment_scan_exp(BlowAwayMOTFrag)
+BlowAwayMOT = make_fragment_scan_exp(TripleImageMOTFrag)
 UpBeamBlowaway = make_fragment_scan_exp(UpBeamBlowawayFrag)
 UpBeamInterferometry = make_fragment_scan_exp(UpBeamInterferometryFrag)
 UpBeamInterferometrySUServoPhase = make_fragment_scan_exp(
