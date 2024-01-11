@@ -52,9 +52,6 @@ class TripleImageMOTFrag(RedMOTBase):
             )
         ]
 
-    def pre_build_fragment_hook(self):
-        pass
-
     def build_fragment(self):
         # Set this frag up first, so that later fragments' device_setup override it
         self.pre_build_fragment_hook()
@@ -297,16 +294,47 @@ class TripleImageMOTFrag(RedMOTBase):
         self.core.break_realtime()
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
+    # %% Hooks
+    #
+    # The remaining methods in this class are designed to be overridden by
+    # children of this class, to control its behaviour. `do_spectroscopy_hook`
+    # is compulsory, the others are optional. See `run_once` to understand where
+    # these hooks are executed.
+
+    def pre_build_fragment_hook(self):
+        """
+        Hook run at the beginning of `build_fragment`
+
+        TODO: Remove this, users can just override build_fragment and user
+        `super()` as god intended.
+        """
+        pass
+
     @kernel
     def before_start_hook(self):
+        """
+        Hook for core actions before the start of the atomics sequence.
+
+        Feel free to use break_realtime - it will be called again before the MOT
+        is loaded.
+        """
         pass
 
     @kernel
     def pre_expansion_hook(self):
+        """
+        Hook for core actions after the narrowband red mot is completed, before
+        cloud expansion begins
+        """
         pass
 
     @kernel
     def do_spectroscopy_hook(self):
+        """
+        Hook for the implementation of a spectroscopy / interfereometry /
+        whatever pulse, executed after the programmed expansion time is
+        completed.
+        """
         raise NotImplementedError
 
 
