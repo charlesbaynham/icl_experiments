@@ -163,13 +163,13 @@ class TripleImageMOTFrag(RedMOTBase):
         )
         self.andor_camera_control: AndorCameraControl
 
-        self.setattr_result("andor_sum_gnd", FloatChannel)
-        self.setattr_result("andor_sum_ex", FloatChannel)
-        self.setattr_result("andor_sum_bg", FloatChannel)
+        self.setattr_result("andor_sum_0", FloatChannel)
+        self.setattr_result("andor_sum_1", FloatChannel)
+        self.setattr_result("andor_sum_2", FloatChannel)
         self.setattr_result("excitation_fraction", FloatChannel)
-        self.andor_sum_gnd: FloatChannel
-        self.andor_sum_ex: FloatChannel
-        self.andor_sum_bg: FloatChannel
+        self.andor_sum_0: FloatChannel
+        self.andor_sum_1: FloatChannel
+        self.andor_sum_2: FloatChannel
         self.excitation_fraction: FloatChannel
 
     @kernel
@@ -228,37 +228,7 @@ class TripleImageMOTFrag(RedMOTBase):
 
         delay(self.delay_after_spectroscopy.get())
 
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
-        # Image gnd state atoms
-        delay(-0.5 * andor_exposure)
-        self.andor_camera_control.trigger(
-            exposure=andor_exposure,
-            control_shutter=False,
-        )
-        delay(0.5 * andor_exposure)
-        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-
-        delay(self.delay_between_fluoresence_pulses.get())
-
-        # Image excited state atoms
-        delay(-0.5 * andor_exposure)
-        self.andor_camera_control.trigger(
-            exposure=andor_exposure,
-            control_shutter=False,
-        )
-        delay(0.5 * andor_exposure)
-        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-
-        # Take background measurement
-        delay(self.delay_before_background_pulse.get())
-        delay(-0.5 * andor_exposure)
-        self.andor_camera_control.trigger(
-            exposure=andor_exposure,
-            control_shutter=False,
-        )
-        delay(0.5 * andor_exposure)
-        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+        self.do_triple_image()
 
         self.andor_camera_control.set_shutter(False)
 
@@ -275,9 +245,9 @@ class TripleImageMOTFrag(RedMOTBase):
             self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
         )
 
-        self.andor_sum_gnd.push(sums[0])
-        self.andor_sum_ex.push(sums[1])
-        self.andor_sum_bg.push(sums[2])
+        self.andor_sum_0.push(sums[0])
+        self.andor_sum_1.push(sums[1])
+        self.andor_sum_2.push(sums[2])
 
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
@@ -287,7 +257,32 @@ class TripleImageMOTFrag(RedMOTBase):
         self.core.break_realtime()
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
-    # %% Hooks
+    @kernel
+    def do_triple_image(self):
+        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+
+        # Image ground state atoms
+        self.do_first_pulse(andor_exposure)
+
+        # Image excited state atoms
+        delay(self.delay_between_fluoresence_pulses.get())
+        self.do_second_pulse(andor_exposure)
+
+        # Take background measurement
+        delay(self.delay_before_background_pulse.get())
+        self.do_third_pulse(andor_exposure)
+
+    @kernel
+    def _do_pulse(self, andor_exposure):
+        delay(-0.5 * andor_exposure)
+        self.andor_camera_control.trigger(
+            exposure=andor_exposure,
+            control_shutter=False,
+        )
+        delay(0.5 * andor_exposure)
+        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+
+    # %% Hooks / overridable methods
     #
     # The remaining methods in this class are designed to be overridden by
     # children of this class, to control its behaviour. `do_spectroscopy_hook`
@@ -329,3 +324,15 @@ class TripleImageMOTFrag(RedMOTBase):
         completed.
         """
         raise NotImplementedError
+
+    @kernel
+    def do_first_pulse(self, andor_exposure):
+        self._do_pulse(andor_exposure)
+
+    @kernel
+    def do_second_pulse(self, andor_exposure):
+        self._do_pulse(andor_exposure)
+
+    @kernel
+    def do_third_pulse(self, andor_exposure):
+        self._do_pulse(andor_exposure)
