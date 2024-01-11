@@ -27,8 +27,38 @@ from repository.measure_red_mot import RedMOTBase
 logger = logging.getLogger(__name__)
 
 
-class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
+class TripleImageMOTFrag(RedMOTBase):
+    """
+    Run a sequence that makes a red MOT, allows setting of expansion and coils,
+    does something to it (e.g. a spectroscopy or interferometry sequence) then
+    images it with three shots in fast kinetics.
+
+    This ExpFragment cannot be used as is - you should subclass it and implement
+    at least the `do_spectroscopy_hook` method and possible the other
+    `..._hook` methods.
+    """
+
+    def get_default_analyses(self):
+        return [
+            OnlineFit(
+                "decaying_sinusoid",
+                data={
+                    "x": self.spectroscopy_pulse_time,
+                    "y": self.excitation_fraction,
+                },
+                constants={
+                    "t_dead": 0,
+                },
+            )
+        ]
+
+    def setup_spectroscopy_subfrag(self):
+        pass
+
     def build_fragment(self):
+        # Set this frag up first, so that later fragments' device_setup override it
+        self.setup_spectroscopy_subfrag()
+
         super().build_fragment()
 
         self.setattr_param(
@@ -76,41 +106,6 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
             unit="us",
         )
         self.extra_repump_time: FloatParamHandle
-
-
-class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
-    """
-    Run a sequence that makes a red MOT, allows setting of expansion and coils,
-    does something to it (e.g. a spectroscopy or interferometry sequence) then
-    images it with three shots in fast kinetics.
-
-    This ExpFragment cannot be used as is - you should subclass it and implement
-    at least the `do_spectroscopy_hook` method and possible the other
-    `..._hook` methods.
-    """
-
-    def get_default_analyses(self):
-        return [
-            OnlineFit(
-                "decaying_sinusoid",
-                data={
-                    "x": self.spectroscopy_pulse_time,
-                    "y": self.excitation_fraction,
-                },
-                constants={
-                    "t_dead": 0,
-                },
-            )
-        ]
-
-    def setup_spectroscopy_subfrag(self):
-        pass
-
-    def build_fragment(self):
-        # Set this frag up first, so that later fragments' device_setup override it
-        self.setup_spectroscopy_subfrag()
-
-        super().build_fragment()
 
         self.setattr_param(
             "delay_between_fluoresence_pulses",
