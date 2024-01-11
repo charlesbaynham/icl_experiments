@@ -28,18 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
-    def setup_spectroscopy_subfrag(self):
-        self.setattr_fragment(
-            "red_axial_minus",
-            LibSetSUServoStatic,
-            "suservo_aom_singlepass_689_red_mot_sigmaminus",
-        )
-        self.red_axial_minus: LibSetSUServoStatic
-
     def build_fragment(self):
-        # Set this frag up first, so that later fragments' device_setup override it
-        self.setup_spectroscopy_subfrag()
-
         super().build_fragment()
 
         self.setattr_param(
@@ -90,6 +79,16 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
 
 
 class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
+    """
+    Run a sequence that makes a red MOT, allows setting of expansion and coils,
+    does something to it (e.g. a spectroscopy or interferometry sequence) then
+    images it with three shots in fast kinetics.
+
+    This ExpFragment cannot be used as is - you should subclass it and implement
+    at least the `do_spectroscopy_hook` method and possible the other
+    `..._hook` methods.
+    """
+
     def get_default_analyses(self):
         return [
             OnlineFit(
@@ -104,7 +103,13 @@ class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
             )
         ]
 
+    def setup_spectroscopy_subfrag(self):
+        pass
+
     def build_fragment(self):
+        # Set this frag up first, so that later fragments' device_setup override it
+        self.setup_spectroscopy_subfrag()
+
         super().build_fragment()
 
         self.setattr_param(
@@ -145,10 +150,6 @@ class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.x_coil_boost: FloatParamHandle
         self.y_coil_boost: FloatParamHandle
         self.z_coil_boost: FloatParamHandle
-
-    @kernel
-    def before_start_hook(self):
-        pass
 
     def _setup_andor(self):
         """
@@ -236,7 +237,9 @@ class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         delay(self.expansion_time.get())
 
-        self.do_spectroscopy_pulse()
+        # Do the spectroscopy / interfereometry / whatever sequence. This method
+        # must be defined by child classes
+        self.do_spectroscopy_hook()
 
         delay(self.delay_after_spectroscopy.get())
 
@@ -300,6 +303,32 @@ class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
     @kernel
+    def before_start_hook(self):
+        pass
+
+    @kernel
+    def pre_expansion_hook(self):
+        pass
+
+    @kernel
+    def do_spectroscopy_hook(self):
+        raise NotImplementedError
+
+
+class SpectroscopyWithKinetics(TripleImageMOTFrag):
+    """
+    689nm spectroscopy with fast kinetics imaging
+    """
+
+    def setup_spectroscopy_subfrag(self):
+        self.setattr_fragment(
+            "red_axial_minus",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_689_red_mot_sigmaminus",
+        )
+        self.red_axial_minus: LibSetSUServoStatic
+
+    @kernel
     def pre_expansion_hook(self):
         self.red_axial_minus.suservo_channel.set_y(
             profile=self.red_axial_minus.suservo_profile,
@@ -307,7 +336,7 @@ class TripleImageMOTFrag(MeasureRedMOTSpectroscopyFrag):
         )
 
     @kernel
-    def do_spectroscopy_pulse(self):
+    def do_spectroscopy_hook(self):
         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
@@ -344,7 +373,7 @@ class UpBeamBlowawayFrag(TripleImageMOTFrag):
         pass
 
     @kernel
-    def do_spectroscopy_pulse(self):
+    def do_spectroscopy_hook(self):
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
@@ -398,7 +427,7 @@ class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
         ]
 
     @kernel
-    def do_spectroscopy_pulse(self):
+    def do_spectroscopy_hook(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Allow negative phases up to -10
@@ -499,7 +528,7 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
         self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
     @kernel
-    def do_spectroscopy_pulse(self):
+    def do_spectroscopy_hook(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Ensure we're on profile 0
