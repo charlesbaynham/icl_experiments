@@ -14,7 +14,6 @@ from artiq.experiment import portable
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
@@ -334,7 +333,7 @@ class Chamber2VerticalCamera(CameraFrag):
     ttl_trigger_device = "ttl_camera_trigger_vertical"
 
 
-class _MonitorCamera(ExpFragment):
+class MonitorCameraExp(ExpFragment):
     camera_class: Type[CameraFrag]
 
     def __init__(self, managers_or_parent, *args, **kwargs):
@@ -392,15 +391,3 @@ class _MonitorCamera(ExpFragment):
         t_end = time.time()
 
         time.sleep(max(self.delay.get() - (t_end - t_start), 0))
-
-
-class MonitorChamber2HorizCamera(_MonitorCamera):
-    camera_class = Chamber2HorizontalCamera
-
-
-class MonitorChamber2VertCamera(_MonitorCamera):
-    camera_class = Chamber2VerticalCamera
-
-
-MonitorChamber2HorizCamera = make_fragment_scan_exp(MonitorChamber2HorizCamera)  # type: ignore
-MonitorChamber2VertCamera = make_fragment_scan_exp(MonitorChamber2VertCamera)  # type: ignore
