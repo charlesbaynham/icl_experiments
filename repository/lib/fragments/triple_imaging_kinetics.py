@@ -158,7 +158,8 @@ class TripleImageMOTFrag(RedMOTBase):
                     constants.ANDOR_ROI_X1,
                     (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
                 ]
-                for i in range(3)
+                # for i in range(3)
+                for i in range(2)  # FIXME: Undo this horrible hack too
             ],
         )
         self.andor_camera_control: AndorCameraControl
@@ -237,8 +238,12 @@ class TripleImageMOTFrag(RedMOTBase):
         self.camera_interface.save_data()
 
         # Save Andor data
-        sums = [0] * 3
-        means = [0.0] * 3
+        # FIXME: Undo this horrible hack!!!
+        # sums = [0] * 3
+        # means = [0.0] * 3
+
+        sums = [0] * 2
+        means = [0.0] * 2
         self.andor_camera_control.readout_ROIs(
             sums,
             means,
@@ -248,6 +253,10 @@ class TripleImageMOTFrag(RedMOTBase):
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
         self.andor_sum_2.push(sums[2])
+
+        self.after_sequence_hook(
+            sums[0], sums[1], sums[2], means[0], means[1], means[2]
+        )
 
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
@@ -336,3 +345,10 @@ class TripleImageMOTFrag(RedMOTBase):
     @kernel
     def do_third_pulse(self, andor_exposure):
         self._do_pulse(andor_exposure)
+
+    @kernel
+    def after_sequence_hook(self, sum0, sum1, sum2, mean0, mean1, mean2):
+        """
+        Hook for core actions after the imaging is completed and the data has been saved
+        """
+        pass
