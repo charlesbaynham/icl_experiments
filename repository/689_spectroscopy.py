@@ -52,12 +52,12 @@ class TripleImageMOTFrag(RedMOTBase):
             )
         ]
 
-    def setup_spectroscopy_subfrag(self):
+    def pre_build_fragment_hook(self):
         pass
 
     def build_fragment(self):
         # Set this frag up first, so that later fragments' device_setup override it
-        self.setup_spectroscopy_subfrag()
+        self.pre_build_fragment_hook()
 
         super().build_fragment()
 
@@ -315,7 +315,7 @@ class SpectroscopyWithKinetics(TripleImageMOTFrag):
     689nm spectroscopy with fast kinetics imaging
     """
 
-    def setup_spectroscopy_subfrag(self):
+    def pre_build_fragment_hook(self):
         self.setattr_fragment(
             "red_axial_minus",
             LibSetSUServoStatic,
@@ -338,7 +338,7 @@ class SpectroscopyWithKinetics(TripleImageMOTFrag):
 
 
 class UpBeamBlowawayFrag(TripleImageMOTFrag):
-    def setup_spectroscopy_subfrag(self):
+    def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
             default_beam_infos = [constants.AOM_BEAMS["red_up"]]
 
