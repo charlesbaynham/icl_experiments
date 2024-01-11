@@ -289,19 +289,16 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
 
         self.red_mot.transition_broadband_to_narrowband()
 
-        self.red_mot.chamber_2_field_setter.set_mot_gradient(
-            self.spectroscopy_field_gradient.get()
-        )
-        delay_mu(int64(self.core.ref_multiplier))
         t_light_off_mu = now_mu()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.red_beam_controller.set_mot_detuning(
             self.spectroscopy_pulse_aom_detuning.get()
         )
-        delay_mu(int64(self.core.ref_multiplier))
 
         delay(self.extra_repump_time.get())
+        delay_mu(int64(self.core.ref_multiplier))
         self.blue_3d_mot.turn_off_repumpers()
         delay(-self.extra_repump_time.get())
 
@@ -311,7 +308,8 @@ class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
         # transfers etc.
         at_mu(t_light_off_mu)
 
-        self.red_mot.chamber_2_field_setter.set_bias_fields(
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            self.spectroscopy_field_gradient.get(),
             self.blue_3d_mot.chamber_2_bias_x.get() + self.x_coil_boost.get(),
             self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
             self.blue_3d_mot.chamber_2_bias_z.get() + self.z_coil_boost.get(),
