@@ -25,7 +25,7 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
 import repository.lib.constants as constants
-from repository.scan_koheron_current import ScanKoheronCurrentFrag
+from repository.injected_diodes.scan_koheron_current import ScanKoheronCurrentFrag
 
 logger = logging.getLogger(__name__)
 

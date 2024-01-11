@@ -1,21 +1,15 @@
 import logging
 
-from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import delay
 from artiq.experiment import kernel
-from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.triple_imaging_kinetics import TripleImageMOTFrag
 
 logger = logging.getLogger(__name__)
-
-from repository.lib.fragments.triple_imaging_kinetics import TripleImageMOTFrag
 
 
 class SpectroscopyWithKinetics_MOTBeam(TripleImageMOTFrag):

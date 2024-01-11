@@ -13,7 +13,7 @@ from numpy import int64
 
 from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
-from repository.measure_red_mot import RedMOTBase
+from repository.red_mot.measure_red_mot import RedMOTBase
 
 logger = logging.getLogger(__name__)
 
