@@ -336,9 +336,11 @@ class TripleImageMOTFrag(RedMOTBase):
         raise NotImplementedError
 
 
-class SpectroscopyWithKinetics(TripleImageMOTFrag):
+class SpectroscopyWithKinetics_MOTBeam(TripleImageMOTFrag):
     """
-    689nm spectroscopy with fast kinetics imaging
+    689nm spectroscopy MOTBEAM
+
+    689nm spectroscopy with fast kinetics imaging using the red MOT beam
     """
 
     def pre_build_fragment_hook(self):
@@ -363,7 +365,13 @@ class SpectroscopyWithKinetics(TripleImageMOTFrag):
         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-class UpBeamBlowawayFrag(TripleImageMOTFrag):
+class SpectroscopyWithKinetics_UpBeam(TripleImageMOTFrag):
+    """
+    689nm spectroscopy UP
+
+    689nm spectroscopy with fast kinetics imaging using the red up beam
+    """
+
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
             default_beam_infos = [constants.AOM_BEAMS["red_up"]]
@@ -390,17 +398,13 @@ class UpBeamBlowawayFrag(TripleImageMOTFrag):
         )
 
     @kernel
-    def pre_expansion_hook(self):
-        pass
-
-    @kernel
     def do_spectroscopy_hook(self):
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-class UpBeamInterferometryFrag(UpBeamBlowawayFrag):
+class UpBeamInterferometryFrag(SpectroscopyWithKinetics_UpBeam):
     """
     Up beam interferometry - IJD phase shift
     """
@@ -579,8 +583,8 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
         self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
 
-SpectroscopyWithKineticsExp = make_fragment_scan_exp(SpectroscopyWithKinetics)
-UpBeamBlowaway = make_fragment_scan_exp(UpBeamBlowawayFrag)
+SpectroscopyWithKineticsExp = make_fragment_scan_exp(SpectroscopyWithKinetics_MOTBeam)
+UpBeamBlowaway = make_fragment_scan_exp(SpectroscopyWithKinetics_UpBeam)
 UpBeamInterferometry = make_fragment_scan_exp(UpBeamInterferometryFrag)
 UpBeamInterferometrySUServoPhase = make_fragment_scan_exp(
     UpBeamInterferometrySUServoPhaseFrag
