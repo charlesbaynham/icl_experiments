@@ -88,92 +88,9 @@ class MeasureRedMOTSpectroscopyFrag(RedMOTBase):
         )
         self.extra_repump_time: FloatParamHandle
 
-    def get_default_analyses(self):
-        return [
-            OnlineFit(
-                "decaying_sinusoid",
-                data={
-                    "x": self.spectroscopy_pulse_time,
-                    "y": self.andor_mean,
-                },
-                constants={
-                    "t_dead": 0,
-                },
-            ),
-            OnlineFit(
-                "decaying_sinusoid",
-                data={
-                    "x": self.spectroscopy_pulse_time,
-                    "y": self.andor_sum,
-                },
-                constants={
-                    "t_dead": 0,
-                },
-            ),
-        ]
-
     @kernel
     def before_start_hook(self):
         pass
-
-    @kernel
-    def run_once(self):
-        self.before_start_hook()
-
-        self.core.break_realtime()
-        self._from_start_to_end_of_broadband_mot()
-
-        # The FLIR cameras are not useful for the final imaging, so use them to
-        # image the blue MOT instead
-        delay(-self.red_broadband_time.get() - 10e-3)
-        self.camera_interface.trigger()
-        delay(+self.red_broadband_time.get() + 10e-3)
-
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
-        delay(-self.red_broadband_time.get())
-        self.andor_camera_control.set_shutter(True)
-        delay(+self.red_broadband_time.get())
-
-        self.red_mot.transition_broadband_to_narrowband()
-
-        self.red_mot.chamber_2_field_setter.set_mot_gradient(0.0)
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.set_mot_detuning(
-            self.spectroscopy_pulse_aom_detuning.get()
-        )
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_axial_minus.suservo_channel.set_y(
-            profile=self.red_axial_minus.suservo_profile,
-            y=self.spectroscopy_pulse_aom_amplitude.get(),
-        )
-
-        delay_mu(int64(self.core.ref_multiplier))
-
-        delay(self.extra_repump_time.get())
-        self.blue_3d_mot.turn_off_repumpers()
-
-        delay(self.expansion_time.get() - self.extra_repump_time.get())
-
-        self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
-        delay(self.spectroscopy_pulse_time.get())
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
-
-        delay(self.delay_after_spectroscopy.get())
-
-        with parallel:
-            self.andor_camera_control.trigger(
-                exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
-                control_shutter=False,
-            )
-            with sequential:
-                self.fluorescence_pulse.do_imaging_pulse()
-                self.andor_camera_control.set_shutter(False)
-
-        self._save_data()
 
 
 class BlowAwayMOTFrag(MeasureRedMOTSpectroscopyFrag):
@@ -616,7 +533,6 @@ class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
         self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
 
-MeasureRedMOTSpectroscopy = make_fragment_scan_exp(MeasureRedMOTSpectroscopyFrag)
 BlowAwayMOT = make_fragment_scan_exp(BlowAwayMOTFrag)
 UpBeamBlowaway = make_fragment_scan_exp(UpBeamBlowawayFrag)
 UpBeamInterferometry = make_fragment_scan_exp(UpBeamInterferometryFrag)
