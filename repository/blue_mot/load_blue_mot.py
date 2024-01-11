@@ -12,7 +12,7 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 logger = logging.getLogger(__name__)
 
 
-class BlueSystemOn(ExpFragment):
+class LoadBlueMOT(ExpFragment):
     """
     Load a blue 3D MOT
     """
@@ -35,4 +35,4 @@ class BlueSystemOn(ExpFragment):
         self.core.wait_until_mu(now_mu())
 
 
-BlueSystemOnExp = make_fragment_scan_exp(BlueSystemOn)
+LoadBlueMOTExp = make_fragment_scan_exp(LoadBlueMOT)
