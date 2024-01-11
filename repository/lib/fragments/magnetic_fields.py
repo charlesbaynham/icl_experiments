@@ -48,6 +48,18 @@ class SetMagneticFieldsQuick(Fragment):
         )
         self.current_setter_mot: SetAnalogCurrentSupplies
 
+        self.setattr_fragment(
+            "current_setter_all",
+            SetAnalogCurrentSupplies,
+            current_configs=[
+                current_config_mot,
+                current_config_x,
+                current_config_y,
+                current_config_z,
+            ],
+        )
+        self.current_setter_all: SetAnalogCurrentSupplies
+
     @kernel
     def set_bias_fields(self, current_x, current_y, current_z):
         """
@@ -70,6 +82,20 @@ class SetMagneticFieldsQuick(Fragment):
         into the past.
         """
         self.current_setter_mot.set_currents([current])
+
+    @kernel
+    def set_all_fields(self, current_mot, current_x, current_y, current_z):
+        """
+        Sets both MOT gradient and bias field currents
+
+        This method does not advance the timeline but does require at least
+        1.5us + 808ns * len(currents) on a Kasli 1.x as SPI events are written
+        into the past.
+        """
+
+        self.current_setter_all.set_currents(
+            [current_mot, current_x, current_y, current_z]
+        )
 
 
 class SetMagneticFieldsSlow(Fragment):
