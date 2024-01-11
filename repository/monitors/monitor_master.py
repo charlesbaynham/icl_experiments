@@ -3,17 +3,17 @@ import logging
 from artiq_influx_generic import InfluxController
 from qbutler.monitoring import make_monitor_controller
 
-from repository.monitors.monitor_heartbeat import MonitorHeartbeat
-from repository.monitors.monitor_ijds import MonitorBlueIJD1
-from repository.monitors.monitor_ijds import MonitorBlueIJD2
-from repository.monitors.monitor_ijds import MonitorBlueIJD3
-from repository.monitors.monitor_ijds import MonitorRedIJD1
-from repository.monitors.monitor_ion_pump import MonitorIonPump
-from repository.monitors.monitor_ionpump_duplicate import MonitorIonPumpDup
-from repository.monitors.monitor_lab_temperature import MonitorLabTemperature
-from repository.monitors.monitor_turbopump import MonitorTurbo
-from repository.monitors.monitor_wand import MonitorWAND
-from repository.monitors.monitor_weather import MonitorWeather
+from repository.database_monitors.monitor_heartbeat import MonitorHeartbeat
+from repository.database_monitors.monitor_ijds import MonitorBlueIJD1
+from repository.database_monitors.monitor_ijds import MonitorBlueIJD2
+from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
+from repository.database_monitors.monitor_ijds import MonitorRedIJD1
+from repository.database_monitors.monitor_ion_pump import MonitorIonPump
+from repository.database_monitors.monitor_ionpump_duplicate import MonitorIonPumpDup
+from repository.database_monitors.monitor_lab_temperature import MonitorLabTemperature
+from repository.database_monitors.monitor_turbopump import MonitorTurbo
+from repository.database_monitors.monitor_wand import MonitorWAND
+from repository.database_monitors.monitor_weather import MonitorWeather
 
 logger = logging.getLogger(__name__)
 
@@ -72,3 +72,4 @@ MonitorMaster = make_monitor_controller(
     devices=["influx_logger"],
     data_logger=my_db_logger,
 )
+MonitorMaster.__doc__ = "Start the database monitors"
