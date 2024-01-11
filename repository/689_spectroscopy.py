@@ -404,10 +404,20 @@ class SpectroscopyWithKinetics_UpBeam(TripleImageMOTFrag):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-class UpBeamInterferometryFrag(SpectroscopyWithKinetics_UpBeam):
-    """
-    Up beam interferometry - IJD phase shift
-    """
+class InterferometryCommon(TripleImageMOTFrag):
+    def pre_build_fragment_hook(self):
+        class _UpBeamSetter(SetBeamsToDefaults):
+            default_beam_infos = [constants.AOM_BEAMS["red_up"]]
+
+        self.setattr_fragment("up_beam_default_setter", _UpBeamSetter)
+        self.up_beam_default_setter: SetBeamsToDefaults
+
+        self.setattr_fragment(
+            "up_beam_suservo",
+            LibSetSUServoStatic,
+            constants.AOM_BEAMS["red_up"].suservo_device,
+        )
+        self.up_beam_suservo: LibSetSUServoStatic
 
     def build_fragment(self):
         super().build_fragment()
@@ -429,11 +439,16 @@ class UpBeamInterferometryFrag(SpectroscopyWithKinetics_UpBeam):
         )
         self.phase_step: FloatParamHandle
 
-    def host_setup(self):
-        super().host_setup()
-
-        self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
-        self.urukul9910_aom_doublepass_689_red_injection: AD9910
+    @kernel
+    def before_start_hook(self):
+        # Enable the Up beam with default settings, but turn off the AOM and open the shutter
+        self.core.break_realtime()
+        self.up_beam_default_setter.turn_on_all(light_enabled=True)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+        self.up_beam_suservo.suservo_channel.set_y(
+            profile=self.up_beam_suservo.suservo_profile,
+            y=self.spectroscopy_pulse_aom_amplitude.get(),
+        )
 
     def get_default_analyses(self):
         super_analysis = super().get_default_analyses()
@@ -450,6 +465,18 @@ class UpBeamInterferometryFrag(SpectroscopyWithKinetics_UpBeam):
                 },
             )
         ]
+
+
+class UpBeamInterferometryFrag(InterferometryCommon):
+    """
+    Up beam interferometry - IJD phase shift
+    """
+
+    def host_setup(self):
+        super().host_setup()
+
+        self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
+        self.urukul9910_aom_doublepass_689_red_injection: AD9910
 
     @kernel
     def do_spectroscopy_hook(self):
@@ -504,7 +531,7 @@ class UpBeamInterferometryFrag(SpectroscopyWithKinetics_UpBeam):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-class UpBeamInterferometrySUServoPhaseFrag(UpBeamInterferometryFrag):
+class UpBeamInterferometrySUServoPhaseFrag(InterferometryCommon):
     """
     Up beam interferometry - delivery phase shift
     """
