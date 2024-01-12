@@ -18,19 +18,27 @@ from repository.red_mot.measure_red_mot import RedMOTBase
 logger = logging.getLogger(__name__)
 
 
-class TripleImageMOTFrag(RedMOTBase):
+class RedMOTWithExperiment(RedMOTBase):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
-    images it with three shots in fast kinetics.
+    images it.
 
     Note that this is not a Fragment to be added as a subfragment, but an
     ExpFragment designed to be used as a top-level experiment but subclassed to
     control its features.
 
     This ExpFragment cannot be used as is - you should subclass it and implement
-    at least the `do_spectroscopy_hook` method and possible the other `..._hook`
-    methods.
+    methods in your child class. You must implement these:
+
+    * `do_spectroscopy_hook`
+    * `do_imaging_hook`
+
+    You probably want to implement:
+
+    * `save_data_hook`
+
+    And you may wish to implement other `..._hook` methods.
     """
 
     def get_default_analyses(self):
@@ -228,7 +236,7 @@ class TripleImageMOTFrag(RedMOTBase):
 
         delay(self.delay_after_spectroscopy.get())
 
-        self.do_triple_image()
+        self.do_imaging_hook()
 
         self.andor_camera_control.set_shutter(False)
 
@@ -236,6 +244,53 @@ class TripleImageMOTFrag(RedMOTBase):
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
 
+        self.save_data_hook()
+
+        # TODO: Move this closing of red mot shutters somewhere more sensible
+        self.core.break_realtime()
+        self.red_mot.red_beam_controller.turn_off_mot_beams()
+
+    @kernel
+    def _do_pulse(self, andor_exposure):
+        delay(-0.5 * andor_exposure)
+        self.andor_camera_control.trigger(
+            exposure=andor_exposure,
+            control_shutter=False,
+        )
+        delay(0.5 * andor_exposure)
+        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+
+    # %% Hooks / overridable methods
+    #
+    # The remaining methods in this class are designed to be overridden by
+    # children of this class, to control its behaviour. See `run_once` to
+    # understand where these hooks are executed.
+    @kernel
+    def do_imaging_hook(self):
+        """
+        Hook for the imaging sequence. This hook runs after the spectroscopy
+        etc. is completed, and should handle imaging with the Andor camera.
+        """
+        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+
+        # Image ground state atoms
+        self.do_first_pulse(andor_exposure)
+
+        # Image excited state atoms
+        delay(self.delay_between_fluoresence_pulses.get())
+        self.do_second_pulse(andor_exposure)
+
+        # Take background measurement
+        delay(self.delay_before_background_pulse.get())
+        self.do_third_pulse(andor_exposure)
+
+    @kernel
+    def save_data_hook(self):
+        """
+        Hook to save data from the Andor camera
+
+        Runs in realtime after imaging is completed
+        """
         # Save Andor data
         sums = [0] * 3
         means = [0.0] * 3
@@ -252,42 +307,6 @@ class TripleImageMOTFrag(RedMOTBase):
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
         )
-
-        # TODO: Move this closing of red mot shutters somewhere more sensible
-        self.core.break_realtime()
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
-
-    @kernel
-    def do_triple_image(self):
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
-        # Image ground state atoms
-        self.do_first_pulse(andor_exposure)
-
-        # Image excited state atoms
-        delay(self.delay_between_fluoresence_pulses.get())
-        self.do_second_pulse(andor_exposure)
-
-        # Take background measurement
-        delay(self.delay_before_background_pulse.get())
-        self.do_third_pulse(andor_exposure)
-
-    @kernel
-    def _do_pulse(self, andor_exposure):
-        delay(-0.5 * andor_exposure)
-        self.andor_camera_control.trigger(
-            exposure=andor_exposure,
-            control_shutter=False,
-        )
-        delay(0.5 * andor_exposure)
-        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-
-    # %% Hooks / overridable methods
-    #
-    # The remaining methods in this class are designed to be overridden by
-    # children of this class, to control its behaviour. `do_spectroscopy_hook`
-    # is compulsory, the others are optional. See `run_once` to understand where
-    # these hooks are executed.
 
     def pre_build_fragment_hook(self):
         """
@@ -336,3 +355,7 @@ class TripleImageMOTFrag(RedMOTBase):
     @kernel
     def do_third_pulse(self, andor_exposure):
         self._do_pulse(andor_exposure)
+
+
+class TripleImageMOTFrag(RedMOTWithExperiment):
+    pass
