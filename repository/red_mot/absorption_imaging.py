@@ -68,8 +68,8 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
     def host_setup(self):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
         logger.warning(
-            "Please ensure that the Andor is in Fast Kinetics mode with NO EM GAIN!"
-            " And that exposure is set to %f us",
+            "Please ensure that the Andor is in Kinetics mode (not Fast Kinetics) with NO EM GAIN!"
+            " And that exposure is set to at least %f us",
             1e6 * andor_exposure,
         )
 
