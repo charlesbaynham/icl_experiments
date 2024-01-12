@@ -109,6 +109,13 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         )
         delay(0.5 * andor_exposure)
 
+    def hook_setup_andor(self):
+        """
+        Setup the Andor camera with default settings
+        """
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
+
     # def hook_setup_andor(self):
     #     """
     #     Setup the Andor camera to use 4x ROIs since we're expecting fast
