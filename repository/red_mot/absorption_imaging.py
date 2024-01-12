@@ -109,54 +109,50 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         )
         delay(0.5 * andor_exposure)
 
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera to use 4x ROIs since we're expecting fast
-        kinetics mode with 2x images which we'll repeat.
+    # def hook_setup_andor(self):
+    #     """
+    #     Setup the Andor camera to use 4x ROIs since we're expecting fast
+    #     kinetics mode with 2x images which we'll repeat.
 
-        Each image is the full sensor size, so we'll use the normal ROI
+    #     Each image is the full sensor size, so we'll use the normal ROI
 
-        TODO: Set up Fast Kinetics mode here too
-        """
+    #     TODO: Set up Fast Kinetics mode here too
+    #     """
 
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y0,
-                    constants.ANDOR_ROI_X1,
-                    i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y1,
-                ]
-                for i in range(2)
-            ],
-        )
-        self.andor_camera_control: AndorCameraControl
+    #     self.setattr_fragment(
+    #         "andor_camera_control",
+    #         AndorCameraControl,
+    #         roi_defaults=[
+    #             [
+    #                 constants.ANDOR_ROI_X0,
+    #                 i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y0,
+    #                 constants.ANDOR_ROI_X1,
+    #                 i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y1,
+    #             ]
+    #             for i in range(2)
+    #         ],
+    #     )
+    #     self.andor_camera_control: AndorCameraControl
 
     @kernel
     def save_data_hook(self):
         """
         Hook to save data from the Andor camera
 
-        Runs in realtime after imaging is completed
+        We took four images, each seperately as normal (i.e. not fast kinetics)
+        images.
         """
 
-        sums = [0] * 4
-        means = [0.0] * 4
+        n = 4
+        sums = [0] * n
+        means = [0.0] * n
 
-        # Read out twice, since we took two sets of two images
-        self.andor_camera_control.readout_ROIs(
-            sums[0:2],
-            means[0:2],
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-
-        self.andor_camera_control.readout_ROIs(
-            sums[2:],
-            means[2:],
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
+        for i in range(n):
+            self.andor_camera_control.readout_ROIs(
+                sums[i : i + 1],
+                means[i : i + 1],
+                self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+            )
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
