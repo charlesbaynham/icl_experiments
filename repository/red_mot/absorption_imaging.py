@@ -60,10 +60,14 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.setattr_result("andor_sum_2", FloatChannel)
         self.setattr_result("andor_sum_3", FloatChannel)
 
+        self.setattr_result("absorption", FloatChannel)
+
         self.andor_sum_0: FloatChannel
         self.andor_sum_1: FloatChannel
         self.andor_sum_2: FloatChannel
         self.andor_sum_3: FloatChannel
+
+        self.absorption: FloatChannel
 
     def host_setup(self):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
@@ -165,6 +169,8 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.andor_sum_1.push(sums[1])
         self.andor_sum_2.push(sums[2])
         self.andor_sum_3.push(sums[3])
+
+        self.absorption.push(sums[1] - sums[0])
 
 
 AbsorptionRedMOTExp = make_fragment_scan_exp(AbsorptionRedMOT)
