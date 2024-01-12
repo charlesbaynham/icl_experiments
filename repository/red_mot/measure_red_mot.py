@@ -88,9 +88,9 @@ class RedMOTBase(ExpFragment):
         )
         self.red_broadband_time: FloatParamHandle
 
-        self._setup_andor()
+        self.hook_setup_andor()
 
-    def _setup_andor(self):
+    def hook_setup_andor(self):
         """
         Setup the Andor camera
 

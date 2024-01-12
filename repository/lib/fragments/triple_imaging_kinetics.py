@@ -41,20 +41,6 @@ class RedMOTWithExperiment(RedMOTBase):
     And you may wish to implement other `..._hook` methods.
     """
 
-    def get_default_analyses(self):
-        return [
-            OnlineFit(
-                "decaying_sinusoid",
-                data={
-                    "x": self.spectroscopy_pulse_time,
-                    "y": self.excitation_fraction,
-                },
-                constants={
-                    "t_dead": 0,
-                },
-            )
-        ]
-
     def build_fragment(self):
         # Set this frag up first, so that later fragments' device_setup override it
         self.pre_build_fragment_hook()
@@ -108,24 +94,6 @@ class RedMOTWithExperiment(RedMOTBase):
         self.extra_repump_time: FloatParamHandle
 
         self.setattr_param(
-            "delay_between_fluoresence_pulses",
-            FloatParam,
-            "Delay after first fluorescence pulse before second",
-            default=1e-3,
-            unit="ms",
-        )
-        self.delay_between_fluoresence_pulses: FloatParamHandle
-
-        self.setattr_param(
-            "delay_before_background_pulse",
-            FloatParam,
-            "Delay after final fluorescence pulse before background measurement",
-            default=10e-3,
-            unit="ms",
-        )
-        self.delay_before_background_pulse: FloatParamHandle
-
-        self.setattr_param(
             "spectroscopy_field_gradient",
             FloatParam,
             "MOT coil current during spectroscopy",
@@ -145,40 +113,6 @@ class RedMOTWithExperiment(RedMOTBase):
         self.x_coil_boost: FloatParamHandle
         self.y_coil_boost: FloatParamHandle
         self.z_coil_boost: FloatParamHandle
-
-    def _setup_andor(self):
-        """
-        Setup the Andor camera
-
-        Overrides the parent implementation so that we have 3x ROIs
-
-        TODO: Set up Fast Kinetics mode here
-        """
-
-        # 3x ROIs
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                    constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                ]
-                for i in range(3)
-            ],
-        )
-        self.andor_camera_control: AndorCameraControl
-
-        self.setattr_result("andor_sum_0", FloatChannel)
-        self.setattr_result("andor_sum_1", FloatChannel)
-        self.setattr_result("andor_sum_2", FloatChannel)
-        self.setattr_result("excitation_fraction", FloatChannel)
-        self.andor_sum_0: FloatChannel
-        self.andor_sum_1: FloatChannel
-        self.andor_sum_2: FloatChannel
-        self.excitation_fraction: FloatChannel
 
     @kernel
     def run_once(self):
@@ -265,24 +199,43 @@ class RedMOTWithExperiment(RedMOTBase):
     # The remaining methods in this class are designed to be overridden by
     # children of this class, to control its behaviour. See `run_once` to
     # understand where these hooks are executed.
+
+    def hook_setup_andor(self):
+        """
+        Setup the Andor camera
+
+        This hook will run during `build_fragment` and must create an
+        :class:`~AndorCameraControl` Fragment as an attribute named
+        "andor_camera_control".
+
+        Overrides the parent implementation so that we have 3x ROIs
+
+        TODO: Set up Fast Kinetics mode here
+        """
+
+        # 3x ROIs
+        self.setattr_fragment(
+            "andor_camera_control",
+            AndorCameraControl,
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                    constants.ANDOR_ROI_X1,
+                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                ]
+                for i in range(3)
+            ],
+        )
+        self.andor_camera_control: AndorCameraControl
+
     @kernel
     def do_imaging_hook(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
-        # Image ground state atoms
-        self.do_first_pulse(andor_exposure)
-
-        # Image excited state atoms
-        delay(self.delay_between_fluoresence_pulses.get())
-        self.do_second_pulse(andor_exposure)
-
-        # Take background measurement
-        delay(self.delay_before_background_pulse.get())
-        self.do_third_pulse(andor_exposure)
+        raise NotImplementedError
 
     @kernel
     def save_data_hook(self):
@@ -291,22 +244,7 @@ class RedMOTWithExperiment(RedMOTBase):
 
         Runs in realtime after imaging is completed
         """
-        # Save Andor data
-        sums = [0] * 3
-        means = [0.0] * 3
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-
-        self.andor_sum_0.push(sums[0])
-        self.andor_sum_1.push(sums[1])
-        self.andor_sum_2.push(sums[2])
-
-        self.excitation_fraction.push(
-            (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
-        )
+        pass
 
     def pre_build_fragment_hook(self):
         """
@@ -358,4 +296,89 @@ class RedMOTWithExperiment(RedMOTBase):
 
 
 class TripleImageMOTFrag(RedMOTWithExperiment):
-    pass
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_between_fluoresence_pulses",
+            FloatParam,
+            "Delay after first fluorescence pulse before second",
+            default=1e-3,
+            unit="ms",
+        )
+        self.delay_between_fluoresence_pulses: FloatParamHandle
+
+        self.setattr_param(
+            "delay_before_background_pulse",
+            FloatParam,
+            "Delay after final fluorescence pulse before background measurement",
+            default=10e-3,
+            unit="ms",
+        )
+        self.delay_before_background_pulse: FloatParamHandle
+
+        self.setattr_result("andor_sum_0", FloatChannel)
+        self.setattr_result("andor_sum_1", FloatChannel)
+        self.setattr_result("andor_sum_2", FloatChannel)
+        self.setattr_result("excitation_fraction", FloatChannel)
+        self.andor_sum_0: FloatChannel
+        self.andor_sum_1: FloatChannel
+        self.andor_sum_2: FloatChannel
+        self.excitation_fraction: FloatChannel
+
+    def get_default_analyses(self):
+        return [
+            OnlineFit(
+                "decaying_sinusoid",
+                data={
+                    "x": self.spectroscopy_pulse_time,
+                    "y": self.excitation_fraction,
+                },
+                constants={
+                    "t_dead": 0,
+                },
+            )
+        ]
+
+    @kernel
+    def do_imaging_hook(self):
+        """
+        Hook for the imaging sequence. This hook runs after the spectroscopy
+        etc. is completed, and should handle imaging with the Andor camera.
+        """
+        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+
+        # Image ground state atoms
+        self.do_first_pulse(andor_exposure)
+
+        # Image excited state atoms
+        delay(self.delay_between_fluoresence_pulses.get())
+        self.do_second_pulse(andor_exposure)
+
+        # Take background measurement
+        delay(self.delay_before_background_pulse.get())
+        self.do_third_pulse(andor_exposure)
+
+    @kernel
+    def save_data_hook(self):
+        """
+        Hook to save data from the Andor camera
+
+        Runs in realtime after imaging is completed
+        """
+        # Save Andor data
+        sums = [0] * 3
+        means = [0.0] * 3
+        self.andor_camera_control.readout_ROIs(
+            sums,
+            means,
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+        )
+
+        self.andor_sum_0.push(sums[0])
+        self.andor_sum_1.push(sums[1])
+        self.andor_sum_2.push(sums[2])
+
+        self.excitation_fraction.push(
+            (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
+        )
