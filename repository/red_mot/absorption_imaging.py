@@ -24,6 +24,10 @@ class AbsorptionRedMOT(TripleImageMOTFrag):
         # Set the MOT field to off before the "spectroscopy" (i.e. imaging) starts
         self.override_param("spectroscopy_field_gradient", 0.0)
 
+        # Disable unused params
+        for p in ["delay_after_spectroscopy", "extra_repump_time"]:
+            self.override_param(p, 0)
+
     @kernel
     def do_third_pulse(self, andor_exposure):
         # Trigger the third time without any fluorescence
