@@ -48,34 +48,6 @@ class RedMOTWithExperiment(RedMOTBase):
         super().build_fragment()
 
         self.setattr_param(
-            "spectroscopy_pulse_time",
-            FloatParam,
-            "Length of spectroscopy pulse",
-            default=50e-6,
-            unit="us",
-        )
-        self.spectroscopy_pulse_time: FloatParamHandle
-
-        self.setattr_param(
-            "spectroscopy_pulse_aom_detuning",
-            FloatParam,
-            "Frequency detuning of AOM during spectroscopy pulse",
-            default=0,
-            unit="kHz",
-        )
-        self.spectroscopy_pulse_aom_detuning: FloatParamHandle
-
-        self.setattr_param(
-            "spectroscopy_pulse_aom_amplitude",
-            FloatParam,
-            "Amplitude of delivery AOM during spectroscopy pulse. SUServoing is disabled",
-            default=1.0,
-            min=0.0,
-            max=1.0,
-        )
-        self.spectroscopy_pulse_aom_amplitude: FloatParamHandle
-
-        self.setattr_param(
             "delay_after_spectroscopy",
             FloatParam,
             "Delay after spectroscopy before imaging",
@@ -138,11 +110,6 @@ class RedMOTWithExperiment(RedMOTBase):
 
         t_light_off_mu = now_mu()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.set_mot_detuning(
-            self.spectroscopy_pulse_aom_detuning.get()
-        )
 
         delay(self.extra_repump_time.get())
         delay_mu(int64(self.core.ref_multiplier))
@@ -310,20 +277,6 @@ class TripleImageMOTFrag(RedMOTWithExperiment):
         self.andor_sum_2: FloatChannel
         self.excitation_fraction: FloatChannel
 
-    def get_default_analyses(self):
-        return [
-            OnlineFit(
-                "decaying_sinusoid",
-                data={
-                    "x": self.spectroscopy_pulse_time,
-                    "y": self.excitation_fraction,
-                },
-                constants={
-                    "t_dead": 0,
-                },
-            )
-        ]
-
     @kernel
     def do_imaging_hook(self):
         """
@@ -390,3 +343,36 @@ class TripleImageMOTFrag(RedMOTWithExperiment):
             ],
         )
         self.andor_camera_control: AndorCameraControl
+
+
+class SpectroscopyMixin(RedMOTWithExperiment):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=50e-6,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
+
+        self.setattr_param(
+            "spectroscopy_pulse_aom_detuning",
+            FloatParam,
+            "Frequency detuning of AOM during spectroscopy pulse",
+            default=0,
+            unit="kHz",
+        )
+        self.spectroscopy_pulse_aom_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "spectroscopy_pulse_aom_amplitude",
+            FloatParam,
+            "Amplitude of delivery AOM during spectroscopy pulse. SUServoing is disabled",
+            default=1.0,
+            min=0.0,
+            max=1.0,
+        )
+        self.spectroscopy_pulse_aom_amplitude: FloatParamHandle

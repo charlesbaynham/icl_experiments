@@ -15,10 +15,13 @@ from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.fragments.triple_imaging_kinetics import TripleImageMOTFrag
+from repository.lib.fragments.triple_imaging_kinetics import (
+    TripleImageMOTFrag,
+    SpectroscopyMixin,
+)
 
 
-class _InterferometryCommon(TripleImageMOTFrag):
+class _InterferometryCommon(TripleImageMOTFrag, SpectroscopyMixin):
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
             default_beam_infos = [constants.AOM_BEAMS["red_up"]]
