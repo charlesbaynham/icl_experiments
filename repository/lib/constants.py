@@ -131,6 +131,8 @@ ANDOR_ROI_Y0 = y - width / 2
 ANDOR_ROI_Y1 = y + width / 2
 
 ANDOR_FAST_KINETICS_HEIGHT = 100
+ANDOR_SENSOR_HEIGHT = 512
+ANDOR_SENSOR_WIDTH = 512
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
