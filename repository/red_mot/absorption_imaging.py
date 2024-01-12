@@ -156,14 +156,14 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
 
         n = 4
         sums = [0] * n
-        means = [0.0] * n
+
+        timeout_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
 
         for i in range(n):
-            self.andor_camera_control.readout_ROIs(
-                sums[i : i + 1],
-                means[i : i + 1],
-                self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-            )
+            s = [0]
+            m = [0.0]
+            self.andor_camera_control.readout_ROIs(s, m, timeout_mu)
+            sums[i] = s[0]
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
