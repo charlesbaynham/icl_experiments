@@ -33,6 +33,10 @@ def my_db_logger(self, name, state, data_list):
 
     for data in data_list:
         tags = {}
+
+        # By setting "type" here, allow monitors to override it by passing their own "type" entry
+        tags["type"] = name
+
         timestamp = None
         if isinstance(data, dict):
             if "fields" in data:
@@ -40,7 +44,6 @@ def my_db_logger(self, name, state, data_list):
                 tags = data["tags"]
                 if "timestamp" in data:
                     timestamp = data["timestamp"]
-                assert "type" not in tags
             else:
                 fields = data
         elif isinstance(data, float):
@@ -51,8 +54,6 @@ def my_db_logger(self, name, state, data_list):
             raise ValueError(
                 f'Data "{data}" of type {type(data)} not supported - only floats and dicts are accepted'
             )
-
-        tags["type"] = name
 
         logger.info(
             "Writing to database: type = %s, tags = %s, fields = %s", name, tags, fields
@@ -66,7 +67,7 @@ MonitorMaster = make_monitor_controller(
     "MonitorMaster",
     monitors={
         "weather": MonitorWeather,
-        "temperature": MonitorTemperatureSidearm,
+        "temperature_sidearm": MonitorTemperatureSidearm,
         "temperature_denco_in": MonitorTemperatureDencoIn,
         "temperature_denco_out": MonitorTemperatureDencoOut,
         "ion_pump": MonitorIonPump,

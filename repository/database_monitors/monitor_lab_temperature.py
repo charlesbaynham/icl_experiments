@@ -13,8 +13,8 @@ class _MonitorLabTemperature(Calibration):
     Monitor the temperature of the lab
     """
 
-    monitor_url = "http://10.137.1.3/temp1.txt"
-    description = "above_chamber"
+    monitor_url = None
+    description = None
 
     def __init__(self, managers_or_parent, *args, **kwargs):
         if self.monitor_url is None or self.description is None:
@@ -34,7 +34,7 @@ class _MonitorLabTemperature(Calibration):
         logger.debug('Temperature = %f ("%s")', temperature, temp_str)
 
         return CalibrationResult.OK, {
-            "tags": {"sensor": self.description},
+            "tags": {"sensor": self.description, "type": "temperature"},
             "fields": {"value": temperature},
         }
 
@@ -46,9 +46,9 @@ class MonitorTemperatureSidearm(_MonitorLabTemperature):
 
 class MonitorTemperatureDencoOut(_MonitorLabTemperature):
     monitor_url = "http://temperature-nano2.lan/temp1.txt"
-    description = "above_chamber"
+    description = "denco_out"
 
 
 class MonitorTemperatureDencoIn(_MonitorLabTemperature):
     monitor_url = "http://temperature-nano3.lan/temp1.txt"
-    description = "above_chamber"
+    description = "denco_in"
