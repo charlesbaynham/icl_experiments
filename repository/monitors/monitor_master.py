@@ -10,7 +10,15 @@ from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
 from repository.database_monitors.monitor_ijds import MonitorRedIJD1
 from repository.database_monitors.monitor_ion_pump import MonitorIonPump
 from repository.database_monitors.monitor_ionpump_duplicate import MonitorIonPumpDup
-from repository.database_monitors.monitor_lab_temperature import MonitorLabTemperature
+from repository.database_monitors.monitor_lab_temperature import (
+    MonitorTemperatureDencoIn,
+)
+from repository.database_monitors.monitor_lab_temperature import (
+    MonitorTemperatureDencoOut,
+)
+from repository.database_monitors.monitor_lab_temperature import (
+    MonitorTemperatureSidearm,
+)
 from repository.database_monitors.monitor_turbopump import MonitorTurbo
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
@@ -58,7 +66,9 @@ MonitorMaster = make_monitor_controller(
     "MonitorMaster",
     monitors={
         "weather": MonitorWeather,
-        "temperature": MonitorLabTemperature,
+        "temperature": MonitorTemperatureSidearm,
+        "temperature_denco_in": MonitorTemperatureDencoIn,
+        "temperature_denco_out": MonitorTemperatureDencoOut,
         "ion_pump": MonitorIonPump,
         "ion_pump_cham2": MonitorIonPumpDup,
         "heartbeat": MonitorHeartbeat,
