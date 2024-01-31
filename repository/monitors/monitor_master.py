@@ -41,7 +41,7 @@ def my_db_logger(self, name, state, data_list):
         if isinstance(data, dict):
             if "fields" in data:
                 fields = data["fields"]
-                tags = data["tags"]
+                tags = tags | data["tags"]
                 if "timestamp" in data:
                     timestamp = data["timestamp"]
             else:
