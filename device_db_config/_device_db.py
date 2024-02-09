@@ -22,7 +22,7 @@ device_db = {
     },
     "core_moninj": {
         "type": "controller",
-        "host": "::1",
+        "host": "10.137.1.252",
         "port_proxy": 1383,
         "port": 1384,
         "command": "aqctl_moninj_proxy --port-proxy {port_proxy} --port-control {port} --bind {bind} "
