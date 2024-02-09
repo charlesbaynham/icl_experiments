@@ -263,8 +263,8 @@ device_db["spi_urukul0"] = {
 }
 device_db["urukul0_cpld"] = {
     "type": "local",
-    "module": "artiq.coredevice.urukul",
-    "class": "CPLD",
+    "module": "pyaion.lib.suservo_workaround",
+    "class": "CPLD_alt",
     "arguments": {"spi_device": "spi_urukul0", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul0_dds"] = {
@@ -287,8 +287,8 @@ device_db["spi_urukul1"] = {
 }
 device_db["urukul1_cpld"] = {
     "type": "local",
-    "module": "artiq.coredevice.urukul",
-    "class": "CPLD",
+    "module": "pyaion.lib.suservo_workaround",
+    "class": "CPLD_alt",
     "arguments": {"spi_device": "spi_urukul1", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul1_dds"] = {
@@ -495,8 +495,8 @@ device_db["spi_urukul3"] = {
 }
 device_db["urukul3_cpld"] = {
     "type": "local",
-    "module": "artiq.coredevice.urukul",
-    "class": "CPLD",
+    "module": "pyaion.lib.suservo_workaround",
+    "class": "CPLD_alt",
     "arguments": {"spi_device": "spi_urukul3", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul3_dds"] = {
@@ -519,8 +519,8 @@ device_db["spi_urukul4"] = {
 }
 device_db["urukul4_cpld"] = {
     "type": "local",
-    "module": "artiq.coredevice.urukul",
-    "class": "CPLD",
+    "module": "pyaion.lib.suservo_workaround",
+    "class": "CPLD_alt",
     "arguments": {"spi_device": "spi_urukul4", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul4_dds"] = {
@@ -852,8 +852,8 @@ device_db["spi_urukul6"] = {
 }
 device_db["urukul6_cpld"] = {
     "type": "local",
-    "module": "artiq.coredevice.urukul",
-    "class": "CPLD",
+    "module": "pyaion.lib.suservo_workaround",
+    "class": "CPLD_alt",
     "arguments": {"spi_device": "spi_urukul6", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul6_dds"] = {
@@ -876,8 +876,8 @@ device_db["spi_urukul7"] = {
 }
 device_db["urukul7_cpld"] = {
     "type": "local",
-    "module": "artiq.coredevice.urukul",
-    "class": "CPLD",
+    "module": "pyaion.lib.suservo_workaround",
+    "class": "CPLD_alt",
     "arguments": {"spi_device": "spi_urukul7", "refclk": 125000000.0, "clk_sel": 2},
 }
 device_db["urukul7_dds"] = {
