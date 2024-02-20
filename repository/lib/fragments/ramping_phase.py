@@ -43,6 +43,11 @@ class RampingRedPhase(Fragment):
     start_suservo_nominal_multiple_default = 1.0
     end_suservo_nominal_multiple_default = 1.0
 
+    # TODO: Rewrite this Fragment so that all four red beams (including up) can
+    # ramp independently. We'll need to keep the global multiple too, so that we
+    # can ramp the two axial beams together. Richard suggests dumping global and
+    # having an "axial" multiple instead - we could do this.
+
     def build_fragment(
         self, *args, red_mot_controller=None, chamber_2_field_setter=None
     ):
