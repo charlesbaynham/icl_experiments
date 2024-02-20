@@ -124,9 +124,29 @@ class SetBeamsToDefaults(Fragment):
         # case of empty lists. We loop from 1 onwards
         self.ttls.insert(0, self.get_device(get_local_devices(self, TTLOut)[0]))
 
-        # %% Kernel invariants
+        # %% Kernel invariants and variables
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {"debug_mode", "max_shutter_delay"}
+
+        # Init this array to zeros - we fill it in in device_setup
+        self.suservo_setpoints = [0.0] * len(self.default_beam_infos)
+
+    @kernel
+    def get_suservo_setpoint_by_index(self, beam_index):
+        """
+        Get the nominal setpoint for a given beam (allowing the user to override it)
+        """
+        return self.suservo_setpoints[beam_index]
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        # Retrieve the values of all the generated parameters for SUServo
+        # setpoints for this run of the scan
+        for i in range(len(self.suservo_setters_and_info)):
+            setpoint_handle = self.suservo_setters_and_info[i][1]
+            self.suservo_setpoints[i] = setpoint_handle.get()
 
     @portable
     def get_max_shutter_delay(self):

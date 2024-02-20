@@ -56,11 +56,7 @@ class RedBeamController(Fragment):
         self.setattr_fragment(
             "all_mot_beams_setter",
             ControlBeamsWithoutCoolingAOM,
-            beam_infos=[
-                constants.AOM_BEAMS["red_mot_diagonal"],
-                constants.AOM_BEAMS["red_mot_sigmaplus"],
-                constants.AOM_BEAMS["red_mot_sigmaminus"],
-            ],
+            beam_infos=RED_BEAM_INFOS,
         )
         self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
 
@@ -81,7 +77,9 @@ class RedBeamController(Fragment):
 
         self.suservo_fragments: List[LibSetSUServoStatic] = []
         self.suservo_setpoint_offsets: List[float] = []
-        self.suservo_nominal_amplitudes: List[float] = []
+
+        # Make a SUServo controlling Fragment for each red beam, and store the
+        # photodiode offsets for each
         for beam_info in RED_BEAM_INFOS:
             f = self.setattr_fragment(
                 "suservofrag_" + beam_info.name,
@@ -90,7 +88,10 @@ class RedBeamController(Fragment):
             )
             self.suservo_fragments.append(f)
             self.suservo_setpoint_offsets.append(beam_info.photodiode_offset)
-            self.suservo_nominal_amplitudes.append(beam_info.setpoint)
+
+        # Make an array to store the nominal amplitudes but leave it empty for
+        # now - we'll populate it in device_setup() so that we can scan over it
+        self.suservo_nominal_amplitudes = [0.0] * len(RED_BEAM_INFOS)
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
@@ -166,6 +167,12 @@ class RedBeamController(Fragment):
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
+
+        # Look up the SUServo setpoints from the beam setter
+        for i in range(len(self.suservo_nominal_amplitudes)):
+            self.suservo_nominal_amplitudes[
+                i
+            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = abs(
