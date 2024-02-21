@@ -313,28 +313,37 @@ class RedBeamController(Fragment):
     @kernel
     def set_mot_suservo_amplitude_individual(
         self,
+        amplitude_red_diagonal: TFloat,
         amplitude_red_axial_plus: TFloat,
         amplitude_red_axial_minus: TFloat,
-        amplitude_red_diagonal: TFloat,
-        amplitude_red_up: TFloat,
+        # amplitude_red_up: TFloat, # TODO: add up beam
     ):
         """
         Set the SUServo target amplitudes of all MOT beams individually,
-        expressed as a multiple of their nominal amplitude
+        expressed as a multiple of their nominal amplitudes
         """
+
+        # Prepare array of beam amplitudes
+        # This must match the ordering in RED_BEAM_INFOS
+        ampltiudes = [
+            amplitude_red_diagonal,
+            amplitude_red_axial_plus,
+            amplitude_red_axial_minus,
+            # amplitude_red_up,
+        ]
 
         for i in range(len(self.suservo_fragments)):
             suservo_frag = self.suservo_fragments[i]
             nominal_setpoint = self.suservo_nominal_amplitudes[i]
             photodiode_offset = self.suservo_setpoint_offsets[i]
 
-            setpoint = nominal_setpoint * amplitude_multiple + photodiode_offset
+            setpoint = nominal_setpoint * ampltiudes[i] + photodiode_offset
 
             if self.debug_mode:
                 logger.info(
                     "Setting %s setpoint to %.2f x %.2f + %.4f = %.3f V",
                     suservo_frag,
-                    amplitude_multiple,
+                    ampltiudes[i],
                     nominal_setpoint,
                     photodiode_offset,
                     setpoint,
