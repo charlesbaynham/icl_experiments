@@ -40,8 +40,13 @@ class RampingRedPhase(Fragment):
     end_detuning_default = 0.0
     start_gradient_default = 0.0
     end_gradient_default = 0.0
-    start_suservo_nominal_multiple_default = 1.0
-    end_suservo_nominal_multiple_default = 1.0
+
+    start_suservo_diagonal_multiple_default = 1.0
+    end_suservo_diagonal_multiple_default = 1.0
+    start_suservo_axialplus_multiple_default = 1.0
+    end_suservo_axialplus_multiple_default = 1.0
+    start_suservo_axialminus_multiple_default = 1.0
+    end_suservo_axialminus_multiple_default = 1.0
 
     # TODO: Rewrite this Fragment so that all four red beams (including up) can
     # ramp independently. We'll need to keep the global multiple too, so that we
@@ -145,17 +150,47 @@ class RampingRedPhase(Fragment):
         )
 
         self.setattr_param(
-            "start_suservo_nominal_multiple",
+            f"start_suservo_diagonal_multiple",
             FloatParam,
-            description="Initial suservo intensity as multiple of nominal intensity",
-            default=self.start_suservo_nominal_multiple_default,
+            description="Initial suservo diagonal intensity as multiple of nominal intensity",
+            default=self.start_suservo_diagonal_multiple_default,
             min=0.0,
         )
         self.setattr_param(
-            "end_suservo_nominal_multiple",
+            f"end_suservo_diagonal_multiple",
             FloatParam,
-            description="Final suservo intensity as multiple of nominal intensity",
-            default=self.end_suservo_nominal_multiple_default,
+            description="Final suservo diagonal intensity as multiple of nominal intensity",
+            default=self.end_suservo_diagonal_multiple_default,
+            min=0.0,
+        )
+
+        self.setattr_param(
+            f"start_suservo_axialplus_multiple",
+            FloatParam,
+            description="Initial suservo axialplus intensity as multiple of nominal intensity",
+            default=self.start_suservo_axialplus_multiple_default,
+            min=0.0,
+        )
+        self.setattr_param(
+            f"end_suservo_axialplus_multiple",
+            FloatParam,
+            description="Final suservo axialplus intensity as multiple of nominal intensity",
+            default=self.end_suservo_axialplus_multiple_default,
+            min=0.0,
+        )
+
+        self.setattr_param(
+            f"start_suservo_axialminus_multiple",
+            FloatParam,
+            description="Initial suservo axialminus intensity as multiple of nominal intensity",
+            default=self.start_suservo_axialminus_multiple_default,
+            min=0.0,
+        )
+        self.setattr_param(
+            f"end_suservo_axialminus_multiple",
+            FloatParam,
+            description="Final suservo axialminus intensity as multiple of nominal intensity",
+            default=self.end_suservo_axialminus_multiple_default,
             min=0.0,
         )
 
@@ -165,8 +200,12 @@ class RampingRedPhase(Fragment):
         self.end_detuning: FloatParamHandle
         self.start_gradient: FloatParamHandle
         self.end_gradient: FloatParamHandle
-        self.start_suservo_nominal_multiple: FloatParamHandle
-        self.end_suservo_nominal_multiple: FloatParamHandle
+        self.start_suservo_diagonal_multiple: FloatParamHandle
+        self.end_suservo_diagonal_multiple: FloatParamHandle
+        self.start_suservo_axialplus_multiple: FloatParamHandle
+        self.end_suservo_axialplus_multiple: FloatParamHandle
+        self.start_suservo_axialminus_multiple: FloatParamHandle
+        self.end_suservo_axialminus_multiple: FloatParamHandle
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
@@ -206,9 +245,17 @@ class RampingRedPhase(Fragment):
         )
 
         # ...and the SUServo amplitudes
-        suservo_step = (
-            self.end_suservo_nominal_multiple.get()
-            - self.start_suservo_nominal_multiple.get()
+        suservo_step_diagonal = (
+            self.end_suservo_diagonal_multiple.get()
+            - self.start_suservo_diagonal_multiple.get()
+        ) / float(num_points - 1)
+        suservo_step_axialplus = (
+            self.end_suservo_axialplus_multiple.get()
+            - self.start_suservo_axialplus_multiple.get()
+        ) / float(num_points - 1)
+        suservo_step_axialminus = (
+            self.end_suservo_axialminus_multiple.get()
+            - self.start_suservo_axialminus_multiple.get()
         ) / float(num_points - 1)
 
         # Record these ramping parameters into a DMA sequence
@@ -216,7 +263,13 @@ class RampingRedPhase(Fragment):
             # Initialise
             this_current = self.start_gradient.get()
             this_detuning = self.start_detuning.get()
-            this_suservo_multiple = self.start_suservo_nominal_multiple.get()
+            this_suservo_diagonal_multiple = self.start_suservo_diagonal_multiple.get()
+            this_suservo_axialplus_multiple = (
+                self.start_suservo_axialplus_multiple.get()
+            )
+            this_suservo_axialminus_multiple = (
+                self.start_suservo_axialminus_multiple.get()
+            )
 
             t_this_cycle_mu = now_mu()
 
@@ -230,13 +283,17 @@ class RampingRedPhase(Fragment):
                 )  # Try to avoid using multiple lanes
                 self.red_mot_controller.set_mot_detuning(this_detuning)
                 delay_mu(int64(self.core.ref_multiplier))
-                self.red_mot_controller.set_mot_suservo_amplitude_global(
-                    this_suservo_multiple
+                self.red_mot_controller.set_mot_suservo_amplitude_individual(
+                    amplitude_red_diagonal=this_suservo_diagonal_multiple,
+                    amplitude_red_axialplus=this_suservo_axialplus_multiple,
+                    amplitude_red_axialminus=this_suservo_axialminus_multiple,
                 )
 
                 this_current += current_step
                 this_detuning += detuning_step
-                this_suservo_multiple += suservo_step
+                this_suservo_diagonal_multiple += suservo_step_diagonal
+                this_suservo_axialplus_multiple += suservo_step_axialplus
+                this_suservo_axialminus_multiple += suservo_step_axialminus
 
                 t_this_cycle_mu += time_step_mu
 

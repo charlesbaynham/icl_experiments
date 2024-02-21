@@ -314,8 +314,8 @@ class RedBeamController(Fragment):
     def set_mot_suservo_amplitude_individual(
         self,
         amplitude_red_diagonal: TFloat,
-        amplitude_red_axial_plus: TFloat,
-        amplitude_red_axial_minus: TFloat,
+        amplitude_red_axialplus: TFloat,
+        amplitude_red_axialminus: TFloat,
         # amplitude_red_up: TFloat, # TODO: add up beam
     ):
         """
@@ -327,8 +327,8 @@ class RedBeamController(Fragment):
         # This must match the ordering in RED_BEAM_INFOS
         ampltiudes = [
             amplitude_red_diagonal,
-            amplitude_red_axial_plus,
-            amplitude_red_axial_minus,
+            amplitude_red_axialplus,
+            amplitude_red_axialminus,
             # amplitude_red_up,
         ]
 
