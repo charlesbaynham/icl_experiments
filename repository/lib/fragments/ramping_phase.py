@@ -230,7 +230,9 @@ class RampingRedPhase(Fragment):
                 )  # Try to avoid using multiple lanes
                 self.red_mot_controller.set_mot_detuning(this_detuning)
                 delay_mu(int64(self.core.ref_multiplier))
-                self.red_mot_controller.set_mot_suservo_amplitude(this_suservo_multiple)
+                self.red_mot_controller.set_mot_suservo_amplitude_global(
+                    this_suservo_multiple
+                )
 
                 this_current += current_step
                 this_detuning += detuning_step

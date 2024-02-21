@@ -283,12 +283,44 @@ class RedBeamController(Fragment):
         self.injection_aom.set(freq)
 
     @kernel
-    def set_mot_suservo_amplitude(self, amplitude_multiple: TFloat):
+    def set_mot_suservo_amplitude_global(self, amplitude_multiple: TFloat):
         """
-        Set the SUServo target amplitudes of all MOT beams
+        Set the SUServo target amplitudes of all MOT beams together
 
         Args:
             amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a multiple of the nominal amplitude
+        """
+
+        for i in range(len(self.suservo_fragments)):
+            suservo_frag = self.suservo_fragments[i]
+            nominal_setpoint = self.suservo_nominal_amplitudes[i]
+            photodiode_offset = self.suservo_setpoint_offsets[i]
+
+            setpoint = nominal_setpoint * amplitude_multiple + photodiode_offset
+
+            if self.debug_mode:
+                logger.info(
+                    "Setting %s setpoint to %.2f x %.2f + %.4f = %.3f V",
+                    suservo_frag,
+                    amplitude_multiple,
+                    nominal_setpoint,
+                    photodiode_offset,
+                    setpoint,
+                )
+
+            suservo_frag.set_setpoint(setpoint)
+
+    @kernel
+    def set_mot_suservo_amplitude_individual(
+        self,
+        amplitude_red_axial_plus: TFloat,
+        amplitude_red_axial_minus: TFloat,
+        amplitude_red_diagonal: TFloat,
+        amplitude_red_up: TFloat,
+    ):
+        """
+        Set the SUServo target amplitudes of all MOT beams individually,
+        expressed as a multiple of their nominal amplitude
         """
 
         for i in range(len(self.suservo_fragments)):

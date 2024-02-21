@@ -156,7 +156,7 @@ class NarrowbandRedMOTFrag(Fragment):
         Does not advance the timeline
         """
 
-        self.red_beam_controller.set_mot_suservo_amplitude(
+        self.red_beam_controller.set_mot_suservo_amplitude_global(
             self.red_broadband_suservo_multiple.get()
         )
         delay_mu(8)
