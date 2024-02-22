@@ -33,8 +33,13 @@ class NarrowRedCapturePhase(RampingRedPhase):
     end_detuning_default = 50e3
     start_gradient_default = 5.0
     end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 1.0
-    end_suservo_nominal_multiple_default = 0.1
+
+    start_suservo_diagonal_multiple_default = 1.0
+    end_suservo_diagonal_multiple_default = 0.1
+    start_suservo_axialplus_multiple_default = 1.0
+    end_suservo_axialplus_multiple_default = 0.1
+    start_suservo_axialminus_multiple_default = 1.0
+    end_suservo_axialminus_multiple_default = 0.1
 
 
 class NarrowRedCompressionPhase(RampingRedPhase):
@@ -43,8 +48,13 @@ class NarrowRedCompressionPhase(RampingRedPhase):
     end_detuning_default = 10e3
     start_gradient_default = 1.0
     end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 0.1
-    end_suservo_nominal_multiple_default = 0.02
+
+    start_suservo_diagonal_multiple_default = 0.1
+    end_suservo_diagonal_multiple_default = 0.02
+    start_suservo_axialplus_multiple_default = 0.1
+    end_suservo_axialplus_multiple_default = 0.02
+    start_suservo_axialminus_multiple_default = 0.1
+    end_suservo_axialminus_multiple_default = 0.02
 
 
 class NarrowbandRedMOTFrag(Fragment):

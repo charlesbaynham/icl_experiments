@@ -34,19 +34,20 @@ class RampingRedPhase(Fragment):
     calling :meth:`~.do_phase`.
     """
 
-    duration_default = 100e-3
     time_step_default = 100e-6
-    start_detuning_default = 0.0
-    end_detuning_default = 0.0
-    start_gradient_default = 0.0
-    end_gradient_default = 0.0
 
-    start_suservo_diagonal_multiple_default = 1.0
-    end_suservo_diagonal_multiple_default = 1.0
-    start_suservo_axialplus_multiple_default = 1.0
-    end_suservo_axialplus_multiple_default = 1.0
-    start_suservo_axialminus_multiple_default = 1.0
-    end_suservo_axialminus_multiple_default = 1.0
+    duration_default: float = None
+    start_detuning_default: float = None
+    end_detuning_default: float = None
+    start_gradient_default: float = None
+    end_gradient_default: float = None
+
+    start_suservo_diagonal_multiple_default: float = None
+    end_suservo_diagonal_multiple_default: float = None
+    start_suservo_axialplus_multiple_default: float = None
+    end_suservo_axialplus_multiple_default: float = None
+    start_suservo_axialminus_multiple_default: float = None
+    end_suservo_axialminus_multiple_default: float = None
 
     # TODO: Rewrite this Fragment so that all four red beams (including up) can
     # ramp independently. We'll need to keep the global multiple too, so that we
@@ -85,6 +86,28 @@ class RampingRedPhase(Fragment):
                 "You must pass instances of RedBeamController and SetMagneticFields "
                 "as keyword arguments to the build_fragment method of this subfragment. "
                 "This is a hack - see inline comments."
+            )
+
+        if any(
+            (
+                x is None
+                for x in [
+                    self.start_suservo_diagonal_multiple_default,
+                    self.end_suservo_diagonal_multiple_default,
+                    self.start_suservo_axialplus_multiple_default,
+                    self.end_suservo_axialplus_multiple_default,
+                    self.start_suservo_axialminus_multiple_default,
+                    self.end_suservo_axialminus_multiple_default,
+                    self.duration_default,
+                    self.start_detuning_default,
+                    self.end_detuning_default,
+                    self.start_gradient_default,
+                    self.end_gradient_default,
+                ]
+            )
+        ):
+            raise TypeError(
+                "You must subclass this type and define all the ramp parameters"
             )
 
         self.red_mot_controller: RedBeamController = red_mot_controller
