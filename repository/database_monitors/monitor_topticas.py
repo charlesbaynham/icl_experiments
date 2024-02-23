@@ -19,10 +19,10 @@ class _MonitorToptica(Calibration):
     Logs the voltage, current, temperature of a Toptica DLCPro laser
     """
 
-    dlcpro_name: str = None  # Name of the DLCPro in the device_db
+    laser_name: str = None  # Name of the laser in the device_db
 
     def __init__(self, *args, **kwargs):
-        if self.dlcpro_name is None:
+        if self.laser_name is None:
             raise NotImplementedError(
                 "You must subclass this interface class and set cls.laser_device_name"
             )
@@ -30,7 +30,7 @@ class _MonitorToptica(Calibration):
         super().__init__(*args, **kwargs)
 
     def build_calibration(self):
-        self.dlcpro: TopticaDLCPro = self.get_device(self.dlcpro_name)
+        self.dlcpro: TopticaDLCPro = self.get_device(self.laser_name)
         self.raw_dlcpro = self.dlcpro.get_dlcpro()
 
         self.set_timeout(10)
@@ -69,8 +69,16 @@ class _MonitorToptica(Calibration):
 
         return result, {
             "tags": {
-                "device": self.dlcpro_name,
+                "device": self.laser_name,
                 "parent": _MonitorToptica.__name__,
             },
             "fields": out,
         }
+
+
+class MonitorToptica461(_MonitorToptica):
+    dlcpro_name = "toptica_461"
+
+
+class MonitorToptica679(_MonitorToptica):
+    dlcpro_name = "toptica_679"

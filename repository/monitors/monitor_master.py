@@ -19,6 +19,8 @@ from repository.database_monitors.monitor_lab_temperature import (
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureSidearm,
 )
+from repository.database_monitors.monitor_topticas import MonitorToptica461
+from repository.database_monitors.monitor_topticas import MonitorToptica679
 from repository.database_monitors.monitor_turbopump import MonitorTurbo
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
@@ -79,6 +81,8 @@ MonitorMaster = make_monitor_controller(
         "blue_ijd3": MonitorBlueIJD3,
         "red_ijd1": MonitorRedIJD1,
         "wand": MonitorWAND,
+        "toptica_461": MonitorToptica461,
+        "toptica_679": MonitorToptica679,
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
