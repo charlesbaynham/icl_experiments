@@ -69,6 +69,7 @@ class _MonitorToptica(Calibration):
 
         return result, {
             "tags": {
+                "type": "TopticaLogger",
                 "device": self.laser_name,
                 "parent": _MonitorToptica.__name__,
             },
