@@ -43,6 +43,10 @@ class _MonitorKoheron(Calibration):
             out["temperature_setpoint"] = (
                 self.controller.get_temperature_setpoint() - 273.15
             )
+
+            out["resistance_actual"] = self.controller.get_resistance_actual()
+            out["resistance_setpoint"] = self.controller.get_resistance_setpoint()
+
             out["current"] = 1e-3 * self.controller.get_current_mA()
             out["voltage"] = self.controller.get_voltage()
 
