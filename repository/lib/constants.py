@@ -49,7 +49,7 @@ IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(8600, 340e-3, 330e-3, 3e-3),
     "blue_IJD2_controller": IJDSettings(8800, 370.5e-3, 367e-3, 3e-3),
     "blue_IJD3_controller": IJDSettings(8850, 353e-3, 343e-3, 3e-3),
-    "red_IJD1_controller": IJDSettings(9460, 189.0e-3, 187.0e-3, 3e-3),
+    "red_IJD1_controller": IJDSettings(9460, 189.0e-3, 186.0e-3, 3e-3),
 }
 "Injected diode default settings"
 
