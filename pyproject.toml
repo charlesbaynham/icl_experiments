@@ -12,6 +12,7 @@ artiq-http = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_ht
 koheron-ctl200-laser-driver = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"}
 qbutler = {git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"}
 wand = {git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "adapt_for_linux"}
+toptica-wrapper = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/topticadlcpro.git"}
 
 # As with artiq, aravis needs some nix packaging too. For now, this is in this
 # repo - see python-aravis.nix and its use in flake.nix
