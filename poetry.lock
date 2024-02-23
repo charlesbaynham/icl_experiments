@@ -4398,7 +4398,7 @@ toptica-lasersdk = "^3.1.2"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/topticadlcpro.git"
 reference = "HEAD"
-resolved_reference = "28ea923286b519242468c061fcd4d6ab1d012385"
+resolved_reference = "2a928f200b05eff90971bd860c5c69c81d57d5fa"
 
 [[package]]
 name = "tornado"

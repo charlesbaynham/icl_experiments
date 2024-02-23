@@ -26,6 +26,7 @@
               aravis = [ "setuptools" ];
               pygobject = [ "setuptools" ];
               tenma-power-supply = [ "poetry-core" ];
+              toptica-wrapper = [ "poetry-core" ];
               wand = [ "poetry-core" ];
             };
             extra-overrides = [
