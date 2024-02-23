@@ -83,3 +83,27 @@ class MonitorToptica461(_MonitorToptica):
 
 class MonitorToptica679(_MonitorToptica):
     laser_name = "toptica_679"
+
+
+class MonitorToptica1379(_MonitorToptica):
+    laser_name = "toptica_1379"
+
+
+class MonitorToptica698(_MonitorToptica):
+    laser_name = "toptica_698"
+
+
+class MonitorToptica707(_MonitorToptica):
+    laser_name = "toptica_707"
+
+
+class MonitorToptica689(_MonitorToptica):
+    laser_name = "toptica_689"
+
+
+class MonitorToptica487(_MonitorToptica):
+    laser_name = "toptica_487"
+
+
+class MonitorToptica641(_MonitorToptica):
+    laser_name = "toptica_641"

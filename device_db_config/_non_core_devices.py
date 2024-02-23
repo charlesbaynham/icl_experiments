@@ -158,6 +158,66 @@ def get_non_core_devices(simulation_mode=False):
                 "simulation": simulation_mode,
             },
         },
+        "toptica_1379": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-1379-698",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_698": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-1379-698",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_707": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-707-689",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_689": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-707-689",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_487": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-487-641",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_641": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-487-641",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {
