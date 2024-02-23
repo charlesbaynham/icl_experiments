@@ -77,8 +77,8 @@ class _MonitorToptica(Calibration):
 
 
 class MonitorToptica461(_MonitorToptica):
-    dlcpro_name = "toptica_461"
+    laser_name = "toptica_461"
 
 
 class MonitorToptica679(_MonitorToptica):
-    dlcpro_name = "toptica_679"
+    laser_name = "toptica_679"
