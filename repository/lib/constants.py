@@ -206,7 +206,7 @@ AOM_BEAMS = [
         22,
         "suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
-        setpoint=2.8,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "blue_imaging_switch",
