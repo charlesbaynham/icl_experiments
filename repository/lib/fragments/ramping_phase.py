@@ -90,29 +90,27 @@ class RampingRedPhase(Fragment):
                 "This is a hack - see inline comments."
             )
 
-        if any(
-            (
-                x is None
-                for x in [
-                    self.start_suservo_diagonal_multiple_default,
-                    self.end_suservo_diagonal_multiple_default,
-                    self.start_suservo_axialplus_multiple_default,
-                    self.end_suservo_axialplus_multiple_default,
-                    self.start_suservo_axialminus_multiple_default,
-                    self.end_suservo_axialminus_multiple_default,
-                    self.start_suservo_up_multiple_default,
-                    self.end_suservo_up_multiple_default,
-                    self.duration_default,
-                    self.start_detuning_default,
-                    self.end_detuning_default,
-                    self.start_gradient_default,
-                    self.end_gradient_default,
-                ]
-            )
-        ):
-            raise TypeError(
-                "You must subclass this type and define all the ramp parameters"
-            )
+        for attr_name in [
+            "start_suservo_diagonal_multiple_default",
+            "end_suservo_diagonal_multiple_default",
+            "start_suservo_axialplus_multiple_default",
+            "end_suservo_axialplus_multiple_default",
+            "start_suservo_axialminus_multiple_default",
+            "end_suservo_axialminus_multiple_default",
+            "start_suservo_up_multiple_default",
+            "end_suservo_up_multiple_default",
+            "duration_default",
+            "start_detuning_default",
+            "end_detuning_default",
+            "start_gradient_default",
+            "end_gradient_default",
+        ]:
+            if getattr(self, attr_name) is None:
+                raise TypeError(
+                    f'Attribute "{attr_name}" not defined'
+                    "\n\n"
+                    "You must subclass this type and define all the ramp parameters"
+                )
 
         self.red_mot_controller: RedBeamController = red_mot_controller
         self.chamber_2_field_setter: SetMagneticFieldsQuick = chamber_2_field_setter
