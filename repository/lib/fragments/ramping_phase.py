@@ -48,6 +48,8 @@ class RampingRedPhase(Fragment):
     end_suservo_axialplus_multiple_default: float = None
     start_suservo_axialminus_multiple_default: float = None
     end_suservo_axialminus_multiple_default: float = None
+    start_suservo_up_multiple_default: float = None
+    end_suservo_up_multiple_default: float = None
 
     # TODO: Rewrite this Fragment so that all four red beams (including up) can
     # ramp independently. We'll need to keep the global multiple too, so that we
@@ -98,6 +100,8 @@ class RampingRedPhase(Fragment):
                     self.end_suservo_axialplus_multiple_default,
                     self.start_suservo_axialminus_multiple_default,
                     self.end_suservo_axialminus_multiple_default,
+                    self.start_suservo_up_multiple_default,
+                    self.end_suservo_up_multiple_default,
                     self.duration_default,
                     self.start_detuning_default,
                     self.end_detuning_default,
@@ -217,6 +221,21 @@ class RampingRedPhase(Fragment):
             min=0.0,
         )
 
+        self.setattr_param(
+            f"start_suservo_up_multiple_default",
+            FloatParam,
+            description="Initial suservo up intensity as multiple of nominal intensity",
+            default=self.start_suservo_up_multiple_default,
+            min=0.0,
+        )
+        self.setattr_param(
+            f"end_suservo_up_multiple_default",
+            FloatParam,
+            description="Final suservo up intensity as multiple of nominal intensity",
+            default=self.end_suservo_up_multiple_default,
+            min=0.0,
+        )
+
         self.duration: FloatParamHandle
         self.time_step: FloatParamHandle
         self.start_detuning: FloatParamHandle
@@ -229,6 +248,8 @@ class RampingRedPhase(Fragment):
         self.end_suservo_axialplus_multiple: FloatParamHandle
         self.start_suservo_axialminus_multiple: FloatParamHandle
         self.end_suservo_axialminus_multiple: FloatParamHandle
+        self.start_suservo_up_multiple_default: FloatParamHandle
+        self.end_suservo_up_multiple_default: FloatParamHandle
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
@@ -280,6 +301,10 @@ class RampingRedPhase(Fragment):
             self.end_suservo_axialminus_multiple.get()
             - self.start_suservo_axialminus_multiple.get()
         ) / float(num_points - 1)
+        suservo_step_up = (
+            self.end_suservo_up_multiple_default.get()
+            - self.start_suservo_up_multiple_default.get()
+        ) / float(num_points - 1)
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
@@ -293,6 +318,7 @@ class RampingRedPhase(Fragment):
             this_suservo_axialminus_multiple = (
                 self.start_suservo_axialminus_multiple.get()
             )
+            this_suservo_up_multiple = self.start_suservo_up_multiple_default.get()
 
             t_this_cycle_mu = now_mu()
 
@@ -310,6 +336,7 @@ class RampingRedPhase(Fragment):
                     amplitude_red_diagonal=this_suservo_diagonal_multiple,
                     amplitude_red_axialplus=this_suservo_axialplus_multiple,
                     amplitude_red_axialminus=this_suservo_axialminus_multiple,
+                    amplitude_red_up=this_suservo_up_multiple,
                 )
 
                 this_current += current_step
@@ -317,6 +344,7 @@ class RampingRedPhase(Fragment):
                 this_suservo_diagonal_multiple += suservo_step_diagonal
                 this_suservo_axialplus_multiple += suservo_step_axialplus
                 this_suservo_axialminus_multiple += suservo_step_axialminus
+                this_suservo_up_multiple += suservo_step_up
 
                 t_this_cycle_mu += time_step_mu
 

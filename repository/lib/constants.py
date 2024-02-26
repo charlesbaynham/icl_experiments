@@ -237,7 +237,6 @@ AOM_BEAMS = [
         setpoint=1.5,
         photodiode_offset=0.0188,
     ),
-    # These beams are not currently installed:
     SUServoedBeam(
         "red_up",
         100e6,

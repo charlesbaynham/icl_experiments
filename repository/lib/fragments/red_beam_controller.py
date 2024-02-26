@@ -31,6 +31,7 @@ RED_BEAM_INFOS = [
         "red_mot_diagonal",
         "red_mot_sigmaplus",
         "red_mot_sigmaminus",
+        "red_up",
     ]
 ]
 
@@ -316,7 +317,7 @@ class RedBeamController(Fragment):
         amplitude_red_diagonal: TFloat,
         amplitude_red_axialplus: TFloat,
         amplitude_red_axialminus: TFloat,
-        # amplitude_red_up: TFloat, # TODO: add up beam
+        amplitude_red_up: TFloat,  # TODO: add up beam
     ):
         """
         Set the SUServo target amplitudes of all MOT beams individually,
@@ -329,7 +330,7 @@ class RedBeamController(Fragment):
             amplitude_red_diagonal,
             amplitude_red_axialplus,
             amplitude_red_axialminus,
-            # amplitude_red_up,
+            amplitude_red_up,
         ]
 
         for i in range(len(self.suservo_fragments)):
