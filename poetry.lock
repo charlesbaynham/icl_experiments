@@ -4366,18 +4366,39 @@ files = [
 
 [[package]]
 name = "toptica-lasersdk"
-version = "3.1.1"
+version = "3.1.2"
 description = "TOPTICA Python Laser SDK"
 optional = false
-python-versions = ">=3.6, <3.12"
+python-versions = ">=3.6,<4"
 files = [
-    {file = "toptica_lasersdk-3.1.1-py3-none-any.whl", hash = "sha256:8e588fbb013c2c04c9b4f96ab36af124a60f781b1cde815ae3cf8d590b82a099"},
-    {file = "toptica_lasersdk-3.1.1.tar.gz", hash = "sha256:9986a9f8d3b35064cd7f40366180b052af0501be3bcaea73d6aaa4522933e857"},
+    {file = "toptica_lasersdk-3.1.2-py3-none-any.whl", hash = "sha256:634960319c3cc3da3a75a8d36f3fd04e0afacec1017e321bf79709a9024a37ee"},
+    {file = "toptica_lasersdk-3.1.2.tar.gz", hash = "sha256:4d39ffa07f65015a0794e5aa368200eb165d61768fd6654bae15fdf8266560c5"},
 ]
 
 [package.dependencies]
 ifaddr = "*"
 pyserial = "*"
+
+[[package]]
+name = "toptica-wrapper"
+version = "0.1"
+description = "Thin wrapper for the Toptica DLC API"
+optional = false
+python-versions = ">=3.9,<3.13"
+files = []
+develop = false
+
+[package.dependencies]
+generic-scpi-driver = "^1.5"
+numpy = ">1.0"
+sipyco = {git = "https://github.com/m-labs/sipyco.git"}
+toptica-lasersdk = "^3.1.2"
+
+[package.source]
+type = "git"
+url = "https://gitlab.com/aion-physics/code/artiq/drivers/topticadlcpro.git"
+reference = "HEAD"
+resolved_reference = "2a928f200b05eff90971bd860c5c69c81d57d5fa"
 
 [[package]]
 name = "tornado"
@@ -4712,4 +4733,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "caefcfd3c024f491e8178f835d6852c439caa92b10b3424ea07ccf5f278aab99"
+content-hash = "69579ece2172fc32f056bbbf455f39ebab0dbd6b7cdeae4ce079042a8858340f"

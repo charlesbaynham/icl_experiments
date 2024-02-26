@@ -32,11 +32,6 @@ def get_non_core_devices(simulation_mode=False):
         logger.warning("Initiating devices in simulation mode")
 
     _non_core = {
-        # InfluxDB loggers - you should probably keep these. They are commented
-        # out though because they'll throw error messages unless you have an
-        # influx DB server running on this server. If you do, it should probably
-        # also be managed by Nix - speak to Charles and tell him what you did so
-        # we can compare notes!
         "influx_logger": {
             "type": "controller",
             "best_effort": True,
@@ -140,6 +135,86 @@ def get_non_core_devices(simulation_mode=False):
             "class": "TTIPowerSupplyTCP",
             "arguments": {
                 "id": "10.137.1.28",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_461": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-461-679",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_679": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-461-679",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_1379": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-1379-698",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_698": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-1379-698",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_707": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-707-689",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_689": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-707-689",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_487": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-487-641",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_641": {
+            "type": "local",
+            "module": "toptica_wrapper",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-487-641",
+                "laser": "laser2",
                 "simulation": simulation_mode,
             },
         },

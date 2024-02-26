@@ -47,9 +47,9 @@ class IJDSettings:
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(8600, 340e-3, 330e-3, 3e-3),
-    "blue_IJD2_controller": IJDSettings(8800, 353e-3, 343e-3, 3e-3),
+    "blue_IJD2_controller": IJDSettings(8800, 370.5e-3, 367e-3, 3e-3),
     "blue_IJD3_controller": IJDSettings(8850, 353e-3, 343e-3, 3e-3),
-    "red_IJD1_controller": IJDSettings(9460, 189.0e-3, 187.0e-3, 3e-3),
+    "red_IJD1_controller": IJDSettings(9460, 189.0e-3, 186.0e-3, 3e-3),
 }
 "Injected diode default settings"
 
@@ -124,7 +124,7 @@ ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width = 70, 370, 100
+x, y, width = 145, 300, 100
 ANDOR_ROI_X0 = x - width / 2
 ANDOR_ROI_X1 = x + width / 2
 ANDOR_ROI_Y0 = y - width / 2
@@ -206,7 +206,7 @@ AOM_BEAMS = [
         22,
         "suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
-        setpoint=2.8,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "blue_imaging_switch",
