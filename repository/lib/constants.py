@@ -244,6 +244,9 @@ AOM_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_up",
         shutter_device="ttl_shutter_red_up",
         shutter_delay=10e-3,
+        servo_enabled=True,
+        setpoint=1.1,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
+        photodiode_offset=0.0188,  # FIXME: This is a guess
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
