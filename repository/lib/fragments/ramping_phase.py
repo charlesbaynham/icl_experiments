@@ -220,14 +220,14 @@ class RampingRedPhase(Fragment):
         )
 
         self.setattr_param(
-            f"start_suservo_up_multiple_default",
+            f"start_suservo_up_multiple",
             FloatParam,
             description="Initial suservo up intensity as multiple of nominal intensity",
             default=self.start_suservo_up_multiple_default,
             min=0.0,
         )
         self.setattr_param(
-            f"end_suservo_up_multiple_default",
+            f"end_suservo_up_multiple",
             FloatParam,
             description="Final suservo up intensity as multiple of nominal intensity",
             default=self.end_suservo_up_multiple_default,
@@ -246,8 +246,8 @@ class RampingRedPhase(Fragment):
         self.end_suservo_axialplus_multiple: FloatParamHandle
         self.start_suservo_axialminus_multiple: FloatParamHandle
         self.end_suservo_axialminus_multiple: FloatParamHandle
-        self.start_suservo_up_multiple_default: FloatParamHandle
-        self.end_suservo_up_multiple_default: FloatParamHandle
+        self.start_suservo_up_multiple: FloatParamHandle
+        self.end_suservo_up_multiple: FloatParamHandle
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
@@ -300,8 +300,7 @@ class RampingRedPhase(Fragment):
             - self.start_suservo_axialminus_multiple.get()
         ) / float(num_points - 1)
         suservo_step_up = (
-            self.end_suservo_up_multiple_default.get()
-            - self.start_suservo_up_multiple_default.get()
+            self.end_suservo_up_multiple.get() - self.start_suservo_up_multiple.get()
         ) / float(num_points - 1)
 
         # Record these ramping parameters into a DMA sequence
@@ -316,7 +315,7 @@ class RampingRedPhase(Fragment):
             this_suservo_axialminus_multiple = (
                 self.start_suservo_axialminus_multiple.get()
             )
-            this_suservo_up_multiple = self.start_suservo_up_multiple_default.get()
+            this_suservo_up_multiple = self.start_suservo_up_multiple.get()
 
             t_this_cycle_mu = now_mu()
 
