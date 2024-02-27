@@ -132,7 +132,7 @@ class RedBeamController(Fragment):
             FloatParam,
             "Detuning of 689 injection AOM from nominal frequency at highest point of ramp",
             unit="MHz",
-            default=3e6,
+            default=constants.RED_BROADBAND_RAMP_LIMIT,
         )
         self.setattr_param(
             "ramp_type",

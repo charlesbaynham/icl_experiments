@@ -85,7 +85,7 @@ B_FIELD_CH1_AXIAL = 0.0  # A
 B_FIELD_BIAS_X = 0.11  # A
 B_FIELD_BIAS_Y = -0.014  # A
 B_FIELD_BIAS_Z = -0.75  # A
-B_FIELD_GRADIENT = 100.0  # A
+B_FIELD_GRADIENT = 90.0  # A
 
 
 BLUE_LOADING_TIME = 500e-3
@@ -96,6 +96,9 @@ RED_INJECTION_AOM_ATTENUATION = 0.0
 
 RED_INJECTION_AOM_FREQUENCY = 340e6
 "Nominal frequency for the 689 injection AOM"
+
+RED_BROADBAND_RAMP_LIMIT = 4e6
+"Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
 
 RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
 "Default ramp frequency for the broadband red MOT"
