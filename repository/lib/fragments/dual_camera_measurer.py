@@ -72,7 +72,7 @@ class _DualCameraBase(Fragment):
             "save_raw_images",
             BoolParam,
             description="Save raw camera data",
-            default=True,
+            default=False,
         )
         self.save_raw_images: BoolParamHandle
 
