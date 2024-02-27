@@ -38,13 +38,13 @@ class TurnOn1064Temporary(EnvExperiment):
         self.channel_delivery.cpld.init()
         self.channel_delivery.init()
 
-        self.channel_delivery.sw.set_o(True)
+        self.channel_switch.cfg_sw(True)
         self.channel_delivery.set(self.frequency_delivery)
         self.channel_delivery.set_att(self.attenuation_switch)
 
         self.channel_switch.cpld.init()
         self.channel_switch.init()
 
-        self.channel_switch.sw.set_o(True)
+        self.channel_switch.cfg_sw(True)
         self.channel_switch.set(self.frequency_switch)
         self.channel_switch.set_att(self.attenuation_switch)
