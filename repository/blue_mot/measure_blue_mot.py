@@ -50,7 +50,7 @@ class _MeasureBlueMOTFrag(ExpFragment):
             "clearout",
             BoolParam,
             "Clear out atoms between shots",
-            default="False",
+            default="True",
         )
         self.clearout: BoolParamHandle
 
