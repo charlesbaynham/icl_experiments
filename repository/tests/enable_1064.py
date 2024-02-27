@@ -27,8 +27,8 @@ class TurnOn1064Temporary(EnvExperiment):
             "attenuation_switch", NumberValue(default=30, unit="dB", min=0, max=30)
         )
 
-        self.channel_delivery: AD9912 = self.get_device(self.urukul_aom_1064_delivery)
-        self.channel_switch: AD9912 = self.get_device(self.urukul_aom_1064_switch)
+        self.channel_delivery: AD9912 = self.urukul_aom_1064_delivery
+        self.channel_switch: AD9912 = self.urukul_aom_1064_switch
         self.setattr_device("core")
 
     @kernel
