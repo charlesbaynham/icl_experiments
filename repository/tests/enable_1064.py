@@ -14,14 +14,14 @@ class TurnOn1064Temporary(EnvExperiment):
         self.setattr_device("urukul_aom_1064_switch")
 
         self.setattr_argument(
-            "frequency_delivery", NumberValue(default=100e6, unit="MHz")
+            "frequency_delivery", NumberValue(default=110e6, unit="MHz")
         )
         self.setattr_argument(
             "attenuation_delivery", NumberValue(default=30, unit="dB", min=0, max=30)
         )
 
         self.setattr_argument(
-            "frequency_switch", NumberValue(default=100e6, unit="MHz")
+            "frequency_switch", NumberValue(default=110e6, unit="MHz")
         )
         self.setattr_argument(
             "attenuation_switch", NumberValue(default=30, unit="dB", min=0, max=30)
