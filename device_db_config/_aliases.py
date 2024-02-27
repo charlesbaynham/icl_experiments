@@ -35,8 +35,8 @@ aliases = {
     "suservo_aom_singlepass_689_red_mot_sigmaplus": "suservo2_ch6",
     "suservo_aom_singlepass_689_red_mot_sigmaminus": "suservo2_ch7",
     # 1064
-    "suservo_aom_1064_delivery": "urukul2_ch0",
-    "suservo_aom_1064_switch": "urukul2_ch1",
+    "urukul_aom_1064_delivery": "urukul2_ch0",
+    "urukul_aom_1064_switch": "urukul2_ch1",
     # Other 1064 channels, currently unused
     "suservo_aom3_1064": "suservo0_ch4",
     "suservo_aom4_1064": "suservo0_ch5",
