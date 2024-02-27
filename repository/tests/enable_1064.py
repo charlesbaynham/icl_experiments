@@ -40,7 +40,7 @@ class TurnOn1064Temporary(EnvExperiment):
         self.channel_delivery.init()
         self.channel_switch.init()
 
-        self.channel_switch.cfg_sw(True)
+        self.channel_delivery.cfg_sw(True)
         self.channel_delivery.set(self.frequency_delivery)
         self.channel_delivery.set_att(self.attenuation_switch)
 
