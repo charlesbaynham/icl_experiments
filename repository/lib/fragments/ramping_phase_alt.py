@@ -25,7 +25,7 @@ class RampingRedPhase(Fragment):
 
         * Ramping of beam intensitites
         * Ramping of gradient currents
-        * Ramping of beam detunings 
+        * Ramping of beam detunings
 
     This fragment should be subclassed for each desired phase. Default settings
     for its parameters can be set by setting the appropriate class variable.
@@ -39,36 +39,52 @@ class RampingRedPhase(Fragment):
 
     duration_default: float = None
 
-    urukuls:List[str] = []
-    default_urukul_nominal_frequencies :List[float] = []
+    urukuls: List[str] = []
+    default_urukul_nominal_frequencies: List[float] = []
     default_urukul_detunings_start: List[float] = []
     default_urukul_detunings_end: List[float] = []
 
-    suservos_for_intensity:List[str] = []
-    default_suservo_nominal_setpoints:List[float] = []
-    # FIXME: Rename these when I have a proper IDE available... I'm using multiples instead of absolutes
-    default_suservo_setpoints_start: List[float] = []
-    default_suservo_setpoints_end: List[float] = []
+    suservos_for_intensity: List[str] = []
+    default_suservo_nominal_setpoints: List[float] = []
+    default_suservo_setpoint_multiples_start: List[float] = []
+    default_suservo_setpoint_multiples_end: List[float] = []
 
     current_controller = None  # FIXME: implement this somehow
 
     def validate_attributes(self):
-        assert duration_default is not None
+        assert self.duration_default is not None
 
         # validate the class attributes to make sure this class was declared correctly
-        assert len(self.urukuls) == len(set(self.urukuls)), TypeError("self.urukuls contains duplicate entries")
-        assert len(self.default_urukul_nominal_frequencies) == len(self.urukuls), TypeError("default_urukul_nominal_frequencies must have same length as self.urukuls")
-        assert len(self.default_urukul_detunings_start) == len(self.urukuls), TypeError("default_urukul_detunings_start must have same length as self.urukuls")
-        assert len(self.default_urukul_detunings_end) == len(self.urukuls), TypeError("default_urukul_detunings_end must have same length as self.urukuls")
+        assert len(self.urukuls) == len(set(self.urukuls)), TypeError(
+            "self.urukuls contains duplicate entries"
+        )
+        assert len(self.default_urukul_nominal_frequencies) == len(
+            self.urukuls
+        ), TypeError(
+            "default_urukul_nominal_frequencies must have same length as self.urukuls"
+        )
+        assert len(self.default_urukul_detunings_start) == len(self.urukuls), TypeError(
+            "default_urukul_detunings_start must have same length as self.urukuls"
+        )
+        assert len(self.default_urukul_detunings_end) == len(self.urukuls), TypeError(
+            "default_urukul_detunings_end must have same length as self.urukuls"
+        )
 
-        assert len(self.suservos_for_intensity) == len(set(self.suservos_for_intensity)), TypeError("self.suservos_for_intensity contains duplicate entries")
-        assert len(self.default_suservo_setpoints_start) == len(self.suservos_for_intensity), TypeError("self.default_syservo_setpoints_start must have same length as self.suservos_for_intensity")
-        assert len(self.default_suservo_setpoints_end) == len(self.suservos_for_intensity), TypeError("self.default_syservo_setpoints_end must have same length as self.suservos_for_intensity")
+        assert len(self.suservos_for_intensity) == len(
+            set(self.suservos_for_intensity)
+        ), TypeError("self.suservos_for_intensity contains duplicate entries")
+        assert len(self.default_suservo_setpoint_multiples_start) == len(
+            self.suservos_for_intensity
+        ), TypeError(
+            "self.default_syservo_setpoints_start must have same length as self.suservos_for_intensity"
+        )
+        assert len(self.default_suservo_setpoint_multiples_end) == len(
+            self.suservos_for_intensity
+        ), TypeError(
+            "self.default_syservo_setpoints_end must have same length as self.suservos_for_intensity"
+        )
 
-
-    def build_fragment(
-        self, *args
-    ):
+    def build_fragment(self, *args):
         self.validate_attributes()
 
         # %% Devices
@@ -82,7 +98,7 @@ class RampingRedPhase(Fragment):
         # SUServos
         for suservo_device in self.suservos_for_intensity:
             setter = self.setattr_fragment(
-              f"setter_{suservo_device}", LibSetSUServoStatic, suservo_device
+                f"setter_{suservo_device}", LibSetSUServoStatic, suservo_device
             )
 
             setpoint_start_handle = self.setattr_param(
@@ -97,9 +113,6 @@ class RampingRedPhase(Fragment):
             self.suservo_setters_and_info.append(
                 (setter, setpoint_handle, bool(beam_info.shutter_device))
             )
-
-
-        
 
         # %% Parameters
 
