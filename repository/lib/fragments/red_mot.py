@@ -34,6 +34,24 @@ class NarrowRedCapturePhase(RampingRedPhase):
     start_gradient_default = 5.0
     end_gradient_default = 1.0
 
+    urukuls = ["the_red_one"]
+    default_urukul_nominal_frequencies = [340e6]
+    default_urukul_detunings_start = [100e3]
+    default_urukul_detunings_end = [10e3]
+
+    suservos = ["suservo_ch1", "suservo_ch2", "suservo_ch3", "suservo_up"]
+    default_suservo_nominal_setpoints = [1.5, 1.5, 0.75, 1.0]
+    default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
+    default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 1.0]
+
+
+class NarrowRedCapturePhase(RampingRedPhase):
+    duration_default = 50e-3
+    start_detuning_default = 150e3
+    end_detuning_default = 50e3
+    start_gradient_default = 5.0
+    end_gradient_default = 1.0
+
     start_suservo_diagonal_multiple_default = 1.0
     end_suservo_diagonal_multiple_default = 0.1
     start_suservo_axialplus_multiple_default = 1.0

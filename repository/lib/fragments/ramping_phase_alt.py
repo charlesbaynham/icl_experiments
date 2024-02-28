@@ -44,7 +44,7 @@ class RampingRedPhase(Fragment):
     default_urukul_detunings_start: List[float] = []
     default_urukul_detunings_end: List[float] = []
 
-    suservos_for_intensity: List[str] = []
+    suservos: List[str] = []
     default_suservo_nominal_setpoints: List[float] = []
     default_suservo_setpoint_multiples_start: List[float] = []
     default_suservo_setpoint_multiples_end: List[float] = []
@@ -70,16 +70,16 @@ class RampingRedPhase(Fragment):
             "default_urukul_detunings_end must have same length as self.urukuls"
         )
 
-        assert len(self.suservos_for_intensity) == len(
-            set(self.suservos_for_intensity)
-        ), TypeError("self.suservos_for_intensity contains duplicate entries")
+        assert len(self.suservos) == len(set(self.suservos)), TypeError(
+            "self.suservos_for_intensity contains duplicate entries"
+        )
         assert len(self.default_suservo_setpoint_multiples_start) == len(
-            self.suservos_for_intensity
+            self.suservos
         ), TypeError(
             "self.default_syservo_setpoints_start must have same length as self.suservos_for_intensity"
         )
         assert len(self.default_suservo_setpoint_multiples_end) == len(
-            self.suservos_for_intensity
+            self.suservos
         ), TypeError(
             "self.default_syservo_setpoints_end must have same length as self.suservos_for_intensity"
         )
@@ -96,7 +96,7 @@ class RampingRedPhase(Fragment):
         self.core_dma: CoreDMA
 
         # SUServos
-        for suservo_device in self.suservos_for_intensity:
+        for suservo_device in self.suservos:
             setter = self.setattr_fragment(
                 f"setter_{suservo_device}", LibSetSUServoStatic, suservo_device
             )
