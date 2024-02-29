@@ -316,7 +316,7 @@ class RampingRedPhase(Fragment):
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
             t_this_cycle_mu = now_mu()
-            t_delay_mu = int64(self.core.ref_multiplier)
+            t_one_cycle_mu = int64(self.core.ref_multiplier)
 
             # Play the ramp
             for _ in range(num_points):
@@ -326,16 +326,20 @@ class RampingRedPhase(Fragment):
                 # Current setting goes first since it writes into the past
                 # self.gradient_current_setter.set_currents([this_current])
 
-                delay_mu(t_delay_mu)  # Avoid using multiple lanes
+                # delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
 
                 # Set AD9910 frequencies
                 for i in range(len(self.ad9910_channels_and_param_handles)):
                     ad9910 = self.ad9910_channels_and_param_handles[i][0]
+
                     ad9910.set_frequency(frequency_values[i])
+                    delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
+
                     frequency_values[i] += frequency_steps[i]
+
+                # Pulse IO_UPDATEs to load new frequencies.
                 for i in range(len(self.ad9910_channels_and_param_handles)):
                     ad9910 = self.ad9910_channels_and_param_handles[i][0]
-                    # Pulse IO_UPDATEs to load new frequencies.
 
                     # We do this in a separate loop so that the IO_updates are
                     # almost simultaneous. If we were willing to consume all the
@@ -343,20 +347,13 @@ class RampingRedPhase(Fragment):
                     delay_mu(int64(ad9910.sync_data.io_update_delay))
                     ad9910.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
-                delay_mu(int64(self.core.ref_multiplier))
-                self.red_mot_controller.set_mot_suservo_amplitude_individual(
-                    amplitude_red_diagonal=this_suservo_diagonal_multiple,
-                    amplitude_red_axialplus=this_suservo_axialplus_multiple,
-                    amplitude_red_axialminus=this_suservo_axialminus_multiple,
-                    amplitude_red_up=this_suservo_up_multiple,
-                )
+                # Set suservo setpoints
+                for i in range(len(self.suservo_setters_and_param_handles)):
+                    suservo_channel = self.suservo_setters_and_param_handles[i][0]
+                    suservo_channel.set_setpoint(suservo_values[i])
+                    suservo_values[i] += suservo_steps[i]
 
-                this_current += current_step
-                this_detuning += detuning_step
-                this_suservo_diagonal_multiple += suservo_step_diagonal
-                this_suservo_axialplus_multiple += suservo_step_axialplus
-                this_suservo_axialminus_multiple += suservo_step_axialminus
-                this_suservo_up_multiple += suservo_step_up
+                    delay_mu(t_one_cycle_mu)
 
                 t_this_cycle_mu += time_step_mu
 
