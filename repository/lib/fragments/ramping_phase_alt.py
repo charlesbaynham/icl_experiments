@@ -279,16 +279,27 @@ class RampingRedPhase(Fragment):
         #     num_points - 1
         # )
 
-        # ...the detunings...
-        for (
-            _,
-            nom_setpoint_handle,
-            start_multiple_handle,
-            end_multiple_handle,
-        ) in self.suservo_setters_and_param_handles:
-            detuning_step = (
-                self.end_detuning.get() - self.start_detuning.get()
-            ) / float(num_points - 1)
+        suservo_values = [0.0] * len(self.suservo_setters_and_param_handles)
+        suservo_steps = [0.0] * len(self.suservo_setters_and_param_handles)
+
+        for i in range(len(self.suservo_setters_and_param_handles)):
+            nom_setpoint_handle = self.suservo_setters_and_param_handles[i][1]
+            start_multiple_handle = self.suservo_setters_and_param_handles[i][2]
+            end_multiple_handle = self.suservo_setters_and_param_handles[i][3]
+
+            # Get the start point for all the SUServo intensities
+            suservo_values[i] = nom_setpoint_handle.get()
+
+            # Calculate the step sizes for all the SUServo steps
+            suservo_steps[i] = (
+                suservo_values[i]
+                * (end_multiple_handle.get() - start_multiple_handle.get())
+                / float(num_points - 1)
+            )
+
+        detuning_step = (self.end_detuning.get() - self.start_detuning.get()) / float(
+            num_points - 1
+        )
 
         # ...and the SUServo amplitudes
         suservo_step_diagonal = (
