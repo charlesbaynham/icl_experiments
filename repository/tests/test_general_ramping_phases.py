@@ -84,6 +84,13 @@ class TestGeneralRampingPhaseFrag(ExpFragment):
 
         logger.info("Phase queuing completed")
 
+        logger.info(
+            "now_mu = %d, get_rtio_counter_mu = %d, diff=%fs",
+            now_mu(),
+            self.core.get_rtio_counter_mu(),
+            self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu()),
+        )
+
         self.core.wait_until_mu(now_mu())
 
         logger.info("Phase output completed")
