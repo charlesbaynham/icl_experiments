@@ -1,7 +1,10 @@
+from pyaion.fragments.suservo import LibSetSUServoStatic
 import logging
 from typing import *
 
+
 from artiq.coredevice.core import Core
+from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.dma import CoreDMA
 from artiq.experiment import at_mu
 from artiq.experiment import delay_mu
@@ -13,8 +16,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int32
 from numpy import int64
 
-from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,12 @@ class RampingRedPhase(Fragment):
 
     This fragment should be subclassed for each desired phase. Default settings
     for its parameters can be set by setting the appropriate class variable.
+
+    Note that this phase does not support zero-length lists of any object type.
+    This is because handling these is hard in ARTIQ, since empty lists do not
+    have an associated type and so kernel compilation breaks. Working around
+    this is possible, but not done yet. Better to wait for the new compiler
+    which solves this problem.
 
     Lookup of pre-recorded sequences is slow, but can be done before the
     sequence runs. To do this, use :meth:`~.precalculate_dma_handle` before
@@ -95,26 +102,133 @@ class RampingRedPhase(Fragment):
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
 
-        # SUServos
-        for suservo_device in self.suservos:
+        # %% SUServos
+
+        self.suservo_setters_and_param_handles: List[
+            Tuple[
+                LibSetSUServoStatic,
+                FloatParamHandle,
+                FloatParamHandle,
+                FloatParamHandle,
+            ]
+        ] = []
+
+        for suservo_name, setpoint_nominal, setpoint_start, setpoint_end in zip(
+            self.suservos,
+            self.default_suservo_nominal_setpoints,
+            self.default_suservo_setpoint_multiples_start,
+            self.default_suservo_setpoint_multiples_end,
+        ):
+            # For each requested SUServo, get a setter Fragment for it and
+            # define parameters for the nominal setpoint, and the multiples of
+            # that nominal value that this ramping phase should start and end
+            # with. These will take default values defined by the class
+            # attributes when a concrete instance of this class is created, but
+            # the user will be able to override those value through normal
+            # NDScan behaviour.
             setter = self.setattr_fragment(
-                f"setter_{suservo_device}", LibSetSUServoStatic, suservo_device
+                f"setter_{suservo_name}", LibSetSUServoStatic, suservo_name
+            )
+
+            setpoint_nominal_handle = self.setattr_param(
+                f"setpoint_nominal_{suservo_name}",
+                FloatParam,
+                f"Nominal setpoint for {suservo_name}",
+                min=0,
+                unit="V",
+                default=setpoint_nominal,
             )
 
             setpoint_start_handle = self.setattr_param(
-                f"setpoint_start_{beam_info.name}",
+                f"setpoint_multiple_start_{suservo_name}",
                 FloatParam,
-                f"SUServo setpoint for {beam_info.name}",
+                f"Multiple of nominal setpoint at start of ramp for {suservo_name}",
                 min=0,
                 unit="V",
-                default=beam_info.setpoint,
+                default=setpoint_start,
             )
 
-            self.suservo_setters_and_info.append(
-                (setter, setpoint_handle, bool(beam_info.shutter_device))
+            setpoint_end_handle = self.setattr_param(
+                f"setpoint_multiple_end_{suservo_name}",
+                FloatParam,
+                f"Multiple of nominal setpoint at end of ramp for {suservo_name}",
+                min=0,
+                unit="V",
+                default=setpoint_end,
             )
 
-        # %% Parameters
+            self.suservo_setters_and_param_handles.append(
+                (
+                    setter,
+                    setpoint_nominal_handle,
+                    setpoint_start_handle,
+                    setpoint_end_handle,
+                )
+            )
+
+        # %% Urukuls
+
+        self.ad9910_channels_and_param_handles: List[
+            Tuple[
+                AD9910,
+                FloatParamHandle,
+                FloatParamHandle,
+                FloatParamHandle,
+            ]
+        ] = []
+
+        for urukul_channel_name, frequency_nominal, detuning_start, detuning_end in zip(
+            self.urukuls,
+            self.default_urukul_nominal_frequencies,
+            self.default_urukul_detunings_start,
+            self.default_urukul_detunings_end,
+        ):
+            # For each requested SUServo, get a setter Fragment for it and
+            # define parameters for the nominal setpoint, and the multiples of
+            # that nominal value that this ramping phase should start and end
+            # with. These will take default values defined by the class
+            # attributes when a concrete instance of this class is created, but
+            # the user will be able to override those value through normal
+            # NDScan behaviour.
+            channel: AD9910 = self.get_device(urukul_channel_name)
+
+            nominal_freq_handle = self.setattr_param(
+                f"frequency_nominal_{urukul_channel_name}",
+                FloatParam,
+                f"Nominal frequency for {urukul_channel_name}",
+                min=0,
+                unit="MHz",
+                default=frequency_nominal,
+            )
+
+            detuning_start_handle = self.setattr_param(
+                f"detuning_start_{urukul_channel_name}",
+                FloatParam,
+                f"Detuning from nominal frequency at start of ramp for {urukul_channel_name}",
+                min=0,
+                unit="MHz",
+                default=detuning_start,
+            )
+
+            detuning_end_handle = self.setattr_param(
+                f"detuning_end_{urukul_channel_name}",
+                FloatParam,
+                f"Detuning from nominal frequency at end of ramp for {urukul_channel_name}",
+                min=0,
+                unit="MHz",
+                default=detuning_end,
+            )
+
+            self.ad9910_channels_and_param_handles.append(
+                (
+                    channel,
+                    nominal_freq_handle,
+                    detuning_start_handle,
+                    detuning_end_handle,
+                )
+            )
+
+        # %% Other parameters
 
         self.setattr_param(
             "duration",
@@ -132,112 +246,9 @@ class RampingRedPhase(Fragment):
             min=0.0,
             unit="us",
         )
-        self.setattr_param(
-            "start_detuning",
-            FloatParam,
-            description="Initial detuning of red beams",
-            default=self.start_detuning_default,
-            unit="MHz",
-        )
-        self.setattr_param(
-            "end_detuning",
-            FloatParam,
-            description="Final detuning of red beams",
-            default=self.end_detuning_default,
-            unit="MHz",
-        )
-
-        self.setattr_param(
-            "start_gradient",
-            FloatParam,
-            description="Initial gradient current",
-            default=self.start_gradient_default,
-            min=0.0,
-            unit="A",
-        )
-        self.setattr_param(
-            "end_gradient",
-            FloatParam,
-            description="Final gradient current",
-            default=self.end_gradient_default,
-            min=0.0,
-            unit="A",
-        )
-
-        self.setattr_param(
-            f"start_suservo_diagonal_multiple",
-            FloatParam,
-            description="Initial suservo diagonal intensity as multiple of nominal intensity",
-            default=self.start_suservo_diagonal_multiple_default,
-            min=0.0,
-        )
-        self.setattr_param(
-            f"end_suservo_diagonal_multiple",
-            FloatParam,
-            description="Final suservo diagonal intensity as multiple of nominal intensity",
-            default=self.end_suservo_diagonal_multiple_default,
-            min=0.0,
-        )
-
-        self.setattr_param(
-            f"start_suservo_axialplus_multiple",
-            FloatParam,
-            description="Initial suservo axialplus intensity as multiple of nominal intensity",
-            default=self.start_suservo_axialplus_multiple_default,
-            min=0.0,
-        )
-        self.setattr_param(
-            f"end_suservo_axialplus_multiple",
-            FloatParam,
-            description="Final suservo axialplus intensity as multiple of nominal intensity",
-            default=self.end_suservo_axialplus_multiple_default,
-            min=0.0,
-        )
-
-        self.setattr_param(
-            f"start_suservo_axialminus_multiple",
-            FloatParam,
-            description="Initial suservo axialminus intensity as multiple of nominal intensity",
-            default=self.start_suservo_axialminus_multiple_default,
-            min=0.0,
-        )
-        self.setattr_param(
-            f"end_suservo_axialminus_multiple",
-            FloatParam,
-            description="Final suservo axialminus intensity as multiple of nominal intensity",
-            default=self.end_suservo_axialminus_multiple_default,
-            min=0.0,
-        )
-
-        self.setattr_param(
-            f"start_suservo_up_multiple",
-            FloatParam,
-            description="Initial suservo up intensity as multiple of nominal intensity",
-            default=self.start_suservo_up_multiple_default,
-            min=0.0,
-        )
-        self.setattr_param(
-            f"end_suservo_up_multiple",
-            FloatParam,
-            description="Final suservo up intensity as multiple of nominal intensity",
-            default=self.end_suservo_up_multiple_default,
-            min=0.0,
-        )
 
         self.duration: FloatParamHandle
         self.time_step: FloatParamHandle
-        self.start_detuning: FloatParamHandle
-        self.end_detuning: FloatParamHandle
-        self.start_gradient: FloatParamHandle
-        self.end_gradient: FloatParamHandle
-        self.start_suservo_diagonal_multiple: FloatParamHandle
-        self.end_suservo_diagonal_multiple: FloatParamHandle
-        self.start_suservo_axialplus_multiple: FloatParamHandle
-        self.end_suservo_axialplus_multiple: FloatParamHandle
-        self.start_suservo_axialminus_multiple: FloatParamHandle
-        self.end_suservo_axialminus_multiple: FloatParamHandle
-        self.start_suservo_up_multiple: FloatParamHandle
-        self.end_suservo_up_multiple: FloatParamHandle
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
@@ -248,9 +259,6 @@ class RampingRedPhase(Fragment):
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
             "debug_enabled",
-            "red_mot_controller",
-            "chamber_2_field_setter",
-            "gradient_current_setter",
         }
 
     @kernel
@@ -266,15 +274,21 @@ class RampingRedPhase(Fragment):
         num_points = 1 + int(self.duration.get() // self.time_step.get())
         time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
 
-        # Compute step sizes for the gradient coils...
-        current_step = (self.end_gradient.get() - self.start_gradient.get()) / float(
-            num_points - 1
-        )
+        # FIXME: Compute step sizes for the gradient coils...
+        # current_step = (self.end_gradient.get() - self.start_gradient.get()) / float(
+        #     num_points - 1
+        # )
 
         # ...the detunings...
-        detuning_step = (self.end_detuning.get() - self.start_detuning.get()) / float(
-            num_points - 1
-        )
+        for (
+            _,
+            nom_setpoint_handle,
+            start_multiple_handle,
+            end_multiple_handle,
+        ) in self.suservo_setters_and_param_handles:
+            detuning_step = (
+                self.end_detuning.get() - self.start_detuning.get()
+            ) / float(num_points - 1)
 
         # ...and the SUServo amplitudes
         suservo_step_diagonal = (
