@@ -20,7 +20,7 @@ from numpy import int64
 logger = logging.getLogger(__name__)
 
 
-class RampingRedPhase(Fragment):
+class GeneralRampingPhase(Fragment):
     """
     Template fragment for a phase of the experiment which allows:
 
