@@ -297,26 +297,21 @@ class RampingRedPhase(Fragment):
                 / float(num_points - 1)
             )
 
-        detuning_step = (self.end_detuning.get() - self.start_detuning.get()) / float(
-            num_points - 1
-        )
+        frequency_values = [0.0] * len(self.ad9910_channels_and_param_handles)
+        frequency_steps = [0.0] * len(self.ad9910_channels_and_param_handles)
 
-        # ...and the SUServo amplitudes
-        suservo_step_diagonal = (
-            self.end_suservo_diagonal_multiple.get()
-            - self.start_suservo_diagonal_multiple.get()
-        ) / float(num_points - 1)
-        suservo_step_axialplus = (
-            self.end_suservo_axialplus_multiple.get()
-            - self.start_suservo_axialplus_multiple.get()
-        ) / float(num_points - 1)
-        suservo_step_axialminus = (
-            self.end_suservo_axialminus_multiple.get()
-            - self.start_suservo_axialminus_multiple.get()
-        ) / float(num_points - 1)
-        suservo_step_up = (
-            self.end_suservo_up_multiple.get() - self.start_suservo_up_multiple.get()
-        ) / float(num_points - 1)
+        for i in range(len(self.ad9910_channels_and_param_handles)):
+            nominal_freq_handle = self.ad9910_channels_and_param_handles[i][1]
+            detuning_start_handle = self.ad9910_channels_and_param_handles[i][2]
+            detuning_end_handle = self.ad9910_channels_and_param_handles[i][3]
+
+            # Get the start point for all the AD9910 frequencies
+            frequency_values[i] = nominal_freq_handle.get()
+
+            # Calculate the step sizes for all the AD9910 channels
+            frequency_steps[i] = (
+                detuning_end_handle.get() - detuning_start_handle.get()
+            ) / float(num_points - 1)
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
