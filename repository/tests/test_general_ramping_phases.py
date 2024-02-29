@@ -37,6 +37,8 @@ class TestGeneralRampingPhase(GeneralRampingPhase):
     default_urukul_nominal_frequencies = [340e6, 200e6]
     default_urukul_detunings_start = [1e6, 0.0]
     default_urukul_detunings_end = [-1e6, 0.0]
+    default_urukul_amplitudes_start = [1.0] * 2
+    default_urukul_amplitudes_end = [1.0] * 2
 
 
 class TestGeneralRampingPhaseFrag(ExpFragment):

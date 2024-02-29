@@ -23,9 +23,9 @@ class GeneralRampingPhase(Fragment):
     """
     Template fragment for a phase of the experiment which allows:
 
-        * Ramping of beam intensitites
+        * Ramping of SUServo setpoints
         * Ramping of gradient currents
-        * Ramping of beam detunings
+        * Ramping of AD9910 detunings and amplitudes
 
     This fragment should be subclassed for each desired phase. Default settings
     for its parameters can be set by setting the appropriate class variable.
@@ -49,6 +49,8 @@ class GeneralRampingPhase(Fragment):
     default_urukul_nominal_frequencies: List[float] = []
     default_urukul_detunings_start: List[float] = []
     default_urukul_detunings_end: List[float] = []
+    default_urukul_amplitudes_start: List[float] = []
+    default_urukul_amplitudes_end: List[float] = []
 
     suservos: List[str] = []
     default_suservo_nominal_setpoints: List[float] = []
@@ -74,6 +76,15 @@ class GeneralRampingPhase(Fragment):
         )
         assert len(self.default_urukul_detunings_end) == len(self.urukuls), TypeError(
             "default_urukul_detunings_end must have same length as self.urukuls"
+        )
+
+        assert len(self.default_urukul_amplitudes_start) == len(
+            self.urukuls
+        ), TypeError(
+            "default_urukul_amplitudes_start must have same length as self.urukuls"
+        )
+        assert len(self.default_urukul_amplitudes_end) == len(self.urukuls), TypeError(
+            "default_urukul_amplitudes_end must have same length as self.urukuls"
         )
 
         assert len(self.suservos) == len(set(self.suservos)), TypeError(
@@ -173,14 +184,25 @@ class GeneralRampingPhase(Fragment):
                 FloatParamHandle,
                 FloatParamHandle,
                 FloatParamHandle,
+                FloatParamHandle,
+                FloatParamHandle,
             ]
         ] = []
 
-        for urukul_channel_name, frequency_nominal, detuning_start, detuning_end in zip(
+        for (
+            urukul_channel_name,
+            frequency_nominal,
+            detuning_start,
+            detuning_end,
+            amplitude_start,
+            amplitude_end,
+        ) in zip(
             self.urukuls,
             self.default_urukul_nominal_frequencies,
             self.default_urukul_detunings_start,
             self.default_urukul_detunings_end,
+            self.default_urukul_amplitudes_start,
+            self.default_urukul_amplitudes_start,
         ):
             # For each requested SUServo, get a setter Fragment for it and
             # define parameters for the nominal setpoint, and the multiples of
@@ -216,12 +238,32 @@ class GeneralRampingPhase(Fragment):
                 default=detuning_end,
             )
 
+            amplitude_start_handle = self.setattr_param(
+                f"amplitude_start_{urukul_channel_name}",
+                FloatParam,
+                f"Amplitude at start of ramp for {urukul_channel_name}",
+                min=0,
+                default=amplitude_start,
+            )
+
+            amplitude_end_handle = self.setattr_param(
+                f"amplitude_end_{urukul_channel_name}",
+                FloatParam,
+                f"Amplitude at end of ramp for {urukul_channel_name}",
+                min=0,
+                default=amplitude_end,
+            )
+
+            amplitude_start
+
             self.ad9910_channels_and_param_handles.append(
                 (
                     channel,
                     nominal_freq_handle,
                     detuning_start_handle,
                     detuning_end_handle,
+                    amplitude_start_handle,
+                    amplitude_end_handle,
                 )
             )
 
@@ -296,18 +338,29 @@ class GeneralRampingPhase(Fragment):
 
         frequency_values = [0.0] * len(self.ad9910_channels_and_param_handles)
         frequency_steps = [0.0] * len(self.ad9910_channels_and_param_handles)
+        amplitude_steps = [0.0] * len(self.ad9910_channels_and_param_handles)
+        amplitude_values = [0.0] * len(self.ad9910_channels_and_param_handles)
 
         for i in range(len(self.ad9910_channels_and_param_handles)):
             nominal_freq_handle = self.ad9910_channels_and_param_handles[i][1]
             detuning_start_handle = self.ad9910_channels_and_param_handles[i][2]
             detuning_end_handle = self.ad9910_channels_and_param_handles[i][3]
+            amplitude_start_handle = self.ad9910_channels_and_param_handles[i][4]
+            amplitude_end_handle = self.ad9910_channels_and_param_handles[i][5]
 
-            # Get the start point for all the AD9910 frequencies
-            frequency_values[i] = nominal_freq_handle.get()
+            # Get the start point for all the AD9910 parameters
+            frequency_values[i] = (
+                nominal_freq_handle.get() + detuning_start_handle.get()
+            )
+            amplitude_values[i] = amplitude_start_handle.get()
 
             # Calculate the step sizes for all the AD9910 channels
             frequency_steps[i] = (
                 detuning_end_handle.get() - detuning_start_handle.get()
+            ) / float(num_points - 1)
+
+            amplitude_steps[i] = (
+                amplitude_end_handle.get() - amplitude_start_handle.get()
             ) / float(num_points - 1)
 
         # Record these ramping parameters into a DMA sequence
@@ -334,23 +387,19 @@ class GeneralRampingPhase(Fragment):
 
                     if self.debug_enabled:
                         logger.info(
-                            "Setting AD9910 %s to %.6f", ad9910, frequency_values[i]
+                            "Setting AD9910 %s to %.6f, amplitude=%f",
+                            ad9910,
+                            frequency_values[i],
+                            amplitude_values[i],
                         )
 
-                    ad9910.set_frequency(frequency_values[i])
+                    ad9910.set(
+                        frequency=frequency_values[i], amplitude=amplitude_values[i]
+                    )
                     delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
 
                     frequency_values[i] += frequency_steps[i]
-
-                # Pulse IO_UPDATEs to load new frequencies.
-                for i in range(len(self.ad9910_channels_and_param_handles)):
-                    ad9910 = self.ad9910_channels_and_param_handles[i][0]
-
-                    # We do this in a separate loop so that the IO_updates are
-                    # almost simultaneous. If we were willing to consume all the
-                    # RTIO lanes, they could be truely simultaneous
-                    delay_mu(int64(ad9910.sync_data.io_update_delay))
-                    ad9910.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
+                    amplitude_values[i] += amplitude_steps[i]
 
                 # Set suservo setpoints
                 for i in range(len(self.suservo_setters_and_param_handles)):

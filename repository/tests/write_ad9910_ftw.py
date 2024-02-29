@@ -49,17 +49,15 @@ class WriteAD9910FTW(EnvExperiment):
         self.core.break_realtime()
         delay(10e-3)
 
-        # self.dds.set_frequency(self.freq)
+        self.dds.set_frequency(self.freq)
 
-        # # We do this in a separate loop so that the IO_updates are
-        # # almost simultaneous. If we were willing to consume all the
-        # # RTIO lanes, they could be truely simultaneous
-        # at_mu(now_mu() & ~7)
-        # delay_mu(int64(self.dds.sync_data.io_update_delay))
-        # self.dds.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
-        # at_mu(now_mu() & ~7)  # clear fine TSC again
-
-        self.set_mu(self.dds, self.dds.frequency_to_ftw(self.freq))
+        # We do this in a separate loop so that the IO_updates are
+        # almost simultaneous. If we were willing to consume all the
+        # RTIO lanes, they could be truely simultaneous
+        at_mu(now_mu() & ~7)
+        delay_mu(int64(self.dds.sync_data.io_update_delay))
+        self.dds.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
+        at_mu(now_mu() & ~7)  # clear fine TSC again
 
     @kernel
     def set_mu(
@@ -103,18 +101,9 @@ class WriteAD9910FTW(EnvExperiment):
             tracking offset. When using :const:`PHASE_MODE_CONTINUOUS` in
             subsequent calls, use this value as the "current" phase.
         """
-        if phase_mode == _PHASE_MODE_DEFAULT:
-            phase_mode = dds.phase_mode
         # Align to coarse RTIO which aligns SYNC_CLK. I.e. clear fine TSC
         # This will not cause a collision or sequence error.
         at_mu(now_mu() & ~7)
-        # if phase_mode != PHASE_MODE_CONTINUOUS:
-        #     # Auto-clear phase accumulator on IO_UPDATE.
-        #     # This is active already for the next IO_UPDATE
-        #     dds.set_cfr1(phase_autoclear=1)
-        #     if phase_mode == PHASE_MODE_TRACKING and ref_time_mu < 0:
-        #         # set default fiducial time stamp
-        #         ref_time_mu = 0
 
         dds.write64(_AD9910_REG_PROFILE0 + profile, (asf << 16) | (pow_ & 0xFFFF), ftw)
 
