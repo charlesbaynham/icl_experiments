@@ -76,7 +76,7 @@ class TestGeneralRampingPhaseFrag(ExpFragment):
 
         logger.info("Starting test phase")
 
-        self.core.reset()
+        self.core.break_realtime()
 
         for _ in range(self.num_repeats.get()):
             delay(self.delay_between_phases.get())
