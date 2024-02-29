@@ -108,19 +108,13 @@ class WriteAD9910FTW(EnvExperiment):
         # Align to coarse RTIO which aligns SYNC_CLK. I.e. clear fine TSC
         # This will not cause a collision or sequence error.
         at_mu(now_mu() & ~7)
-        if phase_mode != PHASE_MODE_CONTINUOUS:
-            # Auto-clear phase accumulator on IO_UPDATE.
-            # This is active already for the next IO_UPDATE
-            dds.set_cfr1(phase_autoclear=1)
-            if phase_mode == PHASE_MODE_TRACKING and ref_time_mu < 0:
-                # set default fiducial time stamp
-                ref_time_mu = 0
-            if ref_time_mu >= 0:
-                # 32 LSB are sufficient.
-                # Also no need to use IO_UPDATE time as this
-                # is equivalent to an output pipeline latency.
-                dt = int32(now_mu()) - int32(ref_time_mu)
-                pow_ += dt * ftw * dds.sysclk_per_mu >> 16
+        # if phase_mode != PHASE_MODE_CONTINUOUS:
+        #     # Auto-clear phase accumulator on IO_UPDATE.
+        #     # This is active already for the next IO_UPDATE
+        #     dds.set_cfr1(phase_autoclear=1)
+        #     if phase_mode == PHASE_MODE_TRACKING and ref_time_mu < 0:
+        #         # set default fiducial time stamp
+        #         ref_time_mu = 0
 
         dds.write64(_AD9910_REG_PROFILE0 + profile, (asf << 16) | (pow_ & 0xFFFF), ftw)
 
