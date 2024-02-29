@@ -1,10 +1,8 @@
-from pyaion.fragments.suservo import LibSetSUServoStatic
 import logging
 from typing import *
 
-
-from artiq.coredevice.core import Core
 from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.experiment import at_mu
 from artiq.experiment import delay_mu
@@ -15,6 +13,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int32
 from numpy import int64
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 
 logger = logging.getLogger(__name__)
