@@ -316,7 +316,10 @@ class GeneralRampingPhase(Fragment):
             t_one_cycle_mu = int64(self.core.ref_multiplier)
 
             # Play the ramp
-            for _ in range(num_points):
+            for i_step in range(num_points):
+                if self.debug_enabled:
+                    logger.info("Saving trace %d of %d", i_step, num_points)
+
                 at_mu(t_this_cycle_mu)
 
                 # FIXME: Here goes the current stuff
@@ -328,6 +331,11 @@ class GeneralRampingPhase(Fragment):
                 # Set AD9910 frequencies
                 for i in range(len(self.ad9910_channels_and_param_handles)):
                     ad9910 = self.ad9910_channels_and_param_handles[i][0]
+
+                    if self.debug_enabled:
+                        logger.info(
+                            "Setting AD9910 %s to %.6f", ad9910, frequency_values[i]
+                        )
 
                     ad9910.set_frequency(frequency_values[i])
                     delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
