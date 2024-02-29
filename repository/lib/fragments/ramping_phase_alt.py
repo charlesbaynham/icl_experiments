@@ -204,7 +204,6 @@ class GeneralRampingPhase(Fragment):
                 f"detuning_start_{urukul_channel_name}",
                 FloatParam,
                 f"Detuning from nominal frequency at start of ramp for {urukul_channel_name}",
-                min=0,
                 unit="MHz",
                 default=detuning_start,
             )
@@ -213,7 +212,6 @@ class GeneralRampingPhase(Fragment):
                 f"detuning_end_{urukul_channel_name}",
                 FloatParam,
                 f"Detuning from nominal frequency at end of ramp for {urukul_channel_name}",
-                min=0,
                 unit="MHz",
                 default=detuning_end,
             )
