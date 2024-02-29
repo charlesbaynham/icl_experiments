@@ -1,7 +1,14 @@
 import logging
 from typing import *
 
+from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.core import Core
+from artiq.coredevice.urukul import CPLD
 from artiq.experiment import *
+from artiq.experiment import at_mu
+from artiq.experiment import delay
+from artiq.experiment import delay_mu
+from artiq.experiment import now_mu
 from numpy import int64
 from pyaion.lib.utils import get_local_devices
 
@@ -40,5 +47,7 @@ class WriteAD9910FTW(EnvExperiment):
         # We do this in a separate loop so that the IO_updates are
         # almost simultaneous. If we were willing to consume all the
         # RTIO lanes, they could be truely simultaneous
+        at_mu(now_mu() & ~7)
         delay_mu(int64(self.dds.sync_data.io_update_delay))
         self.dds.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
+        at_mu(now_mu() & ~7)  # clear fine TSC again
