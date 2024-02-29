@@ -315,29 +315,34 @@ class RampingRedPhase(Fragment):
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
-            # Initialise
-            this_current = self.start_gradient.get()
-            this_detuning = self.start_detuning.get()
-            this_suservo_diagonal_multiple = self.start_suservo_diagonal_multiple.get()
-            this_suservo_axialplus_multiple = (
-                self.start_suservo_axialplus_multiple.get()
-            )
-            this_suservo_axialminus_multiple = (
-                self.start_suservo_axialminus_multiple.get()
-            )
-            this_suservo_up_multiple = self.start_suservo_up_multiple.get()
-
             t_this_cycle_mu = now_mu()
+            t_delay_mu = int64(self.core.ref_multiplier)
 
             # Play the ramp
             for _ in range(num_points):
                 at_mu(t_this_cycle_mu)
 
-                self.gradient_current_setter.set_currents([this_current])
-                delay_mu(
-                    int64(self.core.ref_multiplier)
-                )  # Try to avoid using multiple lanes
-                self.red_mot_controller.set_mot_detuning(this_detuning)
+                # FIXME: Here goes the current stuff
+                # Current setting goes first since it writes into the past
+                # self.gradient_current_setter.set_currents([this_current])
+
+                delay_mu(t_delay_mu)  # Avoid using multiple lanes
+
+                # Set AD9910 frequencies
+                for i in range(len(self.ad9910_channels_and_param_handles)):
+                    ad9910 = self.ad9910_channels_and_param_handles[i][0]
+                    ad9910.set_frequency(frequency_values[i])
+                    frequency_values[i] += frequency_steps[i]
+                for i in range(len(self.ad9910_channels_and_param_handles)):
+                    ad9910 = self.ad9910_channels_and_param_handles[i][0]
+                    # Pulse IO_UPDATEs to load new frequencies.
+
+                    # We do this in a separate loop so that the IO_updates are
+                    # almost simultaneous. If we were willing to consume all the
+                    # RTIO lanes, they could be truely simultaneous
+                    delay_mu(int64(ad9910.sync_data.io_update_delay))
+                    ad9910.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
+
                 delay_mu(int64(self.core.ref_multiplier))
                 self.red_mot_controller.set_mot_suservo_amplitude_individual(
                     amplitude_red_diagonal=this_suservo_diagonal_multiple,
