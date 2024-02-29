@@ -21,6 +21,11 @@ class DMAPulses(EnvExperiment):
         self.setattr_argument("delay", NumberValue(1e-6, unit="us", precision=3))
         self.delay: float
 
+        self.setattr_argument(
+            "num", NumberValue(100000, type="int", ndecimals=0, step=1)
+        )
+        self.num: int
+
     @kernel
     def record(self):
         with self.core_dma.record("pulses"):
@@ -39,7 +44,7 @@ class DMAPulses(EnvExperiment):
         pulses_handle = self.core_dma.get_handle("pulses")
 
         self.core.break_realtime()
-        while True:
+        for _ in range(self.num):
             # execute RTIO operations in the DMA buffer
             # each playback advances the timeline by 50*(100+100) ns
             self.core_dma.playback_handle(pulses_handle)
