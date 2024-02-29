@@ -17,7 +17,7 @@ from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
 logger = logging.getLogger(__name__)
 
 
-class TestPhase(GeneralRampingPhase):
+class TestGeneralRampingPhase(GeneralRampingPhase):
     duration_default = 50e-3
 
     suservos = [
@@ -46,9 +46,9 @@ class TestGeneralRampingPhaseFrag(ExpFragment):
 
         self.setattr_fragment(
             "test_phase",
-            TestPhase,
+            TestGeneralRampingPhase,
         )
-        self.test_phase: TestPhase
+        self.test_phase: TestGeneralRampingPhase
 
         self.setattr_param(
             "delay_between_phases",
@@ -89,4 +89,4 @@ class TestGeneralRampingPhaseFrag(ExpFragment):
         logger.info("Phase output completed")
 
 
-TestRampingPhase = make_fragment_scan_exp(TestGeneralRampingPhaseFrag)
+TestGeneralRampingPhaseExp = make_fragment_scan_exp(TestGeneralRampingPhaseFrag)
