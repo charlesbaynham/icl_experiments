@@ -11,6 +11,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import portable
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
+from artiq.experiment import TList
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -205,7 +206,7 @@ class GeneralRampingPhase(Fragment):
         }
 
     @kernel
-    def _do_nothing(self, num: TFloat):
+    def _do_nothing(self, num: TList(TFloat)):
         pass
 
     def build_general_setter_param_handles(self, general_setter):
