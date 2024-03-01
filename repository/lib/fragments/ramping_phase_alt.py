@@ -166,10 +166,10 @@ class GeneralRampingPhase(Fragment):
         # setters for the kernel to use
         self.suservo_setters_and_param_handles = self.build_suservos()
         self.ad9910_channels_and_param_handles = self.build_ad9910s()
-        (
-            self.general_setter,
-            self.general_setter_param_handles,
-        ) = self.build_general_setter(general_setter)
+        self.general_setter = general_setter or self._do_nothing
+        self.general_setter_param_handles = self.build_general_setter_param_handles(
+            general_setter
+        )
 
         # %% Other parameters
 
@@ -205,11 +205,11 @@ class GeneralRampingPhase(Fragment):
         }
 
     @kernel
-    def do_nothing(self, num: TFloat):
+    def _do_nothing(self, num: TFloat):
         pass
 
-    def build_general_setter(self, general_setter):
-        setter_was_passed = len(self.general_setter_default_starts) == 0
+    def build_general_setter_param_handles(self, general_setter):
+        setter_was_passed = general_setter is not None
 
         general_setter_param_handles: List[
             Tuple[
@@ -248,7 +248,7 @@ class GeneralRampingPhase(Fragment):
             # ARTIQ doesn't like empty lists because it doesn't know what type they are.
             # Rather than work around this, I'll just make a general setter that does nothing.
             # This costs us 8ns per step of wasted time.
-            general_setter = self.do_nothing
+            general_setter = self._do_nothing
 
             # I also need to loop over parameter handles, so I must make a dummy
             # parameter to pass. I'll override it so that it doesn't appear in
@@ -260,7 +260,7 @@ class GeneralRampingPhase(Fragment):
 
             general_setter_param_handles.append((dummy_handle, dummy_handle))
 
-        return general_setter, general_setter_param_handles
+        return general_setter_param_handles
 
     def build_suservos(self):
         suservo_setters_and_param_handles: List[
