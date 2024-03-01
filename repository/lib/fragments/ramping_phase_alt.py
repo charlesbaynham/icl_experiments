@@ -160,9 +160,14 @@ class GeneralRampingPhase(Fragment):
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
 
-        self.build_suservos()
-        self.build_ad9910s()
-        self.build_general_setter(general_setter)
+        # Build ndscan parameters for all the ramping variables and arrays of
+        # setters for the kernel to use
+        self.suservo_setters_and_param_handles = self.build_suservos()
+        self.ad9910_channels_and_param_handles = self.build_ad9910s()
+        (
+            self.general_setter,
+            self.general_setter_param_handles,
+        ) = self.build_general_setter(general_setter)
 
         # %% Other parameters
 
@@ -204,7 +209,7 @@ class GeneralRampingPhase(Fragment):
     def build_general_setter(self, general_setter):
         setter_was_passed = len(self.general_setter_default_starts) == 0
 
-        self.general_setter_param_handles: List[
+        general_setter_param_handles: List[
             Tuple[
                 FloatParamHandle,
                 FloatParamHandle,
@@ -219,47 +224,44 @@ class GeneralRampingPhase(Fragment):
                 self.general_setter_default_ends,
             ):
                 # For each passed parameter to the general setter, make an NDScan parameter
-                if setter_was_passed:
-                    start_handle = self.setattr_param(
-                        f"{name}_start",
-                        FloatParam,
-                        f"Start value for {name}",
-                        default=start,
-                        **options,
-                    )
+                start_handle = self.setattr_param(
+                    f"{name}_start",
+                    FloatParam,
+                    f"Start value for {name}",
+                    default=start,
+                    **options,
+                )
 
-                    end_handle = self.setattr_param(
-                        f"{name}_end",
-                        FloatParam,
-                        f"End value for {name}",
-                        default=end,
-                        **options,
-                    )
+                end_handle = self.setattr_param(
+                    f"{name}_end",
+                    FloatParam,
+                    f"End value for {name}",
+                    default=end,
+                    **options,
+                )
 
-                    # Save the param handles and the setter as attributes for the kernel to use
-                    self.general_setter = general_setter
-                    self.general_setter_param_handles.append((start_handle, end_handle))
+                general_setter_param_handles.append((start_handle, end_handle))
 
         else:
             # ARTIQ doesn't like empty lists because it doesn't know what type they are.
             # Rather than work around this, I'll just make a general setter that does nothing.
             # This costs us 8ns per step of wasted time.
-
-            self.general_setter = self.do_nothing
+            general_setter = self.do_nothing
 
             # I also need to loop over parameter handles, so I must make a dummy
             # parameter to pass. I'll override it so that it doesn't appear in
             # the parameter listing
-
             dummy_handle = self.setattr_param(
                 "dummy_param", FloatParam, "Dummy parameter - ignore me", default=0.0
             )
             self.override_param("dummy_param", 0.0)
 
-            self.general_setter_param_handles.append((dummy_handle, dummy_handle))
+            general_setter_param_handles.append((dummy_handle, dummy_handle))
+
+        return general_setter, general_setter_param_handles
 
     def build_suservos(self):
-        self.suservo_setters_and_param_handles: List[
+        suservo_setters_and_param_handles: List[
             Tuple[
                 LibSetSUServoStatic,
                 FloatParamHandle,
@@ -312,7 +314,7 @@ class GeneralRampingPhase(Fragment):
                 default=setpoint_end,
             )
 
-            self.suservo_setters_and_param_handles.append(
+            suservo_setters_and_param_handles.append(
                 (
                     setter,
                     setpoint_nominal_handle,
@@ -321,8 +323,10 @@ class GeneralRampingPhase(Fragment):
                 )
             )
 
+        return suservo_setters_and_param_handles
+
     def build_ad9910s(self):
-        self.ad9910_channels_and_param_handles: List[
+        ad9910_channels_and_param_handles: List[
             Tuple[
                 AD9910,
                 FloatParamHandle,
@@ -400,7 +404,7 @@ class GeneralRampingPhase(Fragment):
 
             amplitude_start
 
-            self.ad9910_channels_and_param_handles.append(
+            ad9910_channels_and_param_handles.append(
                 (
                     channel,
                     nominal_freq_handle,
@@ -410,6 +414,8 @@ class GeneralRampingPhase(Fragment):
                     amplitude_end_handle,
                 )
             )
+
+        return ad9910_channels_and_param_handles
 
     @kernel
     def device_setup(self):
