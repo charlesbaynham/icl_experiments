@@ -24,11 +24,22 @@ class GeneralRampingPhase(Fragment):
     Template fragment for a phase of the experiment which allows:
 
         * Ramping of SUServo setpoints
-        * Ramping of gradient currents
         * Ramping of AD9910 detunings and amplitudes
+        * General ramping of generic float parameters (e.g. for currents in a
+          coil)
 
     This fragment should be subclassed for each desired phase. Default settings
     for its parameters can be set by setting the appropriate class variable.
+
+    ### General ramping
+
+    To ramp a general parameter that isn't a SUServo or an AD9910, you can
+    define `general_setters_start` and `general_setters_end`. You must also pass a list of setter methods to `build_fragment`, e.g.::
+
+        # In your Fragment's build_fragment method
+        self.setattr_fragment("ramping_phase", SubclassedGeneralRampingPhase, setters=[my_setter.set])
+
+    These methods will be called during each ramp and passed a float.
 
     Note that this phase does not support zero-length lists of any object type.
     This is because handling these is hard in ARTIQ, since empty lists do not
@@ -57,9 +68,12 @@ class GeneralRampingPhase(Fragment):
     default_suservo_setpoint_multiples_start: List[float] = []
     default_suservo_setpoint_multiples_end: List[float] = []
 
+    general_setters_start: List[float] = []
+    general_setters_end: List[float] = []
+
     current_controller = None  # FIXME: implement this somehow
 
-    def validate_attributes(self):
+    def validate_attributes(self, setters):
         assert self.duration_default is not None
 
         # validate the class attributes to make sure this class was declared correctly
@@ -101,8 +115,17 @@ class GeneralRampingPhase(Fragment):
             "self.default_syservo_setpoints_end must have same length as self.suservos_for_intensity"
         )
 
-    def build_fragment(self, *args):
-        self.validate_attributes()
+        assert len(self.general_setters_start) == len(
+            self.general_setters_end
+        ), TypeError(
+            "self.general_setters_start must have same length as self.general_setters_end"
+        )
+        assert len(self.general_setters_start) == len(setters), TypeError(
+            "self.general_setters_start must have same length as the setters keyword arg passed to build_fragment"
+        )
+
+    def build_fragment(self, *args, setters: Type[Callable] = []):
+        self.validate_attributes(setters)
 
         # %% Devices
 
@@ -112,8 +135,48 @@ class GeneralRampingPhase(Fragment):
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
 
-        # %% SUServos
+        self.build_suservos()
+        self.build_ad9910s()
+        self.build_general_setters(setters)
 
+        # %% Other parameters
+
+        self.setattr_param(
+            "duration",
+            FloatParam,
+            "Duration of phase",
+            default=self.duration_default,
+            min=0.0,
+            unit="ms",
+        )
+        self.setattr_param(
+            "time_step",
+            FloatParam,
+            "Gap between steps",
+            default=self.time_step_default,
+            min=0.0,
+            unit="us",
+        )
+
+        self.duration: FloatParamHandle
+        self.time_step: FloatParamHandle
+
+        # %% Kernel variables
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        self.dma_handle = (int32(0), int64(0), int32(0), False)
+        self.dma_handle_valid = False
+
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "debug_enabled",
+        }
+
+    def build_general_setters(self, setters):
+        # self.general_setters =
+        raise NotImplementedError
+
+    def build_suservos(self):
         self.suservo_setters_and_param_handles: List[
             Tuple[
                 LibSetSUServoStatic,
@@ -176,8 +239,7 @@ class GeneralRampingPhase(Fragment):
                 )
             )
 
-        # %% Urukuls
-
+    def build_ad9910s(self):
         self.ad9910_channels_and_param_handles: List[
             Tuple[
                 AD9910,
@@ -266,39 +328,6 @@ class GeneralRampingPhase(Fragment):
                     amplitude_end_handle,
                 )
             )
-
-        # %% Other parameters
-
-        self.setattr_param(
-            "duration",
-            FloatParam,
-            "Duration of phase",
-            default=self.duration_default,
-            min=0.0,
-            unit="ms",
-        )
-        self.setattr_param(
-            "time_step",
-            FloatParam,
-            "Gap between steps",
-            default=self.time_step_default,
-            min=0.0,
-            unit="us",
-        )
-
-        self.duration: FloatParamHandle
-        self.time_step: FloatParamHandle
-
-        # %% Kernel variables
-        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.dma_handle = (int32(0), int64(0), int32(0), False)
-        self.dma_handle_valid = False
-
-        # %% Kernel invariants
-        kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {
-            "debug_enabled",
-        }
 
     @kernel
     def device_setup(self):
