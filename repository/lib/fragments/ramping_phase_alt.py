@@ -10,6 +10,7 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import portable
 from artiq.experiment import TFloat
+from artiq.experiment import TInt32
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -419,7 +420,7 @@ class GeneralRampingPhase(Fragment):
         return ad9910_channels_and_param_handles
 
     @portable
-    def _calc_step_size(self, start: TFloat, end: TFloat, num: TFloat) -> TFloat:
+    def _calc_step_size(self, start: TFloat, end: TFloat, num: TInt32) -> TFloat:
         return (end - start) / float(num - 1)
 
     @kernel
