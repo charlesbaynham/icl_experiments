@@ -504,12 +504,23 @@ class GeneralRampingPhase(Fragment):
 
                 at_mu(t_this_cycle_mu)
 
-                # FIXME: General setting goes first since it often writes into the past (e.g. for Zotinos)
-                # self.gradient_current_setter.set_currents([this_current])
+                # %% Write the general setter steps
 
-                # delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
+                # Do this first since it often writes into the past (e.g. for
+                # Zotinos) and we wish to avoid using multiple lanes if possible
+                #
+                # Unlike with the SUServos and AD9910s, we pass all the new
+                # values at once to the setter. It can decide what to do with
+                # them
+                self.general_setter(general_values)
 
-                # Set AD9910 frequencies
+                # Increment all the values by their steps
+                for i in range(len(general_values)):
+                    general_values[i] += general_steps[i]
+
+                delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
+
+                # %% Set AD9910 frequencies
                 for i in range(len(self.ad9910_channels_and_param_handles)):
                     ad9910 = self.ad9910_channels_and_param_handles[i][0]
 
@@ -529,7 +540,7 @@ class GeneralRampingPhase(Fragment):
                     frequency_values[i] += frequency_steps[i]
                     amplitude_values[i] += amplitude_steps[i]
 
-                # Set suservo setpoints
+                # %% Set suservo setpoints
                 for i in range(len(self.suservo_setters_and_param_handles)):
                     suservo_channel = self.suservo_setters_and_param_handles[i][0]
                     suservo_channel.set_setpoint(suservo_values[i])
