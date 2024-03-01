@@ -1,7 +1,8 @@
 import logging
+from typing import *
 
 from artiq.coredevice.core import Core
-from artiq.experiment import delay
+from artiq.experiment import *
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
@@ -41,61 +42,94 @@ class TestGeneralRampingPhaseNoGeneral(GeneralRampingPhase):
     default_urukul_amplitudes_end = [1.0] * 2
 
 
-class TestGeneralRampingPhaseFrag(ExpFragment):
-    def build_fragment(self):
-        self.setattr_device("core")
-        self.core: Core
-
-        self.setattr_fragment(
-            "test_phase",
-            TestGeneralRampingPhaseNoGeneral,
-        )
-        self.test_phase: TestGeneralRampingPhaseNoGeneral
-
-        self.setattr_param(
-            "delay_between_phases",
-            FloatParam,
-            description="Delay before starting DMA playback",
-            default=600e-6,
-            unit="us",
-            min=0.0,
-        )
-        self.delay_between_phases: FloatParamHandle
-
-        self.setattr_param(
-            "num_repeats",
-            IntParam,
-            description="Number of times to repeat phase",
-            default=10,
-            min=1,
-        )
-        self.num_repeats: IntParamHandle
-
+class TestGeneralRampingPhaseWithGeneral(TestGeneralRampingPhaseNoGeneral):
     @kernel
-    def run_once(self):
-        logger.info("Precomputing handle")
-        self.test_phase.precalculate_dma_handle()
+    def do_3_things(self, things: TList(TFloat)):
+        if len(things) != 3:
+            raise RuntimeError("There must be three things")
 
-        logger.info("Starting test phase")
+        for i in range(3):
+            print(things[i])
 
-        self.core.break_realtime()
+    def build_fragment(self, *args):
+        return super().build_fragment(*args, general_setter=self.do_3_things)
 
-        for _ in range(self.num_repeats.get()):
-            delay(self.delay_between_phases.get())
-            self.test_phase.do_phase()
-
-        logger.info("Phase queuing completed")
-
-        logger.info(
-            "now_mu = %d, get_rtio_counter_mu = %d, diff=%fs",
-            now_mu(),
-            self.core.get_rtio_counter_mu(),
-            self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu()),
-        )
-
-        self.core.wait_until_mu(now_mu())
-
-        logger.info("Phase output completed")
+    general_setter_default_starts = [0.0, 1.0, 999]
+    general_setter_default_ends = [1.0, -10, 999]
+    general_setter_names = ["thing_a", "thing_b", "thing_c"]
+    general_setter_param_options = [{}, {}, {"min": -1000, "max": 1000}]
 
 
-TestGeneralRampingPhaseExp = make_fragment_scan_exp(TestGeneralRampingPhaseFrag)
+def make_test_expfrag(test_phase: Type):
+    class ExpFragWithPhase(ExpFragment):
+        def build_fragment(self):
+            self.setattr_device("core")
+            self.core: Core
+
+            self.setattr_fragment(
+                "test_phase",
+                test_phase,
+            )
+            self.test_phase: GeneralRampingPhase
+
+            self.setattr_param(
+                "delay_between_phases",
+                FloatParam,
+                description="Delay before starting DMA playback",
+                default=600e-6,
+                unit="us",
+                min=0.0,
+            )
+            self.delay_between_phases: FloatParamHandle
+
+            self.setattr_param(
+                "num_repeats",
+                IntParam,
+                description="Number of times to repeat phase",
+                default=10,
+                min=1,
+            )
+            self.num_repeats: IntParamHandle
+
+        @kernel
+        def run_once(self):
+            logger.info("Precomputing handle")
+            self.test_phase.precalculate_dma_handle()
+
+            logger.info("Starting test phase")
+
+            self.core.break_realtime()
+
+            for _ in range(self.num_repeats.get()):
+                delay(self.delay_between_phases.get())
+                self.test_phase.do_phase()
+
+            logger.info("Phase queuing completed")
+
+            logger.info(
+                "now_mu = %d, get_rtio_counter_mu = %d, diff=%fs",
+                now_mu(),
+                self.core.get_rtio_counter_mu(),
+                self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu()),
+            )
+
+            self.core.wait_until_mu(now_mu())
+
+            logger.info("Phase output completed")
+
+    return ExpFragWithPhase
+
+
+TestGeneralRampingPhaseExpFrag = make_test_expfrag(TestGeneralRampingPhaseNoGeneral)
+TestGeneralRampingPhaseExpFrag.__name__ = "TestGeneralRampingPhaseExpFrag"
+TestGeneralRampingPhaseExp = make_fragment_scan_exp(TestGeneralRampingPhaseExpFrag)
+
+TestGeneralRampingPhaseWithGeneralExpFrag = make_test_expfrag(
+    TestGeneralRampingPhaseWithGeneral
+)
+TestGeneralRampingPhaseWithGeneralExpFrag.__name__ = (
+    "TestGeneralRampingPhaseWithGeneralExpFrag"
+)
+TestGeneralRampingPhaseWithGeneralExp = make_fragment_scan_exp(
+    TestGeneralRampingPhaseWithGeneralExpFrag
+)
