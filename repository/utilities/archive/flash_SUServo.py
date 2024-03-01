@@ -67,7 +67,9 @@ class FlashSUServo(ExpFragment):
         )
 
         suservo_channels = get_local_devices(self, SUServoChannel)
-        self.setattr_argument("channel", EnumerationValue(suservo_channels))
+        self.setattr_argument(
+            "channel", EnumerationValue(suservo_channels, default=suservo_channels[0])
+        )
 
         self.setattr_fragment("LibSetSUServoStatic", LibSetSUServoStatic, self.channel)
 
