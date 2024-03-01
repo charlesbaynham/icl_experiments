@@ -167,6 +167,10 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     # The remaining methods in this class are designed to be overridden by
     # children of this class, to control its behaviour. See `run_once` to
     # understand where these hooks are executed.
+    #
+    # Those marked with `abc.abstractmethod` are compulsory - python will not
+    # allow you to construct children classes until those methods are
+    # implemented
 
     def hook_setup_andor(self):
         """
@@ -181,7 +185,7 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         """
         return super().hook_setup_andor()
 
-    @kernel
+    @abc.abstractmethod
     def do_imaging_hook(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
