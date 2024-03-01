@@ -585,3 +585,27 @@ class GeneralRampingPhase(Fragment):
         # Ensure that the timeline points to the end of the phase, not just the
         # final RTIO point
         at_mu(t_end_mu)
+
+    def bind_ad9910_frequency_params(self, param_handles: List[FloatParamHandle]):
+        """
+        Convience method to call `.bind_param` for all the AD9910 nominal frequency parameters
+        """
+        for this_channel, target_handle in zip(
+            self.ad9910_channels_and_param_handles, param_handles
+        ):
+            nominal_frequency_param_handle = this_channel[1]
+            self.bind_param(
+                param_name=nominal_frequency_param_handle.name, source=target_handle
+            )
+
+    def bind_suservo_setpoint_params(self, param_handles: List[FloatParamHandle]):
+        """
+        Convience method to call `.bind_param` for all the SUServo nominal setpoint parameters
+        """
+        for this_channel, target_handle in zip(
+            self.suservo_setters_and_param_handles, param_handles
+        ):
+            setpoint_nominal_handle = this_channel[1]
+            self.bind_param(
+                param_name=setpoint_nominal_handle.name, source=target_handle
+            )

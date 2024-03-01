@@ -161,6 +161,8 @@ class NarrowbandRedMOTFrag(Fragment):
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
 
+        self.narrow_red_capture_phase.bind_ad9910_frequency_params(self.injec)
+
         self.setattr_fragment(
             "narrow_red_compression_phase",
             NarrowRedCompressionPhase,
