@@ -25,3 +25,6 @@ class UserOfSubthing(ExpFragment):
     def run_once(self) -> None:
         for i in range(len(self.methods)):
             self.methods[i]()
+
+
+TestPassingCallables = make_fragment_scan_exp(UserOfSubthing)
