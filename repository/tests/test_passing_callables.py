@@ -12,14 +12,29 @@ class SubthingDooer(HasEnvironment):
         print(self.arg)
 
 
+class DifferentDooer(HasEnvironment):
+    def build(self, other_arg="hello"):
+        self.setattr_device("core")
+        self.other_arg = other_arg
+
+    @kernel
+    def do_the_thing(self):
+        print(self.other_arg)
+
+
 class UserOfSubthing(ExpFragment):
     def build_fragment(self, *args, **kwargs) -> None:
         self.setattr_device("core")
 
         self.subthing_a = SubthingDooer(self, arg="hello")
         self.subthing_b = SubthingDooer(self, arg="world")
+        self.subthing_c = DifferentDooer(self, other_arg="!")
 
-        self.methods = [self.subthing_a.do, self.subthing_b.do]
+        self.methods = [
+            self.subthing_a.do,
+            self.subthing_b.do,
+            self.subthing_c.do_the_thing,
+        ]
 
     @kernel
     def run_once(self) -> None:
