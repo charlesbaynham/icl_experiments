@@ -2,7 +2,6 @@
 Get all Fragments from the repository and attempt to compile them with their
 default settings
 """
-
 import importlib
 import inspect
 import pkgutil

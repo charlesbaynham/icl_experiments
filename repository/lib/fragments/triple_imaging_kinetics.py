@@ -1,3 +1,4 @@
+import abc
 import logging
 
 from artiq.experiment import at_mu
@@ -14,7 +15,6 @@ from numpy import int64
 from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.red_mot.measure_red_mot import RedMOTBase
-import abc
 
 logger = logging.getLogger(__name__)
 
