@@ -14,11 +14,12 @@ from numpy import int64
 from repository.lib import constants
 from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.red_mot.measure_red_mot import RedMOTBase
+import abc
 
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithExperiment(RedMOTBase):
+class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -224,7 +225,7 @@ class RedMOTWithExperiment(RedMOTBase):
         """
         pass
 
-    @kernel
+    @abc.abstractmethod
     def do_spectroscopy_hook(self):
         """
         Hook for the implementation of a spectroscopy / interfereometry /
