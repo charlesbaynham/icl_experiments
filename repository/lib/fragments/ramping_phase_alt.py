@@ -8,6 +8,7 @@ from artiq.experiment import at_mu
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import portable
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
@@ -417,6 +418,10 @@ class GeneralRampingPhase(Fragment):
 
         return ad9910_channels_and_param_handles
 
+    @portable
+    def _calc_step_size(self, start: TFloat, end: TFloat, num: TFloat) -> TFloat:
+        return (end - start) / float(num - 1)
+
     @kernel
     def device_setup(self):
         """
@@ -430,10 +435,18 @@ class GeneralRampingPhase(Fragment):
         num_points = 1 + int(self.duration.get() // self.time_step.get())
         time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
 
-        # FIXME: Compute step sizes for the gradient coils...
-        # current_step = (self.end_gradient.get() - self.start_gradient.get()) / float(
-        #     num_points - 1
-        # )
+        # Compute step sizes and initial values for the general ramp
+        general_values = [0.0] * len(self.general_setter_param_handles)
+        general_steps = [0.0] * len(self.general_setter_param_handles)
+
+        for i in range(len(self.general_setter_param_handles)):
+            start_handle = self.general_setter_param_handles[i][0]
+            end_handle = self.general_setter_param_handles[i][1]
+
+            general_values[i] = start_handle.get()
+            general_steps[i] = self._calc_step_size(
+                start_handle.get(), end_handle.get(), num_points
+            )
 
         suservo_values = [0.0] * len(self.suservo_setters_and_param_handles)
         suservo_steps = [0.0] * len(self.suservo_setters_and_param_handles)
@@ -447,10 +460,10 @@ class GeneralRampingPhase(Fragment):
             suservo_values[i] = nom_setpoint_handle.get()
 
             # Calculate the step sizes for all the SUServo steps
-            suservo_steps[i] = (
-                suservo_values[i]
-                * (end_multiple_handle.get() - start_multiple_handle.get())
-                / float(num_points - 1)
+            suservo_steps[i] = self._calc_step_size(
+                suservo_values[i] * start_multiple_handle.get(),
+                suservo_values[i] * end_multiple_handle.get(),
+                num_points,
             )
 
         frequency_values = [0.0] * len(self.ad9910_channels_and_param_handles)
@@ -472,13 +485,12 @@ class GeneralRampingPhase(Fragment):
             amplitude_values[i] = amplitude_start_handle.get()
 
             # Calculate the step sizes for all the AD9910 channels
-            frequency_steps[i] = (
-                detuning_end_handle.get() - detuning_start_handle.get()
-            ) / float(num_points - 1)
-
-            amplitude_steps[i] = (
-                amplitude_end_handle.get() - amplitude_start_handle.get()
-            ) / float(num_points - 1)
+            frequency_steps[i] = self._calc_step_size(
+                detuning_start_handle.get(), detuning_end_handle.get(), num_points
+            )
+            amplitude_steps[i] = self._calc_step_size(
+                amplitude_start_handle.get(), amplitude_end_handle.get(), num_points
+            )
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
@@ -492,8 +504,7 @@ class GeneralRampingPhase(Fragment):
 
                 at_mu(t_this_cycle_mu)
 
-                # FIXME: Here goes the current stuff
-                # Current setting goes first since it writes into the past
+                # FIXME: General setting goes first since it often writes into the past (e.g. for Zotinos)
                 # self.gradient_current_setter.set_currents([this_current])
 
                 # delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
