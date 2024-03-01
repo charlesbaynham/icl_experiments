@@ -59,7 +59,7 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
     general_setter_default_starts = [5.0]
     general_setter_default_ends = [1.0]
     general_setter_names = ["chamber_2_mot_current"]
-    general_setter_param_options = [{"min": 0, "max": 150}]
+    general_setter_param_options = [{"min": 0, "max": 150, "unit": "A"}]
 
     def build_fragment(
         self, *args, chamber_2_field_setter: SetMagneticFieldsQuick = None

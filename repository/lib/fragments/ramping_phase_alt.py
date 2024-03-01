@@ -304,7 +304,6 @@ class GeneralRampingPhase(Fragment):
                 FloatParam,
                 f"Multiple of nominal setpoint at start of ramp for {suservo_name}",
                 min=0,
-                unit="V",
                 default=setpoint_start,
             )
 
@@ -313,7 +312,6 @@ class GeneralRampingPhase(Fragment):
                 FloatParam,
                 f"Multiple of nominal setpoint at end of ramp for {suservo_name}",
                 min=0,
-                unit="V",
                 default=setpoint_end,
             )
 
