@@ -32,22 +32,28 @@ RAMP_SPI_DELAY = 10e-6
 class NarrowRedCapturePhase(GeneralRampingPhase):
     duration_default = 50e-3
 
-    start_detuning_default = 150e3
-    end_detuning_default = 50e3
-    start_gradient_default = 5.0
-    end_gradient_default = 1.0
-
     urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
-    default_urukul_nominal_frequencies = [constants]
     default_urukul_detunings_start = [150e3]
     default_urukul_detunings_end = [50e3]
 
-    suservos = ["suservo_ch1", "suservo_ch2", "suservo_ch3", "suservo_up"]
-    default_suservo_nominal_setpoints = []  # FIXME
+    default_urukul_nominal_frequencies = [
+        float("nan")
+    ]  # This must be overridden / rebound by consumer fragments
+
+    suservos = [
+        "suservo_aom_singlepass_689_red_mot_sigmaplus",
+        "suservo_aom_singlepass_689_red_mot_sigmaminus",
+        "suservo_aom_singlepass_689_red_mot_diagonal",
+        "suservo_aom_singlepass_689_up",
+    ]
     default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
     default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 1.0]
 
-    # The general ramp here just ramps the chamber 2 MOT coils in amps
+    default_suservo_nominal_setpoints = [
+        float("nan")
+    ] * 4  # This must be overridden / rebound by consumer fragments
+
+    # The general ramp here ramps the chamber 2 MOT coils in amps
     general_setter_default_starts = [5.0]
     general_setter_default_ends = [1.0]
     general_setter_names = ["chamber_2_mot_current"]
@@ -66,23 +72,6 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
     @kernel
     def set_fields(self, vals: TList(TFloat)):
         self.field_setter.set_mot_gradient(vals[0])
-
-
-class NarrowRedCapturePhase(RampingRedPhase):
-    duration_default = 50e-3
-    start_detuning_default = 150e3
-    end_detuning_default = 50e3
-    start_gradient_default = 5.0
-    end_gradient_default = 1.0
-
-    start_suservo_diagonal_multiple_default = 1.0
-    end_suservo_diagonal_multiple_default = 0.1
-    start_suservo_axialplus_multiple_default = 1.0
-    end_suservo_axialplus_multiple_default = 0.1
-    start_suservo_axialminus_multiple_default = 1.0
-    end_suservo_axialminus_multiple_default = 0.1
-    start_suservo_up_multiple_default = 0.0
-    end_suservo_up_multiple_default = 0.0
 
 
 class NarrowRedCompressionPhase(RampingRedPhase):
