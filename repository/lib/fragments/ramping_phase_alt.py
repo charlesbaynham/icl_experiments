@@ -8,6 +8,7 @@ from artiq.experiment import at_mu
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -33,13 +34,19 @@ class GeneralRampingPhase(Fragment):
 
     ### General ramping
 
-    To ramp a general parameter that isn't a SUServo or an AD9910, you can
-    define `general_setters_start` and `general_setters_end`. You must also pass a list of setter methods to `build_fragment`, e.g.::
+    To ramp general parameters that aren't SUServos or AD9910s, you can define
+    `general_setter_starts` and `general_setter_ends`. You must also pass a
+    setter method to `build_fragment`, e.g.::
 
         # In your Fragment's build_fragment method
-        self.setattr_fragment("ramping_phase", SubclassedGeneralRampingPhase, setters=[my_setter.set])
+        self.setattr_fragment("ramping_phase", SubclassedGeneralRampingPhase,
+        setters=my_setter.set)
 
-    These methods will be called during each ramp and passed a float.
+    This method will be called once for each step of the ramp and passed a list
+    of floats of the same size as `self.general_setter_starts`. You can use this
+    to implement arbitary ramps, e.g. of currents in a coil.
+
+    ### Good-to-knows
 
     Note that this phase does not support zero-length lists of any object type.
     This is because handling these is hard in ARTIQ, since empty lists do not
@@ -68,12 +75,12 @@ class GeneralRampingPhase(Fragment):
     default_suservo_setpoint_multiples_start: List[float] = []
     default_suservo_setpoint_multiples_end: List[float] = []
 
-    general_setters_start: List[float] = []
-    general_setters_end: List[float] = []
+    general_setter_names: List[str] = []
+    general_setter_param_options: List[Dict] = []
+    general_setter_default_starts: List[float] = []
+    general_setter_default_ends: List[float] = []
 
-    current_controller = None  # FIXME: implement this somehow
-
-    def validate_attributes(self, setters):
+    def validate_attributes(self, general_setter):
         assert self.duration_default is not None
 
         # validate the class attributes to make sure this class was declared correctly
@@ -115,17 +122,35 @@ class GeneralRampingPhase(Fragment):
             "self.default_syservo_setpoints_end must have same length as self.suservos_for_intensity"
         )
 
-        assert len(self.general_setters_start) == len(
-            self.general_setters_end
+        assert len(self.general_setter_default_starts) == len(
+            self.general_setter_default_ends
         ), TypeError(
             "self.general_setters_start must have same length as self.general_setters_end"
         )
-        assert len(self.general_setters_start) == len(setters), TypeError(
-            "self.general_setters_start must have same length as the setters keyword arg passed to build_fragment"
+        assert len(self.general_setter_names) == len(
+            self.general_setter_default_ends
+        ), TypeError(
+            "self.general_setter_names must have same length as self.general_setters_end"
         )
 
-    def build_fragment(self, *args, setters: Type[Callable] = []):
-        self.validate_attributes(setters)
+        if len(self.general_setter_param_options) == 0:
+            self.general_setter_param_options = [
+                {} for _ in range(len(self.general_setter_default_starts))
+            ]
+
+        assert len(self.general_setter_param_options) == len(
+            self.general_setter_default_ends
+        ), TypeError(
+            "self.general_setter_param_options must have same length as self.general_setters_end"
+        )
+
+        if len(self.general_setter_default_starts) > 0:
+            assert general_setter is not None, TypeError(
+                "If you define a general setter ramp, you must pass a general setter to `build_fragment`"
+            )
+
+    def build_fragment(self, *args, general_setter: Optional[Callable] = None):
+        self.validate_attributes(general_setter)
 
         # %% Devices
 
@@ -137,7 +162,7 @@ class GeneralRampingPhase(Fragment):
 
         self.build_suservos()
         self.build_ad9910s()
-        self.build_general_setters(setters)
+        self.build_general_setter(general_setter)
 
         # %% Other parameters
 
@@ -172,9 +197,66 @@ class GeneralRampingPhase(Fragment):
             "debug_enabled",
         }
 
-    def build_general_setters(self, setters):
-        # self.general_setters =
-        raise NotImplementedError
+    @kernel
+    def do_nothing(self, num: TFloat):
+        pass
+
+    def build_general_setter(self, general_setter):
+        setter_was_passed = len(self.general_setter_default_starts) == 0
+
+        self.general_setter_param_handles: List[
+            Tuple[
+                FloatParamHandle,
+                FloatParamHandle,
+            ]
+        ] = []
+
+        if setter_was_passed:
+            for name, options, start, end in zip(
+                self.general_setter_names,
+                self.general_setter_param_options,
+                self.general_setter_default_starts,
+                self.general_setter_default_ends,
+            ):
+                # For each passed parameter to the general setter, make an NDScan parameter
+                if setter_was_passed:
+                    start_handle = self.setattr_param(
+                        f"{name}_start",
+                        FloatParam,
+                        f"Start value for {name}",
+                        default=start,
+                        **options,
+                    )
+
+                    end_handle = self.setattr_param(
+                        f"{name}_end",
+                        FloatParam,
+                        f"End value for {name}",
+                        default=end,
+                        **options,
+                    )
+
+                    # Save the param handles and the setter as attributes for the kernel to use
+                    self.general_setter = general_setter
+                    self.general_setter_param_handles.append((start_handle, end_handle))
+
+        else:
+            # ARTIQ doesn't like empty lists because it doesn't know what type they are.
+            # Rather than work around this, I'll just make a general setter that does nothing.
+            # This costs us 8ns per step of wasted time.
+
+            self.general_setter = self.do_nothing
+
+            # I also need to loop over parameter handles, so I must make a dummy
+            # parameter to pass. I'll override it so that it doesn't appear in
+            # the parameter listing
+
+            dummy_handle = self.setattr_param(
+                "dummy_param", FloatParam, "Dummy parameter - ignore me", default=0.0
+            )
+            self.override_param("dummy_param", 0.0)
+
+            self.general_setter_param_handles.append((dummy_handle, dummy_handle))
 
     def build_suservos(self):
         self.suservo_setters_and_param_handles: List[
