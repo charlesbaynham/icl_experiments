@@ -9,6 +9,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
 from artiq.experiment import TFloat
+from artiq.experiment import TList
 from ndscan.experiment import Fragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -19,6 +20,7 @@ from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import RampingRedPhase
+from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
 from repository.lib.fragments.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
@@ -27,22 +29,43 @@ logger = logging.getLogger(__name__)
 RAMP_SPI_DELAY = 10e-6
 
 
-class NarrowRedCapturePhase(RampingRedPhase):
+class NarrowRedCapturePhase(GeneralRampingPhase):
     duration_default = 50e-3
+
     start_detuning_default = 150e3
     end_detuning_default = 50e3
     start_gradient_default = 5.0
     end_gradient_default = 1.0
 
-    urukuls = ["the_red_one"]
-    default_urukul_nominal_frequencies = [340e6]
-    default_urukul_detunings_start = [100e3]
-    default_urukul_detunings_end = [10e3]
+    urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
+    default_urukul_nominal_frequencies = [constants]
+    default_urukul_detunings_start = [150e3]
+    default_urukul_detunings_end = [50e3]
 
     suservos = ["suservo_ch1", "suservo_ch2", "suservo_ch3", "suservo_up"]
-    default_suservo_nominal_setpoints = [1.5, 1.5, 0.75, 1.0]
+    default_suservo_nominal_setpoints = []  # FIXME
     default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
     default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 1.0]
+
+    # The general ramp here just ramps the chamber 2 MOT coils in amps
+    general_setter_default_starts = [5.0]
+    general_setter_default_ends = [1.0]
+    general_setter_names = ["chamber_2_mot_current"]
+    general_setter_param_options = [{"min": 0, "max": 150}] * 2
+
+    def build_fragment(
+        self, *args, chamber_2_field_setter: SetMagneticFieldsQuick = None
+    ):
+        if chamber_2_field_setter is None:
+            raise TypeError("You must pass chamber_2_field_setter into build_fragment")
+        self.field_setter = chamber_2_field_setter
+
+        # Register self.set_fields as the recipient of general ramps
+        return super().build_fragment(*args, general_setter=self.set_fields)
+
+    @kernel
+    def set_fields(self, vals: TList(TFloat)):
+        self.field_setter.set_mot_gradient(vals[0])
 
 
 class NarrowRedCapturePhase(RampingRedPhase):
