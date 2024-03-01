@@ -1,3 +1,5 @@
+import abc
+
 import logging
 import time
 from typing import Dict
@@ -333,13 +335,15 @@ class Chamber2VerticalCamera(CameraFrag):
     ttl_trigger_device = "ttl_camera_trigger_vertical"
 
 
-class MonitorCameraExp(ExpFragment):
-    camera_class: Type[CameraFrag]
-
-    def __init__(self, managers_or_parent, *args, **kwargs):
-        if not hasattr(self, "camera_class"):
-            raise TypeError("Please specify camera_class by overriding this class")
-        super().__init__(managers_or_parent, *args, **kwargs)
+class MonitorCameraExp(ExpFragment, abc.ABC):
+    @property
+    @abc.abstractmethod
+    def camera_class(self) -> Type[CameraFrag]:
+        """
+        The camera class that this experiment will monitor. Must be overridden
+        by subclasses as a class property
+        """
+        pass
 
     def build_fragment(self):
         self.setattr_result("timestamp", IntChannel, display_hints={"priority": -1})
