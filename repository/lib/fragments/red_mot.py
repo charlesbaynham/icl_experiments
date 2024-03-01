@@ -35,6 +35,8 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
     urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
     default_urukul_detunings_start = [150e3]
     default_urukul_detunings_end = [50e3]
+    default_urukul_amplitudes_start = [1.0]
+    default_urukul_amplitudes_end = [1.0]
 
     default_urukul_nominal_frequencies = [
         float("nan")
@@ -57,7 +59,7 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
     general_setter_default_starts = [5.0]
     general_setter_default_ends = [1.0]
     general_setter_names = ["chamber_2_mot_current"]
-    general_setter_param_options = [{"min": 0, "max": 150}] * 2
+    general_setter_param_options = [{"min": 0, "max": 150}]
 
     def build_fragment(
         self, *args, chamber_2_field_setter: SetMagneticFieldsQuick = None
@@ -156,12 +158,12 @@ class NarrowbandRedMOTFrag(Fragment):
         self.setattr_fragment(
             "narrow_red_capture_phase",
             NarrowRedCapturePhase,
-            red_mot_controller=self.red_beam_controller,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
-
-        self.narrow_red_capture_phase.bind_ad9910_frequency_params(self.injec)
+        self.narrow_red_capture_phase.bind_ad9910_frequency_params(
+            [self.injection_aom_static_detuning]
+        )
 
         self.setattr_fragment(
             "narrow_red_compression_phase",
