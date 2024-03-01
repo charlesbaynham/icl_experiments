@@ -1,3 +1,7 @@
+"""
+Get all Fragments from the repository and attempt to compile them with their
+default settings
+"""
 import importlib
 import inspect
 import pkgutil
@@ -28,11 +32,13 @@ def get_all_of_class_from_module(module, cls, exceptions=[]):
     for obj_name in dir(module):
         obj = getattr(module, obj_name)
         if (
-            inspect.isclass(obj)
-            and issubclass(obj, cls)  # Is this a cls?
+            inspect.isclass(obj)  # Is this a class
+            and issubclass(obj, cls)  # ...of type cls?
+            and obj.__module__ == module.__name__  # that was defined in this module
             and obj is not cls  # But not the cls class itself
             and obj.__name__[0] != "_"  # nor marked as private
             and obj not in exceptions  # nor one of the exceptions
+            and not inspect.isabstract(obj)  # and is not an abstract base class
         ):
             out.append(obj)
     return out
