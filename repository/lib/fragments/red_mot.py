@@ -1,9 +1,11 @@
 import logging
+from typing import List
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
@@ -16,6 +18,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
@@ -72,6 +75,44 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
     @kernel
     def set_fields(self, vals: TList(TFloat)):
         self.field_setter.set_mot_gradient(vals[0])
+
+    @host_only
+    def bind_suservo_setpoint_params_to_default_beam_setter(
+        self, beam_setter: SetBeamsToDefaults
+    ):
+        """
+        Use the GeneralRampingPhase's :meth:`~.bind_suservo_setpoint_params`
+        method to bind all this GeneralRampingPhase's suservo setpoint
+        parameters to those defined by a `SetBeamsToDefaults`.
+
+        This is a slightly ugly thing to do since it couples two objects that
+        shouldn't need to know about each other, i.e. the GeneralRampingPhase
+        whose responisibility is to ramp SUServo setpoints (and other things)
+        and the SetBeamsToDefaults object whose responsibility it is to set up
+        SUServos with their default settings.
+
+        However, by doing it like this there is a single place in the ndscan
+        parameter tree where all the setpoints for the red beams are defined,
+        i.e. in the SetBeamsToDefaults owned by the red_beam_controller. This
+        method glues those two objects together, but I'm adding it here in the
+        red_mot module since I'd like to keep the GeneralRampingPhase code
+        decoupled from the beam_setter module.
+        """
+        # For the SUServo setpoints, bind these to the FloatParameters defined
+        # by the DefaultBeamSetter so that this is the only place which defines
+        # SUServo setpoints
+        info_and_handles = list(beam_setter.get_setpoints_and_beaminfo_dict().values())
+        handles = []
+        for suservo_device_name in self.suservos:
+            for info, handle in info_and_handles:
+                if info.suservo_device == suservo_device_name:
+                    handles.append(handle)
+                    break
+            else:
+                raise ValueError(
+                    f"SUServo {suservo_device_name} not found in all_beam_default_setter"
+                )
+        self.bind_suservo_setpoint_params(handles)
 
 
 class NarrowRedCompressionPhase(RampingRedPhase):
@@ -163,23 +204,10 @@ class NarrowbandRedMOTFrag(Fragment):
         self.narrow_red_capture_phase.bind_ad9910_frequency_params(
             [self.injection_aom_static_detuning]
         )
-        # For the SUServo setpoints, bind these to the FloatParameters defined
-        # by the DefaultBeamSetter so that this is the only place which defines
-        # SUServo setpoints
-        info_and_handles = list(
-            self.red_beam_controller.all_beam_default_setter.get_setpoints_and_beaminfo_dict().values()
+        # Bind the SUServo setpoint parameters to those defined in the red default beam setter
+        self.narrow_red_capture_phase.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.red_beam_controller.all_beam_default_setter
         )
-        handles = []
-        for suservo_device_name in self.narrow_red_capture_phase.suservos:
-            for info, handle in info_and_handles:
-                if info.suservo_device == suservo_device_name:
-                    handles.append(handle)
-                    break
-            else:
-                raise ValueError(
-                    f"SUServo {suservo_device_name} not found in all_beam_default_setter"
-                )
-        self.narrow_red_capture_phase.bind_suservo_setpoint_params(handles)
 
         self.setattr_fragment(
             "narrow_red_compression_phase",
