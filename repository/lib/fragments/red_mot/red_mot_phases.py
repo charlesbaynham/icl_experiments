@@ -11,7 +11,6 @@ from artiq.experiment import TList
 
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase import RampingRedPhase
 from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
 
 

@@ -10,11 +10,11 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
+from .red_beam_controller import RedBeamController
+from .red_mot_phases import NarrowRedCapturePhase
+from .red_mot_phases import NarrowRedCompressionPhase
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.red_beam_controller import RedBeamController
-from repository.lib.fragments.red_mot_phases import NarrowRedCapturePhase
-from repository.lib.fragments.red_mot_phases import NarrowRedCompressionPhase
 
 logger = logging.getLogger(__name__)
 
