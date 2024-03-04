@@ -38,10 +38,6 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
 
-    default_urukul_nominal_frequencies = [
-        float("nan")
-    ]  # This must be overridden / rebound by consumer fragments
-
     suservos = [
         "suservo_aom_singlepass_689_red_mot_sigmaplus",
         "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -51,9 +47,11 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
     default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
     default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
 
-    default_suservo_nominal_setpoints = [
-        aaa
-    ] * 4  # This must be overridden / rebound by consumer fragments
+    # These must be overridden / rebound by consumer fragments otherwise not
+    # much will happen. This is done so that all the phases can share the same
+    # detuning / nominal setpoints.
+    default_urukul_nominal_frequencies = [0.0]
+    default_suservo_nominal_setpoints = [0.0] * 4
 
     # The general ramp here ramps the chamber 2 MOT coils in amps
     general_setter_default_starts = [5.0]
@@ -161,14 +159,26 @@ class NarrowbandRedMOTFrag(Fragment):
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
+        # Bind the default frequency in this phase to this Fragment's version of the same
         self.narrow_red_capture_phase.bind_ad9910_frequency_params(
             [self.injection_aom_static_detuning]
         )
-        self.narrow_red_capture_phase.bind_suservo_setpoint_params(
-            [
-                self.red_beam_controller.all_beam_default_setter.get_suservo_setpoint_handle_by_index
-            ]
+        # For the SUServo setpoints, bind these to the FloatParameters defined
+        # by the DefaultBeamSetter so that this is the only place which defines
+        # SUServo setpoints
+        info_and_handles = (
+            self.red_beam_controller.all_beam_default_setter.setpoints_and_beaminfo_dict.values()
         )
+        list_of_handles = []
+        for suservo_device_name in self.narrow_red_capture_phase.suservos:
+            for info, handle in info_and_handles:
+                if info.suservo_device == suservo_device_name:
+                    list_of_handles.append(handle)
+                    continue
+            raise ValueError(
+                f"SUServo {suservo_device_name} not found in all_beam_default_setter"
+            )
+        self.narrow_red_capture_phase.bind_suservo_setpoint_params(list_of_handles)
 
         self.setattr_fragment(
             "narrow_red_compression_phase",
