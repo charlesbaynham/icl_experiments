@@ -1,135 +1,25 @@
 import logging
-from typing import List
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
-from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from artiq.experiment import parallel
-from artiq.experiment import sequential
 from artiq.experiment import TFloat
-from artiq.experiment import TList
 from ndscan.experiment import Fragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.beam_setters import SetBeamsToDefaults
-from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase import RampingRedPhase
-from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
 from repository.lib.fragments.red_beam_controller import RedBeamController
+from repository.lib.fragments.red_mot_phases import NarrowRedCapturePhase
+from repository.lib.fragments.red_mot_phases import NarrowRedCompressionPhase
 
 logger = logging.getLogger(__name__)
 
 # Time to allow for ramp SPI transaction
 RAMP_SPI_DELAY = 10e-6
-
-
-class NarrowRedCapturePhase(GeneralRampingPhase):
-    duration_default = 50e-3
-
-    urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
-    default_urukul_detunings_start = [150e3]
-    default_urukul_detunings_end = [50e3]
-    default_urukul_amplitudes_start = [1.0]
-    default_urukul_amplitudes_end = [1.0]
-
-    suservos = [
-        "suservo_aom_singlepass_689_red_mot_sigmaplus",
-        "suservo_aom_singlepass_689_red_mot_sigmaminus",
-        "suservo_aom_singlepass_689_red_mot_diagonal",
-        "suservo_aom_singlepass_689_up",
-    ]
-    default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
-    default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
-
-    # These must be overridden / rebound by consumer fragments otherwise not
-    # much will happen. This is done so that all the phases can share the same
-    # detuning / nominal setpoints.
-    default_urukul_nominal_frequencies = [0.0]
-    default_suservo_nominal_setpoints = [0.0] * 4
-
-    # The general ramp here ramps the chamber 2 MOT coils in amps
-    general_setter_default_starts = [5.0]
-    general_setter_default_ends = [1.0]
-    general_setter_names = ["chamber_2_mot_current"]
-    general_setter_param_options = [{"min": 0, "max": 150, "unit": "A"}]
-
-    def build_fragment(
-        self, *args, chamber_2_field_setter: SetMagneticFieldsQuick = None
-    ):
-        if chamber_2_field_setter is None:
-            raise TypeError("You must pass chamber_2_field_setter into build_fragment")
-        self.field_setter = chamber_2_field_setter
-
-        # Register self.set_fields as the recipient of general ramps
-        return super().build_fragment(*args, general_setter=self.set_fields)
-
-    @kernel
-    def set_fields(self, vals: TList(TFloat)):
-        self.field_setter.set_mot_gradient(vals[0])
-
-    @host_only
-    def bind_suservo_setpoint_params_to_default_beam_setter(
-        self, beam_setter: SetBeamsToDefaults
-    ):
-        """
-        Use the GeneralRampingPhase's :meth:`~.bind_suservo_setpoint_params`
-        method to bind all this GeneralRampingPhase's suservo setpoint
-        parameters to those defined by a `SetBeamsToDefaults`.
-
-        This is a slightly ugly thing to do since it couples two objects that
-        shouldn't need to know about each other, i.e. the GeneralRampingPhase
-        whose responisibility is to ramp SUServo setpoints (and other things)
-        and the SetBeamsToDefaults object whose responsibility it is to set up
-        SUServos with their default settings.
-
-        However, by doing it like this there is a single place in the ndscan
-        parameter tree where all the setpoints for the red beams are defined,
-        i.e. in the SetBeamsToDefaults owned by the red_beam_controller. This
-        method glues those two objects together, but I'm adding it here in the
-        red_mot module since I'd like to keep the GeneralRampingPhase code
-        decoupled from the beam_setter module.
-        """
-        # For the SUServo setpoints, bind these to the FloatParameters defined
-        # by the DefaultBeamSetter so that this is the only place which defines
-        # SUServo setpoints
-        info_and_handles = list(beam_setter.get_setpoints_and_beaminfo_dict().values())
-        handles = []
-        for suservo_device_name in self.suservos:
-            for info, handle in info_and_handles:
-                if info.suservo_device == suservo_device_name:
-                    handles.append(handle)
-                    break
-            else:
-                raise ValueError(
-                    f"SUServo {suservo_device_name} not found in all_beam_default_setter"
-                )
-        self.bind_suservo_setpoint_params(handles)
-
-
-class NarrowRedCompressionPhase(RampingRedPhase):
-    duration_default = 100e-3
-    start_detuning_default = 50e3
-    end_detuning_default = 10e3
-    start_gradient_default = 1.0
-    end_gradient_default = 1.0
-
-    start_suservo_diagonal_multiple_default = 0.1
-    end_suservo_diagonal_multiple_default = 0.02
-    start_suservo_axialplus_multiple_default = 0.1
-    end_suservo_axialplus_multiple_default = 0.02
-    start_suservo_axialminus_multiple_default = 0.1
-    end_suservo_axialminus_multiple_default = 0.02
-    start_suservo_up_multiple_default = 0.0
-    end_suservo_up_multiple_default = 0.0
 
 
 class NarrowbandRedMOTFrag(Fragment):
@@ -200,22 +90,29 @@ class NarrowbandRedMOTFrag(Fragment):
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
-        # Bind the default frequency in this phase to this Fragment's version of the same
+        self.setattr_fragment(
+            "narrow_red_compression_phase",
+            NarrowRedCompressionPhase,
+            chamber_2_field_setter=self.chamber_2_field_setter,
+        )
+        self.narrow_red_compression_phase: NarrowRedCompressionPhase
+
+        # Bind the default frequency in the phases to this Fragment's version of
+        # the same
         self.narrow_red_capture_phase.bind_ad9910_frequency_params(
             [self.injection_aom_static_detuning]
         )
+        self.narrow_red_compression_phase.bind_ad9910_frequency_params(
+            [self.injection_aom_static_detuning]
+        )
+
         # Bind the SUServo setpoint parameters to those defined in the red default beam setter
         self.narrow_red_capture_phase.bind_suservo_setpoint_params_to_default_beam_setter(
             self.red_beam_controller.all_beam_default_setter
         )
-
-        self.setattr_fragment(
-            "narrow_red_compression_phase",
-            NarrowRedCompressionPhase,
-            red_mot_controller=self.red_beam_controller,
-            chamber_2_field_setter=self.chamber_2_field_setter,
+        self.narrow_red_compression_phase.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.red_beam_controller.all_beam_default_setter
         )
-        self.narrow_red_compression_phase: NarrowRedCompressionPhase
 
         self.setattr_param(
             "final_narrow_hold_time",
