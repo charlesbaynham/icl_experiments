@@ -187,7 +187,7 @@ class NarrowbandRedMOTFrag(Fragment):
             red_mot_controller=self.red_beam_controller,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
-        self.narrow_red_compression_phase: NarrowRedCapturePhase
+        self.narrow_red_compression_phase: NarrowRedCompressionPhase
 
         self.setattr_param(
             "final_narrow_hold_time",
