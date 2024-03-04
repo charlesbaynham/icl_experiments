@@ -106,13 +106,13 @@ class RedBeamController(Fragment):
         # %% PARAMETERS
 
         self.setattr_param(
-            "injection_aom_static_detuning",
+            "injection_aom_static_frequency",
             FloatParam,
-            "Detuning of 689 injection AOM static frequency from nominal",
+            "689 injection AOM nominal static frequency",
             unit="MHz",
-            default=0.0,
+            default=constants.RED_INJECTION_AOM_FREQUENCY,
         )
-        self.injection_aom_static_detuning: FloatParamHandle
+        self.injection_aom_static_frequency: FloatParamHandle
 
         self.setattr_param(
             "ramp_frequency",
@@ -194,10 +194,7 @@ class RedBeamController(Fragment):
 
         # Ensure the RF switch is on and the frequency is correct.
         # These are glitch free, so we do them each time
-        self.injection_aom.set(
-            constants.RED_INJECTION_AOM_FREQUENCY
-            + self.injection_aom_static_detuning.get()
-        )
+        self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.cfg_sw(True)
         self.injection_aom.sw.on()
 
@@ -230,12 +227,8 @@ class RedBeamController(Fragment):
 
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
-            self.injection_aom_static_detuning.get()
-            + self.ramp_lower_detuning.get()
-            + constants.RED_INJECTION_AOM_FREQUENCY,
-            self.injection_aom_static_detuning.get()
-            + self.ramp_upper_detuning.get()
-            + constants.RED_INJECTION_AOM_FREQUENCY,
+            self.injection_aom_static_frequency.get() + self.ramp_lower_detuning.get(),
+            self.injection_aom_static_frequency.get() + self.ramp_upper_detuning.get(),
             self.ramp_type.get(),
         )
 
@@ -247,10 +240,7 @@ class RedBeamController(Fragment):
         self.injection_aom_ramper.stop_ramp()
 
         if freq == 0.0:
-            self.injection_aom.set_frequency(
-                self.injection_aom_static_detuning.get()
-                + constants.RED_INJECTION_AOM_FREQUENCY
-            )
+            self.injection_aom.set_frequency(self.injection_aom_static_frequency.get())
         else:
             self.injection_aom.set_frequency(freq)
 
@@ -267,11 +257,7 @@ class RedBeamController(Fragment):
         Args:
             detuning (float): Detuning in Hz
         """
-        freq = (
-            constants.RED_INJECTION_AOM_FREQUENCY
-            + self.injection_aom_static_detuning.get()
-            + detuning
-        )
+        freq = self.injection_aom_static_frequency.get() + detuning
 
         if self.debug_mode:
             logger.info(

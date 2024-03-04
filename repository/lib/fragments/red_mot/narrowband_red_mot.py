@@ -76,10 +76,10 @@ class NarrowbandRedMOTFrag(Fragment):
             self.red_beam_controller,
         )
         self.setattr_param_rebind(
-            "injection_aom_static_detuning",
+            "injection_aom_static_frequency",
             self.red_beam_controller,
         )
-        self.injection_aom_static_detuning: FloatParamHandle
+        self.injection_aom_static_frequency: FloatParamHandle
 
         # %% Narrowband stuff
 
@@ -100,10 +100,10 @@ class NarrowbandRedMOTFrag(Fragment):
         # Bind the default frequency in the phases to this Fragment's version of
         # the same
         self.narrow_red_capture_phase.bind_ad9910_frequency_params(
-            [self.injection_aom_static_detuning]
+            [self.injection_aom_static_frequency]
         )
         self.narrow_red_compression_phase.bind_ad9910_frequency_params(
-            [self.injection_aom_static_detuning]
+            [self.injection_aom_static_frequency]
         )
 
         # Bind the SUServo setpoint parameters to those defined in the red default beam setter

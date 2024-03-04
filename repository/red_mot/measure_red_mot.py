@@ -78,10 +78,7 @@ class RedMOTBase(ExpFragment):
         self.exposure_horiz: FloatParamHandle
         self.exposure_vert: FloatParamHandle
 
-        self.setattr_param_rebind(
-            "injection_aom_static_detuning",
-            self.red_mot,
-        )
+        self.setattr_param_rebind("injection_aom_static_frequency", self.red_mot)
         self.setattr_param_rebind(
             "red_broadband_time",
             self.red_mot,
