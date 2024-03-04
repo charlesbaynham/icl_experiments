@@ -49,10 +49,10 @@ class NarrowRedCapturePhase(GeneralRampingPhase):
         "suservo_aom_singlepass_689_up",
     ]
     default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
-    default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 1.0]
+    default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
 
     default_suservo_nominal_setpoints = [
-        float("nan")
+        aaa
     ] * 4  # This must be overridden / rebound by consumer fragments
 
     # The general ramp here ramps the chamber 2 MOT coils in amps
@@ -163,6 +163,11 @@ class NarrowbandRedMOTFrag(Fragment):
         self.narrow_red_capture_phase: NarrowRedCapturePhase
         self.narrow_red_capture_phase.bind_ad9910_frequency_params(
             [self.injection_aom_static_detuning]
+        )
+        self.narrow_red_capture_phase.bind_suservo_setpoint_params(
+            [
+                self.red_beam_controller.all_beam_default_setter.get_suservo_setpoint_handle_by_index
+            ]
         )
 
         self.setattr_fragment(
