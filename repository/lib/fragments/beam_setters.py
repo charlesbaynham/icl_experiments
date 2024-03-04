@@ -141,8 +141,7 @@ class SetBeamsToDefaults(Fragment):
         return self.suservo_setpoints[beam_index]
 
     @host_only
-    @property
-    def setpoints_and_beaminfo_dict(
+    def get_setpoints_and_beaminfo_dict(
         self,
     ) -> Dict[str, Tuple[SUServoedBeam, FloatParamHandle]]:
         """

@@ -166,19 +166,20 @@ class NarrowbandRedMOTFrag(Fragment):
         # For the SUServo setpoints, bind these to the FloatParameters defined
         # by the DefaultBeamSetter so that this is the only place which defines
         # SUServo setpoints
-        info_and_handles = (
-            self.red_beam_controller.all_beam_default_setter.setpoints_and_beaminfo_dict.values()
+        info_and_handles = list(
+            self.red_beam_controller.all_beam_default_setter.get_setpoints_and_beaminfo_dict().values()
         )
-        list_of_handles = []
+        handles = []
         for suservo_device_name in self.narrow_red_capture_phase.suservos:
             for info, handle in info_and_handles:
                 if info.suservo_device == suservo_device_name:
-                    list_of_handles.append(handle)
-                    continue
-            raise ValueError(
-                f"SUServo {suservo_device_name} not found in all_beam_default_setter"
-            )
-        self.narrow_red_capture_phase.bind_suservo_setpoint_params(list_of_handles)
+                    handles.append(handle)
+                    break
+            else:
+                raise ValueError(
+                    f"SUServo {suservo_device_name} not found in all_beam_default_setter"
+                )
+        self.narrow_red_capture_phase.bind_suservo_setpoint_params(handles)
 
         self.setattr_fragment(
             "narrow_red_compression_phase",
