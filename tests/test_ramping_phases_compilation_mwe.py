@@ -112,62 +112,9 @@ class GeneralRampingPhase(Fragment):
 
         return general_setter_param_handles
 
-    @portable
-    def _calc_step_size(self, start: TFloat, end: TFloat, num: TInt32) -> TFloat:
-        return (end - start) / float(num - 1)
-
     @kernel
     def device_setup(self):
-        """
-        Records the ramps to DMA.
-        Write events are staggered by 8 ns (self.core.ref_multiplier) to use
-        only one lane
-        """
-        self.device_setup_subfragments()
-
-        # Compute grid for writes
-        num_points = 1 + int(self.duration // self.time_step)
-        time_step_mu = self.core.seconds_to_mu(self.duration / float(num_points))
-
-        # Compute step sizes and initial values for the general ramp
-        general_values = [0.0] * len(self.general_setter_param_handles)
-        general_steps = [0.0] * len(self.general_setter_param_handles)
-
-        for i in range(len(self.general_setter_param_handles)):
-            start_handle = self.general_setter_param_handles[i][0]
-            end_handle = self.general_setter_param_handles[i][1]
-
-            general_values[i] = start_handle.get()
-            general_steps[i] = self._calc_step_size(
-                start_handle.get(), end_handle.get(), num_points
-            )
-
-        # Record these ramping parameters into a DMA sequence
-        with self.core_dma.record(self.fqn):
-            t_this_cycle_mu = now_mu()
-            t_one_cycle_mu = int64(self.core.ref_multiplier)
-
-            # Play the ramp
-            for i_step in range(num_points):
-                at_mu(t_this_cycle_mu)
-
-                # %% Write the general setter steps
-
-                # Do this first since it often writes into the past (e.g. for
-                # Zotinos) and we wish to avoid using multiple lanes if possible
-                #
-                # Unlike with the SUServos and AD9910s, we pass all the new
-                # values at once to the setter. It can decide what to do with
-                # them
-                self.general_setter(general_values)
-
-                # Increment all the values by their steps
-                for i in range(len(general_values)):
-                    general_values[i] += general_steps[i]
-
-                delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
-
-                t_this_cycle_mu += time_step_mu
+        self.general_setter(0.0)
 
     @kernel
     def do_phase(self):
@@ -179,19 +126,13 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
     general_setter_names = ["chamber_2_mot_current"]
     general_setter_param_options = [{"min": 0, "max": 150, "unit": "A"}]
 
-    def build_fragment(
-        self, *args, chamber_2_field_setter: SetMagneticFieldsQuick = None
-    ):
-        if chamber_2_field_setter is None:
-            raise TypeError("You must pass chamber_2_field_setter into build_fragment")
-        self.field_setter = chamber_2_field_setter
-
+    def build_fragment(self):
         # Register self.set_fields as the recipient of general ramps
-        return super().build_fragment(*args, general_setter=self.set_fields)
+        return super().build_fragment(general_setter=self.do_thing)
 
     @kernel
-    def set_fields(self, vals: TList(TFloat)):
-        self.field_setter.set_mot_gradient(vals[0])
+    def do_thing(self, val):
+        print(val)
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
@@ -215,20 +156,12 @@ class RedPhaseUser(ExpFragment):
         self.setattr_device("core")
 
         self.setattr_fragment(
-            "chamber_2_field_setter",
-            SetMagneticFieldsQuick,
-        )
-        self.chamber_2_field_setter: SetMagneticFieldsQuick
-
-        self.setattr_fragment(
             "frag1",
             NarrowRedCompressionPhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.setattr_fragment(
             "frag2",
             NarrowRedCapturePhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
 
         self.frag1: NarrowRedCompressionPhase
