@@ -8,12 +8,14 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CPLD
 from artiq.coredevice.urukul import urukul_sta_pll_lock
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from ndscan.experiment import Fragment
 from numpy import ceil
 from numpy import int32
+from numpy import int64
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +27,15 @@ class AD9910Ramper(Fragment):
         self.core: Core
 
         self.channel = channel
+        self.t_rtio_cycle_mu = int64(self.core.ref_multiplier)
+
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "t_rtio_cycle_mu",
+            "dds",
+            "urukul",
+            "debug_mode",
+        }
 
     def host_setup(self):
         super().host_setup()
@@ -239,5 +250,8 @@ class AD9910Ramper(Fragment):
     def _pulse_io_update(self):
         """
         Pulse IO_UPDATE to load config registers into the DDS
+
+        Advances the timeline by the duration of two RTIO cycles
         """
-        self.dds.cpld.io_update.pulse_mu(8)
+        self.dds.cpld.io_update.pulse_mu(self.t_rtio_cycle_mu)
+        delay_mu(self.t_rtio_cycle_mu)
