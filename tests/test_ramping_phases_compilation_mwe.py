@@ -5,57 +5,45 @@ from ndscan.experiment import *
 
 
 class ThingDoerBase(Fragment):
-    def build_fragment(self, thing_to_do: Callable):
+    def build_fragment(self):
         self.setattr_device("core")
 
-        self.thing_to_do = thing_to_do
+        self.thing_to_do = self.do_thing
 
     @kernel
     def device_setup(self):
         self.thing_to_do(0.0)
-
-
-class ThingDoerMid(ThingDoerBase):
-    def build_fragment(self):
-        # Build a ThingDoerBase does a specific thing
-        return super().build_fragment(thing_to_do=self.do_thing)
 
     @kernel
     def do_thing(self, val):
         print(val)
 
 
-# Define classes that reimplement ThingDoerMid (e.g. because you want to
-# customise some class parameters etc, not shown here)
-class ThingDoerConcreteA(ThingDoerMid):
+class ThingDoerConcreteA(ThingDoerBase):
     pass
 
 
-class ThingDoerConcreteB(ThingDoerMid):
+class ThingDoerConcreteB(ThingDoerBase):
     pass
 
 
-class RedPhaseUser(ExpFragment):
+class ThingDoerExperiment(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
         self.setattr_fragment(
             "frag1",
-            ThingDoerConcreteB,
+            ThingDoerConcreteA,
         )
         self.setattr_fragment(
             "frag2",
-            ThingDoerConcreteA,
+            ThingDoerConcreteB,
         )
-
-        self.frag1: ThingDoerConcreteB
-        self.frag2: ThingDoerConcreteA
 
     @kernel
     def run_once(self) -> None:
-        self.frag1.do_phase()
-        self.frag2.do_phase()
+        pass
 
 
 def test_failing_phase_compilation(fragment_precompiler):
-    fragment_precompiler(RedPhaseUser)
+    fragment_precompiler(ThingDoerExperiment)
