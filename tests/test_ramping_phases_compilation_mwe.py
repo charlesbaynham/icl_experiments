@@ -4,11 +4,11 @@ from artiq.experiment import *
 from ndscan.experiment import *
 
 
-class GeneralRampingPhase(Fragment):
-    def build_fragment(self, *args, general_setter: Optional[Callable] = None):
+class BaseThingDoer(Fragment):
+    def build_fragment(self, *args, thing_to_do: Optional[Callable] = None):
         self.setattr_device("core")
 
-        self.general_setter = general_setter or self._do_nothing
+        self.thing_to_do = thing_to_do or self._do_nothing
 
     @kernel
     def _do_nothing(self, val):
@@ -16,17 +16,17 @@ class GeneralRampingPhase(Fragment):
 
     @kernel
     def device_setup(self):
-        self.general_setter(0.0)
+        self.thing_to_do(0.0)
 
     @kernel
     def do_phase(self):
         pass
 
 
-class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
+class RedRampingPhaseWithFieldsAndSUServoBindings(BaseThingDoer):
     def build_fragment(self):
         # Register self.set_fields as the recipient of general ramps
-        return super().build_fragment(general_setter=self.do_thing)
+        return super().build_fragment(thing_to_do=self.do_thing)
 
     @kernel
     def do_thing(self, val):
