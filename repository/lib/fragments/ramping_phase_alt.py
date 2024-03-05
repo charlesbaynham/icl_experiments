@@ -483,11 +483,6 @@ class GeneralRampingPhase(Fragment):
                 num_points,
             )
 
-        # FIXME remove
-        logger.info(
-            "suservo_values = %s, suservo_steps = %s", suservo_values, suservo_steps
-        )
-
         frequency_values = [0.0] * len(self.ad9910_channels_and_param_handles)
         frequency_steps = [0.0] * len(self.ad9910_channels_and_param_handles)
         amplitude_steps = [0.0] * len(self.ad9910_channels_and_param_handles)
