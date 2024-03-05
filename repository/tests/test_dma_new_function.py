@@ -10,19 +10,13 @@ from artiq.experiment import kernel
 from artiq.experiment import NumberValue
 
 
-class TestDMAReturnValues(EnvExperiment):
+class TestDMADetection(EnvExperiment):
     def build(self):
         self.setattr_device("core")
         self.core: Core
 
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
-
-        self.setattr_device("ttl12")
-        self.ttl12: TTLInOut
-
-        self.setattr_argument("delay", NumberValue(1e-6, unit="us", precision=3))
-        self.delay: float
 
     @kernel
     def run(self):
