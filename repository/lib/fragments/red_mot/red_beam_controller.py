@@ -240,9 +240,9 @@ class RedBeamController(Fragment):
         self.injection_aom_ramper.stop_ramp()
 
         if freq == 0.0:
-            self.injection_aom.set_frequency(self.injection_aom_static_frequency.get())
+            self.injection_aom.set(self.injection_aom_static_frequency.get())
         else:
-            self.injection_aom.set_frequency(freq)
+            self.injection_aom.set(freq)
 
     @kernel
     def set_mot_detuning(self, detuning: TFloat):
