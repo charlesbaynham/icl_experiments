@@ -436,7 +436,9 @@ class GeneralRampingPhase(Fragment):
 
         # Compute grid for writes
         num_points = 1 + int(self.duration.get() // self.time_step.get())
-        time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
+        time_step_mu = self.core.seconds_to_mu(
+            self.duration.get() / float(num_points - 1)
+        )
 
         # Compute step sizes and initial values for the general ramp
         general_values = [0.0] * len(self.general_setter_param_handles)
@@ -494,6 +496,14 @@ class GeneralRampingPhase(Fragment):
             amplitude_steps[i] = self._calc_step_size(
                 amplitude_start_handle.get(), amplitude_end_handle.get(), num_points
             )
+
+        if self.debug_enabled:
+            logger.info("frequency_steps: %s", frequency_steps)
+            logger.info("amplitude_steps: %s", amplitude_steps)
+            logger.info("general_steps: %s", general_steps)
+            logger.info("frequency_values: %s", frequency_values)
+            logger.info("amplitude_values: %s", amplitude_values)
+            logger.info("general_values: %s", general_values)
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
