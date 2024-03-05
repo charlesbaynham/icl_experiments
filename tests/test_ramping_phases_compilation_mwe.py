@@ -1,5 +1,6 @@
 from typing import *
 
+import pytest
 from artiq.experiment import *
 from ndscan.experiment import *
 
@@ -47,5 +48,6 @@ class ThingDoerExperiment(ExpFragment):
         pass
 
 
+@pytest.mark.xfail
 def test_failing_phase_compilation(fragment_precompiler):
     fragment_precompiler(ThingDoerExperiment)
