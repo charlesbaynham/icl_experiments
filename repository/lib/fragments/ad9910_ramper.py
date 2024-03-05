@@ -27,7 +27,6 @@ class AD9910Ramper(Fragment):
         self.core: Core
 
         self.channel = channel
-        self.t_rtio_cycle_mu = int64(self.core.ref_multiplier)
 
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
@@ -48,6 +47,7 @@ class AD9910Ramper(Fragment):
                 f"'channel' parameter must correspond to an AD9910 device, not a {type(self.dds)}"
             )
 
+        self.t_rtio_cycle_mu = int64(self.core.ref_multiplier)
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
