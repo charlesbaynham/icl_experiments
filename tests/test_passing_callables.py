@@ -27,4 +27,5 @@ class UserOfSubthing(ExpFragment):
             self.methods[i]()
 
 
-TestPassingCallables = make_fragment_scan_exp(UserOfSubthing)
+def test_passing_callables(fragment_precompiler):
+    fragment_precompiler(UserOfSubthing)
