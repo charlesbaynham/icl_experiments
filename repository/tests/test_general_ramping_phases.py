@@ -44,15 +44,12 @@ class TestGeneralRampingPhaseNoGeneral(GeneralRampingPhase):
 
 class TestGeneralRampingPhaseWithGeneral(TestGeneralRampingPhaseNoGeneral):
     @kernel
-    def do_3_things(self, things: TList(TFloat)):
+    def general_setter(self, things: TList(TFloat)):
         if len(things) != 3:
             raise RuntimeError("There must be three things")
 
         for i in range(3):
             print(things[i])
-
-    def build_fragment(self, *args):
-        return super().build_fragment(*args, general_setter=self.do_3_things)
 
     general_setter_default_starts = [0.0, 1.0, 999]
     general_setter_default_ends = [1.0, -10, 999]
