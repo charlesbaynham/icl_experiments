@@ -40,6 +40,8 @@ class ThingDoerExperiment(ExpFragment):
             ThingDoerConcreteB,
         )
 
+        pass
+
     @kernel
     def run_once(self) -> None:
         pass
