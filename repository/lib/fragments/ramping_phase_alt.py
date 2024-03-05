@@ -5,6 +5,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.experiment import at_mu
+from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
@@ -72,6 +73,14 @@ class GeneralRampingPhase(Fragment):
     Lookup of pre-recorded sequences is slow, but can be done before the
     sequence runs. To do this, use :meth:`~.precalculate_dma_handle` before
     calling :meth:`~.do_phase`.
+
+    We actually end the ramp 1 timestep before the end of "duration" so that
+    phases can be daisy-chained together simply by calling `do_phase` over
+    and over again. I.e. for a 5ms ramp with 1ms points, we will have steps at::
+
+        0ms (initial values), 1ms, 2ms, 3ms, 4ms (final values)
+
+    ...and nothing at 5ms.
     """
 
     time_step_default = 100e-6
@@ -422,23 +431,26 @@ class GeneralRampingPhase(Fragment):
         return ad9910_channels_and_param_handles
 
     @portable
-    def _calc_step_size(self, start: TFloat, end: TFloat, num: TInt32) -> TFloat:
-        return (end - start) / float(num - 1)
+    def _calc_step_size(self, start: TFloat, end: TFloat, num_points: TInt32) -> TFloat:
+        return (end - start) / float(num_points - 1)
 
     @kernel
     def device_setup(self):
         """
         Records the ramps to DMA.
+
         Write events are staggered by 8 ns (self.core.ref_multiplier) to use
-        only one lane
+        only one lane.
         """
         self.device_setup_subfragments()
 
-        # Compute grid for writes
-        num_points = 1 + int(self.duration.get() // self.time_step.get())
-        time_step_mu = self.core.seconds_to_mu(
-            self.duration.get() / float(num_points - 1)
-        )
+        # Compute grid for writes. See comments in docstring regarding how the
+        # ramp is played / ends - it's easy to introduce an off-by-one error
+        # unless you're really careful
+        num_points = int(self.duration.get() // self.time_step.get())
+        # Recalculate using the rounded num_points to ensure that the phase has the
+        # right duration
+        time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
 
         # Compute step sizes and initial values for the general ramp
         general_values = [0.0] * len(self.general_setter_param_handles)
@@ -507,15 +519,14 @@ class GeneralRampingPhase(Fragment):
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
-            t_this_cycle_mu = now_mu()
-            t_one_cycle_mu = int64(self.core.ref_multiplier)
+            t_start_sequence_mu = now_mu()
+            t_start_this_step_mu = now_mu()
+            t_one_rtio_cycle_mu = int64(self.core.ref_multiplier)
 
             # Play the ramp
             for i_step in range(num_points):
                 if self.debug_enabled:
                     logger.info("Saving trace %d of %d", i_step, num_points)
-
-                at_mu(t_this_cycle_mu)
 
                 # %% Write the general setter steps
 
@@ -531,7 +542,7 @@ class GeneralRampingPhase(Fragment):
                 for i in range(len(general_values)):
                     general_values[i] += general_steps[i]
 
-                delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
+                delay_mu(t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                 # %% Set AD9910 frequencies
                 for i in range(len(self.ad9910_channels_and_param_handles)):
@@ -548,7 +559,7 @@ class GeneralRampingPhase(Fragment):
                     ad9910.set(
                         frequency=frequency_values[i], amplitude=amplitude_values[i]
                     )
-                    delay_mu(t_one_cycle_mu)  # Avoid using multiple lanes
+                    delay_mu(t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                     frequency_values[i] += frequency_steps[i]
                     amplitude_values[i] += amplitude_steps[i]
@@ -559,9 +570,24 @@ class GeneralRampingPhase(Fragment):
                     suservo_channel.set_setpoint(suservo_values[i])
                     suservo_values[i] += suservo_steps[i]
 
-                    delay_mu(t_one_cycle_mu)
+                    delay_mu(t_one_rtio_cycle_mu)
 
-                t_this_cycle_mu += time_step_mu
+                t_total_used_mu = now_mu() - t_start_this_step_mu
+
+                if t_total_used_mu >= time_step_mu:
+                    logger.error(
+                        "Ramper writes took %.3f us which is longer than one timestep (%.3f us) - please increase the time between steps",
+                        1e6 * self.core.mu_to_seconds(t_total_used_mu),
+                        1e6 * self.core.mu_to_seconds(time_step_mu),
+                    )
+                    raise RuntimeError("Ramper writes took longer than one timestep")
+
+                t_start_this_step_mu += time_step_mu
+                at_mu(t_start_this_step_mu)
+
+        # Finally, ensure that the stage took the right duration overall
+        at_mu(t_start_sequence_mu)
+        delay(self.duration.get())
 
         if self.debug_enabled:
             logger.info('Saving dma trace as "%s"', self.fqn)

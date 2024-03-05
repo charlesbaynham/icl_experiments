@@ -168,10 +168,13 @@ class NarrowbandRedMOTFrag(Fragment):
         Advances the timeline by the duration of the phases + the final hold
         time.
         """
-        # Delay by at least RAMP_SPI_DELAY > SPI write duration
+        # Delay by at least RAMP_SPI_DELAY > SPI write duration. This is so that
+        # get_total_narrowband_duration can predict the total duration of these
+        # stages accurately
         with parallel:
             self.red_beam_controller.stop_ramping_red()
             delay(RAMP_SPI_DELAY)
+
         self.narrow_red_capture_phase.do_phase()
         self.narrow_red_compression_phase.do_phase()
 
@@ -189,15 +192,14 @@ class NarrowbandRedMOTFrag(Fragment):
         """
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
-        self.red_beam_controller.stop_ramping_red()
         self.transition_broadband_to_narrowband()
 
     @kernel
     def get_total_narrowband_duration(self) -> TFloat:
         "Get the duration of all the narrowband stages"
         return (
-            self.narrow_red_capture_phase.duration.get()
-            + RAMP_SPI_DELAY
+            RAMP_SPI_DELAY
+            + self.narrow_red_capture_phase.duration.get()
             + self.narrow_red_compression_phase.duration.get()
             + self.final_narrow_hold_time.get()
         )
