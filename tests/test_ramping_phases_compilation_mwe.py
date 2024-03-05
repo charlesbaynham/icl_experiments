@@ -4,7 +4,7 @@ from artiq.experiment import *
 from ndscan.experiment import *
 
 
-class BaseThingDoer(Fragment):
+class ThingDoerBase(Fragment):
     def build_fragment(self, thing_to_do: Callable):
         self.setattr_device("core")
 
@@ -15,9 +15,9 @@ class BaseThingDoer(Fragment):
         self.thing_to_do(0.0)
 
 
-class RedRampingPhaseWithFieldsAndSUServoBindings(BaseThingDoer):
+class ThingDoerMid(ThingDoerBase):
     def build_fragment(self):
-        # Register self.set_fields as the recipient of general ramps
+        # Build a ThingDoerBase does a specific thing
         return super().build_fragment(thing_to_do=self.do_thing)
 
     @kernel
@@ -25,11 +25,13 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(BaseThingDoer):
         print(val)
 
 
-class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
+# Define classes that reimplement ThingDoerMid (e.g. because you want to
+# customise some class parameters etc, not shown here)
+class ThingDoerConcreteA(ThingDoerMid):
     pass
 
 
-class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
+class ThingDoerConcreteB(ThingDoerMid):
     pass
 
 
@@ -39,15 +41,15 @@ class RedPhaseUser(ExpFragment):
 
         self.setattr_fragment(
             "frag1",
-            NarrowRedCompressionPhase,
+            ThingDoerConcreteB,
         )
         self.setattr_fragment(
             "frag2",
-            NarrowRedCapturePhase,
+            ThingDoerConcreteA,
         )
 
-        self.frag1: NarrowRedCompressionPhase
-        self.frag2: NarrowRedCapturePhase
+        self.frag1: ThingDoerConcreteB
+        self.frag2: ThingDoerConcreteA
 
     @kernel
     def run_once(self) -> None:
