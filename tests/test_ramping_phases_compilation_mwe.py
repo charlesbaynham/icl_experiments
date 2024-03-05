@@ -1,43 +1,12 @@
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import TFloat
-from artiq.experiment import TList
-from ndscan.experiment import *
-
-from repository.lib.fragments.beam_setters import SetBeamsToDefaults
-from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-
-
-import logging
 from typing import *
 
-from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.core import Core
-from artiq.coredevice.dma import CoreDMA
-from artiq.experiment import at_mu
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import portable
-from artiq.experiment import TFloat
-from artiq.experiment import TInt32
-from artiq.experiment import TList
-from ndscan.experiment import Fragment
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int32
-from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
-
-
-logger = logging.getLogger(__name__)
+from artiq.experiment import *
+from ndscan.experiment import *
 
 
 class GeneralRampingPhase(Fragment):
-
     def build_fragment(self, *args, general_setter: Optional[Callable] = None):
         self.setattr_device("core")
-        self.core: Core
 
         self.general_setter = general_setter or self._do_nothing
 
@@ -55,7 +24,6 @@ class GeneralRampingPhase(Fragment):
 
 
 class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
-
     def build_fragment(self):
         # Register self.set_fields as the recipient of general ramps
         return super().build_fragment(general_setter=self.do_thing)
