@@ -5,22 +5,14 @@ from ndscan.experiment import *
 
 
 class BaseThingDoer(Fragment):
-    def build_fragment(self, *args, thing_to_do: Optional[Callable] = None):
+    def build_fragment(self, thing_to_do: Callable):
         self.setattr_device("core")
 
-        self.thing_to_do = thing_to_do or self._do_nothing
-
-    @kernel
-    def _do_nothing(self, val):
-        pass
+        self.thing_to_do = thing_to_do
 
     @kernel
     def device_setup(self):
         self.thing_to_do(0.0)
-
-    @kernel
-    def do_phase(self):
-        pass
 
 
 class RedRampingPhaseWithFieldsAndSUServoBindings(BaseThingDoer):
