@@ -512,7 +512,7 @@ class GeneralRampingPhase(Fragment):
                 # Unlike with the SUServos and AD9910s, we pass all the new
                 # values at once to the setter. It can decide what to do with
                 # them
-                # self.general_setter(general_values)  FIXME
+                self.general_setter(general_values)
 
                 # Increment all the values by their steps
                 for i in range(len(general_values)):
