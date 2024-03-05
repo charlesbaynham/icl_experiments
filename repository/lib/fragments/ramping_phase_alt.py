@@ -474,7 +474,7 @@ class GeneralRampingPhase(Fragment):
             end_multiple_handle = self.suservo_setters_and_param_handles[i][3]
 
             # Get the start point for all the SUServo intensities
-            suservo_values[i] = nom_setpoint_handle.get()
+            suservo_values[i] = nom_setpoint_handle.get() * start_multiple_handle.get()
 
             # Calculate the step sizes for all the SUServo steps
             suservo_steps[i] = self._calc_step_size(
