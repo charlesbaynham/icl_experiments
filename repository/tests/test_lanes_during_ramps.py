@@ -9,6 +9,7 @@ from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 
@@ -29,12 +30,19 @@ class TestRampLaneUse(ExpFragment):
         self.core: Core
 
         self.setattr_fragment(
+            "chamber_2_field_setter",
+            SetMagneticFieldsQuick,
+        )
+        self.chamber_2_field_setter: SetMagneticFieldsQuick
+
+        self.setattr_fragment(
             "test_phase",
             NarrowRedCapturePhase,
+            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.test_phase: NarrowRedCapturePhase
 
-        self.setattr_argument("TTL_shutter_461_pushbeam")
+        self.setattr_device("TTL_shutter_461_pushbeam")
         self.ttl_tester: TTLOut = self.TTL_shutter_461_pushbeam
 
     @kernel
