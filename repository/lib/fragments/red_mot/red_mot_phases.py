@@ -36,18 +36,15 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
     general_setter_names = ["chamber_2_mot_current"]
     general_setter_param_options = [{"min": 0, "max": 150, "unit": "A"}]
 
-    def build_fragment(
-        self, *args, chamber_2_field_setter: SetMagneticFieldsQuick = None
-    ):
+    def build_fragment(self, chamber_2_field_setter: SetMagneticFieldsQuick = None):
         if chamber_2_field_setter is None:
             raise TypeError("You must pass chamber_2_field_setter into build_fragment")
         self.field_setter = chamber_2_field_setter
 
-        # Register self.set_fields as the recipient of general ramps
-        return super().build_fragment(*args, general_setter=self.set_fields)
+        return super().build_fragment()
 
     @kernel
-    def set_fields(self, vals: TList(TFloat)):
+    def general_setter(self, vals: TList(TFloat)):
         self.field_setter.set_mot_gradient(vals[0])
 
     @host_only

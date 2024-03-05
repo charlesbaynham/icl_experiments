@@ -38,12 +38,24 @@ class GeneralRampingPhase(Fragment):
     ### General ramping
 
     To ramp general parameters that aren't SUServos or AD9910s, you can define
-    `general_setter_starts` and `general_setter_ends`. You must also pass a
-    setter method to `build_fragment`, e.g.::
+    `general_setter_starts` and `general_setter_ends`. You must redefine the
+    :meth:`~.general_setter` method, to do something with a vector of floats the
+    same size as your `general_setter_starts` and `general_setter_ends` arrays.
+    E.g.::
 
-        # In your Fragment's build_fragment method
-        self.setattr_fragment("ramping_phase", SubclassedGeneralRampingPhase,
-        setters=my_setter.set)
+        class DemoPhase(GeneralRampingPhase):
+            general_setter_names = ["some_current_1", "some_current_2"]
+            general_setter_param_options = [
+                {"min": 0, "max": 150, "unit": "A"},
+                {"min": 0, "max": 10, "unit": "A"},
+            ]
+            general_setter_default_starts = [100.0, 10.0]
+            general_setter_default_ends = [10.0, 5.0]
+
+            @kernel
+            def general_setter(self, vals: TList(TFloat)):
+                # Ideally do something more interesting than this:
+                print(vals)
 
     This method will be called once for each step of the ramp and passed a list
     of floats of the same size as `self.general_setter_starts`. You can use this
@@ -83,7 +95,7 @@ class GeneralRampingPhase(Fragment):
     general_setter_default_starts: List[float] = []
     general_setter_default_ends: List[float] = []
 
-    def validate_attributes(self, general_setter):
+    def validate_attributes(self):
         assert self.duration_default is not None
 
         # validate the class attributes to make sure this class was declared correctly
@@ -147,13 +159,8 @@ class GeneralRampingPhase(Fragment):
             "self.general_setter_param_options must have same length as self.general_setters_end"
         )
 
-        if len(self.general_setter_default_starts) > 0:
-            assert general_setter is not None, TypeError(
-                "If you define a general setter ramp, you must pass a general setter to `build_fragment`"
-            )
-
-    def build_fragment(self, *args, general_setter: Optional[Callable] = None):
-        self.validate_attributes(general_setter)
+    def build_fragment(self):
+        self.validate_attributes()
 
         # %% Devices
 
@@ -167,10 +174,7 @@ class GeneralRampingPhase(Fragment):
         # setters for the kernel to use
         self.suservo_setters_and_param_handles = self.build_suservos()
         self.ad9910_channels_and_param_handles = self.build_ad9910s()
-        self.general_setter = general_setter or self._do_nothing
-        self.general_setter_param_handles = self.build_general_setter_param_handles(
-            general_setter
-        )
+        self.general_setter_param_handles = self.build_general_setter_param_handles()
 
         # %% Other parameters
 
@@ -206,11 +210,11 @@ class GeneralRampingPhase(Fragment):
         }
 
     @kernel
-    def _do_nothing(self, num: TList(TFloat)):
+    def general_setter(self, vals: TList(TFloat)):
         pass
 
-    def build_general_setter_param_handles(self, general_setter):
-        setter_was_passed = general_setter is not None
+    def build_general_setter_param_handles(self):
+        general_setter_in_use = len(self.general_setter_default_starts) > 0
 
         general_setter_param_handles: List[
             Tuple[
@@ -219,7 +223,7 @@ class GeneralRampingPhase(Fragment):
             ]
         ] = []
 
-        if setter_was_passed:
+        if general_setter_in_use:
             for name, options, start, end in zip(
                 self.general_setter_names,
                 self.general_setter_param_options,
@@ -247,10 +251,9 @@ class GeneralRampingPhase(Fragment):
 
         else:
             # ARTIQ doesn't like empty lists because it doesn't know what type they are.
-            # Rather than work around this, I'll just make a general setter that does nothing.
+            # Rather than work around this, I use a general setter that does nothing.
             # This costs us 8ns per step of wasted time.
-            general_setter = self._do_nothing
-
+            #
             # I also need to loop over parameter handles, so I must make a dummy
             # parameter to pass. I'll override it so that it doesn't appear in
             # the parameter listing
