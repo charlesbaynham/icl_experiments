@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 class TurnOn1379AOM(Fragment):
+
+    """
+    Turn on the 1379 AOMs
+    """
+
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
