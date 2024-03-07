@@ -76,9 +76,12 @@ class SetMirnyFrag(ExpFragment):
     def device_setup(self):
         self.device_setup_subfragments()
 
-        if not self._init_completed and self.initiate_mirny.get():
+        if not self._init_completed:
             self.core.break_realtime()
-            self.mirny.init()
+
+            if self.initiate_mirny.get():
+                self.mirny.init()
+
             self.mirny_channel.init()
 
             self._init_completed = True
