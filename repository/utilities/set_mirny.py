@@ -45,3 +45,39 @@ class TurnOn1379AOM(Fragment):
             "RF switch state",
             default="True",
         )
+
+    def host_setup(self):
+        super().host_setup()
+
+        self.mirny_channel_1379: ADF5356 = self.get_device("aom_1379")
+        self.mirny_689: Mirny = self.mirny_channel_1379.cpld
+
+        self._init_completed = False
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        self.core.break_realtime()
+
+        if not self._init_completed:
+            self.mirny_channel_1379.init()
+            self.mirny_channel_1379.init()
+
+            self._init_completed = True
+
+        # Immediately turn on the output.
+        # Do this every time to ensure that any previous offsets are undone
+        self.mirny_channel_689.set_att(self.attenuation.get())
+        self.offset_1379(0.0)
+        self.mirny_channel_1379.sw.set_o(self.rf_sw.get())
+
+    @kernel
+    def offset_689(self, offset: TFloat):
+        """Offset the 689 frequency relative to its default position
+
+        Args:
+            offset (TFloat): Offset from default position
+        """
+        freq = self.frequency.get()
+        self.mirny_channel_1379.set_frequency(freq)
