@@ -65,8 +65,9 @@ aliases = {
     "ttl_camera_trigger_vertical": "ttl15",
     "ttl_transfer_cavity_trigger": "ttl1",
     # %% Mirny
-    "mirny_eom_cavity_offset_689": "mirny0_ch0",
-    "mirny_aom_singlepass_1379": "mirny0_ch1",
+    # "mirny_eom_cavity_offset_689": "mirny0_ch0",
+    "mirny_aom_singlepass_1379": "mirny0_ch0",
+    "mirny_eom_waveguide_1379": "mirny0_ch1",
     # %% Other
     "zotino_plant_room": "zotino0",
 }
