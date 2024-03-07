@@ -63,6 +63,7 @@ aliases = {
     "ttl_transfer_cavity_trigger": "ttl1",
     "dds_transfer_cavity_aom": "urukul2_ch0",
     "eom_cavity_offset_689": "mirny0_ch0",
+    "aom_1379": "mirny0_ch1",
     "ttl_camera_trigger_andor": "ttl12",
     "ttl_camera_trigger_horizontal": "ttl14",
     "ttl_camera_trigger_vertical": "ttl15",
