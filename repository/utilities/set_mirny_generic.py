@@ -67,6 +67,8 @@ class SetMirnyFrag(ExpFragment):
     def host_setup(self):
         super().host_setup()
 
+        logger.info("Setting mirny %s", self.channel)
+
         self.mirny_channel: ADF5356 = self.get_device(self.channel)
         self.mirny: Mirny = self.mirny_channel.cpld
 
