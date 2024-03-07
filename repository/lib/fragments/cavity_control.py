@@ -55,7 +55,7 @@ class LaserStabilisationSystem(Fragment):
     def host_setup(self):
         super().host_setup()
 
-        self.mirny_channel_689: ADF5356 = self.get_device("eom_cavity_offset_689")
+        self.mirny_channel_689: ADF5356 = self.get_device("mirny_eom_cavity_offset_689")
         self.mirny_689: Mirny = self.mirny_channel_689.cpld
 
         self._init_completed = False

@@ -53,7 +53,7 @@ class TurnOn1379AOMFrag(ExpFragment):
     def host_setup(self):
         super().host_setup()
 
-        self.mirny_channel_1379: ADF5356 = self.get_device("aom_1379")
+        self.mirny_channel_1379: ADF5356 = self.get_device("mirny_aom_singlepass_1379")
         self.mirny_1379: Mirny = self.mirny_channel_1379.cpld
 
         self._init_completed = False

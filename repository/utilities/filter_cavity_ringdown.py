@@ -43,7 +43,7 @@ class TTLRingdown(EnvExperiment):
             ),
         )
 
-        self.dds = self.get_device("dds_transfer_cavity_aom")
+        self.dds = self.get_device("urukul_aom_singlepass_transfer_cavity")
         self.ttl = self.get_device("ttl_transfer_cavity_trigger")
 
         self.core: Core
