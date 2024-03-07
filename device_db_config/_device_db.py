@@ -1176,7 +1176,7 @@ device_db["mirny1_cpld"] = {
     "type": "local",
     "module": "artiq.coredevice.mirny",
     "class": "Mirny",
-    "arguments": {"spi_device": "spi_mirny1", "refclk": 125000000.0, "clk_sel": "mmcx"},
+    "arguments": {"spi_device": "spi_mirny1", "refclk": 100000000.0, "clk_sel": "xo"},
 }
 
 device_db["ttl24"] = {
