@@ -4,20 +4,17 @@ from artiq.coredevice.adf5356 import ADF5356
 from artiq.coredevice.core import Core
 from artiq.coredevice.mirny import Mirny
 from artiq.experiment import kernel
-from artiq.experiment import TFloat
-from ndscan.experiment import Fragment
+from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
-from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-
-import repository.lib.constants as constants
 
 
 logger = logging.getLogger(__name__)
 
 
-class TurnOn1379AOM(Fragment):
+class TurnOn1379AOMFrag(ExpFragment):
 
     """
     Turn on the 1379 AOMs
@@ -51,11 +48,13 @@ class TurnOn1379AOM(Fragment):
             default="True",
         )
 
+        self.attenuation: FloatParamHandle
+
     def host_setup(self):
         super().host_setup()
 
         self.mirny_channel_1379: ADF5356 = self.get_device("aom_1379")
-        self.mirny_689: Mirny = self.mirny_channel_1379.cpld
+        self.mirny_1379: Mirny = self.mirny_channel_1379.cpld
 
         self._init_completed = False
 
@@ -66,23 +65,18 @@ class TurnOn1379AOM(Fragment):
         self.core.break_realtime()
 
         if not self._init_completed:
-            self.mirny_channel_1379.init()
+            self.mirny_1379.init()
             self.mirny_channel_1379.init()
 
             self._init_completed = True
 
-        # Immediately turn on the output.
-        # Do this every time to ensure that any previous offsets are undone
-        self.mirny_channel_689.set_att(self.attenuation.get())
-        self.offset_1379(0.0)
+    @kernel
+    def run_once(self) -> None:
+        self.core.break_realtime()
+
+        self.mirny_channel_1379.set_frequency(self.frequency.get())
+        self.mirny_channel_1379.set_att(self.attenuation.get())
         self.mirny_channel_1379.sw.set_o(self.rf_sw.get())
 
-    @kernel
-    def offset_689(self, offset: TFloat):
-        """Offset the 689 frequency relative to its default position
 
-        Args:
-            offset (TFloat): Offset from default position
-        """
-        freq = self.frequency.get()
-        self.mirny_channel_1379.set_frequency(freq)
+TurnOn1379AOM = make_fragment_scan_exp(TurnOn1379AOMFrag)
