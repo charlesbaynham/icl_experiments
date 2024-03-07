@@ -62,7 +62,7 @@ class Offset1379Frag(ExpFragment):
     def host_setup(self):
         super().host_setup()
 
-        self.mirny_channel_1379_offset: ADF5356 = self.get_device("mirny0_ch2")
+        self.mirny_channel_1379_offset: ADF5356 = self.get_device("mirny1_ch0")
         self.mirny_1379_offset: Mirny = self.mirny_channel_1379_offset.cpld
 
         self._init_completed = False
