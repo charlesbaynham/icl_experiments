@@ -34,6 +34,7 @@ aliases = {
     "suservo_aom_singlepass_689_up": "suservo2_ch5",
     "suservo_aom_singlepass_689_red_mot_sigmaplus": "suservo2_ch6",
     "suservo_aom_singlepass_689_red_mot_sigmaminus": "suservo2_ch7",
+    "urukul_aom_singlepass_transfer_cavity": "urukul2_ch0",
     # 1064
     "urukul_aom_1064_delivery": "urukul2_ch0",
     "urukul_aom_1064_switch": "urukul2_ch1",
@@ -59,11 +60,14 @@ aliases = {
     "ttl_shutter_red_mot_diagonal": "ttl30",
     "ttl_shutter_red_axial_spin_pol": "ttl31",
     "ttl_shutter_andor": "ttl8",
-    "zotino_plant_room": "zotino0",
-    "ttl_transfer_cavity_trigger": "ttl1",
-    "dds_transfer_cavity_aom": "urukul2_ch0",
-    "eom_cavity_offset_689": "mirny0_ch0",
     "ttl_camera_trigger_andor": "ttl12",
     "ttl_camera_trigger_horizontal": "ttl14",
     "ttl_camera_trigger_vertical": "ttl15",
+    "ttl_transfer_cavity_trigger": "ttl1",
+    # %% Mirny
+    # "mirny_eom_cavity_offset_689": "mirny0_ch0",
+    "mirny_aom_singlepass_1379": "mirny0_ch0",
+    "mirny_eom_waveguide_1379": "mirny0_ch1",
+    # %% Other
+    "zotino_plant_room": "zotino0",
 }
