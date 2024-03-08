@@ -9,12 +9,21 @@ from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TList
 
+from repository.lib import constants
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
 
 
 class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
+    """
+    Subclass the GeneralRampingPhase specifically for red MOTs. I.e.:
+
+    * Specify the 689 double-passed AOM as an Urukul to ramp
+    * Control the 4 red beams
+    * Add control of the B fields in chamber 2
+    """
+
     urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
@@ -86,6 +95,38 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
         self.bind_suservo_setpoint_params(handles)
 
 
+class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
+    """
+    Note that this phase does not start / stop the modulation of the IJD AOM.
+    You must do this elsewhere
+    """
+
+    duration_default = constants.RED_BROADBAND_TIME
+
+    # For the broadband stage we don't want control over the Urukul since the
+    # frequency is controlled by the fast ramp rate. The parameters controlling
+    # that ramp rate are not currently rampable - we could add this if required
+    # but it's getting conceptually complicated
+    urukuls = []
+    default_urukul_amplitudes_start = []
+    default_urukul_amplitudes_end = []
+    default_urukul_detunings_start = []
+    default_urukul_detunings_end = []
+    default_urukul_nominal_frequencies = []
+
+    # Order:
+    # "suservo_aom_singlepass_689_red_mot_sigmaplus",
+    # "suservo_aom_singlepass_689_red_mot_sigmaminus",
+    # "suservo_aom_singlepass_689_red_mot_diagonal",
+    # "suservo_aom_singlepass_689_up",
+    default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
+    default_suservo_setpoint_multiples_end = [1.0, 1.0, 1.0, 0.0]
+
+    # Chamber 2 MOT coils in amps
+    general_setter_default_starts = [constants.RED_BROADBAND_CURRENT]
+    general_setter_default_ends = [1.0]
+
+
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     duration_default = 50e-3
 
@@ -101,7 +142,7 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
 
     # Chamber 2 MOT coils in amps
-    general_setter_default_starts = [5.0]
+    general_setter_default_starts = [constants.RED_BROADBAND_CURRENT]
     general_setter_default_ends = [1.0]
 
 

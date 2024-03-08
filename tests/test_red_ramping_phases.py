@@ -1,0 +1,47 @@
+from typing import *
+
+import pytest
+from artiq.experiment import *
+from ndscan.experiment import *
+
+from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
+from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
+from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
+from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
+from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
+
+
+def build_phase_user(phase: Type[GeneralRampingPhase]):
+    class Ramper(ExpFragment):
+        def build_fragment(self) -> None:
+            self.setattr_device("core")
+
+            self.setattr_fragment(
+                "chamber_2_field_setter",
+                SetMagneticFieldsQuick,
+            )
+            self.chamber_2_field_setter: SetMagneticFieldsQuick
+
+            self.setattr_fragment(
+                "frag1", phase, chamber_2_field_setter=self.chamber_2_field_setter
+            )
+            self.frag1: GeneralRampingPhase
+
+        @kernel
+        def run_once(self) -> None:
+            self.frag1.do_phase()
+
+    Ramper.__name__ = phase.__name__ + "_ramper"
+    return Ramper
+
+
+def test_NarrowRedCapturePhase(fragment_precompiler):
+    fragment_precompiler(build_phase_user(NarrowRedCapturePhase))
+
+
+def test_NarrowRedCompressionPhase(fragment_precompiler):
+    fragment_precompiler(build_phase_user(NarrowRedCompressionPhase))
+
+
+def test_BroadbandRedPhase(fragment_precompiler):
+    fragment_precompiler(build_phase_user(BroadbandRedPhase))
