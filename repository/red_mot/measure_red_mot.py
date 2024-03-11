@@ -81,7 +81,9 @@ class RedMOTBase(ExpFragment):
         self.setattr_param_rebind("injection_aom_static_frequency", self.red_mot)
         self.setattr_param_rebind(
             "red_broadband_time",
-            self.red_mot,
+            self.red_mot.broadband_red_phase,
+            "duration",
+            description="Broadband phase duration",
         )
         self.red_broadband_time: FloatParamHandle
 
