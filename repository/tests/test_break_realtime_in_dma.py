@@ -1,13 +1,16 @@
+import logging
+
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.coredevice.ttl import TTLInOut
 from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from artiq.experiment import NumberValue
 
 
-class DMAPulses(EnvExperiment):
+class DMABreakRealtime(EnvExperiment):
     def build(self):
         self.setattr_device("core")
         self.core: Core
@@ -28,12 +31,21 @@ class DMAPulses(EnvExperiment):
 
     @kernel
     def record(self):
+        t_timeline_a = now_mu()
+        t_real_a = self.core.get_rtio_counter_mu()
         with self.core_dma.record("pulses"):
-            # all RTIO operations now go to the "pulses"
-            # DMA buffer, instead of being executed immediately.
-            for _ in range(50):
-                self.ttl12.pulse(self.delay)
-                delay(self.delay)
+            t_timeline_b = now_mu()
+            t_real_b = self.core.get_rtio_counter_mu()
+
+            self.core.break_realtime()
+
+            t_timeline_c = now_mu()
+            t_real_c = self.core.get_rtio_counter_mu()
+
+        logging.info(
+            "Timeline values: %d, %d, %d", t_timeline_a, t_timeline_b, t_timeline_c
+        )
+        logging.info("Real values: %d, %d, %d", t_real_a, t_real_b, t_real_c)
 
     @kernel
     def run(self):

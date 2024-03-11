@@ -31,6 +31,7 @@ RED_BEAM_INFOS = [
         "red_mot_diagonal",
         "red_mot_sigmaplus",
         "red_mot_sigmaminus",
+        "red_up",
     ]
 ]
 
@@ -105,13 +106,13 @@ class RedBeamController(Fragment):
         # %% PARAMETERS
 
         self.setattr_param(
-            "injection_aom_static_detuning",
+            "injection_aom_static_frequency",
             FloatParam,
-            "Detuning of 689 injection AOM static frequency from nominal",
+            "689 injection AOM nominal static frequency",
             unit="MHz",
-            default=0.0,
+            default=constants.RED_INJECTION_AOM_FREQUENCY,
         )
-        self.injection_aom_static_detuning: FloatParamHandle
+        self.injection_aom_static_frequency: FloatParamHandle
 
         self.setattr_param(
             "ramp_frequency",
@@ -193,10 +194,7 @@ class RedBeamController(Fragment):
 
         # Ensure the RF switch is on and the frequency is correct.
         # These are glitch free, so we do them each time
-        self.injection_aom.set(
-            constants.RED_INJECTION_AOM_FREQUENCY
-            + self.injection_aom_static_detuning.get()
-        )
+        self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.cfg_sw(True)
         self.injection_aom.sw.on()
 
@@ -229,12 +227,8 @@ class RedBeamController(Fragment):
 
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
-            self.injection_aom_static_detuning.get()
-            + self.ramp_lower_detuning.get()
-            + constants.RED_INJECTION_AOM_FREQUENCY,
-            self.injection_aom_static_detuning.get()
-            + self.ramp_upper_detuning.get()
-            + constants.RED_INJECTION_AOM_FREQUENCY,
+            self.injection_aom_static_frequency.get() + self.ramp_lower_detuning.get(),
+            self.injection_aom_static_frequency.get() + self.ramp_upper_detuning.get(),
             self.ramp_type.get(),
         )
 
@@ -246,12 +240,9 @@ class RedBeamController(Fragment):
         self.injection_aom_ramper.stop_ramp()
 
         if freq == 0.0:
-            self.injection_aom.set_frequency(
-                self.injection_aom_static_detuning.get()
-                + constants.RED_INJECTION_AOM_FREQUENCY
-            )
+            self.injection_aom.set(self.injection_aom_static_frequency.get())
         else:
-            self.injection_aom.set_frequency(freq)
+            self.injection_aom.set(freq)
 
     @kernel
     def set_mot_detuning(self, detuning: TFloat):
@@ -266,11 +257,7 @@ class RedBeamController(Fragment):
         Args:
             detuning (float): Detuning in Hz
         """
-        freq = (
-            constants.RED_INJECTION_AOM_FREQUENCY
-            + self.injection_aom_static_detuning.get()
-            + detuning
-        )
+        freq = self.injection_aom_static_frequency.get() + detuning
 
         if self.debug_mode:
             logger.info(
@@ -283,9 +270,9 @@ class RedBeamController(Fragment):
         self.injection_aom.set(freq)
 
     @kernel
-    def set_mot_suservo_amplitude(self, amplitude_multiple: TFloat):
+    def set_mot_suservo_amplitude_global(self, amplitude_multiple: TFloat):
         """
-        Set the SUServo target amplitudes of all MOT beams
+        Set the SUServo target amplitudes of all MOT beams together
 
         Args:
             amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a multiple of the nominal amplitude
@@ -303,6 +290,47 @@ class RedBeamController(Fragment):
                     "Setting %s setpoint to %.2f x %.2f + %.4f = %.3f V",
                     suservo_frag,
                     amplitude_multiple,
+                    nominal_setpoint,
+                    photodiode_offset,
+                    setpoint,
+                )
+
+            suservo_frag.set_setpoint(setpoint)
+
+    @kernel
+    def set_mot_suservo_amplitude_individual(
+        self,
+        amplitude_red_diagonal: TFloat,
+        amplitude_red_axialplus: TFloat,
+        amplitude_red_axialminus: TFloat,
+        amplitude_red_up: TFloat,  # TODO: add up beam
+    ):
+        """
+        Set the SUServo target amplitudes of all MOT beams individually,
+        expressed as a multiple of their nominal amplitudes
+        """
+
+        # Prepare array of beam amplitudes
+        # This must match the ordering in RED_BEAM_INFOS
+        ampltiudes = [
+            amplitude_red_diagonal,
+            amplitude_red_axialplus,
+            amplitude_red_axialminus,
+            amplitude_red_up,
+        ]
+
+        for i in range(len(self.suservo_fragments)):
+            suservo_frag = self.suservo_fragments[i]
+            nominal_setpoint = self.suservo_nominal_amplitudes[i]
+            photodiode_offset = self.suservo_setpoint_offsets[i]
+
+            setpoint = nominal_setpoint * ampltiudes[i] + photodiode_offset
+
+            if self.debug_mode:
+                logger.info(
+                    "Setting %s setpoint to %.2f x %.2f + %.4f = %.3f V",
+                    suservo_frag,
+                    ampltiudes[i],
                     nominal_setpoint,
                     photodiode_offset,
                     setpoint,

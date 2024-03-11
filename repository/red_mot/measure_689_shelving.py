@@ -15,7 +15,7 @@ from ndscan.experiment.result_channels import FloatChannel
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import BGCorrectedMeasurement
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.red_beam_controller import RedBeamController
+from repository.lib.fragments.red_mot import RedBeamController
 
 logger = logging.getLogger(__name__)
 

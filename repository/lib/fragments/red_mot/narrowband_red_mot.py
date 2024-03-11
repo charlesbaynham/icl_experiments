@@ -1,50 +1,25 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from artiq.experiment import parallel
-from artiq.experiment import sequential
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase import RampingRedPhase
-from repository.lib.fragments.red_beam_controller import RedBeamController
+from repository.lib.fragments.red_mot.red_beam_controller import RedBeamController
+from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
+from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
 
 logger = logging.getLogger(__name__)
 
 # Time to allow for ramp SPI transaction
 RAMP_SPI_DELAY = 10e-6
-
-
-class NarrowRedCapturePhase(RampingRedPhase):
-    duration_default = 50e-3
-    start_detuning_default = 150e3
-    end_detuning_default = 50e3
-    start_gradient_default = 5.0
-    end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 1.0
-    end_suservo_nominal_multiple_default = 0.1
-
-
-class NarrowRedCompressionPhase(RampingRedPhase):
-    duration_default = 100e-3
-    start_detuning_default = 50e3
-    end_detuning_default = 10e3
-    start_gradient_default = 1.0
-    end_gradient_default = 1.0
-    start_suservo_nominal_multiple_default = 0.1
-    end_suservo_nominal_multiple_default = 0.02
 
 
 class NarrowbandRedMOTFrag(Fragment):
@@ -101,10 +76,10 @@ class NarrowbandRedMOTFrag(Fragment):
             self.red_beam_controller,
         )
         self.setattr_param_rebind(
-            "injection_aom_static_detuning",
+            "injection_aom_static_frequency",
             self.red_beam_controller,
         )
-        self.injection_aom_static_detuning: FloatParamHandle
+        self.injection_aom_static_frequency: FloatParamHandle
 
         # %% Narrowband stuff
 
@@ -112,18 +87,32 @@ class NarrowbandRedMOTFrag(Fragment):
         self.setattr_fragment(
             "narrow_red_capture_phase",
             NarrowRedCapturePhase,
-            red_mot_controller=self.red_beam_controller,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
-
         self.setattr_fragment(
             "narrow_red_compression_phase",
             NarrowRedCompressionPhase,
-            red_mot_controller=self.red_beam_controller,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
-        self.narrow_red_compression_phase: NarrowRedCapturePhase
+        self.narrow_red_compression_phase: NarrowRedCompressionPhase
+
+        # Bind the default frequency in the phases to this Fragment's version of
+        # the same
+        self.narrow_red_capture_phase.bind_ad9910_frequency_params(
+            [self.injection_aom_static_frequency]
+        )
+        self.narrow_red_compression_phase.bind_ad9910_frequency_params(
+            [self.injection_aom_static_frequency]
+        )
+
+        # Bind the SUServo setpoint parameters to those defined in the red default beam setter
+        self.narrow_red_capture_phase.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.red_beam_controller.all_beam_default_setter
+        )
+        self.narrow_red_compression_phase.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.red_beam_controller.all_beam_default_setter
+        )
 
         self.setattr_param(
             "final_narrow_hold_time",
@@ -156,7 +145,7 @@ class NarrowbandRedMOTFrag(Fragment):
         Does not advance the timeline
         """
 
-        self.red_beam_controller.set_mot_suservo_amplitude(
+        self.red_beam_controller.set_mot_suservo_amplitude_global(
             self.red_broadband_suservo_multiple.get()
         )
         delay_mu(8)
@@ -179,9 +168,13 @@ class NarrowbandRedMOTFrag(Fragment):
         Advances the timeline by the duration of the phases + the final hold
         time.
         """
+        # Delay by at least RAMP_SPI_DELAY > SPI write duration. This is so that
+        # get_total_narrowband_duration can predict the total duration of these
+        # stages accurately
         with parallel:
             self.red_beam_controller.stop_ramping_red()
-            delay(RAMP_SPI_DELAY)  # Constant delay > SPI write duration
+            delay(RAMP_SPI_DELAY)
+
         self.narrow_red_capture_phase.do_phase()
         self.narrow_red_compression_phase.do_phase()
 
@@ -199,15 +192,14 @@ class NarrowbandRedMOTFrag(Fragment):
         """
         self.start_red_broadband()
         delay(self.red_broadband_time.get())
-        self.red_beam_controller.stop_ramping_red()
         self.transition_broadband_to_narrowband()
 
     @kernel
     def get_total_narrowband_duration(self) -> TFloat:
         "Get the duration of all the narrowband stages"
         return (
-            self.narrow_red_capture_phase.duration.get()
-            + RAMP_SPI_DELAY
+            RAMP_SPI_DELAY
+            + self.narrow_red_capture_phase.duration.get()
             + self.narrow_red_compression_phase.duration.get()
             + self.final_narrow_hold_time.get()
         )

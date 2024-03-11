@@ -78,10 +78,7 @@ class RedMOTBase(ExpFragment):
         self.exposure_horiz: FloatParamHandle
         self.exposure_vert: FloatParamHandle
 
-        self.setattr_param_rebind(
-            "injection_aom_static_detuning",
-            self.red_mot,
-        )
+        self.setattr_param_rebind("injection_aom_static_frequency", self.red_mot)
         self.setattr_param_rebind(
             "red_broadband_time",
             self.red_mot,
@@ -115,10 +112,6 @@ class RedMOTBase(ExpFragment):
     def _expand_and_image(self):
         self.red_mot.red_beam_controller.turn_off_mot_beams()
 
-        # FIXME: This is a horrible hack, to get the axial 461 MOT beam turned
-        # off during the fluorescence pulse
-        # self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=True)
-
         delay(self.expansion_time.get())
 
         with parallel:
@@ -132,10 +125,6 @@ class RedMOTBase(ExpFragment):
         # Turn the fields back to defaults so eddy currents are gone by the next shot
         delay(1e-3)
         self.blue_3d_mot.enable_mot_fields()
-
-        # FIXME: Undoing the horrible hack from above. Also needs removing
-        # delay(1e-3)
-        # self.blue_3d_mot.mot_3d_beams_setter.turn_beams_off(ignore_shutters=False)
 
     @kernel
     def _save_data(self):

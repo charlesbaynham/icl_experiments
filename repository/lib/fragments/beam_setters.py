@@ -1,5 +1,6 @@
 import logging
 import warnings
+from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Type
@@ -10,6 +11,7 @@ from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import HasEnvironment
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
@@ -137,6 +139,21 @@ class SetBeamsToDefaults(Fragment):
         Get the nominal setpoint for a given beam (allowing the user to override it)
         """
         return self.suservo_setpoints[beam_index]
+
+    @host_only
+    def get_setpoints_and_beaminfo_dict(
+        self,
+    ) -> Dict[str, Tuple[SUServoedBeam, FloatParamHandle]]:
+        """
+        Get a dict of beam name -> (:class:`~SUServoedBeam` beam info,
+        :class:`~FloatParamHandle` handle to suservo setpoint)
+        """
+        out = {}
+        for beam_info, (_, handle, _) in zip(
+            self.default_beam_infos, self.suservo_setters_and_info
+        ):
+            out[beam_info.name] = (beam_info, handle)
+        return out
 
     @kernel
     def device_setup(self) -> None:
