@@ -34,6 +34,15 @@ class DummyAD9910(HasEnvironment):
         return 0.0
 
 
+class DummySUServoChannel(HasEnvironment):
+    def build(self):
+        self.setattr_device("core")
+
+    @kernel
+    def set_setpoint(self, new_setpoint: TFloat):
+        return 0.0
+
+
 class GeneralRampingPhase(Fragment):
     """
     Template fragment for a phase of the experiment which allows:
@@ -194,6 +203,7 @@ class GeneralRampingPhase(Fragment):
         # least 1 long by adding a dummy object if they're empty. Here are those
         # dummy objects:
         self.dummy_ad9910 = DummyAD9910(self)
+        self.dummy_suservo = DummySUServoChannel(self)
 
         # I also need to loop over parameter handles, so I must make a dummy
         # parameter to pass. I'll override it so that it doesn't appear in the
@@ -348,6 +358,19 @@ class GeneralRampingPhase(Fragment):
                     setpoint_nominal_handle,
                     setpoint_start_handle,
                     setpoint_end_handle,
+                )
+            )
+
+        if not suservo_setters_and_param_handles:
+            # If we don't have any SUServos to ramp, add a dummy object so that
+            # the compiler doesn't complain, with pointers to a dummy parameter
+            # handle
+            suservo_setters_and_param_handles.append(
+                (
+                    self.dummy_suservo,
+                    self.dummy_param,
+                    self.dummy_param,
+                    self.dummy_param,
                 )
             )
 
