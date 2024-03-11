@@ -645,6 +645,14 @@ class GeneralRampingPhase(Fragment):
 
     @kernel
     def precalculate_dma_handle(self):
+        """
+        Call this method to precalculate the handle of this phase's DMA
+        sequences, making its execution a lot faster.
+
+        You must ensure that no other DMA sequences are recorded after this
+        method is called otherwise the handle will become invalid. That's why
+        this step is not done automatically as part of device_setup.
+        """
         self.dma_handle = self.core_dma.get_handle(self.fqn)
         self.dma_handle_valid = True
 

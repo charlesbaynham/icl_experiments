@@ -13,6 +13,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.red_mot.red_beam_controller import RedBeamController
+from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
 
@@ -84,12 +85,21 @@ class NarrowbandRedMOTFrag(Fragment):
         # %% Narrowband stuff
 
         # Add red phase fragments
+
+        self.setattr_fragment(
+            "broadband_red_phase",
+            BroadbandRedPhase,
+            chamber_2_field_setter=self.chamber_2_field_setter,
+        )
+        self.broadband_red_phase: NarrowRedCapturePhase
+
         self.setattr_fragment(
             "narrow_red_capture_phase",
             NarrowRedCapturePhase,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
+
         self.setattr_fragment(
             "narrow_red_compression_phase",
             NarrowRedCompressionPhase,
@@ -98,7 +108,7 @@ class NarrowbandRedMOTFrag(Fragment):
         self.narrow_red_compression_phase: NarrowRedCompressionPhase
 
         # Bind the default frequency in the phases to this Fragment's version of
-        # the same
+        # the same (N.B. don't bother for the Broadband phase since it has no Urukul)
         self.narrow_red_capture_phase.bind_ad9910_frequency_params(
             [self.injection_aom_static_frequency]
         )
@@ -107,6 +117,9 @@ class NarrowbandRedMOTFrag(Fragment):
         )
 
         # Bind the SUServo setpoint parameters to those defined in the red default beam setter
+        self.broadband_red_phase.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.red_beam_controller.all_beam_default_setter
+        )
         self.narrow_red_capture_phase.bind_suservo_setpoint_params_to_default_beam_setter(
             self.red_beam_controller.all_beam_default_setter
         )
@@ -128,6 +141,7 @@ class NarrowbandRedMOTFrag(Fragment):
         self.device_setup_subfragments()
 
         # Preload phases' handles
+        self.broadband_red_phase.precalculate_dma_handle()
         self.narrow_red_capture_phase.precalculate_dma_handle()
         self.narrow_red_compression_phase.precalculate_dma_handle()
 
