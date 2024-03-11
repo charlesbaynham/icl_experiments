@@ -3,7 +3,7 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.experiment import kernel, at_mu, now_mu
 from artiq.experiment import parallel
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
@@ -37,32 +37,7 @@ class NarrowbandRedMOTFrag(Fragment):
         )
         self.chamber_2_field_setter: SetMagneticFieldsQuick
 
-        self.setattr_param(
-            "red_broadband_time",
-            FloatParam,
-            "Time to spend in the broadband red mot",
-            default=constants.RED_BROADBAND_TIME,
-            unit="ms",
-        )
-        self.red_broadband_time: FloatParamHandle
 
-        self.setattr_param(
-            "red_broadband_gradient_current",
-            FloatParam,
-            "Current for gradient coils for broadband red MOT stage",
-            default=constants.RED_BROADBAND_CURRENT,
-            unit="A",
-        )
-        self.red_broadband_gradient_current: FloatParamHandle
-
-        self.setattr_param(
-            "red_broadband_suservo_multiple",
-            FloatParam,
-            "Multiple of nominal setpoint for suservo beams in broadband MOT",
-            default=1.0,
-            min=0.0,
-        )
-        self.red_broadband_suservo_multiple: FloatParamHandle
 
         self.setattr_param_rebind(
             "ramp_lower_detuning",
@@ -150,28 +125,21 @@ class NarrowbandRedMOTFrag(Fragment):
         self.red_beam_controller.init()
 
     @kernel
-    def start_red_broadband(self):
+    def prepare_for_broadband_phase(self):
         """
-        Start sweeping red IJD, turn on the beams and drop the gradient
+        Start sweeping red IJD and turn on the beams in preparation for the
+        broadband phase
 
         Does not turn off blue beams - you should do this elsewhere.
 
         Does not advance the timeline
         """
 
-        self.red_beam_controller.set_mot_suservo_amplitude_global(
-            self.red_broadband_suservo_multiple.get()
-        )
-        delay_mu(8)
-        self.red_beam_controller.turn_on_mot_beams()
-        delay_mu(8)
+        t_start= now_mu()
         self.red_beam_controller.start_ramping_red()
         delay_mu(8)
-        self.chamber_2_field_setter.set_mot_gradient(
-            self.red_broadband_gradient_current.get()
-        )
-
-        delay_mu(-4 * 8)
+        self.red_beam_controller.turn_on_mot_beams()
+        at_mu(t_start)
 
     @kernel
     def transition_broadband_to_narrowband(self):
@@ -204,8 +172,9 @@ class NarrowbandRedMOTFrag(Fragment):
         Advances the timeline by the total duration of all ramping phases and
         hold times configured in this fragment
         """
-        self.start_red_broadband()
-        delay(self.red_broadband_time.get())
+        self.prepare_for_broadband_phase()
+        self.broadband_red_phase.do_phase()
+        
         self.transition_broadband_to_narrowband()
 
     @kernel

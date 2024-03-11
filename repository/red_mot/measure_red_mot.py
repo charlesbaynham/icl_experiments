@@ -105,8 +105,8 @@ class RedMOTBase(ExpFragment):
     def _from_start_to_end_of_broadband_mot(self):
         self.blue_3d_mot.load_mot(clearout=True)
         self.blue_3d_mot.turn_off_3d_and_2d_beams()
-        self.red_mot.start_red_broadband()
-        delay(self.red_broadband_time.get())
+        self.red_mot.prepare_for_broadband_phase()
+        self.red_mot.broadband_red_phase.do_phase()
 
     @kernel
     def _expand_and_image(self):
