@@ -223,6 +223,8 @@ class RedBeamController(Fragment):
     def start_ramping_red(self):
         """
         Start modulation of the 689 DDS as configured
+
+        Advances the timeline by the duration of SPI writes
         """
 
         self.injection_aom_ramper.start_ramp(

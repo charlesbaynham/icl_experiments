@@ -1,9 +1,11 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
-from artiq.experiment import kernel, at_mu, now_mu
+from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
@@ -36,8 +38,6 @@ class NarrowbandRedMOTFrag(Fragment):
             SetMagneticFieldsQuick,
         )
         self.chamber_2_field_setter: SetMagneticFieldsQuick
-
-
 
         self.setattr_param_rebind(
             "ramp_lower_detuning",
@@ -132,14 +132,13 @@ class NarrowbandRedMOTFrag(Fragment):
 
         Does not turn off blue beams - you should do this elsewhere.
 
-        Does not advance the timeline
+        Advances the timeline by the duration of SPI writes. The timeline is
+        left pointing at the moment that the beams turn on.
         """
 
-        t_start= now_mu()
         self.red_beam_controller.start_ramping_red()
         delay_mu(8)
         self.red_beam_controller.turn_on_mot_beams()
-        at_mu(t_start)
 
     @kernel
     def transition_broadband_to_narrowband(self):
@@ -161,21 +160,6 @@ class NarrowbandRedMOTFrag(Fragment):
         self.narrow_red_compression_phase.do_phase()
 
         delay(self.final_narrow_hold_time.get())
-
-    @kernel
-    def load_narrowband_mot_from_blue_mot(self):
-        """
-        From a blue MOT, load a narrowband MOT
-
-        Does not turn off the blue beams - you must do this elsewhere
-
-        Advances the timeline by the total duration of all ramping phases and
-        hold times configured in this fragment
-        """
-        self.prepare_for_broadband_phase()
-        self.broadband_red_phase.do_phase()
-        
-        self.transition_broadband_to_narrowband()
 
     @kernel
     def get_total_narrowband_duration(self) -> TFloat:
