@@ -7,6 +7,7 @@ from artiq.coredevice.dma import CoreDMA
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
+from artiq.experiment import HasEnvironment
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import portable
@@ -22,6 +23,15 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 
 logger = logging.getLogger(__name__)
+
+
+class DummyAD9910(HasEnvironment):
+    def build(self):
+        self.setattr_device("core")
+
+    @kernel
+    def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
+        return 0.0
 
 
 class GeneralRampingPhase(Fragment):
@@ -179,6 +189,20 @@ class GeneralRampingPhase(Fragment):
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
 
+        # ARTIQ doesn't like empty lists because it doesn't know what type they
+        # are. Rather than work around this, I make sure that all list are at
+        # least 1 long by adding a dummy object if they're empty. Here are those
+        # dummy objects:
+        self.dummy_ad9910 = DummyAD9910(self)
+
+        # I also need to loop over parameter handles, so I must make a dummy
+        # parameter to pass. I'll override it so that it doesn't appear in the
+        # parameter listing
+        self.dummy_param = self.setattr_param(
+            "dummy_param", FloatParam, "Dummy parameter - ignore me", default=0.0
+        )
+        self.override_param("dummy_param", 0.0)
+
         # Build ndscan parameters for all the ramping variables and arrays of
         # setters for the kernel to use
         self.suservo_setters_and_param_handles = self.build_suservos()
@@ -259,19 +283,10 @@ class GeneralRampingPhase(Fragment):
                 general_setter_param_handles.append((start_handle, end_handle))
 
         else:
-            # ARTIQ doesn't like empty lists because it doesn't know what type they are.
-            # Rather than work around this, I use a general setter that does nothing.
-            # This costs us 8ns per step of wasted time.
-            #
-            # I also need to loop over parameter handles, so I must make a dummy
-            # parameter to pass. I'll override it so that it doesn't appear in
-            # the parameter listing
-            dummy_handle = self.setattr_param(
-                "dummy_param", FloatParam, "Dummy parameter - ignore me", default=0.0
-            )
-            self.override_param("dummy_param", 0.0)
-
-            general_setter_param_handles.append((dummy_handle, dummy_handle))
+            # If there's no general setter then don't make any parameters. We
+            # must still return a list of ParamHandles though otherwise the
+            # compiler will break, so pass out the dummy handle.
+            general_setter_param_handles.append((self.dummy_param, self.dummy_param))
 
         return general_setter_param_handles
 
@@ -415,8 +430,6 @@ class GeneralRampingPhase(Fragment):
                 default=amplitude_end,
             )
 
-            amplitude_start
-
             ad9910_channels_and_param_handles.append(
                 (
                     channel,
@@ -425,6 +438,21 @@ class GeneralRampingPhase(Fragment):
                     detuning_end_handle,
                     amplitude_start_handle,
                     amplitude_end_handle,
+                )
+            )
+
+        if not ad9910_channels_and_param_handles:
+            # If we don't have any AD9910s to ramp, add a dummy object so that
+            # the compiler doesn't complain, with pointers to a dummy parameter
+            # handle
+            ad9910_channels_and_param_handles.append(
+                (
+                    self.dummy_ad9910,
+                    self.dummy_param,
+                    self.dummy_param,
+                    self.dummy_param,
+                    self.dummy_param,
+                    self.dummy_param,
                 )
             )
 
