@@ -18,7 +18,7 @@ from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 logger = logging.getLogger(__name__)
 
 
-class TestGeneralRampingPhaseNoGeneral(GeneralRampingPhase):
+class GeneralRampingPhaseNoGeneral(GeneralRampingPhase):
     duration_default = 50e-3
 
     suservos = [
@@ -42,7 +42,7 @@ class TestGeneralRampingPhaseNoGeneral(GeneralRampingPhase):
     default_urukul_amplitudes_end = [1.0] * 2
 
 
-class TestGeneralRampingPhaseWithGeneral(TestGeneralRampingPhaseNoGeneral):
+class GeneralRampingPhaseWithGeneral(GeneralRampingPhaseNoGeneral):
     @kernel
     def general_setter(self, things: TList(TFloat)):
         if len(things) != 3:
@@ -55,6 +55,34 @@ class TestGeneralRampingPhaseWithGeneral(TestGeneralRampingPhaseNoGeneral):
     general_setter_default_ends = [1.0, -10, 999]
     general_setter_names = ["thing_a", "thing_b", "thing_c"]
     general_setter_param_options = [{}, {}, {"min": -1000, "max": 1000}]
+
+
+class GeneralRampingPhaseNoSUServo(GeneralRampingPhase):
+    duration_default = 50e-3
+
+    urukuls = [
+        "urukul9910_aom_doublepass_689_red_injection",
+        "urukul9910_aom_doublepass_461_injection",
+    ]
+    default_urukul_nominal_frequencies = [340e6, 200e6]
+    default_urukul_detunings_start = [1e6, 0.0]
+    default_urukul_detunings_end = [-1e6, 0.0]
+    default_urukul_amplitudes_start = [1.0] * 2
+    default_urukul_amplitudes_end = [1.0] * 2
+
+
+class GeneralRampingPhaseNoAD9910(GeneralRampingPhase):
+    duration_default = 50e-3
+
+    suservos = [
+        "suservo_aom_singlepass_461_imaging_delivery",
+        "suservo_aom_singlepass_461_pushbeam",
+        "suservo_aom_singlepass_461_2dmot_b",
+        "suservo_aom_singlepass_689_red_mot_diagonal",
+    ]
+    default_suservo_nominal_setpoints = [1.0, 2.0, 0.01, 5.5]
+    default_suservo_setpoint_multiples_start = [1.0, 2.5, 100, 0.0]
+    default_suservo_setpoint_multiples_end = [0.0, 2.5, 1, 1.0]
 
 
 def make_test_expfrag(test_phase: Type):
@@ -117,16 +145,17 @@ def make_test_expfrag(test_phase: Type):
     return ExpFragWithPhase
 
 
-TestGeneralRampingPhaseExpFrag = make_test_expfrag(TestGeneralRampingPhaseNoGeneral)
-TestGeneralRampingPhaseExpFrag.__name__ = "TestGeneralRampingPhaseExpFrag"
-TestGeneralRampingPhaseExp = make_fragment_scan_exp(TestGeneralRampingPhaseExpFrag)
+def test_GeneralRampingPhaseWithGeneral(fragment_precompiler):
+    fragment_precompiler(make_test_expfrag(GeneralRampingPhaseWithGeneral))
 
-TestGeneralRampingPhaseWithGeneralExpFrag = make_test_expfrag(
-    TestGeneralRampingPhaseWithGeneral
-)
-TestGeneralRampingPhaseWithGeneralExpFrag.__name__ = (
-    "TestGeneralRampingPhaseWithGeneralExpFrag"
-)
-TestGeneralRampingPhaseWithGeneralExp = make_fragment_scan_exp(
-    TestGeneralRampingPhaseWithGeneralExpFrag
-)
+
+def test_GeneralRampingPhaseNoGeneral(fragment_precompiler):
+    fragment_precompiler(make_test_expfrag(GeneralRampingPhaseNoGeneral))
+
+
+def test_GeneralRampingPhaseNoSUServo(fragment_precompiler):
+    fragment_precompiler(make_test_expfrag(GeneralRampingPhaseNoSUServo))
+
+
+def test_GeneralRampingPhaseNoAD9910(fragment_precompiler):
+    fragment_precompiler(make_test_expfrag(GeneralRampingPhaseNoAD9910))
