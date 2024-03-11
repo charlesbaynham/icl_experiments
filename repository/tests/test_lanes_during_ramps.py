@@ -10,7 +10,7 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
+from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 
 logger = logging.getLogger(__name__)

@@ -12,7 +12,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
-from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
+from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
 
 logger = logging.getLogger(__name__)

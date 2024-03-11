@@ -5,7 +5,7 @@ from artiq.experiment import *
 from ndscan.experiment import *
 
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase_alt import GeneralRampingPhase
+from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
