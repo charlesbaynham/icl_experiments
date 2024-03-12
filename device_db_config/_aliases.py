@@ -15,7 +15,6 @@ information like "optimal drive power for this AOM": that information belongs in
 `constants.py`.
 """
 
-
 aliases = {
     # %% SUServos
     # Blue
@@ -65,12 +64,12 @@ aliases = {
     "ttl_camera_trigger_vertical": "ttl15",
     "ttl_transfer_cavity_trigger": "ttl1",
     # %% Mirny
-    # "mirny_eom_cavity_offset_689": "mirny0_ch0",
     "mirny_aom_singlepass_1379": "mirny0_ch0",
     "mirny_eom_waveguide_1379": "mirny0_ch1",
-    "mirny_eom_707_sideband_A": "mirny1_ch0",
-    "mirny_eom_707_sideband_B": "mirny1_ch1",
-    "mirny_eom_689_sideband": "mirny1_ch2",
+    "mirny_eom_cavity_offset_689": "mirny1_ch0",
+    "mirny_eom_707_sideband_A": "mirny1_ch1",
+    "mirny_eom_707_sideband_B": "mirny1_ch2",
+    "mirny_eom_689_sideband": "mirny1_ch3",
     # %% Other
     "zotino_plant_room": "zotino0",
 }
