@@ -7,11 +7,14 @@ from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import BoolParam,BoolParamHandle
-from ndscan.experiment.parameters import FloatParam, FloatParamHandle
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.lib.utils import get_local_devices
 
-from repository.lib.constants import MIRNY_SETTINGS_87, MIRNY_SETTINGS_88
+from repository.lib.constants import MIRNY_SETTINGS_87
+from repository.lib.constants import MIRNY_SETTINGS_88
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +33,15 @@ class SetEOMSidebands(ExpFragment):
             BoolParam,
             "True = sr87, false = sr88",
             default=False,
-            
         )
-        self.sr87:BoolParamHandle
-
-
+        self.sr87: BoolParamHandle
 
     def host_setup(self):
         super().host_setup()
 
-        self.mirny_settings = MIRNY_SETTINGS_87 if self.sr87.get() else MIRNY_SETTINGS_88
+        self.mirny_settings = (
+            MIRNY_SETTINGS_87 if self.sr87.get() else MIRNY_SETTINGS_88
+        )
 
         self.mirny_channels = []
         self.mirnys = set()
@@ -51,12 +53,10 @@ class SetEOMSidebands(ExpFragment):
 
         self.mirnys = list(self.mirnys)
 
-
-
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
-    
+
         self.core.break_realtime()
 
         for mirny_cpld in self.mirnys:
@@ -64,7 +64,6 @@ class SetEOMSidebands(ExpFragment):
 
         for mirny_channel in self.mirny_channels:
             mirny_channel.init()
-
 
     @kernel
     def run_once(self) -> None:
