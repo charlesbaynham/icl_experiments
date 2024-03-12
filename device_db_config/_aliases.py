@@ -68,6 +68,9 @@ aliases = {
     # "mirny_eom_cavity_offset_689": "mirny0_ch0",
     "mirny_aom_singlepass_1379": "mirny0_ch0",
     "mirny_eom_waveguide_1379": "mirny0_ch1",
+    "mirny_eom_707_sideband_A": "mirny1_ch0",
+    "mirny_eom_707_sideband_B": "mirny1_ch1",
+    "mirny_eom_689_sideband": "mirny1_ch2",
     # %% Other
     "zotino_plant_room": "zotino0",
 }
