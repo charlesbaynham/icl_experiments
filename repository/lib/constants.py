@@ -294,7 +294,7 @@ AOM_BEAMS = {beam.name: beam for beam in AOM_BEAMS}
 @dataclass
 class MirnySettings:
     device_name: str
-    frequency: float = 0.0
+    frequency: float
     attenuation: float = 30.0
     rf_switch: bool = True
 
@@ -305,9 +305,15 @@ MIRNY_SETTINGS_88 = [
         frequency=OFFSET_FREQUENCY_689,
         attenuation=OFFSET_ATTENUATION_689,
     ),
-    MirnySettings(device_name="mirny_eom_707_sideband_A", rf_switch=False),
-    MirnySettings(device_name="mirny_eom_707_sideband_B", rf_switch=False),
-    MirnySettings(device_name="mirny_eom_689_sideband", rf_switch=False),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_A", frequency=100e6, rf_switch=False
+    ),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_B", frequency=100e6, rf_switch=False
+    ),
+    MirnySettings(
+        device_name="mirny_eom_689_sideband", frequency=100e6, rf_switch=False
+    ),
 ]
 
 MIRNY_SETTINGS_87 = [
