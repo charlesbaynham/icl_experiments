@@ -57,7 +57,6 @@ class SetEOMSidebandsFrag(ExpFragment):
             logger.info("Initiating mirny %s", mirny_cpld)
             self.core.break_realtime()
             mirny_cpld.init()
-            delay(100e-3)
 
         for i in range(len(self.mirny_channels)):
             mirny_channel = self.mirny_channels[i]
@@ -65,7 +64,6 @@ class SetEOMSidebandsFrag(ExpFragment):
 
             logger.info("Setting mirny %s to %s", mirny_channel, mirny_settings)
             self.core.break_realtime()
-            delay(100e-3)
 
             mirny_channel.init()
 
