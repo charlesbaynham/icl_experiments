@@ -10,6 +10,8 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
@@ -33,6 +35,17 @@ class SetEOMSidebandsFrag(ExpFragment):
             default=False,
         )
         self.sr87: BoolParamHandle
+
+        self.attenuation_handles: List[FloatParamHandle] = []
+        for settings in MIRNY_SETTINGS_87:
+            handle = self.setattr_param(
+                f"attenuation_{settings.device_name}",
+                FloatParam,
+                f"Attenuation for channel {settings.device_name}",
+                default=settings.attenuation,
+                min=0,
+            )
+            self.attenuation_handles.append(handle)
 
     def host_setup(self):
         super().host_setup()
@@ -62,7 +75,15 @@ class SetEOMSidebandsFrag(ExpFragment):
             mirny_channel = self.mirny_channels[i]
             mirny_settings = self.mirny_settings[i]
 
-            logger.info("Setting mirny %s to %s", mirny_channel, mirny_settings)
+            attenuation_handle = self.attenuation_handles[i]
+            attenuation = attenuation_handle.get()
+
+            logger.info(
+                "Setting mirny %s to %s with %f dB attenuation",
+                mirny_channel,
+                mirny_settings,
+                attenuation,
+            )
             self.core.break_realtime()
 
             mirny_channel.init()
@@ -71,7 +92,7 @@ class SetEOMSidebandsFrag(ExpFragment):
             # at any point
             mirny_channel.sw.set_o(False)
             mirny_channel.set_frequency(mirny_settings.frequency)
-            mirny_channel.set_att(mirny_settings.attenuation)
+            mirny_channel.set_att(attenuation)
             mirny_channel.sw.set_o(mirny_settings.rf_switch)
 
 

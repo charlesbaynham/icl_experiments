@@ -326,3 +326,7 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(device_name="mirny_eom_707_sideband_B", frequency=487e6),
     MirnySettings(device_name="mirny_eom_689_sideband", frequency=1463e6),
 ]
+
+assert [s.device_name for s in MIRNY_SETTINGS_87] == [
+    s.device_name for s in MIRNY_SETTINGS_88
+], "Please ensure both lists are in the same order"
