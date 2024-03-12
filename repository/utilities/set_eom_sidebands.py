@@ -1,4 +1,5 @@
 import logging
+from typing import *
 
 from artiq.coredevice.adf5356 import ADF5356
 from artiq.coredevice.core import Core
@@ -19,7 +20,7 @@ from repository.lib.constants import MIRNY_SETTINGS_88
 logger = logging.getLogger(__name__)
 
 
-class SetEOMSidebands(ExpFragment):
+class SetEOMSidebandsFrag(ExpFragment):
     """
     Set all the EOM frequencies for using Sr88 / Sr87
     """
@@ -43,7 +44,7 @@ class SetEOMSidebands(ExpFragment):
             MIRNY_SETTINGS_87 if self.sr87.get() else MIRNY_SETTINGS_88
         )
 
-        self.mirny_channels = []
+        self.mirny_channels: List[ADF5356] = []
         self.mirnys = set()
 
         for settings in self.mirny_settings:
@@ -51,27 +52,27 @@ class SetEOMSidebands(ExpFragment):
             self.mirny_channels.append(channel)
             self.mirnys.add(channel.cpld)
 
-        self.mirnys = list(self.mirnys)
-
-    @kernel
-    def device_setup(self):
-        self.device_setup_subfragments()
-
-        self.core.break_realtime()
-
-        for mirny_cpld in self.mirnys:
-            mirny_cpld.init()
-
-        for mirny_channel in self.mirny_channels:
-            mirny_channel.init()
+        self.mirnys: List[Mirny] = list(self.mirnys)
 
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
 
-        self.mirny_channel.set_frequency(self.frequency.get())
-        self.mirny_channel.set_att(self.attenuation.get())
-        self.mirny_channel.sw.set_o(self.rf_sw.get())
+        for mirny_cpld in self.mirnys:
+            mirny_cpld.init()
+
+        for i in range(len(self.mirny_channels)):
+            mirny_channel = self.mirny_channels[i]
+            mirny_settings = self.mirny_settings[i]
+
+            mirny_channel.init()
+
+            # Disable the output momentarily to avoid sending the wrong settings
+            # at any point
+            mirny_channel.sw.set_o(False)
+            mirny_channel.set_frequency(mirny_settings.frequency)
+            mirny_channel.set_att(mirny_settings.attenuation)
+            mirny_channel.sw.set_o(mirny_settings.rf_switch)
 
 
-SetMirny = make_fragment_scan_exp(SetMirnyFrag)
+SetEOMSidebands = make_fragment_scan_exp(SetEOMSidebandsFrag)
