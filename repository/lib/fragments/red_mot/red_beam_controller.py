@@ -17,7 +17,6 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 from repository.lib.fragments.beam_setters import SetBeamsToDefaults
-from repository.lib.fragments.cavity_control import LaserStabilisationSystem
 from repository.lib.fragments.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )

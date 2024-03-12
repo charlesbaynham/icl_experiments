@@ -116,7 +116,8 @@ OFFSET_FREQUENCY_689 = 533e6
 """
 Default cavity offset frequency for the 689's laser stabilization
 
-Note - this is currently (2023-08-02) unused since the EOM is driven statically by a RIGOL
+This is only used by the set_eom_sidebands utility since it glitches the Mirny
+output causing the cavity to unlock
 """
 
 OFFSET_ATTENUATION_689 = 7.0
