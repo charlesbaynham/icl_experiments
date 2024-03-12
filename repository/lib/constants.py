@@ -324,7 +324,9 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(device_name="mirny_eom_707_sideband_A", frequency=576e6),
     MirnySettings(device_name="mirny_eom_707_sideband_B", frequency=487e6),
-    MirnySettings(device_name="mirny_eom_689_sideband", frequency=1463e6),
+    MirnySettings(
+        device_name="mirny_eom_689_sideband", frequency=1463e6, attenuation=17.0
+    ),
 ]
 
 assert [s.device_name for s in MIRNY_SETTINGS_87] == [
