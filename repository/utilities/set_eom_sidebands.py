@@ -56,14 +56,17 @@ class SetEOMSidebandsFrag(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
-        self.core.break_realtime()
-
         for mirny_cpld in self.mirnys:
+            logger.info("Initiating mirny %s", mirny_cpld)
+            self.core.break_realtime()
             mirny_cpld.init()
 
         for i in range(len(self.mirny_channels)):
             mirny_channel = self.mirny_channels[i]
             mirny_settings = self.mirny_settings[i]
+
+            logger.info("Setting mirny %s to %s", mirny_channel, mirny_settings)
+            self.core.break_realtime()
 
             mirny_channel.init()
 
