@@ -4,15 +4,12 @@ from typing import *
 from artiq.coredevice.adf5356 import ADF5356
 from artiq.coredevice.core import Core
 from artiq.coredevice.mirny import Mirny
-from artiq.experiment import EnumerationValue
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.lib.utils import get_local_devices
 
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
@@ -60,6 +57,7 @@ class SetEOMSidebandsFrag(ExpFragment):
             logger.info("Initiating mirny %s", mirny_cpld)
             self.core.break_realtime()
             mirny_cpld.init()
+            delay(100e-3)
 
         for i in range(len(self.mirny_channels)):
             mirny_channel = self.mirny_channels[i]
@@ -67,6 +65,7 @@ class SetEOMSidebandsFrag(ExpFragment):
 
             logger.info("Setting mirny %s to %s", mirny_channel, mirny_settings)
             self.core.break_realtime()
+            delay(100e-3)
 
             mirny_channel.init()
 
