@@ -52,6 +52,8 @@ class LoadingSr87Frag(ExpFragment):
         )
         self.toptica_679_voltage: FloatParamHandle
 
+        self.setattr_argument("clearout", BooleanValue(default=True))
+
     def host_setup(self):
         # Open a connection
         self.toptica_679.get_dlcpro().open()
@@ -71,7 +73,7 @@ class LoadingSr87Frag(ExpFragment):
         self.core.break_realtime()
         self.eom_sidebands.set_sidebands()
 
-        self.blue_mot.load_mot()
+        self.blue_mot.load_mot(clearout=self.clearout)
         self.dual_cameras.trigger()
 
         self.core.wait_until_mu(now_mu())
