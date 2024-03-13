@@ -322,8 +322,12 @@ MIRNY_SETTINGS_87 = [
         frequency=OFFSET_FREQUENCY_689,
         attenuation=OFFSET_ATTENUATION_689,
     ),
-    MirnySettings(device_name="mirny_eom_707_sideband_A", frequency=576e6),
-    MirnySettings(device_name="mirny_eom_707_sideband_B", frequency=487e6),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_A", frequency=576e6, attenuation=19.0
+    ),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_B", frequency=487e6, attenuation=19.0
+    ),
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463e6, attenuation=19.0
     ),
