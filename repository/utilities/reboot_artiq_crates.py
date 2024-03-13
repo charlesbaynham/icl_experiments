@@ -40,10 +40,15 @@ class HardRebootARTIQCrates(EnvExperiment):
         self.toggle_crates()
 
     def toggle_crates(self):
-        # Power off
         for host in TASMOTA_HOSTS:
+            logger.info("Turning off %s", host)
             requests.get(POWER_OFF_CMD.format(host))
-            time.sleep(0.5)
+
+        time.sleep(3)
+
+        for host in TASMOTA_HOSTS:
+            logger.info("Turning on %s", host)
+            requests.get(POWER_ON_CMD.format(host))
 
     def is_user_sure(self):
         """
