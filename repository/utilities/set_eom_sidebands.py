@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class SetEOMSidebandsFrag(ExpFragment):
     """
-    Set all the EOM frequencies for using Sr88 / Sr87
+    Set all the EOM frequencies for using Sr88 vs Sr87
     """
 
     def build_fragment(self):
