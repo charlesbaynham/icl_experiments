@@ -49,7 +49,7 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("close_all_shutters", CloseAllICLShutters)
+        # self.setattr_fragment("close_all_shutters", CloseAllICLShutters)  # FIXME
 
         self.setattr_fragment("all_beam_default_setter", BlueBeamSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
