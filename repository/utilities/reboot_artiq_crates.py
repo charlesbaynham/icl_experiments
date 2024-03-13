@@ -1,5 +1,6 @@
 import logging
 import random
+import time
 
 import requests
 from artiq.experiment import *
@@ -41,7 +42,8 @@ class HardRebootARTIQCrates(EnvExperiment):
     def toggle_crates(self):
         # Power off
         for host in TASMOTA_HOSTS:
-            pass
+            requests.get(POWER_OFF_CMD.format(host))
+            time.sleep(0.5)
 
     def is_user_sure(self):
         """
