@@ -9,7 +9,7 @@ from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 
-MAX_VOLTAGE_STEP = 1.0
+MAX_VOLTAGE_STEP = 5.0
 
 
 class LoadingSr87Frag(ExpFragment):
