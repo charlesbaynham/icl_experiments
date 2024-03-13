@@ -43,6 +43,7 @@ class CloseAllShutters(Fragment):
     @kernel
     def device_setup(self) -> None:
         if self.first_run:
+            self.first_run = False
             self.core.break_realtime()
 
             for ttl in self.ttls:
