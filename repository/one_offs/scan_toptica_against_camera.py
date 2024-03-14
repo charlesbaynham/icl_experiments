@@ -91,6 +91,10 @@ class LoadingSr87Frag(ExpFragment):
         self.dual_cameras.save_data()
 
         # Wavemeter measurements
+        self.get_frequencies()
+
+    @rpc
+    def get_frequencies(self):
         _, freq_461, _ = self.wand_server.get_freq("461")
         _, freq_707, _ = self.wand_server.get_freq("707")
         _, freq_679, _ = self.wand_server.get_freq("679")
