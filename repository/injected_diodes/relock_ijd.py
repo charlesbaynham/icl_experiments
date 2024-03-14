@@ -19,6 +19,8 @@ from ndscan.experiment import LinearGenerator
 from ndscan.experiment import setattr_subscan
 from ndscan.experiment import Subscan
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -275,8 +277,10 @@ class RelockAllIJDsFrag(ExpFragment):
         ]
 
         self.ijd_controller_frags: List[RelockIJDFrag] = []
+        self.ijd_controller_enabled: List[BoolParamHandle] = []
 
         # Request a relock fragment for each IJD controller
+
         for ijd_controller_name in ijd_controller_names:
             fragment_name = f"frag_relocker_{ijd_controller_name}"
 
@@ -284,6 +288,15 @@ class RelockAllIJDsFrag(ExpFragment):
                 fragment_name,
                 RelockIJDFrag,
                 ijd_controller_name,
+            )
+
+            self.ijd_controller_enabled.append(
+                self.setattr_param(
+                    f"{ijd_controller_name}_enabled",
+                    BoolParam,
+                    description=f"{ijd_controller_name} enabled",
+                    default=True,
+                )
             )
 
             self.ijd_controller_frags.append(frag)  # type: ignore
@@ -352,9 +365,12 @@ class RelockAllIJDsFrag(ExpFragment):
 
     def run_once(self) -> None:
         # Relock each IJD in order
-        for ijd_relock_frag in self.ijd_controller_frags:
-            ijd_relock_frag: RelockIJDFrag
-            ijd_relock_frag.relock()
+        for i in range(len(self.ijd_controller_frags)):
+            ijd_relock_frag = self.ijd_controller_frags[i]
+            enabled = self.ijd_controller_enabled[i]
+
+            if enabled.get():
+                ijd_relock_frag.relock()
 
 
 RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
