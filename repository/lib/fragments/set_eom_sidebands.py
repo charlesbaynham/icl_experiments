@@ -35,15 +35,27 @@ class SetEOMSidebandsFrag(ExpFragment):
         self.sr87: BoolParamHandle
 
         self.attenuation_handles: List[FloatParamHandle] = []
+        self.frequency_handles: List[FloatParamHandle] = []
+
         for settings in MIRNY_SETTINGS_87:
-            handle = self.setattr_param(
+            handle_attenuation = self.setattr_param(
                 f"attenuation_{settings.device_name}",
                 FloatParam,
                 f"Attenuation for channel {settings.device_name}",
                 default=settings.attenuation,
                 min=0,
             )
-            self.attenuation_handles.append(handle)
+            self.attenuation_handles.append(handle_attenuation)
+
+            handle_frequency = self.setattr_param(
+                f"frequency_{settings.device_name}",
+                FloatParam,
+                f"Frequency for channel {settings.device_name}",
+                default=settings.frequency,
+                min=0,
+                unit="MHz",
+            )
+            self.frequency_handles.append(handle_frequency)
 
     def host_setup(self):
         super().host_setup()
@@ -84,10 +96,13 @@ class SetEOMSidebandsFrag(ExpFragment):
             attenuation_handle = self.attenuation_handles[i]
             attenuation = attenuation_handle.get()
 
+            frequency_handle = self.frequency_handles[i]
+            frequency = frequency_handle.get()
+
             # Disable the output momentarily to avoid sending the wrong settings
             # at any point
             mirny_channel.sw.set_o(False)
-            mirny_channel.set_frequency(mirny_settings.frequency)
+            mirny_channel.set_frequency(frequency)
             mirny_channel.set_att(attenuation)
             mirny_channel.sw.set_o(mirny_settings.rf_switch)
 
