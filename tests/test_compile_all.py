@@ -57,10 +57,28 @@ def get_all_of_class_from_repository(cls):
 
 all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 
+# Add xfailing modules
+xfails = [("LoadingSr87Frag", "Toptica device setup is not mocked properly")]
+
+xfail_names = [x[0] for x in xfails]
+all_exp_fragments_marked = []
+for module, exp in all_exp_fragments:
+    if any((name in exp.__name__ for name in xfail_names)):
+        for xfail_name, xfail_reason in xfails:
+            if xfail_name in exp.__name__:
+                all_exp_fragments_marked.append(
+                    pytest.param(
+                        module, exp, marks=pytest.mark.xfail(reason=xfail_reason)
+                    ),
+                )
+                break
+    else:
+        all_exp_fragments_marked.append((module, exp))
+
 
 @pytest.mark.parametrize(
     "module, exp",
-    all_exp_fragments,
+    all_exp_fragments_marked,
     ids=[f"{module.__name__} / {exp.__name__}" for module, exp in all_exp_fragments],
 )
 def test_build_all_fragments(module, exp, fragment_precompiler):
