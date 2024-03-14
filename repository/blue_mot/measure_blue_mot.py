@@ -77,7 +77,12 @@ class _MeasureBlueMOTFrag(ExpFragment):
         self._before_start_load_hook()
 
         # Load MOT and start measuring signal immediately
-        self.mot_controller.turn_on_all_beams()
+        if self.clearout.get():
+            self.mot_controller.turn_on_all_beams()
+        else:
+            # If clearout was not requested, we'll not change the AOM levels
+            # unless this is called at some point so do so now
+            self.mot_controller.all_beam_default_setter.turn_on_all(light_enabled=True)
 
         self._take_data(self.mot_loading_time.get())
 
