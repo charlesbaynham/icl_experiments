@@ -3,11 +3,11 @@ from artiq.experiment import now_mu
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from toptica_wrapper.driver import TopticaDLCPro
+from wand.server import ControlInterface as WANDControlInterface
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
-
 
 MAX_VOLTAGE_STEP = 5.0
 
@@ -27,6 +27,9 @@ class LoadingSr87Frag(ExpFragment):
 
         self.setattr_fragment("eom_sidebands", SetEOMSidebandsFrag)
         self.eom_sidebands: SetEOMSidebandsFrag
+
+        self.setattr_device("wand_server")
+        self.wand_server: WANDControlInterface
 
         self.setattr_device("toptica_679")
         self.toptica_679: TopticaDLCPro
@@ -54,6 +57,14 @@ class LoadingSr87Frag(ExpFragment):
 
         self.setattr_argument("clearout", BooleanValue(default=True))
 
+        self.setattr_result("frequency_461")
+        self.setattr_result("frequency_707")
+        self.setattr_result("frequency_679")
+
+        self.frequency_461: FloatChannel
+        self.frequency_707: FloatChannel
+        self.frequency_679: FloatChannel
+
     def host_setup(self):
         # Open a connection
         self.toptica_679.get_dlcpro().open()
@@ -78,6 +89,15 @@ class LoadingSr87Frag(ExpFragment):
 
         self.core.wait_until_mu(now_mu())
         self.dual_cameras.save_data()
+
+        # Wavemeter measurements
+        _, freq_461, _ = self.wand_server.get_freq("461")
+        _, freq_707, _ = self.wand_server.get_freq("707")
+        _, freq_679, _ = self.wand_server.get_freq("679")
+
+        self.frequency_461.push(freq_461)
+        self.frequency_707.push(freq_707)
+        self.frequency_679.push(freq_679)
 
     @rpc
     def set_topticas(self, new_679_voltage: TFloat, new_707_voltage: TFloat):

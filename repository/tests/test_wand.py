@@ -1,11 +1,11 @@
 from artiq.experiment import *
-from wand.server import ControlInterface
+from wand.server import ControlInterface as WANDControlInterface
 
 
 class TestWANDControl(EnvExperiment):
     def build(self):
         self.setattr_device("wand_server")
-        self.wand_server: ControlInterface
+        self.wand_server: WANDControlInterface
 
     def run(self):
         lasers = self.wand_server.get_laser_db()
