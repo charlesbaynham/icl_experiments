@@ -6,7 +6,7 @@ from toptica_wrapper.driver import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
+from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 MAX_VOLTAGE_STEP = 5.0

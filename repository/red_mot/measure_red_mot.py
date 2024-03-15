@@ -15,9 +15,9 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.andor_camera import AndorCameraControl
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 

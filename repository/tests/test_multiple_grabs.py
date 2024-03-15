@@ -6,7 +6,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle
 
-from repository.lib.fragments.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 
 class MultipleGrabs(ExpFragment):
