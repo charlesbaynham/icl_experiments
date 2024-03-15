@@ -103,6 +103,8 @@ class ResetAllBeams(Fragment):
         self.enabled: BoolParamHandle
 
         # %% Kernel invariants and variables
+        self.first_run = True
+
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
             "beam_infos",
@@ -141,4 +143,4 @@ class CloseAllICLShutters(CloseAllShutters):
 
 
 class ResetAllICLBeams(ResetAllBeams):
-    beam_infos = [constants.AOM_BEAMS]
+    beam_infos = list(constants.AOM_BEAMS.values())
