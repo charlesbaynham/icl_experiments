@@ -4,6 +4,7 @@ Define the phases available for making red MOTs
 This module currently breaks the rule about only storing physics-determined
 numbers in `constants.py`.
 """
+
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
