@@ -182,7 +182,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=2.8,
     ),
     SUServoedBeam(
         "blue_3dmot_axialminus",
@@ -192,7 +192,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=5.0,
+        setpoint=3.0,
     ),
     SUServoedBeam(
         "blue_3dmot_axialplus",
@@ -202,7 +202,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=3.2,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "blue_imaging_delivery",
