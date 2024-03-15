@@ -102,6 +102,7 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     """
 
     duration_default = constants.RED_BROADBAND_TIME
+    time_step_default = 4000e-6
 
     # For the broadband stage we don't want control over the Urukul since the
     # frequency is controlled by the fast ramp rate. The parameters controlling
