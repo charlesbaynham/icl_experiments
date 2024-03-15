@@ -5,7 +5,7 @@ from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
 
-from repository.lib.beams.beam_setters import ToggleListOfBeams
+from repository.lib.fragments.beams.beam_setters import ToggleListOfBeams
 
 BEAM_INFO_SUSERVO_NO_SHUTTER = SUServoedBeam(
     "no_shutter_suservo", 0.0, 0.0, "suservo0_ch0"

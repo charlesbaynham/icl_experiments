@@ -11,9 +11,9 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
-from repository.lib.beams.beam_setters import make_set_beams_to_default
-from repository.lib.beams.beam_setters import SetBeamsToDefaults
-from repository.lib.beams.reset_all_beams import ResetAllICLBeams
+from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
+from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
 

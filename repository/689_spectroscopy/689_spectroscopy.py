@@ -6,7 +6,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.cameras.triple_imaging_kinetics import SpectroscopyMixin
 from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTFrag
 
