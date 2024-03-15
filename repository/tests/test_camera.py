@@ -16,7 +16,7 @@ from ndscan.experiment.result_channels import OpaqueChannel
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from retry import retry
 
-from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
+from repository.lib.fragments.cameras.flir_camera import Chamber2HorizontalCamera
 
 
 class TestFLIRCamera(EnvExperiment):

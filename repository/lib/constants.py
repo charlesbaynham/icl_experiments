@@ -182,7 +182,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=2.8,
     ),
     SUServoedBeam(
         "blue_3dmot_axialminus",
@@ -192,7 +192,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=5.0,
+        setpoint=3.0,
     ),
     SUServoedBeam(
         "blue_3dmot_axialplus",
@@ -202,7 +202,7 @@ AOM_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=10e-3,
         servo_enabled=True,
-        setpoint=3.2,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "blue_imaging_delivery",
@@ -323,10 +323,10 @@ MIRNY_SETTINGS_87 = [
         attenuation=OFFSET_ATTENUATION_689,
     ),
     MirnySettings(
-        device_name="mirny_eom_707_sideband_A", frequency=576e6, attenuation=19.0
+        device_name="mirny_eom_707_sideband_A", frequency=576e6, attenuation=20.0
     ),
     MirnySettings(
-        device_name="mirny_eom_707_sideband_B", frequency=487e6, attenuation=19.0
+        device_name="mirny_eom_707_sideband_B", frequency=487e6, attenuation=24.0
     ),
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463e6, attenuation=19.0
