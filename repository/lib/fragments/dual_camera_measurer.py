@@ -17,8 +17,8 @@ from ndscan.experiment.result_channels import FloatChannel
 from ndscan.experiment.result_channels import IntChannel
 from ndscan.experiment.result_channels import OpaqueChannel
 
-from repository.lib.fragments.cameras.flir_camera import Chamber2HorizontalCamera
-from repository.lib.fragments.cameras.flir_camera import Chamber2VerticalCamera
+from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
+from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
 
 
 logger = logging.getLogger(__name__)

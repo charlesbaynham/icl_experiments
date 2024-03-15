@@ -1,8 +1,8 @@
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.fragments.cameras.flir_camera import Chamber2HorizontalCamera
-from repository.lib.fragments.cameras.flir_camera import Chamber2VerticalCamera
-from repository.lib.fragments.cameras.flir_camera import MonitorCameraExp
+from repository.lib.fragments.flir_camera import Chamber2HorizontalCamera
+from repository.lib.fragments.flir_camera import Chamber2VerticalCamera
+from repository.lib.fragments.flir_camera import MonitorCameraExp
 
 
 class MonitorChamber2HorizCamera(MonitorCameraExp):

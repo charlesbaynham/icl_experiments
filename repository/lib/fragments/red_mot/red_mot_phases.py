@@ -10,7 +10,7 @@ from artiq.experiment import TFloat
 from artiq.experiment import TList
 
 from repository.lib import constants
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
@@ -102,7 +102,6 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     """
 
     duration_default = constants.RED_BROADBAND_TIME
-    time_step_default = 4000e-6
 
     # For the broadband stage we don't want control over the Urukul since the
     # frequency is controlled by the fast ramp rate. The parameters controlling

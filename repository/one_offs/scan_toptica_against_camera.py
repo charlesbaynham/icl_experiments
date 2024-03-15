@@ -6,7 +6,7 @@ from toptica_wrapper.driver import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
+from repository.lib.fragments.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 MAX_VOLTAGE_STEP = 5.0
@@ -91,10 +91,6 @@ class LoadingSr87Frag(ExpFragment):
         self.dual_cameras.save_data()
 
         # Wavemeter measurements
-        self.get_frequencies()
-
-    @rpc
-    def get_frequencies(self):
         _, freq_461, _ = self.wand_server.get_freq("461")
         _, freq_707, _ = self.wand_server.get_freq("707")
         _, freq_679, _ = self.wand_server.get_freq("679")

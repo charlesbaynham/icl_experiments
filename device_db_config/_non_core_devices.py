@@ -97,9 +97,9 @@ def get_non_core_devices(simulation_mode=False):
         },
         "flir_camera_ch2_horizontal": {
             "type": "local",
-            "module": "repository.lib.fragments.cameras.flir_camera_shim",
+            "module": "repository.lib.fragments.flir_camera_shim",
             "class": "Camera",
-            "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
+            "mockmodule": "repository.lib.fragments.flir_camera_shim",
             "mockclass": "MockCamera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
@@ -108,9 +108,9 @@ def get_non_core_devices(simulation_mode=False):
         },
         "flir_camera_ch2_vertical": {
             "type": "local",
-            "module": "repository.lib.fragments.cameras.flir_camera_shim",
+            "module": "repository.lib.fragments.flir_camera_shim",
             "class": "Camera",
-            "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
+            "mockmodule": "repository.lib.fragments.flir_camera_shim",
             "mockclass": "MockCamera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
