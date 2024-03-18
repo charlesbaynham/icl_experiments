@@ -335,7 +335,7 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 # Lasers not listed will be ignored. Lasers set to NaN will have their locks disabled
 WAND_OFFSETS_88 = {"461": -20e6, "707": 0, "679": 0, "689": float("nan")}
 WAND_OFFSETS_87 = {
-    "461": -70e6,
+    "461": -85e6,
     "707": +15e6,
     "679": -2430e6,
     "689": float("nan"),
