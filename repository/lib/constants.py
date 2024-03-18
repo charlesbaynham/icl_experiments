@@ -112,13 +112,6 @@ RED_BROADBAND_TIME = 100e-3
 DEFAULT_IMAGING_PULSE = 250e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
-OFFSET_FREQUENCY_689 = 533e6
-"""
-Default cavity offset frequency for the 689's laser stabilization
-
-This is only used by the set_eom_sidebands utility since it glitches the Mirny
-output causing the cavity to unlock
-"""
 
 OFFSET_ATTENUATION_689 = 7.0
 "Default cavity offset attenuation for the 689's laser stabilization"
@@ -302,7 +295,7 @@ class MirnySettings:
 MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=OFFSET_FREQUENCY_689,
+        frequency=533e6,
         attenuation=OFFSET_ATTENUATION_689,
     ),
     MirnySettings(
@@ -319,7 +312,7 @@ MIRNY_SETTINGS_88 = [
 MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=OFFSET_FREQUENCY_689,
+        frequency=708.44e6,
         attenuation=OFFSET_ATTENUATION_689,
     ),
     MirnySettings(
