@@ -4,7 +4,6 @@ Define the phases available for making red MOTs
 This module currently breaks the rule about only storing physics-determined
 numbers in `constants.py`.
 """
-
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
@@ -121,8 +120,8 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     # "suservo_aom_singlepass_689_red_mot_sigmaminus",
     # "suservo_aom_singlepass_689_red_mot_diagonal",
     # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [1.0, 1.0, 1.0, 0.0]
-    default_suservo_setpoint_multiples_end = [1.0, 1.0, 1.0, 0.0]
+    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.0]
+    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.0]
 
     # Chamber 2 MOT coils in amps
     general_setter_default_starts = [constants.RED_BROADBAND_CURRENT]
