@@ -14,7 +14,6 @@ If it makes sense to have hardware and experimental constants stored together
 (e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
 this module.
 """
-
 from collections import OrderedDict
 from dataclasses import dataclass
 
@@ -337,3 +336,14 @@ MIRNY_SETTINGS_87 = [
 assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
+
+
+# WAND defaults for the two isotopes
+# Lasers not listed will be ignored. Lasers set to NaN will have their locks disabled
+WAND_OFFSETS_88 = {"461": -20e6, "707": 0, "679": 0, "689": float("nan")}
+WAND_OFFSETS_87 = {
+    "461": -70e6,
+    "707": +15e6,
+    "679": -2430e6,
+    "689": float("nan"),
+}
