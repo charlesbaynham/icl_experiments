@@ -1,4 +1,5 @@
 import logging
+from math import isnan
 
 from artiq.coredevice.core import Core
 from ndscan.experiment import *
@@ -44,8 +45,12 @@ class SwitchIsotopeFrag(ExpFragment):
             offsets = constants.WAND_OFFSETS_88
 
         for laser, offset in offsets.items():
-            logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
-            self.wand_server.lock(laser=laser, set_point=offset)
+            if isnan(offset):
+                logger.info("Disabling lock for laser %s", laser)
+                self.wand_server.unlock(laser=laser, name="")
+            else:
+                logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
+                self.wand_server.lock(laser=laser, set_point=offset)
 
         print(self.wand_server.get_laser_db())
 

@@ -63,6 +63,8 @@ class SetEOMSidebandsFrag(ExpFragment):
 
         self.mirnys: List[Mirny] = list(self.mirnys)
 
+        logger.info("Preparing EOM sidebands with sr87 = %s", self.sr87.get())
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
