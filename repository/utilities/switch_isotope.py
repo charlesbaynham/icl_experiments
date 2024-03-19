@@ -71,7 +71,7 @@ class SwitchIsotopeFrag(ExpFragment):
 
         logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
 
-        laser_unlocked = {l: True for l in offsets.keys()}
+        laser_unlocked = {l: not isnan(o) for l, o in offsets.items()}
 
         try:
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
