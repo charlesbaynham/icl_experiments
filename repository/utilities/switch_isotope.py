@@ -58,7 +58,7 @@ class SwitchIsotopeFrag(ExpFragment):
                 self.wand_server.unlock(laser=laser, name="")
             else:
                 logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
-                self.wand_server.lock(laser=laser, set_point=offset)
+                self.wand_server.lock(laser=laser, set_point=offset, timeout=None)
 
         initial_laser_db = self.wand_server.get_laser_db()
 
