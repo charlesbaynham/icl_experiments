@@ -3,6 +3,7 @@ import time
 from math import isnan
 
 from artiq.coredevice.core import Core
+from artiq.master.scheduler import Scheduler
 from ndscan.experiment import *
 from ndscan.experiment.parameters import BoolParamHandle
 from wand.server import ControlInterface as WANDControlInterface
@@ -22,6 +23,10 @@ class SwitchIsotopeFrag(ExpFragment):
     def build_fragment(self, *args, **kwargs) -> None:
         self.setattr_device("core")
         self.core: Core
+
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
+
         self.setattr_fragment("set_sidebands_frag", SetEOMSidebandsFrag)
         self.set_sidebands_frag: SetEOMSidebandsFrag
 
@@ -80,6 +85,7 @@ class SwitchIsotopeFrag(ExpFragment):
             t_end = time.time() + MAX_TIME_TO_FAST_LOCK
             while any(laser_unlocked.values()) and time.time() < t_end:
                 for laser, unlocked in laser_unlocked.items():
+                    self.scheduler.pause()
                     if unlocked:
                         desired_offset = offsets[laser]
                         meas = self.wand_server.get_freq(
