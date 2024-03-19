@@ -6,13 +6,15 @@ from artiq.coredevice.core import Core
 from ndscan.experiment import *
 from ndscan.experiment.parameters import BoolParamHandle
 from wand.server import ControlInterface as WANDControlInterface
+from wand.tools import WLMMeasurementStatus
 
 from repository.lib import constants
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
-TIME_TO_FAST_LOCK = 10  # s
+MAX_TIME_TO_FAST_LOCK = 30  # s
+MAX_FINAL_OFFSET = 5e6  # Hz
 WAND_FAST_LOCK_POLLING = 0.5  # s
 
 
@@ -64,6 +66,8 @@ class SwitchIsotopeFrag(ExpFragment):
 
         logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
 
+        laser_unlocked = {l: True for l in offsets.keys()}
+
         try:
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
                 self.wand_server.set_lock_params(
@@ -73,8 +77,23 @@ class SwitchIsotopeFrag(ExpFragment):
                     capture_range=capture_range,
                 )
 
-            logger.info("Sleeping for %.1fs", TIME_TO_FAST_LOCK)
-            time.sleep(TIME_TO_FAST_LOCK)
+            t_end = time.time() + MAX_TIME_TO_FAST_LOCK
+            while any(laser_unlocked.values()) and time.time() < t_end:
+                for laser, unlocked in laser_unlocked.items():
+                    if unlocked:
+                        desired_offset = offsets[laser]
+                        meas = self.wand_server.get_freq(
+                            laser=laser, offset_mode=True, age=1
+                        )
+                        status, actual_offset, _ = meas
+                        if status != WLMMeasurementStatus.OKAY:
+                            continue
+                        if abs(desired_offset - actual_offset) < MAX_FINAL_OFFSET:
+                            logger.info("Laser %s is locked", laser)
+                            laser_unlocked[laser] = False
+
+                time.sleep(1)
+
         finally:
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
                 self.wand_server.set_lock_params(
