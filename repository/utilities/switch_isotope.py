@@ -43,8 +43,8 @@ class SwitchIsotopeFrag(ExpFragment):
         self.wand_server: WANDControlInterface
 
     def run_once(self) -> None:
-        self.steer_wand()
         self.set_sidebands()
+        self.steer_wand()
 
     def steer_wand(self):
         if self.sr87.get():
