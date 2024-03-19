@@ -10,6 +10,9 @@ from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
+WAND_DEFAULT_LOCK_POLLING = 10.0  # s
+WAND_FAST_LOCK_POLLING = 0.5  # s
+
 
 class SwitchIsotopeFrag(ExpFragment):
     def build_fragment(self, *args, **kwargs) -> None:
@@ -37,6 +40,8 @@ class SwitchIsotopeFrag(ExpFragment):
         for laser, offset in offsets.items():
             logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
             self.wand_server.lock(laser=laser, set_point=offset)
+
+        print(self.wand_server.get_laser_db())
 
     @kernel
     def set_sidebands(self):
