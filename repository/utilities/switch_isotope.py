@@ -1,4 +1,5 @@
 import logging
+import time
 from math import isnan
 
 from artiq.coredevice.core import Core
@@ -11,7 +12,7 @@ from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
-WAND_DEFAULT_LOCK_POLLING = 10.0  # s
+TIME_TO_FAST_LOCK = 10  # s
 WAND_FAST_LOCK_POLLING = 0.5  # s
 
 
@@ -52,7 +53,33 @@ class SwitchIsotopeFrag(ExpFragment):
                 logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
                 self.wand_server.lock(laser=laser, set_point=offset)
 
-        print(self.wand_server.get_laser_db())
+        initial_laser_db = self.wand_server.get_laser_db()
+
+        laser_lock_initial_settings = []
+        for laser, offset in offsets.items():
+            gain = initial_laser_db[laser]["lock_gain"]
+            poll_time = initial_laser_db[laser]["lock_poll_time"]
+            capture_range = initial_laser_db[laser]["lock_capture_range"]
+            laser_lock_initial_settings.append((laser, gain, poll_time, capture_range))
+
+        try:
+            for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
+                self.wand_server.set_lock_params(
+                    laser=laser,
+                    gain=gain,
+                    poll_time=WAND_FAST_LOCK_POLLING,
+                    capture_range=capture_range,
+                )
+
+            time.sleep(TIME_TO_FAST_LOCK)
+        finally:
+            for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
+                self.wand_server.set_lock_params(
+                    laser=laser,
+                    gain=gain,
+                    poll_time=poll_time,
+                    capture_range=capture_range,
+                )
 
     @kernel
     def set_sidebands(self):
