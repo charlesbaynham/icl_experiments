@@ -21,8 +21,14 @@ class SwitchIsotopeFrag(ExpFragment):
         self.setattr_fragment("set_sidebands_frag", SetEOMSidebandsFrag)
         self.set_sidebands_frag: SetEOMSidebandsFrag
 
-        self.setattr_param_like("sr87", self.set_sidebands_frag)
+        self.setattr_param(
+            "sr87",
+            BoolParam,
+            "True = sr87, false = sr88",
+            default=False,
+        )
         self.sr87: BoolParamHandle
+        self.set_sidebands_frag.bind_param("sr87", self.sr87)
 
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
