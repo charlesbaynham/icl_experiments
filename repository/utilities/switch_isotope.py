@@ -14,7 +14,7 @@ from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
-MAX_TIME_TO_FAST_LOCK = 30  # s
+MAX_TIME_TO_FAST_LOCK = 60  # s
 MAX_FINAL_OFFSET = 5e6  # Hz
 WAND_FAST_LOCK_POLLING = 0.5  # s
 
