@@ -113,9 +113,6 @@ DEFAULT_IMAGING_PULSE = 250e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 
-OFFSET_ATTENUATION_689 = 7.0
-"Default cavity offset attenuation for the 689's laser stabilization"
-
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
 
@@ -296,7 +293,7 @@ MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
         frequency=533e6,
-        attenuation=OFFSET_ATTENUATION_689,
+        attenuation=8.0,
     ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_A", frequency=100e6, rf_switch=False
@@ -313,7 +310,7 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
         frequency=708.44e6,
-        attenuation=OFFSET_ATTENUATION_689,
+        attenuation=3.0,
     ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_A", frequency=576e6, attenuation=20.0
