@@ -126,8 +126,8 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.0]
 
     # Chamber 2 MOT coils in amps
-    general_setter_default_starts = [constants.RED_BROADBAND_CURRENT]
-    general_setter_default_ends = [1.0]
+    general_setter_default_starts = [3.0]
+    general_setter_default_ends = [3.0]
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
@@ -145,7 +145,7 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
 
     # Chamber 2 MOT coils in amps
-    general_setter_default_starts = [constants.RED_BROADBAND_CURRENT]
+    general_setter_default_starts = [3.0]
     general_setter_default_ends = [1.0]
 
 

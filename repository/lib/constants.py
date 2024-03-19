@@ -103,8 +103,6 @@ RED_BROADBAND_RAMP_LIMIT = 4e6
 RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
 "Default ramp frequency for the broadband red MOT"
 
-RED_BROADBAND_CURRENT = 3.0
-"Default current for broadband red MOT"
 
 RED_BROADBAND_TIME = 100e-3
 "Default time in broadband red MOT"
