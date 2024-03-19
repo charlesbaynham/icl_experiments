@@ -62,6 +62,8 @@ class SwitchIsotopeFrag(ExpFragment):
             capture_range = initial_laser_db[laser]["lock_capture_range"]
             laser_lock_initial_settings.append((laser, gain, poll_time, capture_range))
 
+        logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
+
         try:
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
                 self.wand_server.set_lock_params(
@@ -71,6 +73,7 @@ class SwitchIsotopeFrag(ExpFragment):
                     capture_range=capture_range,
                 )
 
+            logger.info("Sleeping for %.1fs", TIME_TO_FAST_LOCK)
             time.sleep(TIME_TO_FAST_LOCK)
         finally:
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
@@ -80,6 +83,7 @@ class SwitchIsotopeFrag(ExpFragment):
                     poll_time=poll_time,
                     capture_range=capture_range,
                 )
+            logger.info("Lock settings restored")
 
     @kernel
     def set_sidebands(self):
