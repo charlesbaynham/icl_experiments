@@ -483,7 +483,7 @@ class GeneralRampingPhase(Fragment):
 
     @portable
     def _calc_step_size(self, start: TFloat, end: TFloat, num_points: TInt32) -> TFloat:
-        return (end - start) / float(num_points)
+        return (end - start) / float(num_points - 1)
 
     @kernel
     def device_setup(self):
