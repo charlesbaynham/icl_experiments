@@ -143,9 +143,6 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
         self.andor_sum_1.push(sums[1])
         self.andor_sum_2.push(sums[2])
 
-        print(sums)
-        print(means)
-
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
         )
