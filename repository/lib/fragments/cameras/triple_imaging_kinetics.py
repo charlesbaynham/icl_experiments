@@ -142,12 +142,12 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
     @kernel
     def _do_pulse(self, andor_exposure):
-        delay(-0.5 * andor_exposure)
+        # delay(-0.5 * andor_exposure)
         self.andor_camera_control.trigger(
             exposure=andor_exposure,
             control_shutter=False,
         )
-        delay(0.5 * andor_exposure)
+        # delay(0.5 * andor_exposure)
         self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     # %% Hooks / overridable methods
@@ -276,7 +276,7 @@ class TripleImageMOTFrag(RedMOTWithExperiment):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+        andor_exposure = self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         # Image ground state atoms
         self.do_first_pulse(andor_exposure)
