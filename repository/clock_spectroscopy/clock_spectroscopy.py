@@ -86,8 +86,6 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
         self.andor_sum_2: FloatChannel
         self.excitation_fraction: FloatChannel
 
-        self.repump_beam_setter = self.blue_3d_mot.repump_beam_setter
-
     def pre_build_fragment_hook(self):
         self.setattr_fragment(
             "clock_up",
@@ -119,7 +117,7 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
 
         self.do_first_pulse(andor_exposure)
         delay(self.delay_after_first_pulse.get())
-        self.repump_beam_setter.turn_beams_on()
+        self.blue_3d_mot.turn_on_repumpers()
         delay(self.delay_after_repumps_on.get())
         self.do_second_pulse(andor_exposure)
         delay(self.delay_before_background_pulse.get())
