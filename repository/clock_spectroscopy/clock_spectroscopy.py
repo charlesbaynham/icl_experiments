@@ -8,29 +8,21 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OnlineFit
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-
-from repository.lib import constants
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.red_mot.measure_red_mot import RedMOTBase
-
-
-import logging
-
-from artiq.experiment import delay
-from artiq.experiment import kernel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
 from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
-from repository.lib.fragments.cameras.triple_imaging_kinetics import SpectroscopyMixin
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.cameras.triple_imaging_kinetics import (
     RedMOTWithExperiment,
 )
-from pyaion.models import SUServoedBeam
+from repository.lib.fragments.cameras.triple_imaging_kinetics import SpectroscopyMixin
+from repository.red_mot.measure_red_mot import RedMOTBase
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +137,9 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
         self.andor_sum_2.push(sums[2])
+
+        print(sums)
+        print(means)
 
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
