@@ -32,7 +32,7 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.override_param("spectroscopy_field_gradient", 0.0)
 
         # Disable unused params
-        for p in ["delay_after_spectroscopy", "extra_repump_time"]:
+        for p in ["delay_after_spectroscopy"]:
             self.override_param(p, 0)
 
         # %% Params
