@@ -75,11 +75,9 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
 
         """
 
-        # 3x ROIs
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=[],
         )
         self.andor_camera_control: AndorCameraControl
 
