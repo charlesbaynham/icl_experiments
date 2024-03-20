@@ -57,16 +57,6 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         )
         self.delay_after_spectroscopy: FloatParamHandle
 
-        # FIXME: I do nothing!!! delete me soon
-        self.setattr_param(
-            "extra_repump_time",
-            FloatParam,
-            "Time to keep repumps on during expansion",
-            default=0,
-            unit="us",
-        )
-        self.extra_repump_time: FloatParamHandle
-
         self.setattr_param(
             "spectroscopy_field_gradient",
             FloatParam,
