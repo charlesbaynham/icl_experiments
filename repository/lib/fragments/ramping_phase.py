@@ -483,7 +483,10 @@ class GeneralRampingPhase(Fragment):
 
     @portable
     def _calc_step_size(self, start: TFloat, end: TFloat, num_points: TInt32) -> TFloat:
-        return (end - start) / float(num_points - 1)
+        if num_points > 1:
+            return (end - start) / float(num_points - 1)
+        else:
+            return end - start
 
     @kernel
     def device_setup(self):
@@ -499,6 +502,7 @@ class GeneralRampingPhase(Fragment):
         # ramp is played / ends - it's easy to introduce an off-by-one error
         # unless you're really careful
         num_points = int(self.duration.get() // self.time_step.get() + 1)
+
         # Recalculate using the rounded num_points to ensure that the phase has the
         # right duration
         time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
