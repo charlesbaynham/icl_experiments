@@ -6,8 +6,9 @@ from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import parallel
+from artiq.experiment import sequential
 from ndscan.experiment import FloatChannel
-from ndscan.experiment import OnlineFit
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -142,13 +143,16 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
     @kernel
     def _do_pulse(self, andor_exposure):
-        delay(-0.5 * andor_exposure)
-        self.andor_camera_control.trigger(
-            exposure=andor_exposure,
-            control_shutter=False,
-        )
-        delay(0.5 * andor_exposure)
-        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+        with parallel:
+            with sequential:
+                delay(-0.5 * andor_exposure)
+                self.andor_camera_control.trigger(
+                    exposure=andor_exposure,
+                    control_shutter=False,
+                )
+                delay(0.5 * andor_exposure)
+
+            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     # %% Hooks / overridable methods
     #
