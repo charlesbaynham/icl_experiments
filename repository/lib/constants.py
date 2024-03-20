@@ -14,7 +14,6 @@ If it makes sense to have hardware and experimental constants stored together
 (e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
 this module.
 """
-
 from collections import OrderedDict
 from dataclasses import dataclass
 
@@ -276,7 +275,7 @@ AOM_BEAMS = [
     SUServoedBeam(
         "clock_up",
         200e6,
-        3,
+        0,
         "suservo_aom_698_up_switch",
     ),
 ]
