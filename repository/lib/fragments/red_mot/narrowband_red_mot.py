@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
@@ -9,6 +10,8 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -56,6 +59,17 @@ class NarrowbandRedMOTFrag(Fragment):
             self.red_beam_controller,
         )
         self.injection_aom_static_frequency: FloatParamHandle
+
+        self.setattr_device("ttl_shutter_repump_679")
+        self.ttl_shutter_repump_679: TTLOut
+
+        self.setattr_param(
+            "disable_679_during_narrowband",
+            BoolParam,
+            description="Disable 679 during narrowband MOT",
+            default=False,
+        )
+        self.disable_679_during_narrowband: BoolParamHandle
 
         # %% Narrowband stuff
 
@@ -155,6 +169,9 @@ class NarrowbandRedMOTFrag(Fragment):
         with parallel:
             self.red_beam_controller.stop_ramping_red()
             delay(RAMP_SPI_DELAY)
+
+        if self.disable_679_during_narrowband.get():
+            self.ttl_shutter_repump_679.off()
 
         self.narrow_red_capture_phase.do_phase()
         self.narrow_red_compression_phase.do_phase()
