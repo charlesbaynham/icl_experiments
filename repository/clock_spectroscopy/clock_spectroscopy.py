@@ -127,12 +127,17 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
         # Save Andor data
         sums = [0] * 3
         means = [0.0] * 3
+
         for i in range(3):
+            s = [0]
+            m = [0.0]
             self.andor_camera_control.readout_ROIs(
-                sums[i : i + 1],
-                means[i : i + 1],
+                s,
+                m,
                 self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
             )
+            sums[i] = s[0]
+            means[i] = m[0]
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
