@@ -57,6 +57,7 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         )
         self.delay_after_spectroscopy: FloatParamHandle
 
+        # FIXME: I do nothing!!! delete me soon
         self.setattr_param(
             "extra_repump_time",
             FloatParam,
@@ -107,15 +108,12 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         self.andor_camera_control.set_shutter(True)
         delay(+self.red_broadband_time.get())
 
+        self.blue_3d_mot.turn_off_repumpers()
+        delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.transition_broadband_to_narrowband()
 
         t_light_off_mu = now_mu()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-
-        delay(self.extra_repump_time.get())
-        delay_mu(int64(self.core.ref_multiplier))
-        self.blue_3d_mot.turn_off_repumpers()
-        delay(-self.extra_repump_time.get())
 
         self.pre_expansion_hook()
 
