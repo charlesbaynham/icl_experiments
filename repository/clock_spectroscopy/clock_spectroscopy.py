@@ -117,7 +117,7 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
 
     @kernel
     def do_imaging_hook(self):
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+        andor_exposure = self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         self.do_first_pulse(andor_exposure)
         delay(self.delay_after_first_pulse.get())

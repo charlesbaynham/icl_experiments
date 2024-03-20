@@ -142,12 +142,12 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
     @kernel
     def _do_pulse(self, andor_exposure):
-        delay(-0.5 * andor_exposure)
+        # delay(-0.5 * andor_exposure)
         self.andor_camera_control.trigger(
             exposure=andor_exposure,
             control_shutter=False,
         )
-        delay(0.5 * andor_exposure)
+        # delay(0.5 * andor_exposure)
         self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     # %% Hooks / overridable methods
