@@ -69,6 +69,20 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
+    def hook_setup_andor(self):
+        """
+        Setup the Andor camera to use 1x ROIs like normal, but don't add the "andor_mean" field
+
+        """
+
+        # 3x ROIs
+        self.setattr_fragment(
+            "andor_camera_control",
+            AndorCameraControl,
+            roi_defaults=[],
+        )
+        self.andor_camera_control: AndorCameraControl
+
         self.setattr_result("andor_sum_0", FloatChannel)
         self.setattr_result("andor_sum_1", FloatChannel)
         self.setattr_result("andor_sum_2", FloatChannel)
