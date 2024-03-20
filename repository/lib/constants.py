@@ -116,15 +116,15 @@ ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width = 145, 300, 100
+x, y, width = 212, 222, 100
 ANDOR_ROI_X0 = x - width / 2
 ANDOR_ROI_X1 = x + width / 2
 ANDOR_ROI_Y0 = y - width / 2
 ANDOR_ROI_Y1 = y + width / 2
 
-ANDOR_FAST_KINETICS_HEIGHT = 100
 ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
+ANDOR_FAST_KINETICS_HEIGHT = ANDOR_SENSOR_HEIGHT / 2
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
