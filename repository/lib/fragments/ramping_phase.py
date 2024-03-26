@@ -66,16 +66,13 @@ class GeneralRampingPhase(Fragment):
         class DemoPhase(GeneralRampingPhase):
             general_setter_names = ["some_current_1", "some_current_2"]
             general_setter_param_options = [
-                {"min": 0, "max": 150, "unit": "A"},
-                {"min": 0, "max": 10, "unit": "A"},
-            ]
-            general_setter_default_starts = [100.0, 10.0]
+                {"min": 0, "max": 150, "unit": "A"}, {"min": 0, "max": 10,
+                "unit": "A"},
+            ] general_setter_default_starts = [100.0, 10.0]
             general_setter_default_ends = [10.0, 5.0]
 
-            @kernel
-            def general_setter(self, vals: TList(TFloat)):
-                # Ideally do something more interesting than this:
-                print(vals)
+            @kernel def general_setter(self, vals: TList(TFloat)):
+                # Ideally do something more interesting than this: print(vals)
 
     This method will be called once for each step of the ramp and passed a list
     of floats of the same size as `self.general_setter_starts`. You can use this
@@ -87,13 +84,18 @@ class GeneralRampingPhase(Fragment):
     sequence runs. To do this, use :meth:`~.precalculate_dma_handle` before
     calling :meth:`~.do_phase`.
 
-    We actually end the ramp 1 timestep before the end of "duration" so that
-    phases can be daisy-chained together simply by calling `do_phase` over
-    and over again. I.e. for a 5ms ramp with 1ms points, we will have steps at::
+    By default, we actually end the ramp 1 timestep before the end of "duration"
+    so that phases can be daisy-chained together simply by calling `do_phase`
+    over and over again. I.e. for a 5ms ramp with 1ms points, we will have steps
+    at::
 
-        0ms (initial values), 1ms, 2ms, 3ms, 4ms (final values)
+        0ms (initial values), 1ms, 2ms, 3ms, 4ms
 
-    ...and nothing at 5ms.
+    ...and nothing at 5ms. The ramps therefore never quite reach their final
+    values, on the assumption that the next phase will write these.
+
+    If you would like the final values to be set as well, set
+    `add_final_point = True`.
     """
 
     time_step_default = 100e-6
@@ -116,6 +118,13 @@ class GeneralRampingPhase(Fragment):
     general_setter_param_options: List[Dict] = []
     general_setter_default_starts: List[float] = []
     general_setter_default_ends: List[float] = []
+
+    add_final_point = False
+    """
+    If set to True, this phase will end by writing the final point at
+    t=duration. Otherwise it will omit this point, assuming that the next phase
+    will write it
+    """
 
     def validate_attributes(self):
         assert self.duration_default is not None
@@ -499,7 +508,9 @@ class GeneralRampingPhase(Fragment):
 
         # Recalculate using the rounded num_points to ensure that the phase has the
         # right duration
-        time_step_mu = self.core.seconds_to_mu(self.duration.get() / float(num_points))
+        time_step_mu = self.core.seconds_to_mu(
+            self.duration.get() / float(num_points - 1)
+        )
 
         # Compute step sizes and initial values for the general ramp
         general_values = [0.0] * len(self.general_setter_param_handles)
@@ -573,7 +584,12 @@ class GeneralRampingPhase(Fragment):
             t_one_rtio_cycle_mu = int64(self.core.ref_multiplier)
 
             # Play the ramp
-            for i_step in range(num_points):
+            if self.add_final_point:
+                num_points_for_loop = num_points
+            else:
+                num_points_for_loop = num_points - 1
+
+            for i_step in range(num_points_for_loop):
                 if self.debug_enabled:
                     logger.info("Saving trace %d of %d", i_step, num_points)
 
