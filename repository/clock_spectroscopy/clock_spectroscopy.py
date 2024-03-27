@@ -22,14 +22,15 @@ from repository.lib.fragments.cameras.triple_imaging_kinetics import (
     RedMOTWithExperiment,
 )
 from repository.lib.fragments.cameras.triple_imaging_kinetics import SpectroscopyMixin
-from repository.red_mot.measure_red_mot import RedMOTBase
+from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTFrag
+
 
 logger = logging.getLogger(__name__)
 
 CLOCK_BEAM_INFO: SUServoedBeam = constants.AOM_BEAMS["clock_up"]
 
 
-class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
+class BasicClockSpectroscopyFrag(SpectroscopyMixin, TripleImageMOTFrag):
     """
     Basic clock spectroscopy
 
@@ -43,52 +44,13 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
         super().build_fragment()
 
         self.setattr_param(
-            "delay_after_first_pulse",
+            "delay_repumps_after_first_pulse",
             FloatParam,
             "Delay after first fluorescence pulse before repumps turn on",
             default=1e-3,
             unit="ms",
         )
-        self.delay_after_first_pulse: FloatParamHandle
-
-        self.setattr_param(
-            "delay_after_repumps_on",
-            FloatParam,
-            "Delay after repumps before second fluorescence pulse",
-            default=1e-3,
-            unit="ms",
-        )
-        self.delay_after_repumps_on: FloatParamHandle
-
-        self.setattr_param(
-            "delay_before_background_pulse",
-            FloatParam,
-            "Delay after final fluorescence pulse before background measurement",
-            default=10e-3,
-            unit="ms",
-        )
-        self.delay_before_background_pulse: FloatParamHandle
-
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera to use 1x ROIs like normal, but don't add the "andor_mean" field
-
-        """
-
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-        )
-        self.andor_camera_control: AndorCameraControl
-
-        self.setattr_result("andor_sum_0", FloatChannel)
-        self.setattr_result("andor_sum_1", FloatChannel)
-        self.setattr_result("andor_sum_2", FloatChannel)
-        self.setattr_result("excitation_fraction", FloatChannel)
-        self.andor_sum_0: FloatChannel
-        self.andor_sum_1: FloatChannel
-        self.andor_sum_2: FloatChannel
-        self.excitation_fraction: FloatChannel
+        self.delay_repumps_after_first_pulse: FloatParamHandle
 
     def pre_build_fragment_hook(self):
         self.setattr_fragment(
@@ -116,48 +78,10 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, RedMOTWithExperiment):
         self.clock_up.set_channel_state(rf_switch_state=False, enable_iir=False)
 
     @kernel
-    def do_imaging_hook(self):
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
-        self.do_first_pulse(andor_exposure)
-        delay(self.delay_after_first_pulse.get())
+    def do_first_pulse(self, andor_exposure):
+        self._do_pulse(andor_exposure)
+        delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
-        delay(self.delay_after_repumps_on.get())
-        self.do_second_pulse(andor_exposure)
-        delay(self.delay_before_background_pulse.get())
-        self.do_third_pulse(andor_exposure)
-
-    @kernel
-    def save_data_hook(self):
-        """
-        Hook to save data from the Andor camera
-
-        To make it easier, I'm not using fast kinetics but am just reading 3x normal images with the normal ROIs
-
-        Runs in realtime after imaging is completed
-        """
-        # Save Andor data
-        sums = [0] * 3
-        means = [0.0] * 3
-
-        for i in range(3):
-            s = [0]
-            m = [0.0]
-            self.andor_camera_control.readout_ROIs(
-                s,
-                m,
-                self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-            )
-            sums[i] = s[0]
-            means[i] = m[0]
-
-        self.andor_sum_0.push(sums[0])
-        self.andor_sum_1.push(sums[1])
-        self.andor_sum_2.push(sums[2])
-
-        self.excitation_fraction.push(
-            (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
-        )
 
 
 BasicClockSpectroscopy = make_fragment_scan_exp(BasicClockSpectroscopyFrag)

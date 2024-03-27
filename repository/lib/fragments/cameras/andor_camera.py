@@ -207,6 +207,8 @@ class AndorCameraControl(Fragment):
         You should call :meth:`~.save_data` to read out the configured ROI at the end of your sequence.
 
         If control_shutter == True, open the shutter <shutter_delay> in advance and then close if afterwards.
+
+        Advances the timeline by the duration of the camera's exposure
         """
 
         if control_shutter:
