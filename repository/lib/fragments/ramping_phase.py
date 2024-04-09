@@ -83,12 +83,6 @@ class GeneralRampingPhase(Fragment):
 
     ### Good-to-knows
 
-    Note that this phase does not support zero-length lists of any object type.
-    This is because handling these is hard in ARTIQ, since empty lists do not
-    have an associated type and so kernel compilation breaks. Working around
-    this is possible, but not done yet. Better to wait for the new compiler
-    which solves this problem.
-
     Lookup of pre-recorded sequences is slow, but can be done before the
     sequence runs. To do this, use :meth:`~.precalculate_dma_handle` before
     calling :meth:`~.do_phase`.
