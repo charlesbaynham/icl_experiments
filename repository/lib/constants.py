@@ -14,6 +14,7 @@ If it makes sense to have hardware and experimental constants stored together
 (e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
 this module.
 """
+
 from collections import OrderedDict
 from dataclasses import dataclass
 
@@ -48,7 +49,7 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(8600, 360e-3, 350e-3, 3e-3),
     "blue_IJD2_controller": IJDSettings(8800, 370.5e-3, 367e-3, 3e-3),
-    "blue_IJD3_controller": IJDSettings(8850, 353e-3, 343e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(8850, 355e-3, 345e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(9460, 189.0e-3, 186.0e-3, 3e-3),
 }
 "Injected diode default settings"
