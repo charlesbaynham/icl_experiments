@@ -15,7 +15,6 @@ These have two types:
    happens over the network. These can therefore run on computers other than the
    main `artiq_master` host, and even on different operating systems.
 """
-
 import logging
 
 logger = logging.getLogger(__name__)

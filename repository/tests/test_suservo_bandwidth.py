@@ -1,7 +1,6 @@
 """
 See https://github.com/m-labs/artiq/issues/1338#issuecomment-512031821
 """
-
 import math
 from functools import reduce
 
