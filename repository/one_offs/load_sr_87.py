@@ -119,7 +119,9 @@ class LoadingSr87Frag(ExpFragment):
         self.frequency_679.push(freq_679)
 
     @rpc
-    def set_topticas(self, new_679_voltage: TFloat, new_707_voltage: TFloat):
+    def set_topticas(
+        self, new_461_voltage: TFloat, new_679_voltage: TFloat, new_707_voltage: TFloat
+    ):
         current_461_voltage = self.toptica_461_laser.dl.pc.voltage_set.get()
         if abs(new_461_voltage - current_461_voltage) > MAX_VOLTAGE_STEP:
             raise ValueError(
