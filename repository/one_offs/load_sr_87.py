@@ -25,8 +25,8 @@ class LoadingSr87Frag(ExpFragment):
         )
         self.dual_cameras: DualCameraMeasurement
 
-        self.setattr_fragment("eom_sidebands", SetEOMSidebandsFrag)
-        self.eom_sidebands: SetEOMSidebandsFrag
+        # self.setattr_fragment("eom_sidebands", SetEOMSidebandsFrag)
+        # self.eom_sidebands: SetEOMSidebandsFrag
 
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
