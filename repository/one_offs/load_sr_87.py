@@ -31,11 +31,23 @@ class LoadingSr87Frag(ExpFragment):
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
+        self.setattr_device("toptica_461")
+        self.toptica_461: TopticaDLCPro
+
         self.setattr_device("toptica_679")
         self.toptica_679: TopticaDLCPro
 
         self.setattr_device("toptica_707")
         self.toptica_707: TopticaDLCPro
+
+        self.setattr_param(
+            "toptica_461_voltage",
+            FloatParam,
+            default=50,
+            description="Toptica 461 ECDL voltage",
+            unit="V",
+        )
+        self.toptica_461_voltage: FloatParamHandle
 
         self.setattr_param(
             "toptica_707_voltage",
@@ -67,22 +79,25 @@ class LoadingSr87Frag(ExpFragment):
 
     def host_setup(self):
         # Open a connection
+        self.toptica_461.get_dlcpro().open()
         self.toptica_679.get_dlcpro().open()
         self.toptica_707.get_dlcpro().open()
 
+        self.toptica_461_laser = self.toptica_461.get_laser()
         self.toptica_679_laser = self.toptica_679.get_laser()
         self.toptica_707_laser = self.toptica_707.get_laser()
         return super().host_setup()
 
     @kernel
     def run_once(self) -> None:
+        new_461_voltage = self.toptica_461_voltage.get()
         new_679_voltage = self.toptica_679_voltage.get()
         new_707_voltage = self.toptica_707_voltage.get()
 
-        self.set_topticas(new_679_voltage, new_707_voltage)
+        self.set_topticas(new_461_voltage, new_679_voltage, new_707_voltage)
 
         self.core.break_realtime()
-        self.eom_sidebands.set_sidebands()
+        # self.eom_sidebands.set_sidebands()
 
         self.blue_mot.load_mot(clearout=self.clearout)
         self.dual_cameras.trigger()
@@ -105,6 +120,12 @@ class LoadingSr87Frag(ExpFragment):
 
     @rpc
     def set_topticas(self, new_679_voltage: TFloat, new_707_voltage: TFloat):
+        current_461_voltage = self.toptica_461_laser.dl.pc.voltage_set.get()
+        if abs(new_461_voltage - current_461_voltage) > MAX_VOLTAGE_STEP:
+            raise ValueError(
+                f"{new_461_voltage}V is too far from the current value of {current_461_voltage}V for the 461"
+            )
+
         current_679_voltage = self.toptica_679_laser.dl.pc.voltage_set.get()
         if abs(new_679_voltage - current_679_voltage) > MAX_VOLTAGE_STEP:
             raise ValueError(
@@ -117,6 +138,7 @@ class LoadingSr87Frag(ExpFragment):
                 f"{new_707_voltage}V is too far from the current value of {current_707_voltage}V for the 707"
             )
 
+        self.toptica_461_laser.dl.pc.voltage_set.set(new_461_voltage)
         self.toptica_679_laser.dl.pc.voltage_set.set(new_679_voltage)
         self.toptica_707_laser.dl.pc.voltage_set.set(new_707_voltage)
 
