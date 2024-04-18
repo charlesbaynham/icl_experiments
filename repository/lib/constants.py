@@ -48,7 +48,7 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(8600, 360e-3, 350e-3, 3e-3),
     "blue_IJD2_controller": IJDSettings(8800, 370.5e-3, 367e-3, 3e-3),
-    "blue_IJD3_controller": IJDSettings(8850, 353e-3, 343e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(8850, 355e-3, 345e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(9460, 189.0e-3, 186.0e-3, 3e-3),
 }
 "Injected diode default settings"
@@ -111,7 +111,7 @@ DEFAULT_IMAGING_PULSE = 250e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 
-ANDOR_CAMERA_SHUTTER_OPEN_TIME = 120e-3  # Could probably be shorter if required
+ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
