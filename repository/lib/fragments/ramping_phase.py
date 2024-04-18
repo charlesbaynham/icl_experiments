@@ -509,6 +509,11 @@ class GeneralRampingPhase(Fragment):
         # unless you're really careful
         num_points = int(self.duration.get() // self.time_step.get()) + 1
 
+        # Always have at least two points, although the final one won't get
+        # written unless add_final_point is set
+        if num_points <= 1:
+            num_points = 2
+
         # Recalculate using the rounded num_points to ensure that the phase has the
         # right duration
         time_step_mu = self.core.seconds_to_mu(
