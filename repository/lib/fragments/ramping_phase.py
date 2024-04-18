@@ -66,13 +66,16 @@ class GeneralRampingPhase(Fragment):
         class DemoPhase(GeneralRampingPhase):
             general_setter_names = ["some_current_1", "some_current_2"]
             general_setter_param_options = [
-                {"min": 0, "max": 150, "unit": "A"}, {"min": 0, "max": 10,
-                "unit": "A"},
-            ] general_setter_default_starts = [100.0, 10.0]
+                {"min": 0, "max": 150, "unit": "A"},
+                {"min": 0, "max": 10, "unit": "A"},
+            ]
+            general_setter_default_starts = [100.0, 10.0]
             general_setter_default_ends = [10.0, 5.0]
 
-            @kernel def general_setter(self, vals: TList(TFloat)):
-                # Ideally do something more interesting than this: print(vals)
+            @kernel
+            def general_setter(self, vals: TList(TFloat)):
+                # Ideally do something more interesting than this:
+                print(vals)
 
     This method will be called once for each step of the ramp and passed a list
     of floats of the same size as `self.general_setter_starts`. You can use this
