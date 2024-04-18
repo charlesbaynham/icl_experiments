@@ -507,7 +507,7 @@ class GeneralRampingPhase(Fragment):
         # Compute grid for writes. See comments in docstring regarding how the
         # ramp is played / ends - it's easy to introduce an off-by-one error
         # unless you're really careful
-        num_points = int(self.duration.get() // self.time_step.get() + 1)
+        num_points = int(self.duration.get() // self.time_step.get()) + 1
 
         # Recalculate using the rounded num_points to ensure that the phase has the
         # right duration
