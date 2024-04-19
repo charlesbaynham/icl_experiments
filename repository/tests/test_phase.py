@@ -44,7 +44,7 @@ class TestPhaseUp(GeneralRampingPhase):
     duration_default = 100e-3
     time_step_default = 10e-3
 
-    add_final_point = True
+    # add_final_point = True
 
 
 class ExpFragWithPhaseFrag(ExpFragment):
