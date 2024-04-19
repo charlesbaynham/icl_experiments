@@ -19,7 +19,7 @@ from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 logger = logging.getLogger(__name__)
 
 
-class TestPhase(GeneralRampingPhase):
+class TestPhaseDown(GeneralRampingPhase):
     suservos = [
         "suservo_aom_singlepass_689_red_mot_diagonal",
     ]
@@ -32,16 +32,37 @@ class TestPhase(GeneralRampingPhase):
     time_step_default = 10e-3
 
 
+class TestPhaseUp(GeneralRampingPhase):
+    suservos = [
+        "suservo_aom_singlepass_689_red_mot_diagonal",
+    ]
+
+    default_suservo_nominal_setpoints = [1.0]
+    default_suservo_setpoint_multiples_start = [0.1]
+    default_suservo_setpoint_multiples_end = [1.0]
+
+    duration_default = 100e-3
+    time_step_default = 10e-3
+
+    add_final_point = True
+
+
 class ExpFragWithPhaseFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
         self.setattr_fragment(
-            "test_phase",
-            TestPhase,
+            "test_phase_down",
+            TestPhaseDown,
         )
-        self.test_phase: GeneralRampingPhase
+        self.test_phase_down: GeneralRampingPhase
+
+        self.setattr_fragment(
+            "test_phase_up",
+            TestPhaseUp,
+        )
+        self.test_phase_up: GeneralRampingPhase
 
         self.setattr_fragment(
             "diagonal_beam_setter",
@@ -68,19 +89,21 @@ class ExpFragWithPhaseFrag(ExpFragment):
 
     @kernel
     def run_once(self):
-        logger.info("Precomputing handle")
-        self.test_phase.precalculate_dma_handle()
+        logger.info("Precomputing handles")
+        self.test_phase_down.precalculate_dma_handle()
+        self.test_phase_up.precalculate_dma_handle()
 
         logger.info("Enabling diagonal beam")
         self.core.break_realtime()
         self.diagonal_beam_setter.turn_on_all()
 
-        logger.info("Starting test phase")
+        logger.info("Starting test phases")
         self.core.break_realtime()
 
         for _ in range(self.num_repeats.get()):
             delay(self.delay_between_phases.get())
-            self.test_phase.do_phase()
+            self.test_phase_down.do_phase()
+            self.test_phase_up.do_phase()
 
         logger.info("Phase queuing completed")
 
