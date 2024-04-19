@@ -243,14 +243,6 @@ class GeneralRampingPhase(Fragment):
             min=0.0,
             unit="us",
         )
-        # self.setattr_param(
-        #     "add_final_point",
-        #     FloatParam,
-        #     "Add the final point of the scan",
-        #     default=self.time_step_default,
-        #     min=0.0,
-        #     unit="us",
-        # )
 
         self.duration: FloatParamHandle
         self.time_step: FloatParamHandle
