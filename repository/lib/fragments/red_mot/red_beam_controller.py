@@ -16,6 +16,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
+from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
 from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
@@ -35,10 +36,6 @@ RED_BEAM_INFOS = [
 ]
 
 
-class _RedBeamDefaultSetter(SetBeamsToDefaults):
-    default_beam_infos = RED_BEAM_INFOS
-
-
 class RedBeamController(Fragment):
     """
     Methods for making and controlling the red beams in chamber 2
@@ -50,7 +47,9 @@ class RedBeamController(Fragment):
 
         # %% FRAGMENTS
 
-        self.setattr_fragment("all_beam_default_setter", _RedBeamDefaultSetter)
+        self.setattr_fragment(
+            "all_beam_default_setter", make_set_beams_to_default(RED_BEAM_INFOS)
+        )
         self.all_beam_default_setter: SetBeamsToDefaults
 
         self.setattr_fragment(
