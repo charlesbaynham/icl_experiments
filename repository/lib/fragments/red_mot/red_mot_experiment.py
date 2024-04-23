@@ -146,23 +146,18 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.transition_broadband_to_narrowband()
 
+        # Do the post-narrowband actions. By default, turn off the red MOT light
         self.post_narrowband_hook()
 
+        # Do any other pre-expansion actions. By default, none
         t_light_off_mu = now_mu()
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-
         self.pre_expansion_hook()
-
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
 
-        self.red_mot.chamber_2_field_setter.set_all_fields(
-            self.spectroscopy_field_gradient.get(),
-            self.blue_3d_mot.chamber_2_bias_x.get() + self.x_coil_boost.get(),
-            self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
-            self.blue_3d_mot.chamber_2_bias_z.get() + self.z_coil_boost.get(),
-        )
+        # Set magnetic fields for the rest of the sequence
+        self.set_fields_hook()
 
         delay(self.expansion_time.get())
 
@@ -266,8 +261,10 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         Any changes to the cursor made by this function will be respected, i.e.
         the rest of the sequence CAN be delayed by this hook
+
+        By default, just turn off the red light
         """
-        pass
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel
     def pre_expansion_hook(self):
@@ -278,6 +275,24 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         Any changes to the cursor made by this hook will be ignored
         """
         pass
+
+    @kernel
+    def set_fields_hook(self):
+        """
+        Hook for setting magnetic fields immediately after end of red MOT. This
+        fires at the same cursor position as the pre_expansion_hook, and runs
+        after it.
+
+        Any changes to the cursor made by this function will be respected, i.e.
+        the rest of the sequence CAN be delayed by this hook
+        """
+
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            self.spectroscopy_field_gradient.get(),
+            self.blue_3d_mot.chamber_2_bias_x.get() + self.x_coil_boost.get(),
+            self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
+            self.blue_3d_mot.chamber_2_bias_z.get() + self.z_coil_boost.get(),
+        )
 
     @abc.abstractmethod
     def do_spectroscopy_hook(self):
