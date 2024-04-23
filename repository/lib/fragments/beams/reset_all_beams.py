@@ -11,6 +11,7 @@ from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
+from device_db_config import get_device_db
 from repository.lib import constants
 
 
@@ -136,9 +137,9 @@ class ResetAllBeams(Fragment):
 
 class CloseAllICLShutters(CloseAllShutters):
     ttl_shutters = [
-        info.shutter_device
-        for info in constants.SUSERVOED_BEAMS.values()
-        if info.shutter_device
+        device_name
+        for device_name in get_device_db().keys()
+        if "shutter" in device_name
     ]
 
 
