@@ -1,8 +1,8 @@
 """
-This module provides a template experiment. Unlike other modules, it *does not*
-provide a Fragment which you should use via `self.setattr_fragment`. Instead, it
-defines an `ExpFragment` which should be converted into an `EnvExperiment` using
-`make_fragment_scan_exp`.
+This package provides a template experiment, :class:`~RedMOTWithExperiment` .
+Unlike other modules, it *does not* provide a Fragment which you should use via
+`self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
+converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
 
 The :class:`~ExpFragment`s that this module defines cannot be used without some
 customization first. The :meth:`~build_fragment`, :meth:`~device_setup` and
