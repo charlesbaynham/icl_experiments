@@ -15,7 +15,7 @@ from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.fragments.cameras.triple_imaging_kinetics import (
+from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     TripleImageMOTMixin,
     SpectroscopyParamsMixin,
 )

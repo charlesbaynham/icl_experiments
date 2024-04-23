@@ -7,11 +7,13 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
-from repository.lib.fragments.cameras.triple_imaging_kinetics import (
+from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
+from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     SpectroscopyParamsMixin,
 )
-from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTMixin
-from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
+from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
+    TripleImageMOTMixin,
+)
 
 logger = logging.getLogger(__name__)
 
