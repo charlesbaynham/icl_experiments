@@ -33,6 +33,12 @@ class DummyTTL:
         pass
 
 
+class DummyUrukul:
+    @kernel
+    def init(self):
+        pass
+
+
 class DummyAD9910:
     def __init__(self) -> None:
         self.sw = DummyTTL()

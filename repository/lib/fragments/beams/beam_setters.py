@@ -86,6 +86,7 @@ class SetBeamsToDefaults(Fragment):
         self.dummy_ttl = DummyTTL()
         self.dummy_ad9910 = DummyAD9910()
         self.dummy_ad9912 = DummyAD9912()
+        self.dummy_urukul = DummyUrukul()
         self.dummy_suservo_frag = DummySUServoFrag()
         self.dummy_float_handle = DummyFloatParameterHandle()
 
@@ -261,6 +262,9 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9912s:
             self.ad9912s = [self.dummy_ad9912]
+
+        if not self.urukuls:
+            self.urukuls = [self.dummy_urukul]
 
         # %% Kernel invariants and variables
         kernel_invariants = getattr(self, "kernel_invariants", set())
