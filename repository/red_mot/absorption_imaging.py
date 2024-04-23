@@ -7,9 +7,8 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.cameras.triple_imaging_kinetics import (
+from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )
 
