@@ -187,15 +187,6 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 beam_info.suservo_device
             )
 
-            if isinstance(suservo_channel_device, DummyDevice):
-                # In building - use placeholder values
-                suservo: SUServo = DummyDevice()
-                sampler_channel_number = 0
-            else:
-                suservo = suservo_channel_device.servo
-                # This is a convention in the AION lab:
-                sampler_channel_number = suservo_channel_device.servo_channel
-
             # Define a result channel for output
             if i == 0:
                 r = self.setattr_result(
@@ -217,8 +208,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 self.setattr_fragment(
                     f"{beam_info.name}_adc_reader",
                     ReadSUServoADC,
-                    suservo,
-                    sampler_channel_number,
+                    suservo_channel_device,
                 )
             )
 

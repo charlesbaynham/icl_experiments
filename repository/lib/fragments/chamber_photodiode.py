@@ -25,7 +25,7 @@ class _MOTPhotodiodeMeasurement(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        photodiode_suservo_name, photodiode_suservo_channel = get_configuration_from_db(
+        photodiode_suservo_channel = get_configuration_from_db(
             "mot_photodiode_sampler_config"
         )
 
@@ -33,8 +33,7 @@ class _MOTPhotodiodeMeasurement(Fragment):
         self.setattr_fragment(
             "adc_reader",
             ReadSUServoADC,
-            self.get_device(photodiode_suservo_name),
-            photodiode_suservo_channel,
+            self.get_device(photodiode_suservo_channel),
         )
         self.adc_reader: ReadSUServoADC
 

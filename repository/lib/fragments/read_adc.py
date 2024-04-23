@@ -2,6 +2,7 @@ from typing import Optional
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
+from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
@@ -103,11 +104,13 @@ class ReadSUServoADC(ReadADC):
         )
     """
 
-    def build_fragment(self, suservo_device: SUServo, suservo_channel: int):
+    def build_fragment(self, suservo_channel: SUServoChannel):
         self.setattr_device("core")
 
-        self.suservo_channel: int = suservo_channel
-        self.suservo_device: SUServo = suservo_device
+        self.suservo_channel: SUServoChannel = suservo_channel
+
+        self.suservo_channel_number: int = self.suservo_channel.servo_channel
+        self.suservo_device: SUServo = self.suservo_channel.servo
 
         self.suservo_has_been_setup = False
 
@@ -126,4 +129,8 @@ class ReadSUServoADC(ReadADC):
 
     @kernel
     def read_adc(self):
-        return self.suservo_device.get_adc(self.suservo_channel)
+        return self.suservo_device.get_adc(self.suservo_channel_number)
+
+    @kernel
+    def read_ctrl_signal(self):
+        return self.suservo_channel.get_y()
