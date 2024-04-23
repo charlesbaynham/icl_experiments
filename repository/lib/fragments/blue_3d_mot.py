@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 BlueBeamSetter = make_set_beams_to_default(
-    [
+    suservo_beam_infos=[
         constants.SUSERVOED_BEAMS[beam]
         for beam in [
             "blue_push_beam",
@@ -33,7 +33,8 @@ BlueBeamSetter = make_set_beams_to_default(
             "repump_707",
             "repump_679",
         ]
-    ]
+    ],
+    urukul_beam_infos=[],
 )
 
 

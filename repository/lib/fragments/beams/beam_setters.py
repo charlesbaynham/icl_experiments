@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 def make_set_beams_to_default(
-    beam_infos: List[SUServoedBeam],
+    suservo_beam_infos: List[SUServoedBeam] = [],
+    urukul_beam_infos: List[UrukuledBeam] = [],
 ) -> Type["SetBeamsToDefaults"]:
     """
     Return a SetBeamsToDefaults Fragment class with the given beams set
@@ -46,7 +47,8 @@ def make_set_beams_to_default(
     """
 
     class SetBeamsToDefaultsCustomised(SetBeamsToDefaults):
-        default_beam_infos = beam_infos
+        default_suservo_beam_infos = suservo_beam_infos
+        default_urukul_beam_infos = urukul_beam_infos
 
     return SetBeamsToDefaultsCustomised
 
