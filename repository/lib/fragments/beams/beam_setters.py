@@ -8,6 +8,7 @@ from typing import Type
 import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.coredevice.core import parallel
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD as UrukulCPLD
@@ -180,6 +181,9 @@ class SetBeamsToDefaults(Fragment):
                 )
             )
 
+        # Filter out duplicates
+        self.urukuls = list(set(self.urukuls))
+
         self.max_shutter_delay = max(
             [
                 beam_info.shutter_delay
@@ -228,6 +232,7 @@ class SetBeamsToDefaults(Fragment):
 
         # Init this array to zeros - we fill it in in device_setup
         self.suservo_setpoints = [0.0] * len(self.default_suservo_beam_infos)
+        self.first_run = True
 
     @kernel
     def get_suservo_setpoint_by_index(self, beam_index):
@@ -254,6 +259,26 @@ class SetBeamsToDefaults(Fragment):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
+
+        # Initiate AD9910s if not done yet
+        if self.first_run:
+            self.first_run = False
+
+            self.core.break_realtime()
+
+            with parallel:
+                for urukul in self.urukuls:
+                    # TODO: Initiating Urukuls like this is inefficient since many
+                    # will be in multiple beam setters and so will be initiated
+                    # multiple times. See the code in LibSetSUServoStatic for ways
+                    # to avoid this
+                    urukul.init()
+
+            self.core.break_realtime()
+
+            with parallel:
+                for ad9910 in self.ad9910s:
+                    ad9910.init()
 
         # Retrieve the values of all the generated parameters for SUServo
         # setpoints for this run of the scan
