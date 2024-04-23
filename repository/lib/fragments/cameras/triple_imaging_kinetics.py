@@ -103,6 +103,8 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.transition_broadband_to_narrowband()
 
+        self.post_narrowband_hook()
+
         t_light_off_mu = now_mu()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
@@ -214,10 +216,23 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         pass
 
     @kernel
-    def pre_expansion_hook(self):
+    def post_narrowband_hook(self):
         """
         Hook for core actions after the narrowband red mot is completed, before
-        cloud expansion begins
+        the light is turned off
+
+        Any changes to the cursor made by this function will be respected, i.e.
+        the rest of the sequence CAN be delayed by this hook
+        """
+        pass
+
+    @kernel
+    def pre_expansion_hook(self):
+        """
+        Hook for core actions after the narrowband red mot is completed, after
+        the light is turned off and cloud expansion begins
+
+        Any changes to the cursor made by this hook will be ignored
         """
         pass
 
