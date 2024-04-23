@@ -2,6 +2,7 @@ from typing import Optional
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
+from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
@@ -96,24 +97,34 @@ class ReadSUServoADC(ReadADC):
     """
     Reads the voltage on a SUServo input channel
 
-    The device and channel to be read are passed as arguments to :meth:`.build_fragment`, e.g.::
+    The channel to be read is passed as arguments to :meth:`.build_fragment`, e.g.::
 
         self.setattr_fragment(
-            "ReadSUServoADC", ReadSUServoADC, "suservo0", 2,
+            "ReadSUServoADC", ReadSUServoADC, my_suservo_channel
         )
     """
 
-    def build_fragment(self, suservo_device: SUServo, suservo_channel: int):
+    def build_fragment(
+        self, suservo_channel: SUServoChannel, suservo_profile_number: int = -1
+    ):
         self.setattr_device("core")
+        self.core: Core
 
-        self.suservo_channel: int = suservo_channel
-        self.suservo_device: SUServo = suservo_device
-
-        self.suservo_has_been_setup = False
+        self.suservo_channel: SUServoChannel = suservo_channel
+        self.suservo_profile_number = suservo_profile_number
 
     def host_setup(self):
         super().host_setup()
-        self.core: Core = self.get_device("core")
+
+        self.suservo_channel_number: int = self.suservo_channel.servo_channel
+        self.suservo_device: SUServo = self.suservo_channel.servo
+
+        # If suservo profile was not passed, assume the AION convention that the
+        # profile == the channel number
+        if self.suservo_profile_number == -1:
+            self.suservo_profile_number = self.suservo_channel_number
+
+        self.suservo_has_been_setup = False
 
     @kernel
     def device_setup(self) -> None:
@@ -126,4 +137,8 @@ class ReadSUServoADC(ReadADC):
 
     @kernel
     def read_adc(self):
-        return self.suservo_device.get_adc(self.suservo_channel)
+        return self.suservo_device.get_adc(self.suservo_channel_number)
+
+    @kernel
+    def read_ctrl_signal(self):
+        return self.suservo_channel.get_y(self.suservo_profile_number)

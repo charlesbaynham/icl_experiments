@@ -21,6 +21,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
+from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
 from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
@@ -77,36 +78,29 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
             self.beam_info.suservo_device
         )
 
-        if isinstance(self.suservo_channel_device, DummyDevice):
-            # In building - use placeholder values
-            self.suservo: SUServo = DummyDevice()
-            self.sampler_channel_number = 0
-        else:
-            self.suservo = self.suservo_channel_device.servo
-            # This is a convention in the AION lab:
-            self.sampler_channel_number = self.suservo_channel_device.servo_channel
-
         # Define result channels as outputs
         self.setattr_result("voltage")
         self.voltage: ResultChannel
 
         # Get beam setter fragment
         self.setattr_fragment(
-            "beam_default_setter",
-            SetBeamsToDefaults,
-            default_beam_infos=[self.beam_info],
+            "beam_default_setter", make_set_beams_to_default([self.beam_info])
         )
         self.beam_default_setter: SetBeamsToDefaults
 
         # Get SUServo reader fragment
-        self.setattr_fragment(
-            "adc_reader", ReadSUServoADC, self.suservo, self.sampler_channel_number
-        )
+        self.setattr_fragment("adc_reader", ReadSUServoADC, self.suservo_channel_device)
         self.adc_reader: ReadSUServoADC
 
         # %% Kernel params
-
         self.first_run = True
+
+    def host_setup(self):
+        # These are conventions in the AION lab:
+        self.sampler_channel_number = self.suservo_channel_device.servo_channel
+        self.suservo_profile_number = self.suservo_channel_device.servo_channel
+
+        return super().host_setup()
 
     @kernel
     def device_setup(self) -> None:
@@ -180,23 +174,15 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 info.servo_enabled = False
 
         self.adc_readers: List[ReadSUServoADC] = []
-        self.results_channels: List[ResultChannel] = []
+        self.photodiode_results_channels: List[ResultChannel] = []
+        self.control_signal_results_channels: List[ResultChannel] = []
 
         for i, beam_info in enumerate(self.beam_infos):
             suservo_channel_device: SUServoChannel = self.get_device(
                 beam_info.suservo_device
             )
 
-            if isinstance(suservo_channel_device, DummyDevice):
-                # In building - use placeholder values
-                suservo: SUServo = DummyDevice()
-                sampler_channel_number = 0
-            else:
-                suservo = suservo_channel_device.servo
-                # This is a convention in the AION lab:
-                sampler_channel_number = suservo_channel_device.servo_channel
-
-            # Define a result channel for output
+            # Define result channels for each SUServo photodiode value
             if i == 0:
                 r = self.setattr_result(
                     beam_info.name,
@@ -210,15 +196,30 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                     },
                 )
 
-            self.results_channels.append(r)
+            self.photodiode_results_channels.append(r)
+
+            # ... and control value
+            name = beam_info.name + "_control"
+            if i == 0:
+                r = self.setattr_result(
+                    name,
+                )
+            else:
+                r = self.setattr_result(
+                    name,
+                    display_hints={
+                        "priority": -1,
+                        "share_pane_with": self.beam_infos[0].name + "_control",
+                    },
+                )
+            self.control_signal_results_channels.append(r)
 
             # Get SUServo reader fragment
             self.adc_readers.append(
                 self.setattr_fragment(
                     f"{beam_info.name}_adc_reader",
                     ReadSUServoADC,
-                    suservo,
-                    sampler_channel_number,
+                    suservo_channel_device,
                 )
             )
 
@@ -251,6 +252,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         delay(self.waittime.get())
 
         voltages = [0.0] * len(self.adc_readers)
+        ctrl_signals = [0.0] * len(self.adc_readers)
 
         for i_beam in range(len(self.adc_readers)):
             self.core.break_realtime()
@@ -258,18 +260,25 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 self.adc_readers[i_beam].read_adc()
                 - self.beam_infos[i_beam].photodiode_offset
             )
+            self.core.break_realtime()
+            ctrl_signals[i_beam] = self.adc_readers[i_beam].read_ctrl_signal()
 
-        self.save_data(voltages)
+        self.save_data(voltages, ctrl_signals)
 
     @rpc(flags={"async"})
-    def save_data(self, voltages: TArray(TFloat)):
+    def save_data(self, voltages: TArray(TFloat), ctrl_signals: TArray(TFloat)):
         for i_beam, beam_info in enumerate(self.beam_infos):
             voltage = voltages[i_beam]
+            ctrl_signal = ctrl_signals[i_beam]
 
             if self.subtract_setpoint:
-                self.results_channels[i_beam].push(voltage - beam_info.setpoint)
+                self.photodiode_results_channels[i_beam].push(
+                    voltage - beam_info.setpoint
+                )
             else:
-                self.results_channels[i_beam].push(voltage)
+                self.photodiode_results_channels[i_beam].push(voltage)
+
+            self.control_signal_results_channels[i_beam].push(ctrl_signal)
 
             self.influx_logger.write(
                 tags={
@@ -280,6 +289,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                 fields={
                     "setpoint": beam_info.setpoint,
                     "reading": voltage,
+                    "ctrl_signal": ctrl_signal,
                 },
             )
 
