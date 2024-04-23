@@ -25,7 +25,7 @@ from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import
 logger = logging.getLogger(__name__)
 
 RED_BEAM_INFOS = [
-    constants.AOM_BEAMS[beam]
+    constants.SUSERVOED_BEAMS[beam]
     for beam in [
         "red_mot_diagonal",
         "red_mot_sigmaplus",

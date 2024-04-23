@@ -137,10 +137,10 @@ class ResetAllBeams(Fragment):
 class CloseAllICLShutters(CloseAllShutters):
     ttl_shutters = [
         info.shutter_device
-        for info in constants.AOM_BEAMS.values()
+        for info in constants.SUSERVOED_BEAMS.values()
         if info.shutter_device
     ]
 
 
 class ResetAllICLBeams(ResetAllBeams):
-    beam_infos = list(constants.AOM_BEAMS.values())
+    beam_infos = list(constants.SUSERVOED_BEAMS.values())

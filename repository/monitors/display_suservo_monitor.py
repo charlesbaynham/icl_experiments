@@ -45,7 +45,7 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
         )
         self.waittime: FloatParamHandle
 
-        beam_info_names = list(constants.AOM_BEAMS.keys())
+        beam_info_names = list(constants.SUSERVOED_BEAMS.keys())
         self.setattr_argument(
             "beam_info_name",
             EnumerationValue(
@@ -69,7 +69,9 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
 
         # %% devices
 
-        self.beam_info = constants.AOM_BEAMS[self.beam_info_name or beam_info_names[0]]
+        self.beam_info = constants.SUSERVOED_BEAMS[
+            self.beam_info_name or beam_info_names[0]
+        ]
 
         if self.disable_servoing:
             self.beam_info.servo_enabled = False
@@ -167,7 +169,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
         from copy import deepcopy
 
-        self.beam_infos = deepcopy(list(constants.AOM_BEAMS.values()))
+        self.beam_infos = deepcopy(list(constants.SUSERVOED_BEAMS.values()))
 
         if self.disable_servoing:
             for info in self.beam_infos:

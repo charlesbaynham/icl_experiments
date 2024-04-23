@@ -66,7 +66,7 @@ class ExpFragWithPhaseFrag(ExpFragment):
 
         self.setattr_fragment(
             "diagonal_beam_setter",
-            make_set_beams_to_default([constants.AOM_BEAMS["red_mot_diagonal"]]),
+            make_set_beams_to_default([constants.SUSERVOED_BEAMS["red_mot_diagonal"]]),
         )
         self.diagonal_beam_setter: SetBeamsToDefaults
 

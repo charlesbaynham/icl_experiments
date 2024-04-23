@@ -24,7 +24,7 @@ from repository.lib.fragments.cameras.triple_imaging_kinetics import (
 class _InterferometryCommon(TripleImageMOTFrag, SpectroscopyMixin):
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
-            default_beam_infos = [constants.AOM_BEAMS["red_up"]]
+            default_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
 
         self.setattr_fragment("up_beam_default_setter", _UpBeamSetter)
         self.up_beam_default_setter: SetBeamsToDefaults
@@ -32,7 +32,7 @@ class _InterferometryCommon(TripleImageMOTFrag, SpectroscopyMixin):
         self.setattr_fragment(
             "up_beam_suservo",
             LibSetSUServoStatic,
-            constants.AOM_BEAMS["red_up"].suservo_device,
+            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
         )
         self.up_beam_suservo: LibSetSUServoStatic
 
@@ -160,7 +160,7 @@ class UpBeamInterferometrySUServo(_InterferometryCommon):
         self.suservo_aom_singlepass_689_up: SUServoChannel
 
         # Kernel vars
-        self.suservo_freq = constants.AOM_BEAMS["red_up"].frequency
+        self.suservo_freq = constants.SUSERVOED_BEAMS["red_up"].frequency
         # Allow negative phases up to -10
         self.phase_constant = 10.0
 

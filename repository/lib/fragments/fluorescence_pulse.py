@@ -54,7 +54,9 @@ class FluorescencePulseBase(Fragment):
         # Also set up the fluorescence delivery AOM, regardless of which beams we're flashing
         self.setattr_fragment(
             "delivery_beam_setter",
-            make_set_beams_to_default([constants.AOM_BEAMS["blue_imaging_delivery"]]),
+            make_set_beams_to_default(
+                [constants.SUSERVOED_BEAMS["blue_imaging_delivery"]]
+            ),
         )
         self.delivery_beam_setter: SetBeamsToDefaults
 
@@ -99,7 +101,7 @@ class ImagingFluorescencePulse(FluorescencePulseBase):
     Control a fluorescence pulse with the dedicated imaging beam
     """
 
-    beam_infos = [constants.AOM_BEAMS["blue_imaging_switch"]]
+    beam_infos = [constants.SUSERVOED_BEAMS["blue_imaging_switch"]]
 
 
 class MOTBeamFluorescencePulse(FluorescencePulseBase):
@@ -108,9 +110,9 @@ class MOTBeamFluorescencePulse(FluorescencePulseBase):
     """
 
     beam_infos = [
-        constants.AOM_BEAMS["blue_3dmot_axialminus"],
-        constants.AOM_BEAMS["blue_3dmot_axialplus"],
-        constants.AOM_BEAMS["blue_3dmot_radial"],
+        constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
+        constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
+        constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
     ]
 
 

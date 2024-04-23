@@ -131,7 +131,7 @@ DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
 
 # Information about beams controlled by AOMs
-AOM_BEAMS = [
+SUSERVOED_BEAMS = [
     ### BLUE ###
     SUServoedBeam(
         "blue_push_beam",
@@ -282,7 +282,7 @@ AOM_BEAMS = [
 ]
 
 # Convert to dict for ease of use
-AOM_BEAMS = {beam.name: beam for beam in AOM_BEAMS}
+SUSERVOED_BEAMS = {beam.name: beam for beam in SUSERVOED_BEAMS}
 
 
 # Mirny settings for Sr 88 / Sr 87

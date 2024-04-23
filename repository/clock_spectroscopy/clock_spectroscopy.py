@@ -27,7 +27,7 @@ from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImage
 
 logger = logging.getLogger(__name__)
 
-CLOCK_BEAM_INFO: SUServoedBeam = constants.AOM_BEAMS["clock_up"]
+CLOCK_BEAM_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_up"]
 
 
 class BasicClockSpectroscopyFrag(SpectroscopyMixin, TripleImageMOTFrag):
