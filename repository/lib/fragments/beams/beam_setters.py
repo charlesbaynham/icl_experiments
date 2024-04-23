@@ -181,7 +181,12 @@ class SetBeamsToDefaults(Fragment):
             )
 
         self.max_shutter_delay = max(
-            [beam_info.shutter_delay for beam_info in self.default_suservo_beam_infos]
+            [
+                beam_info.shutter_delay
+                for beam_info in (
+                    self.default_suservo_beam_infos + self.default_urukul_beam_infos
+                )
+            ]
         )
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
@@ -205,6 +210,11 @@ class SetBeamsToDefaults(Fragment):
                     self.dummy_float_handle,
                     False,
                 )
+            ]
+
+        if not self.suservo_setters_and_info:
+            self.suservo_setters_and_info = [
+                (self.dummy_suservo_frag, self.dummy_float_handle, False)
             ]
 
         # %% Kernel invariants and variables
