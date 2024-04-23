@@ -49,5 +49,5 @@ class DummyFloatParameterHandle(HasEnvironment):
         self.setattr_device("core")
 
     @kernel
-    def get():
+    def get(self):
         return 0.0
