@@ -69,14 +69,14 @@ class RedBeamController(Fragment):
         self.setattr_fragment(
             "sigmaplus_toggler",
             ControlBeamsWithoutCoolingAOM,
-            beam_infos=[constants.AOM_BEAMS["red_mot_sigmaplus"]],
+            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]],
         )
         self.sigmaplus_toggler: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
             "sigmaminus_toggler",
             ControlBeamsWithoutCoolingAOM,
-            beam_infos=[constants.AOM_BEAMS["red_mot_sigmaplus"]],
+            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]],
         )
         self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
 
