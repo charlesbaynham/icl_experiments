@@ -1,3 +1,43 @@
+"""
+This module provides a template experiment. Unlike other modules, it *does not*
+provide a Fragment which you should use via `self.setattr_fragment`. Instead, it
+defines an `ExpFragment` which should be converted into an `EnvExperiment` using
+`make_fragment_scan_exp`.
+
+The :class:`~ExpFragment`s that this module defines cannot be used without some
+customization first. The :meth:`~build_fragment`, :meth:`~device_setup` and
+:meth:`~run_once` methods of these :class:`ExpFragment` s contain "hooks" -
+methods which can (or sometimes must) be implemented by child classes to alter
+the functionality of these experiment. This allows you to reuse this code for
+multiple different experiments by implementing child classes which define these
+hooks in different ways.
+
+For example, see the documentation of :class:`~RedMOTWithExperiment` for the
+most basic implementation of hooks.
+
+Mixins
+------
+
+This structure of overriding methods allows the use of "mixins". These are
+classes which implement various pieces of functionality, which can be selected
+from when authoring an experiment.
+
+For example, you might author a mixin that adds imaging with the Andor camera
+and another which causes atoms to be trapped in a lattice at the end of the MOT.
+Your experiment might then inherit from both of these, to use both features at
+the same time::
+
+    from somewhere import AndorImagingMixin, LatticeTrappingMixin
+
+
+    class MyAndorImagedLatticeExperiment(
+        AndorImagingMixin,
+        LatticeTrappingMixin,
+        RedMOTWithExperiment
+    ):
+        pass
+
+"""
 import abc
 import logging
 
@@ -38,6 +78,12 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     * `save_data_hook`
 
     And you may wish to implement other `..._hook` methods.
+
+    Example
+    -------
+
+    For a simple implementation see
+    :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
     """
 
     def build_fragment(self):

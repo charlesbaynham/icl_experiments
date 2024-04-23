@@ -16,7 +16,20 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 logger = logging.getLogger(__name__)
 
 
-class TripleImageMOTFrag(RedMOTWithExperiment):
+class TripleImageMOTMixin(RedMOTWithExperiment):
+    """
+    Implements normalized readout for a :py:class:`~RedMOTWithExperiment`
+    experiment
+
+    This Mixin uses the Andor camera to take three images and create
+    ResultChannels for normalised state readout, assuming that the first image
+    is ground-state atoms, the second one is excitated state and the third is
+    background (i.e. no atoms at all).
+
+    This is a Mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+    """
+
     def build_fragment(self):
         super().build_fragment()
 

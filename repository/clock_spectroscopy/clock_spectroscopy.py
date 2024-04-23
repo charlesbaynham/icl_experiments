@@ -12,7 +12,7 @@ from repository.lib import constants
 from repository.lib.fragments.cameras.triple_imaging_kinetics import (
     SpectroscopyParamsMixin,
 )
-from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTFrag
+from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTMixin
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 CLOCK_BEAM_INFO: SUServoedBeam = constants.AOM_BEAMS["clock_up"]
 
 
-class BasicClockSpectroscopyFrag(SpectroscopyParamsMixin, TripleImageMOTFrag):
+class BasicClockSpectroscopyExp(SpectroscopyParamsMixin, TripleImageMOTMixin):
     """
     Basic clock spectroscopy
 
@@ -74,4 +74,4 @@ class BasicClockSpectroscopyFrag(SpectroscopyParamsMixin, TripleImageMOTFrag):
         self.blue_3d_mot.turn_on_repumpers()
 
 
-BasicClockSpectroscopy = make_fragment_scan_exp(BasicClockSpectroscopyFrag)
+BasicClockSpectroscopy = make_fragment_scan_exp(BasicClockSpectroscopyExp)
