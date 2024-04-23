@@ -4,27 +4,24 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Type
+from typing import Union
 
-import numpy as np
 from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
 from artiq.coredevice.core import parallel
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD as UrukulCPLD
 from artiq.experiment import delay_mu
-from artiq.experiment import HasEnvironment
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
-from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
-from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.lib.utils import get_local_devices
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -88,6 +85,7 @@ class SetBeamsToDefaults(Fragment):
 
         self.dummy_ttl = DummyTTL()
         self.dummy_ad9910 = DummyAD9910()
+        self.dummy_ad9912 = DummyAD9912()
         self.dummy_suservo_frag = DummySUServoFrag()
         self.dummy_float_handle = DummyFloatParameterHandle()
 
@@ -129,8 +127,10 @@ class SetBeamsToDefaults(Fragment):
                 (setter, setpoint_handle, bool(beam_info.shutter_device))
             )
 
-        # %% Urukul setting
+        # %% Urukul settings
+
         self.ad9910s: List[AD9910] = []
+        self.ad9912s: List[AD9910] = []
         self.urukuls: List[UrukulCPLD] = []
 
         self.ad9910_devices_and_handles: List[
@@ -145,11 +145,21 @@ class SetBeamsToDefaults(Fragment):
         )
         """
 
-        for beam_info in self.default_urukul_beam_infos:
-            ad9910_device: AD9910 = self.get_device(beam_info.urukul_device)
+        self.ad9912_devices_and_handles: List[
+            Tuple[AD9912, FloatParamHandle, FloatParamHandle, bool]
+        ] = []
+        """
+        Tuple of (
+            AD9912 - ARTIQ device
+            FloatParamHandle - handle to frequency parameter
+            bool - does this beam have a shutter?
+        )
+        """
 
-            self.ad9910s.append(ad9910_device)
-            self.urukuls.append(ad9910_device.cpld)
+        for beam_info in self.default_urukul_beam_infos:
+            device: Union[AD9910, AD9912] = self.get_device(beam_info.urukul_device)
+
+            self.urukuls.append(device.cpld)
 
             if beam_info.shutter_device:
                 self.ttls.append(self.get_device(beam_info.shutter_device))
@@ -157,29 +167,40 @@ class SetBeamsToDefaults(Fragment):
             frequency_handle = self.setattr_param(
                 f"frequency_{beam_info.name}",
                 FloatParam,
-                f"AD9910 frequency for {beam_info.name}",
+                f"Frequency for {beam_info.name}",
                 min=0,
                 max=500e6,
                 default=beam_info.frequency,
             )
 
-            amplitude_handle = self.setattr_param(
-                f"amplitude_{beam_info.name}",
-                FloatParam,
-                f"AD9910 amplitude for {beam_info.name}",
-                min=0,
-                max=1,
-                default=beam_info.amplitude,
-            )
-
-            self.ad9910_devices_and_handles.append(
-                (
-                    ad9910_device,
-                    frequency_handle,
-                    amplitude_handle,
-                    bool(beam_info.shutter_device),
+            if isinstance(device, AD9910):
+                amplitude_handle = self.setattr_param(
+                    f"amplitude_{beam_info.name}",
+                    FloatParam,
+                    f"Amplitude for {beam_info.name}",
+                    min=0,
+                    max=1,
+                    default=beam_info.amplitude,
                 )
-            )
+
+                self.ad9910_devices_and_handles.append(
+                    (
+                        device,
+                        frequency_handle,
+                        amplitude_handle,
+                        bool(beam_info.shutter_device),
+                    )
+                )
+            elif isinstance(device, AD9912):
+                self.ad9912_devices_and_handles.append(
+                    (
+                        device,
+                        frequency_handle,
+                        bool(beam_info.shutter_device),
+                    )
+                )
+            else:
+                raise TypeError("Unrecognised device type")
 
         # Filter out duplicates
         self.urukuls = list(set(self.urukuls))
@@ -216,6 +237,15 @@ class SetBeamsToDefaults(Fragment):
                 )
             ]
 
+        if not self.ad9912_devices_and_handles:
+            self.ad9912_devices_and_handles = [
+                (
+                    self.dummy_ad9912,
+                    self.dummy_float_handle,
+                    False,
+                )
+            ]
+
         if not self.suservo_setters_and_info:
             self.suservo_setters_and_info = [
                 (self.dummy_suservo_frag, self.dummy_float_handle, False)
@@ -225,6 +255,12 @@ class SetBeamsToDefaults(Fragment):
                     name="", frequency=0.0, attenuation=0.0, suservo_device=""
                 )
             ]
+
+        if not self.ad9910s:
+            self.ad9910s = [self.dummy_ad9910]
+
+        if not self.ad9912s:
+            self.ad9912s = [self.dummy_ad9912]
 
         # %% Kernel invariants and variables
         kernel_invariants = getattr(self, "kernel_invariants", set())

@@ -38,7 +38,24 @@ class DummyAD9910:
         self.sw = DummyTTL()
 
     @kernel
+    def init(self):
+        pass
+
+    @kernel
     def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
+        return 0.0
+
+
+class DummyAD9912:
+    def __init__(self) -> None:
+        self.sw = DummyTTL()
+
+    @kernel
+    def init(self):
+        pass
+
+    @kernel
+    def set(self, frequency: TFloat = 0.0) -> TFloat:
         return 0.0
 
 
