@@ -3,6 +3,7 @@ from typing import List
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
@@ -102,6 +103,11 @@ class RedBeamController(Fragment):
         self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
         self.injection_aom: AD9910 = self.urukul9910_aom_doublepass_689_red_injection
 
+        self.setattr_device("ttl_shutter_red_axial_mot")
+        self.setattr_device("ttl_shutter_red_axial_spin_pol")
+        self.ttl_shutter_red_axial_mot: TTLOut
+        self.ttl_shutter_red_axial_spin_pol: TTLOut
+
         # %% PARAMETERS
 
         self.setattr_param(
@@ -156,9 +162,7 @@ class RedBeamController(Fragment):
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {
-            "debug_mode",
-        }
+        self.kernel_invariants = kernel_invariants | {"debug_mode", "injection_aom"}
 
     def host_setup(self):
         super().host_setup()
