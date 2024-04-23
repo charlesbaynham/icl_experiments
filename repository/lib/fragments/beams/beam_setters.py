@@ -53,6 +53,22 @@ def make_set_beams_to_default(
     return SetBeamsToDefaultsCustomised
 
 
+class _DummySUServoFrag(HasEnvironment):
+    """
+    A dummy class that copies the interface of LibSetSUServoStatic
+
+    This is used by ToggleListOfBeams when an empty list is passed to work
+    around the ARTIQ compiler's bad handling of empty lists / arrays.
+    """
+
+    def build(self):
+        self.setattr_device("core")
+
+    @kernel
+    def set_channel_state(self, rf_switch_state=True, enable_iir=True):
+        pass
+
+
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of beams, possibly with shutters, to their default
@@ -289,22 +305,6 @@ class SetBeamsToDefaults(Fragment):
             delay_mu(8)
 
 
-class DummySUServoFrag(HasEnvironment):
-    """
-    A dummy class that copies the interface of LibSetSUServoStatic
-
-    This is used by ToggleListOfBeams when an empty list is passed to work
-    around the ARTIQ compiler's bad handling of empty lists / arrays.
-    """
-
-    def build(self):
-        self.setattr_device("core")
-
-    @kernel
-    def set_channel_state(self, rf_switch_state=True, enable_iir=True):
-        pass
-
-
 def make_toggle_list_of_beams(
     beam_infos: List[SUServoedBeam],
 ) -> Type["ToggleListOfBeams"]:
@@ -387,7 +387,7 @@ class ToggleListOfBeams(Fragment):
 
         # Add a dummy beam / SUServo frag to the list if it's empty - see ARTIQ #1626
         if not self.suservo_frags:
-            self.suservo_frags = [DummySUServoFrag(self)]
+            self.suservo_frags = [_DummySUServoFrag(self)]
 
             dummy_beaminfo = SUServoedBeam(
                 name="dummy",

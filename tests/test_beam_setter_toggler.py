@@ -20,11 +20,6 @@ BEAM_INFO_SUSERVO_WITH_SHUTTER = SUServoedBeam(
 
 
 class ToggleSingleSUServoedBeam(ExpFragment):
-    @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
-        self.all_beam_toggler.turn_on_beams()
-
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.core: Core
@@ -41,11 +36,6 @@ class ToggleSingleSUServoedBeam(ExpFragment):
 
 
 class ToggleOneOfEach(ExpFragment):
-    @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
-        self.all_beam_toggler.turn_on_beams()
-
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.core: Core
