@@ -78,14 +78,9 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
             self.beam_info.suservo_device
         )
 
-        if isinstance(self.suservo_channel_device, DummyDevice):
-            # In building - use placeholder values
-            self.suservo: SUServo = DummyDevice()
-            self.sampler_channel_number = 0
-        else:
-            self.suservo = self.suservo_channel_device.servo
-            # This is a convention in the AION lab:
-            self.sampler_channel_number = self.suservo_channel_device.servo_channel
+        # These are conventions in the AION lab:
+        self.sampler_channel_number = self.suservo_channel_device.servo_channel
+        self.suservo_profile_number = self.suservo_channel_device.servo_channel
 
         # Define result channels as outputs
         self.setattr_result("voltage")
@@ -98,9 +93,7 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
         self.beam_default_setter: SetBeamsToDefaults
 
         # Get SUServo reader fragment
-        self.setattr_fragment(
-            "adc_reader", ReadSUServoADC, self.suservo, self.sampler_channel_number
-        )
+        self.setattr_fragment("adc_reader", ReadSUServoADC, self.suservo_channel_device)
         self.adc_reader: ReadSUServoADC
 
         # %% Kernel params
