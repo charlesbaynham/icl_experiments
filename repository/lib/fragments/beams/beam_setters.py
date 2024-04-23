@@ -216,6 +216,11 @@ class SetBeamsToDefaults(Fragment):
             self.suservo_setters_and_info = [
                 (self.dummy_suservo_frag, self.dummy_float_handle, False)
             ]
+            self.default_suservo_beam_infos = [
+                SUServoedBeam(
+                    name="", frequency=0.0, attenuation=0.0, suservo_device=""
+                )
+            ]
 
         # %% Kernel invariants and variables
         kernel_invariants = getattr(self, "kernel_invariants", set())
