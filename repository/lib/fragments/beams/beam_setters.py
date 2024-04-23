@@ -85,10 +85,10 @@ class SetBeamsToDefaults(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.dummy_ttl = DummyTTL(self)
-        self.dummy_ad9910 = DummyAD9910(self)
-        self.dummy_suservo_frag = DummySUServoFrag(self)
-        self.dummy_float_handle = DummyFloatParameterHandle(self)
+        self.dummy_ttl = DummyTTL()
+        self.dummy_ad9910 = DummyAD9910()
+        self.dummy_suservo_frag = DummySUServoFrag()
+        self.dummy_float_handle = DummyFloatParameterHandle()
 
         self.suservo_setters_and_info: List[
             Tuple[LibSetSUServoStatic, FloatParamHandle, bool]
