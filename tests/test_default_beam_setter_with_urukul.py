@@ -45,7 +45,7 @@ BEAM_INFO_AD9912_WITH_SHUTTER = UrukuledBeam(
     0,
     0,
     urukul_device="urukul2_ch0",  # This is an AD9912
-    shutter_device="urukul5_ch0",  # This is our first ttl output
+    shutter_device="ttl12",  # This is our first ttl output
 )
 
 
