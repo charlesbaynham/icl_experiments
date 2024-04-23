@@ -16,6 +16,7 @@ from artiq.experiment import HasEnvironment
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
+from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
@@ -25,6 +26,8 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
+
+from repository.lib.dummy_devices import *
 
 
 logger = logging.getLogger(__name__)
@@ -53,22 +56,6 @@ def make_set_beams_to_default(
     return SetBeamsToDefaultsCustomised
 
 
-class _DummySUServoFrag(HasEnvironment):
-    """
-    A dummy class that copies the interface of LibSetSUServoStatic
-
-    This is used by ToggleListOfBeams when an empty list is passed to work
-    around the ARTIQ compiler's bad handling of empty lists / arrays.
-    """
-
-    def build(self):
-        self.setattr_device("core")
-
-    @kernel
-    def set_channel_state(self, rf_switch_state=True, enable_iir=True):
-        pass
-
-
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of beams, possibly with shutters, to their default
@@ -86,27 +73,22 @@ class SetBeamsToDefaults(Fragment):
     default_suservo_beam_infos: List[SUServoedBeam] = None  # type: ignore
     default_urukul_beam_infos: List[UrukuledBeam] = None  # type: ignore
 
-    def build_fragment(self, default_suservo_beam_infos=None):
-        if not self.default_suservo_beam_infos and default_suservo_beam_infos:
-            warnings.warn(
-                (
-                    "Building SetBeamsToDefault with parameters passed to build_fragment. "
-                    "This is not recommended: use the factory function instead"
-                ),
-                DeprecationWarning,
-            )
-
-        self.default_suservo_beam_infos = (
-            default_suservo_beam_infos or self.default_suservo_beam_infos
-        )
-
-        if self.default_suservo_beam_infos is None:
+    def build_fragment(self):
+        if (
+            self.default_suservo_beam_infos is None
+            or self.default_urukul_beam_infos is None
+        ):
             raise TypeError(
-                "You must either create a subclass of SetBeamsToDefaults or pass in a list of default_suservo_beam_infos - see the documentation"
+                "You must construct this class using the factory function make_set_beams_to_default"
             )
 
         self.setattr_device("core")
         self.core: Core
+
+        self.dummy_ttl = DummyTTL(self)
+        self.dummy_ad9910 = DummyAD9910(self)
+        self.dummy_suservo_frag = DummySUServoFrag(self)
+        self.dummy_float_handle = DummyFloatParameterHandle(self)
 
         self.suservo_setters_and_info: List[
             Tuple[LibSetSUServoStatic, FloatParamHandle, bool]
@@ -153,6 +135,14 @@ class SetBeamsToDefaults(Fragment):
         self.ad9910_devices_and_handles: List[
             Tuple[AD9910, FloatParamHandle, FloatParamHandle, bool]
         ] = []
+        """
+        Tuple of (
+            AD9910 - ARTIQ device
+            FloatParamHandle - handle to frequency parameter
+            FloatParamHandle - handle to amplitude parameter
+            bool - does this beam have a shutter?
+        )
+        """
 
         for beam_info in self.default_urukul_beam_infos:
             ad9910_device: AD9910 = self.get_device(beam_info.urukul_device)
@@ -196,9 +186,26 @@ class SetBeamsToDefaults(Fragment):
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
-        # Add a dummy element to self.ttls to trick the ARTIQ compiler in the
-        # case of empty lists. We loop from 1 onwards
-        self.ttls.insert(0, self.get_device(get_local_devices(self, TTLOut)[0]))
+        # %% Dummy elements
+
+        # This code is annoying. We must work around ARTIQ's inability to infer
+        # the type of empty lists by making sure that the lists are not empty.
+        # That means adding object to them which have the same call structure as
+        # the real ones, but actually do nothing. The compiler will optimize
+        # these away so they won't have an impact on performance.
+
+        if not self.ttls:
+            self.ttls = [self.dummy_ttl]
+
+        if not self.ad9910_devices_and_handles:
+            self.ad9910_devices_and_handles = [
+                (
+                    self.dummy_ad9910,
+                    self.dummy_float_handle,
+                    self.dummy_float_handle,
+                    False,
+                )
+            ]
 
         # %% Kernel invariants and variables
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -264,7 +271,7 @@ class SetBeamsToDefaults(Fragment):
                 "SetBeamsToDefault.turn_on_all(light_enabled=%s)", light_enabled
             )
 
-        for i in range(len(self.default_suservo_beam_infos)):
+        for i in range(len(self.suservo_setters_and_info)):
             (setter, setpoint_handle, shutter_present) = self.suservo_setters_and_info[
                 i
             ]
@@ -284,7 +291,7 @@ class SetBeamsToDefaults(Fragment):
                 enable_iir=beam_info.servo_enabled,
             )
 
-        for i in range(len(self.default_urukul_beam_infos)):
+        for i in range(len(self.ad9910_devices_and_handles)):
             (
                 ad9910_device,
                 frequency_handle,
@@ -299,8 +306,7 @@ class SetBeamsToDefaults(Fragment):
             )
             ad9910_device.sw.set_o(rf_switch_state)
 
-        for i in range(1, len(self.ttls)):
-            ttl = self.ttls[i]
+        for ttl in self.ttls:
             ttl.set_o(light_enabled)
             delay_mu(8)
 
