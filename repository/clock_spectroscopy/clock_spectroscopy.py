@@ -21,7 +21,9 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.cameras.triple_imaging_kinetics import (
     RedMOTWithExperiment,
 )
-from repository.lib.fragments.cameras.triple_imaging_kinetics import SpectroscopyMixin
+from repository.lib.fragments.cameras.triple_imaging_kinetics import (
+    SpectroscopyParamsMixin,
+)
 from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTFrag
 
 
@@ -30,7 +32,7 @@ logger = logging.getLogger(__name__)
 CLOCK_BEAM_INFO: SUServoedBeam = constants.AOM_BEAMS["clock_up"]
 
 
-class BasicClockSpectroscopyFrag(SpectroscopyMixin, TripleImageMOTFrag):
+class BasicClockSpectroscopyFrag(SpectroscopyParamsMixin, TripleImageMOTFrag):
     """
     Basic clock spectroscopy
 

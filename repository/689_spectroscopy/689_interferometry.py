@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 
 from repository.lib.fragments.cameras.triple_imaging_kinetics import (
     TripleImageMOTFrag,
-    SpectroscopyMixin,
+    SpectroscopyParamsMixin,
 )
 
 
-class _InterferometryCommon(TripleImageMOTFrag, SpectroscopyMixin):
+class _InterferometryCommon(TripleImageMOTFrag, SpectroscopyParamsMixin):
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
             default_beam_infos = [constants.AOM_BEAMS["red_up"]]

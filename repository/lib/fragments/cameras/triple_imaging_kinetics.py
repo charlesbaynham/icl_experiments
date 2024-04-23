@@ -342,7 +342,11 @@ class TripleImageMOTFrag(RedMOTWithExperiment):
         self.andor_camera_control: AndorCameraControl
 
 
-class SpectroscopyMixin(RedMOTWithExperiment):
+class SpectroscopyParamsMixin(RedMOTWithExperiment):
+    """
+    Adds parameters for controlling a spectroscopy pulse
+    """
+
     def build_fragment(self):
         super().build_fragment()
 
