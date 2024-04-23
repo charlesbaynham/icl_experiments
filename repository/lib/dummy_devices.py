@@ -26,11 +26,17 @@ class DummyAD9910:
         self.sw = DummyTTL()
 
     @kernel
-    def set(self, frequency: TFloat, amplitude: TFloat):
-        pass
+    def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
+        return 0.0
 
 
 class DummyFloatParameterHandle:
     @kernel
     def get(self):
+        return 0.0
+
+
+class DummySUServoChannel:
+    @kernel
+    def set_setpoint(self, new_setpoint: TFloat):
         return 0.0
