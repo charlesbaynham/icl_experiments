@@ -9,7 +9,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
-from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
+from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (

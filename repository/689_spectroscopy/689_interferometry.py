@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     TripleImageMOTMixin,
+)
+
+from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 
