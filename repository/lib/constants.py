@@ -20,15 +20,16 @@ from dataclasses import dataclass
 from pyaion.models import SUServoedBeam
 
 
-IJD_AOMS = {
+AD9910_BEAMS = {
     "red_IJD1_controller": (
         "urukul9910_aom_doublepass_689_red_injection",
-        340.0e6,
+        365.0e6,
         0.0,
     ),
     "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 20.0),
+    "red_spinpol": ("urukul9910_aom_doublepass_689_spinpol", 366.6e6, 0.0),
 }
-"Urukul outputs (name, freq, attenuation) required for injection locks"
+"Urukul outputs (name, freq, attenuation) required for non-suservo ad9910 aoms"
 
 
 @dataclass
