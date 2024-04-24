@@ -17,7 +17,10 @@
           # Build the python bindings for aravis
           python-aravis = callPackage ./nix/aravis/python-aravis.nix { };
 
-          originalOutputs = pyaion.lib.${system}.artiq_flake_builder { poetry_app = self; };
+          originalOutputs = pyaion.lib.${system}.artiq_flake_builder {
+            poetry_app = self;
+            extra_non_python_deps = [ pkgs.ripgrep ];
+          };
           overriddenOutputs = originalOutputs.override (prev: {
             extra-build-requirements = {
               artiq-http = [ "setuptools" ];
