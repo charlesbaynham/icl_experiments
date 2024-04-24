@@ -6,6 +6,10 @@ from artiq.coredevice.urukul import CPLD
 from artiq.experiment import parallel
 from ndscan.experiment import *
 
+from repository.lib.dummy_devices import DummyAD9910
+from repository.lib.dummy_devices import DummyAD9912
+from repository.lib.dummy_devices import DummyUrukul
+
 
 def make_urukul_init(names: List[str]):
     class UrukulInitInstance(UrukulInit):
@@ -41,6 +45,14 @@ class UrukulInit(Fragment):
         # Get associated urukuls for each, removing duplicates
         self.urukuls: List[CPLD] = [d.cpld for d in self.ad9910s + self.ad9912s]
         self.urukuls = list(set(self.urukuls))
+
+        # Add dummy elements if any lists are empty
+        if not self.urukuls:
+            self.urukuls.append(DummyUrukul())
+        if not self.ad9910s:
+            self.ad9910s.append(DummyAD9910())
+        if not self.ad9912s:
+            self.ad9912s.append(DummyAD9912())
 
         # Get unique IDs for each. These come from the devices in the device
         # manager and so are common to different invocations of this fragment.
