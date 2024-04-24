@@ -59,7 +59,7 @@ class ToggleListOfBeams(Fragment):
                 DeprecationWarning,
             )
 
-        self.default_suservo_beam_infos = default_beam_infos or self.default_beam_infos
+        self.default_beam_infos = default_beam_infos or self.default_beam_infos
 
         if self.default_beam_infos is None:
             raise TypeError(
