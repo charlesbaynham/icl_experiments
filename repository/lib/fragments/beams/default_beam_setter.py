@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 def make_set_beams_to_default(
     suservo_beam_infos: List[SUServoedBeam] = [],
     urukul_beam_infos: List[UrukuledBeam] = [],
+    name="",
 ) -> Type["SetBeamsToDefaults"]:
     """
     Return a SetBeamsToDefaults Fragment class with the given beams set
@@ -43,13 +44,20 @@ def make_set_beams_to_default(
     order, number and type-signatures. That's not true for this Fragment: we'll
     be setting up variable numbers of LibSetSUServoStatic subfragments, so need
     a subclass for each instance.
-
-    FIXME: Warn if no name is provided and set a name
     """
 
     class SetBeamsToDefaultsCustomised(SetBeamsToDefaults):
         default_suservo_beam_infos = suservo_beam_infos
         default_urukul_beam_infos = urukul_beam_infos
+
+    if not name:
+        name = "SetBeamsToDefaults"
+        warnings.warn(
+            "No name provided for default beam setter. Consider providing one to improve ndscan fragment naming"
+        )
+
+    SetBeamsToDefaultsCustomised.__name__ = name
+    SetBeamsToDefaultsCustomised.__qualname__ = name
 
     return SetBeamsToDefaultsCustomised
 
