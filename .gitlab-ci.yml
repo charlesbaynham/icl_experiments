@@ -37,6 +37,13 @@ pre-commit:
         - nix run .#pre-commit
     allow_failure: true
 
+check_for_fixme:
+    extends: .deps
+    stage: Static Analysis
+    script:
+        - nix run .#check_for_fixme
+    needs: []
+
 ### Builder ###
 
 # If the environmental variables CACHIX_CACHE_NAME and CACHIX_AUTH_TOKEN are set,
@@ -66,13 +73,6 @@ pytest:
         when: always
         reports:
             junit: report.xml
-
-check_for_fixme:
-    extends: .deps
-    stage: "Test"
-    script:
-        - nix run .#check_for_fixme
-    needs: []
 
 ### Documentation ###
 
