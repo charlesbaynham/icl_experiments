@@ -341,6 +341,11 @@ class SetBeamsToDefaults(Fragment):
                 "SetBeamsToDefault.turn_on_all(light_enabled=%s)", light_enabled
             )
 
+        self._turn_on_suservos(light_enabled=light_enabled)
+        self._turn_on_ad9910s(light_enabled=light_enabled)
+        self._turn_on_ad9912s(light_enabled=light_enabled)
+
+    def _turn_on_suservos(self, light_enabled):
         for i in range(len(self.suservo_setters_and_info)):
             (setter, setpoint_handle, shutter_present) = self.suservo_setters_and_info[
                 i
@@ -361,6 +366,7 @@ class SetBeamsToDefaults(Fragment):
                 enable_iir=beam_info.servo_enabled,
             )
 
+    def _turn_on_ad9910s(self, light_enabled):
         for (
             ad9910_device,
             frequency_handle,
@@ -373,6 +379,7 @@ class SetBeamsToDefaults(Fragment):
             )
             ad9910_device.sw.set_o(rf_switch_state)
 
+    def _turn_on_ad9912s(self, light_enabled):
         for (
             ad9912_device,
             frequency_handle,
