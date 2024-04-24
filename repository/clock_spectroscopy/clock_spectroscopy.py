@@ -9,6 +9,9 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
@@ -19,7 +22,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics imp
 
 logger = logging.getLogger(__name__)
 
-CLOCK_BEAM_INFO: SUServoedBeam = constants.AOM_BEAMS["clock_up"]
+CLOCK_BEAM_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_up"]
 
 
 class BasicClockSpectroscopyExp(SpectroscopyParamsMixin, TripleImageMOTMixin):

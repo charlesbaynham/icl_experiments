@@ -6,7 +6,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
@@ -14,6 +14,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import 
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     TripleImageMOTMixin,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class SpectroscopyWithKinetics_UpBeam(
 
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
-            default_beam_infos = [constants.AOM_BEAMS["red_up"]]
+            default_suservo_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
 
         self.setattr_fragment("up_beam_default_setter", _UpBeamSetter)
         self.up_beam_default_setter: SetBeamsToDefaults
@@ -72,7 +73,7 @@ class SpectroscopyWithKinetics_UpBeam(
         self.setattr_fragment(
             "up_beam_suservo",
             LibSetSUServoStatic,
-            constants.AOM_BEAMS["red_up"].suservo_device,
+            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
         )
         self.up_beam_suservo: LibSetSUServoStatic
 

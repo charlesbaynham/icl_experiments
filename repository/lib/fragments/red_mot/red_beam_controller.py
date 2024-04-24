@@ -3,7 +3,9 @@ from typing import List
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
@@ -11,13 +13,14 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from numpy import int64
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
-from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import make_set_beams_to_default
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
@@ -26,7 +29,7 @@ from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import
 logger = logging.getLogger(__name__)
 
 RED_BEAM_INFOS = [
-    constants.AOM_BEAMS[beam]
+    constants.SUSERVOED_BEAMS[beam]
     for beam in [
         "red_mot_diagonal",
         "red_mot_sigmaplus",
@@ -47,11 +50,13 @@ class RedBeamController(Fragment):
 
         # %% FRAGMENTS
 
+        # Setup of suservo defaults for all beams
         self.setattr_fragment(
             "all_beam_default_setter", make_set_beams_to_default(RED_BEAM_INFOS)
         )
         self.all_beam_default_setter: SetBeamsToDefaults
 
+        # Interface for AOM + shutter toggling of mot beams
         self.setattr_fragment(
             "all_mot_beams_setter",
             ControlBeamsWithoutCoolingAOM,
@@ -59,6 +64,22 @@ class RedBeamController(Fragment):
         )
         self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
 
+        # Quick togglers for just the sigmaplus / sigmaminus beams, for pumping
+        self.setattr_fragment(
+            "sigmaplus_toggler",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]],
+        )
+        self.sigmaplus_toggler: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
+            "sigmaminus_toggler",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]],
+        )
+        self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
+
+        # Fast ramping of the AD9910 controlling the injection AOM
         self.setattr_fragment(
             "injection_aom_ramper",
             AD9910Ramper,
@@ -66,6 +87,7 @@ class RedBeamController(Fragment):
         )
         self.injection_aom_ramper: AD9910Ramper
 
+        # Init of the injection AOM without glitching it if it's already on
         self.setattr_fragment(
             "GlitchFreeUrukulDefaultAttenuation",
             GlitchFreeUrukulDefaultAttenuation,
@@ -100,6 +122,11 @@ class RedBeamController(Fragment):
 
         self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
         self.injection_aom: AD9910 = self.urukul9910_aom_doublepass_689_red_injection
+
+        self.setattr_device("ttl_shutter_red_axial_mot")
+        self.setattr_device("ttl_shutter_red_axial_spin_pol")
+        self.ttl_shutter_red_axial_mot: TTLOut
+        self.ttl_shutter_red_axial_spin_pol: TTLOut
 
         # %% PARAMETERS
 
@@ -155,9 +182,7 @@ class RedBeamController(Fragment):
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {
-            "debug_mode",
-        }
+        self.kernel_invariants = kernel_invariants | {"debug_mode", "injection_aom"}
 
     def host_setup(self):
         super().host_setup()
@@ -205,17 +230,26 @@ class RedBeamController(Fragment):
         """
         # Turn on all the AOMs but close all the shutters
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
+        delay_mu(int64(self.core.ref_multiplier))
+        self.ttl_shutter_red_axial_mot.off()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.ttl_shutter_red_axial_spin_pol.off()
 
         # Make sure that the shutters are closed before run_once starts
         delay(self.all_beam_default_setter.get_max_shutter_delay())
 
     @kernel
     def turn_on_mot_beams(self, ignore_shutters=False):
-        return self.all_mot_beams_setter.turn_beams_on(ignore_shutters)
+        delay(-constants.SRS_SHUTTER_DELAY)
+        self.ttl_shutter_red_axial_mot.on()
+        delay(constants.SRS_SHUTTER_DELAY)
+        self.all_mot_beams_setter.turn_beams_on(ignore_shutters)
 
     @kernel
     def turn_off_mot_beams(self, ignore_shutters=False):
-        return self.all_mot_beams_setter.turn_beams_off(ignore_shutters)
+        self.all_mot_beams_setter.turn_beams_off(ignore_shutters)
+        delay_mu(int64(self.core.ref_multiplier))
+        self.ttl_shutter_red_axial_mot.off()
 
     @kernel
     def start_ramping_red(self):
@@ -274,8 +308,12 @@ class RedBeamController(Fragment):
         """
         Set the SUServo target amplitudes of all MOT beams together
 
+        TODO: This code is not currently used but should be used to implement
+        global ramps of the red mot intensities
+
         Args:
-            amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a multiple of the nominal amplitude
+            amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a
+            multiple of the nominal amplitude
         """
 
         for i in range(len(self.suservo_fragments)):

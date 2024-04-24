@@ -11,8 +11,10 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
@@ -21,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 BlueBeamSetter = make_set_beams_to_default(
-    [
-        constants.AOM_BEAMS[beam]
+    suservo_beam_infos=[
+        constants.SUSERVOED_BEAMS[beam]
         for beam in [
             "blue_push_beam",
             "blue_2dmot_A",
@@ -33,7 +35,9 @@ BlueBeamSetter = make_set_beams_to_default(
             "repump_707",
             "repump_679",
         ]
-    ]
+    ],
+    urukul_beam_infos=[],
+    name="ImagingBeamsSettings",
 )
 
 
@@ -58,14 +62,14 @@ class Blue3DMOTFrag(Fragment):
             "mot_all_beam_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.AOM_BEAMS["blue_push_beam"],
-                constants.AOM_BEAMS["blue_3dmot_radial"],
-                constants.AOM_BEAMS["blue_3dmot_axialplus"],
-                constants.AOM_BEAMS["blue_3dmot_axialminus"],
-                constants.AOM_BEAMS["blue_2dmot_A"],
-                constants.AOM_BEAMS["blue_2dmot_B"],
-                constants.AOM_BEAMS["repump_679"],
-                constants.AOM_BEAMS["repump_707"],
+                constants.SUSERVOED_BEAMS["blue_push_beam"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
+                constants.SUSERVOED_BEAMS["repump_679"],
+                constants.SUSERVOED_BEAMS["repump_707"],
             ],
         )
         self.mot_all_beam_setter: ControlBeamsWithoutCoolingAOM
@@ -74,12 +78,12 @@ class Blue3DMOTFrag(Fragment):
             "mot_2d_and_3d_beams_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.AOM_BEAMS["blue_push_beam"],
-                constants.AOM_BEAMS["blue_3dmot_radial"],
-                constants.AOM_BEAMS["blue_3dmot_axialplus"],
-                constants.AOM_BEAMS["blue_3dmot_axialminus"],
-                constants.AOM_BEAMS["blue_2dmot_A"],
-                constants.AOM_BEAMS["blue_2dmot_B"],
+                constants.SUSERVOED_BEAMS["blue_push_beam"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
             ],
         )
         self.mot_2d_and_3d_beams_setter: ControlBeamsWithoutCoolingAOM
@@ -88,9 +92,9 @@ class Blue3DMOTFrag(Fragment):
             "mot_3d_beams_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.AOM_BEAMS["blue_3dmot_radial"],
-                constants.AOM_BEAMS["blue_3dmot_axialplus"],
-                constants.AOM_BEAMS["blue_3dmot_axialminus"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
             ],
         )
         self.mot_3d_beams_setter: ControlBeamsWithoutCoolingAOM
@@ -99,8 +103,8 @@ class Blue3DMOTFrag(Fragment):
             "repump_beam_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.AOM_BEAMS["repump_679"],
-                constants.AOM_BEAMS["repump_707"],
+                constants.SUSERVOED_BEAMS["repump_679"],
+                constants.SUSERVOED_BEAMS["repump_707"],
             ],
         )
         self.repump_beam_setter: ControlBeamsWithoutCoolingAOM
@@ -221,7 +225,7 @@ class Blue3DMOTFrag(Fragment):
         respect beam shutter delays - it just turns everything
         on immediately. It needs at least 3924ns of slack.
 
-        FIXME: Figure out why I need a stupid amount of slack
+        TODO: Figure out why I need a stupid amount of slack
         """
 
         if self.debug_mode:

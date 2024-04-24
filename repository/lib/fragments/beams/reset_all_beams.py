@@ -1,3 +1,4 @@
+import logging
 from typing import *
 
 from artiq.coredevice.core import Core
@@ -11,7 +12,10 @@ from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
+from device_db_config import get_device_db
 from repository.lib import constants
+
+logger = logging.getLogger(__name__)
 
 
 class CloseAllShutters(Fragment):
@@ -42,12 +46,21 @@ class CloseAllShutters(Fragment):
         for ttl_name in self.ttl_shutters:
             self.ttls.append(self.get_device(ttl_name))
 
+        # %% Kernel invariants and variables
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {"debug_mode", "ttls"}
+
         self.first_run = True
+        self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
     @kernel
     def device_setup(self) -> None:
         if self.first_run:
             self.first_run = False
+
+            if self.debug_mode:
+                logger.info("Resetting beams")
+
             self.core.break_realtime()
 
             for ttl in self.ttls:
@@ -136,11 +149,11 @@ class ResetAllBeams(Fragment):
 
 class CloseAllICLShutters(CloseAllShutters):
     ttl_shutters = [
-        info.shutter_device
-        for info in constants.AOM_BEAMS.values()
-        if info.shutter_device
+        device_name
+        for device_name in get_device_db().keys()
+        if "shutter" in device_name
     ]
 
 
 class ResetAllICLBeams(ResetAllBeams):
-    beam_infos = list(constants.AOM_BEAMS.values())
+    beam_infos = list(constants.SUSERVOED_BEAMS.values())

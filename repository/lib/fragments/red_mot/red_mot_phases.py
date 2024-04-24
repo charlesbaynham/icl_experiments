@@ -10,7 +10,7 @@ from artiq.experiment import TFloat
 from artiq.experiment import TList
 
 from repository.lib import constants
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
@@ -50,7 +50,17 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
             raise TypeError("You must pass chamber_2_field_setter into build_fragment")
         self.field_setter = chamber_2_field_setter
 
+        self.__binding_completed = False
+
         return super().build_fragment()
+
+    def host_setup(self):
+        if not self.__binding_completed:
+            raise TypeError(
+                "bind_suservo_setpoint_params_to_default_beam_setter has not been called\n"
+                "This must be called from the Fragment which initiates this phase to rebind the red beam setpoints"
+            )
+        return super().host_setup()
 
     @kernel
     def general_setter(self, vals: TList(TFloat)):
@@ -93,6 +103,7 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
                     f"SUServo {suservo_device_name} not found in all_beam_default_setter"
                 )
         self.bind_suservo_setpoint_params(handles)
+        self.__binding_completed = True
 
 
 class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):

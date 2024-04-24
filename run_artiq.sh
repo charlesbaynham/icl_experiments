@@ -5,5 +5,5 @@
 # You can also do "nix run .#full_stack --help" to see more options than just the
 # default.
 
-# FIXME: Hack to get around the full_stack app not having the right environment
+# TODO: Undo this hack to get around the full_stack app not having the right environment
 nix develop -c nix run .#full_stack

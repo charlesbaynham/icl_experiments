@@ -243,7 +243,7 @@ class AndorCameraControl(Fragment):
         data = [0] * self.num_rois
         self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
-        # FIXME: assumes all ROIs have same area
+        # TODO: assumes all ROIs have same area
         area = (self.roi_0_x1.get() - self.roi_0_x0.get()) * (
             self.roi_0_y1.get() - self.roi_0_y0.get()
         )

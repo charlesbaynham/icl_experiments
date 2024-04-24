@@ -130,8 +130,10 @@ class RelockIJDFrag(ExpFragment):
 
         self.controller_name = controller_name
 
-        if self.controller_name in constants.IJD_AOMS:
-            urukul_channel_name, freq, att = constants.IJD_AOMS[self.controller_name]
+        if self.controller_name in constants.AD9910_BEAMS:
+            urukul_channel_name, freq, att = constants.AD9910_BEAMS[
+                self.controller_name
+            ]
 
             self.urukul_channel: AD9910 = self.get_device(urukul_channel_name)
             self.urukul_channel_name = urukul_channel_name

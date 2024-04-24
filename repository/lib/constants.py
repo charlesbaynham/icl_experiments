@@ -20,15 +20,16 @@ from dataclasses import dataclass
 from pyaion.models import SUServoedBeam
 
 
-IJD_AOMS = {
+AD9910_BEAMS = {
     "red_IJD1_controller": (
         "urukul9910_aom_doublepass_689_red_injection",
-        340.0e6,
+        365.0e6,
         0.0,
     ),
     "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 20.0),
+    "red_spinpol": ("urukul9910_aom_doublepass_689_spinpol", 366.6e6, 0.0),
 }
-"Urukul outputs (name, freq, attenuation) required for injection locks"
+"Urukul outputs (name, freq, attenuation) required for non-suservo ad9910 aoms"
 
 
 @dataclass
@@ -129,8 +130,10 @@ ANDOR_FAST_KINETICS_HEIGHT = width
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
 
+SRS_SHUTTER_DELAY = 10e-3
+
 # Information about beams controlled by AOMs
-AOM_BEAMS = [
+SUSERVOED_BEAMS = [
     ### BLUE ###
     SUServoedBeam(
         "blue_push_beam",
@@ -168,7 +171,7 @@ AOM_BEAMS = [
         20,
         "suservo_aom_singlepass_461_3DMOT_radial",
         "TTL_shutter_461_3dmot",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=2.8,
     ),
@@ -178,7 +181,7 @@ AOM_BEAMS = [
         20,
         "suservo_aom_singlepass_461_3DMOT_axialminus",
         "TTL_shutter_461_3dmot",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=3.0,
     ),
@@ -188,7 +191,7 @@ AOM_BEAMS = [
         20,
         "suservo_aom_singlepass_461_3DMOT_axialplus",
         "TTL_shutter_461_3dmot",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=2.0,
     ),
@@ -213,7 +216,7 @@ AOM_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
         shutter_device="ttl_shutter_red_mot_diagonal",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.5,
         photodiode_offset=0.01326,
@@ -224,7 +227,7 @@ AOM_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_sigmaminus",
         shutter_device="ttl_shutter_red_sigmaminus",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.5,
         photodiode_offset=0.0188,
@@ -235,10 +238,10 @@ AOM_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_up",
         shutter_device="ttl_shutter_red_up",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.1,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
-        photodiode_offset=0.0188,  # FIXME: This is a guess
+        photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -246,10 +249,10 @@ AOM_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.5,
-        photodiode_offset=0.0188,  # FIXME: This is a guess
+        photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     ### OTHER ###
     SUServoedBeam(
@@ -258,7 +261,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_707",
         shutter_device="ttl_shutter_repump_707",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=0.75,
     ),
@@ -268,7 +271,7 @@ AOM_BEAMS = [
         0,
         "suservo_aom_singlepass_679",
         shutter_device="ttl_shutter_repump_679",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=0.33,
     ),
@@ -281,7 +284,7 @@ AOM_BEAMS = [
 ]
 
 # Convert to dict for ease of use
-AOM_BEAMS = {beam.name: beam for beam in AOM_BEAMS}
+SUSERVOED_BEAMS = {beam.name: beam for beam in SUSERVOED_BEAMS}
 
 
 # Mirny settings for Sr 88 / Sr 87
@@ -296,8 +299,8 @@ class MirnySettings:
 MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=533e6,
-        attenuation=8.0,
+        frequency=583e6,
+        attenuation=7.0,
     ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_A", frequency=100e6, rf_switch=False
@@ -313,8 +316,8 @@ MIRNY_SETTINGS_88 = [
 MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=708.44e6,
-        attenuation=3.0,
+        frequency=660.3e6,
+        attenuation=4.0,
     ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_A", frequency=576e6, attenuation=20.0
