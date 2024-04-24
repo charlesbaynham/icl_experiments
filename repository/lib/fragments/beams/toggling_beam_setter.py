@@ -12,7 +12,6 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib.dummy_devices import DummySUServoFrag
-from repository.lib.fragments.beams.urukul_init import make_urukul_init
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +66,7 @@ class ToggleListOfBeams(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        # Filter our suservoed beams into ones with shutters and ones without
+        # Filter our beams into ones with shutters and ones without
         self.suservos_with_shutters: List[SUServoedBeam] = list(
             filter(lambda i: bool(i.shutter_device), self.default_suservo_beam_infos)
         )
@@ -76,8 +75,20 @@ class ToggleListOfBeams(Fragment):
                 lambda i: not bool(i.shutter_device), self.default_suservo_beam_infos
             )
         )
+        self.urukuls_with_shutters: List[UrukuledBeam] = list(
+            filter(lambda i: bool(i.shutter_device), self.default_urukul_beam_infos)
+        )
+        self.urukuls_without_shutters: List[UrukuledBeam] = list(
+            filter(lambda i: not bool(i.shutter_device), self.default_urukul_beam_infos)
+        )
 
-        # Delegate to ControlBeamsWithoutCoolingAOM for the shutter-enabled beams
+        if self.urukuls_with_shutters:
+            raise NotImplementedError(
+                "Toggling urukuls with shutters is not yet supported"
+            )
+
+        # Delegate to ControlBeamsWithoutCoolingAOM for the shutter-enabled
+        # suservo beams
         self.setattr_fragment(
             "shuttered_beams_setter",
             ControlBeamsWithoutCoolingAOM,
@@ -85,7 +96,7 @@ class ToggleListOfBeams(Fragment):
         )
         self.shuttered_beams_setter: ControlBeamsWithoutCoolingAOM
 
-        # Build a list of LibSetSUServoStatics for the other beams
+        # Build a list of LibSetSUServoStatics for the other suservos
         self.suservo_frags: List[LibSetSUServoStatic] = []
         for beam in self.suservos_without_shutters:
             f = self.setattr_fragment(
@@ -94,12 +105,6 @@ class ToggleListOfBeams(Fragment):
                 channel=beam.suservo_device,
             )
             self.suservo_frags.append(f)
-
-        # Build an urukul initiator for the ad9910 and ad9912 beams
-        self.setattr_fragment(
-            "urukul_init",
-            make_urukul_init([b.urukul_device for b in self.default_urukul_beam_infos]),
-        )
 
         # Add a dummy beam / SUServo frag to the list if it's empty - see ARTIQ #1626
         if not self.suservo_frags:

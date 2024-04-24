@@ -23,6 +23,7 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib.dummy_devices import *
+from repository.lib.fragments.beams.urukul_init import make_urukul_init
 
 
 logger = logging.getLogger(__name__)
@@ -206,6 +207,12 @@ class SetBeamsToDefaults(Fragment):
             else:
                 raise TypeError("Unrecognised device type")
 
+        # Ensure the AD9910 and AD9912s are initiated
+        self.setattr_fragment(
+            "urukul_init",
+            make_urukul_init([b.urukul_device for b in self.default_urukul_beam_infos]),
+        )
+
         # Filter out duplicates
         self.urukuls = list(set(self.urukuls))
 
@@ -302,26 +309,6 @@ class SetBeamsToDefaults(Fragment):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
-
-        # Initiate AD9910s if not done yet
-        if self.first_run:
-            self.first_run = False
-
-            self.core.break_realtime()
-
-            with parallel:
-                for urukul in self.urukuls:
-                    # TODO: Initiating Urukuls like this is inefficient since many
-                    # will be in multiple beam setters and so will be initiated
-                    # multiple times. See the code in LibSetSUServoStatic for ways
-                    # to avoid this
-                    urukul.init()
-
-            self.core.break_realtime()
-
-            with parallel:
-                for ad9910 in self.ad9910s:
-                    ad9910.init()
 
         # Retrieve the values of all the generated parameters for SUServo
         # setpoints for this run of the scan
