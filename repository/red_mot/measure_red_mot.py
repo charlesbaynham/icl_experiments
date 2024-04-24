@@ -159,7 +159,7 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
         narrowband_duration = self.red_mot.get_total_narrowband_duration()
 
         self.core.break_realtime()
-        self._from_start_to_end_of_broadband_mot()
+        # self._from_start_to_end_of_broadband_mot()  # FIXME
 
         with parallel:
             with sequential:
