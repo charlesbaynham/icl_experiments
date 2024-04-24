@@ -31,6 +31,8 @@ class UrukulInit(Fragment):
     initiated_channels = set()
 
     def build_fragment(self):
+        self.setattr_device("core")
+
         # Get our AD9910 and AD9912s
         devices = [self.get_device(d) for d in self.channel_names]
 
@@ -64,7 +66,7 @@ class UrukulInit(Fragment):
         self.urukul_ids = [hash(d) for d in self.urukuls]
 
         self.first_run = True
-        self.debug_mode = logger.isEnabledFor(logging.INFO)
+        self.debug_mode = logger.isEnabledFor(logging.DEBUG)
 
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
@@ -90,11 +92,13 @@ class UrukulInit(Fragment):
                     if not self.mark_initiated(self.urukul_ids[i]):
                         if self.debug_mode:
                             logger.info("Initiating %s", urukul)
+                            self.core.break_realtime()
 
                         urukul.init()
                     else:
                         if self.debug_mode:
                             logger.info("%s already initiated", urukul)
+                            self.core.break_realtime()
 
             # Then do the AD9910s
             with parallel:
@@ -104,11 +108,13 @@ class UrukulInit(Fragment):
                     if not self.mark_initiated(self.ad9910_ids[i]):
                         if self.debug_mode:
                             logger.info("Initiating %s", ad9910)
+                            self.core.break_realtime()
 
                         ad9910.init()
                     else:
                         if self.debug_mode:
                             logger.info("%s already initiated", ad9910)
+                            self.core.break_realtime()
 
             # ... and 12s
             with parallel:
@@ -118,11 +124,13 @@ class UrukulInit(Fragment):
                     if not self.mark_initiated(self.ad9912_ids[i]):
                         if self.debug_mode:
                             logger.info("Initiating %s", ad9912)
+                            self.core.break_realtime()
 
                         ad9912.init()
                     else:
                         if self.debug_mode:
                             logger.info("%s already initiated", ad9912)
+                            self.core.break_realtime()
 
         self.device_setup_subfragments()
 

@@ -357,6 +357,7 @@ class SetBeamsToDefaults(Fragment):
     def _turn_on_suservos(self, light_enabled):
         if self.debug_mode:
             logger.info("SetBeamsToDefaults::_turn_on_suservos")
+            self.core.break_realtime()
 
         for i in range(len(self.suservo_setters_and_info)):
             (setter, setpoint_handle, shutter_present) = self.suservo_setters_and_info[
@@ -375,6 +376,7 @@ class SetBeamsToDefaults(Fragment):
                     setpoint,
                     rf_switch_state,
                 )
+                self.core.break_realtime()
 
             setter.set_suservo(
                 float(beam_info.frequency),
@@ -385,12 +387,11 @@ class SetBeamsToDefaults(Fragment):
                 enable_iir=beam_info.servo_enabled,
             )
 
-            logger.warning("DONE")  # FIXME
-
     @kernel
     def _turn_on_ad9910s(self, light_enabled):
         if self.debug_mode:
             logger.info("SetBeamsToDefaults::_turn_on_ad9910s")
+            self.core.break_realtime()
 
         for (
             ad9910_device,
@@ -409,11 +410,13 @@ class SetBeamsToDefaults(Fragment):
                 logger.info(
                     "Enabling AD9910 %s, freq=%s, amp=%s", ad9910_device, freq, amp
                 )
+                self.core.break_realtime()
 
     @kernel
     def _turn_on_ad9912s(self, light_enabled):
         if self.debug_mode:
             logger.info("SetBeamsToDefaults::_turn_on_ad9912s")
+            self.core.break_realtime()
 
         for (
             ad9912_device,
@@ -428,6 +431,7 @@ class SetBeamsToDefaults(Fragment):
 
             if self.debug_mode:
                 logger.info("Enabling AD9910 %s, freq=%s", ad9912_device, freq)
+                self.core.break_realtime()
 
         for ttl in self.ttls:
             ttl.set_o(light_enabled)
