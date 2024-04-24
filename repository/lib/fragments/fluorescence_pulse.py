@@ -13,13 +13,13 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.models import SUServoedBeam
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beams.toggling_beam_setter import (
+from repository.lib.fragments.beams.default_beam_setter import (
     make_set_beams_to_default,
 )
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
-from repository.lib.fragments.beams.toggling_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 
 

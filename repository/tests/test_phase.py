@@ -12,10 +12,10 @@ from artiq.experiment import TFloat
 from ndscan.experiment import *
 
 from repository.lib import constants
-from repository.lib.fragments.beams.toggling_beam_setter import (
+from repository.lib.fragments.beams.default_beam_setter import (
     make_set_beams_to_default,
 )
-from repository.lib.fragments.beams.toggling_beam_setter import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
 logger = logging.getLogger(__name__)

@@ -11,10 +11,10 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.fragments.beams.toggling_beam_setter import (
+from repository.lib.fragments.beams.default_beam_setter import (
     make_set_beams_to_default,
 )
-from repository.lib.fragments.beams.toggling_beam_setter import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 

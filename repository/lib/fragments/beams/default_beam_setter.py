@@ -10,8 +10,6 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
 from artiq.coredevice.core import parallel
-from artiq.coredevice.suservo import Channel as SUServoChannel
-from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD as UrukulCPLD
 from artiq.experiment import delay_mu
 from artiq.experiment import host_only
@@ -20,7 +18,6 @@ from artiq.experiment import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam

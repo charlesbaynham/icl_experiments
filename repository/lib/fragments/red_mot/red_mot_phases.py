@@ -10,7 +10,7 @@ from artiq.experiment import TFloat
 from artiq.experiment import TList
 
 from repository.lib import constants
-from repository.lib.fragments.beams.toggling_beam_setter import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
