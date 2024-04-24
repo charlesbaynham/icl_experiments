@@ -67,6 +67,13 @@ pytest:
         reports:
             junit: report.xml
 
+check_for_fixme:
+    extends: .deps
+    stage: "Test"
+    script:
+        - nix run .#check_for_fixme
+    needs: []
+
 ### Documentation ###
 
 # Build the documentation

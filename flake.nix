@@ -19,7 +19,6 @@
 
           originalOutputs = pyaion.lib.${system}.artiq_flake_builder {
             poetry_app = self;
-            extra_non_python_deps = [ pkgs.ripgrep ];
           };
           overriddenOutputs = originalOutputs.override (prev: {
             extra-build-requirements = {
@@ -86,6 +85,21 @@
                   export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
 
                   exec ${self}/scripts/backup_database.sh
+                '';
+              in
+              { type = "app"; program = "${script}/bin/run"; };
+
+            check_for_fixme =
+              let
+                script = pkgs.writeShellScriptBin "run" ''
+                  export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
+
+                  if rg FIXME "${self}/repository"; then
+                    exit 1
+                  else
+                    exit 0
+                  fi
+
                 '';
               in
               { type = "app"; program = "${script}/bin/run"; };
