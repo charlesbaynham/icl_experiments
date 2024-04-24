@@ -12,6 +12,7 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib.dummy_devices import *
+from repository.lib.dummy_devices import DummySUServoFrag
 
 
 logger = logging.getLogger(__name__)
@@ -103,7 +104,7 @@ class ToggleListOfBeams(Fragment):
 
         # Add a dummy beam / SUServo frag to the list if it's empty - see ARTIQ #1626
         if not self.suservo_frags:
-            self.suservo_frags = [_DummySUServoFrag(self)]
+            self.suservo_frags = [DummySUServoFrag()]
 
             dummy_beaminfo = SUServoedBeam(
                 name="dummy",
