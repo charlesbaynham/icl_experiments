@@ -49,21 +49,9 @@ class ToggleListOfBeams(Fragment):
     """
 
     default_suservo_beam_infos: List[SUServoedBeam] = None  # type: ignore
+    # default_urukul_beam_infos: List[UrukuledBeam] = None  # type: ignore
 
-    def build_fragment(self, default_beam_infos=None):
-        if not self.default_suservo_beam_infos and default_beam_infos:
-            warnings.warn(
-                (
-                    "Building ToggleListOfBeams with parameters passed to build_fragment. "
-                    "This is not recommended: use the factory function instead"
-                ),
-                DeprecationWarning,
-            )
-
-        self.default_suservo_beam_infos = (
-            default_beam_infos or self.default_suservo_beam_infos
-        )
-
+    def build_fragment(self):
         if self.default_suservo_beam_infos is None:
             raise TypeError(
                 "You must either create a subclass of SetBeamsToDefaults"

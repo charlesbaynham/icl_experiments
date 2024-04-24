@@ -5,6 +5,9 @@ from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
 
+from repository.lib.fragments.beams.toggling_beam_setter import (
+    make_toggle_list_of_beams,
+)
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 
 BEAM_INFO_SUSERVO_NO_SHUTTER = SUServoedBeam(
@@ -25,7 +28,8 @@ class ToggleSingleSUServoedBeam(ExpFragment):
         self.core: Core
 
         self.setattr_fragment(
-            "all_beam_toggler", ToggleListOfBeams, [BEAM_INFO_SUSERVO_NO_SHUTTER]
+            "all_beam_toggler",
+            make_toggle_list_of_beams([BEAM_INFO_SUSERVO_NO_SHUTTER]),
         )
         self.all_beam_toggler: ToggleListOfBeams
 
@@ -42,8 +46,9 @@ class ToggleOneOfEach(ExpFragment):
 
         self.setattr_fragment(
             "all_beam_toggler",
-            ToggleListOfBeams,
-            [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER],
+            make_toggle_list_of_beams(
+                [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+            ),
         )
         self.all_beam_toggler: ToggleListOfBeams
 
