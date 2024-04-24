@@ -353,6 +353,7 @@ class SetBeamsToDefaults(Fragment):
         self._turn_on_ad9910s(light_enabled=light_enabled)
         self._turn_on_ad9912s(light_enabled=light_enabled)
 
+    @kernel
     def _turn_on_suservos(self, light_enabled):
         if self.debug_mode:
             logger.info("SetBeamsToDefaults::_turn_on_suservos")
@@ -386,6 +387,7 @@ class SetBeamsToDefaults(Fragment):
 
             logger.warning("DONE")  # FIXME
 
+    @kernel
     def _turn_on_ad9910s(self, light_enabled):
         if self.debug_mode:
             logger.info("SetBeamsToDefaults::_turn_on_ad9910s")
@@ -408,6 +410,7 @@ class SetBeamsToDefaults(Fragment):
                     "Enabling AD9910 %s, freq=%s, amp=%s", ad9910_device, freq, amp
                 )
 
+    @kernel
     def _turn_on_ad9912s(self, light_enabled):
         if self.debug_mode:
             logger.info("SetBeamsToDefaults::_turn_on_ad9912s")
