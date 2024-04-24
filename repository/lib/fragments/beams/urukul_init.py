@@ -27,8 +27,12 @@ class UrukulInit(Fragment):
         # Get our AD9910 and AD9912s
         devices = [self.get_device(d) for d in self.channel_names]
 
-        self.ad9910s: List[AD9910] = list(filter(lambda d: isinstance(d, AD9910)))
-        self.ad9912s: List[AD9912] = list(filter(lambda d: isinstance(d, AD9912)))
+        self.ad9910s: List[AD9910] = list(
+            filter(lambda d: isinstance(d, AD9910), devices)
+        )
+        self.ad9912s: List[AD9912] = list(
+            filter(lambda d: isinstance(d, AD9912), devices)
+        )
 
         assert len(self.ad9910s) + len(self.ad9912s) == len(
             devices

@@ -120,8 +120,8 @@ class ToggleListOfBeams(Fragment):
         self.kernel_invariants = kernel_invariants | {
             "shuttered_beams_setter",
             "suservo_frags",
-            "beaminfos_with_shutters",
-            "beaminfos_without_shutters",
+            "suservos_with_shutters",
+            "suservos_without_shutters",
         }
 
     @kernel
