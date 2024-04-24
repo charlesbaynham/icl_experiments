@@ -32,6 +32,14 @@ class DummyTTL:
     def set_o(self, state: bool):
         pass
 
+    @kernel
+    def on(self):
+        pass
+
+    @kernel
+    def off(self):
+        pass
+
 
 class DummyUrukul:
     @kernel

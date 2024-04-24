@@ -13,6 +13,7 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib.dummy_devices import DummySUServoFrag
+from repository.lib.dummy_devices import DummyTTL
 
 
 logger = logging.getLogger(__name__)
@@ -125,6 +126,9 @@ class ToggleListOfBeams(Fragment):
                 shutter_delay=0,
             )
             self.suservos_without_shutters.insert(0, dummy_beaminfo)
+
+        if not self.urukul_ttls:
+            self.urukul_ttls.append(DummyTTL())
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
