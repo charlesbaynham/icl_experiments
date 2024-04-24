@@ -354,27 +354,42 @@ class SetBeamsToDefaults(Fragment):
         self._turn_on_ad9912s(light_enabled=light_enabled)
 
     def _turn_on_suservos(self, light_enabled):
+        if self.debug_mode:
+            logger.info("SetBeamsToDefaults::_turn_on_suservos")
+
         for i in range(len(self.suservo_setters_and_info)):
             (setter, setpoint_handle, shutter_present) = self.suservo_setters_and_info[
                 i
             ]
             beam_info = self.default_suservo_beam_infos[i]
-
-            if self.debug_mode:
-                logger.info("Setter (%s) - beam_info %s", setter, beam_info)
+            setpoint = setpoint_handle.get()
 
             rf_switch_state = light_enabled or (not light_enabled and shutter_present)
+
+            if self.debug_mode:
+                logger.info(
+                    "Enabling suservo (%s)\n- beam_info %s\n- setpoint %s\n- rf_switch_state %s",
+                    setter,
+                    beam_info,
+                    setpoint,
+                    rf_switch_state,
+                )
 
             setter.set_suservo(
                 float(beam_info.frequency),
                 1.0,
                 float(beam_info.attenuation),
                 rf_switch_state=rf_switch_state,
-                setpoint_v=setpoint_handle.get(),
+                setpoint_v=setpoint,
                 enable_iir=beam_info.servo_enabled,
             )
 
+            logger.warning("DONE")  # FIXME
+
     def _turn_on_ad9910s(self, light_enabled):
+        if self.debug_mode:
+            logger.info("SetBeamsToDefaults::_turn_on_ad9910s")
+
         for (
             ad9910_device,
             frequency_handle,
@@ -382,21 +397,34 @@ class SetBeamsToDefaults(Fragment):
             shutter_present,
         ) in self.ad9910_devices_and_handles:
             rf_switch_state = light_enabled or (not light_enabled and shutter_present)
-            ad9910_device.set(
-                frequency=frequency_handle.get(), amplitude=amplitude_handle.get()
-            )
+            freq = frequency_handle.get()
+            amp = amplitude_handle.get()
+
+            ad9910_device.set(frequency=freq, amplitude=amp)
             ad9910_device.sw.set_o(rf_switch_state)
 
+            if self.debug_mode:
+                logger.info(
+                    "Enabling AD9910 %s, freq=%s, amp=%s", ad9910_device, freq, amp
+                )
+
     def _turn_on_ad9912s(self, light_enabled):
+        if self.debug_mode:
+            logger.info("SetBeamsToDefaults::_turn_on_ad9912s")
+
         for (
             ad9912_device,
             frequency_handle,
             shutter_present,
         ) in self.ad9912_devices_and_handles:
             rf_switch_state = light_enabled or (not light_enabled and shutter_present)
+            freq = frequency_handle.get()
 
-            ad9912_device.set(frequency=frequency_handle.get())
+            ad9912_device.set(frequency=freq)
             ad9912_device.sw.set_o(rf_switch_state)
+
+            if self.debug_mode:
+                logger.info("Enabling AD9910 %s, freq=%s", ad9912_device, freq)
 
         for ttl in self.ttls:
             ttl.set_o(light_enabled)

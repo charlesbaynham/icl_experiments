@@ -1,3 +1,4 @@
+import logging
 from typing import *
 
 from artiq.coredevice.ad9910 import AD9910
@@ -9,6 +10,8 @@ from ndscan.experiment import *
 from repository.lib.dummy_devices import DummyAD9910
 from repository.lib.dummy_devices import DummyAD9912
 from repository.lib.dummy_devices import DummyUrukul
+
+logger = logging.getLogger(__name__)
 
 
 def make_urukul_init(names: List[str]):
@@ -61,6 +64,18 @@ class UrukulInit(Fragment):
         self.urukul_ids = [hash(d) for d in self.urukuls]
 
         self.first_run = True
+        self.debug_mode = logger.isEnabledFor(logging.INFO)
+
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "debug_mode",
+            "urukuls",
+            "ad9910s",
+            "ad9912s",
+            "ad9910_ids",
+            "ad9912_ids",
+            "urukul_ids",
+        }
 
     @kernel
     def device_setup(self) -> None:
@@ -73,7 +88,13 @@ class UrukulInit(Fragment):
                     urukul = self.urukuls[i]
 
                     if not self.mark_initiated(self.urukul_ids[i]):
+                        if self.debug_mode:
+                            logger.info("Initiating %s", urukul)
+
                         urukul.init()
+                    else:
+                        if self.debug_mode:
+                            logger.info("%s already initiated", urukul)
 
             # Then do the AD9910s
             with parallel:
@@ -81,7 +102,13 @@ class UrukulInit(Fragment):
                     ad9910 = self.ad9910s[i]
 
                     if not self.mark_initiated(self.ad9910_ids[i]):
+                        if self.debug_mode:
+                            logger.info("Initiating %s", ad9910)
+
                         ad9910.init()
+                    else:
+                        if self.debug_mode:
+                            logger.info("%s already initiated", ad9910)
 
             # ... and 12s
             with parallel:
@@ -89,7 +116,13 @@ class UrukulInit(Fragment):
                     ad9912 = self.ad9912s[i]
 
                     if not self.mark_initiated(self.ad9912_ids[i]):
+                        if self.debug_mode:
+                            logger.info("Initiating %s", ad9912)
+
                         ad9912.init()
+                    else:
+                        if self.debug_mode:
+                            logger.info("%s already initiated", ad9912)
 
         self.device_setup_subfragments()
 
