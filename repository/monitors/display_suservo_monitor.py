@@ -88,7 +88,11 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
 
         # Get beam setter fragment
         self.setattr_fragment(
-            "beam_default_setter", make_set_beams_to_default([self.beam_info])
+            "beam_default_setter",
+            make_set_beams_to_default(
+                [self.beam_info],
+                name="BeamSettings",
+            ),
         )
         self.beam_default_setter: SetBeamsToDefaults
 
@@ -230,7 +234,10 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         # Get beam setter fragment for all the beams
         self.setattr_fragment(
             "beam_default_setter",
-            make_set_beams_to_default(self.beam_infos),
+            make_set_beams_to_default(
+                self.beam_infos,
+                name="BeamsSettings",
+            ),
         )
         self.beam_default_setter: SetBeamsToDefaults
 
