@@ -224,7 +224,7 @@ class Blue3DMOTFrag(Fragment):
         respect beam shutter delays - it just turns everything
         on immediately. It needs at least 3924ns of slack.
 
-        FIXME: Figure out why I need a stupid amount of slack
+        TODO: Figure out why I need a stupid amount of slack
         """
 
         if self.debug_mode:
