@@ -56,7 +56,7 @@ class SpectroscopyWithKinetics_UpBeam(TripleImageMOTFrag, SpectroscopyMixin):
 
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
-            default_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
+            default_suservo_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
 
         self.setattr_fragment("up_beam_default_setter", _UpBeamSetter)
         self.up_beam_default_setter: SetBeamsToDefaults

@@ -39,7 +39,7 @@ RED_BEAM_INFOS = [
 
 
 class _RedBeamDefaultSetter(SetBeamsToDefaults):
-    default_beam_infos = RED_BEAM_INFOS
+    default_suservo_beam_infos = RED_BEAM_INFOS
 
 
 class RedBeamController(Fragment):

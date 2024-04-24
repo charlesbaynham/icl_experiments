@@ -404,7 +404,7 @@ def make_toggle_list_of_beams(
     """
 
     class ToggleListOfBeamsCustomised(ToggleListOfBeams):
-        default_beam_infos = beam_infos
+        default_suservo_beam_infos = beam_infos
 
     return ToggleListOfBeamsCustomised
 
@@ -437,7 +437,7 @@ class ToggleListOfBeams(Fragment):
                 DeprecationWarning,
             )
 
-        self.default_beam_infos = default_beam_infos or self.default_beam_infos
+        self.default_suservo_beam_infos = default_beam_infos or self.default_beam_infos
 
         if self.default_beam_infos is None:
             raise TypeError(

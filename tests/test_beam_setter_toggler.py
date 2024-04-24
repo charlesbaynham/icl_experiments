@@ -54,11 +54,17 @@ class ToggleOneOfEach(ExpFragment):
 
 
 class _DoubleToggler(ToggleListOfBeams):
-    default_beam_infos = [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+    default_suservo_beam_infos = [
+        BEAM_INFO_SUSERVO_NO_SHUTTER,
+        BEAM_INFO_SUSERVO_WITH_SHUTTER,
+    ]
 
 
 class _SingleToggler(ToggleListOfBeams):
-    default_beam_infos = [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+    default_suservo_beam_infos = [
+        BEAM_INFO_SUSERVO_NO_SHUTTER,
+        BEAM_INFO_SUSERVO_WITH_SHUTTER,
+    ]
 
 
 class ToggleMultipleCombos(ExpFragment):
