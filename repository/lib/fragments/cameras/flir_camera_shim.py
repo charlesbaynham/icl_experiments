@@ -1,32 +1,30 @@
 from typing import Any
 from unittest.mock import MagicMock
 
-try:
-    from aravis import Camera as _Camera
 
-    PASSTHROUGH_NAMES = [
-        "set_feature",
-        "get_feature",
-        "execute_command",
-        "shutdown",
-        "set_exposure_time",
-        "try_pop_frame",
-        "start_acquisition",
-        "trigger",
-    ]
+PASSTHROUGH_NAMES = [
+    "set_feature",
+    "get_feature",
+    "execute_command",
+    "shutdown",
+    "set_exposure_time",
+    "try_pop_frame",
+    "start_acquisition",
+    "trigger",
+]
 
-    class Camera:
-        def __init__(self, device_mgr, name, loglevel):
-            self.cam = _Camera(name=name, loglevel=loglevel)
 
-        def __getattr__(self, name):
-            if name in PASSTHROUGH_NAMES:
-                return getattr(self.cam, name)
-            else:
-                raise AttributeError
+class Camera:
+    def __init__(self, device_mgr, name, loglevel):
+        from aravis import Camera as _Camera
 
-except ImportError:
-    pass
+        self.cam = _Camera(name=name, loglevel=loglevel)
+
+    def __getattr__(self, name):
+        if name in PASSTHROUGH_NAMES:
+            return getattr(self.cam, name)
+        else:
+            raise AttributeError
 
 
 class MockCamera(MagicMock):
