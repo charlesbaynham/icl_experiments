@@ -5,9 +5,11 @@ from artiq.experiment import *
 from artiq.experiment import delay
 from ndscan.experiment import *
 
+from repository.lib import constants
+from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
+from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
-from repository.lib.fragments.red_mot.red_beam_controller import RedBeamController
 from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
@@ -19,8 +21,17 @@ class TestRedPhasesExp(ExpFragment):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
-        self.setattr_fragment("red_beam_setter", RedBeamController)
-        self.red_beam_setter: RedBeamController
+        self.setattr_fragment(
+            "beam_setter",
+            make_set_beams_to_default(
+                [
+                    constants.SUSERVOED_BEAMS["red_mot_diagonal"],
+                    constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
+                    constants.SUSERVOED_BEAMS["red_mot_sigmaminus"],
+                ]
+            ),
+        )
+        self.beam_setter: SetBeamsToDefaults
 
         self.setattr_fragment(
             "chamber_2_field_setter",
@@ -57,8 +68,8 @@ class TestRedPhasesExp(ExpFragment):
 
         self.core.break_realtime()
         delay(100e-3)
-        self.red_beam_setter.all_beam_default_setter.turn_on_all(light_enabled=True)
-        delay(100e-3)
+        self.beam_setter.turn_on_all(light_enabled=True)
+        delay(150e-3)
 
         self.core.break_realtime()
         self.frag0.do_phase()
