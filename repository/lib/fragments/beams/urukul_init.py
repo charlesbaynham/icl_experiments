@@ -7,6 +7,13 @@ from artiq.experiment import parallel
 from ndscan.experiment import *
 
 
+def make_urukul_init(names: List[str]):
+    class UrukulInitInstance(UrukulInit):
+        channel_names = names
+
+    return UrukulInitInstance
+
+
 class UrukulInit(Fragment):
     """
     Simple fragment to ensure that all urukul channels are initted correctly
