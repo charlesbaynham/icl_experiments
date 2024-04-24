@@ -7,8 +7,10 @@ from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
-from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.toggling_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.beams.toggling_beam_setter import SetBeamsToDefaults
 
 
 BEAM_INFO_SUSERVO_NO_SHUTTER = SUServoedBeam(
