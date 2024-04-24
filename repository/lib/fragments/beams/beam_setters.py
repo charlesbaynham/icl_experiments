@@ -74,11 +74,15 @@ class SetBeamsToDefaults(Fragment):
     def build_fragment(self):
         if (
             self.default_suservo_beam_infos is None
-            or self.default_urukul_beam_infos is None
+            and self.default_urukul_beam_infos is None
         ):
             raise TypeError(
                 "You must construct this class using the factory function make_set_beams_to_default"
+                " or by subclassing this class and defining default_suservo_beam_infos or default_urukul_beam_infos"
             )
+
+        self.default_suservo_beam_infos = self.default_suservo_beam_infos or []
+        self.default_urukul_beam_infos = self.default_urukul_beam_infos or []
 
         self.setattr_device("core")
         self.core: Core
