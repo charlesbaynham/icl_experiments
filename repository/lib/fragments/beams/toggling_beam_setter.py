@@ -126,6 +126,8 @@ class ToggleListOfBeams(Fragment):
 
     @kernel
     def turn_on_beams(self, ignore_shutters=False):
+        # FIXME: Do something with the urukulled beams
+
         # Turn on the shuttered beams
         self.shuttered_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
 
@@ -140,6 +142,8 @@ class ToggleListOfBeams(Fragment):
 
     @kernel
     def turn_off_beams(self, ignore_shutters=False):
+        # FIXME: Do something with the urukulled beams
+
         # Turn off the shuttered beams
         self.shuttered_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
 
