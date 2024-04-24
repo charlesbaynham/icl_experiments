@@ -11,7 +11,6 @@ from repository.lib.fragments.beams.default_beam_setter import (
 )
 from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
@@ -34,7 +33,8 @@ class TestRedPhasesExp(ExpFragment):
                     constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
                     constants.SUSERVOED_BEAMS["red_mot_sigmaminus"],
                     constants.SUSERVOED_BEAMS["red_up"],
-                ]
+                ],
+                name="beam_setter",
             ),
         )
         self.beam_setter: SetBeamsToDefaults
