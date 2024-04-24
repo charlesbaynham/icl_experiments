@@ -95,8 +95,10 @@
                   export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
 
                   if rg FIXME "${self}/repository"; then
+                    echo \"FIXME\" found in files
                     exit 1
                   else
+                    echo No \"FIXME\"s found
                     exit 0
                   fi
 
