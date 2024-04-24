@@ -361,20 +361,27 @@ class SetBeamsToDefaults(Fragment):
                 enable_iir=beam_info.servo_enabled,
             )
 
-        for i in range(len(self.ad9910_devices_and_handles)):
-            (
-                ad9910_device,
-                frequency_handle,
-                amplitude_handle,
-                shutter_present,
-            ) = self.ad9910_devices_and_handles[i]
-
+        for (
+            ad9910_device,
+            frequency_handle,
+            amplitude_handle,
+            shutter_present,
+        ) in self.ad9910_devices_and_handles:
             rf_switch_state = light_enabled or (not light_enabled and shutter_present)
-
             ad9910_device.set(
                 frequency=frequency_handle.get(), amplitude=amplitude_handle.get()
             )
             ad9910_device.sw.set_o(rf_switch_state)
+
+        for (
+            ad9912_device,
+            frequency_handle,
+            shutter_present,
+        ) in self.ad9912_devices_and_handles:
+            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
+
+            ad9912_device.set(frequency=frequency_handle.get())
+            ad9912_device.sw.set_o(rf_switch_state)
 
         for ttl in self.ttls:
             ttl.set_o(light_enabled)
