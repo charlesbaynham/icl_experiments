@@ -47,10 +47,10 @@ class ToggleListOfBeams(Fragment):
     SUServo engaged, as defined).
     """
 
-    default_beam_infos: List[SUServoedBeam] = None  # type: ignore
+    default_suservo_beam_infos: List[SUServoedBeam] = None  # type: ignore
 
     def build_fragment(self, default_beam_infos=None):
-        if not self.default_beam_infos and default_beam_infos:
+        if not self.default_suservo_beam_infos and default_beam_infos:
             warnings.warn(
                 (
                     "Building ToggleListOfBeams with parameters passed to build_fragment. "
@@ -59,9 +59,11 @@ class ToggleListOfBeams(Fragment):
                 DeprecationWarning,
             )
 
-        self.default_beam_infos = default_beam_infos or self.default_beam_infos
+        self.default_suservo_beam_infos = (
+            default_beam_infos or self.default_suservo_beam_infos
+        )
 
-        if self.default_beam_infos is None:
+        if self.default_suservo_beam_infos is None:
             raise TypeError(
                 "You must either create a subclass of SetBeamsToDefaults"
                 " or pass in a list of default_beam_infos"
@@ -73,10 +75,12 @@ class ToggleListOfBeams(Fragment):
 
         # Filter our suservoed beams into ones with shutters and ones without
         self.beaminfos_with_shutters: List[SUServoedBeam] = list(
-            filter(lambda i: bool(i.shutter_device), self.default_beam_infos)
+            filter(lambda i: bool(i.shutter_device), self.default_suservo_beam_infos)
         )
         self.beaminfos_without_shutters: List[SUServoedBeam] = list(
-            filter(lambda i: not bool(i.shutter_device), self.default_beam_infos)
+            filter(
+                lambda i: not bool(i.shutter_device), self.default_suservo_beam_infos
+            )
         )
 
         # Delegate to ControlBeamsWithoutCoolingAOM for the shutter-enabled beams
