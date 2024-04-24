@@ -4,6 +4,7 @@ from typing import List
 from typing import Type
 
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
@@ -106,6 +107,11 @@ class ToggleListOfBeams(Fragment):
             )
             self.suservo_frags.append(f)
 
+        # And get a list of the ttls for the RF switches of the urukulled beams
+        self.urukul_ttls: List[TTLOut] = [
+            self.get_device(b.urukul_device).sw for b in self.urukuls_without_shutters
+        ]
+
         # Add a dummy beam / SUServo frag to the list if it's empty - see ARTIQ #1626
         if not self.suservo_frags:
             self.suservo_frags = [DummySUServoFrag()]
@@ -131,12 +137,10 @@ class ToggleListOfBeams(Fragment):
 
     @kernel
     def turn_on_beams(self, ignore_shutters=False):
-        # FIXME: Do something with the urukulled beams
-
-        # Turn on the shuttered beams
+        # Turn on the shuttered suservo beams
         self.shuttered_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
 
-        # And the unshuttered beams
+        # And the unshuttered suservo beams
         for i in range(len(self.suservo_frags)):
             beam_info = self.suservos_without_shutters[i]
             suservo_frag = self.suservo_frags[i]
@@ -145,16 +149,19 @@ class ToggleListOfBeams(Fragment):
                 rf_switch_state=True, enable_iir=beam_info.servo_enabled
             )
 
+        # And the urukuls
+        for ttl in self.urukul_ttls:
+            ttl.on()
+
     @kernel
     def turn_off_beams(self, ignore_shutters=False):
-        # FIXME: Do something with the urukulled beams
-
-        # Turn off the shuttered beams
+        # Turn off the shuttered suservo beams
         self.shuttered_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
 
-        # And the unshuttered beams
-        for i in range(len(self.suservo_frags)):
-            beam_info = self.suservos_without_shutters[i]
-            suservo_frag = self.suservo_frags[i]
-
+        # And the unshuttered suservo beams
+        for suservo_frag in self.suservo_frags:
             suservo_frag.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        # And the urukuls
+        for ttl in self.urukul_ttls:
+            ttl.off()
