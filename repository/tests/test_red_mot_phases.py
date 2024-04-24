@@ -13,6 +13,9 @@ from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
+from repository.lib.fragments.red_mot.red_mot_phases import (
+    RedRampingPhaseWithFieldsAndSUServoBindings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,7 @@ class TestRedPhasesExp(ExpFragment):
                     constants.SUSERVOED_BEAMS["red_mot_diagonal"],
                     constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
                     constants.SUSERVOED_BEAMS["red_mot_sigmaminus"],
+                    constants.SUSERVOED_BEAMS["red_up"],
                 ]
             ),
         )
@@ -44,21 +48,25 @@ class TestRedPhasesExp(ExpFragment):
             BroadbandRedPhase,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
-        self.frag0: GeneralRampingPhase
+        self.frag0: RedRampingPhaseWithFieldsAndSUServoBindings
 
         self.setattr_fragment(
             "frag1",
             NarrowRedCapturePhase,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
-        self.frag1: GeneralRampingPhase
+        self.frag1: RedRampingPhaseWithFieldsAndSUServoBindings
 
         self.setattr_fragment(
             "frag2",
             NarrowRedCompressionPhase,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
-        self.frag2: GeneralRampingPhase
+        self.frag2: RedRampingPhaseWithFieldsAndSUServoBindings
+
+        self.frag0.bind_suservo_setpoint_params_to_default_beam_setter(self.beam_setter)
+        self.frag1.bind_suservo_setpoint_params_to_default_beam_setter(self.beam_setter)
+        self.frag2.bind_suservo_setpoint_params_to_default_beam_setter(self.beam_setter)
 
     @kernel
     def run_once(self) -> None:
