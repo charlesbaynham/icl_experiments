@@ -173,9 +173,8 @@ class NarrowbandRedMOTFrag(Fragment):
         if self.disable_679_during_narrowband.get():
             self.ttl_shutter_repump_679.off()
 
-        # FIXME
-        # self.narrow_red_capture_phase.do_phase()
-        # self.narrow_red_compression_phase.do_phase()
+        self.narrow_red_capture_phase.do_phase()
+        self.narrow_red_compression_phase.do_phase()
 
         delay(self.final_narrow_hold_time.get())
 
