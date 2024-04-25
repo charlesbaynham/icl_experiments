@@ -112,7 +112,7 @@ class RedMOTBase(ExpFragment):
 
     @kernel
     def _expand_and_image(self):
-        # self.red_mot.red_beam_controller.turn_off_mot_beams() # FIXME
+        self.red_mot.red_beam_controller.turn_off_mot_beams()  # FIXME  Causes sequence error
 
         delay(self.expansion_time.get())
 
