@@ -87,6 +87,18 @@ class RedBeamController(Fragment):
         )
         self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
 
+        self.sigmaplus_setpoint_handle = (
+            self.all_beam_default_setter.get_setpoints_and_beaminfo_dict()[
+                "red_mot_sigmaplus"
+            ]
+        )
+        self.sigmaminus_setpoint_handle = (
+            self.all_beam_default_setter.get_setpoints_and_beaminfo_dict()[
+                "red_mot_sigmaminus"
+            ]
+        )
+        # FIXME use these for something
+
         # Fast ramping of the AD9910 controlling the injection AOM
         self.setattr_fragment(
             "injection_aom_ramper",

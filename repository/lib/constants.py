@@ -33,15 +33,14 @@ AD9910_BEAMS = {
 "Urukul outputs (name, freq, attenuation) required for non-suservo ad9910 aoms"
 
 
-RED_SPINPOL_SETTINGS = (
-    UrukuledBeam(  # TODO: Get rid of this in favour of !31
-        "red_spinpol",
-        frequency=366.6e6,
-        attenuation=0.0,
-        amplitude=1.0,  # TODO: Remove this after pyaion update
-        urukul_device="urukul9910_aom_doublepass_689_spinpol",
-    ),
+RED_SPINPOL_SETTINGS = UrukuledBeam(  # TODO: Get rid of this in favour of !31
+    "red_spinpol",
+    frequency=366.6e6,
+    attenuation=0.0,
+    amplitude=1.0,  # TODO: Remove this after pyaion update
+    urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
 )
+
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
 # polarizing beam (i.e. not their normal MOT beams)
@@ -365,5 +364,5 @@ WAND_OFFSETS_87 = {
 # Spin polarisation settings
 
 TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
-DURATION_OF_SPIN_POL = 5e-3
+DURATION_OF_SPIN_POL = 20e-3
 TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3
