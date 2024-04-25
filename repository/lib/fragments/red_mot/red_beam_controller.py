@@ -87,16 +87,17 @@ class RedBeamController(Fragment):
         )
         self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
 
-        self.sigmaplus_setpoint_handle = (
-            self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
-                "red_mot_sigmaplus"
-            ]
-        )
-        self.sigmaminus_setpoint_handle = (
-            self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
-                "red_mot_sigmaminus"
-            ]
-        )
+        _, s = self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
+            "red_mot_sigmaplus"
+        ]
+        self.sigmaplus_setpoint_handle: FloatParamHandle = s.setpoint_handle
+        self.sigmaplus_setpoint_setter: LibSetSUServoStatic = s.setter
+
+        _, s = self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
+            "red_mot_sigmaminus"
+        ]
+        self.sigmaminus_setpoint_handle: FloatParamHandle = s.setpoint_handle
+        self.sigmaminus_setpoint_setter: LibSetSUServoStatic = s.setter
 
         # Fast ramping of the AD9910 controlling the injection AOM
         self.setattr_fragment(
@@ -214,6 +215,18 @@ class RedBeamController(Fragment):
     def host_setup(self):
         super().host_setup()
         assert self.ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
+
+        if self.use_sigmaplus_spinpol.get():
+            self.spinpol_toggler = self.sigmaplus_toggler
+            self.spinpol_setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAPLUS
+            self.spinpol_setter = self.sigmaplus_setpoint_setter
+            self.spinpol_reset_setpoint_handle = self.sigmaplus_setpoint_handle
+
+        else:
+            self.spinpol_toggler = self.sigmaminus_toggler
+            self.spinpol_setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAMINUS
+            self.spinpol_setter = self.sigmaminus_setpoint_setter
+            self.spinpol_reset_setpoint_handle = self.sigmaminus_setpoint_handle
 
     @kernel
     def device_setup(self):
@@ -417,23 +430,15 @@ class RedBeamController(Fragment):
         self.ttl_shutter_red_axial_spin_pol.on()
         delay(constants.SRS_SHUTTER_DELAY)
 
-        if self.use_sigmaplus_spinpol.get():
-            toggler = self.sigmaplus_toggler
-            setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAPLUS
-
-        else:
-            toggler = self.sigmaminus_toggler
-            setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAMINUS
-
-        # Update the appropriate SUServo with the new setpoint
-        # FIXME: Do this
-
-        toggler.turn_beams_on(ignore_shutters)
+        # Update the appropriate SUServo with the new setpoint and turn it on
+        self.spinpol_setter.set_setpoint(self.spinpol_setpoint)
+        self.spinpol_toggler.turn_beams_on(ignore_shutters)
 
     @kernel
-    def turn_off_mot_beams(self, ignore_shutters=False):
-        self.sigmaplus_setpoint_handle  # FIXME stuff
-
+    def turn_off_spin_pol(self, ignore_shutters=False):
+        # Turn off the spin pol beam and reset the setpoint back to normal
         self.ttl_shutter_red_axial_mot.off()
         delay_mu(int64(self.core.ref_multiplier))
-        self.all_mot_beams_setter.turn_beams_off(ignore_shutters)
+        self.spinpol_setter.set_setpoint(self.spinpol_reset_setpoint_handle.get())
+        delay_mu(int64(self.core.ref_multiplier))
+        self.spinpol_toggler.turn_beams_off(ignore_shutters)

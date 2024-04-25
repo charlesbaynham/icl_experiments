@@ -65,13 +65,6 @@ def make_set_beams_to_default(
     return SetBeamsToDefaultsCustomised
 
 
-@dataclass
-class _SUServoInfo:
-    setter: LibSetSUServoStatic
-    setpoint_handle: FloatParamHandle
-    shutter_present: bool
-
-
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of beams, possibly with shutters, to their default
@@ -116,7 +109,13 @@ class SetBeamsToDefaults(Fragment):
 
         self.shutter_ttls: List[TTLOut] = []
 
-        self.suservo_setters_and_info: List[_SUServoInfo] = []
+        @dataclass
+        class SUServoSettings:
+            setter: LibSetSUServoStatic
+            setpoint_handle: FloatParamHandle
+            shutter_present: bool
+
+        self.suservo_setters_and_info: List[SUServoSettings] = []
 
         # Loop over all the suservo beams, defining:
         #   * LibSetSUServoStatic fragments to control them
@@ -140,7 +139,7 @@ class SetBeamsToDefaults(Fragment):
             )
 
             self.suservo_setters_and_info.append(
-                _SUServoInfo(setter, setpoint_handle, bool(beam_info.shutter_device))
+                SUServoSettings(setter, setpoint_handle, bool(beam_info.shutter_device))
             )
 
         # %% Urukul settings
@@ -277,7 +276,7 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.suservo_setters_and_info:
             self.suservo_setters_and_info = [
-                _SUServoInfo(self.dummy_suservo_frag, self.dummy_float_handle, False)
+                SUServoSettings(self.dummy_suservo_frag, self.dummy_float_handle, False)
             ]
             self.default_suservo_beam_infos = [
                 SUServoedBeam(
@@ -310,19 +309,15 @@ class SetBeamsToDefaults(Fragment):
         return self.suservo_setpoints[beam_index]
 
     @host_only
-    def get_setpoints_beaminfo_setters(
-        self,
-    ) -> Dict[str, Tuple[SUServoedBeam, FloatParamHandle, LibSetSUServoStatic]]:
+    def get_setpoints_beaminfo_setters(self):
         """
-        Get a dict of beam name -> (:class:`~SUServoedBeam` beam info,
-        :class:`~FloatParamHandle` handle to suservo setpoint, and
-        :class:`~LibSetSUServoStatic` suservo setter)
+        Get a dict of beam name -> (:class:`~SUServoedBeam` beam info, :class:`~SUServoSettings` object)
         """
         out = {}
         for beam_info, settings in zip(
             self.default_suservo_beam_infos, self.suservo_setters_and_info
         ):
-            out[beam_info.name] = (beam_info, settings.setpoint_handle)
+            out[beam_info.name] = (beam_info, settings)
         return out
 
     @kernel
