@@ -17,6 +17,7 @@ from artiq.experiment import delay_mu
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
+from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -146,7 +147,7 @@ class SetBeamsToDefaults(Fragment):
 
         self.ad9910s: List[AD9910] = []
         self.ad9912s: List[AD9910] = []
-        self.urukuls: List[UrukulCPLD] = []
+        self.urukuls: List[UrukulCPLD] = []  # Populated in host_seutp
         self.switch_ttls_with_shutter: List[TTLOut] = []
         self.switch_ttls_without_shutter: List[TTLOut] = []
 
@@ -170,8 +171,6 @@ class SetBeamsToDefaults(Fragment):
 
         for beam_info in self.default_urukul_beam_infos:
             device: Union[AD9910, AD9912] = self.get_device(beam_info.urukul_device)
-
-            self.urukuls.append(device.cpld)
 
             frequency_handle = self.setattr_param(
                 f"frequency_{beam_info.name}",
@@ -214,10 +213,13 @@ class SetBeamsToDefaults(Fragment):
                 if info.has_ttl_switch:
                     self.switch_ttls_with_shutter.append(device.sw)
                 self.ad9912_devices_and_handles.append(info)
+
+            elif isinstance(device, DummyDevice):
+                info = None
             else:
                 raise TypeError("Unrecognised device type")
 
-            if info.has_ttl_switch:
+            if info and info.has_ttl_switch:
                 if info.shutter_present:
                     self.switch_ttls_with_shutter.append(device.sw)
                 else:
@@ -228,9 +230,6 @@ class SetBeamsToDefaults(Fragment):
             "urukul_init",
             make_urukul_init([b.urukul_device for b in self.default_urukul_beam_infos]),
         )
-
-        # Filter out duplicates
-        self.urukuls = list(set(self.urukuls))
 
         self.max_shutter_delay = max(
             [
@@ -290,9 +289,6 @@ class SetBeamsToDefaults(Fragment):
         if not self.ad9912s:
             self.ad9912s = [self.dummy_ad9912]
 
-        if not self.urukuls:
-            self.urukuls = [self.dummy_urukul]
-
         # %% Kernel invariants and variables
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {"debug_mode", "max_shutter_delay"}
@@ -300,6 +296,19 @@ class SetBeamsToDefaults(Fragment):
         # Init this array to zeros - we fill it in in device_setup
         self.suservo_setpoints = [0.0] * len(self.default_suservo_beam_infos)
         self.first_run = True
+
+    def host_setup(self):
+        super().host_setup()
+
+        # Get urukuls from the AD9910 and AD9912s
+        for info in self.ad9910_devices_and_handles + self.ad9912_devices_and_handles:
+            self.urukuls.append(info.device.cpld)
+
+        # Filter out duplicates
+        self.urukuls = list(set(self.urukuls))
+
+        if not self.urukuls:
+            self.urukuls = [self.dummy_urukul]
 
     @kernel
     def get_suservo_setpoint_by_index(self, beam_index):

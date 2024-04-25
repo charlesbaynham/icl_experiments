@@ -33,6 +33,9 @@ class UrukulInit(Fragment):
     def build_fragment(self):
         self.setattr_device("core")
 
+    def host_setup(self):
+        super().host_setup()
+
         # Get our AD9910 and AD9912s
         devices = [self.get_device(d) for d in self.channel_names]
 
