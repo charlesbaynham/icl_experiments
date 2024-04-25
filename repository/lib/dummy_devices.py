@@ -59,6 +59,10 @@ class DummyAD9910:
     def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
         return 0.0
 
+    @kernel
+    def cfg_sw(self, state: TBool):
+        pass
+
 
 class DummyAD9912:
     def __init__(self) -> None:
@@ -71,6 +75,10 @@ class DummyAD9912:
     @kernel
     def set(self, frequency: TFloat = 0.0) -> TFloat:
         return 0.0
+
+    @kernel
+    def cfg_sw(self, state: TBool):
+        pass
 
 
 class DummyFloatParameterHandle:
