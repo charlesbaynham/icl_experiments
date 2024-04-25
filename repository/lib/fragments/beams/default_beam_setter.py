@@ -1,5 +1,6 @@
 import logging
 import warnings
+from dataclasses import dataclass
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -10,6 +11,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
 from artiq.coredevice.core import parallel
+from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD as UrukulCPLD
 from artiq.experiment import delay_mu
 from artiq.experiment import host_only
@@ -18,6 +20,7 @@ from artiq.experiment import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -62,6 +65,30 @@ def make_set_beams_to_default(
     return SetBeamsToDefaultsCustomised
 
 
+@dataclass
+class _SUServoInfo:
+    setter: LibSetSUServoStatic
+    setpoint_handle: FloatParamHandle
+    shutter_present: bool
+
+
+@dataclass
+class _AD9910Info:
+    device: AD9910
+    frequency_handle: FloatParamHandle
+    amplitude_handle: FloatParamHandle
+    shutter_present: bool
+    has_ttl_switch: bool
+
+
+@dataclass
+class _AD9912Info:
+    device: AD9912
+    frequency_handle: FloatParamHandle
+    shutter_present: bool
+    has_ttl_switch: bool
+
+
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of beams, possibly with shutters, to their default
@@ -102,18 +129,11 @@ class SetBeamsToDefaults(Fragment):
         self.dummy_suservo_frag = DummySUServoFrag()
         self.dummy_float_handle = DummyFloatParameterHandle()
 
-        self.suservo_setters_and_info: List[
-            Tuple[LibSetSUServoStatic, FloatParamHandle, bool]
-        ] = []
-        """
-        Tuple of (
-            LibSetSUServoStatic - setter interface
-            FloatParamHandle - handle to setpoint parameter
-            bool - does this SUServo have a shutter?
-        )
-        """
+        # SUServo settings
 
-        self.ttls = []
+        self.shutter_ttls: List[TTLOut] = []
+
+        self.suservo_setters_and_info: List[_SUServoInfo] = []
 
         # Loop over all the suservo beams, defining:
         #   * LibSetSUServoStatic fragments to control them
@@ -125,7 +145,7 @@ class SetBeamsToDefaults(Fragment):
             )
 
             if beam_info.shutter_device:
-                self.ttls.append(self.get_device(beam_info.shutter_device))
+                self.shutter_ttls.append(self.get_device(beam_info.shutter_device))
 
             setpoint_handle = self.setattr_param(
                 f"setpoint_{beam_info.name}",
@@ -145,37 +165,16 @@ class SetBeamsToDefaults(Fragment):
         self.ad9910s: List[AD9910] = []
         self.ad9912s: List[AD9910] = []
         self.urukuls: List[UrukulCPLD] = []
+        self.switch_ttls_with_shutter: List[TTLOut] = []
+        self.switch_ttls_without_shutter: List[TTLOut] = []
 
-        self.ad9910_devices_and_handles: List[
-            Tuple[AD9910, FloatParamHandle, FloatParamHandle, bool]
-        ] = []
-        """
-        Tuple of (
-            AD9910 - ARTIQ device
-            FloatParamHandle - handle to frequency parameter
-            FloatParamHandle - handle to amplitude parameter
-            bool - does this beam have a shutter?
-        )
-        """
-
-        self.ad9912_devices_and_handles: List[
-            Tuple[AD9912, FloatParamHandle, FloatParamHandle, bool]
-        ] = []
-        """
-        Tuple of (
-            AD9912 - ARTIQ device
-            FloatParamHandle - handle to frequency parameter
-            bool - does this beam have a shutter?
-        )
-        """
+        self.ad9910_devices_and_handles: List[_AD9910Info] = []
+        self.ad9912_devices_and_handles: List[_AD9912Info] = []
 
         for beam_info in self.default_urukul_beam_infos:
             device: Union[AD9910, AD9912] = self.get_device(beam_info.urukul_device)
 
             self.urukuls.append(device.cpld)
-
-            if beam_info.shutter_device:
-                self.ttls.append(self.get_device(beam_info.shutter_device))
 
             frequency_handle = self.setattr_param(
                 f"frequency_{beam_info.name}",
@@ -185,6 +184,9 @@ class SetBeamsToDefaults(Fragment):
                 max=500e6,
                 default=beam_info.frequency,
             )
+
+            if beam_info.shutter_device:
+                self.shutter_ttls.append(self.get_device(beam_info.shutter_device))
 
             if isinstance(device, AD9910):
                 amplitude_handle = self.setattr_param(
@@ -196,24 +198,33 @@ class SetBeamsToDefaults(Fragment):
                     default=beam_info.amplitude,
                 )
 
-                self.ad9910_devices_and_handles.append(
-                    (
-                        device,
-                        frequency_handle,
-                        amplitude_handle,
-                        bool(beam_info.shutter_device),
-                    )
+                info = _AD9910Info(
+                    device,
+                    frequency_handle,
+                    amplitude_handle,
+                    shutter_present=bool(beam_info.shutter_device),
+                    has_ttl_switch=hasattr(device, "sw"),
                 )
+                self.ad9910_devices_and_handles.append(info)
+
             elif isinstance(device, AD9912):
-                self.ad9912_devices_and_handles.append(
-                    (
-                        device,
-                        frequency_handle,
-                        bool(beam_info.shutter_device),
-                    )
+                info = _AD9912Info(
+                    device,
+                    frequency_handle,
+                    shutter_present=bool(beam_info.shutter_device),
+                    has_ttl_switch=hasattr(device, "sw"),
                 )
+                if info.has_ttl_switch:
+                    self.switch_ttls_with_shutter.append(device.sw)
+                self.ad9912_devices_and_handles.append(info)
             else:
                 raise TypeError("Unrecognised device type")
+
+            if info.has_ttl_switch:
+                if info.shutter_present:
+                    self.switch_ttls_with_shutter.append(device.sw)
+                else:
+                    self.switch_ttls_without_shutter.append(device.sw)
 
         # Ensure the AD9910 and AD9912s are initiated
         self.setattr_fragment(
@@ -243,26 +254,27 @@ class SetBeamsToDefaults(Fragment):
         # the real ones, but actually do nothing. The compiler will optimize
         # these away so they won't have an impact on performance.
 
-        if not self.ttls:
-            self.ttls = [self.dummy_ttl]
+        if not self.shutter_ttls:
+            self.shutter_ttls = [self.dummy_ttl]
+        if not self.switch_ttls_with_shutter:
+            self.switch_ttls_with_shutter = [self.dummy_ttl]
+        if not self.switch_ttls_without_shutter:
+            self.switch_ttls_without_shutter = [self.dummy_ttl]
 
         if not self.ad9910_devices_and_handles:
             self.ad9910_devices_and_handles = [
-                (
+                _AD9910Info(
                     self.dummy_ad9910,
                     self.dummy_float_handle,
                     self.dummy_float_handle,
+                    False,
                     False,
                 )
             ]
 
         if not self.ad9912_devices_and_handles:
             self.ad9912_devices_and_handles = [
-                (
-                    self.dummy_ad9912,
-                    self.dummy_float_handle,
-                    False,
-                )
+                _AD9912Info(self.dummy_ad9910, self.dummy_float_handle, False, False)
             ]
 
         if not self.suservo_setters_and_info:
@@ -352,6 +364,7 @@ class SetBeamsToDefaults(Fragment):
         self._turn_on_suservos(light_enabled=light_enabled)
         self._turn_on_ad9910s(light_enabled=light_enabled)
         self._turn_on_ad9912s(light_enabled=light_enabled)
+        self._set_rf_switches(light_enabled=light_enabled)
 
     @kernel
     def _turn_on_suservos(self, light_enabled):
@@ -393,22 +406,22 @@ class SetBeamsToDefaults(Fragment):
             logger.info("SetBeamsToDefaults::_turn_on_ad9910s")
             self.core.break_realtime()
 
-        for (
-            ad9910_device,
-            frequency_handle,
-            amplitude_handle,
-            shutter_present,
-        ) in self.ad9910_devices_and_handles:
-            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
-            freq = frequency_handle.get()
-            amp = amplitude_handle.get()
+        for info in self.ad9910_devices_and_handles:
+            rf_switch_state = light_enabled or (
+                not light_enabled and info.shutter_present
+            )
+            freq = info.frequency_handle.get()
+            amp = info.amplitude_handle.get()
 
-            ad9910_device.set(frequency=freq, amplitude=amp)
-            ad9910_device.sw.set_o(rf_switch_state)
+            info.device.set(frequency=freq, amplitude=amp)
+            if not info.has_ttl_switch:
+                info.device.cfg_sw(rf_switch_state)
+            # else:
+            #     This will be done by _turn_on_rf_switches
 
             if self.debug_mode:
                 logger.info(
-                    "Enabling AD9910 %s, freq=%s, amp=%s", ad9910_device, freq, amp
+                    "Enabling AD9910 %s, freq=%s, amp=%s", info.device, freq, amp
                 )
                 self.core.break_realtime()
 
@@ -418,21 +431,33 @@ class SetBeamsToDefaults(Fragment):
             logger.info("SetBeamsToDefaults::_turn_on_ad9912s")
             self.core.break_realtime()
 
-        for (
-            ad9912_device,
-            frequency_handle,
-            shutter_present,
-        ) in self.ad9912_devices_and_handles:
-            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
-            freq = frequency_handle.get()
+        for info in self.ad9912_devices_and_handles:
+            rf_switch_state = light_enabled or (
+                not light_enabled and info.shutter_present
+            )
+            freq = info.frequency_handle.get()
 
-            ad9912_device.set(frequency=freq)
-            ad9912_device.sw.set_o(rf_switch_state)
+            info.device.set(frequency=freq)
+
+            if not info.has_ttl_switch:
+                info.device.cfg_sw(rf_switch_state)
+            # else:
+            #     This will be done by _turn_on_rf_switches
 
             if self.debug_mode:
-                logger.info("Enabling AD9910 %s, freq=%s", ad9912_device, freq)
+                logger.info("Enabling AD9910 %s, freq=%s", info.device, freq)
                 self.core.break_realtime()
 
-        for ttl in self.ttls:
+        for ttl in self.shutter_ttls:
             ttl.set_o(light_enabled)
-            delay_mu(8)
+            delay_mu(int64(self.core.ref_multiplier))
+
+    @kernel
+    def _set_rf_switches(self, light_enabled):
+        for sw_withshutter in self.switch_ttls_with_shutter:
+            sw_withshutter.on()
+            delay_mu(int64(self.core.ref_multiplier))
+
+        for sw_withoutshutter in self.switch_ttls_without_shutter:
+            sw_withoutshutter.set_o(light_enabled)
+            delay_mu(int64(self.core.ref_multiplier))
