@@ -167,7 +167,7 @@ class NarrowbandRedMOTFrag(Fragment):
         # get_total_narrowband_duration can predict the total duration of these
         # stages accurately
         with parallel:
-            # self.red_beam_controller.stop_ramping_red()
+            self.red_beam_controller.stop_ramping_red()
             delay(RAMP_SPI_DELAY)
 
         # if self.disable_679_during_narrowband.get():
