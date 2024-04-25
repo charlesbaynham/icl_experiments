@@ -50,6 +50,7 @@ class DummyUrukul:
 class DummyAD9910:
     def __init__(self) -> None:
         self.sw = DummyTTL()
+        self.cpld = DummyCPLD()
 
     @kernel
     def init(self):
@@ -67,6 +68,7 @@ class DummyAD9910:
 class DummyAD9912:
     def __init__(self) -> None:
         self.sw = DummyTTL()
+        self.cpld = DummyCPLD()
 
     @kernel
     def init(self):
@@ -78,6 +80,12 @@ class DummyAD9912:
 
     @kernel
     def cfg_sw(self, state: TBool):
+        pass
+
+
+class DummyCPLD:
+    @kernel
+    def init(self):
         pass
 
 
