@@ -43,6 +43,11 @@ RED_SPINPOL_SETTINGS = (
     ),
 )
 
+# Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
+# polarizing beam (i.e. not their normal MOT beams)
+RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
+RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
+
 
 @dataclass
 class IJDSettings:
@@ -356,3 +361,9 @@ WAND_OFFSETS_87 = {
     "679": -2430e6,
     "689": float("nan"),
 }
+
+# Spin polarisation settings
+
+TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
+DURATION_OF_SPIN_POL = 5e-3
+TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3

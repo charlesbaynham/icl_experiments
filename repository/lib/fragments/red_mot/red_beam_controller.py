@@ -401,14 +401,22 @@ class RedBeamController(Fragment):
         therefore cannot be used while the 9/2 -> 11/2 MOT beams are on. You
         must ensure that they are not, otherwise it'll be weird.
         """
+        # Ensure shutter is open
         delay(-constants.SRS_SHUTTER_DELAY)
         self.ttl_shutter_red_axial_spin_pol.on()
         delay(constants.SRS_SHUTTER_DELAY)
 
         if self.use_sigmaplus_spinpol.get():
-            self.sigmaplus_toggler.turn_beams_on(ignore_shutters)
+            toggler = self.sigmaplus_toggler
+            setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAPLUS
         else:
-            self.sigmaminus_toggler.turn_beams_on(ignore_shutters)
+            toggler = self.sigmaminus_toggler
+            setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAMINUS
+
+        # Update the appropriate SUServo with the new setpoint
+        # FIXME: Do this
+
+        toggler.turn_beams_on(ignore_shutters)
 
     @kernel
     def turn_off_mot_beams(self, ignore_shutters=False):
