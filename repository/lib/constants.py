@@ -18,6 +18,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 
 from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 
 AD9910_BEAMS = {
@@ -30,6 +31,17 @@ AD9910_BEAMS = {
     "red_spinpol": ("urukul9910_aom_doublepass_689_spinpol", 366.6e6, 0.0),
 }
 "Urukul outputs (name, freq, attenuation) required for non-suservo ad9910 aoms"
+
+
+RED_SPINPOL_SETTINGS = (
+    UrukuledBeam(  # TODO: Get rid of this in favour of !31
+        "red_spinpol",
+        frequency=366.6e6,
+        attenuation=0.0,
+        amplitude=1.0,  # TODO: Remove this after pyaion update
+        urukul_device="urukul9910_aom_doublepass_689_spinpol",
+    ),
+)
 
 
 @dataclass

@@ -28,7 +28,7 @@ from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import
 
 logger = logging.getLogger(__name__)
 
-RED_BEAM_INFOS = [
+RED_SUSERVO_INFOS = [
     constants.SUSERVOED_BEAMS[beam]
     for beam in [
         "red_mot_diagonal",
@@ -37,6 +37,7 @@ RED_BEAM_INFOS = [
         "red_up",
     ]
 ]
+RED_URUKUL_INFOS = [constants.RED_SPINPOL_SETTINGS]
 
 
 class RedBeamController(Fragment):
@@ -52,7 +53,12 @@ class RedBeamController(Fragment):
 
         # Setup of suservo defaults for all beams
         self.setattr_fragment(
-            "all_beam_default_setter", make_set_beams_to_default(RED_BEAM_INFOS)
+            "all_beam_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=RED_SUSERVO_INFOS,
+                urukul_beam_infos=RED_URUKUL_INFOS,
+                name="RedBeamSettings",
+            ),
         )
         self.all_beam_default_setter: SetBeamsToDefaults
 
@@ -60,7 +66,7 @@ class RedBeamController(Fragment):
         self.setattr_fragment(
             "all_mot_beams_setter",
             ControlBeamsWithoutCoolingAOM,
-            beam_infos=RED_BEAM_INFOS,
+            beam_infos=RED_SUSERVO_INFOS,
         )
         self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
 
@@ -101,7 +107,7 @@ class RedBeamController(Fragment):
 
         # Make a SUServo controlling Fragment for each red beam, and store the
         # photodiode offsets for each
-        for beam_info in RED_BEAM_INFOS:
+        for beam_info in RED_SUSERVO_INFOS:
             f = self.setattr_fragment(
                 "suservofrag_" + beam_info.name,
                 LibSetSUServoStatic,
@@ -112,7 +118,7 @@ class RedBeamController(Fragment):
 
         # Make an array to store the nominal amplitudes but leave it empty for
         # now - we'll populate it in device_setup() so that we can scan over it
-        self.suservo_nominal_amplitudes = [0.0] * len(RED_BEAM_INFOS)
+        self.suservo_nominal_amplitudes = [0.0] * len(RED_SUSERVO_INFOS)
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
