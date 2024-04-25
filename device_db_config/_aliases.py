@@ -47,7 +47,8 @@ aliases = {
     "suservo_aom_singlepass_679": "suservo2_ch1",
     "suservo_aom_singlepass_1379": "suservo2_ch2",
     "suservo_aom_698_up_switch": "suservo0_ch7",  # TODO: This should be on an Urukul, but our SUServoedBeam model doesn't support nice specification for this
-    "suservo_aom_698_aom_1": "suservo0_ch1",
+    "suservo_aom_698_squeezing_cavity_input": "suservo0_ch1",
+    "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
     # %% TTLs
     "TTL_shutter_461_pushbeam": "ttl16",
     "TTL_shutter_461_2dmot_is_it_a": "ttl17",
