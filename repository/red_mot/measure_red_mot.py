@@ -135,11 +135,11 @@ class RedMOTBase(ExpFragment):
         self.camera_interface.save_data()
         sums = [0]
         means = [0.0]
-        # self.andor_camera_control.readout_ROIs(
-        #     sums,
-        #     means,
-        #     timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        # )  # FIXME Put back camera readings
+        self.andor_camera_control.readout_ROIs(
+            sums,
+            means,
+            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+        )
         self.andor_sum.push(sums[0])
         self.andor_mean.push(means[0])
 
@@ -157,8 +157,6 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
     @kernel
     def run_once(self):
         narrowband_duration = self.red_mot.get_total_narrowband_duration()
-
-        logger.warning("Tick")  # FIXME "Tick" each cycle
 
         self.core.break_realtime()
 
