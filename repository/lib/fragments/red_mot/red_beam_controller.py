@@ -249,8 +249,8 @@ class RedBeamController(Fragment):
     @kernel
     def turn_off_mot_beams(self, ignore_shutters=False):
         self.all_mot_beams_setter.turn_beams_off(ignore_shutters)
-        # delay_mu(int64(self.core.ref_multiplier)) # FIXME I think this is the problem
-        # self.ttl_shutter_red_axial_mot.off()
+        delay_mu(int64(self.core.ref_multiplier))  # FIXME I think this is the problem
+        self.ttl_shutter_red_axial_mot.off()
 
     @kernel
     def start_ramping_red(self):
