@@ -88,16 +88,15 @@ class RedBeamController(Fragment):
         self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
 
         self.sigmaplus_setpoint_handle = (
-            self.all_beam_default_setter.get_setpoints_and_beaminfo_dict()[
+            self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
                 "red_mot_sigmaplus"
             ]
         )
         self.sigmaminus_setpoint_handle = (
-            self.all_beam_default_setter.get_setpoints_and_beaminfo_dict()[
+            self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
                 "red_mot_sigmaminus"
             ]
         )
-        # FIXME use these for something
 
         # Fast ramping of the AD9910 controlling the injection AOM
         self.setattr_fragment(
@@ -421,6 +420,7 @@ class RedBeamController(Fragment):
         if self.use_sigmaplus_spinpol.get():
             toggler = self.sigmaplus_toggler
             setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAPLUS
+
         else:
             toggler = self.sigmaminus_toggler
             setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAMINUS
@@ -432,6 +432,8 @@ class RedBeamController(Fragment):
 
     @kernel
     def turn_off_mot_beams(self, ignore_shutters=False):
+        self.sigmaplus_setpoint_handle  # FIXME stuff
+
         self.ttl_shutter_red_axial_mot.off()
         delay_mu(int64(self.core.ref_multiplier))
         self.all_mot_beams_setter.turn_beams_off(ignore_shutters)

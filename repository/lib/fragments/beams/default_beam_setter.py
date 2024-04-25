@@ -140,7 +140,7 @@ class SetBeamsToDefaults(Fragment):
             )
 
             self.suservo_setters_and_info.append(
-                (setter, setpoint_handle, bool(beam_info.shutter_device))
+                _SUServoInfo(setter, setpoint_handle, bool(beam_info.shutter_device))
             )
 
         # %% Urukul settings
@@ -277,7 +277,7 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.suservo_setters_and_info:
             self.suservo_setters_and_info = [
-                (self.dummy_suservo_frag, self.dummy_float_handle, False)
+                _SUServoInfo(self.dummy_suservo_frag, self.dummy_float_handle, False)
             ]
             self.default_suservo_beam_infos = [
                 SUServoedBeam(
@@ -310,18 +310,19 @@ class SetBeamsToDefaults(Fragment):
         return self.suservo_setpoints[beam_index]
 
     @host_only
-    def get_setpoints_and_beaminfo_dict(
+    def get_setpoints_beaminfo_setters(
         self,
-    ) -> Dict[str, Tuple[SUServoedBeam, FloatParamHandle]]:
+    ) -> Dict[str, Tuple[SUServoedBeam, FloatParamHandle, LibSetSUServoStatic]]:
         """
         Get a dict of beam name -> (:class:`~SUServoedBeam` beam info,
-        :class:`~FloatParamHandle` handle to suservo setpoint)
+        :class:`~FloatParamHandle` handle to suservo setpoint, and
+        :class:`~LibSetSUServoStatic` suservo setter)
         """
         out = {}
-        for beam_info, (_, handle, _) in zip(
+        for beam_info, settings in zip(
             self.default_suservo_beam_infos, self.suservo_setters_and_info
         ):
-            out[beam_info.name] = (beam_info, handle)
+            out[beam_info.name] = (beam_info, settings.setpoint_handle)
         return out
 
     @kernel
@@ -331,7 +332,7 @@ class SetBeamsToDefaults(Fragment):
         # Retrieve the values of all the generated parameters for SUServo
         # setpoints for this run of the scan
         for i in range(len(self.suservo_setters_and_info)):
-            setpoint_handle = self.suservo_setters_and_info[i][1]
+            setpoint_handle = self.suservo_setters_and_info[i].setpoint_handle
             self.suservo_setpoints[i] = setpoint_handle.get()
 
     @portable
@@ -371,25 +372,25 @@ class SetBeamsToDefaults(Fragment):
             self.core.break_realtime()
 
         for i in range(len(self.suservo_setters_and_info)):
-            (setter, setpoint_handle, shutter_present) = self.suservo_setters_and_info[
-                i
-            ]
+            settings = self.suservo_setters_and_info[i]
             beam_info = self.default_suservo_beam_infos[i]
-            setpoint = setpoint_handle.get()
+            setpoint = settings.setpoint_handle.get()
 
-            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
+            rf_switch_state = light_enabled or (
+                not light_enabled and settings.shutter_present
+            )
 
             if self.debug_mode:
                 logger.info(
                     "Enabling suservo (%s)\n- beam_info %s\n- setpoint %s\n- rf_switch_state %s",
-                    setter,
+                    settings.setter,
                     beam_info,
                     setpoint,
                     rf_switch_state,
                 )
                 self.core.break_realtime()
 
-            setter.set_suservo(
+            settings.setter.set_suservo(
                 float(beam_info.frequency),
                 1.0,
                 float(beam_info.attenuation),
