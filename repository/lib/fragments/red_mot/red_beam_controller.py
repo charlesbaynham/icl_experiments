@@ -272,7 +272,7 @@ class RedBeamController(Fragment):
         """
         Stop modulation of the 689 DDS and return to static (or specified) frequency
         """
-        # self.injection_aom_ramper.stop_ramp()
+        # self.injection_aom_ramper.stop_ramp()#FIXME
 
         delay_mu(8)  # FIXME
 

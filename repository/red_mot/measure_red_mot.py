@@ -162,7 +162,7 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
 
         self.core.break_realtime()
 
-        self._from_start_to_end_of_broadband_mot()  # FIXME
+        self._from_start_to_end_of_broadband_mot()
 
         with parallel:
             with sequential:
