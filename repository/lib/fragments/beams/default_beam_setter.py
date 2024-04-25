@@ -72,23 +72,6 @@ class _SUServoInfo:
     shutter_present: bool
 
 
-@dataclass
-class _AD9910Info:
-    device: AD9910
-    frequency_handle: FloatParamHandle
-    amplitude_handle: FloatParamHandle
-    shutter_present: bool
-    has_ttl_switch: bool
-
-
-@dataclass
-class _AD9912Info:
-    device: AD9912
-    frequency_handle: FloatParamHandle
-    shutter_present: bool
-    has_ttl_switch: bool
-
-
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of beams, possibly with shutters, to their default
@@ -168,8 +151,23 @@ class SetBeamsToDefaults(Fragment):
         self.switch_ttls_with_shutter: List[TTLOut] = []
         self.switch_ttls_without_shutter: List[TTLOut] = []
 
-        self.ad9910_devices_and_handles: List[_AD9910Info] = []
-        self.ad9912_devices_and_handles: List[_AD9912Info] = []
+        @dataclass
+        class AD9910Info:
+            device: AD9910
+            frequency_handle: FloatParamHandle
+            amplitude_handle: FloatParamHandle
+            shutter_present: bool
+            has_ttl_switch: bool
+
+        @dataclass
+        class AD9912Info:
+            device: AD9912
+            frequency_handle: FloatParamHandle
+            shutter_present: bool
+            has_ttl_switch: bool
+
+        self.ad9910_devices_and_handles: List[AD9910Info] = []
+        self.ad9912_devices_and_handles: List[AD9912Info] = []
 
         for beam_info in self.default_urukul_beam_infos:
             device: Union[AD9910, AD9912] = self.get_device(beam_info.urukul_device)
@@ -198,7 +196,7 @@ class SetBeamsToDefaults(Fragment):
                     default=beam_info.amplitude,
                 )
 
-                info = _AD9910Info(
+                info = AD9910Info(
                     device,
                     frequency_handle,
                     amplitude_handle,
@@ -208,7 +206,7 @@ class SetBeamsToDefaults(Fragment):
                 self.ad9910_devices_and_handles.append(info)
 
             elif isinstance(device, AD9912):
-                info = _AD9912Info(
+                info = AD9912Info(
                     device,
                     frequency_handle,
                     shutter_present=bool(beam_info.shutter_device),
@@ -263,7 +261,7 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9910_devices_and_handles:
             self.ad9910_devices_and_handles = [
-                _AD9910Info(
+                AD9910Info(
                     self.dummy_ad9910,
                     self.dummy_float_handle,
                     self.dummy_float_handle,
@@ -274,7 +272,7 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9912_devices_and_handles:
             self.ad9912_devices_and_handles = [
-                _AD9912Info(self.dummy_ad9910, self.dummy_float_handle, False, False)
+                AD9912Info(self.dummy_ad9910, self.dummy_float_handle, False, False)
             ]
 
         if not self.suservo_setters_and_info:
