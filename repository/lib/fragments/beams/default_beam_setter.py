@@ -1,5 +1,6 @@
 import logging
 import warnings
+from dataclasses import dataclass
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -18,6 +19,7 @@ from artiq.experiment import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -60,6 +62,21 @@ def make_set_beams_to_default(
     SetBeamsToDefaultsCustomised.__qualname__ = name
 
     return SetBeamsToDefaultsCustomised
+
+
+@dataclass
+class _AD9910Info:
+    device: AD9910
+    frequency_handle: FloatParamHandle
+    amplitude_handle: FloatParamHandle
+    shutter_present: bool
+
+
+@dataclass
+class _AD9912Info:
+    device: AD9912
+    frequency_handle: FloatParamHandle
+    shutter_present: bool
 
 
 class SetBeamsToDefaults(Fragment):
@@ -146,28 +163,8 @@ class SetBeamsToDefaults(Fragment):
         self.ad9912s: List[AD9910] = []
         self.urukuls: List[UrukulCPLD] = []
 
-        self.ad9910_devices_and_handles: List[
-            Tuple[AD9910, FloatParamHandle, FloatParamHandle, bool]
-        ] = []
-        """
-        Tuple of (
-            AD9910 - ARTIQ device
-            FloatParamHandle - handle to frequency parameter
-            FloatParamHandle - handle to amplitude parameter
-            bool - does this beam have a shutter?
-        )
-        """
-
-        self.ad9912_devices_and_handles: List[
-            Tuple[AD9912, FloatParamHandle, FloatParamHandle, bool]
-        ] = []
-        """
-        Tuple of (
-            AD9912 - ARTIQ device
-            FloatParamHandle - handle to frequency parameter
-            bool - does this beam have a shutter?
-        )
-        """
+        self.ad9910_devices_and_handles: List[_AD9910Info] = []
+        self.ad9912_devices_and_handles: List[_AD9912Info] = []
 
         for beam_info in self.default_urukul_beam_infos:
             device: Union[AD9910, AD9912] = self.get_device(beam_info.urukul_device)
@@ -197,19 +194,19 @@ class SetBeamsToDefaults(Fragment):
                 )
 
                 self.ad9910_devices_and_handles.append(
-                    (
+                    _AD9910Info(
                         device,
                         frequency_handle,
                         amplitude_handle,
-                        bool(beam_info.shutter_device),
+                        shutter_present=bool(beam_info.shutter_device),
                     )
                 )
             elif isinstance(device, AD9912):
                 self.ad9912_devices_and_handles.append(
-                    (
+                    _AD9910Info(
                         device,
                         frequency_handle,
-                        bool(beam_info.shutter_device),
+                        shutter_present=bool(beam_info.shutter_device),
                     )
                 )
             else:
@@ -248,7 +245,7 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9910_devices_and_handles:
             self.ad9910_devices_and_handles = [
-                (
+                _AD9910Info(
                     self.dummy_ad9910,
                     self.dummy_float_handle,
                     self.dummy_float_handle,
@@ -258,8 +255,8 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9912_devices_and_handles:
             self.ad9912_devices_and_handles = [
-                (
-                    self.dummy_ad9912,
+                _AD9912Info(
+                    self.dummy_ad9910,
                     self.dummy_float_handle,
                     False,
                 )
@@ -393,22 +390,19 @@ class SetBeamsToDefaults(Fragment):
             logger.info("SetBeamsToDefaults::_turn_on_ad9910s")
             self.core.break_realtime()
 
-        for (
-            ad9910_device,
-            frequency_handle,
-            amplitude_handle,
-            shutter_present,
-        ) in self.ad9910_devices_and_handles:
-            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
-            freq = frequency_handle.get()
-            amp = amplitude_handle.get()
+        for info in self.ad9910_devices_and_handles:
+            rf_switch_state = light_enabled or (
+                not light_enabled and info.shutter_present
+            )
+            freq = info.frequency_handle.get()
+            amp = info.amplitude_handle.get()
 
-            ad9910_device.set(frequency=freq, amplitude=amp)
-            ad9910_device.sw.set_o(rf_switch_state)
+            info.device.set(frequency=freq, amplitude=amp)
+            info.device.sw.set_o(rf_switch_state)
 
             if self.debug_mode:
                 logger.info(
-                    "Enabling AD9910 %s, freq=%s, amp=%s", ad9910_device, freq, amp
+                    "Enabling AD9910 %s, freq=%s, amp=%s", info.device, freq, amp
                 )
                 self.core.break_realtime()
 
@@ -418,21 +412,19 @@ class SetBeamsToDefaults(Fragment):
             logger.info("SetBeamsToDefaults::_turn_on_ad9912s")
             self.core.break_realtime()
 
-        for (
-            ad9912_device,
-            frequency_handle,
-            shutter_present,
-        ) in self.ad9912_devices_and_handles:
-            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
-            freq = frequency_handle.get()
+        for info in self.ad9912_devices_and_handles:
+            rf_switch_state = light_enabled or (
+                not light_enabled and info.shutter_present
+            )
+            freq = info.frequency_handle.get()
 
-            ad9912_device.set(frequency=freq)
-            ad9912_device.sw.set_o(rf_switch_state)
+            info.device.set(frequency=freq)
+            info.device.sw.set_o(rf_switch_state)
 
             if self.debug_mode:
-                logger.info("Enabling AD9910 %s, freq=%s", ad9912_device, freq)
+                logger.info("Enabling AD9910 %s, freq=%s", info.device, freq)
                 self.core.break_realtime()
 
         for ttl in self.ttls:
             ttl.set_o(light_enabled)
-            delay_mu(8)
+            delay_mu(int64(self.core.ref_multiplier))
