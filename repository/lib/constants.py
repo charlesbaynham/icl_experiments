@@ -130,6 +130,8 @@ ANDOR_FAST_KINETICS_HEIGHT = width
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
 
+SRS_SHUTTER_DELAY = 10e-3
+
 # Information about beams controlled by AOMs
 SUSERVOED_BEAMS = [
     ### BLUE ###
@@ -169,7 +171,7 @@ SUSERVOED_BEAMS = [
         20,
         "suservo_aom_singlepass_461_3DMOT_radial",
         "TTL_shutter_461_3dmot",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=2.8,
     ),
@@ -179,7 +181,7 @@ SUSERVOED_BEAMS = [
         20,
         "suservo_aom_singlepass_461_3DMOT_axialminus",
         "TTL_shutter_461_3dmot",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=3.0,
     ),
@@ -189,7 +191,7 @@ SUSERVOED_BEAMS = [
         20,
         "suservo_aom_singlepass_461_3DMOT_axialplus",
         "TTL_shutter_461_3dmot",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=2.0,
     ),
@@ -214,7 +216,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
         shutter_device="ttl_shutter_red_mot_diagonal",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.5,
         photodiode_offset=0.01326,
@@ -225,7 +227,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_sigmaminus",
         shutter_device="ttl_shutter_red_sigmaminus",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.5,
         photodiode_offset=0.0188,
@@ -236,10 +238,10 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_up",
         shutter_device="ttl_shutter_red_up",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.1,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
-        photodiode_offset=0.0188,  # FIXME: This is a guess
+        photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -247,10 +249,10 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
         shutter_device="ttl_shutter_red_sigmaplus",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.5,
-        photodiode_offset=0.0188,  # FIXME: This is a guess
+        photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     ### OTHER ###
     SUServoedBeam(
@@ -259,7 +261,7 @@ SUSERVOED_BEAMS = [
         0,
         "suservo_aom_singlepass_707",
         shutter_device="ttl_shutter_repump_707",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=0.75,
     ),
@@ -269,7 +271,7 @@ SUSERVOED_BEAMS = [
         0,
         "suservo_aom_singlepass_679",
         shutter_device="ttl_shutter_repump_679",
-        shutter_delay=10e-3,
+        shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=0.33,
     ),

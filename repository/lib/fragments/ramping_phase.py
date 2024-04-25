@@ -21,26 +21,10 @@ from numpy import int32
 from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
+from repository.lib.dummy_devices import DummyAD9910
+from repository.lib.dummy_devices import DummySUServoChannel
 
 logger = logging.getLogger(__name__)
-
-
-class DummyAD9910(HasEnvironment):
-    def build(self):
-        self.setattr_device("core")
-
-    @kernel
-    def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
-        return 0.0
-
-
-class DummySUServoChannel(HasEnvironment):
-    def build(self):
-        self.setattr_device("core")
-
-    @kernel
-    def set_setpoint(self, new_setpoint: TFloat):
-        return 0.0
 
 
 class GeneralRampingPhase(Fragment):
@@ -208,8 +192,8 @@ class GeneralRampingPhase(Fragment):
         # are. Rather than work around this, I make sure that all list are at
         # least 1 long by adding a dummy object if they're empty. Here are those
         # dummy objects:
-        self.dummy_ad9910 = DummyAD9910(self)
-        self.dummy_suservo = DummySUServoChannel(self)
+        self.dummy_ad9910 = DummyAD9910()
+        self.dummy_suservo = DummySUServoChannel()
 
         # I also need to loop over parameter handles, so I must make a dummy
         # parameter to pass. I'll override it so that it doesn't appear in the

@@ -11,8 +11,10 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 
 import repository.lib.constants as constants
-from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 BlueBeamSetter = make_set_beams_to_default(
-    [
+    suservo_beam_infos=[
         constants.SUSERVOED_BEAMS[beam]
         for beam in [
             "blue_push_beam",
@@ -33,7 +35,9 @@ BlueBeamSetter = make_set_beams_to_default(
             "repump_707",
             "repump_679",
         ]
-    ]
+    ],
+    urukul_beam_infos=[],
+    name="ImagingBeamsSettings",
 )
 
 
@@ -221,7 +225,7 @@ class Blue3DMOTFrag(Fragment):
         respect beam shutter delays - it just turns everything
         on immediately. It needs at least 3924ns of slack.
 
-        FIXME: Figure out why I need a stupid amount of slack
+        TODO: Figure out why I need a stupid amount of slack
         """
 
         if self.debug_mode:

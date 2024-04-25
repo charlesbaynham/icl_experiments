@@ -18,7 +18,7 @@ These have two types:
 import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+
 
 port_iterator = iter(range(3278, 99999))
 get_next_port = lambda: int(next(port_iterator))
@@ -103,7 +103,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockclass": "MockCamera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
-                "loglevel": logger.getEffectiveLevel(),
+                "loglevel": logging.WARNING,
             },
         },
         "flir_camera_ch2_vertical": {
@@ -114,7 +114,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockclass": "MockCamera",
             "arguments": {
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
-                "loglevel": logger.getEffectiveLevel(),
+                "loglevel": logging.WARNING,
             },
         },
         "chamber_1_axial_coil_driver": {

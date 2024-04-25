@@ -2,7 +2,7 @@
   inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  # FIXME: Go back to pyaion artiq
+  # TODO: Go back to pyaion artiq
   inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=icl";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
@@ -17,7 +17,9 @@
           # Build the python bindings for aravis
           python-aravis = callPackage ./nix/aravis/python-aravis.nix { };
 
-          originalOutputs = pyaion.lib.${system}.artiq_flake_builder { poetry_app = self; };
+          originalOutputs = pyaion.lib.${system}.artiq_flake_builder {
+            poetry_app = self;
+          };
           overriddenOutputs = originalOutputs.override (prev: {
             extra-build-requirements = {
               artiq-http = [ "setuptools" ];
@@ -83,6 +85,23 @@
                   export PATH=${pkgs.lib.makeBinPath [pkgs.influxdb]}:$PATH
 
                   exec ${self}/scripts/backup_database.sh
+                '';
+              in
+              { type = "app"; program = "${script}/bin/run"; };
+
+            check_for_fixme =
+              let
+                script = pkgs.writeShellScriptBin "run" ''
+                  export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
+
+                  if rg FIXME "${self}/repository"; then
+                    echo \"FIXME\" found in files
+                    exit 1
+                  else
+                    echo No \"FIXME\"s found
+                    exit 0
+                  fi
+
                 '';
               in
               { type = "app"; program = "${script}/bin/run"; };

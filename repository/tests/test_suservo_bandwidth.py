@@ -26,7 +26,7 @@ class DetermineServoPeriod(EnvExperiment):
 
         self.num_dones = self.get_argument(
             "Number of 'done' observations",
-            NumberValue(default=1000, min=2, step=1, ndecimals=0),
+            NumberValue(default=1000, min=2, step=1, precision=0),
         )
 
         self.setattr_device("core")

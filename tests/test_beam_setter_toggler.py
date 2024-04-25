@@ -5,7 +5,10 @@ from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
 
-from repository.lib.fragments.beams.beam_setters import ToggleListOfBeams
+from repository.lib.fragments.beams.toggling_beam_setter import (
+    make_toggle_list_of_beams,
+)
+from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 
 BEAM_INFO_SUSERVO_NO_SHUTTER = SUServoedBeam(
     "no_shutter_suservo", 0.0, 0.0, "suservo0_ch0"
@@ -20,17 +23,13 @@ BEAM_INFO_SUSERVO_WITH_SHUTTER = SUServoedBeam(
 
 
 class ToggleSingleSUServoedBeam(ExpFragment):
-    @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
-        self.all_beam_toggler.turn_on_beams()
-
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.core: Core
 
         self.setattr_fragment(
-            "all_beam_toggler", ToggleListOfBeams, [BEAM_INFO_SUSERVO_NO_SHUTTER]
+            "all_beam_toggler",
+            make_toggle_list_of_beams([BEAM_INFO_SUSERVO_NO_SHUTTER]),
         )
         self.all_beam_toggler: ToggleListOfBeams
 
@@ -41,19 +40,15 @@ class ToggleSingleSUServoedBeam(ExpFragment):
 
 
 class ToggleOneOfEach(ExpFragment):
-    @kernel
-    def run_once(self) -> None:
-        self.core.break_realtime()
-        self.all_beam_toggler.turn_on_beams()
-
     def build_fragment(self) -> None:
         self.setattr_device("core")
         self.core: Core
 
         self.setattr_fragment(
             "all_beam_toggler",
-            ToggleListOfBeams,
-            [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER],
+            make_toggle_list_of_beams(
+                [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+            ),
         )
         self.all_beam_toggler: ToggleListOfBeams
 
@@ -64,11 +59,17 @@ class ToggleOneOfEach(ExpFragment):
 
 
 class _DoubleToggler(ToggleListOfBeams):
-    default_beam_infos = [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+    default_suservo_beam_infos = [
+        BEAM_INFO_SUSERVO_NO_SHUTTER,
+        BEAM_INFO_SUSERVO_WITH_SHUTTER,
+    ]
 
 
 class _SingleToggler(ToggleListOfBeams):
-    default_beam_infos = [BEAM_INFO_SUSERVO_NO_SHUTTER, BEAM_INFO_SUSERVO_WITH_SHUTTER]
+    default_suservo_beam_infos = [
+        BEAM_INFO_SUSERVO_NO_SHUTTER,
+        BEAM_INFO_SUSERVO_WITH_SHUTTER,
+    ]
 
 
 class ToggleMultipleCombos(ExpFragment):

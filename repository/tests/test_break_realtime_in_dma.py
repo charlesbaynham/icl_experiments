@@ -25,7 +25,7 @@ class DMABreakRealtime(EnvExperiment):
         self.delay: float
 
         self.setattr_argument(
-            "num", NumberValue(100000, type="int", ndecimals=0, step=1)
+            "num", NumberValue(100000, type="int", precision=0, step=1)
         )
         self.num: int
 

@@ -11,7 +11,10 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +27,7 @@ from repository.lib.fragments.cameras.triple_imaging_kinetics import (
 class _InterferometryCommon(TripleImageMOTFrag, SpectroscopyMixin):
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
-            default_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
+            default_suservo_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
 
         self.setattr_fragment("up_beam_default_setter", _UpBeamSetter)
         self.up_beam_default_setter: SetBeamsToDefaults

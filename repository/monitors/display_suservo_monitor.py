@@ -21,8 +21,10 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
@@ -86,7 +88,11 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
 
         # Get beam setter fragment
         self.setattr_fragment(
-            "beam_default_setter", make_set_beams_to_default([self.beam_info])
+            "beam_default_setter",
+            make_set_beams_to_default(
+                [self.beam_info],
+                name="BeamSettings",
+            ),
         )
         self.beam_default_setter: SetBeamsToDefaults
 
@@ -228,8 +234,10 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         # Get beam setter fragment for all the beams
         self.setattr_fragment(
             "beam_default_setter",
-            SetBeamsToDefaults,
-            default_beam_infos=self.beam_infos,
+            make_set_beams_to_default(
+                self.beam_infos,
+                name="BeamsSettings",
+            ),
         )
         self.beam_default_setter: SetBeamsToDefaults
 
