@@ -158,8 +158,10 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
     def run_once(self):
         narrowband_duration = self.red_mot.get_total_narrowband_duration()
 
+        logger.warning("Tick")  # FIXME
+
         self.core.break_realtime()
-        # self._from_start_to_end_of_broadband_mot()  # FIXME
+        self._from_start_to_end_of_broadband_mot()  # FIXME
 
         with parallel:
             with sequential:
@@ -168,7 +170,7 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
 
             self.red_mot.transition_broadband_to_narrowband()
 
-        self._save_data()
+        # self._save_data()
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
