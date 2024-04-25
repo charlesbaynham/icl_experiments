@@ -112,7 +112,7 @@ class RedMOTBase(ExpFragment):
 
     @kernel
     def _expand_and_image(self):
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
+        # self.red_mot.red_beam_controller.turn_off_mot_beams() # FIXME
 
         delay(self.expansion_time.get())
 
@@ -135,11 +135,11 @@ class RedMOTBase(ExpFragment):
         self.camera_interface.save_data()
         sums = [0]
         means = [0.0]
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
+        # self.andor_camera_control.readout_ROIs(
+        #     sums,
+        #     means,
+        #     timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+        # )  # FIXME
         self.andor_sum.push(sums[0])
         self.andor_mean.push(means[0])
 
@@ -161,6 +161,7 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
         logger.warning("Tick")  # FIXME
 
         self.core.break_realtime()
+
         self._from_start_to_end_of_broadband_mot()  # FIXME
 
         with parallel:
@@ -170,7 +171,7 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
 
             self.red_mot.transition_broadband_to_narrowband()
 
-        # self._save_data()
+        self._save_data()
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
