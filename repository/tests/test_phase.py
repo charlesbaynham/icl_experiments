@@ -12,8 +12,10 @@ from artiq.experiment import TFloat
 from ndscan.experiment import *
 
 from repository.lib import constants
-from repository.lib.fragments.beams.beam_setters import make_set_beams_to_default
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
 logger = logging.getLogger(__name__)
@@ -66,7 +68,10 @@ class ExpFragWithPhaseFrag(ExpFragment):
 
         self.setattr_fragment(
             "diagonal_beam_setter",
-            make_set_beams_to_default([constants.SUSERVOED_BEAMS["red_mot_diagonal"]]),
+            make_set_beams_to_default(
+                [constants.SUSERVOED_BEAMS["red_mot_diagonal"]],
+                name="DiagonalBeamSettings",
+            ),
         )
         self.diagonal_beam_setter: SetBeamsToDefaults
 

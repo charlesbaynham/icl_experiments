@@ -4,14 +4,21 @@ from typing import *
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import *
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from ndscan.experiment import *
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib import constants
+from repository.lib.fragments.beams.default_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +37,20 @@ class TestRampLaneUse(ExpFragment):
         self.core: Core
 
         self.setattr_fragment(
+            "beam_setter",
+            make_set_beams_to_default(
+                [
+                    constants.SUSERVOED_BEAMS["red_mot_diagonal"],
+                    constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
+                    constants.SUSERVOED_BEAMS["red_mot_sigmaminus"],
+                    constants.SUSERVOED_BEAMS["red_up"],
+                ],
+                name="beam_setter",
+            ),
+        )
+        self.beam_setter: SetBeamsToDefaults
+
+        self.setattr_fragment(
             "chamber_2_field_setter",
             SetMagneticFieldsQuick,
         )
@@ -41,6 +62,10 @@ class TestRampLaneUse(ExpFragment):
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.test_phase: NarrowRedCapturePhase
+
+        self.test_phase.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.beam_setter
+        )
 
         self.setattr_device("TTL_shutter_461_pushbeam")
         self.ttl_tester: TTLOut = self.TTL_shutter_461_pushbeam

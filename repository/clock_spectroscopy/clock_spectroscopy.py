@@ -16,7 +16,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
-from repository.lib.fragments.beams.beam_setters import SetBeamsToDefaults
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.cameras.triple_imaging_kinetics import (
     RedMOTWithExperiment,
