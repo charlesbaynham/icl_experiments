@@ -63,14 +63,6 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         )
         self.delay_after_spinpol_pulse: FloatParamHandle
 
-        self.setattr_param(
-            "use_sigmaplus_spinpol",
-            BoolParam,
-            "Which spinpol beam? True = sigmaplus, False = sigmaminus",
-            default=True,
-        )
-        self.use_sigmaplus_spinpol: BoolParamHandle
-
     @kernel
     def post_narrowband_hook(self):
         # Load into lattice with a bang - no ramping for now

@@ -9,6 +9,8 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -173,10 +175,18 @@ class RedBeamController(Fragment):
             default=2,
         )
 
+        self.setattr_param(
+            "use_sigmaplus_spinpol",
+            BoolParam,
+            "Which spinpol beam? True = sigmaplus, False = sigmaminus",
+            default=True,
+        )
+
         self.ramp_frequency: FloatParamHandle
         self.ramp_lower_detuning: FloatParamHandle
         self.ramp_upper_detuning: FloatParamHandle
         self.ramp_type: IntParamHandle
+        self.use_sigmaplus_spinpol: BoolParamHandle
 
         # %% Kernel parameters
 
@@ -381,3 +391,27 @@ class RedBeamController(Fragment):
                 )
 
             suservo_frag.set_setpoint(setpoint)
+
+    @kernel
+    def turn_on_spin_pol(self, ignore_shutters=False):
+        """
+        Turn on the selected spin polarization beam
+
+        Note that this will use the appropriate AOM for suservoing, and
+        therefore cannot be used while the 9/2 -> 11/2 MOT beams are on. You
+        must ensure that they are not, otherwise it'll be weird.
+        """
+        delay(-constants.SRS_SHUTTER_DELAY)
+        self.ttl_shutter_red_axial_spin_pol.on()
+        delay(constants.SRS_SHUTTER_DELAY)
+
+        if self.use_sigmaplus_spinpol.get():
+            self.sigmaplus_toggler.turn_beams_on(ignore_shutters)
+        else:
+            self.sigmaminus_toggler.turn_beams_on(ignore_shutters)
+
+    @kernel
+    def turn_off_mot_beams(self, ignore_shutters=False):
+        self.ttl_shutter_red_axial_mot.off()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.all_mot_beams_setter.turn_beams_off(ignore_shutters)
