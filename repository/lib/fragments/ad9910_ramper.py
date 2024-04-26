@@ -253,5 +253,5 @@ class AD9910Ramper(Fragment):
 
         Advances the timeline by the duration of two RTIO cycles
         """
-        self.dds.cpld.io_update.pulse_mu(self.t_rtio_cycle_mu)
+        self.dds.cpld.io_update.pulse(1e-6)
         delay_mu(self.t_rtio_cycle_mu)
