@@ -9,6 +9,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
+from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
     DroppedPumpedLatticeMixin,
 )
@@ -26,7 +27,10 @@ CLOCK_BEAM_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_up"]
 
 
 class ClockSpecFromLattice(
-    SpectroscopyParamsMixin, DroppedPumpedLatticeMixin, TripleImageMOTMixin
+    SpectroscopyParamsMixin,
+    DroppedPumpedLatticeMixin,
+    TripleImageMOTMixin,
+    RedMOTWithExperiment,
 ):
     """
     Clock spectroscopy from dropped lattice
