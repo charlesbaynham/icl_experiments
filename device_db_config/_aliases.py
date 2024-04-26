@@ -45,7 +45,7 @@ aliases = {
     # Other
     "suservo_aom_singlepass_707": "suservo2_ch0",
     "suservo_aom_singlepass_679": "suservo2_ch1",
-    "suservo_aom_singlepass_1379": "suservo2_ch2",
+    "suservo_aom_singlepass_1379_cavity_input": "suservo2_ch2",
     "suservo_aom_698_up_switch": "suservo0_ch7",  # TODO: This should be on an Urukul, but our SUServoedBeam model doesn't support nice specification for this
     "suservo_aom_698_squeezing_cavity_input": "suservo0_ch1",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",

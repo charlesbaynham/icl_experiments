@@ -48,6 +48,12 @@ RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
 
+# Lattice ramp-down configuration
+# TODO: Choose real lattice ramp parameters
+LATTICE_HIGH_SETPOINT = 1.0
+LATTICE_LOW_SETPOINT = 0.1
+
+
 @dataclass
 class IJDSettings:
     temperature: float
