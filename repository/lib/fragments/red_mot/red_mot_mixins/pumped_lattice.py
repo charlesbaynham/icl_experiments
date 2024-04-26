@@ -1,15 +1,13 @@
 import logging
 
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
-from ndscan.experiment import FloatChannel
-from ndscan.experiment.parameters import BoolParam
-from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )
@@ -52,7 +50,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             default=constants.DURATION_OF_SPIN_POL,
             unit="ms",
         )
-        self.delay_before_spinpol_pulse: FloatParamHandle
+        self.duration_spinpol_pulse: FloatParamHandle
 
         self.setattr_param(
             "delay_after_spinpol_pulse",
@@ -65,9 +63,17 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     @kernel
     def post_narrowband_hook(self):
-        # Load into lattice with a bang - no ramping for now
+        # Load into lattice with a bang - no ramping for now. Don't do the
+        # shutter wiggle thing, since that would clash with the spin pol pulse
+        # we're about to do
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
         delay(self.delay_before_spinpol_pulse.get())
-        # FIXME: Do pulse
+        self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
+        delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
+        # The MOT beams are already off, but this closes the SUServo shutters
+        # and warms the AOMs back up
+        delay_mu(int64(self.core.ref_multiplier))
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
