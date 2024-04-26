@@ -14,6 +14,10 @@ class FieldBoostMixin(RedMOTWithExperiment):
     """
     Mixin for :class:`~RedMOTWithExperiment` to boost the compensation fields at
     the start of the expansion time
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~set_fields_hook`
     """
 
     def build_fragment(self):

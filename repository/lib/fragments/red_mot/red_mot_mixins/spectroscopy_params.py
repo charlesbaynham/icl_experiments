@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 class SpectroscopyParamsMixin(RedMOTWithExperiment):
     """
     Adds parameters for controlling a spectroscopy pulse
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * None
     """
 
     def build_fragment(self):

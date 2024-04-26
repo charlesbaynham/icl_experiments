@@ -22,14 +22,17 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     Loads atoms into a lattice, pumps them into a stretched state then drops
     them by quickly ramping down the lattice intensity
 
-    This Mixin overrides the :meth:`~post_narrowband_hook` from
-    :class:`~RedMOTWithExperiment` load atoms into a lattice at the end of the
-    narrowband red MOT, pumping them using the spin polarisation beam then
-    dropping them by ramping down the lattice intensity. The "expansion time"
-    begins from the end of the ramp down.
+    This mixin load atoms into a lattice at the end of the narrowband red MOT,
+    pumping them using the spin polarisation beam then dropping them by ramping
+    down the lattice intensity. The "expansion time" begins from the end of the
+    ramp down.
 
-    This is a Mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~post_narrowband_hook`
     """
 
     def build_fragment(self):
