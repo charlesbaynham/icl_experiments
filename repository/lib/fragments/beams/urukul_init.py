@@ -87,7 +87,7 @@ class UrukulInit(Fragment):
         if self.first_run:
             self.first_run = False
 
-            # Initiate any suservo CPLDs which haven't already been initiated
+            # Initiate any CPLDs which haven't already been initiated
             with parallel:
                 for i in range(len(self.urukuls)):
                     urukul = self.urukuls[i]
@@ -95,8 +95,8 @@ class UrukulInit(Fragment):
                     if not self.mark_initiated(self.urukul_ids[i]):
                         if self.debug_mode:
                             logger.info("Initiating %s", urukul)
-                            self.core.break_realtime()
 
+                        self.core.break_realtime()
                         urukul.init()
                     else:
                         if self.debug_mode:
@@ -111,8 +111,8 @@ class UrukulInit(Fragment):
                     if not self.mark_initiated(self.ad9910_ids[i]):
                         if self.debug_mode:
                             logger.info("Initiating %s", ad9910)
-                            self.core.break_realtime()
 
+                        self.core.break_realtime()
                         ad9910.init()
                     else:
                         if self.debug_mode:
@@ -127,8 +127,8 @@ class UrukulInit(Fragment):
                     if not self.mark_initiated(self.ad9912_ids[i]):
                         if self.debug_mode:
                             logger.info("Initiating %s", ad9912)
-                            self.core.break_realtime()
 
+                        self.core.break_realtime()
                         ad9912.init()
                     else:
                         if self.debug_mode:
