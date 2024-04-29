@@ -136,6 +136,7 @@ class NarrowbandRedMOTFrag(Fragment):
 
         # Setup beam state
         self.core.break_realtime()
+        delay(1e-3)
         self.red_beam_controller.init()
 
     @kernel
