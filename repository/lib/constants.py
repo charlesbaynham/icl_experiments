@@ -33,7 +33,7 @@ AD9910_BEAMS = {
 "Urukul outputs (name, freq, attenuation) required for non-suservo ad9910 aoms"
 
 
-RED_SPINPOL_SETTINGS = UrukuledBeam(  # TODO: Get rid of this in favour of !31
+RED_SPINPOL_SETTINGS = UrukuledBeam(  # TODO: Get rid of this once !31 is merged
     "red_spinpol",
     frequency=366.6e6,
     attenuation=0.0,
@@ -117,7 +117,7 @@ BLUE_LOADING_TIME = 500e-3
 RED_INJECTION_AOM_ATTENUATION = 0.0
 "Default attenuation for the 689 injection AOM"
 
-RED_INJECTION_AOM_FREQUENCY = 340e6
+RED_INJECTION_AOM_FREQUENCY = 366.6e6  # TODO: Get rid of this once !31 is merged
 "Nominal frequency for the 689 injection AOM"
 
 RED_BROADBAND_RAMP_LIMIT = 4e6
