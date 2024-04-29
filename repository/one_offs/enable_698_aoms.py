@@ -71,14 +71,14 @@ class TurnOn698Temporary(ExpFragment):
     def run_once(self):
         self.input_aom.set_suservo(
             80e6,
-            1,
+            1.0,
             self.input_attenuation.get(),
             self.input_rf_switch.get(),
 
         )
         self.transmission_aom.set_suservo(
             80e6,
-            1,
+            1.0,
             self.transmission_attenuation.get(),
             self.transmission_rf_switch.get(),
 
