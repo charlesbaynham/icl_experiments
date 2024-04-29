@@ -62,20 +62,18 @@ class ClockSpecFromLatticeFrag(
 
     @kernel
     def before_start_hook(self):
-        pass
-
-        # FIXME many comments
-        # self.core.break_realtime()
-        # self.clock_up.set_suservo(
-        #     freq=CLOCK_BEAM_INFO.frequency + self.spectroscopy_pulse_aom_detuning.get(),
-        #     amplitude=self.spectroscopy_pulse_aom_amplitude.get(),
-        #     attenuation=CLOCK_BEAM_INFO.attenuation,
-        #     rf_switch_state=False,
-        #     enable_iir=False,
-        # )
+        self.core.break_realtime()
+        self.clock_up.set_suservo(
+            freq=CLOCK_BEAM_INFO.frequency + self.spectroscopy_pulse_aom_detuning.get(),
+            amplitude=self.spectroscopy_pulse_aom_amplitude.get(),
+            attenuation=CLOCK_BEAM_INFO.attenuation,
+            rf_switch_state=False,
+            enable_iir=False,
+        )
 
     @kernel
     def do_spectroscopy_hook(self):
+        # FIXME many comments
         # self.clock_up.set_channel_state(rf_switch_state=True, enable_iir=False)
         # delay(self.spectroscopy_pulse_time.get())
         # self.clock_up.set_channel_state(rf_switch_state=False, enable_iir=False)
