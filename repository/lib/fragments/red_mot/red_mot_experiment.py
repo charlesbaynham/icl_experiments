@@ -287,15 +287,3 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         completed.
         """
         raise NotImplementedError
-
-    @kernel
-    def do_first_pulse(self, andor_exposure):
-        self._do_pulse(andor_exposure)
-
-    @kernel
-    def do_second_pulse(self, andor_exposure):
-        self._do_pulse(andor_exposure)
-
-    @kernel
-    def do_third_pulse(self, andor_exposure):
-        self._do_pulse(andor_exposure)

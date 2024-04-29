@@ -85,6 +85,18 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
         self.do_third_pulse(andor_exposure)
 
     @kernel
+    def do_first_pulse(self, andor_exposure):
+        self._do_pulse(andor_exposure)
+
+    @kernel
+    def do_second_pulse(self, andor_exposure):
+        self._do_pulse(andor_exposure)
+
+    @kernel
+    def do_third_pulse(self, andor_exposure):
+        self._do_pulse(andor_exposure)
+
+    @kernel
     def save_data_hook(self):
         """
         Hook to save data from the Andor camera
