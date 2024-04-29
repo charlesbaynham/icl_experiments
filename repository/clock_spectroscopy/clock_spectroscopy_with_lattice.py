@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 CLOCK_BEAM_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_up"]
 
 
-class ClockSpecFromLattice(
+class ClockSpecFromLatticeFrag(
     SpectroscopyParamsMixin,
     DroppedPumpedLatticeMixin,
     TripleImageMOTMixin,
@@ -75,4 +75,4 @@ class ClockSpecFromLattice(
         self.blue_3d_mot.turn_on_repumpers()
 
 
-BasicClockSpectroscopy = make_fragment_scan_exp(BasicClockSpectroscopyExp)
+ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
