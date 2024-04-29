@@ -73,14 +73,13 @@ class ClockSpecFromLatticeFrag(
 
     @kernel
     def do_spectroscopy_hook(self):
-        # FIXME many comments
-        # self.clock_up.set_channel_state(rf_switch_state=True, enable_iir=False)
-        # delay(self.spectroscopy_pulse_time.get())
-        # self.clock_up.set_channel_state(rf_switch_state=False, enable_iir=False)
-        pass
+        self.clock_up.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(self.spectroscopy_pulse_time.get())
+        self.clock_up.set_channel_state(rf_switch_state=False, enable_iir=False)
 
     @kernel
     def do_first_pulse(self, andor_exposure):
+        # FIXME many comments
         # self._do_pulse(andor_exposure)
         # delay(self.delay_repumps_after_first_pulse.get())
         # self.blue_3d_mot.turn_on_repumpers()
