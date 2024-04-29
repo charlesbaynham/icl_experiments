@@ -62,26 +62,31 @@ class ClockSpecFromLatticeFrag(
 
     @kernel
     def before_start_hook(self):
-        self.core.break_realtime()
-        self.clock_up.set_suservo(
-            freq=CLOCK_BEAM_INFO.frequency + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=self.spectroscopy_pulse_aom_amplitude.get(),
-            attenuation=CLOCK_BEAM_INFO.attenuation,
-            rf_switch_state=False,
-            enable_iir=False,
-        )
+        pass
+
+        # FIXME many comments
+        # self.core.break_realtime()
+        # self.clock_up.set_suservo(
+        #     freq=CLOCK_BEAM_INFO.frequency + self.spectroscopy_pulse_aom_detuning.get(),
+        #     amplitude=self.spectroscopy_pulse_aom_amplitude.get(),
+        #     attenuation=CLOCK_BEAM_INFO.attenuation,
+        #     rf_switch_state=False,
+        #     enable_iir=False,
+        # )
 
     @kernel
     def do_spectroscopy_hook(self):
-        self.clock_up.set_channel_state(rf_switch_state=True, enable_iir=False)
-        delay(self.spectroscopy_pulse_time.get())
-        self.clock_up.set_channel_state(rf_switch_state=False, enable_iir=False)
+        # self.clock_up.set_channel_state(rf_switch_state=True, enable_iir=False)
+        # delay(self.spectroscopy_pulse_time.get())
+        # self.clock_up.set_channel_state(rf_switch_state=False, enable_iir=False)
+        pass
 
     @kernel
     def do_first_pulse(self, andor_exposure):
-        self._do_pulse(andor_exposure)
-        delay(self.delay_repumps_after_first_pulse.get())
-        self.blue_3d_mot.turn_on_repumpers()
+        # self._do_pulse(andor_exposure)
+        # delay(self.delay_repumps_after_first_pulse.get())
+        # self.blue_3d_mot.turn_on_repumpers()
+        pass
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
