@@ -26,16 +26,16 @@ BEAM_INFO_SUSERVO_WITH_SHUTTER = SUServoedBeam(
 
 BEAM_INFO_AD9910_NO_SHUTTER = UrukuledBeam(
     "no_shutter_urukul",
-    100e6,
-    1.0,
-    0.0,
+    frequency=100e6,
+    amplitude=1.0,
+    attenuation=0.0,
     urukul_device="urukul5_ch0",  # This is an AD9910
 )
 BEAM_INFO_AD9910_WITH_SHUTTER = UrukuledBeam(
     "shutter_urukul",
-    100e6,
-    0,
-    0,
+    frequency=100e6,
+    amplitude=1.0,
+    attenuation=0.0,
     urukul_device="urukul5_ch0",  # This is an AD9910
     shutter_device="ttl12",  # This is our first ttl output
 )
@@ -43,9 +43,8 @@ BEAM_INFO_AD9910_WITH_SHUTTER = UrukuledBeam(
 
 BEAM_INFO_AD9912_WITH_SHUTTER = UrukuledBeam(
     "shutter_ad9912",
-    100e6,
-    0,
-    0,
+    frequency=100e6,
+    attenuation=0.0,
     urukul_device="urukul2_ch0",  # This is an AD9912
     shutter_device="ttl12",  # This is our first ttl output
 )
