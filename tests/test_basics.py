@@ -8,6 +8,9 @@ import pytest
 path_to_repo = Path(__file__, "../../repository").resolve()
 
 
+# TODO: Add a unit test to run an ARTIQ "scan repository"
+
+
 @pytest.mark.parametrize(
     "module_name",
     [
