@@ -51,6 +51,15 @@ class ClockSpecFromLatticeFrag(
         )
         self.clock_up: LibSetSUServoStatic
 
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=1e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
+
     @kernel
     def before_start_hook(self):
         self.core.break_realtime()
