@@ -9,9 +9,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle
-
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
+
 
 class TurnOn698Temporary(ExpFragment):
     """
@@ -20,7 +20,6 @@ class TurnOn698Temporary(ExpFragment):
 
     def build_fragment(self):
         self.setattr_device("core")
-
 
         self.setattr_param(
             "input_attenuation",
@@ -56,14 +55,19 @@ class TurnOn698Temporary(ExpFragment):
             default=True,
         )
 
-
         self.input_attenuation: FloatParamHandle
         self.input_rf_switch: BoolParamHandle
         self.transmission_attenuation: FloatParamHandle
         self.transmission_rf_switch: BoolParamHandle
 
-        self.setattr_fragment("input_aom", LibSetSUServoStatic, "suservo_aom_698_squeezing_cavity_input")
-        self.setattr_fragment("transmission_aom", LibSetSUServoStatic, "suservo_aom_698_squeezing_cavity_transmission")
+        self.setattr_fragment(
+            "input_aom", LibSetSUServoStatic, "suservo_aom_698_squeezing_cavity_input"
+        )
+        self.setattr_fragment(
+            "transmission_aom",
+            LibSetSUServoStatic,
+            "suservo_aom_698_squeezing_cavity_transmission",
+        )
         self.input_aom: LibSetSUServoStatic
         self.transmission_aom: LibSetSUServoStatic
 
@@ -74,14 +78,12 @@ class TurnOn698Temporary(ExpFragment):
             1.0,
             self.input_attenuation.get(),
             self.input_rf_switch.get(),
-
         )
         self.transmission_aom.set_suservo(
             80e6,
             1.0,
             self.transmission_attenuation.get(),
             self.transmission_rf_switch.get(),
-
         )
 
 
