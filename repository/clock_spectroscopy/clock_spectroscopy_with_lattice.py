@@ -79,11 +79,9 @@ class ClockSpecFromLatticeFrag(
 
     @kernel
     def do_first_pulse(self, andor_exposure):
-        # FIXME many comments
-        # self._do_pulse(andor_exposure)
-        # delay(self.delay_repumps_after_first_pulse.get())
-        # self.blue_3d_mot.turn_on_repumpers()
-        pass
+        self._do_pulse(andor_exposure)
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
