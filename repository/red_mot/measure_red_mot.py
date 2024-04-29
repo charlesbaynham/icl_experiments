@@ -173,4 +173,6 @@ class MeasureNarrowbandMOTFrag(RedMOTBase):
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
-MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
+MeasureNarrowbandRedMOT = make_fragment_scan_exp(
+    MeasureNarrowbandMOTFrag, max_rtio_underflow_retries=0
+)
