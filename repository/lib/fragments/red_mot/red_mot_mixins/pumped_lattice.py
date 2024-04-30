@@ -119,10 +119,6 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         # self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)  # FIXME
         delay(self.duration_spinpol_pulse.get())
         # self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)  # FIXME
-        # The MOT beams are already off, but this closes the SUServo shutters
-        # and warms the AOMs back up
-        delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
     @kernel
