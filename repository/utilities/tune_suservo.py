@@ -114,7 +114,7 @@ class TuneSUServo(EnvExperiment):
 
         for i in range(self.num_points):
             val = self.suservo.get_adc(self.adc_channel)
-            delay(100e-3)
+            delay(10e-6)
             if i == 0:
                 self.set_dataset("voltages", [val], broadcast=True)
             else:
