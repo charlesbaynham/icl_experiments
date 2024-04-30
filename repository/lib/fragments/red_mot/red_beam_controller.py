@@ -53,7 +53,7 @@ class RedBeamController(Fragment):
 
         # %% FRAGMENTS
 
-        # Setup of suservo defaults for all beams
+        # Setup of defaults for all beams
         self.setattr_fragment(
             "all_beam_default_setter",
             make_set_beams_to_default(
@@ -140,8 +140,15 @@ class RedBeamController(Fragment):
 
         # %% DEVICES
 
-        self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
-        self.injection_aom: AD9910 = self.urukul9910_aom_doublepass_689_red_injection
+        self.injection_aom: AD9910 = self.get_device(
+            "urukul9910_aom_doublepass_689_red_injection"
+        )
+        self.kernel_invariants.add("injection_aom")
+
+        self.spinpol_aom: AD9910 = self.get_device(
+            constants.RED_SPINPOL_SETTINGS.urukul_device
+        )
+        self.kernel_invariants.add("spinpol_aom")
 
         self.setattr_device("ttl_shutter_red_axial_mot")
         self.setattr_device("ttl_shutter_red_axial_spin_pol")
@@ -157,8 +164,6 @@ class RedBeamController(Fragment):
             unit="MHz",
             default=constants.RED_INJECTION_AOM_FREQUENCY,
         )
-        self.injection_aom_static_frequency: FloatParamHandle
-
         self.setattr_param(
             "ramp_frequency",
             FloatParam,
@@ -186,7 +191,6 @@ class RedBeamController(Fragment):
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
             default=2,
         )
-
         self.setattr_param(
             "use_sigmaplus_spinpol",
             BoolParam,
@@ -194,6 +198,7 @@ class RedBeamController(Fragment):
             default=True,
         )
 
+        self.injection_aom_static_frequency: FloatParamHandle
         self.ramp_frequency: FloatParamHandle
         self.ramp_lower_detuning: FloatParamHandle
         self.ramp_upper_detuning: FloatParamHandle
@@ -207,6 +212,7 @@ class RedBeamController(Fragment):
         self.ramp_rate = 0.0
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+        self.kernel_invariants.add("debug_mode")
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -255,11 +261,17 @@ class RedBeamController(Fragment):
 
         self.core.break_realtime()
 
-        # Ensure the RF switch is on and the frequency is correct.
-        # These are glitch free, so we do them each time
+        # Ensure the non-switching AOMs' RF switches are on and the frequency is
+        # correct. These are glitch free, so we do them each time
         self.injection_aom.set(self.injection_aom_static_frequency.get())
-        self.injection_aom.cfg_sw(True)
+        self.injection_aom.cfg_sw(False)
         self.injection_aom.sw.on()
+
+        # Don't set the spin polarising frequency since this is controlled by
+        # the default setter
+        # TODO: Consider controlling the injection AOM through the default setter too
+        self.spinpol_aom.cfg_sw(False)
+        self.spinpol_aom.sw.on()
 
     @kernel
     def init(self):
