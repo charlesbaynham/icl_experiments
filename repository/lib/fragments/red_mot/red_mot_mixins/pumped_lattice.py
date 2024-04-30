@@ -9,6 +9,8 @@ from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
+from repository.lib.fragments.beams.default_beam_setter import make_set_beams_to_default
+from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )
@@ -32,6 +34,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
+    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     """
 
@@ -93,6 +96,19 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             "suservo_aom_singlepass_1379_cavity_input",
         )
         self.lattice_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "lattice_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["lattice_input_1379"]]
+            ),
+        )
+        self.lattice_setter: SetBeamsToDefaults
+
+    @kernel
+    def before_start_hook(self):
+        self.core.break_realtime()
+        self.lattice_setter.turn_on_all()
 
     @kernel
     def post_narrowband_hook(self):
