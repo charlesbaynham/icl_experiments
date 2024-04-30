@@ -211,11 +211,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1714055364,
-        "narHash": "sha256-yjkqfd/AapZzd6BeQLxcGqZcFhU2h1tt98pKuPk+JKI=",
+        "lastModified": 1714383103,
+        "narHash": "sha256-4ds6RjsFRbaw3QBXNWFB066Dc9IsQkojDInrJZOKk9c=",
         "ref": "refs/heads/master",
-        "rev": "8147a0015d2e8045fbdcaca37ee46ceb1b70adb2",
-        "revCount": 128,
+        "rev": "855a9b25ad8decab6a46b3a713d2c1fc00fbdc65",
+        "revCount": 130,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
