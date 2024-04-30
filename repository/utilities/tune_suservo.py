@@ -97,11 +97,9 @@ class TuneSUServo(EnvExperiment):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
         self.suservo: SUServo = self.suservo_channel.servo
 
-        self.ccb.issue(
-            "create_applet",
-            "SUServo tuning",
-            f"${{artiq_applet}}plot_xy {DATASET_KEY_V} --x {DATASET_KEY_T}",
-        )
+        cmd = f"${{artiq_applet}}plot_xy {DATASET_KEY_V} --x {DATASET_KEY_T} --fit {DATASET_KEY_V} --error {DATASET_KEY_V}"
+
+        self.ccb.issue("create_applet", "SUServo tuning", cmd)
 
     @kernel
     def run(self):
