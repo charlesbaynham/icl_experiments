@@ -79,7 +79,6 @@ class ClockSpecFromLatticeFrag(
 
     @kernel
     def do_first_pulse(self, andor_exposure):
-        # FIXME: This causes a sequence error
         self._do_pulse(andor_exposure)
         delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
