@@ -1,3 +1,7 @@
+"""
+TODO: Pass IJDSettings into Relock single IJD instead of rebinding parameters
+"""
+
 import logging
 import time
 from typing import List
@@ -14,7 +18,6 @@ from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import ExpFragment
-from ndscan.experiment import Fragment
 from ndscan.experiment import LinearGenerator
 from ndscan.experiment import setattr_subscan
 from ndscan.experiment import Subscan
@@ -27,7 +30,10 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
 import repository.lib.constants as constants
-from repository.injected_diodes.scan_koheron_current import ScanKoheronCurrentFrag
+from repository.injected_diodes.set_koheron_controller import SetKoheronFrag
+from repository.lib.constants import IJD_DEFAULTS
+
+# from ndscan.experiment import Fragment
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +44,16 @@ class RelockIJDFrag(ExpFragment):
     """
 
     def build_fragment(
-        self, controller_name: Optional[str] = None, *args, **kwargs
+        self,
+        controller_name: Optional[str] = None,
+        *args,
+        **kwargs,
     ) -> None:
+        if controller_name:
+            defaults = IJD_DEFAULTS[controller_name]
+        else:
+            defaults = constants.IJDSettings(8800, 340e-3, 320e-3, 3e-3)
+
         self.setattr_param(
             "v_increase_threshold",
             FloatParam,
@@ -53,7 +67,7 @@ class RelockIJDFrag(ExpFragment):
             "i_jump_above_window",
             FloatParam,
             "How far above the window to jump when relocking",
-            default=3 * 1e-3,
+            default=defaults.relock_step,
             unit="mA",
         )
         self.i_jump_above_window: FloatParamHandle
@@ -62,8 +76,8 @@ class RelockIJDFrag(ExpFragment):
             "t_relock_waittime",
             FloatParam,
             "How long to wait after initial jump when relocking",
-            unit="ms",
-            default=1000,
+            unit="s",
+            default=defaults.relock_waittime,
         )
         self.t_relock_waittime: FloatParamHandle
 
@@ -72,7 +86,7 @@ class RelockIJDFrag(ExpFragment):
             FloatParam,
             "Current to start scan",
             unit="mA",
-            default=340 * 1e-3,
+            default=defaults.window_high,
         )
         self.i_start_scan: FloatParamHandle
 
@@ -81,7 +95,7 @@ class RelockIJDFrag(ExpFragment):
             FloatParam,
             "Current to end scan",
             unit="mA",
-            default=320 * 1e-3,
+            default=defaults.window_low,
         )
         self.i_end_scan: FloatParamHandle
 
@@ -103,10 +117,11 @@ class RelockIJDFrag(ExpFragment):
         )
         self.frac_through_window: IntParamHandle
 
-        self.setattr_fragment(
-            "frag_ijd_scanner", ScanKoheronCurrentFrag, controller_name=controller_name
+        self.frag_ijd_scanner: SetKoheronFrag = self.setattr_fragment(
+            f"frag_koheron_{controller_name}",
+            SetKoheronFrag,
+            controller_name=controller_name,
         )
-        self.frag_ijd_scanner: ScanKoheronCurrentFrag
 
         # Disable AOM setting by the scanner - we'll handle it here
         self.frag_ijd_scanner.override_param("change_aom", False)
@@ -129,15 +144,25 @@ class RelockIJDFrag(ExpFragment):
         self.core: Core
 
         self.controller_name = controller_name
+        if controller_name and (
+            aom_name := IJD_DEFAULTS[controller_name].associated_aom
+        ):
+            if beam := constants.AD9910_BEAMS[aom_name]:
+                urukul_channel_name, freq, att = (
+                    beam.urukul_device,
+                    beam.frequency,
+                    beam.attenuation,
+                )
 
-        if self.controller_name in constants.AD9910_BEAMS:
-            urukul_channel_name, freq, att = constants.AD9910_BEAMS[
-                self.controller_name
-            ]
-
-            self.urukul_channel: AD9910 = self.get_device(urukul_channel_name)
-            self.urukul_channel_name = urukul_channel_name
-            self.aom_freq, self.aom_attenuation = freq, att
+                self.urukul_channel: AD9910 = self.get_device(urukul_channel_name)
+                self.urukul_channel_name = urukul_channel_name
+                self.aom_freq, self.aom_attenuation = freq, att
+            else:
+                logger.warning(
+                    "AOM {} associated with {} not defined in constants".format(
+                        controller_name, aom_name
+                    )
+                )
 
     def host_setup(self):
         super().host_setup()
@@ -271,19 +296,12 @@ class RelockAllIJDsFrag(ExpFragment):
     """
 
     def build_fragment(self) -> None:
-        ijd_controller_names = [
-            "blue_IJD1_controller",
-            "blue_IJD2_controller",
-            "blue_IJD3_controller",
-            "red_IJD1_controller",
-        ]
-
         self.ijd_controller_frags: List[RelockIJDFrag] = []
         self.ijd_controller_enabled: List[BoolParamHandle] = []
 
         # Request a relock fragment for each IJD controller
 
-        for ijd_controller_name in ijd_controller_names:
+        for ijd_controller_name in IJD_DEFAULTS:
             fragment_name = f"frag_relocker_{ijd_controller_name}"
 
             frag = self.setattr_fragment(
@@ -300,70 +318,25 @@ class RelockAllIJDsFrag(ExpFragment):
                     default=True,
                 )
             )
+            self.ijd_controller_frags.append(frag)  # frag.frag_ijd type: ignore
 
-            self.ijd_controller_frags.append(frag)  # type: ignore
-
-        # Create top-level parameters which will override the
-        # subfragment's parameters
-        self.setattr_param_like("num_points", self.ijd_controller_frags[0], default=100)
-        self.setattr_param_like(
-            "current_waittime",
-            self.ijd_controller_frags[0].frag_ijd_scanner,
-            default=5e-3,
-        )
-        self.num_points: FloatParamHandle
-        self.current_waittime: FloatParamHandle
-
-        # For each subfragment relocked, rebind parameters to set defaults for
-        # each IJD
-        for frag, ijd_controller_name in zip(
-            self.ijd_controller_frags, ijd_controller_names
-        ):
-            settings = constants.IJD_DEFAULTS[ijd_controller_name]
-
-            frag.bind_param("num_points", self.num_points)
-
-            self.setattr_param_rebind(
-                f"{ijd_controller_name}_start_current",
-                frag,
-                original_name="i_start_scan",
-                default=settings.window_high,
-            )
-
-            self.setattr_param_rebind(
-                f"{ijd_controller_name}_end_current",
-                frag,
-                original_name="i_end_scan",
-                default=settings.window_low,
-            )
-
-            self.setattr_param_rebind(
-                f"{ijd_controller_name}_temperature",
-                frag.frag_ijd_scanner,
-                original_name="temperature",
-                default=settings.temperature,
-            )
-
-            self.setattr_param_rebind(
-                f"{ijd_controller_name}_t_relock_waittime",
-                frag,
-                original_name="t_relock_waittime",
-                default=settings.relock_waittime,
-            )
-
-            self.setattr_param_rebind(
-                f"{ijd_controller_name}_i_jump_above_window",
-                frag,
-                original_name="i_jump_above_window",
-                default=settings.relock_step,
-            )
-
+            if len(self.ijd_controller_frags) == 1:
+                self.setattr_param_like(
+                    "num_points", self.ijd_controller_frags[0], default=100
+                )
+                self.setattr_param_like(
+                    "current_waittime",
+                    self.ijd_controller_frags[0].frag_ijd_scanner,
+                    default=5e-3,
+                )
+                self.num_points: FloatParamHandle
+                self.current_waittime: FloatParamHandle
             # Disable waiting for temperature to settle - the relock algorithm
             # will just have to be run again if it fails because of temperature
             # and we don't want to delay the other IJDs
             frag.frag_ijd_scanner.override_param("temperature_waittime", 0)
-
-        self.frag_relocker_blue_IJD1_controller: RelockIJDFrag
+            frag.bind_param("num_points", self.num_points)
+            frag.frag_ijd_scanner.bind_param("current_waittime", self.current_waittime)
 
     def run_once(self) -> None:
         # Relock each IJD in order

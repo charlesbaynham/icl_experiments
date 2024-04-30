@@ -4,6 +4,25 @@ exist solely for the purpose of working around ARTIQ's inability to infer the
 type of an empty list. You can therefore add one of these into your list in
 build() if it's empty, and it won't do anything when called.
 """
+from artiq.coredevice.ad9910 import AD9910
+from artiq.experiment import kernel
+from artiq.experiment import TBool
+from artiq.experiment import TFloat
+
+
+def create_dummy_class(original_class) -> type:
+    """returns a dummy version of a class, with all the same methods of the original.
+    non-dunder methods simply return nothing."""
+    dummy_class = type("Dummy" + original_class.__name__, (original_class,), {})
+    for method_name in dir(original_class):
+        if callable(
+            getattr(original_class, method_name)
+        ) and not method_name.startswith("__"):
+            setattr(dummy_class, method_name, lambda self, *args, **kwargs: None)
+    setattr(dummy_class, "__init__", lambda self: None)
+    return dummy_class
+
+
 from artiq.experiment import kernel
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
@@ -55,6 +74,14 @@ class DummyAD9910:
     @kernel
     def init(self):
         pass
+
+    @kernel
+    def init(self):
+        pass
+
+    @kernel
+    def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
+        return 0.0
 
     @kernel
     def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:

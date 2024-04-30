@@ -155,6 +155,11 @@ class RedBeamController(Fragment):
         self.ttl_shutter_red_axial_mot: TTLOut
         self.ttl_shutter_red_axial_spin_pol: TTLOut
 
+        self.setattr_device("ttl_shutter_red_axial_mot")
+        self.setattr_device("ttl_shutter_red_axial_spin_pol")
+        self.ttl_shutter_red_axial_mot: TTLOut
+        self.ttl_shutter_red_axial_spin_pol: TTLOut
+
         # %% PARAMETERS
 
         self.setattr_param(
