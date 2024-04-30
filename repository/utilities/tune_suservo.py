@@ -25,6 +25,7 @@ PROFILE_NUM = 0
 
 DATASET_KEY_T = "suservo_tuning_t"
 DATASET_KEY_V = "suservo_tuning_v"
+DATASET_KEY_V_ERR_HACK = "suservo_tuning_v_err_hack"
 
 
 class TuneSUServo(EnvExperiment):
@@ -98,7 +99,7 @@ class TuneSUServo(EnvExperiment):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
         self.suservo: SUServo = self.suservo_channel.servo
 
-        cmd = f"${{artiq_applet}}plot_xy {DATASET_KEY_V} --x {DATASET_KEY_T} --fit {DATASET_KEY_V} --error {DATASET_KEY_V}"
+        cmd = f"${{artiq_applet}}plot_xy {DATASET_KEY_V} --x {DATASET_KEY_T} --fit {DATASET_KEY_V} --error {DATASET_KEY_V_ERR_HACK}"
 
         self.ccb.issue("create_applet", "SUServo tuning", cmd)
 
@@ -138,6 +139,11 @@ class TuneSUServo(EnvExperiment):
 
         self.set_dataset(DATASET_KEY_T, np.array(times), broadcast=True)
         self.set_dataset(DATASET_KEY_V, np.array(voltages), broadcast=True)
+
+        # Annoying plotting hack
+        self.set_dataset(
+            DATASET_KEY_V_ERR_HACK, np.array([0.001] * self.num_points), broadcast=True
+        )
 
     @kernel
     def set_all_attenuations(self, attenuation: TFloat):
