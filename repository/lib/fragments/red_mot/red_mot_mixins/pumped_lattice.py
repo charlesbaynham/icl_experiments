@@ -69,7 +69,8 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             "lattice_high_setpoint",
             FloatParam,
             "SUServo setpoint for lattice at high power",
-            default=constants.LATTICE_HIGH_SETPOINT,
+            default=constants.LATTICE_HIGH_SETPOINT_MULTIPLE
+            * constants.SUSERVOED_BEAMS["lattice_input_1379"].setpoint,
             unit="V",
         )
         self.lattice_high_setpoint: FloatParamHandle
@@ -78,7 +79,8 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             "lattice_low_setpoint",
             FloatParam,
             "SUServo setpoint for lattice at low power",
-            default=constants.LATTICE_LOW_SETPOINT,
+            default=constants.LATTICE_LOW_SETPOINT_MULTIPLE
+            * constants.SUSERVOED_BEAMS["lattice_input_1379"].setpoint,
             unit="V",
         )
         self.lattice_low_setpoint: FloatParamHandle

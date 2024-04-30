@@ -50,8 +50,8 @@ RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
 # Lattice ramp-down configuration
 # TODO: Choose real lattice ramp parameters
-LATTICE_HIGH_SETPOINT = 1.0
-LATTICE_LOW_SETPOINT = 0.1
+LATTICE_HIGH_SETPOINT_MULTIPLE = 1.0
+LATTICE_LOW_SETPOINT_MULTIPLE = 0.1
 
 
 @dataclass
@@ -305,11 +305,11 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "lattice_input_1379",
-        80e6,
-        20,
-        "suservo_aom_singlepass_1379_cavity_input",
+        frequency=80e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_1379_cavity_input",
         servo_enabled=False,
-        # setpoint=0.33,
+        setpoint=5.5,
     ),
 ]
 
