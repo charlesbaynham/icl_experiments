@@ -5,15 +5,11 @@ from typing import Optional
 import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.experiment import BooleanValue
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import kernel
-from artiq.experiment import ms
-from artiq.experiment import NumberValue
 from artiq.experiment import rpc
 from artiq.experiment import TFloat
-from artiq.experiment import us
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import BoolParam
 from ndscan.experiment import ExpFragment
@@ -24,18 +20,17 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.lib.utils import get_local_devices
 
 from device_db_config import get_configuration_from_db
 from repository.lib import constants
 from repository.lib.fragments.read_adc import ReadSamplerADC
+from repository.lib.dummy_devices import DummyAD9910  # , DummyUrukul
 
 
 logger = logging.getLogger(__name__)
 
 
-class ScanKoheronCurrentFrag(ExpFragment):
+class SetKoheronFrag(ExpFragment):
     """
     Set a Koheron CTL200 laser driver's current and measure an analog input in response
     """
@@ -54,6 +49,11 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
+        if controller_name:
+            defaults = constants.IJD_DEFAULTS[controller_name]
+        else:
+            defaults = constants.IJDSettings(8800, 340e-3, 320e-3, 3e-3)
+
         self.setattr_param(
             "current",
             FloatParam,
@@ -66,18 +66,18 @@ class ScanKoheronCurrentFrag(ExpFragment):
         )
         self.current: FloatParamHandle
 
-        self.setattr_param(
-            "temperature",
+        temp = self.setattr_param(
+            f"{controller_name}_temperature",
             FloatParam,
-            description="Temperature",
-            default=9000,
+            description=f"{controller_name} Temperature",
+            default=defaults.temperature,
             min=5000,
             max=15000,
             unit="Ohms",
             scale=1,
             step=0.1,
         )
-        self.temperature: FloatParamHandle
+        self.temperature: FloatParamHandle = temp
 
         self.setattr_param(
             "temperature_waittime",
@@ -199,8 +199,15 @@ class ScanKoheronCurrentFrag(ExpFragment):
             )
             self.adc_reader: ReadSamplerADC
 
-        self.setattr_device("urukul9910_aom_doublepass_461_injection")
-        self.urukul9910_aom_doublepass_461_injection: AD9910
+        if (controller_name) and (
+            aom_name := constants.IJD_DEFAULTS[controller_name].associated_aom
+        ):
+            urukul_device = constants.AD9910_BEAMS[aom_name].urukul_device
+            self.aom_urukul = self.get_device(urukul_device)
+        else:
+            self.aom_urukul = DummyAD9910()
+
+        self.aom_urukul: AD9910
 
         # And define a results channel as output
         self.setattr_result("voltage")
@@ -229,7 +236,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
         if self.change_aom.get() and not self.urukul_has_been_initted:
             self.urukul_has_been_initted = True
             self.core.break_realtime()
-            self.urukul9910_aom_doublepass_461_injection.init()
+            self.aom_urukul.init()
 
     @kernel
     def run_once(self):
@@ -248,9 +255,7 @@ class ScanKoheronCurrentFrag(ExpFragment):
             attenuation = self.aom_attenuation.get()
             if attenuation != self.last_attenuation:
                 self.last_attenuation = attenuation
-                self.urukul9910_aom_doublepass_461_injection.set_att(
-                    self.aom_attenuation.get()
-                )
+                self.aom_urukul.set_att(self.aom_attenuation.get())
 
         if current_waittime > 0.0:
             delay(current_waittime)
@@ -315,4 +320,4 @@ class ScanKoheronCurrentFrag(ExpFragment):
         self.controller.set_current_mA(1e3 * current)
 
 
-ScanKoheronCurrent = make_fragment_scan_exp(ScanKoheronCurrentFrag)
+SetKoheron = make_fragment_scan_exp(SetKoheronFrag)
