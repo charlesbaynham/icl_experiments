@@ -308,7 +308,7 @@ SUSERVOED_BEAMS = [
         frequency=80e6,
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_1379_cavity_input",
-        servo_enabled=False,
+        servo_enabled=True,
         setpoint=5.5,
     ),
 ]
