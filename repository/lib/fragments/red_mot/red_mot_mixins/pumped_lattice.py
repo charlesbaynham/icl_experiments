@@ -116,9 +116,9 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         then hold them afterwards for some time.
         """
         delay(self.delay_before_spinpol_pulse.get())
-        # self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)  # FIXME
+        self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
         delay(self.duration_spinpol_pulse.get())
-        # self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)  # FIXME
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
     @kernel
