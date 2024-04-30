@@ -9,6 +9,10 @@ from artiq.experiment import TBool
 from artiq.experiment import TFloat
 
 
+# TODO: Use this for creating dummy classes
+# The reason it's disabled now is:
+#   a) Some classes need dummy attributes, e.g. the AD9910 needs a TTL "sw" and CPLD "cpld"
+#   b) Mocked methods need to be kernels and to have explicit, ARTIQ-annotated argument types
 def create_dummy_class(original_class) -> type:
     """returns a dummy version of a class, with all the same methods of the original.
     non-dunder methods simply return nothing."""
