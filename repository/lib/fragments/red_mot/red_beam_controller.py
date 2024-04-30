@@ -264,13 +264,11 @@ class RedBeamController(Fragment):
         # Ensure the non-switching AOMs' RF switches are on and the frequency is
         # correct. These are glitch free, so we do them each time
         self.injection_aom.set(self.injection_aom_static_frequency.get())
-        self.injection_aom.cfg_sw(False)
         self.injection_aom.sw.on()
 
         # Don't set the spin polarising frequency since this is controlled by
         # the default setter
         # TODO: Consider controlling the injection AOM through the default setter too
-        self.spinpol_aom.cfg_sw(False)
         self.spinpol_aom.sw.on()
 
     @kernel
