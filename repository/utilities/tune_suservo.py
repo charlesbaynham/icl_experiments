@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
@@ -123,17 +124,20 @@ class TuneSUServo(EnvExperiment):
 
         t_start_mu = now_mu()
 
+        times = [0.0] * self.num_points
+        voltages = [0.0] * self.num_points
+
         for i in range(self.num_points):
             self.core.break_realtime()
             t_mu = now_mu()
             t = self.core.mu_to_seconds(t_mu - t_start_mu)
             val = self.suservo.get_adc(self.adc_channel)
-            if i == 0:
-                self.set_dataset(DATASET_KEY_T, [t], broadcast=True)
-                self.set_dataset(DATASET_KEY_V, [val], broadcast=True)
-            else:
-                self.append_to_dataset(DATASET_KEY_T, t)
-                self.append_to_dataset(DATASET_KEY_V, val)
+
+            times[i] = t
+            voltages[i] = val
+
+        self.set_dataset(DATASET_KEY_T, np.array(times), broadcast=True)
+        self.set_dataset(DATASET_KEY_V, np.array(voltages), broadcast=True)
 
     @kernel
     def set_all_attenuations(self, attenuation: TFloat):
