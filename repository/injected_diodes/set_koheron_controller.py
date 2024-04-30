@@ -23,8 +23,8 @@ from ndscan.experiment.parameters import IntParamHandle
 
 from device_db_config import get_configuration_from_db
 from repository.lib import constants
-from repository.lib.fragments.read_adc import ReadSamplerADC
 from repository.lib.dummy_devices import DummyAD9910  # , DummyUrukul
+from repository.lib.fragments.read_adc import ReadSamplerADC
 
 
 logger = logging.getLogger(__name__)
