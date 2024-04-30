@@ -261,15 +261,10 @@ class RedBeamController(Fragment):
 
         self.core.break_realtime()
 
-        # Ensure the non-switching AOMs' RF switches are on and the frequency is
+        # Ensure the injection AOM's RF switch is on and the frequency is
         # correct. These are glitch free, so we do them each time
         self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.sw.on()
-
-        # Don't set the spin polarising frequency since this is controlled by
-        # the default setter
-        # TODO: Consider controlling the injection AOM through the default setter too
-        self.spinpol_aom.sw.on()
 
     @kernel
     def init(self):
@@ -284,6 +279,10 @@ class RedBeamController(Fragment):
         self.ttl_shutter_red_axial_mot.off()
         delay_mu(int64(self.core.ref_multiplier))
         self.ttl_shutter_red_axial_spin_pol.off()
+        delay_mu(int64(self.core.ref_multiplier))
+
+        # Turn on the spin polarising AOM
+        self.spinpol_aom.sw.on()
 
         # Make sure that the shutters are closed before run_once starts
         delay(self.all_beam_default_setter.get_max_shutter_delay())
