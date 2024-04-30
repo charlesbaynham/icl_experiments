@@ -303,6 +303,14 @@ SUSERVOED_BEAMS = [
         0,
         "suservo_aom_698_up_switch",
     ),
+    SUServoedBeam(
+        "lattice_input_1379",
+        80e6,
+        20,
+        "suservo_aom_singlepass_1379_cavity_input",
+        servo_enabled=False,
+        # setpoint=0.33,
+    ),
 ]
 
 # Convert to dict for ease of use
