@@ -14,22 +14,42 @@ If it makes sense to have hardware and experimental constants stored together
 (e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
 this module.
 """
+
 from collections import OrderedDict
 from dataclasses import dataclass
+from typing import Optional
 
 from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 
-AD9910_BEAMS = {
-    "red_IJD1_controller": (
-        "urukul9910_aom_doublepass_689_red_injection",
-        365.0e6,
-        0.0,
+AD9910_BEAMS = [
+    UrukuledBeam(
+        name="red_doublepass_injection",
+        frequency=365.0e6,
+        amplitude=1.0,
+        attenuation=0.0,
+        urukul_device="urukul9910_aom_doublepass_689_red_injection",
     ),
-    "blue_IJD1_controller": ("urukul9910_aom_doublepass_461_injection", 200.0e6, 20.0),
-    "red_spinpol": ("urukul9910_aom_doublepass_689_spinpol", 366.6e6, 0.0),
-}
-"Urukul outputs (name, freq, attenuation) required for non-suservo ad9910 aoms"
+    UrukuledBeam(
+        name="blue_doublepass_injection",
+        frequency=200.0e6,
+        amplitude=1.0,
+        attenuation=20.0,
+        urukul_device="urukul9910_aom_doublepass_461_injection",
+    ),
+    UrukuledBeam(
+        name="red_spinpol",
+        frequency=366.6e6,
+        amplitude=1.0,
+        attenuation=0.0,
+        urukul_device="urukul9910_aom_doublepass_689_spinpol",
+    ),
+]
+"Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
+
+# Convert to dict for ease of use
+AD9910_BEAMS = {beam.name: beam for beam in AD9910_BEAMS}
 
 
 @dataclass
@@ -44,13 +64,19 @@ class IJDSettings:
     "Current step to make above lockpoint for relocking / A"
     relock_waittime: float = 1.0
     "Time to wait between relock steps / s. Default = 1.0"
+    associated_aom: Optional[str] = None
+    "AOMs from AD9910_BEAMS required for IJD to lock"
 
 
 IJD_DEFAULTS = {
-    "blue_IJD1_controller": IJDSettings(8600, 360e-3, 350e-3, 3e-3),
+    "blue_IJD1_controller": IJDSettings(
+        8600, 360e-3, 350e-3, 3e-3, associated_aom="blue_doublepass_injection"
+    ),
     "blue_IJD2_controller": IJDSettings(8800, 370.5e-3, 367e-3, 3e-3),
     "blue_IJD3_controller": IJDSettings(8850, 355e-3, 345e-3, 3e-3),
-    "red_IJD1_controller": IJDSettings(9460, 189.0e-3, 186.0e-3, 3e-3),
+    "red_IJD1_controller": IJDSettings(
+        9460, 189.0e-3, 186.0e-3, 3e-3, associated_aom="red_doublepass_injection"
+    ),
 }
 "Injected diode default settings"
 
