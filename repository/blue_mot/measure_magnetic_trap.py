@@ -31,6 +31,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.camera_interface: BGCorrectedMeasurement
 
         # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
+        # TODO: The repumpers are now controlled by ARTIQ so update this
         self.repumper_707_shutter: TTLOut = self.get_device("ttl_shutter_repump_707")
         self.repumper_679_shutter: TTLOut = self.get_device("ttl_shutter_repump_679")
 
