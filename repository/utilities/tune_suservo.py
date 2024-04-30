@@ -10,6 +10,7 @@ from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from artiq.experiment import NumberValue
 from artiq.experiment import parallel
 from artiq.experiment import TBool
@@ -21,6 +22,10 @@ from pyaion.lib.utils import get_local_devices
 logger = logging.getLogger(__name__)
 
 PROFILE_NUM = 0
+
+DATASET_KEY_T = "suservo_tuning_t"
+DATASET_KEY_V = "suservo_tuning_v"
+DATASET_KEY_V_ERR_HACK = "suservo_tuning_v_err_hack"
 
 
 class TuneSUServo(EnvExperiment):
@@ -88,9 +93,15 @@ class TuneSUServo(EnvExperiment):
         self.delay: float
         self.setpoint: float
 
+        self.setattr_device("ccb")
+
     def prepare(self):
         self.suservo_channel: Channel = self.get_device(self.channel_name)
         self.suservo: SUServo = self.suservo_channel.servo
+
+        cmd = f"${{artiq_applet}}plot_xy {DATASET_KEY_V} --x {DATASET_KEY_T} --fit {DATASET_KEY_V} --error {DATASET_KEY_V_ERR_HACK}"
+
+        self.ccb.issue("create_applet", "SUServo tuning", cmd)
 
     @kernel
     def run(self):
@@ -112,13 +123,27 @@ class TuneSUServo(EnvExperiment):
             en_out=1, en_iir=(1 if self.enable_iir else 0), profile=PROFILE_NUM
         )
 
+        t_start_mu = now_mu()
+
+        times = [0.0] * self.num_points
+        voltages = [0.0] * self.num_points
+
         for i in range(self.num_points):
+            self.core.break_realtime()
+            t_mu = now_mu()
+            t = self.core.mu_to_seconds(t_mu - t_start_mu)
             val = self.suservo.get_adc(self.adc_channel)
-            delay(100e-3)
-            if i == 0:
-                self.set_dataset("voltages", [val], broadcast=True)
-            else:
-                self.append_to_dataset("voltages", val)
+
+            times[i] = t
+            voltages[i] = val
+
+        self.set_dataset(DATASET_KEY_T, np.array(times), broadcast=True)
+        self.set_dataset(DATASET_KEY_V, np.array(voltages), broadcast=True)
+
+        # Annoying plotting hack
+        self.set_dataset(
+            DATASET_KEY_V_ERR_HACK, np.array([0.001] * self.num_points), broadcast=True
+        )
 
     @kernel
     def set_all_attenuations(self, attenuation: TFloat):

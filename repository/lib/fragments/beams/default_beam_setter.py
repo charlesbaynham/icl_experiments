@@ -17,6 +17,7 @@ from artiq.experiment import delay_mu
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
+from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -65,30 +66,6 @@ def make_set_beams_to_default(
     return SetBeamsToDefaultsCustomised
 
 
-@dataclass
-class _SUServoInfo:
-    setter: LibSetSUServoStatic
-    setpoint_handle: FloatParamHandle
-    shutter_present: bool
-
-
-@dataclass
-class _AD9910Info:
-    device: AD9910
-    frequency_handle: FloatParamHandle
-    amplitude_handle: FloatParamHandle
-    shutter_present: bool
-    has_ttl_switch: bool
-
-
-@dataclass
-class _AD9912Info:
-    device: AD9912
-    frequency_handle: FloatParamHandle
-    shutter_present: bool
-    has_ttl_switch: bool
-
-
 class SetBeamsToDefaults(Fragment):
     """
     Turn on a list of beams, possibly with shutters, to their default
@@ -133,7 +110,13 @@ class SetBeamsToDefaults(Fragment):
 
         self.shutter_ttls: List[TTLOut] = []
 
-        self.suservo_setters_and_info: List[_SUServoInfo] = []
+        @dataclass
+        class SUServoSettings:
+            setter: LibSetSUServoStatic
+            setpoint_handle: FloatParamHandle
+            shutter_present: bool
+
+        self.suservo_setters_and_info: List[SUServoSettings] = []
 
         # Loop over all the suservo beams, defining:
         #   * LibSetSUServoStatic fragments to control them
@@ -157,24 +140,37 @@ class SetBeamsToDefaults(Fragment):
             )
 
             self.suservo_setters_and_info.append(
-                (setter, setpoint_handle, bool(beam_info.shutter_device))
+                SUServoSettings(setter, setpoint_handle, bool(beam_info.shutter_device))
             )
 
         # %% Urukul settings
 
         self.ad9910s: List[AD9910] = []
         self.ad9912s: List[AD9910] = []
-        self.urukuls: List[UrukulCPLD] = []
+        self.urukuls: List[UrukulCPLD] = []  # Populated in host_seutp
         self.switch_ttls_with_shutter: List[TTLOut] = []
         self.switch_ttls_without_shutter: List[TTLOut] = []
 
-        self.ad9910_devices_and_handles: List[_AD9910Info] = []
-        self.ad9912_devices_and_handles: List[_AD9912Info] = []
+        @dataclass
+        class AD9910Info:
+            device: AD9910
+            frequency_handle: FloatParamHandle
+            amplitude_handle: FloatParamHandle
+            shutter_present: bool
+            has_ttl_switch: bool
+
+        @dataclass
+        class AD9912Info:
+            device: AD9912
+            frequency_handle: FloatParamHandle
+            shutter_present: bool
+            has_ttl_switch: bool
+
+        self.ad9910_devices_and_handles: List[AD9910Info] = []
+        self.ad9912_devices_and_handles: List[AD9912Info] = []
 
         for beam_info in self.default_urukul_beam_infos:
             device: Union[AD9910, AD9912] = self.get_device(beam_info.urukul_device)
-
-            self.urukuls.append(device.cpld)
 
             frequency_handle = self.setattr_param(
                 f"frequency_{beam_info.name}",
@@ -198,7 +194,7 @@ class SetBeamsToDefaults(Fragment):
                     default=beam_info.amplitude,
                 )
 
-                info = _AD9910Info(
+                info = AD9910Info(
                     device,
                     frequency_handle,
                     amplitude_handle,
@@ -208,7 +204,7 @@ class SetBeamsToDefaults(Fragment):
                 self.ad9910_devices_and_handles.append(info)
 
             elif isinstance(device, AD9912):
-                info = _AD9912Info(
+                info = AD9912Info(
                     device,
                     frequency_handle,
                     shutter_present=bool(beam_info.shutter_device),
@@ -217,10 +213,13 @@ class SetBeamsToDefaults(Fragment):
                 if info.has_ttl_switch:
                     self.switch_ttls_with_shutter.append(device.sw)
                 self.ad9912_devices_and_handles.append(info)
+
+            elif isinstance(device, DummyDevice):
+                info = None
             else:
                 raise TypeError("Unrecognised device type")
 
-            if info.has_ttl_switch:
+            if info and info.has_ttl_switch:
                 if info.shutter_present:
                     self.switch_ttls_with_shutter.append(device.sw)
                 else:
@@ -231,9 +230,6 @@ class SetBeamsToDefaults(Fragment):
             "urukul_init",
             make_urukul_init([b.urukul_device for b in self.default_urukul_beam_infos]),
         )
-
-        # Filter out duplicates
-        self.urukuls = list(set(self.urukuls))
 
         self.max_shutter_delay = max(
             [
@@ -263,7 +259,7 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9910_devices_and_handles:
             self.ad9910_devices_and_handles = [
-                _AD9910Info(
+                AD9910Info(
                     self.dummy_ad9910,
                     self.dummy_float_handle,
                     self.dummy_float_handle,
@@ -274,12 +270,12 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9912_devices_and_handles:
             self.ad9912_devices_and_handles = [
-                _AD9912Info(self.dummy_ad9910, self.dummy_float_handle, False, False)
+                AD9912Info(self.dummy_ad9910, self.dummy_float_handle, False, False)
             ]
 
         if not self.suservo_setters_and_info:
             self.suservo_setters_and_info = [
-                (self.dummy_suservo_frag, self.dummy_float_handle, False)
+                SUServoSettings(self.dummy_suservo_frag, self.dummy_float_handle, False)
             ]
             self.default_suservo_beam_infos = [
                 SUServoedBeam(
@@ -293,9 +289,6 @@ class SetBeamsToDefaults(Fragment):
         if not self.ad9912s:
             self.ad9912s = [self.dummy_ad9912]
 
-        if not self.urukuls:
-            self.urukuls = [self.dummy_urukul]
-
         # %% Kernel invariants and variables
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {"debug_mode", "max_shutter_delay"}
@@ -303,6 +296,19 @@ class SetBeamsToDefaults(Fragment):
         # Init this array to zeros - we fill it in in device_setup
         self.suservo_setpoints = [0.0] * len(self.default_suservo_beam_infos)
         self.first_run = True
+
+    def host_setup(self):
+        super().host_setup()
+
+        # Get urukuls from the AD9910 and AD9912s
+        for info in self.ad9910_devices_and_handles + self.ad9912_devices_and_handles:
+            self.urukuls.append(info.device.cpld)
+
+        # Filter out duplicates
+        self.urukuls = list(set(self.urukuls))
+
+        if not self.urukuls:
+            self.urukuls = [self.dummy_urukul]
 
     @kernel
     def get_suservo_setpoint_by_index(self, beam_index):
@@ -312,18 +318,15 @@ class SetBeamsToDefaults(Fragment):
         return self.suservo_setpoints[beam_index]
 
     @host_only
-    def get_setpoints_and_beaminfo_dict(
-        self,
-    ) -> Dict[str, Tuple[SUServoedBeam, FloatParamHandle]]:
+    def get_setpoints_beaminfo_setters(self):
         """
-        Get a dict of beam name -> (:class:`~SUServoedBeam` beam info,
-        :class:`~FloatParamHandle` handle to suservo setpoint)
+        Get a dict of beam name -> (:class:`~SUServoedBeam` beam info, :class:`~SUServoSettings` object)
         """
         out = {}
-        for beam_info, (_, handle, _) in zip(
+        for beam_info, settings in zip(
             self.default_suservo_beam_infos, self.suservo_setters_and_info
         ):
-            out[beam_info.name] = (beam_info, handle)
+            out[beam_info.name] = (beam_info, settings)
         return out
 
     @kernel
@@ -333,7 +336,7 @@ class SetBeamsToDefaults(Fragment):
         # Retrieve the values of all the generated parameters for SUServo
         # setpoints for this run of the scan
         for i in range(len(self.suservo_setters_and_info)):
-            setpoint_handle = self.suservo_setters_and_info[i][1]
+            setpoint_handle = self.suservo_setters_and_info[i].setpoint_handle
             self.suservo_setpoints[i] = setpoint_handle.get()
 
     @portable
@@ -373,25 +376,25 @@ class SetBeamsToDefaults(Fragment):
             self.core.break_realtime()
 
         for i in range(len(self.suservo_setters_and_info)):
-            (setter, setpoint_handle, shutter_present) = self.suservo_setters_and_info[
-                i
-            ]
+            settings = self.suservo_setters_and_info[i]
             beam_info = self.default_suservo_beam_infos[i]
-            setpoint = setpoint_handle.get()
+            setpoint = settings.setpoint_handle.get()
 
-            rf_switch_state = light_enabled or (not light_enabled and shutter_present)
+            rf_switch_state = light_enabled or (
+                not light_enabled and settings.shutter_present
+            )
 
             if self.debug_mode:
                 logger.info(
                     "Enabling suservo (%s)\n- beam_info %s\n- setpoint %s\n- rf_switch_state %s",
-                    setter,
+                    settings.setter,
                     beam_info,
                     setpoint,
                     rf_switch_state,
                 )
                 self.core.break_realtime()
 
-            setter.set_suservo(
+            settings.setter.set_suservo(
                 float(beam_info.frequency),
                 1.0,
                 float(beam_info.attenuation),

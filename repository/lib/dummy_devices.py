@@ -4,13 +4,15 @@ exist solely for the purpose of working around ARTIQ's inability to infer the
 type of an empty list. You can therefore add one of these into your list in
 build() if it's empty, and it won't do anything when called.
 """
-
 from artiq.experiment import kernel
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
-from artiq.coredevice.ad9910 import AD9910
 
 
+# TODO: Use this for creating dummy classes
+# The reason it's disabled now is:
+#   a) Some classes need dummy attributes, e.g. the AD9910 needs a TTL "sw" and CPLD "cpld"
+#   b) Mocked methods need to be kernels and to have explicit, ARTIQ-annotated argument types
 def create_dummy_class(original_class) -> type:
     """returns a dummy version of a class, with all the same methods of the original.
     non-dunder methods simply return nothing."""
@@ -62,39 +64,30 @@ class DummyUrukul:
         pass
 
 
-# class DummyAD9910:
-#     def __init__(self) -> None:
-#         self.sw = DummyTTL()
-#         self.cpld = DummyCPLD()
-# class DummyAD9910:
-#     def __init__(self) -> None:
-#         self.sw = DummyTTL()
-#         self.cpld = DummyCPLD()
+class DummyAD9910:
+    def __init__(self) -> None:
+        self.sw = DummyTTL()
+        self.cpld = DummyCPLD()
 
-#     @kernel
-#     def init(self):
-#         pass
-#     @kernel
-#     def init(self):
-#         pass
+    @kernel
+    def init(self):
+        pass
 
-#     @kernel
-#     def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
-#         return 0.0
-#     @kernel
-#     def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
-#         return 0.0
+    @kernel
+    def init(self):
+        pass
 
-#     @kernel
-#     def cfg_sw(self, state: TBool):
-#         pass
+    @kernel
+    def set(self, frequency: TFloat = 0.0, amplitude: TFloat = 1.0) -> TFloat:
+        return 0.0
 
-DummyAD9910 = create_dummy_class(AD9910)
-#     @kernel
-#     def cfg_sw(self, state: TBool):
-#         pass
+    @kernel
+    def set_att(self, att: TFloat):
+        pass
 
-DummyAD9910 = create_dummy_class(AD9910)
+    @kernel
+    def cfg_sw(self, state: TBool):
+        pass
 
 
 class DummyAD9912:

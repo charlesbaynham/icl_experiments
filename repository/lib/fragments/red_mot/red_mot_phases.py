@@ -91,12 +91,12 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
         # For the SUServo setpoints, bind these to the FloatParameters defined
         # by the DefaultBeamSetter so that this is the only place which defines
         # SUServo setpoints
-        info_and_handles = list(beam_setter.get_setpoints_and_beaminfo_dict().values())
+        info_and_settings = list(beam_setter.get_setpoints_beaminfo_setters().values())
         handles = []
         for suservo_device_name in self.suservos:
-            for info, handle in info_and_handles:
+            for info, settings in info_and_settings:
                 if info.suservo_device == suservo_device_name:
-                    handles.append(handle)
+                    handles.append(settings.setpoint_handle)
                     break
             else:
                 raise ValueError(

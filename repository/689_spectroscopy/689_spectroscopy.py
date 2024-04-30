@@ -7,14 +7,21 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
-from repository.lib.fragments.cameras.triple_imaging_kinetics import SpectroscopyMixin
-from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTFrag
+from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
+from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
+    SpectroscopyParamsMixin,
+)
+from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
+    TripleImageMOTMixin,
+)
 
 
 logger = logging.getLogger(__name__)
 
 
-class SpectroscopyWithKinetics_MOTBeam(TripleImageMOTFrag, SpectroscopyMixin):
+class SpectroscopyWithKinetics_MOTBeam(
+    FieldBoostMixin, TripleImageMOTMixin, SpectroscopyParamsMixin
+):
     """
     689nm spectroscopy MOTBEAM
 
@@ -47,7 +54,9 @@ class SpectroscopyWithKinetics_MOTBeam(TripleImageMOTFrag, SpectroscopyMixin):
         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-class SpectroscopyWithKinetics_UpBeam(TripleImageMOTFrag, SpectroscopyMixin):
+class SpectroscopyWithKinetics_UpBeam(
+    FieldBoostMixin, TripleImageMOTMixin, SpectroscopyParamsMixin
+):
     """
     689nm spectroscopy UP
 

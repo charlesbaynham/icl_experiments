@@ -14,7 +14,6 @@ If it makes sense to have hardware and experimental constants stored together
 (e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
 this module.
 """
-
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Optional
@@ -50,6 +49,27 @@ AD9910_BEAMS = [
 
 # Convert to dict for ease of use
 AD9910_BEAMS = {beam.name: beam for beam in AD9910_BEAMS}
+
+
+RED_SPINPOL_SETTINGS = UrukuledBeam(  # TODO: Get rid of this once !31 is merged
+    "red_spinpol",
+    frequency=366.6e6,
+    attenuation=0.0,
+    amplitude=1.0,  # TODO: Remove this after pyaion update
+    urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
+)
+
+
+# Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
+# polarizing beam (i.e. not their normal MOT beams)
+RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
+RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
+
+
+# Lattice ramp-down configuration
+# TODO: Choose real lattice ramp parameters
+LATTICE_HIGH_SETPOINT_MULTIPLE = 1.0
+LATTICE_LOW_SETPOINT_MULTIPLE = 0.1
 
 
 @dataclass
@@ -121,7 +141,7 @@ BLUE_LOADING_TIME = 500e-3
 RED_INJECTION_AOM_ATTENUATION = 0.0
 "Default attenuation for the 689 injection AOM"
 
-RED_INJECTION_AOM_FREQUENCY = 340e6
+RED_INJECTION_AOM_FREQUENCY = 366.6e6  # TODO: Get rid of this once !31 is merged
 "Nominal frequency for the 689 injection AOM"
 
 RED_BROADBAND_RAMP_LIMIT = 4e6
@@ -156,7 +176,7 @@ ANDOR_FAST_KINETICS_HEIGHT = width
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
 
-SRS_SHUTTER_DELAY = 10e-3
+SRS_SHUTTER_DELAY = 5e-3
 
 # Information about beams controlled by AOMs
 SUSERVOED_BEAMS = [
@@ -307,6 +327,14 @@ SUSERVOED_BEAMS = [
         0,
         "suservo_aom_698_up_switch",
     ),
+    SUServoedBeam(
+        "lattice_input_1379",
+        frequency=80e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_1379_cavity_input",
+        servo_enabled=True,
+        setpoint=5.5,
+    ),
 ]
 
 # Convert to dict for ease of use
@@ -370,3 +398,9 @@ WAND_OFFSETS_87 = {
     "679": -2430e6,
     "689": float("nan"),
 }
+
+# Spin polarisation settings
+
+TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
+DURATION_OF_SPIN_POL = 20e-3
+TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3

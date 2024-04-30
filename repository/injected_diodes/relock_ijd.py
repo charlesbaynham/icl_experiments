@@ -1,7 +1,6 @@
 """
 TODO: Pass IJDSettings into Relock single IJD instead of rebinding parameters
 """
-
 import logging
 import time
 from typing import List

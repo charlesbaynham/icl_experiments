@@ -1,28 +1,24 @@
-import abc
 import logging
 
-from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from ndscan.experiment import FloatChannel
-from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
-from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.cameras.triple_imaging_kinetics import (
-    RedMOTWithExperiment,
+from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
+    DroppedPumpedLatticeMixin,
 )
-from repository.lib.fragments.cameras.triple_imaging_kinetics import SpectroscopyMixin
-from repository.lib.fragments.cameras.triple_imaging_kinetics import TripleImageMOTFrag
+from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
+    SpectroscopyParamsMixin,
+)
+from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
+    TripleImageMOTMixin,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -30,18 +26,30 @@ logger = logging.getLogger(__name__)
 CLOCK_BEAM_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_up"]
 
 
-class BasicClockSpectroscopyFrag(SpectroscopyMixin, TripleImageMOTFrag):
+class ClockSpecFromLatticeFrag(
+    SpectroscopyParamsMixin,
+    DroppedPumpedLatticeMixin,
+    TripleImageMOTMixin,
+    RedMOTWithExperiment,
+):
     """
-    Basic clock spectroscopy
+    Clock spectroscopy from dropped lattice
 
-    Use the up clock beam for spectroscopy, altering the (single-pass) AOM
+    Load into a lattice, pump into a stretched state, drop the atoms by ramping
+    the lattice, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
 
     Image the ground state atoms, repump and image the excited state, then image
-    once more for background
+    once more for background.
     """
 
-    def build_fragment(self):
-        super().build_fragment()
+    def pre_build_fragment_hook(self):
+        self.setattr_fragment(
+            "clock_up",
+            LibSetSUServoStatic,
+            "suservo_aom_698_up_switch",
+        )
+        self.clock_up: LibSetSUServoStatic
 
         self.setattr_param(
             "delay_repumps_after_first_pulse",
@@ -51,14 +59,6 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, TripleImageMOTFrag):
             unit="ms",
         )
         self.delay_repumps_after_first_pulse: FloatParamHandle
-
-    def pre_build_fragment_hook(self):
-        self.setattr_fragment(
-            "clock_up",
-            LibSetSUServoStatic,
-            "suservo_aom_698_up_switch",
-        )
-        self.clock_up: LibSetSUServoStatic
 
     @kernel
     def before_start_hook(self):
@@ -84,4 +84,4 @@ class BasicClockSpectroscopyFrag(SpectroscopyMixin, TripleImageMOTFrag):
         self.blue_3d_mot.turn_on_repumpers()
 
 
-BasicClockSpectroscopy = make_fragment_scan_exp(BasicClockSpectroscopyFrag)
+ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)

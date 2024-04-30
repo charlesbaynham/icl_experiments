@@ -9,6 +9,8 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -19,6 +21,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
 from repository.lib.fragments.ad9910_ramper import AD9910Ramper
+from repository.lib.fragments.beams.default_beam_setter import make_set_beams_to_default
 from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
@@ -27,7 +30,7 @@ from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import
 
 logger = logging.getLogger(__name__)
 
-RED_BEAM_INFOS = [
+RED_SUSERVO_INFOS = [
     constants.SUSERVOED_BEAMS[beam]
     for beam in [
         "red_mot_diagonal",
@@ -36,10 +39,7 @@ RED_BEAM_INFOS = [
         "red_up",
     ]
 ]
-
-
-class _RedBeamDefaultSetter(SetBeamsToDefaults):
-    default_suservo_beam_infos = RED_BEAM_INFOS
+RED_URUKUL_INFOS = [constants.RED_SPINPOL_SETTINGS]
 
 
 class RedBeamController(Fragment):
@@ -53,15 +53,22 @@ class RedBeamController(Fragment):
 
         # %% FRAGMENTS
 
-        # Setup of suservo defaults for all beams
-        self.setattr_fragment("all_beam_default_setter", _RedBeamDefaultSetter)
+        # Setup of defaults for all beams
+        self.setattr_fragment(
+            "all_beam_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=RED_SUSERVO_INFOS,
+                urukul_beam_infos=RED_URUKUL_INFOS,
+                name="RedBeamSettings",
+            ),
+        )
         self.all_beam_default_setter: SetBeamsToDefaults
 
         # Interface for AOM + shutter toggling of mot beams
         self.setattr_fragment(
             "all_mot_beams_setter",
             ControlBeamsWithoutCoolingAOM,
-            beam_infos=RED_BEAM_INFOS,
+            beam_infos=RED_SUSERVO_INFOS,
         )
         self.all_mot_beams_setter: ControlBeamsWithoutCoolingAOM
 
@@ -79,6 +86,18 @@ class RedBeamController(Fragment):
             beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]],
         )
         self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
+
+        _, s = self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
+            "red_mot_sigmaplus"
+        ]
+        self.sigmaplus_setpoint_handle: FloatParamHandle = s.setpoint_handle
+        self.sigmaplus_setpoint_setter: LibSetSUServoStatic = s.setter
+
+        _, s = self.all_beam_default_setter.get_setpoints_beaminfo_setters()[
+            "red_mot_sigmaminus"
+        ]
+        self.sigmaminus_setpoint_handle: FloatParamHandle = s.setpoint_handle
+        self.sigmaminus_setpoint_setter: LibSetSUServoStatic = s.setter
 
         # Fast ramping of the AD9910 controlling the injection AOM
         self.setattr_fragment(
@@ -102,7 +121,7 @@ class RedBeamController(Fragment):
 
         # Make a SUServo controlling Fragment for each red beam, and store the
         # photodiode offsets for each
-        for beam_info in RED_BEAM_INFOS:
+        for beam_info in RED_SUSERVO_INFOS:
             f = self.setattr_fragment(
                 "suservofrag_" + beam_info.name,
                 LibSetSUServoStatic,
@@ -113,7 +132,7 @@ class RedBeamController(Fragment):
 
         # Make an array to store the nominal amplitudes but leave it empty for
         # now - we'll populate it in device_setup() so that we can scan over it
-        self.suservo_nominal_amplitudes = [0.0] * len(RED_BEAM_INFOS)
+        self.suservo_nominal_amplitudes = [0.0] * len(RED_SUSERVO_INFOS)
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
@@ -121,8 +140,20 @@ class RedBeamController(Fragment):
 
         # %% DEVICES
 
-        self.setattr_device("urukul9910_aom_doublepass_689_red_injection")
-        self.injection_aom: AD9910 = self.urukul9910_aom_doublepass_689_red_injection
+        self.injection_aom: AD9910 = self.get_device(
+            "urukul9910_aom_doublepass_689_red_injection"
+        )
+        self.kernel_invariants.add("injection_aom")
+
+        self.spinpol_aom: AD9910 = self.get_device(
+            constants.RED_SPINPOL_SETTINGS.urukul_device
+        )
+        self.kernel_invariants.add("spinpol_aom")
+
+        self.setattr_device("ttl_shutter_red_axial_mot")
+        self.setattr_device("ttl_shutter_red_axial_spin_pol")
+        self.ttl_shutter_red_axial_mot: TTLOut
+        self.ttl_shutter_red_axial_spin_pol: TTLOut
 
         self.setattr_device("ttl_shutter_red_axial_mot")
         self.setattr_device("ttl_shutter_red_axial_spin_pol")
@@ -138,8 +169,6 @@ class RedBeamController(Fragment):
             unit="MHz",
             default=constants.RED_INJECTION_AOM_FREQUENCY,
         )
-        self.injection_aom_static_frequency: FloatParamHandle
-
         self.setattr_param(
             "ramp_frequency",
             FloatParam,
@@ -167,11 +196,19 @@ class RedBeamController(Fragment):
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
             default=2,
         )
+        self.setattr_param(
+            "use_sigmaplus_spinpol",
+            BoolParam,
+            "Which spinpol beam? True = sigmaplus, False = sigmaminus",
+            default=True,
+        )
 
+        self.injection_aom_static_frequency: FloatParamHandle
         self.ramp_frequency: FloatParamHandle
         self.ramp_lower_detuning: FloatParamHandle
         self.ramp_upper_detuning: FloatParamHandle
         self.ramp_type: IntParamHandle
+        self.use_sigmaplus_spinpol: BoolParamHandle
 
         # %% Kernel parameters
 
@@ -180,6 +217,7 @@ class RedBeamController(Fragment):
         self.ramp_rate = 0.0
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+        self.kernel_invariants.add("debug_mode")
 
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -188,6 +226,18 @@ class RedBeamController(Fragment):
     def host_setup(self):
         super().host_setup()
         assert self.ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
+
+        if self.use_sigmaplus_spinpol.get():
+            self.spinpol_toggler = self.sigmaplus_toggler
+            self.spinpol_setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAPLUS
+            self.spinpol_setter = self.sigmaplus_setpoint_setter
+            self.spinpol_reset_setpoint_handle = self.sigmaplus_setpoint_handle
+
+        else:
+            self.spinpol_toggler = self.sigmaminus_toggler
+            self.spinpol_setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAMINUS
+            self.spinpol_setter = self.sigmaminus_setpoint_setter
+            self.spinpol_reset_setpoint_handle = self.sigmaminus_setpoint_handle
 
     @kernel
     def device_setup(self):
@@ -216,10 +266,9 @@ class RedBeamController(Fragment):
 
         self.core.break_realtime()
 
-        # Ensure the RF switch is on and the frequency is correct.
-        # These are glitch free, so we do them each time
+        # Ensure the injection AOM's RF switch is on and the frequency is
+        # correct. These are glitch free, so we do them each time
         self.injection_aom.set(self.injection_aom_static_frequency.get())
-        self.injection_aom.cfg_sw(True)
         self.injection_aom.sw.on()
 
     @kernel
@@ -235,6 +284,10 @@ class RedBeamController(Fragment):
         self.ttl_shutter_red_axial_mot.off()
         delay_mu(int64(self.core.ref_multiplier))
         self.ttl_shutter_red_axial_spin_pol.off()
+        delay_mu(int64(self.core.ref_multiplier))
+
+        # Turn on the spin polarising AOM
+        self.spinpol_aom.sw.on()
 
         # Make sure that the shutters are closed before run_once starts
         delay(self.all_beam_default_setter.get_max_shutter_delay())
@@ -376,3 +429,30 @@ class RedBeamController(Fragment):
                 )
 
             suservo_frag.set_setpoint(setpoint)
+
+    @kernel
+    def turn_on_spin_pol(self, ignore_shutters=False):
+        """
+        Turn on the selected spin polarization beam
+
+        Note that this will use the appropriate AOM for suservoing, and
+        therefore cannot be used while the 9/2 -> 11/2 MOT beams are on. You
+        must ensure that they are not, otherwise it'll be weird.
+        """
+        # Ensure shutter is open
+        delay(-constants.SRS_SHUTTER_DELAY)
+        self.ttl_shutter_red_axial_spin_pol.on()
+        delay(constants.SRS_SHUTTER_DELAY)
+
+        # Update the appropriate SUServo with the new setpoint and turn it on
+        self.spinpol_setter.set_setpoint(self.spinpol_setpoint)
+        self.spinpol_toggler.turn_beams_on(ignore_shutters)
+
+    @kernel
+    def turn_off_spin_pol(self, ignore_shutters=False):
+        # Turn off the spin pol beam and reset the setpoint back to normal
+        self.ttl_shutter_red_axial_mot.off()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.spinpol_setter.set_setpoint(self.spinpol_reset_setpoint_handle.get())
+        delay_mu(int64(self.core.ref_multiplier))
+        self.spinpol_toggler.turn_beams_off(ignore_shutters)
