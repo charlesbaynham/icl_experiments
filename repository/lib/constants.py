@@ -22,7 +22,7 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 
-SR87 = True
+SR87 = False
 
 AD9910_BEAMS = [
     UrukuledBeam(
