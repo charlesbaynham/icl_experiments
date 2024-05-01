@@ -10,6 +10,7 @@ from artiq.experiment import TFloat
 from artiq.experiment import TList
 
 from repository.lib import constants
+from repository.lib.constants import SR87
 from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
@@ -136,13 +137,22 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.0]
     default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.0]
 
-    # Chamber 2 MOT coils in amps
-    general_setter_default_starts = [9.0]
-    general_setter_default_ends = [9.0]
+    if SR87:
+        # Sr 87
+        general_setter_default_starts = [12.0]
+        general_setter_default_ends = [12.0]
+
+    else:
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [9.0]
+        general_setter_default_ends = [9.0]
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
-    duration_default = 100e-3
+    if SR87:
+        duration_default = 0.1e-3
+    else:
+        duration_default = 100e-3
 
     default_urukul_detunings_start = [150e3]
     default_urukul_detunings_end = [50e3]
@@ -162,18 +172,31 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     duration_default = 100e-3
-
-    default_urukul_detunings_start = [50e3]
-    default_urukul_detunings_end = [10e3]
-
-    # Chamber 2 MOT coils in amps
-    general_setter_default_starts = [1.0]
-    general_setter_default_ends = [1.0]
+    if False:
+        time_step_default = 1e10  # this is a nasty hack to skip ramping by making one step much longer than the full duration
+        # only start values will be used in this case
 
     # Order:
     # "suservo_aom_singlepass_689_red_mot_sigmaplus",
     # "suservo_aom_singlepass_689_red_mot_sigmaminus",
     # "suservo_aom_singlepass_689_red_mot_diagonal",
     # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.0]
-    default_suservo_setpoint_multiples_end = [0.02, 0.02, 0.02, 0.0]
+
+    if SR87:
+        # Sr 87
+        default_suservo_setpoint_multiples_start = [0.6, 0.6, 0.6, 0.0]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
+        general_setter_default_starts = [12.0]
+        general_setter_default_ends = [6.0]
+        default_urukul_detunings_start = [200e3]
+        default_urukul_detunings_end = [0e3]
+
+    else:
+        default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.0]
+        default_suservo_setpoint_multiples_end = [0.02, 0.02, 0.02, 0.0]
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [1.0]
+        general_setter_default_ends = [1.0]
+
+        default_urukul_detunings_start = [50e3]
+        default_urukul_detunings_end = [10e3]

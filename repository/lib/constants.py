@@ -22,6 +22,8 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 
+SR87 = True
+
 AD9910_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
@@ -128,10 +130,17 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-# Default field in chamber 2
-B_FIELD_BIAS_X = 0.11  # A
-B_FIELD_BIAS_Y = -0.014  # A
-B_FIELD_BIAS_Z = -0.75  # A
+if SR87:
+    # Default field in chamber 2 for loading Sr 87 into lattice w/ 6A gradient
+    B_FIELD_BIAS_X = 0.5  # A
+    B_FIELD_BIAS_Y = -0.05  # A
+    B_FIELD_BIAS_Z = -1.6  # A
+else:
+    # Default fields in chamber 2 for nulling field
+    B_FIELD_BIAS_X = 0.11  # A
+    B_FIELD_BIAS_Y = -0.014  # A
+    B_FIELD_BIAS_Z = -0.75  # A
+
 B_FIELD_GRADIENT = 90.0  # A
 
 
@@ -297,7 +306,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=1.5,
+        setpoint=1.5 if not SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     ### OTHER ###
