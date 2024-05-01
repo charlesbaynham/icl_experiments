@@ -30,7 +30,7 @@ class FluorescencePulseMOTBeamWithoutShutter(_TestFluorescencePulse):
         self.setattr_device("core")
 
         class _FluorPulse(ImagingFluorescencePulse):
-            beam_infos = [MOT_BEAM_NO_SHUTTER]
+            suservo_beam_infos = [MOT_BEAM_NO_SHUTTER]
 
         self.setattr_fragment(
             "frag",
@@ -44,7 +44,7 @@ class FluorescencePulseMOTBeamWithShutter(_TestFluorescencePulse):
         self.setattr_device("core")
 
         class _FluorPulse(ImagingFluorescencePulse):
-            beam_infos = [MOT_BEAM_WITH_SHUTTER]
+            suservo_beam_infos = [MOT_BEAM_WITH_SHUTTER]
 
         self.setattr_fragment(
             "frag",
