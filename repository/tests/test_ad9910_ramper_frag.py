@@ -21,7 +21,7 @@ from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 logger = logging.getLogger(__name__)
 
 
-class TestAD9910Ramper(ExpFragment):
+class TestAD9910RamperFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -66,4 +66,4 @@ class TestAD9910Ramper(ExpFragment):
         self.ramper.start_ramp(self.df_dt, self.f_min, self.f_max, self.scan_type)
 
 
-TestAD9910Ramper = make_fragment_scan_exp(TestAD9910Ramper)
+TestAD9910Ramper = make_fragment_scan_exp(TestAD9910RamperFrag)
