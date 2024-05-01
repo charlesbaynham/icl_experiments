@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 def make_toggle_list_of_beams(
-    beam_infos: List[SUServoedBeam],
+    suservo_beam_infos: List[SUServoedBeam],
+    urukul_beam_infos: List[UrukuledBeam],
 ) -> Type["ToggleListOfBeams"]:
     """
     Factory function for :class:`~ToggleListOfBeams`. See documentation for
@@ -28,7 +29,8 @@ def make_toggle_list_of_beams(
     """
 
     class ToggleListOfBeamsCustomised(ToggleListOfBeams):
-        default_suservo_beam_infos = beam_infos
+        default_suservo_beam_infos = suservo_beam_infos
+        default_urukul_beam_infos = urukul_beam_infos
 
     return ToggleListOfBeamsCustomised
 

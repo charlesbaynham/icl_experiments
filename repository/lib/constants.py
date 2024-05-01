@@ -52,6 +52,12 @@ AD9910_BEAMS = [
         attenuation=0,
         urukul_device="urukul9912_aom_698_up_switch",
     ),
+    UrukuledBeam(
+        "blue_imaging_switch",
+        frequency=100e6,
+        attenuation=13,
+        urukul_device="urukul9912_aom_singlepass_461_imaging_switch",
+    ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
@@ -263,12 +269,6 @@ SUSERVOED_BEAMS = [
         "suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=2.0,
-    ),
-    SUServoedBeam(
-        "blue_imaging_switch",
-        100e6,
-        13,
-        "suservo_aom_singlepass_461_imaging_switch",
     ),
     ### RED ###
     SUServoedBeam(
