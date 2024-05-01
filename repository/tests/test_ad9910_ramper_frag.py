@@ -29,7 +29,9 @@ class TestAD9910RamperFrag(ExpFragment):
         ad9910_channels = get_local_devices(self, AD9910)
         if not ad9910_channels:
             raise ValueError("No AD9910 channels found in device_db")
-        self.setattr_argument("channel", EnumerationValue(ad9910_channels))
+        self.setattr_argument(
+            "channel", EnumerationValue(ad9910_channels, default=ad9910_channels[0])
+        )
 
         self.setattr_fragment("ramper", AD9910Ramper, self.channel)
         self.ramper: AD9910Ramper
@@ -45,7 +47,15 @@ class TestAD9910RamperFrag(ExpFragment):
         )
 
         self.setattr_argument(
-            "mode", EnumerationValue(["Triangle", "Positive saw", "Negative saw"])
+            "mode",
+            EnumerationValue(
+                [
+                    "Triangle",
+                    "Positive saw",
+                    "Negative saw",
+                ],
+                default="Triangle",
+            ),
         )
 
     def host_setup(self):
