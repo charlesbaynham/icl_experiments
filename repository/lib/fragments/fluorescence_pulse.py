@@ -11,6 +11,7 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beams.default_beam_setter import (
@@ -33,18 +34,28 @@ class FluorescencePulseBase(Fragment):
     This must be subclassed to specify which beam you want
     """
 
-    beam_infos: Optional[List[SUServoedBeam]] = None
+    suservo_beam_infos: Optional[List[SUServoedBeam]] = None
     "List of SUServoedBeam objects to use as fluorescence pulses. Must be provided by subclasses"
+    urukul_beam_infos: Optional[List[UrukuledBeam]] = None
+    "List of UrukuledBeam objects to use as fluorescence pulses. Must be provided by subclasses"
 
     def build_fragment(self) -> None:
-        if self.beam_infos is None:
+        if self.suservo_beam_infos is None or self.urukul_beam_infos is None:
             raise TypeError(
                 "Do not use this class directly - you must subclass it and provide a list of beam_infos"
             )
 
-        _ImagingBeamsToggler = make_toggle_list_of_beams(self.beam_infos)
+        self.suservo_beam_infos = self.suservo_beam_infos or []
+        self.urukul_beam_infos = self.urukul_beam_infos or []
+
+        _ImagingBeamsToggler = make_toggle_list_of_beams(
+            suservo_beam_infos=self.suservo_beam_infos,
+            urukul_beam_infos=self.urukul_beam_infos,
+        )
         _ImagingBeamsSetter = make_set_beams_to_default(
-            suservo_beam_infos=self.beam_infos, name="ImagingBeamsSettings"
+            suservo_beam_infos=self.suservo_beam_infos,
+            urukul_beam_infos=self.urukul_beam_infos,
+            name="ImagingBeamsSettings",
         )
 
         self.setattr_device("core")
@@ -108,7 +119,7 @@ class ImagingFluorescencePulse(FluorescencePulseBase):
     Control a fluorescence pulse with the dedicated imaging beam
     """
 
-    beam_infos = [constants.SUSERVOED_BEAMS["blue_imaging_switch"]]
+    urukul_beam_infos = [constants.AD9910_BEAMS["blue_imaging_switch"]]
 
 
 class MOTBeamFluorescencePulse(FluorescencePulseBase):
@@ -116,7 +127,7 @@ class MOTBeamFluorescencePulse(FluorescencePulseBase):
     Control a fluorescence pulse with the blue MOT beams
     """
 
-    beam_infos = [
+    suservo_beam_infos = [
         constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
         constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
         constants.SUSERVOED_BEAMS["blue_3dmot_radial"],

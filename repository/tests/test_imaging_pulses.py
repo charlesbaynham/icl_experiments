@@ -6,13 +6,14 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.models import SUServoedBeam
 
+from repository.lib.constants import AD9910_BEAMS
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 
 MOT_BEAM_NO_SHUTTER = deepcopy(SUSERVOED_BEAMS["blue_3dmot_axialminus"])
 MOT_BEAM_NO_SHUTTER.shutter_device = None
 MOT_BEAM_WITH_SHUTTER = deepcopy(SUSERVOED_BEAMS["blue_3dmot_axialminus"])
-IMAGING_BEAM = deepcopy(SUSERVOED_BEAMS["blue_imaging_switch"])
+IMAGING_BEAM = deepcopy(AD9910_BEAMS["blue_imaging_switch"])
 
 
 class _TestFluorescencePulse(ExpFragment):
@@ -56,7 +57,8 @@ class FluorescencePulseMOTBeamAndImagingWithShutter(_TestFluorescencePulse):
         self.setattr_device("core")
 
         class _FluorPulse(ImagingFluorescencePulse):
-            beam_infos = [IMAGING_BEAM, MOT_BEAM_WITH_SHUTTER]
+            suservo_beam_infos = [MOT_BEAM_WITH_SHUTTER]
+            urukul_beam_infos = [IMAGING_BEAM]
 
         self.setattr_fragment(
             "frag",
