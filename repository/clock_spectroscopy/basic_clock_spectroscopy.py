@@ -7,6 +7,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
@@ -19,7 +20,10 @@ from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics imp
 
 logger = logging.getLogger(__name__)
 
-CLOCK_BEAM_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_up"]
+CLOCK_BEAM_INFO: UrukuledBeam = constants.AD9910_BEAMS["clock_up"]
+
+# FIXME: The clock beam is broken - I've switched it to an Urukul AD9912 not a
+# suservo, so this code needs rewriting
 
 
 class BasicClockSpectroscopyExp(SpectroscopyParamsMixin, TripleImageMOTMixin):

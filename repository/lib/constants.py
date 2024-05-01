@@ -46,6 +46,12 @@ AD9910_BEAMS = [
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_spinpol",
     ),
+    UrukuledBeam(
+        name="clock_up",
+        frequency=200e6,
+        attenuation=0,
+        urukul_device="urukul9912_aom_698_up_switch",
+    ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
@@ -329,12 +335,6 @@ SUSERVOED_BEAMS = [
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=0.33,
-    ),
-    SUServoedBeam(
-        "clock_up",
-        200e6,
-        0,
-        "suservo_aom_698_up_switch",
     ),
     SUServoedBeam(
         "lattice_input_1379",

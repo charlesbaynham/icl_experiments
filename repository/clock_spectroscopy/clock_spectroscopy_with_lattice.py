@@ -25,6 +25,9 @@ logger = logging.getLogger(__name__)
 
 CLOCK_BEAM_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_up"]
 
+# FIXME: The clock beam is broken - I've switched it to an Urukul AD9912 not a
+# suservo, so this code needs rewriting
+
 
 class ClockSpecFromLatticeFrag(
     SpectroscopyParamsMixin,
