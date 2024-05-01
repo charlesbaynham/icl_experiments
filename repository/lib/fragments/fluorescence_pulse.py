@@ -40,7 +40,7 @@ class FluorescencePulseBase(Fragment):
     "List of UrukuledBeam objects to use as fluorescence pulses. Must be provided by subclasses"
 
     def build_fragment(self) -> None:
-        if self.suservo_beam_infos is None or self.urukul_beam_infos is None:
+        if self.suservo_beam_infos is None and self.urukul_beam_infos is None:
             raise TypeError(
                 "Do not use this class directly - you must subclass it and provide a list of beam_infos"
             )
