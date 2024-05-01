@@ -27,6 +27,7 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 logger = logging.getLogger(__name__)
 
 
+# FIXME: The AD9912 fluorescence pulse is not working for some reason
 class FluorescencePulseBase(Fragment):
     """
     Pulse a beam onto the atoms
