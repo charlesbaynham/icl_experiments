@@ -1309,3 +1309,30 @@ device_db["led11"] = {
     "class": "TTLOut",
     "arguments": {"channel": 0x030005},
 }
+
+
+# %% Apply ICL patches
+
+device_db["core_moninj"]["host"] = server_ip
+device_db["core_analyzer"]["host"] = server_ip
+
+for device_name, device_config in device_db.items():
+    # Patch any CPLD devices which don't have "io_update_device" devices to be
+    # an alternative class (with the same features)
+    if (
+        device_config["class"] == "CPLD"
+        and device_config["module"] == "artiq.coredevice.urukul"
+    ):
+        if not hasattr(device_config["arguments"], "io_update_device"):
+            device_config["class"] = "CPLD_alt"
+            device_config["module"] = "pyaion.lib.suservo_workaround"
+
+    # Patch any AD9910 devices which don't have "sw_device" devices to be
+    # an alternative class (with the same features)
+    if (
+        device_config["class"] == "AD9910"
+        and device_config["module"] == "artiq.coredevice.ad9910"
+    ):
+        if not hasattr(device_config["arguments"], "sw_device"):
+            device_config["class"] = "AD9910_alt"
+            device_config["module"] = "pyaion.lib.suservo_workaround"
