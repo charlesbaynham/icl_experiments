@@ -20,7 +20,7 @@ for device_name, device_config in device_db.items():
             and device_config["module"] == "artiq.coredevice.urukul"
         ):
             if not "io_update_device" in device_config["arguments"]:
-                logger.warning("Patching %s to be a PyAION CPLD_alt", device_name)
+                logger.debug("Patching %s to be a PyAION CPLD_alt", device_name)
                 device_config["class"] = "CPLD_alt"
                 device_config["module"] = "pyaion.lib.suservo_workaround"
 
