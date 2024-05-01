@@ -110,6 +110,9 @@ class ToggleListOfBeams(Fragment):
             )
             self.suservo_frags.append(f)
 
+    def host_setup(self):
+        super().host_setup()
+
         # And get a list of the ttls for the RF switches of the urukulled beams
         self.urukul_ttls: List[TTLOut] = [
             self.get_device(b.urukul_device).sw for b in self.urukuls_without_shutters
