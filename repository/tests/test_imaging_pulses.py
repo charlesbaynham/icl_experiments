@@ -25,7 +25,7 @@ class _TestFluorescencePulse(ExpFragment):
             self.frag.do_imaging_pulse()
 
 
-class FluorescencePulseMOTBeamWithoutShutter(_TestFluorescencePulse):
+class FluorescencePulseMOTBeamWithoutShutterFrag(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
@@ -39,7 +39,7 @@ class FluorescencePulseMOTBeamWithoutShutter(_TestFluorescencePulse):
         self.frag: ImagingFluorescencePulse
 
 
-class FluorescencePulseMOTBeamWithShutter(_TestFluorescencePulse):
+class FluorescencePulseMOTBeamWithShutterFrag(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
@@ -52,7 +52,7 @@ class FluorescencePulseMOTBeamWithShutter(_TestFluorescencePulse):
         )
 
 
-class FluorescencePulseMOTBeamAndImagingWithShutter(_TestFluorescencePulse):
+class FluorescencePulseMOTBeamAndImagingWithShutterFrag(_TestFluorescencePulse):
     def build_fragment(self) -> None:
         self.setattr_device("core")
 
@@ -67,12 +67,28 @@ class FluorescencePulseMOTBeamAndImagingWithShutter(_TestFluorescencePulse):
         self.frag: ImagingFluorescencePulse
 
 
+class FluorescencePulseSwitchOnlyFrag(_TestFluorescencePulse):
+    def build_fragment(self) -> None:
+        self.setattr_device("core")
+
+        class _FluorPulse(ImagingFluorescencePulse):
+            urukul_beam_infos = [IMAGING_BEAM]
+
+        self.setattr_fragment(
+            "frag",
+            _FluorPulse,
+        )
+        self.frag: ImagingFluorescencePulse
+
+
 FluorescencePulseMOTBeamWithoutShutter = make_fragment_scan_exp(
-    FluorescencePulseMOTBeamWithoutShutter
+    FluorescencePulseMOTBeamWithoutShutterFrag
 )
 FluorescencePulseMOTBeamWithShutter = make_fragment_scan_exp(
-    FluorescencePulseMOTBeamWithShutter
+    FluorescencePulseMOTBeamWithShutterFrag
 )
 FluorescencePulseMOTBeamAndImagingWithShutter = make_fragment_scan_exp(
-    FluorescencePulseMOTBeamAndImagingWithShutter
+    FluorescencePulseMOTBeamAndImagingWithShutterFrag
 )
+
+FluorescencePulseSwitchOnly = make_fragment_scan_exp(FluorescencePulseSwitchOnlyFrag)
