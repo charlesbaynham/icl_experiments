@@ -20,7 +20,7 @@ for device_name, device_config in device_db.items():
             and device_config["module"] == "artiq.coredevice.urukul"
         ):
             if not hasattr(device_config["arguments"], "io_update_device"):
-                logger.info("Patching %s to be a PyAION CPLD_alt")
+                logger.debug("Patching %s to be a PyAION CPLD_alt", device_name)
                 device_config["class"] = "CPLD_alt"
                 device_config["module"] = "pyaion.lib.suservo_workaround"
 
@@ -31,6 +31,7 @@ for device_name, device_config in device_db.items():
             and device_config["module"] == "artiq.coredevice.ad9910"
         ):
             if not hasattr(device_config["arguments"], "sw_device"):
+                logger.debug("Patching %s to be a PyAION AD9910_alt", device_name)
                 device_config["class"] = "AD9910_alt"
                 device_config["module"] = "pyaion.lib.suservo_workaround"
 
