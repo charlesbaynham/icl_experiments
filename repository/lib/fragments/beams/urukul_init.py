@@ -9,7 +9,7 @@ from ndscan.experiment import *
 
 from repository.lib.dummy_devices import DummyAD9910
 from repository.lib.dummy_devices import DummyAD9912
-from repository.lib.dummy_devices import DummyUrukul
+from repository.lib.dummy_devices import DummyCPLD as DummyUrukul
 
 logger = logging.getLogger(__name__)
 

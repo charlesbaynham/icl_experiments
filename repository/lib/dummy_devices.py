@@ -7,6 +7,7 @@ build() if it's empty, and it won't do anything when called.
 from artiq.experiment import kernel
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
+from artiq.experiment import TInt32
 
 
 # TODO: Use this for creating dummy classes
@@ -55,12 +56,6 @@ class DummyTTL:
 
     @kernel
     def off(self):
-        pass
-
-
-class DummyUrukul:
-    @kernel
-    def init(self):
         pass
 
 
@@ -116,6 +111,10 @@ class DummyCPLD:
     @kernel
     def init(self):
         pass
+
+    @kernel
+    def get_att_mu(self) -> TInt32:
+        return 0
 
 
 class DummyFloatParameterHandle:

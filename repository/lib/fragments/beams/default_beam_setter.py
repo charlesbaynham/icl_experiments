@@ -27,6 +27,7 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib.dummy_devices import *
+from repository.lib.dummy_devices import DummyCPLD as DummyUrukul
 from repository.lib.fragments.beams.urukul_init import make_urukul_init
 
 
