@@ -93,7 +93,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         self.setattr_fragment(
             "lattice_suservo",
             LibSetSUServoStatic,
-            "suservo_aom_singlepass_1379_cavity_input",
+            constants.SUSERVOED_BEAMS["lattice_input_1379"].suservo_device,
         )
         self.lattice_suservo: LibSetSUServoStatic
 
