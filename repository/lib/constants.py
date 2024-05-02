@@ -25,7 +25,7 @@ from pyaion.models import UrukuledBeam
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
-USE_LATTICE_OFFSETS = False
+USE_LATTICE_OFFSETS = True
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
 
 URUKULED_BEAMS = [
@@ -148,11 +148,9 @@ B_FIELD_CH1_AXIAL = 0.0  # A
 
 if USE_SR87 and USE_LATTICE_OFFSETS:
     # With 6A gradient
-    B_FIELD_BIAS_X = 0.5  # A
-    B_FIELD_BIAS_Y = -0.05  # A
-    B_FIELD_BIAS_Z = (
-        -1.6 - 0.29
-    )  # A  # FIXME I've guessed the offset required here based on the current supply misconfiguration described in the onenote on 20240502
+    B_FIELD_BIAS_X = 1.2  # A
+    B_FIELD_BIAS_Y = -0.1  # A
+    B_FIELD_BIAS_Z = -1.2  # A
 elif not USE_SR87 and USE_LATTICE_OFFSETS:
     # With 1A gradient
     B_FIELD_BIAS_X = 0.5  # A
