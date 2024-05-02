@@ -46,6 +46,7 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         "red_spinpol",
         frequency=366.6e6,
+        amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
     ),
