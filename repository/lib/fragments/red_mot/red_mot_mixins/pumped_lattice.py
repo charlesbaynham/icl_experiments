@@ -107,6 +107,10 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     @kernel
     def before_start_hook(self):
+        self.before_start_hook()
+
+    @kernel
+    def lattice_before_start_hook(self):
         self.core.break_realtime()
         self.lattice_setter.turn_on_all()
 

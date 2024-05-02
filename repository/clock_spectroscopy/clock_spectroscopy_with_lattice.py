@@ -1,5 +1,6 @@
 import logging
 
+from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
@@ -34,7 +35,10 @@ class ClockSpecFromLatticeFrag(
     once more for background.
     """
 
-    pass
+    @kernel
+    def before_start_hook(self):
+        self.lattice_before_start_hook()
+        self.clockspec_before_start_hook()
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
