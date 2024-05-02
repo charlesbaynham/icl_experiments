@@ -26,6 +26,8 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 
 logger = logging.getLogger(__name__)
 
+# FIXME: The fluorescence pulse (not MOT beams) appears to be broken still
+
 
 class FluorescencePulseBase(Fragment):
     """
