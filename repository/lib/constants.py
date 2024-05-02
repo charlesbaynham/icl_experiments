@@ -148,9 +148,9 @@ B_FIELD_CH1_AXIAL = 0.0  # A
 
 if USE_SR87 and USE_LATTICE_OFFSETS:
     # With 6A gradient
-    B_FIELD_BIAS_X = 1.2  # A
-    B_FIELD_BIAS_Y = -0.1  # A
-    B_FIELD_BIAS_Z = -1.2  # A
+    B_FIELD_BIAS_X = 0.85  # A
+    B_FIELD_BIAS_Y = -0.02  # A
+    B_FIELD_BIAS_Z = -1.1  # A
 elif not USE_SR87 and USE_LATTICE_OFFSETS:
     # With 1A gradient
     B_FIELD_BIAS_X = 0.5  # A
