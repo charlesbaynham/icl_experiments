@@ -270,7 +270,7 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9912_devices_and_handles:
             self.ad9912_devices_and_handles = [
-                AD9912Info(self.dummy_ad9910, self.dummy_float_handle, False, False)
+                AD9912Info(self.dummy_ad9912, self.dummy_float_handle, False, False)
             ]
 
         if not self.suservo_setters_and_info:
