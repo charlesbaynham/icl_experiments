@@ -150,9 +150,9 @@ if USE_SR87:
     B_FIELD_BIAS_Z = -1.6  # A
 else:
     # Default fields in chamber 2 for nulling field
-    B_FIELD_BIAS_X = 0.11  # A
+    B_FIELD_BIAS_X = 0.3  # A
     B_FIELD_BIAS_Y = -0.014  # A
-    B_FIELD_BIAS_Z = -0.75  # A
+    B_FIELD_BIAS_Z = -1.04  # A
 
 B_FIELD_GRADIENT = 90.0  # A
 
