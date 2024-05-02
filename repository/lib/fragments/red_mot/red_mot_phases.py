@@ -190,6 +190,7 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
         general_setter_default_ends = [6.0]
         default_urukul_detunings_start = [200e3]
         default_urukul_detunings_end = [0e3]
+        time_step_default = 1e10
 
     else:
         default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.0]
