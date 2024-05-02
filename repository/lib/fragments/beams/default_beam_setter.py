@@ -448,7 +448,7 @@ class SetBeamsToDefaults(Fragment):
             #     This will be done by _turn_on_rf_switches
 
             if self.debug_mode:
-                logger.info("Enabling AD9910 %s, freq=%s", info.device, freq)
+                logger.info("Enabling AD9912 %s, freq=%s", info.device, freq)
                 self.core.break_realtime()
 
         for ttl in self.shutter_ttls:
