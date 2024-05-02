@@ -147,7 +147,9 @@ if USE_SR87:
     # Default field in chamber 2 for loading Sr 87 into lattice w/ 6A gradient
     B_FIELD_BIAS_X = 0.5  # A
     B_FIELD_BIAS_Y = -0.05  # A
-    B_FIELD_BIAS_Z = -1.6  # A
+    B_FIELD_BIAS_Z = (
+        -1.6 - 0.29
+    )  # A  # FIXME I've guessed the offset required here based on the current supply misconfiguration described in the onenote on 20240502
 else:
     # Default fields in chamber 2 for nulling field
     B_FIELD_BIAS_X = 0.3  # A
