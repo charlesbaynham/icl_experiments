@@ -14,7 +14,7 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 )
 
 
-CLOCK_BEAM_INFO: UrukuledBeam = constants.AD9910_BEAMS["clock_up"]
+CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 
 logger = logging.getLogger(__name__)
 

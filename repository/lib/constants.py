@@ -22,9 +22,10 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 
-SR87 = False
+USE_SR87 = False
+"Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
-AD9910_BEAMS = [
+URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
         frequency=365.0e6,
@@ -62,7 +63,7 @@ AD9910_BEAMS = [
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
 # Convert to dict for ease of use
-AD9910_BEAMS = {beam.name: beam for beam in AD9910_BEAMS}
+URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 
 
 RED_SPINPOL_SETTINGS = UrukuledBeam(  # TODO: Get rid of this once !31 is merged
@@ -142,7 +143,7 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-if SR87:
+if USE_SR87:
     # Default field in chamber 2 for loading Sr 87 into lattice w/ 6A gradient
     B_FIELD_BIAS_X = 0.5  # A
     B_FIELD_BIAS_Y = -0.05  # A
@@ -312,7 +313,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=1.5 if not SR87 else 3.0,  # 3 V for Sr87
+        setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     ### OTHER ###

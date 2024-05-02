@@ -118,7 +118,7 @@ class ImagingFluorescencePulse(FluorescencePulseBase):
     Control a fluorescence pulse with the dedicated imaging beam
     """
 
-    urukul_beam_infos = [constants.AD9910_BEAMS["blue_imaging_switch"]]
+    urukul_beam_infos = [constants.URUKULED_BEAMS["blue_imaging_switch"]]
 
 
 class MOTBeamFluorescencePulse(FluorescencePulseBase):

@@ -10,7 +10,7 @@ from artiq.experiment import TFloat
 from artiq.experiment import TList
 
 from repository.lib import constants
-from repository.lib.constants import SR87
+from repository.lib.constants import USE_SR87
 from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
@@ -137,7 +137,7 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.0]
     default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.0]
 
-    if SR87:
+    if USE_SR87:
         # Sr 87
         general_setter_default_starts = [12.0]
         general_setter_default_ends = [12.0]
@@ -149,7 +149,7 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
-    if SR87:
+    if USE_SR87:
         duration_default = 0.1e-3
     else:
         duration_default = 100e-3
@@ -182,7 +182,7 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     # "suservo_aom_singlepass_689_red_mot_diagonal",
     # "suservo_aom_singlepass_689_up",
 
-    if SR87:
+    if USE_SR87:
         # Sr 87
         default_suservo_setpoint_multiples_start = [0.6, 0.6, 0.6, 0.0]
         default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]

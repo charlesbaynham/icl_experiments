@@ -146,7 +146,7 @@ class RelockIJDFrag(ExpFragment):
         if controller_name and (
             aom_name := IJD_DEFAULTS[controller_name].associated_aom
         ):
-            if beam := constants.AD9910_BEAMS[aom_name]:
+            if beam := constants.URUKULED_BEAMS[aom_name]:
                 urukul_channel_name, freq, att = (
                     beam.urukul_device,
                     beam.frequency,

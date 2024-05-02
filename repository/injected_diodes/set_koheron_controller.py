@@ -202,7 +202,7 @@ class SetKoheronFrag(ExpFragment):
         if (controller_name) and (
             aom_name := constants.IJD_DEFAULTS[controller_name].associated_aom
         ):
-            urukul_device = constants.AD9910_BEAMS[aom_name].urukul_device
+            urukul_device = constants.URUKULED_BEAMS[aom_name].urukul_device
             self.aom_urukul = self.get_device(urukul_device)
         else:
             self.aom_urukul = DummyAD9910()
