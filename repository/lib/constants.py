@@ -44,11 +44,10 @@ URUKULED_BEAMS = [
         urukul_device="urukul9910_aom_doublepass_461_injection",
     ),
     UrukuledBeam(
-        name="red_spinpol",
+        "red_spinpol",
         frequency=366.6e6,
-        amplitude=1.0,
         attenuation=0.0,
-        urukul_device="urukul9910_aom_doublepass_689_spinpol",
+        urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
     ),
     UrukuledBeam(
         name="clock_up",

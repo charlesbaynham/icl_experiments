@@ -39,7 +39,7 @@ RED_SUSERVO_INFOS = [
         "red_up",
     ]
 ]
-RED_URUKUL_INFOS = [constants.RED_SPINPOL_SETTINGS]
+RED_URUKUL_INFOS = [constants.URUKULED_BEAMS["red_spinpol"]]
 
 
 class RedBeamController(Fragment):
@@ -146,7 +146,7 @@ class RedBeamController(Fragment):
         self.kernel_invariants.add("injection_aom")
 
         self.spinpol_aom: AD9910 = self.get_device(
-            constants.RED_SPINPOL_SETTINGS.urukul_device
+            constants.URUKULED_BEAMS["red_spinpol"].urukul_device
         )
         self.kernel_invariants.add("spinpol_aom")
 
