@@ -279,7 +279,7 @@ class RedBeamController(Fragment):
         This is not in device_setup so that the user can choose when / whether to call it during each scan cycle
         """
         # Turn on all the AOMs but close all the shutters
-        self.all_beam_default_setter.turn_on_all(light_enabled=False)
+        self.all_beam_default_setter.turn_on_all(light_enabled=True)  # FIXME
         delay_mu(int64(self.core.ref_multiplier))
         self.ttl_shutter_red_axial_mot.off()
         delay_mu(int64(self.core.ref_multiplier))
