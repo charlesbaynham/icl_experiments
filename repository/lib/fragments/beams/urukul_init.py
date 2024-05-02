@@ -98,6 +98,7 @@ class UrukulInit(Fragment):
 
                         self.core.break_realtime()
                         urukul.init()
+                        urukul.get_att_mu()
                     else:
                         if self.debug_mode:
                             logger.info("%s already initiated", urukul)

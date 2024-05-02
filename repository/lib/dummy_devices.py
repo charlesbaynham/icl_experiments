@@ -104,6 +104,10 @@ class DummyAD9912:
         return 0.0
 
     @kernel
+    def set_att(self, att: TFloat):
+        pass
+
+    @kernel
     def cfg_sw(self, state: TBool):
         pass
 

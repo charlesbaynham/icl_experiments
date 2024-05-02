@@ -156,6 +156,7 @@ class SetBeamsToDefaults(Fragment):
             device: AD9910
             frequency_handle: FloatParamHandle
             amplitude_handle: FloatParamHandle
+            attenuation: float
             shutter_present: bool
             has_ttl_switch: bool
 
@@ -163,6 +164,7 @@ class SetBeamsToDefaults(Fragment):
         class AD9912Info:
             device: AD9912
             frequency_handle: FloatParamHandle
+            attenuation: float
             shutter_present: bool
             has_ttl_switch: bool
 
@@ -198,6 +200,7 @@ class SetBeamsToDefaults(Fragment):
                     device,
                     frequency_handle,
                     amplitude_handle,
+                    beam_info.attenuation,
                     shutter_present=bool(beam_info.shutter_device),
                     has_ttl_switch=hasattr(device, "sw"),
                 )
@@ -207,6 +210,7 @@ class SetBeamsToDefaults(Fragment):
                 info = AD9912Info(
                     device,
                     frequency_handle,
+                    beam_info.attenuation,
                     shutter_present=bool(beam_info.shutter_device),
                     has_ttl_switch=hasattr(device, "sw"),
                 )
@@ -263,6 +267,7 @@ class SetBeamsToDefaults(Fragment):
                     self.dummy_ad9910,
                     self.dummy_float_handle,
                     self.dummy_float_handle,
+                    0.0,
                     False,
                     False,
                 )
@@ -270,7 +275,9 @@ class SetBeamsToDefaults(Fragment):
 
         if not self.ad9912_devices_and_handles:
             self.ad9912_devices_and_handles = [
-                AD9912Info(self.dummy_ad9912, self.dummy_float_handle, False, False)
+                AD9912Info(
+                    self.dummy_ad9912, self.dummy_float_handle, 0.0, False, False
+                )
             ]
 
         if not self.suservo_setters_and_info:
@@ -417,6 +424,7 @@ class SetBeamsToDefaults(Fragment):
             amp = info.amplitude_handle.get()
 
             info.device.set(frequency=freq, amplitude=amp)
+            info.device.set_att(info.attenuation)
             if not info.has_ttl_switch:
                 info.device.cfg_sw(rf_switch_state)
             # else:
@@ -441,6 +449,7 @@ class SetBeamsToDefaults(Fragment):
             freq = info.frequency_handle.get()
 
             info.device.set(frequency=freq)
+            info.device.set_att(info.attenuation)
 
             if not info.has_ttl_switch:
                 info.device.cfg_sw(rf_switch_state)
