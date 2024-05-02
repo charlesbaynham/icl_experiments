@@ -22,7 +22,7 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 
-USE_SR87 = False
+USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
 USE_LATTICE_OFFSETS = True
