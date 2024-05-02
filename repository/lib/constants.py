@@ -25,6 +25,8 @@ from pyaion.models import UrukuledBeam
 USE_SR87 = False
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
+USE_LATTICE_OFFSETS = True
+
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
@@ -143,13 +145,18 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-if USE_SR87:
-    # Default field in chamber 2 for loading Sr 87 into lattice w/ 6A gradient
+if USE_SR87 and USE_LATTICE_OFFSETS:
+    # With 6A gradient
     B_FIELD_BIAS_X = 0.5  # A
     B_FIELD_BIAS_Y = -0.05  # A
     B_FIELD_BIAS_Z = (
         -1.6 - 0.29
     )  # A  # FIXME I've guessed the offset required here based on the current supply misconfiguration described in the onenote on 20240502
+elif not USE_SR87 and USE_LATTICE_OFFSETS:
+    # With 1A gradient
+    B_FIELD_BIAS_X = 0.5  # A
+    B_FIELD_BIAS_Y = -0.02  # A
+    B_FIELD_BIAS_Z = -1.01  # A
 else:
     # Default fields in chamber 2 for nulling field
     B_FIELD_BIAS_X = 0.3  # A
