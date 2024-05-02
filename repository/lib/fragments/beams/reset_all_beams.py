@@ -155,5 +155,9 @@ class CloseAllICLShutters(CloseAllShutters):
     ]
 
 
+_suservo_beams = list(constants.SUSERVOED_BEAMS.values())
+_suservo_beams = [n for n in _suservo_beams if "lattice" not in n.name]
+
+
 class ResetAllICLBeams(ResetAllBeams):
-    beam_infos = list(constants.SUSERVOED_BEAMS.values())
+    beam_infos = _suservo_beams
