@@ -120,7 +120,7 @@ class NarrowbandRedMOTFrag(Fragment):
             "final_narrow_hold_time",
             FloatParam,
             "Time to hold in the final narrowband MOT before imaging",
-            default=100e-3,
+            default=constants.RED_MOT_FINAL_HOLD_TIME,
             unit="ms",
         )
         self.final_narrow_hold_time: FloatParamHandle
