@@ -35,10 +35,7 @@ class ClockSpecFromLatticeFrag(
     once more for background.
     """
 
-    @kernel
-    def before_start_hook(self):
-        self.lattice_before_start_hook()
-        self.clockspec_before_start_hook()
+    pass
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)

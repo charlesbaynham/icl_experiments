@@ -80,10 +80,10 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
 
     @kernel
     def before_start_hook(self):
-        self.clockspec_before_start_hook()
+        self.before_start_hook_clockspec()
 
     @kernel
-    def clockspec_before_start_hook(self):
+    def before_start_hook_clockspec(self):
         self.core.break_realtime()
 
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)

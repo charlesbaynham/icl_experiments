@@ -31,7 +31,7 @@ class RedMOTBase(ExpFragment):
 
         # %% Fragments
 
-        self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag)
+        self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
 
         self.setattr_fragment("red_mot", NarrowbandRedMOTFrag)
