@@ -94,7 +94,7 @@
                 script = pkgs.writeShellScriptBin "run" ''
                   export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
 
-                  if rg FIXME "${self}/repository"; then
+                  if rg FIXME "${self}" -g "!nix" -g !flake.nix -g !readme.rst; then
                     echo \"FIXME\" found in files
                     exit 1
                   else
