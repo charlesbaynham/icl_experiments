@@ -107,7 +107,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook()
+        self.lattice_before_start_hook()
 
     @kernel
     def lattice_before_start_hook(self):
