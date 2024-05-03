@@ -106,13 +106,11 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         self.lattice_setter: SetBeamsToDefaults
 
     @kernel
-    def before_start_hook(self):
-        self.lattice_before_start_hook()
-
-    @kernel
-    def lattice_before_start_hook(self):
+    def device_setup(self) -> None:
         self.core.break_realtime()
         self.lattice_setter.turn_on_all()
+
+        self.device_setup_subfragments()
 
     @kernel
     def post_narrowband_hook(self):
