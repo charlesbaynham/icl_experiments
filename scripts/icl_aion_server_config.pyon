@@ -7,7 +7,7 @@
             "display_colour": "blue",
             "exposure": [
                 50,
-                50
+                1
             ],
             "f_ref": 650.503218e12,
             "fast_enabled_at": 0,
@@ -30,8 +30,8 @@
             "channel": 1,
             "display_colour": "blue",
             "exposure": [
-                50,
-                50
+                20,
+                10
             ],
             "f_ref": 423.91292e12,
             "fast_enabled_at": 0,
@@ -54,8 +54,8 @@
             "channel": 5,
             "display_colour": "blue",
             "exposure": [
-                50,
-                50
+                15,
+                10
             ],
             "f_ref": 441.3320710e12,
             "fast_enabled_at": 0,
@@ -78,8 +78,8 @@
             "channel": 6,
             "display_colour": "blue",
             "exposure": [
-                50,
-                50
+                5,
+                5
             ],
             "f_ref": 434829334700000.0,
             "fast_enabled_at": 0,
@@ -102,8 +102,8 @@
             "channel": 2,
             "display_colour": "blue",
             "exposure": [
-                50,
-                50
+                5,
+                5
             ],
             "f_ref": 434828654700000.0,
             "fast_enabled_at": 0,
@@ -150,8 +150,8 @@
             "channel": 3,
             "display_colour": "red",
             "exposure": [
-                50,
-                50
+                70,
+                70
             ],
             "f_ref": 429.227636e12,
             "fast_enabled_at": 0,
