@@ -241,6 +241,10 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         )
         self.beam_default_setter: SetBeamsToDefaults
 
+        # Manually set the red shutters
+        self.setattr_device("ttl_shutter_red_axial_mot")
+        self.setattr_device("ttl_shutter_red_axial_spin_pol")
+
         # %% Kernel params
 
         self.first_run = True
@@ -252,6 +256,9 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         if self.first_run:
             self.core.break_realtime()
             delay(10 * ms)
+            self.ttl_shutter_red_axial_mot.on()
+            self.ttl_shutter_red_axial_spin_pol.off()
+
             if self.turn_on_beams_with_default_settings:
                 self.beam_default_setter.turn_on_all(light_enabled=True)
 
