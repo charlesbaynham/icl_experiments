@@ -28,6 +28,7 @@ USE_SR87 = True
 USE_LATTICE_MODE = True
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
 
+
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
@@ -432,12 +433,20 @@ WAND_SETPOINTS_88 = {
     "707": (_default_707, True),
     "679": (_default_679, True),
     "689": (_default_689, False),
+    "689_IJD": (
+        _default_689 - URUKULED_BEAMS["red_doublepass_injection"].frequency,
+        False,
+    ),
 }
 WAND_SETPOINTS_87 = {
     "461": (_default_461 - 75e6, True),
     "707": (_default_707 + 15e6, True),
     "679": (_default_679 - 2430e6, True),
     "689": (_default_689 - 1243.3e6, False),
+    "689_IJD": (
+        _default_689 - 1243.3e6 - URUKULED_BEAMS["red_doublepass_injection"].frequency,
+        False,
+    ),
 }
 
 # Spin polarisation settings
