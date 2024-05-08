@@ -25,7 +25,7 @@ from pyaion.models import UrukuledBeam
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
-USE_LATTICE_OFFSETS = True
+USE_LATTICE_MODE = True
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
 
 URUKULED_BEAMS = [
@@ -146,12 +146,12 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-if USE_SR87 and USE_LATTICE_OFFSETS:
+if USE_SR87 and USE_LATTICE_MODE:
     # With 6A gradient
     B_FIELD_BIAS_X = 1.1  # A
     B_FIELD_BIAS_Y = -0.02  # A
     B_FIELD_BIAS_Z = -1.4  # A
-elif not USE_SR87 and USE_LATTICE_OFFSETS:
+elif not USE_SR87 and USE_LATTICE_MODE:
     # With 1A gradient
     B_FIELD_BIAS_X = 0.5  # A
     B_FIELD_BIAS_Y = -0.02  # A
@@ -196,15 +196,23 @@ ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width = 212, 222, 100
-ANDOR_ROI_X0 = x - width / 2
-ANDOR_ROI_X1 = x + width / 2
-ANDOR_ROI_Y0 = y - width / 2
-ANDOR_ROI_Y1 = y + width / 2
+x, y, width, height = 212, 222, 100, 100
+
+if USE_LATTICE_MODE:
+    ANDOR_ROI_X0 = 50
+    ANDOR_ROI_X1 = 300
+    ANDOR_ROI_Y0 = 280
+    ANDOR_ROI_Y1 = 320
+
+else:
+    ANDOR_ROI_X0 = x - width / 2
+    ANDOR_ROI_X1 = x + width / 2
+    ANDOR_ROI_Y0 = y - height / 2
+    ANDOR_ROI_Y1 = y + height / 2
 
 ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
-ANDOR_FAST_KINETICS_HEIGHT = width
+ANDOR_FAST_KINETICS_HEIGHT = height
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
