@@ -54,7 +54,7 @@ class RedMOTWithClockLight(ClockSpectroscopyMixin, RedMOTWithExperiment):
     def save_data_hook(self):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
+
         sums = [0]
         means = [0.0]
         self.andor_camera_control.readout_ROIs(
