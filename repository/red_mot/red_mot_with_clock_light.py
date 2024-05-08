@@ -2,6 +2,7 @@ import logging
 
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -48,6 +49,21 @@ class RedMOTWithClockLight(ClockSpectroscopyMixin, RedMOTWithExperiment):
 
         # Image ground state atoms
         self.do_first_pulse(andor_exposure)
+
+    @kernel
+    def save_data_hook(self):
+        "Consume all slack and save the photos"
+        self.core.wait_until_mu(now_mu())
+        self.camera_interface.save_data()
+        sums = [0]
+        means = [0.0]
+        self.andor_camera_control.readout_ROIs(
+            sums,
+            means,
+            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+        )
+        self.andor_sum.push(sums[0])
+        self.andor_mean.push(means[0])
 
 
 RedMOTWithClockLightExp = make_fragment_scan_exp(RedMOTWithClockLight)
