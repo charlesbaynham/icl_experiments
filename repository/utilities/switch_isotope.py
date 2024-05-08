@@ -48,22 +48,23 @@ class SwitchIsotopeFrag(ExpFragment):
 
     def steer_wand(self):
         if self.sr87.get():
-            offsets = constants.WAND_OFFSETS_87
+            setpoints = constants.WAND_SETPOINTS_87
         else:
-            offsets = constants.WAND_OFFSETS_88
+            setpoints = constants.WAND_SETPOINTS_88
 
-        for laser, offset in offsets.items():
-            if isnan(offset):
+        for laser, setpoint in setpoints.items():
+            if isnan(setpoint):
                 logger.info("Disabling lock for laser %s", laser)
                 self.wand_server.unlock(laser=laser, name="")
             else:
-                logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
-                self.wand_server.lock(laser=laser, set_point=offset, timeout=None)
+                logger.info("Setting laser %s to %.12f THz", laser, 1e-12 * setpoint)
+                self.wand_server.set_reference_freq(laser=laser, f_ref=setpoint)
+                self.wand_server.lock(laser=laser, set_point=0, timeout=None)
 
         initial_laser_db = self.wand_server.get_laser_db()
 
         laser_lock_initial_settings = []
-        for laser, offset in offsets.items():
+        for laser, _ in setpoints.items():
             gain = initial_laser_db[laser]["lock_gain"]
             poll_time = initial_laser_db[laser]["lock_poll_time"]
             capture_range = initial_laser_db[laser]["lock_capture_range"]
@@ -71,7 +72,7 @@ class SwitchIsotopeFrag(ExpFragment):
 
         logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
 
-        laser_unlocked = {l: not isnan(o) for l, o in offsets.items()}
+        laser_unlocked = {l: not isnan(o) for l, o in setpoints.items()}
 
         try:
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
@@ -87,7 +88,7 @@ class SwitchIsotopeFrag(ExpFragment):
                 for laser, unlocked in laser_unlocked.items():
                     self.scheduler.pause()
                     if unlocked:
-                        desired_offset = offsets[laser]
+                        desired_offset = setpoints[laser]
                         meas = self.wand_server.get_freq(
                             laser=laser, offset_mode=True, age=1
                         )

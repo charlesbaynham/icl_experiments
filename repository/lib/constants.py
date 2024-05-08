@@ -420,11 +420,21 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 
 # WAND defaults for the two isotopes
 # Lasers not listed will be ignored. Lasers set to NaN will have their locks disabled
-WAND_OFFSETS_88 = {"461": -20e6, "707": 0, "679": 0, "689": float("nan")}
-WAND_OFFSETS_87 = {
-    "461": -75e6,
-    "707": +15e6,
-    "679": -2430e6,
+_default_461 = 650.503218e12
+_default_689 = 434829334700000.0
+_default_707 = 423.91292e12
+_default_679 = 441.3320710e12
+
+WAND_SETPOINTS_88 = {
+    "461": _default_461 - 20e6,
+    "707": _default_707,
+    "679": _default_679,
+    "689": float("nan"),
+}
+WAND_SETPOINTS_87 = {
+    "461": _default_461 - 75e6,
+    "707": _default_707 + 15e6,
+    "679": _default_679 - 2430e6,
     "689": float("nan"),
 }
 
