@@ -418,24 +418,26 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 ], "Please ensure both lists are in the same order"
 
 
-# WAND defaults for the two isotopes
-# Lasers not listed will be ignored. Lasers set to NaN will have their locks disabled
+# WAND frequency references and lock settings for the two isotopes. Lasers not
+# listed will be ignored. Entries are a tuple of (reference, locked): the laser
+# frequency will be set to "reference" and the lock will be enabled / disabled
+# according to "locked"
 _default_461 = 650.503218e12
 _default_689 = 434829334700000.0
 _default_707 = 423.91292e12
 _default_679 = 441.3320710e12
 
 WAND_SETPOINTS_88 = {
-    "461": _default_461 - 20e6,
-    "707": _default_707,
-    "679": _default_679,
-    "689": float("nan"),
+    "461": (_default_461 - 20e6, True),
+    "707": (_default_707, True),
+    "679": (_default_679, True),
+    "689": (_default_689, False),
 }
 WAND_SETPOINTS_87 = {
-    "461": _default_461 - 75e6,
-    "707": _default_707 + 15e6,
-    "679": _default_679 - 2430e6,
-    "689": float("nan"),
+    "461": (_default_461 - 75e6, True),
+    "707": (_default_707 + 15e6, True),
+    "679": (_default_679 - 2430e6, True),
+    "689": (_default_689 - 1243.3e6, False),
 }
 
 # Spin polarisation settings

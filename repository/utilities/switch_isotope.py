@@ -52,13 +52,13 @@ class SwitchIsotopeFrag(ExpFragment):
         else:
             setpoints = constants.WAND_SETPOINTS_88
 
-        for laser, setpoint in setpoints.items():
-            if isnan(setpoint):
+        for laser, (setpoint, lock_enabled) in setpoints.items():
+            self.wand_server.set_reference_freq(laser=laser, f_ref=setpoint)
+            if not lock_enabled:
                 logger.info("Disabling lock for laser %s", laser)
                 self.wand_server.unlock(laser=laser, name="")
             else:
                 logger.info("Setting laser %s to %.12f THz", laser, 1e-12 * setpoint)
-                self.wand_server.set_reference_freq(laser=laser, f_ref=setpoint)
                 self.wand_server.lock(laser=laser, set_point=0, timeout=None)
 
         initial_laser_db = self.wand_server.get_laser_db()
@@ -72,7 +72,9 @@ class SwitchIsotopeFrag(ExpFragment):
 
         logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
 
-        laser_unlocked = {l: not isnan(o) for l, o in setpoints.items()}
+        laser_unlocked = {
+            l: not lock_enabled for l, (setpoint, lock_enabled) in setpoints.items()
+        }
 
         try:
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
