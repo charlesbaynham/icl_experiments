@@ -88,7 +88,7 @@ class SwitchIsotopeFrag(ExpFragment):
                 for laser, unlocked in laser_unlocked.items():
                     self.scheduler.pause()
                     if unlocked:
-                        desired_offset = setpoints[laser]
+                        desired_offset = 0.0
                         meas = self.wand_server.get_freq(
                             laser=laser, offset_mode=True, age=1
                         )
