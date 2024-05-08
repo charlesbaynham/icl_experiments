@@ -69,16 +69,19 @@ class SwitchIsotopeFrag(ExpFragment):
         initial_laser_db = self.wand_server.get_laser_db()
 
         laser_lock_initial_settings = []
-        for laser, _ in setpoints.items():
-            gain = initial_laser_db[laser]["lock_gain"]
-            poll_time = initial_laser_db[laser]["lock_poll_time"]
-            capture_range = initial_laser_db[laser]["lock_capture_range"]
-            laser_lock_initial_settings.append((laser, gain, poll_time, capture_range))
+        for laser, (_, lock_enabled) in setpoints.items():
+            if lock_enabled:
+                gain = initial_laser_db[laser]["lock_gain"]
+                poll_time = initial_laser_db[laser]["lock_poll_time"]
+                capture_range = initial_laser_db[laser]["lock_capture_range"]
+                laser_lock_initial_settings.append(
+                    (laser, gain, poll_time, capture_range)
+                )
 
         logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
 
         laser_unlocked = {
-            l: not lock_enabled for l, (setpoint, lock_enabled) in setpoints.items()
+            l: not lock_enabled for l, (_, lock_enabled) in setpoints.items()
         }
 
         try:
