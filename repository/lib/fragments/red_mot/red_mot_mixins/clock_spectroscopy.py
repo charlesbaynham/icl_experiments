@@ -86,7 +86,9 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
     def before_start_hook_clockspec(self):
         self.core.break_realtime()
 
+        self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+
         self.clock_dds.sw.off()
         self.clock_dds.cfg_sw(False)
 
