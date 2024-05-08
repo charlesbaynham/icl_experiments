@@ -15,11 +15,16 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+    SingleAndorImage,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithClockLight(ClockSpectroscopyMixin, RedMOTWithExperiment):
+class RedMOTWithClockLight(
+    SingleAndorImage, ClockSpectroscopyMixin, RedMOTWithExperiment
+):
     """
     Image red MOT leaving the clock light on throughout
     """
@@ -38,32 +43,6 @@ class RedMOTWithClockLight(ClockSpectroscopyMixin, RedMOTWithExperiment):
     @kernel
     def do_spectroscopy_hook(self):
         pass
-
-    @kernel
-    def do_imaging_hook(self):
-        """
-        Hook for the imaging sequence. This hook runs after the spectroscopy
-        etc. is completed, and should handle imaging with the Andor camera.
-        """
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
-        # Image ground state atoms
-        self.do_first_pulse(andor_exposure)
-
-    @kernel
-    def save_data_hook(self):
-        "Consume all slack and save the photos"
-        self.core.wait_until_mu(now_mu())
-
-        sums = [0]
-        means = [0.0]
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-        self.andor_sum.push(sums[0])
-        self.andor_mean.push(means[0])
 
 
 RedMOTWithClockLightExp = make_fragment_scan_exp(RedMOTWithClockLight)
