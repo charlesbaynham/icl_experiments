@@ -39,13 +39,6 @@ class RedMOTWithClockLight(ClockSpectroscopyMixin, RedMOTWithExperiment):
     def do_spectroscopy_hook(self):
         pass
 
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera with default settings
-        """
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
-
     @kernel
     def do_imaging_hook(self):
         """
