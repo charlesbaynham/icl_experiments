@@ -54,9 +54,14 @@ class SwitchIsotopeFrag(ExpFragment):
 
         for laser, (setpoint, lock_enabled) in setpoints.items():
             self.wand_server.set_reference_freq(laser=laser, f_ref=setpoint)
+
             if not lock_enabled:
                 logger.info("Disabling lock for laser %s", laser)
-                self.wand_server.unlock(laser=laser, name="")
+                try:
+                    self.wand_server.unlock(laser=laser, name="")
+                except ValueError:
+                    # Raised if this laser has no controller - fine, since we don't want it locked anyway!
+                    pass
             else:
                 logger.info("Setting laser %s to %.12f THz", laser, 1e-12 * setpoint)
                 self.wand_server.lock(laser=laser, set_point=0, timeout=None)
