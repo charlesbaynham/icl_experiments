@@ -161,13 +161,14 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         # Save blue MOT pics
         self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
-
-        self.save_data_hook()
 
         # TODO: Move this closing of red mot shutters somewhere more sensible
         self.core.break_realtime()
         self.red_mot.red_beam_controller.turn_off_mot_beams()
+
+        self.camera_interface.save_data()
+
+        self.save_data_hook()
 
     @kernel
     def _do_pulse(self, andor_exposure):
