@@ -25,6 +25,7 @@ class MeasureBBRedMOTFrag(RedMOTBase):
 class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
     @kernel
     def do_spectroscopy_hook(self):
+        # No spectroscopy needed - just do nothing and move straight to imaging
         pass
 
 
