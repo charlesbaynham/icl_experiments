@@ -20,6 +20,11 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
+from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+    SingleAndorImage,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -153,23 +158,8 @@ class MeasureBBRedMOTFrag(RedMOTBase):
         self._save_data()
 
 
-class MeasureNarrowbandMOTFrag(RedMOTBase):
-    @kernel
-    def run_once(self):
-        narrowband_duration = self.red_mot.get_total_narrowband_duration()
-
-        self.core.break_realtime()
-
-        self._from_start_to_end_of_broadband_mot()
-
-        with parallel:
-            with sequential:
-                delay(narrowband_duration)
-                self._expand_and_image()
-
-            self.red_mot.transition_broadband_to_narrowband()
-
-        self._save_data()
+class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
+    pass
 
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
