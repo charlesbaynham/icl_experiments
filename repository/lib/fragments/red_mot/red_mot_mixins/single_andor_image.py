@@ -34,7 +34,7 @@ class SingleAndorImage(RedMOTWithExperiment):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         # Image ground state atoms
-        self.do_first_pulse(andor_exposure)
+        self.do_pulse(andor_exposure)
 
     @kernel
     def save_data_hook(self):

@@ -89,13 +89,13 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         # Image with atoms
-        self._do_pulse(andor_exposure)
+        self.do_pulse(andor_exposure)
 
         # Wait for atoms to disappear
         delay(self.delay_between_absorption_pulses.get())
 
         # Image without atoms
-        self._do_pulse(andor_exposure)
+        self.do_pulse(andor_exposure)
 
         # Trigger the third time without any light
         delay(self.delay_before_background_pulse.get())

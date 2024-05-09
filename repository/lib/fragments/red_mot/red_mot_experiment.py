@@ -300,7 +300,11 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         self.save_data_hook()
 
     @kernel
-    def _do_pulse(self, andor_exposure):
+    def do_pulse(self, andor_exposure):
+        """
+        Default implementation of a fluorescence pulse, available for use by
+        mixins in :meth:`~do_imaging_hook` (but not used by default).
+        """
         with parallel:
             with sequential:
                 delay(-0.5 * andor_exposure)
