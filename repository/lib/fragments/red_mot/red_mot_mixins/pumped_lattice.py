@@ -151,3 +151,10 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         low-pass filter this step
         """
         self.lattice_suservo.set_setpoint(self.lattice_low_setpoint.get())
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+
+        # After the sequence completes, put the lattice back to its high setpoint
+        self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())

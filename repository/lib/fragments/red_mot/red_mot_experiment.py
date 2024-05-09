@@ -288,16 +288,25 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         self.andor_camera_control.set_shutter(False)
 
+        self.post_sequence_cleanup_hook()
+
         # Save blue MOT pics
         self.core.wait_until_mu(now_mu())
-
-        # TODO: Move this closing of red mot shutters somewhere more sensible
-        self.core.break_realtime()
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
-
         self.camera_interface.save_data()
 
         self.save_data_hook()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        """
+        Run after each sequence is completed
+        """
+        self.post_sequence_cleanup_hook_base()
+
+    @kernel
+    def post_sequence_cleanup_hook_base(self):
+        self.core.break_realtime()
+        self.red_mot.red_beam_controller.turn_off_mot_beams()
 
     @kernel
     def do_pulse(self, andor_exposure):
