@@ -56,14 +56,17 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
-        self.setattr_result("andor_sum_0", FloatChannel)
-        self.setattr_result("andor_sum_1", FloatChannel)
-        self.setattr_result("andor_sum_2", FloatChannel)
+        self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("excitation_fraction", FloatChannel)
+        self.setattr_result("atom_number", FloatChannel)
+
         self.andor_sum_0: FloatChannel
         self.andor_sum_1: FloatChannel
         self.andor_sum_2: FloatChannel
         self.excitation_fraction: FloatChannel
+        self.atom_number: FloatChannel
 
     @kernel
     def do_imaging_hook(self):
@@ -119,6 +122,8 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
         )
+
+        self.atom_number.push(means[0] + means[1] - 2 * means[2])
 
     def hook_setup_andor(self):
         """
