@@ -195,6 +195,9 @@ DEFAULT_IMAGING_PULSE = 250e-6
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
 
+ANDOR_CAMERA_TRIGGER_ENABLE_TIME = 1e-6
+"Trigger the ANDOR camera this much before the actual requested trigger point"
+
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
 x, y, width, height = 212, 222, 100, 100
