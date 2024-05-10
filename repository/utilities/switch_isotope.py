@@ -97,6 +97,8 @@ class SwitchIsotopeFrag(ExpFragment):
 
             t_end = time.time() + MAX_TIME_TO_FAST_LOCK
             while any(laser_unlocked.values()) and time.time() < t_end:
+                logger.debug("laser_unlocked = %s", laser_unlocked)
+
                 for laser, unlocked in laser_unlocked.items():
                     self.scheduler.pause()
                     if unlocked:
@@ -105,8 +107,17 @@ class SwitchIsotopeFrag(ExpFragment):
                             laser=laser, offset_mode=True, age=1
                         )
                         status, actual_offset, _ = meas
+
+                        logger.debug(
+                            "Measured laser %s, result = %s, %.1f MHz",
+                            laser,
+                            status,
+                            1e-6 * actual_offset,
+                        )
+
                         if status != WLMMeasurementStatus.OKAY:
                             continue
+
                         if abs(desired_offset - actual_offset) < MAX_FINAL_OFFSET:
                             logger.info("Laser %s is locked", laser)
                             laser_unlocked[laser] = False
