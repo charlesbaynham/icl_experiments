@@ -65,13 +65,38 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
         self.andor_sum_2: FloatChannel
         self.excitation_fraction: FloatChannel
 
+    def hook_setup_andor(self):
+        """
+        Setup the Andor camera to use 3x ROIs since we're expecting fast
+        kinetics mode with 3 images
+
+        TODO: Set up Fast Kinetics mode here
+        """
+
+        # 3x ROIs
+        self.setattr_fragment(
+            "andor_camera_control",
+            AndorCameraControl,
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                    constants.ANDOR_ROI_X1,
+                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                ]
+                for i in range(3)
+            ],
+            add_pre_trigger_delay=True,
+        )
+        self.andor_camera_control: AndorCameraControl
+
     @kernel
     def do_imaging_hook(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+        andor_exposure = self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         # Image ground state atoms
         self.do_first_pulse(andor_exposure)
@@ -119,27 +144,3 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
         self.excitation_fraction.push(
             (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
         )
-
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-
-        TODO: Set up Fast Kinetics mode here
-        """
-
-        # 3x ROIs
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                    constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                ]
-                for i in range(3)
-            ],
-        )
-        self.andor_camera_control: AndorCameraControl

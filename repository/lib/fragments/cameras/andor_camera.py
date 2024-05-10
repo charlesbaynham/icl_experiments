@@ -47,6 +47,7 @@ class AndorCameraControl(Fragment):
                 constants.ANDOR_ROI_Y1,
             ]
         ],
+        add_pre_trigger_delay=False,
     ):
         self.setattr_device("core")
         self.core: Core
@@ -102,6 +103,19 @@ class AndorCameraControl(Fragment):
                 min=0,
                 max=512,
             )
+
+        self.setattr_param(
+            "pre_trigger_delay",
+            FloatParam,
+            "Time to allow for camera triggering to be enabled",
+            default=constants.ANDOR_CAMERA_TRIGGER_ENABLE_TIME,
+            unit="us",
+            min=0.0,
+        )
+        self.pre_trigger_delay: FloatParamHandle
+
+        if not add_pre_trigger_delay:
+            self.override_param("pre_trigger_delay", 0.0)
 
         # %% Kernel variables
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
@@ -202,11 +216,18 @@ class AndorCameraControl(Fragment):
         """
         Trigger an aquisition
 
-        For now, you must manually set up the camera to respond to external triggers.
+        For now, you must manually set up the camera to respond to external
+        triggers.
 
-        You should call :meth:`~.save_data` to read out the configured ROI at the end of your sequence.
+        You should call :meth:`~.save_data` to read out the configured ROI at
+        the end of your sequence.
 
-        If control_shutter == True, open the shutter <shutter_delay> in advance and then close if afterwards.
+        If control_shutter == True, open the shutter <shutter_delay> in advance
+        and then close if afterwards.
+
+        If this Fragment was built with add_pretrigger_delay == True, go back in
+        time by <trigger_delay> then trigger the camera for <trigger_delay> +
+        <exposure>. Otherwise, just expose the camera for <exposure>.
 
         Advances the timeline by the duration of the camera's exposure
         """
@@ -217,7 +238,14 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.on()
             delay_mu(shutter_delay_mu)
 
-        self.ttl_trigger.pulse(exposure)
+        pre_trigger_delay_mu = self.core.seconds_to_mu(self.pre_trigger_delay.get())
+        exposure_mu = self.core.seconds_to_mu(exposure)
+
+        delay_mu(-pre_trigger_delay_mu)
+
+        self.ttl_trigger.pulse_mu(pre_trigger_delay_mu + exposure_mu)
+
+        delay_mu(pre_trigger_delay_mu)
 
         if control_shutter:
             self.ttl_shutter.off()
