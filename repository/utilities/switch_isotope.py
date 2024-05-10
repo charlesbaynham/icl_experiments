@@ -80,11 +80,8 @@ class SwitchIsotopeFrag(ExpFragment):
 
         logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
 
-        laser_unlocked = {
-            l: not lock_enabled for l, (_, lock_enabled) in setpoints.items()
-        }
-
         try:
+            # Save initial settings so we can restore them at the end
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
                 self.wand_server.set_lock_params(
                     laser=laser,
@@ -94,6 +91,13 @@ class SwitchIsotopeFrag(ExpFragment):
                     poll_time=WAND_FAST_LOCK_POLLING,
                     capture_range=capture_range * 10,
                 )
+
+            # Start by assuming that all the lasers we want to be locked are
+            # currently unlocked. We'll check each until it's within
+            # MAX_FINAL_OFFSET of setpoint, or the time runs out
+            laser_unlocked = {
+                l: lock_enabled for l, (_, lock_enabled) in setpoints.items()
+            }
 
             t_end = time.time() + MAX_TIME_TO_FAST_LOCK
             while any(laser_unlocked.values()) and time.time() < t_end:
