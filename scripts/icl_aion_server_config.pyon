@@ -6,7 +6,7 @@
             "channel": 4,
             "display_colour": "blue",
             "exposure": [
-                50,
+                30,
                 1
             ],
             "f_ref": 650.503218e12,
