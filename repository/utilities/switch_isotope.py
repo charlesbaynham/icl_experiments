@@ -88,9 +88,11 @@ class SwitchIsotopeFrag(ExpFragment):
             for laser, gain, poll_time, capture_range in laser_lock_initial_settings:
                 self.wand_server.set_lock_params(
                     laser=laser,
-                    gain=gain,
+                    gain=gain
+                    * poll_time
+                    / WAND_FAST_LOCK_POLLING,  # Increase gain by the increased poll rate
                     poll_time=WAND_FAST_LOCK_POLLING,
-                    capture_range=capture_range,
+                    capture_range=capture_range * 10,
                 )
 
             t_end = time.time() + MAX_TIME_TO_FAST_LOCK
