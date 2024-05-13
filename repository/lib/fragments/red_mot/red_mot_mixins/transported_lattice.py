@@ -3,8 +3,6 @@ import logging
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TList
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
@@ -65,14 +63,24 @@ class DroppedLatticeWithTransportMixin(DroppedPumpedLatticeMixin):
     """
 
     def build_fragment(self):
-        super().build_fragment()
+        self.setattr_fragment(
+            "chamber_2_field_setter",
+            SetMagneticFieldsQuick,
+        )
+        self.chamber_2_field_setter: SetMagneticFieldsQuick
 
+        # Add a ramping phase for the transfer between the red MOT and lattice.
+        # Note that this must be before the NarrowbandRedMOT Fragment is added
+        # so that its handle is already recorded by the time device_setup of the
+        # NarrowbandRedMOT fires.
         self.setattr_fragment(
             "bias_field_ramper",
             _BiasFieldRamper,
-            chamber_2_field_setter=self.red_mot.chamber_2_field_setter,
+            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.bias_field_ramper: _BiasFieldRamper
+
+        super().build_fragment()
 
     @kernel
     def before_start_hook(self):
@@ -80,7 +88,9 @@ class DroppedLatticeWithTransportMixin(DroppedPumpedLatticeMixin):
 
     @kernel
     def before_start_hook_lattice(self):
-        self.bias_field_ramper.precalculate_dma_handle()
+        pass
+        # FIXME
+        # self.bias_field_ramper.precalculate_dma_handle()
 
     @kernel
     def load_into_lattice(self):
