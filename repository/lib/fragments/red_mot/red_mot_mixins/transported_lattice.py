@@ -15,7 +15,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
 logger = logging.getLogger(__name__)
 
 
-class _BiasFieldRamper(GeneralRampingPhase):
+class LatticeLoadFieldRamper(GeneralRampingPhase):
     # Configure general ramp to ramp the chamber 2 bias coils in amps
     general_setter_names = ["chamber_2_bias_x", "chamber_2_bias_y", "chamber_2_bias_z"]
     _opt = {"min": -5, "max": 5, "unit": "A"}
@@ -75,10 +75,10 @@ class DroppedLatticeWithTransportMixin(DroppedPumpedLatticeMixin):
         # NarrowbandRedMOT fires.
         self.setattr_fragment(
             "bias_field_ramper",
-            _BiasFieldRamper,
+            LatticeLoadFieldRamper,
             chamber_2_field_setter=self.chamber_2_field_setter,
         )
-        self.bias_field_ramper: _BiasFieldRamper
+        self.bias_field_ramper: LatticeLoadFieldRamper
 
         super().build_fragment()
 
