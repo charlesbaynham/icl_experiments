@@ -88,9 +88,7 @@ class DroppedLatticeWithTransportMixin(DroppedPumpedLatticeMixin):
 
     @kernel
     def before_start_hook_lattice(self):
-        pass
-        # FIXME
-        # self.bias_field_ramper.precalculate_dma_handle()
+        self.bias_field_ramper.precalculate_dma_handle()
 
     @kernel
     def load_into_lattice(self):
