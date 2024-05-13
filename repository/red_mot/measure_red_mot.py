@@ -64,6 +64,13 @@ class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
         # No spectroscopy needed - just do nothing and move straight to imaging
         pass
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Disable unused params
+        for p in ["delay_after_spectroscopy"]:
+            self.override_param(p, 0)
+
 
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(
