@@ -24,7 +24,7 @@ class _BiasFieldRamper(GeneralRampingPhase):
     general_setter_param_options = [_opt] * 3
 
     # Default settings for the ramp
-    duration = constants.LATTICE_TRANSFER_TIME
+    duration_default = constants.LATTICE_TRANSFER_TIME
     add_final_point = True
 
     general_setter_default_starts = [
@@ -67,49 +67,11 @@ class DroppedLatticeWithTransportMixin(DroppedPumpedLatticeMixin):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_param(
-            "lattice_current_x",
-            FloatParam,
-            description="Current in X bias coil during lattice",
+        self.setattr_fragment(
+            "bias_field_ramper",
+            _BiasFieldRamper,
+            chamber_2_field_setter=self.red_mot.chamber_2_field_setter,
         )
-
-        self.setattr_param_like(
-            "lattice_bias_x",
-            self.blue_3d_mot,
-            "chamber_2_bias_x",
-            description="Bias current in X during lattice",
-            default=constants.B_FIELD_BIAS_LATTICE_X,
-        )
-        self.setattr_param_like(
-            "lattice_bias_y",
-            self.blue_3d_mot,
-            "chamber_2_bias_y",
-            description="Bias current in Y during lattice",
-            default=constants.B_FIELD_BIAS_LATTICE_Y,
-        )
-        self.setattr_param_like(
-            "lattice_bias_z",
-            self.blue_3d_mot,
-            "chamber_2_bias_z",
-            description="Bias current in Z during lattice",
-            default=constants.B_FIELD_BIAS_LATTICE_Z,
-        )
-
-        self.setattr_param(
-            "mot_to_lattice_transition_time",
-            FloatParam,
-            description="Time to ramp fields over to transfer red MOT to lattice",
-            min=0,
-            unit="ms",
-            default=constants.LATTICE_TRANSFER_TIME,
-        )
-
-        self.lattice_bias_x: FloatParamHandle
-        self.lattice_bias_y: FloatParamHandle
-        self.lattice_bias_z: FloatParamHandle
-        self.mot_to_lattice_transition_time: FloatParamHandle
-
-        self.setattr_fragment("bias_field_ramper", _BiasFieldRamper)
         self.bias_field_ramper: _BiasFieldRamper
 
     @kernel
