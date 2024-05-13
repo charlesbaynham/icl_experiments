@@ -125,6 +125,10 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         shutter wiggle thing, since that would clash with the spin pol pulse
         we're about to do
         """
+        self.MOT_off_lattice_on()
+
+    @kernel
+    def MOT_off_lattice_on(self):
         self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 

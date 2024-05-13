@@ -147,21 +147,36 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-if USE_SR87 and USE_LATTICE_MODE:
+if USE_SR87:
     # With 6A gradient
-    B_FIELD_BIAS_X = 1.1  # A
-    B_FIELD_BIAS_Y = -0.02  # A
-    B_FIELD_BIAS_Z = -1.4  # A
-elif not USE_SR87 and USE_LATTICE_MODE:
+    B_FIELD_BIAS_LATTICE_X = 1.1  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.4  # A
+elif not USE_SR87:
     # With 1A gradient
-    B_FIELD_BIAS_X = 0.5  # A
-    B_FIELD_BIAS_Y = -0.02  # A
-    B_FIELD_BIAS_Z = -1.01  # A
+    B_FIELD_BIAS_LATTICE_X = 0.5  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.01  # A
+
+# Default fields in chamber 2 for nulling field
+B_FIELD_BIAS_NULL_X = 0.3  # A
+B_FIELD_BIAS_NULL_Y = -0.014  # A
+B_FIELD_BIAS_NULL_Z = -1.04  # A
+
+if USE_LATTICE_MODE:
+    B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
+        B_FIELD_BIAS_LATTICE_X,
+        B_FIELD_BIAS_LATTICE_Y,
+        B_FIELD_BIAS_LATTICE_Z,
+    )
+
 else:
-    # Default fields in chamber 2 for nulling field
-    B_FIELD_BIAS_X = 0.3  # A
-    B_FIELD_BIAS_Y = -0.014  # A
-    B_FIELD_BIAS_Z = -1.04  # A
+    B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
+        B_FIELD_BIAS_NULL_X,
+        B_FIELD_BIAS_NULL_Y,
+        B_FIELD_BIAS_NULL_Z,
+    )
+
 
 B_FIELD_GRADIENT = 90.0  # A
 
@@ -459,3 +474,9 @@ WAND_SETPOINTS_87 = {
 TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
 DURATION_OF_SPIN_POL = 20e-3
 TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3
+
+
+# Lattice settings
+
+LATTICE_TRANSFER_TIME = 10e-3
+"Time to ramp fields over to transfer red MOT to lattice"
