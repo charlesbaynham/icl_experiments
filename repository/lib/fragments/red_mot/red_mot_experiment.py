@@ -152,39 +152,6 @@ class RedMOTBase(ExpFragment):
         self.red_mot.prepare_for_broadband_phase()
         self.red_mot.broadband_red_phase.do_phase()
 
-    @kernel
-    def _expand_and_image(self):
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
-
-        delay(self.expansion_time.get())
-
-        with parallel:
-            self.andor_camera_control.trigger(
-                exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
-                control_shutter=True,
-            )
-            self.fluorescence_pulse.do_imaging_pulse()
-            self.camera_interface.trigger()
-
-        # Turn the fields back to defaults so eddy currents are gone by the next shot
-        delay(1e-3)
-        self.blue_3d_mot.enable_mot_fields()
-
-    @kernel
-    def _save_data(self):
-        "Consume all slack and save the photos"
-        self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
-        sums = [0]
-        means = [0.0]
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-        self.andor_sum.push(sums[0])
-        self.andor_mean.push(means[0])
-
 
 class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     """
