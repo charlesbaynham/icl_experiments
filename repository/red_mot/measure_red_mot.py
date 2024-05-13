@@ -4,8 +4,10 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
+from ndscan.experiment import FloatChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTBase
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
@@ -17,6 +19,25 @@ logger = logging.getLogger(__name__)
 
 
 class MeasureBBRedMOTFrag(RedMOTBase):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self._setup_andor()
+
+    def _setup_andor(self):
+        """
+        Setup the Andor camera
+
+        This is a method so that children classes can override it
+        """
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_mean", FloatChannel)
+        self.andor_sum: FloatChannel
+        self.andor_mean: FloatChannel
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
