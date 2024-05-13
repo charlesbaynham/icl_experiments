@@ -129,22 +129,6 @@ class RedMOTBase(ExpFragment):
         )
         self.red_broadband_time: FloatParamHandle
 
-        self.hook_setup_andor()
-
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera
-
-        This is a method so that children classes can override it
-        """
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
-
-        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_mean", FloatChannel)
-        self.andor_sum: FloatChannel
-        self.andor_mean: FloatChannel
-
     @kernel
     def _from_start_to_end_of_broadband_mot(self):
         self.blue_3d_mot.load_mot(clearout=True)

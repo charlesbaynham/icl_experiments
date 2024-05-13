@@ -2,6 +2,7 @@ import logging
 
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from ndscan.experiment import FloatChannel
 
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.red_mot.red_mot_experiment import (
@@ -24,6 +25,25 @@ class SingleAndorImage(RedMOTWithExperiment):
     * :meth:`~do_imaging_hook`
     * :meth:`~save_data_hook`
     """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self._setup_andor()
+
+    def _setup_andor(self):
+        """
+        Setup the Andor camera
+
+        This is a method so that children classes can override it
+        """
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_mean", FloatChannel)
+        self.andor_sum: FloatChannel
+        self.andor_mean: FloatChannel
 
     @kernel
     def do_imaging_hook(self):

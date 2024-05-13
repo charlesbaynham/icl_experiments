@@ -38,6 +38,10 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
+        self._setup_params()
+        self._setup_andor()
+
+    def _setup_params(self):
         self.setattr_param(
             "delay_between_fluoresence_pulses",
             FloatParam,
@@ -56,19 +60,7 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
-        self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("excitation_fraction", FloatChannel)
-        self.setattr_result("atom_number", FloatChannel)
-
-        self.andor_sum_0: FloatChannel
-        self.andor_sum_1: FloatChannel
-        self.andor_sum_2: FloatChannel
-        self.excitation_fraction: FloatChannel
-        self.atom_number: FloatChannel
-
-    def hook_setup_andor(self):
+    def _setup_andor(self):
         """
         Setup the Andor camera to use 3x ROIs since we're expecting fast
         kinetics mode with 3 images
@@ -92,6 +84,18 @@ class TripleImageMOTMixin(RedMOTWithExperiment):
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("excitation_fraction", FloatChannel)
+        self.setattr_result("atom_number", FloatChannel)
+
+        self.andor_sum_0: FloatChannel
+        self.andor_sum_1: FloatChannel
+        self.andor_sum_2: FloatChannel
+        self.excitation_fraction: FloatChannel
+        self.atom_number: FloatChannel
 
     @kernel
     def do_imaging_hook(self):

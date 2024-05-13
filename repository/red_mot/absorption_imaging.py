@@ -70,6 +70,10 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
 
         self.absorption: FloatChannel
 
+        # Camera
+
+        self._setup_andor()
+
     def host_setup(self):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
         logger.warning(
@@ -114,37 +118,12 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         )
         delay(0.5 * andor_exposure)
 
-    def hook_setup_andor(self):
+    def _setup_andor(self):
         """
         Setup the Andor camera with default settings
         """
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
-
-    # def hook_setup_andor(self):
-    #     """
-    #     Setup the Andor camera to use 4x ROIs since we're expecting fast
-    #     kinetics mode with 2x images which we'll repeat.
-
-    #     Each image is the full sensor size, so we'll use the normal ROI
-
-    #     TODO: Set up Fast Kinetics mode here too
-    #     """
-
-    #     self.setattr_fragment(
-    #         "andor_camera_control",
-    #         AndorCameraControl,
-    #         roi_defaults=[
-    #             [
-    #                 constants.ANDOR_ROI_X0,
-    #                 i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y0,
-    #                 constants.ANDOR_ROI_X1,
-    #                 i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y1,
-    #             ]
-    #             for i in range(2)
-    #         ],
-    #     )
-    #     self.andor_camera_control: AndorCameraControl
 
     @kernel
     def save_data_hook(self):
