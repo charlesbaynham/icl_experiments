@@ -49,6 +49,9 @@ def make_set_beams_to_default(
     order, number and type-signatures. That's not true for this Fragment: we'll
     be setting up variable numbers of LibSetSUServoStatic subfragments, so need
     a subclass for each instance.
+
+    TODO: Idea: I could speed up compilation times by sharing the same class
+    definitions where possible, though this might be hard to detect.
     """
 
     class SetBeamsToDefaultsCustomised(SetBeamsToDefaults):
