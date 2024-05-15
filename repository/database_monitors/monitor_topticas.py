@@ -30,12 +30,15 @@ class _MonitorToptica(Calibration):
         super().__init__(*args, **kwargs)
 
     def build_calibration(self):
+        self.set_timeout(10)
+
+    def host_setup(self):
+        super().host_setup()
+
         self.dlcpro: TopticaDLCPro = self.get_device(self.laser_name)
         self.raw_dlcpro = self.dlcpro.get_dlcpro()
 
         self.laser = None
-
-        self.set_timeout(10)
 
     def host_cleanup(self):
         self.raw_dlcpro.close()

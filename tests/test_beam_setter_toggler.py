@@ -4,6 +4,7 @@ from artiq.coredevice.core import Core
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
@@ -19,6 +20,23 @@ BEAM_INFO_SUSERVO_WITH_SHUTTER = SUServoedBeam(
     0.0,
     "suservo0_ch0",
     shutter_device="ttl12",  # This is our first ttl output
+)
+
+BEAM_INFO_URUKUL_NO_SHUTTER = UrukuledBeam(
+    name="no_shutter_urukul",
+    frequency=0.0,
+    amplitude=0.0,
+    attenuation=30.0,
+    urukul_device="urukul5_ch0",
+)
+
+BEAM_INFO_URUKUL_WITH_SHUTTER = UrukuledBeam(
+    name="no_shutter_urukul",
+    frequency=0.0,
+    amplitude=0.0,
+    attenuation=30.0,
+    urukul_device="urukul5_ch0",
+    shutter_device="ttl12",
 )
 
 
