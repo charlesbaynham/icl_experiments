@@ -50,6 +50,11 @@ def make_set_beams_to_default(
     be setting up variable numbers of LibSetSUServoStatic subfragments, so need
     a subclass for each instance.
 
+    You can provide a `name` if you wish, which will result in nicer annotations
+    for your ndscan parameters in the GUI.
+
+    See the docs for :class:`~SetBeamsToDefaults` for more information.
+
     TODO: Idea: I could speed up compilation times by sharing the same class
     definitions where possible, though this might be hard to detect.
     """
@@ -72,16 +77,38 @@ def make_set_beams_to_default(
 
 class SetBeamsToDefaults(Fragment):
     """
-    Turn on a list of beams, possibly with shutters, to their default
-    settings
+    Turn on a list of beams, possibly with shutters, to their default settings
 
-    These can be suservoed or urukuled beams.
+    These can be suservoed or urukuled beams, of the AD9910 or AD9912 variety.
+
+    This Fragment will create ndscan parameters for all the beam settings,
+    allowing you to override them or scan them if you wish.
+
+    This Fragment provides the :meth:`~turn_on_all` method which will initiate
+    all the AD9910 / AD9912 / SUServos to their appropriate settings. By default
+    it will leave the light off, requiring you to turn it on (you could consider
+    the :class:`~ToggleListOfBeams` Fragment for this purpose). If you just want
+    the light to be on immediately, set `light_enabled=True`.
+
+    Usage
+    -----
 
     Don't use this fragment directly: instead, construct it using
-    :meth:`make_toggle_list_of_beams`.
+    :meth:`make_set_beams_to_default`. For example, in your `build_fragment`::
 
-    This class will define ndscan parameters which allow the user to override
-    these default settings.
+        self.setattr_fragment(
+            "beam_setter",
+            make_set_beams_to_default(
+                [
+                    constants.SUSERVOED_BEAMS["red_mot_diagonal"],
+                    constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
+                    constants.SUSERVOED_BEAMS["red_mot_sigmaminus"],
+                    constants.SUSERVOED_BEAMS["red_up"],
+                ],
+                name="beam_setter",
+            ),
+        )
+        self.beam_setter: SetBeamsToDefaults
     """
 
     default_suservo_beam_infos: List[SUServoedBeam] = None  # type: ignore
