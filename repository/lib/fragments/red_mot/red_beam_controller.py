@@ -167,8 +167,9 @@ class RedBeamController(Fragment):
             FloatParam,
             "689 injection AOM nominal static frequency",
             unit="MHz",
-            default=constants.RED_INJECTION_AOM_FREQUENCY,
+            default=constants.URUKULED_BEAMS["red_doublepass_injection"].frequency,
         )
+
         self.setattr_param(
             "ramp_frequency",
             FloatParam,
@@ -358,44 +359,12 @@ class RedBeamController(Fragment):
         self.injection_aom.set(freq)
 
     @kernel
-    def set_mot_suservo_amplitude_global(self, amplitude_multiple: TFloat):
-        """
-        Set the SUServo target amplitudes of all MOT beams together
-
-        TODO: This code is not currently used but should be used to implement
-        global ramps of the red mot intensities
-
-        Args:
-            amplitude_multiple (TFloat): Amplitude of MOT beams, expressed as a
-            multiple of the nominal amplitude
-        """
-
-        for i in range(len(self.suservo_fragments)):
-            suservo_frag = self.suservo_fragments[i]
-            nominal_setpoint = self.suservo_nominal_amplitudes[i]
-            photodiode_offset = self.suservo_setpoint_offsets[i]
-
-            setpoint = nominal_setpoint * amplitude_multiple + photodiode_offset
-
-            if self.debug_mode:
-                logger.info(
-                    "Setting %s setpoint to %.2f x %.2f + %.4f = %.3f V",
-                    suservo_frag,
-                    amplitude_multiple,
-                    nominal_setpoint,
-                    photodiode_offset,
-                    setpoint,
-                )
-
-            suservo_frag.set_setpoint(setpoint)
-
-    @kernel
-    def set_mot_suservo_amplitude_individual(
+    def set_mot_suservo_amplitudes(
         self,
         amplitude_red_diagonal: TFloat,
         amplitude_red_axialplus: TFloat,
         amplitude_red_axialminus: TFloat,
-        amplitude_red_up: TFloat,  # TODO: add up beam
+        amplitude_red_up: TFloat,
     ):
         """
         Set the SUServo target amplitudes of all MOT beams individually,
@@ -403,7 +372,7 @@ class RedBeamController(Fragment):
         """
 
         # Prepare array of beam amplitudes
-        # This must match the ordering in RED_BEAM_INFOS
+        # This must match the ordering in RED_SUSERVO_INFOS
         ampltiudes = [
             amplitude_red_diagonal,
             amplitude_red_axialplus,

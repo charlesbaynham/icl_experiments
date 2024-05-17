@@ -172,9 +172,6 @@ BLUE_LOADING_TIME = 500e-3
 RED_INJECTION_AOM_ATTENUATION = 0.0
 "Default attenuation for the 689 injection AOM"
 
-RED_INJECTION_AOM_FREQUENCY = 366.6e6  # TODO: Get rid of this once !31 is merged
-"Nominal frequency for the 689 injection AOM"
-
 RED_BROADBAND_RAMP_LIMIT = 4e6
 "Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
 
