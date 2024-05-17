@@ -108,8 +108,7 @@ class UpBeamInterferometryIJD(_InterferometryCommon):
 
         # A bit fragile, but recalculate the injection AOM's frequency here
         freq = (
-            constants.RED_INJECTION_AOM_FREQUENCY
-            + self.red_mot.red_beam_controller.injection_aom_static_frequency.get()
+            self.red_mot.red_beam_controller.injection_aom_static_frequency.get()
             + self.spectroscopy_pulse_aom_detuning.get()
         )
 
