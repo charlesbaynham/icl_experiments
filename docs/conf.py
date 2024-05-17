@@ -39,6 +39,9 @@ project_title = "Imperial Experiments"
 html_logo = "images/logo.svg"
 latex_logo = "images/logo.pdf"
 
+# TODO: Remove this sphinx mocks once the environment builds properly
+autodoc_mock_imports = ["artiq", "ndscan", "numpy", "qbutler", "pyaion", "wand", "oitg"]
+
 # -- General configuration ---------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
