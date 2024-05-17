@@ -126,6 +126,9 @@
             # default to ICL's settings
             default = flake-utils.lib.mkApp {
               drv = (pkgs.writeShellScriptBin "script" ''
+                # If you want to reset the dashboard settings each time, uncomment this line
+                # export XDG_CONFIG_HOME=$(mktemp -d)
+
                 exec ${overriddenOutputs.apps.dashboard.program} -s ph-cb2409-2.ph.ic.ac.uk
               '');
             };
