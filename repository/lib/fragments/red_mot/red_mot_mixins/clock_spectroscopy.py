@@ -5,10 +5,10 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
-from repository.lib.fragments.beams.urukul_init import make_urukul_init
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )

@@ -10,12 +10,10 @@ from artiq.experiment import now_mu
 from ndscan.experiment import *
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 
 from repository.lib import constants
-from repository.lib.fragments.beams.default_beam_setter import (
-    make_set_beams_to_default,
-)
-from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 
