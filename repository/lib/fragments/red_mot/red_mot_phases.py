@@ -185,7 +185,7 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     if USE_SR87:
         # Sr 87
         default_suservo_setpoint_multiples_start = [0.6, 0.6, 0.6, 0.0]
-        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
+        default_suservo_setpoint_multiples_end = [0.6, 0.6, 0.6, 0.0]
         general_setter_default_starts = [12.0]
         general_setter_default_ends = [6.0]
         default_urukul_detunings_start = [200e3]
