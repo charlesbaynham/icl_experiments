@@ -300,6 +300,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_mot_diagonal",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.01326,
     ),
@@ -311,6 +312,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.0188,
     ),
@@ -323,6 +325,7 @@ SUSERVOED_BEAMS = [
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.1,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
+        initial_amplitude=0.05,
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     SUServoedBeam(
@@ -333,6 +336,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
