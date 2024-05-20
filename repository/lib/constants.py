@@ -185,7 +185,7 @@ RED_BROADBAND_TIME = 100e-3
 RED_MOT_FINAL_HOLD_TIME = 0 if USE_SR87 else 100e-3
 "Default final hold time in last stage of the red mot"
 
-DEFAULT_IMAGING_PULSE = 250e-6
+DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 
