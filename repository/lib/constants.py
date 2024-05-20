@@ -197,7 +197,7 @@ ANDOR_CAMERA_TRIGGER_ENABLE_TIME = 1e-6
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width, height = 212, 222, 100, 100
+x, y, width, height = 230, 285, 100, 100
 
 if USE_LATTICE_MODE:
     ANDOR_ROI_X0 = 50
