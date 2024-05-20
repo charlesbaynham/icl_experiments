@@ -209,6 +209,9 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             if i == 0:
                 r = self.setattr_result(
                     name,
+                    display_hints={
+                        "priority": -1,
+                    },
                 )
             else:
                 r = self.setattr_result(
