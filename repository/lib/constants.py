@@ -25,7 +25,7 @@ from pyaion.models import UrukuledBeam
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
-USE_LATTICE_MODE = True
+USE_LATTICE_MODE = False
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
 
 
@@ -185,7 +185,7 @@ RED_BROADBAND_TIME = 100e-3
 RED_MOT_FINAL_HOLD_TIME = 0 if USE_SR87 else 100e-3
 "Default final hold time in last stage of the red mot"
 
-DEFAULT_IMAGING_PULSE = 250e-6
+DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 
@@ -197,7 +197,7 @@ ANDOR_CAMERA_TRIGGER_ENABLE_TIME = 1e-6
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width, height = 212, 222, 100, 100
+x, y, width, height = 230, 285, 100, 100
 
 if USE_LATTICE_MODE:
     ANDOR_ROI_X0 = 50
@@ -300,6 +300,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_mot_diagonal",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.01326,
     ),
@@ -311,6 +312,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.0188,
     ),
@@ -323,6 +325,7 @@ SUSERVOED_BEAMS = [
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.1,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
+        initial_amplitude=0.05,
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     SUServoedBeam(
@@ -333,6 +336,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
