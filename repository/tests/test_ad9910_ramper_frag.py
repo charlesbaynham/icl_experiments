@@ -71,7 +71,7 @@ class TestAD9910RamperFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        delay(10e-3)
+        delay(100e-3)
 
         self.ramper.start_ramp(self.df_dt, self.f_min, self.f_max, self.scan_type)
 
