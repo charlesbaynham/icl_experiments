@@ -243,11 +243,11 @@ class Blue3DMOTFrag(Fragment):
         )
 
     @kernel
-    def enable_mot_defaults(self):
+    def enable_mot_defaults(self, light_enabled=True):
         """
         Immediately turn on all beams and fields related to the 3D blue MOT
         """
-        self.all_beam_default_setter.turn_on_all()
+        self.all_beam_default_setter.turn_on_all(light_enabled=light_enabled)
         self.enable_mot_fields()
 
     @kernel
@@ -267,17 +267,17 @@ class Blue3DMOTFrag(Fragment):
         return self.mot_all_beam_setter.turn_beams_off()
 
     @kernel
-    def turn_on_3d_beams(self):
-        return self.mot_3d_beams_setter.turn_beams_on()
+    def turn_on_3d_beams(self, ignore_shutters=False):
+        return self.mot_3d_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
 
     @kernel
-    def turn_off_3d_beams(self):
+    def turn_off_3d_beams(self, ignore_shutters=False):
         """Turn off the 3D blue MOT beams
 
         This method will not advance the cursor BUT will write shutter closing
         events into the future by "shutter_delay_time" seconds.
         """
-        return self.mot_3d_beams_setter.turn_beams_off()
+        return self.mot_3d_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
 
     @kernel
     def turn_on_repumpers(self):

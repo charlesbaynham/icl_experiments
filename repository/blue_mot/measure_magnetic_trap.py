@@ -104,9 +104,9 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
-        self.mot_controller.enable_mot_defaults()
+        self.mot_controller.enable_mot_defaults(light_enabled=False)
         delay(20e-9)
-        self.mot_controller.turn_off_3d_and_2d_beams()
+        self.mot_controller.turn_on_repumpers()
 
         delay(
             100e-3
@@ -138,9 +138,11 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         # Clear out the atoms
         delay(100e-3)
-        self.mot_controller.turn_off_3d_beams()  # but leave repumps on
+        self.mot_controller.turn_off_3d_beams(
+            ignore_shutters=True
+        )  # but leave repumps on
         delay(50e-3)
-        self.mot_controller.turn_on_3d_beams()
+        self.mot_controller.turn_on_3d_beams(ignore_shutters=True)
         delay(10e-3)
         self.camera_interface.trigger_background()
 
