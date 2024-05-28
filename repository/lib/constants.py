@@ -455,7 +455,7 @@ WAND_SETPOINTS_88 = {
     "679": (_default_679, True),
     "689": (_default_689, False),
     "689_IJD": (
-        _default_689 - URUKULED_BEAMS["red_doublepass_injection"].frequency,
+        _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
     "698": (_default_698, False),
