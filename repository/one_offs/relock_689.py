@@ -99,3 +99,12 @@ class RelockCavity(Fragment):
             time.sleep(self.delay_after_unlim.get())
 
             self.set_piezo_scan(enabled=False)
+
+    def set_piezo_scan(self, enabled=False, amplitude=0.0, frequency=1.0):
+        self.toptica_689.get_laser().scan.enabled.set(False)
+        self.toptica_689.get_laser().scan.amplitude.set(amplitude)
+        self.toptica_689.get_laser().scan.frequency.set(frequency)
+        self.toptica_689.get_laser().scan.enabled.set(enabled)
+
+    def set_FALC(self, main=False, unlim=False):
+        raise NotImplementedError
