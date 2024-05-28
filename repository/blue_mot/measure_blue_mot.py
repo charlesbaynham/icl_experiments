@@ -9,6 +9,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import OnlineFit
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
@@ -112,6 +113,19 @@ class MeasureBlueMOTWithCameraFrag(_MeasureBlueMOTFrag):
         self.dual_cameras.bind_param("exposure_vert", self.exposure)
 
         super().build_fragment()
+
+    def get_default_analyses(self):
+        super_analysis = super().get_default_analyses()
+
+        return super_analysis + [
+            OnlineFit(
+                "exponential_decay",
+                data={
+                    "x": self.mot_loading_time,
+                    "y": self.dual_cameras.image_vertical_mean,
+                },
+            )
+        ]
 
     @kernel
     def _take_data(self, loading_time):
