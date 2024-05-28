@@ -432,7 +432,7 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 
 # These frequencies were chosen empirically based on the atoms
 _default_461 = 650503835e6
-_default_707 = 423913536e6
+_default_707 = 423913558e6
 _default_679 = 441332688e6
 _default_698 = 429228253e6
 
