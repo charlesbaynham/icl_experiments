@@ -431,9 +431,9 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 ], "Please ensure both lists are in the same order"
 
 # These frequencies were chosen empirically based on the atoms
-_default_461 = 650503835e6
-_default_707 = 423913558e6
-_default_679 = 441332740e6
+_default_461 = 650504101e6
+_default_707 = 423913481e6
+_default_679 = 441332637e6
 _default_698 = 429228253e6
 
 # The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
