@@ -22,6 +22,14 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 
+SR_FACTS = {
+    "FREQUENCIES": {
+        "689_88": 434829121311e3,  # 10.1103/PhysRevLett.91.243002
+        "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
+    }
+}
+
+
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
