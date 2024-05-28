@@ -431,7 +431,7 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 ], "Please ensure both lists are in the same order"
 
 # These frequencies were chosen empirically based on the atoms
-_default_461 = 650504101e6
+_default_461 = 650504048e6
 _default_707 = 423913481e6
 _default_679 = 441332637e6
 _default_698 = 429228253e6
@@ -450,7 +450,7 @@ _default_689 = (
 # frequency will be set to "reference" and the lock will be enabled / disabled
 # according to "locked"
 WAND_SETPOINTS_88 = {
-    "461": (_default_461 - 53e6, True),
+    "461": (_default_461, True),
     "707": (_default_707, True),
     "679": (_default_679, True),
     "689": (_default_689, False),
@@ -461,8 +461,8 @@ WAND_SETPOINTS_88 = {
     "698": (_default_698, False),
 }
 WAND_SETPOINTS_87 = {
-    "461": (_default_461 - 108e6, True),
-    "707": (_default_707 + 15e6, True),
+    "461": (_default_461 - 55e6, True),
+    "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
     "689": (_default_689 - 1243.3e6, False),
     "689_IJD": (
