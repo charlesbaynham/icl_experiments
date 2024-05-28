@@ -37,7 +37,7 @@ BlueBeamSetter = make_set_beams_to_default(
         ]
     ],
     urukul_beam_infos=[],
-    name="ImagingBeamsSettings",
+    name="BlueBeamSetter",
 )
 
 
