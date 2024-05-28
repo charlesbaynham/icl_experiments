@@ -6,6 +6,7 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -82,6 +83,19 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
             self.exposure,
         )
         self.exposure: FloatParamHandle
+
+    def get_default_analyses(self):
+        super_analysis = super().get_default_analyses()
+
+        return super_analysis + [
+            OnlineFit(
+                "exponential_decay",
+                data={
+                    "x": self.dark_time,
+                    "y": self.camera_interface.image_vertical_mean,
+                },
+            )
+        ]
 
     @kernel
     def run_once(self):
