@@ -430,17 +430,25 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
 
+# These frequencies were chosen empirically based on the atoms
+_default_461 = 650503835e6
+_default_707 = 423913536e6
+_default_679 = 441332688e6
+_default_698 = 429228253e6
+
+# The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
+# the absolute frequency and the value of the AOMs between the wavemeter pickoff
+# and the atoms as a calibration
+_default_689 = (
+    SR_FACTS["FREQUENCIES"]["689_88"]
+    + 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency
+    + SUSERVOED_BEAMS["red_mot_diagonal"].frequency
+)
 
 # WAND frequency references and lock settings for the two isotopes. Lasers not
 # listed will be ignored. Entries are a tuple of (reference, locked): the laser
 # frequency will be set to "reference" and the lock will be enabled / disabled
 # according to "locked"
-_default_461 = 650.503218e12 + 616.6e6
-_default_689 = 434829334700000.0 + 616.6e6
-_default_707 = 423.91292e12 + 616.6e6
-_default_679 = 441.3320710e12 + 616.6e6
-_default_698 = 429.227636e12 + 616.6e6
-
 WAND_SETPOINTS_88 = {
     "461": (_default_461 - 20e6, True),
     "707": (_default_707, True),
