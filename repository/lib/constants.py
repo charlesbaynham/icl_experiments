@@ -439,6 +439,7 @@ _default_461 = 650.503218e12 + 616.6e6
 _default_689 = 434829334700000.0 + 616.6e6
 _default_707 = 423.91292e12 + 616.6e6
 _default_679 = 441.3320710e12 + 616.6e6
+_default_698 = 429.227636e12 + 616.6e6
 
 WAND_SETPOINTS_88 = {
     "461": (_default_461 - 20e6, True),
@@ -449,6 +450,7 @@ WAND_SETPOINTS_88 = {
         _default_689 - URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
+    "698": (_default_698, False),
 }
 WAND_SETPOINTS_87 = {
     "461": (_default_461 - 75e6, True),
@@ -461,6 +463,7 @@ WAND_SETPOINTS_87 = {
         - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
+    "698": (_default_698, False),
 }
 
 # Spin polarisation settings
