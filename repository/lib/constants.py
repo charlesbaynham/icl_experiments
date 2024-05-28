@@ -147,7 +147,7 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
         ("Width", 256),
         ("Height", 256),
         ("OffsetX", 1368),
-        ("OffsetY", 820),
+        ("OffsetY", 920),
     ]
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
