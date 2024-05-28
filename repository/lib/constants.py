@@ -435,10 +435,10 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 # listed will be ignored. Entries are a tuple of (reference, locked): the laser
 # frequency will be set to "reference" and the lock will be enabled / disabled
 # according to "locked"
-_default_461 = 650.503218e12
-_default_689 = 434829334700000.0
-_default_707 = 423.91292e12
-_default_679 = 441.3320710e12
+_default_461 = 650.503218e12 + 616.6e6
+_default_689 = 434829334700000.0 + 616.6e6
+_default_707 = 423.91292e12 + 616.6e6
+_default_679 = 441.3320710e12 + 616.6e6
 
 WAND_SETPOINTS_88 = {
     "461": (_default_461 - 20e6, True),
