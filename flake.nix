@@ -129,7 +129,7 @@
                 # If you want to reset the dashboard settings each time, uncomment this line
                 # export XDG_CONFIG_HOME=$(mktemp -d)
 
-                exec ${overriddenOutputs.apps.dashboard.program} -s ph-cb2409-2.ph.ic.ac.uk
+                exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
               '');
             };
 
