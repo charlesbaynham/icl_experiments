@@ -1180,13 +1180,13 @@ files = [
 
 [[package]]
 name = "generic-scpi-driver"
-version = "1.5.2"
+version = "1.5.3"
 description = "A generic template for creating python object-based drivers for SCPI hardware devices which communicate via VISA. Compatible with ARTIQ  installed with [artiq] modifier"
 optional = false
-python-versions = ">=3.8,<3.13"
+python-versions = "<3.13,>=3.8"
 files = [
-    {file = "generic_scpi_driver-1.5.2-py3-none-any.whl", hash = "sha256:6a78411b98857869b965972baef5326eae2557ac8d3d8ca5cb30ca9bc470e9d5"},
-    {file = "generic_scpi_driver-1.5.2.tar.gz", hash = "sha256:57feeb5582fec0b06ea61210cfedbc1610d5e66e129c2199e3add2efd3b3d209"},
+    {file = "generic_scpi_driver-1.5.3-py3-none-any.whl", hash = "sha256:673cea9c46b8098b3bcd68f12b26f2acd1237083982ca868e9798f0ce8486edc"},
+    {file = "generic_scpi_driver-1.5.3.tar.gz", hash = "sha256:41c78b063c78e438564567f6ed4e0ca0e2d59175634134502c2eb1ab24dc073f"},
 ]
 
 [package.dependencies]
@@ -3038,7 +3038,7 @@ toptica-lasersdk = "^3.1.1"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
 reference = "HEAD"
-resolved_reference = "855a9b25ad8decab6a46b3a713d2c1fc00fbdc65"
+resolved_reference = "cc9d332cc3b03d7a5569accff68ce015d4eba504"
 
 [[package]]
 name = "pycairo"

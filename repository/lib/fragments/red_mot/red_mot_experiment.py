@@ -306,7 +306,10 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     @kernel
     def post_sequence_cleanup_hook_base(self):
         self.core.break_realtime()
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
+        self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
+        self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
+            light_enabled=False
+        )
 
     @kernel
     def do_pulse(self, andor_exposure):

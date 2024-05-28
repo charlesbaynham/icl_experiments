@@ -8,10 +8,10 @@ from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TList
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 
 from repository.lib import constants
 from repository.lib.constants import USE_SR87
-from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
@@ -185,11 +185,11 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     if USE_SR87:
         # Sr 87
         default_suservo_setpoint_multiples_start = [0.6, 0.6, 0.6, 0.0]
-        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
+        default_suservo_setpoint_multiples_end = [0.6, 0.6, 0.6, 0.0]
         general_setter_default_starts = [12.0]
-        general_setter_default_ends = [6.0]
+        general_setter_default_ends = [12.0]
         default_urukul_detunings_start = [200e3]
-        default_urukul_detunings_end = [0e3]
+        default_urukul_detunings_end = [200e3]
         time_step_default = 1e10
 
     else:

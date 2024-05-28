@@ -22,10 +22,18 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 
+SR_FACTS = {
+    "FREQUENCIES": {
+        "689_88": 434829121311e3,  # 10.1103/PhysRevLett.91.243002
+        "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
+    }
+}
+
+
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
-USE_LATTICE_MODE = True
+USE_LATTICE_MODE = False
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
 
 
@@ -139,7 +147,7 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
         ("Width", 256),
         ("Height", 256),
         ("OffsetX", 1368),
-        ("OffsetY", 820),
+        ("OffsetY", 920),
     ]
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
@@ -172,9 +180,6 @@ BLUE_LOADING_TIME = 500e-3
 RED_INJECTION_AOM_ATTENUATION = 0.0
 "Default attenuation for the 689 injection AOM"
 
-RED_INJECTION_AOM_FREQUENCY = 366.6e6  # TODO: Get rid of this once !31 is merged
-"Nominal frequency for the 689 injection AOM"
-
 RED_BROADBAND_RAMP_LIMIT = 4e6
 "Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
 
@@ -188,7 +193,7 @@ RED_BROADBAND_TIME = 100e-3
 RED_MOT_FINAL_HOLD_TIME = 0 if USE_SR87 else 100e-3
 "Default final hold time in last stage of the red mot"
 
-DEFAULT_IMAGING_PULSE = 250e-6
+DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 
@@ -200,7 +205,7 @@ ANDOR_CAMERA_TRIGGER_ENABLE_TIME = 1e-6
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width, height = 212, 222, 100, 100
+x, y, width, height = 230, 285, 100, 100
 
 if USE_LATTICE_MODE:
     ANDOR_ROI_X0 = 50
@@ -303,6 +308,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_mot_diagonal",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.01326,
     ),
@@ -314,6 +320,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.0188,
     ),
@@ -326,6 +333,7 @@ SUSERVOED_BEAMS = [
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=1.1,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
+        initial_amplitude=0.05,
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
     SUServoedBeam(
@@ -336,6 +344,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
+        initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0188,  # TODO: This is a guess
     ),
@@ -421,28 +430,38 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
 
+# These frequencies were chosen empirically based on the atoms
+_default_461 = 650504101e6
+_default_707 = 423913481e6
+_default_679 = 441332637e6
+_default_698 = 429228253e6
+
+# The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
+# the absolute frequency and the value of the AOMs between the wavemeter pickoff
+# and the atoms as a calibration
+_default_689 = (
+    SR_FACTS["FREQUENCIES"]["689_88"]
+    + 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency
+    + SUSERVOED_BEAMS["red_mot_diagonal"].frequency
+)
 
 # WAND frequency references and lock settings for the two isotopes. Lasers not
 # listed will be ignored. Entries are a tuple of (reference, locked): the laser
 # frequency will be set to "reference" and the lock will be enabled / disabled
 # according to "locked"
-_default_461 = 650.503218e12
-_default_689 = 434829334700000.0
-_default_707 = 423.91292e12
-_default_679 = 441.3320710e12
-
 WAND_SETPOINTS_88 = {
-    "461": (_default_461 - 20e6, True),
+    "461": (_default_461 - 53e6, True),
     "707": (_default_707, True),
     "679": (_default_679, True),
     "689": (_default_689, False),
     "689_IJD": (
-        _default_689 - URUKULED_BEAMS["red_doublepass_injection"].frequency,
+        _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
+    "698": (_default_698, False),
 }
 WAND_SETPOINTS_87 = {
-    "461": (_default_461 - 75e6, True),
+    "461": (_default_461 - 108e6, True),
     "707": (_default_707 + 15e6, True),
     "679": (_default_679 - 2430e6, True),
     "689": (_default_689 - 1243.3e6, False),
@@ -452,6 +471,7 @@ WAND_SETPOINTS_87 = {
         - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
+    "698": (_default_698, False),
 }
 
 # Spin polarisation settings
