@@ -138,12 +138,19 @@ class RelockCavityFrag(ExpFragment):
             self.set_piezo_scan(enabled=False)
 
     def set_piezo_scan(self, enabled=False, amplitude=0.0, frequency=1.0):
+        logger.debug(
+            "set_piezo_scan, enabled=%s, amplitude=%s, frequency=%s",
+            enabled,
+            amplitude,
+            frequency,
+        )
         self.toptica_689.get_laser().scan.enabled.set(False)
         self.toptica_689.get_laser().scan.amplitude.set(amplitude)
         self.toptica_689.get_laser().scan.frequency.set(frequency)
         self.toptica_689.get_laser().scan.enabled.set(enabled)
 
     def set_FALC(self, main=False, unlim=False):
+        logger.debug("set_FALC, main=%s, unlim=%s", main, unlim)
         falc = self.toptica_689.get_falc()
 
         falc.main.enabled.set(main)
@@ -160,7 +167,7 @@ class RelockCavityFrag(ExpFragment):
         initial_poll_time = initial_laser_db[laser]["lock_poll_time"]
         initial_capture_range = initial_laser_db[laser]["lock_capture_range"]
 
-        logger.info("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
+        logger.debug("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
 
         try:
             # Increase the poll rate and the gain with it
@@ -202,7 +209,7 @@ class RelockCavityFrag(ExpFragment):
                 poll_time=initial_poll_time,
                 capture_range=initial_capture_range,
             )
-            logger.info("Lock settings restored")
+            logger.debug("Lock settings restored")
 
     def is_cavity_locked(self):
         logger.warn(
