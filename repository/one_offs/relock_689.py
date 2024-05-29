@@ -101,6 +101,14 @@ class RelockCavityFrag(ExpFragment):
         # TODO: remove this once lock detection for the cavity is implemented
         self.__lock_checks = 0
 
+    def host_setup(self):
+        self.toptica_689.open()
+        return super().host_setup()
+
+    def host_cleanup(self):
+        self.toptica_689.close()
+        return super().host_cleanup()
+
     def relock(self):
         attempts = 0
 
