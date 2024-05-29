@@ -26,6 +26,7 @@ The plan based on manual fiddling is:
 import logging
 import time
 
+from artiq.master.scheduler import Scheduler
 from ndscan.experiment import *
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
@@ -35,7 +36,6 @@ from toptica_wrapper.driver import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 from wand.tools import WLMMeasurementStatus
 
-
 logger = logging.getLogger(__name__)
 
 WAND_FAST_LOCK_POLLING = 0.5  # s
@@ -43,6 +43,9 @@ WAND_FAST_LOCK_POLLING = 0.5  # s
 
 class RelockCavityFrag(ExpFragment):
     def build_fragment(self):
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
+
         self.setattr_param(
             "piezo_scan_amplitude",
             FloatParam,
