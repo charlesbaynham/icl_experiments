@@ -50,26 +50,52 @@ WAND_FAST_LOCK_POLLING = 0.5  # s
 class RelockCavityFrag(Fragment):
     def build_fragment(self):
         self.setattr_param(
-            "piezo_scan_amplitude", FloatParam, default=0.05, unit="V", min=0
+            "piezo_scan_amplitude",
+            FloatParam,
+            default=0.05,
+            unit="V",
+            min=0,
+            description="Piezo scan amplitude during relock",
         )
         self.piezo_scan_amplitude: FloatParamHandle
 
         self.setattr_param(
-            "piezo_scan_frequency", FloatParam, default=10, unit="Hz", min=0
+            "piezo_scan_frequency",
+            FloatParam,
+            default=10,
+            unit="Hz",
+            min=0,
+            description="Piezo scan frequency during relock",
         )
         self.piezo_scan_frequency: FloatParamHandle
 
         self.setattr_param(
-            "delay_before_unlim", FloatParam, default=0.1, unit="ms", min=0
+            "delay_before_unlim",
+            FloatParam,
+            default=0.1,
+            unit="ms",
+            min=0,
+            description="Delay before engaging unlim",
         )
         self.delay_before_unlim: FloatParamHandle
 
         self.setattr_param(
-            "delay_after_unlim", FloatParam, default=0.2, unit="ms", min=0
+            "delay_after_unlim",
+            FloatParam,
+            default=0.2,
+            unit="ms",
+            min=0,
+            description="Delay after engaging unlim before disabling scan",
         )
         self.delay_after_unlim: FloatParamHandle
 
-        self.setattr_param("max_attempts", IntParam, default=3, min=1)
+        self.setattr_param(
+            "max_attempts",
+            IntParam,
+            default=3,
+            min=1,
+            description="Max number of relock attempts",
+        )
         self.max_attempts: IntParamHandle
 
         self.setattr_device("wand_server")
