@@ -26,11 +26,8 @@ The plan based on manual fiddling is:
 import logging
 import time
 
-from artiq.coredevice.core import Core
-from artiq.experiment import now_mu
 from ndscan.experiment import *
 from ndscan.experiment import ExpFragment
-from ndscan.experiment import Fragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle
@@ -38,9 +35,6 @@ from toptica_wrapper.driver import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 from wand.tools import WLMMeasurementStatus
 
-from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
