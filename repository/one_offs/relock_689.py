@@ -78,6 +78,9 @@ class RelockCavity(Fragment):
         self.setattr_device("toptica_689")
         self.toptica_689: TopticaDLCPro
 
+        # TODO: remove this once lock detection for the cavity is implemented
+        self.__lock_checks = 0
+
     def relock(self):
         attempts = 0
 
@@ -172,3 +175,15 @@ class RelockCavity(Fragment):
                 capture_range=initial_capture_range,
             )
             logger.info("Lock settings restored")
+
+    def is_cavity_locked(self):
+        logger.warn(
+            "Lock detection not implemented yet! We will assume that the first check fails and the second suceeds"
+        )
+
+        self.__lock_checks += 1
+
+        if self.__lock_checks <= 1:
+            return False
+        else:
+            return True
