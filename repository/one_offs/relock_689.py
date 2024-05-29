@@ -113,7 +113,10 @@ class RelockCavity(Fragment):
         self.toptica_689.get_laser().scan.enabled.set(enabled)
 
     def set_FALC(self, main=False, unlim=False):
-        raise NotImplementedError
+        falc = self.toptica_689.get_falc()
+
+        falc.main.enabled.set(main)
+        falc.unlim.enabled.set(unlim)
 
     def steer_wand(self, laser, offset=0.0, timeout=20.0, required_accuracy=2e6):
         logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)

@@ -195,6 +195,7 @@ def get_non_core_devices(simulation_mode=False):
             "arguments": {
                 "ip": "toptica-707-689",
                 "laser": "laser2",
+                "falc": 1,
                 "simulation": simulation_mode,
             },
         },
