@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 WAND_FAST_LOCK_POLLING = 0.5  # s
 
 
-class RelockCavityFrag(Fragment):
+class RelockCavityFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_param(
             "piezo_scan_amplitude",
@@ -213,6 +213,9 @@ class RelockCavityFrag(Fragment):
             return False
         else:
             return True
+
+    def run_once(self) -> None:
+        self.relock()
 
 
 RelockCavity = make_fragment_scan_exp(RelockCavityFrag)
