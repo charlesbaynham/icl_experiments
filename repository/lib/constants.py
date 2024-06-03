@@ -450,7 +450,7 @@ _default_689 = (
 # frequency will be set to "reference" and the lock will be enabled / disabled
 # according to "locked"
 WAND_SETPOINTS_88 = {
-    "461": (_default_461, True),
+    "461": (_default_461 - 10e6, True),
     "707": (_default_707, True),
     "679": (_default_679, True),
     "689": (_default_689, False),
