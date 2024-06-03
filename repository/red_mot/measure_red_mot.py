@@ -23,6 +23,13 @@ class MeasureBBRedMOTFrag(RedMOTBase):
 
 
 class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Remove unused parameters
+        self.override_param("delay_after_spectroscopy", 0)
+        self.override_param("spectroscopy_field_gradient", 0)
+
     @kernel
     def do_spectroscopy_hook(self):
         # No spectroscopy needed - just do nothing and move straight to imaging
