@@ -415,7 +415,7 @@ _default_689 = (
 MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=583e6,
+        frequency=580.7e6,
         attenuation=7.0,
     ),
     MirnySettings(
