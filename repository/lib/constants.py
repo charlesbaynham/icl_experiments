@@ -412,7 +412,7 @@ MIRNY_SETTINGS_88 = [
 MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=660.3e6,
+        frequency=658.0e6,
         attenuation=4.0,
     ),
     MirnySettings(
