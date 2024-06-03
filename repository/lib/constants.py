@@ -392,6 +392,26 @@ class MirnySettings:
     rf_switch: bool = True
 
 
+# These frequencies were chosen empirically based on the atoms
+_default_461 = 650504048e6
+_default_707 = 423913481e6
+_default_679 = 441332637e6
+_default_698 = 429228253e6
+
+# Calibrated empirically - I know it's not right but we seem to optimize here
+# for some reason
+_isotope_shift_689 = 1241e6
+
+# The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
+# the absolute frequency and the value of the AOMs between the wavemeter pickoff
+# and the atoms as a calibration
+_default_689 = (
+    SR_FACTS["FREQUENCIES"]["689_88"]
+    + 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency
+    + SUSERVOED_BEAMS["red_mot_diagonal"].frequency
+)
+
+
 MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
@@ -412,7 +432,7 @@ MIRNY_SETTINGS_88 = [
 MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=658.0e6,
+        frequency=_isotope_shift_689 - MIRNY_SETTINGS_88[0].frequency,
         attenuation=4.0,
     ),
     MirnySettings(
@@ -430,21 +450,6 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
 
-# These frequencies were chosen empirically based on the atoms
-_default_461 = 650504048e6
-_default_707 = 423913481e6
-_default_679 = 441332637e6
-_default_698 = 429228253e6
-
-# The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
-# the absolute frequency and the value of the AOMs between the wavemeter pickoff
-# and the atoms as a calibration
-_default_689 = (
-    SR_FACTS["FREQUENCIES"]["689_88"]
-    + 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency
-    + SUSERVOED_BEAMS["red_mot_diagonal"].frequency
-)
-
 # WAND frequency references and lock settings for the two isotopes. Lasers not
 # listed will be ignored. Entries are a tuple of (reference, locked): the laser
 # frequency will be set to "reference" and the lock will be enabled / disabled
@@ -461,18 +466,15 @@ WAND_SETPOINTS_88 = {
     "698": (_default_698, False),
 }
 
-_frequency_difference_689 = (
-    MIRNY_SETTINGS_88[0].frequency + MIRNY_SETTINGS_87[0].frequency
-)
 
 WAND_SETPOINTS_87 = {
     "461": (_default_461 - 55e6, True),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
-    "689": (_default_689 - _frequency_difference_689, False),
+    "689": (_default_689 - _isotope_shift_689, False),
     "689_IJD": (
         _default_689
-        - _frequency_difference_689
+        - _isotope_shift_689
         - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
