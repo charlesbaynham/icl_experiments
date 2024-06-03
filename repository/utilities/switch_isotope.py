@@ -10,7 +10,7 @@ from wand.server import ControlInterface as WANDControlInterface
 from wand.tools import WLMMeasurementStatus
 
 from repository.lib import constants
-from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
+from repository.lib.fragments.set_eom_sidebands import SetAllEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,8 @@ class SwitchIsotopeFrag(ExpFragment):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
-        self.setattr_fragment("set_sidebands_frag", SetEOMSidebandsFrag)
-        self.set_sidebands_frag: SetEOMSidebandsFrag
+        self.setattr_fragment("set_sidebands_frag", SetAllEOMSidebandsFrag)
+        self.set_sidebands_frag: SetAllEOMSidebandsFrag
 
         self.setattr_param(
             "sr87",

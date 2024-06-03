@@ -1,5 +1,5 @@
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
+from repository.lib.fragments.set_eom_sidebands import SetAllEOMSidebandsFrag
 
-SetEOMSidebands = make_fragment_scan_exp(SetEOMSidebandsFrag)
+SetEOMSidebands = make_fragment_scan_exp(SetAllEOMSidebandsFrag)

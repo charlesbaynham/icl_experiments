@@ -7,7 +7,7 @@ from wand.server import ControlInterface as WANDControlInterface
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
+from repository.lib.fragments.set_eom_sidebands import SetAllEOMSidebandsFrag
 
 MAX_VOLTAGE_STEP = 5.0
 
@@ -25,8 +25,8 @@ class ScanTopticaMOTFrag(ExpFragment):
         )
         self.dual_cameras: DualCameraMeasurement
 
-        self.setattr_fragment("eom_sidebands", SetEOMSidebandsFrag)
-        self.eom_sidebands: SetEOMSidebandsFrag
+        self.setattr_fragment("eom_sidebands", SetAllEOMSidebandsFrag)
+        self.eom_sidebands: SetAllEOMSidebandsFrag
 
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface

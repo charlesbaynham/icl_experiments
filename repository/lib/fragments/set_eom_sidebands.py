@@ -129,3 +129,8 @@ class SetEOMSidebandsFrag(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
         self.set_sidebands()
+
+
+class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag):
+    mirny_settings_87 = MIRNY_SETTINGS_87
+    mirny_settings_88 = MIRNY_SETTINGS_88
