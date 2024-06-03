@@ -56,12 +56,14 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
 from repository.lib import constants
+from repository.lib.constants import MIRNY_SETTINGS_87
+from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
-
+from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +188,15 @@ class RedMOTBase(ExpFragment):
         self.andor_mean.push(means[0])
 
 
+class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
+    mirny_settings_87 = [
+        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
+    ]
+    mirny_settings_88 = [
+        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
+    ]
+
+
 class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
@@ -221,6 +232,11 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         super().build_fragment()
 
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsFrag
+
         self.setattr_param(
             "delay_after_spectroscopy",
             FloatParam,
@@ -241,6 +257,9 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
     @kernel
     def run_once(self):
+        self.core.break_realtime()
+        self.mirny_eom_sidebands.set_sidebands()
+
         self.before_start_hook()
 
         self.core.break_realtime()
