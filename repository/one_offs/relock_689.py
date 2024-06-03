@@ -140,6 +140,8 @@ class RelockCavityFrag(ExpFragment):
 
             self.set_piezo_scan(enabled=False)
 
+        logger.info("Relock successful!")
+
     def set_piezo_scan(self, enabled=False, amplitude=0.0, frequency=1.0):
         logger.debug(
             "set_piezo_scan, enabled=%s, amplitude=%s, frequency=%s",
@@ -161,7 +163,7 @@ class RelockCavityFrag(ExpFragment):
 
     def steer_wand(self, laser, offset=0.0, timeout=20.0, required_accuracy=2e6):
         logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
-        self.wand_server.lock(laser=laser, set_point=offset, timeout=None)
+        self.wand_server.lock(laser=laser, set_point=offset, timeout=timeout)
 
         initial_laser_db = self.wand_server.get_laser_db()
 
@@ -212,6 +214,8 @@ class RelockCavityFrag(ExpFragment):
                 poll_time=initial_poll_time,
                 capture_range=initial_capture_range,
             )
+            self.wand_server.unlock(laser=laser, name="")
+
             logger.debug("Lock settings restored")
 
     def is_cavity_locked(self):
