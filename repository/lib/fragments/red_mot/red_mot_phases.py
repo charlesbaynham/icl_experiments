@@ -134,8 +134,8 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     # "suservo_aom_singlepass_689_red_mot_sigmaminus",
     # "suservo_aom_singlepass_689_red_mot_diagonal",
     # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.0]
-    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.0]
+    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.05]
+    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.05]
 
     if USE_SR87:
         # Sr 87
@@ -172,9 +172,6 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     duration_default = 100e-3
-    if False:
-        time_step_default = 1e10  # this is a nasty hack to skip ramping by making one step much longer than the full duration
-        # only start values will be used in this case
 
     # Order:
     # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -184,13 +181,12 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
     if USE_SR87:
         # Sr 87
-        default_suservo_setpoint_multiples_start = [0.6, 0.6, 0.6, 0.0]
-        default_suservo_setpoint_multiples_end = [0.6, 0.6, 0.6, 0.0]
-        general_setter_default_starts = [12.0]
-        general_setter_default_ends = [12.0]
+        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.025]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.025]
+        general_setter_default_starts = [9.0]
+        general_setter_default_ends = [1.0]
         default_urukul_detunings_start = [200e3]
         default_urukul_detunings_end = [200e3]
-        time_step_default = 1e10
 
     else:
         default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.0]
