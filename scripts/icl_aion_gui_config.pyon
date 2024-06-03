@@ -1,5 +1,5 @@
 {
-    "servers": {"icl_aion": {"host": "ph-cb2409-2.ph.ic.ac.uk", "notify": 3277, "control": 3276}},
+    "servers": {"icl_aion": {"host": "10.137.1.252", "notify": 3277, "control": 3276}},
     "display_names": {
         "461": "461",
         "689": "689",
