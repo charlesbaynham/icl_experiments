@@ -460,11 +460,16 @@ WAND_SETPOINTS_88 = {
     ),
     "698": (_default_698, False),
 }
+
+_frequency_difference_689 = (
+    MIRNY_SETTINGS_88[0].frequency + MIRNY_SETTINGS_87[0].frequency
+)
+
 WAND_SETPOINTS_87 = {
     "461": (_default_461 - 55e6, True),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
-    "689": (_default_689 - 1243.3e6, False),
+    "689": (_default_689 - _frequency_difference_689, False),
     "689_IJD": (
         _default_689
         - 1243.3e6
