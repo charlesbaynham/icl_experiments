@@ -58,10 +58,7 @@ def get_all_of_class_from_repository(cls):
 all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 
 # Add xfailing modules
-xfails = [
-    # Mysteriously, this is now working
-    # ("LoadingSr87Frag", "Toptica device setup is not mocked properly")
-]
+xfails = [("ScanTopticaMOTFrag", "Toptica host setup is not mocked")]
 
 xfail_names = [x[0] for x in xfails]
 all_exp_fragments_marked = []
