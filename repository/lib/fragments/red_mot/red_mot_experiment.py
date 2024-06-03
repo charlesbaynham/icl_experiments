@@ -237,6 +237,8 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         )
         self.mirny_eom_sidebands: SetEOMSidebandsFrag
 
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
+
         self.setattr_param(
             "delay_after_spectroscopy",
             FloatParam,
