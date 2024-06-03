@@ -7,6 +7,7 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.mirny import Mirny
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
@@ -19,7 +20,7 @@ from repository.lib.constants import MirnySettings
 logger = logging.getLogger(__name__)
 
 
-class SetEOMSidebandsFrag(ExpFragment):
+class SetEOMSidebandsFrag(Fragment):
     """
     Set all the EOM frequencies for using Sr88 vs Sr87
 
@@ -125,12 +126,12 @@ class SetEOMSidebandsFrag(ExpFragment):
             mirny_channel.set_att(attenuation)
             mirny_channel.sw.set_o(mirny_settings.rf_switch)
 
+
+class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
+    mirny_settings_87 = MIRNY_SETTINGS_87
+    mirny_settings_88 = MIRNY_SETTINGS_88
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
         self.set_sidebands()
-
-
-class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag):
-    mirny_settings_87 = MIRNY_SETTINGS_87
-    mirny_settings_88 = MIRNY_SETTINGS_88
