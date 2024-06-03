@@ -472,7 +472,7 @@ WAND_SETPOINTS_87 = {
     "689": (_default_689 - _frequency_difference_689, False),
     "689_IJD": (
         _default_689
-        - 1243.3e6
+        - _frequency_difference_689
         - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
