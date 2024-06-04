@@ -134,8 +134,8 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     # "suservo_aom_singlepass_689_red_mot_sigmaminus",
     # "suservo_aom_singlepass_689_red_mot_diagonal",
     # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.028]
-    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.01]
+    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.03]
+    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.03]
 
     if USE_SR87:
         # Sr 87

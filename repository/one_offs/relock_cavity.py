@@ -1,12 +1,12 @@
 """
-Relock the Toptica 689nm ECDL to the cavity
+Relock a Toptica ECDL to the cavity
 
 This is a test script which will be incorporated into a QButler Calibration
 later.
 
 The plan based on manual fiddling is:
 
-1. Set 689nm ECDL to:
+1. Set the ECDL to:
     FALC enabled Unlim disabled Piezo scan disabled
 
 2. Use WAND to steer it back to 0 MHz offset (don't mess with the setpoint -
@@ -42,7 +42,7 @@ WAND_FAST_LOCK_POLLING = 0.5  # s
 
 
 class RelockCavityFrag(ExpFragment):
-    def build_fragment(self):
+    def build_fragment(self, laser_name_wand="689", laser_name_devicedb="toptica_689"):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
@@ -98,18 +98,18 @@ class RelockCavityFrag(ExpFragment):
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
-        self.setattr_device("toptica_689")
-        self.toptica_689: TopticaDLCPro
+        self.laser_name = laser_name_wand
+        self.toptica_controller: TopticaDLCPro = self.get_device(laser_name_devicedb)
 
         # TODO: remove this once lock detection for the cavity is implemented
         self.__lock_checks = 0
 
     def host_setup(self):
-        self.toptica_689.open()
+        self.toptica_controller.open()
         return super().host_setup()
 
     def host_cleanup(self):
-        self.toptica_689.close()
+        self.toptica_controller.close()
         return super().host_cleanup()
 
     def relock(self):
@@ -123,7 +123,7 @@ class RelockCavityFrag(ExpFragment):
             self.set_piezo_scan(enabled=False)
             self.set_FALC(main=False, unlim=False)
 
-            self.steer_wand(laser="689", offset=0.0, timeout=20)
+            self.steer_wand(laser=self.laser_name, offset=0.0, timeout=20)
 
             self.set_piezo_scan(
                 enabled=True,
@@ -149,14 +149,14 @@ class RelockCavityFrag(ExpFragment):
             amplitude,
             frequency,
         )
-        self.toptica_689.get_laser().scan.enabled.set(False)
-        self.toptica_689.get_laser().scan.amplitude.set(amplitude)
-        self.toptica_689.get_laser().scan.frequency.set(frequency)
-        self.toptica_689.get_laser().scan.enabled.set(enabled)
+        self.toptica_controller.get_laser().scan.enabled.set(False)
+        self.toptica_controller.get_laser().scan.amplitude.set(amplitude)
+        self.toptica_controller.get_laser().scan.frequency.set(frequency)
+        self.toptica_controller.get_laser().scan.enabled.set(enabled)
 
     def set_FALC(self, main=False, unlim=False):
         logger.debug("set_FALC, main=%s, unlim=%s", main, unlim)
-        falc = self.toptica_689.get_falc()
+        falc = self.toptica_controller.get_falc()
 
         falc.main.enabled.set(main)
         falc.unlim.enabled.set(unlim)
