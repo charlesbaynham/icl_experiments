@@ -173,17 +173,18 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
         from copy import deepcopy
 
-        self.beam_infos = deepcopy(list(constants.SUSERVOED_BEAMS.values()))
+        self.suservo_beam_infos = deepcopy(list(constants.SUSERVOED_BEAMS.values()))
+        self.urukul_beam_infos = [constants.URUKULED_BEAMS["red_spinpol"]]
 
         if self.disable_servoing:
-            for info in self.beam_infos:
+            for info in self.suservo_beam_infos:
                 info.servo_enabled = False
 
         self.adc_readers: List[ReadSUServoADC] = []
         self.photodiode_results_channels: List[ResultChannel] = []
         self.control_signal_results_channels: List[ResultChannel] = []
 
-        for i, beam_info in enumerate(self.beam_infos):
+        for i, beam_info in enumerate(self.suservo_beam_infos):
             suservo_channel_device: SUServoChannel = self.get_device(
                 beam_info.suservo_device
             )
@@ -198,7 +199,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                     beam_info.name,
                     display_hints={
                         "priority": -1,
-                        "share_pane_with": self.beam_infos[0].name,
+                        "share_pane_with": self.suservo_beam_infos[0].name,
                     },
                 )
 
@@ -218,7 +219,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
                     name,
                     display_hints={
                         "priority": -1,
-                        "share_pane_with": self.beam_infos[0].name + "_control",
+                        "share_pane_with": self.suservo_beam_infos[0].name + "_control",
                     },
                 )
             self.control_signal_results_channels.append(r)
@@ -236,7 +237,8 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         self.setattr_fragment(
             "beam_default_setter",
             make_set_beams_to_default(
-                self.beam_infos,
+                suservo_beam_infos=self.suservo_beam_infos,
+                urukul_beam_infos=self.urukul_beam_infos,
                 name="BeamsSettings",
             ),
         )
@@ -276,7 +278,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             self.core.break_realtime()
             voltages[i_beam] = (
                 self.adc_readers[i_beam].read_adc()
-                - self.beam_infos[i_beam].photodiode_offset
+                - self.suservo_beam_infos[i_beam].photodiode_offset
             )
             self.core.break_realtime()
             ctrl_signals[i_beam] = self.adc_readers[i_beam].read_ctrl_signal()
@@ -285,7 +287,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
     @rpc(flags={"async"})
     def save_data(self, voltages: TArray(TFloat), ctrl_signals: TArray(TFloat)):
-        for i_beam, beam_info in enumerate(self.beam_infos):
+        for i_beam, beam_info in enumerate(self.suservo_beam_infos):
             voltage = voltages[i_beam]
             ctrl_signal = ctrl_signals[i_beam]
 
