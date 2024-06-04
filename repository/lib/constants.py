@@ -30,7 +30,7 @@ SR_FACTS = {
 }
 
 
-USE_SR87 = True
+USE_SR87 = False
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
 USE_LATTICE_MODE = False
@@ -177,8 +177,6 @@ B_FIELD_GRADIENT = 90.0  # A
 BLUE_LOADING_TIME = 500e-3
 "Default blue MOT loading time"
 
-RED_INJECTION_AOM_ATTENUATION = 0.0
-"Default attenuation for the 689 injection AOM"
 
 RED_BROADBAND_RAMP_LIMIT = 4e6
 "Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"

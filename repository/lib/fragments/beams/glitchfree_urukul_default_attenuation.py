@@ -45,6 +45,7 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
         self.default_attenuation = default_attenuation
         self.urukul_channel = urukul_channel
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+        self.first_run = True
 
         # %% Kernel invariants
 
@@ -62,6 +63,13 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
 
     @kernel
     def device_setup(self):
+        self.device_setup_subfragments()
+
+        if not self.first_run:
+            return
+
+        self.first_run = False
+
         # Read the status register from the CPLD - we'll use this to detect
         # whether the PLL is locked and treat this as a proxy for "has this DDS
         # been set up already?" so we can avoid glitches from doing it again

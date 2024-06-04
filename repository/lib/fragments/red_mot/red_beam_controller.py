@@ -114,7 +114,7 @@ class RedBeamController(Fragment):
             "GlitchFreeUrukulDefaultAttenuation",
             GlitchFreeUrukulDefaultAttenuation,
             "urukul9910_aom_doublepass_689_red_injection",
-            constants.RED_INJECTION_AOM_ATTENUATION,
+            constants.URUKULED_BEAMS["red_doublepass_injection"].attenuation,
         )
         self.GlitchFreeUrukulDefaultAttenuation: GlitchFreeUrukulDefaultAttenuation
 
