@@ -5,6 +5,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTBase
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.red_mot.red_mot_mixins.bg_corrected_andor_image import (
+    BGCorrectedAndorImage,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
     SingleAndorImage,
 )
@@ -22,7 +25,7 @@ class MeasureBBRedMOTFrag(RedMOTBase):
         self._save_data()
 
 
-class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
+class _MeasureNarrowbandMOTFrag(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
@@ -36,7 +39,19 @@ class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
         pass
 
 
+class MeasureNarrowbandMOTFrag(SingleAndorImage, _MeasureNarrowbandMOTFrag):
+    pass
+
+
+class MeasureNarrowbandMOTBGCorrectedFrag(
+    BGCorrectedAndorImage, _MeasureNarrowbandMOTFrag
+):
+    pass
+
+
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
-MeasureNarrowbandRedMOT = make_fragment_scan_exp(
-    MeasureNarrowbandMOTFrag, max_rtio_underflow_retries=0
+MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
+
+MeasureNarrowbandRedMOTBGCorrected = make_fragment_scan_exp(
+    MeasureNarrowbandMOTBGCorrectedFrag
 )

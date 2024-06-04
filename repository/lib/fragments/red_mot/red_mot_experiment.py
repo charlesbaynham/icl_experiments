@@ -143,9 +143,11 @@ class RedMOTBase(ExpFragment):
         self.andor_camera_control: AndorCameraControl
 
         self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_mean", FloatChannel)
+        self.setattr_result("andor_mean", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_sum: FloatChannel
         self.andor_mean: FloatChannel
+        self.andor_mean_bg_corrected: FloatChannel
 
     @kernel
     def _from_start_to_end_of_broadband_mot(self):
@@ -186,6 +188,7 @@ class RedMOTBase(ExpFragment):
         )
         self.andor_sum.push(sums[0])
         self.andor_mean.push(means[0])
+        self.andor_mean_bg_corrected.push(means[0] - means[1])
 
 
 class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
