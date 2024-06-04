@@ -144,10 +144,8 @@ class RedMOTBase(ExpFragment):
 
         self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_mean", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_sum: FloatChannel
         self.andor_mean: FloatChannel
-        self.andor_mean_bg_corrected: FloatChannel
 
     @kernel
     def _from_start_to_end_of_broadband_mot(self):

@@ -3,6 +3,7 @@ import logging
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -40,6 +41,9 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+        self.setattr_result("andor_mean_bg_corrected", FloatChannel)
+        self.andor_mean_bg_corrected: FloatChannel
+
     @kernel
     def do_imaging_hook(self):
         """
@@ -64,12 +68,22 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
 
-        sums = [0] * 2
-        means = [0.0] * 2
+        sum_atoms = [0]
+        mean_atoms = [0.0]
+        sum_bg = [0]
+        mean_bg = [0.0]
+
         self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
+            sum_atoms,
+            mean_atoms,
             timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
         )
-        self.andor_sum.push(sums[0])
-        self.andor_mean.push(means[0])
+        self.andor_camera_control.readout_ROIs(
+            sum_bg,
+            mean_bg,
+            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+        )
+
+        self.andor_sum.push(sum_atoms[0])
+        self.andor_mean.push(mean_atoms[0])
+        self.andor_mean_bg_corrected.push(mean_atoms[0] - mean_bg[0])
