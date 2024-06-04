@@ -134,8 +134,8 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     # "suservo_aom_singlepass_689_red_mot_sigmaminus",
     # "suservo_aom_singlepass_689_red_mot_diagonal",
     # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.05]
-    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.05]
+    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.028]
+    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.01]
 
     if USE_SR87:
         # Sr 87
@@ -181,8 +181,8 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
     if USE_SR87:
         # Sr 87
-        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.04]
-        default_suservo_setpoint_multiples_end = [0.02, 0.02, 0.02, 0.02]
+        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.028]
+        default_suservo_setpoint_multiples_end = [0.02, 0.02, 0.02, 0.01]
         general_setter_default_starts = [9.0]
         general_setter_default_ends = [1.0]
         default_urukul_detunings_start = [200e3]
