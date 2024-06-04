@@ -201,7 +201,7 @@ ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 ANDOR_CAMERA_TRIGGER_ENABLE_TIME = 1e-6
 "Trigger the ANDOR camera this much before the actual requested trigger point"
 
-ANDOR_CAMERA_BACKGROUND_DELAY = 30e-3
+ANDOR_CAMERA_BACKGROUND_DELAY = 60e-3
 "Delay before background image when using the Andor for background-corrected images"
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
