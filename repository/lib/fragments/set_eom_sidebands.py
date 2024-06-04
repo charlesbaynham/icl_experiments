@@ -82,6 +82,16 @@ class SetEOMSidebandsFrag(Fragment):
             )
             self.frequency_handles.append(handle_frequency)
 
+            self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+
+            self.kernel_invariants = getattr(self, "kernel_invariants", set()) | {
+                "debug_mode",
+                "init_mirnys",
+                "mirny_settings",
+                "mirnys",
+                "mirny_channels",
+            }
+
     def host_setup(self):
         super().host_setup()
 
@@ -137,6 +147,15 @@ class SetEOMSidebandsFrag(Fragment):
             frequency = frequency_handle.get()
             if frequency < 0:
                 frequency = mirny_settings.frequency
+
+            if self.debug_mode:
+                logger.info(
+                    "Setting freq=%.3f MHz, att=%f for %s",
+                    frequency,
+                    attenuation,
+                    mirny_settings.device_name,
+                )
+                self.core.break_realtime()
 
             # Disable the output momentarily to avoid sending the wrong settings
             # at any point
