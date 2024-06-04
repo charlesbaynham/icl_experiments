@@ -66,18 +66,18 @@ class SetEOMSidebandsFrag(Fragment):
             handle_attenuation = self.setattr_param(
                 f"attenuation_{settings.device_name}",
                 FloatParam,
-                f"Attenuation for channel {settings.device_name}",
-                default=settings.attenuation,
-                min=0,
+                f"{settings.device_name} attenuation (-1 = default)",
+                default=-1,
+                min=-1,
             )
             self.attenuation_handles.append(handle_attenuation)
 
             handle_frequency = self.setattr_param(
                 f"frequency_{settings.device_name}",
                 FloatParam,
-                f"Frequency for channel {settings.device_name}",
-                default=settings.frequency,
-                min=0,
+                f"{settings.device_name} frequency (-1 = default)",
+                default=-1,
+                min=-1,
                 unit="MHz",
             )
             self.frequency_handles.append(handle_frequency)
@@ -92,14 +92,16 @@ class SetEOMSidebandsFrag(Fragment):
         self.mirny_channels: List[ADF5356] = []
         self.mirnys = set()
 
+        logger.debug("Preparing EOM sidebands with sr87 = %s", self.sr87.get())
+
         for settings in self.mirny_settings:
             channel = self.get_device(settings.device_name)
             self.mirny_channels.append(channel)
             self.mirnys.add(channel.cpld)
 
-        self.mirnys: List[Mirny] = list(self.mirnys)
+            logger.debug("Added channel %s", settings.device_name)
 
-        logger.debug("Preparing EOM sidebands with sr87 = %s", self.sr87.get())
+        self.mirnys: List[Mirny] = list(self.mirnys)
 
         self.first_run = True
 
@@ -126,10 +128,15 @@ class SetEOMSidebandsFrag(Fragment):
             mirny_settings = self.mirny_settings[i]
 
             attenuation_handle = self.attenuation_handles[i]
+
             attenuation = attenuation_handle.get()
+            if attenuation < 0:
+                attenuation = mirny_settings.attenuation
 
             frequency_handle = self.frequency_handles[i]
             frequency = frequency_handle.get()
+            if frequency < 0:
+                frequency = mirny_settings.frequency
 
             # Disable the output momentarily to avoid sending the wrong settings
             # at any point
