@@ -230,15 +230,11 @@ class RelockCavityFrag(Fragment):
 
     def is_cavity_locked(self):
         logger.warn(
-            "Lock detection not implemented yet! We will assume that the first check fails and the second suceeds"
+            "Cavity transmission detection not implemented yet! Using the wavemeter instead"
         )
 
-        self.__lock_checks += 1
-
-        if self.__lock_checks <= 1:
-            return False
-        else:
-            return True
+        meas = self.wand_server.get_freq(laser=self.laser, offset_mode=True, age=1)
+        return abs(meas) < 10e6
 
 
 class Relock689Frag(RelockCavityFrag, ExpFragment):
