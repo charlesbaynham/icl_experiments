@@ -42,7 +42,10 @@ WAND_FAST_LOCK_POLLING = 0.5  # s
 
 
 class RelockCavityFrag(ExpFragment):
-    def build_fragment(self, laser_name_wand="689", laser_name_devicedb="toptica_689"):
+    laser_name_wand = "689"
+    laser_name_devicedb = "toptica_689"
+
+    def build_fragment(self):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
@@ -98,8 +101,9 @@ class RelockCavityFrag(ExpFragment):
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
-        self.laser_name = laser_name_wand
-        self.toptica_controller: TopticaDLCPro = self.get_device(laser_name_devicedb)
+        self.toptica_controller: TopticaDLCPro = self.get_device(
+            self.laser_name_devicedb
+        )
 
         # TODO: remove this once lock detection for the cavity is implemented
         self.__lock_checks = 0
@@ -123,7 +127,7 @@ class RelockCavityFrag(ExpFragment):
             self.set_piezo_scan(enabled=False)
             self.set_FALC(main=False, unlim=False)
 
-            self.steer_wand(laser=self.laser_name, offset=0.0, timeout=20)
+            self.steer_wand(laser=self.laser_name_wand, offset=0.0, timeout=20)
 
             self.set_piezo_scan(
                 enabled=True,
