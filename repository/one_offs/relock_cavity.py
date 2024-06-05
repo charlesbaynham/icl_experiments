@@ -29,6 +29,7 @@ import time
 from artiq.master.scheduler import Scheduler
 from ndscan.experiment import *
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle
@@ -41,11 +42,16 @@ logger = logging.getLogger(__name__)
 WAND_FAST_LOCK_POLLING = 0.5  # s
 
 
-class RelockCavityFrag(ExpFragment):
-    laser_name_wand = "689"
-    laser_name_devicedb = "toptica_689"
+class RelockCavityFrag(Fragment):
+    laser_name_wand = None
+    laser_name_devicedb = None
 
     def build_fragment(self):
+        if self.laser_name_devicedb is None or self.laser_name_wand is None:
+            raise TypeError(
+                "You must subclass this Fragment to provide laser_name_wand and laser_name_device_db"
+            )
+
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
@@ -234,8 +240,22 @@ class RelockCavityFrag(ExpFragment):
         else:
             return True
 
+
+class Relock689Frag(RelockCavityFrag, ExpFragment):
+    laser_name_wand = "689"
+    laser_name_devicedb = "toptica_689"
+
     def run_once(self) -> None:
         self.relock()
 
 
-RelockCavity = make_fragment_scan_exp(RelockCavityFrag)
+class Relock698Frag(RelockCavityFrag, ExpFragment):
+    laser_name_wand = "698"
+    laser_name_devicedb = "toptica_698"
+
+    def run_once(self) -> None:
+        self.relock()
+
+
+Relock689Cavity = make_fragment_scan_exp(Relock689Frag)
+Relock698Cavity = make_fragment_scan_exp(Relock698Frag)
