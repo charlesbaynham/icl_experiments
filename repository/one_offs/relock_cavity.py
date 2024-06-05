@@ -233,8 +233,15 @@ class RelockCavityFrag(Fragment):
             "Cavity transmission detection not implemented yet! Using the wavemeter instead"
         )
 
-        meas = self.wand_server.get_freq(laser=self.laser, offset_mode=True, age=1)
-        return abs(meas) < 10e6
+        meas = self.wand_server.get_freq(
+            laser=self.laser_name_wand, offset_mode=True, age=1
+        )
+        status, actual_offset, _ = meas
+
+        if status != WLMMeasurementStatus.OKAY:
+            raise RuntimeError("Wavemeter check failed")
+
+        return abs(actual_offset) < 10e6
 
 
 class Relock689Frag(RelockCavityFrag, ExpFragment):
