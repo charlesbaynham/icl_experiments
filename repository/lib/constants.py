@@ -401,7 +401,7 @@ _default_698 = 429228355e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
-_isotope_shift_689 = 1241e6
+_isotope_shift_689 = 1241.4e6
 
 # The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
 # the absolute frequency and the value of the AOMs between the wavemeter pickoff
