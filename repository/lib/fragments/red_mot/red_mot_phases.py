@@ -168,7 +168,7 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
         default_urukul_detunings_end = [0]
 
         # Chamber 2 MOT coils in amps
-        general_setter_default_starts = [9.0]
+        general_setter_default_starts = [6.0]
         general_setter_default_ends = [1.0]
     else:
         default_urukul_detunings_start = [150e3]
