@@ -185,9 +185,6 @@ RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
 "Default ramp frequency for the broadband red MOT"
 
 
-RED_BROADBAND_TIME = 100e-3
-"Default time in broadband red MOT"
-
 RED_MOT_FINAL_HOLD_TIME = 0 if USE_SR87 else 100e-3
 "Default final hold time in last stage of the red mot"
 

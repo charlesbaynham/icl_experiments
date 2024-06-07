@@ -113,7 +113,11 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     You must do this elsewhere
     """
 
-    duration_default = constants.RED_BROADBAND_TIME
+    if USE_SR87:
+        duration_default = 120e-3
+    else:
+        duration_default = 100e-3
+
     time_step_default = (
         20e-3  # TODO: fix this by changing the ordering of the camera shutter queueing
     )
