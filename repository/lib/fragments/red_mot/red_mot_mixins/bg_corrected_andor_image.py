@@ -8,6 +8,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )
@@ -41,8 +42,16 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+    def hook_setup_andor(self):
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_mean", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_mean_bg_corrected: FloatChannel
+        self.andor_sum: FloatChannel
+        self.andor_mean: FloatChannel
 
     @kernel
     def do_imaging_hook(self):

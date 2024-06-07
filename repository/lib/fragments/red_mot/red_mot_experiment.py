@@ -143,7 +143,7 @@ class RedMOTBase(ExpFragment):
         self.andor_camera_control: AndorCameraControl
 
         self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_mean", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_mean", FloatChannel)
         self.andor_sum: FloatChannel
         self.andor_mean: FloatChannel
 
@@ -174,7 +174,13 @@ class RedMOTBase(ExpFragment):
 
     @kernel
     def _save_data(self):
-        "Consume all slack and save the photos"
+        """
+        Consume all slack and save the photos
+
+        TODO: Remove this method and all Andor-related code from the base - this
+        should be added by mixins only
+        """
+
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
         sums = [0]
@@ -186,7 +192,6 @@ class RedMOTBase(ExpFragment):
         )
         self.andor_sum.push(sums[0])
         self.andor_mean.push(means[0])
-        self.andor_mean_bg_corrected.push(means[0] - means[1])
 
 
 class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
