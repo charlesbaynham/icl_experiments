@@ -215,10 +215,16 @@ if USE_LATTICE_MODE:
     ANDOR_ROI_Y1 = 320
 
 else:
-    ANDOR_ROI_X0 = x - width / 2
-    ANDOR_ROI_X1 = x + width / 2
-    ANDOR_ROI_Y0 = y - height / 2
-    ANDOR_ROI_Y1 = y + height / 2
+    if USE_SR87:
+        ANDOR_ROI_X0 = 50
+        ANDOR_ROI_X1 = 450
+        ANDOR_ROI_Y0 = 50
+        ANDOR_ROI_Y1 = 450
+    else:
+        ANDOR_ROI_X0 = x - width / 2
+        ANDOR_ROI_X1 = x + width / 2
+        ANDOR_ROI_Y0 = y - height / 2
+        ANDOR_ROI_Y1 = y + height / 2
 
 ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
