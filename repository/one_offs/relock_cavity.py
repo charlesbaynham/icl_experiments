@@ -104,6 +104,16 @@ class RelockCavityFrag(Fragment):
         )
         self.max_attempts: IntParamHandle
 
+        self.setattr_param(
+            "lock_detection_threshold",
+            FloatParam,
+            default=10e6,
+            unit="MHz",
+            min=0,
+            description="Wavemeter threshold for lock detection",
+        )
+        self.lock_detection_threshold: FloatParamHandle
+
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
@@ -238,7 +248,7 @@ class RelockCavityFrag(Fragment):
         if status != WLMMeasurementStatus.OKAY:
             raise RuntimeError("Wavemeter check failed")
 
-        locked = abs(actual_offset) < 10e6
+        locked = abs(actual_offset) < self.lock_detection_threshold.get()
 
         logger.debug("Cavity lock status: %s", locked)
 
