@@ -149,29 +149,36 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
+    duration_default = 100e-3
+
     if USE_SR87:
-        duration_default = 0.1e-3
+        # Order:
+        # "suservo_aom_singlepass_689_red_mot_sigmaplus",
+        # "suservo_aom_singlepass_689_red_mot_sigmaminus",
+        # "suservo_aom_singlepass_689_red_mot_diagonal",
+        # "suservo_aom_singlepass_689_up",
+        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.028]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.015]
+
+        default_urukul_detunings_start = [0]
+        default_urukul_detunings_end = [0]
+
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [9.0]
+        general_setter_default_ends = [1.0]
     else:
-        duration_default = 100e-3
+        default_urukul_detunings_start = [150e3]
+        default_urukul_detunings_end = [50e3]
+        default_suservo_setpoint_multiples_start = [0.55, 0.35, 0.6, 0.0]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
 
-    default_urukul_detunings_start = [150e3]
-    default_urukul_detunings_end = [50e3]
-
-    # Order:
-    # "suservo_aom_singlepass_689_red_mot_sigmaplus",
-    # "suservo_aom_singlepass_689_red_mot_sigmaminus",
-    # "suservo_aom_singlepass_689_red_mot_diagonal",
-    # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [0.55, 0.35, 0.6, 0.0]
-    default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
-
-    # Chamber 2 MOT coils in amps
-    general_setter_default_starts = [3.0]
-    general_setter_default_ends = [1.0]
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [3.0]
+        general_setter_default_ends = [1.0]
 
 
 class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
-    duration_default = 100e-3
+    duration_default = 10e-6
 
     # Order:
     # "suservo_aom_singlepass_689_red_mot_sigmaplus",
