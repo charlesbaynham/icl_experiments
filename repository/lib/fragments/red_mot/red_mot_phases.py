@@ -182,7 +182,10 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 
 class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
-    duration_default = 10e-6
+    if USE_SR87:
+        duration_default = 10e-6
+    else:
+        duration_default = 100e-3
 
     # Order:
     # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -192,9 +195,10 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
     if USE_SR87:
         # Sr 87
-        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.03]
-        default_suservo_setpoint_multiples_end = [0.02, 0.02, 0.02, 0.01]
-        general_setter_default_starts = [9.0]
+        default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.015]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.015]
+
+        general_setter_default_starts = [1.0]
         general_setter_default_ends = [1.0]
         default_urukul_detunings_start = [0]
         default_urukul_detunings_end = [0]
