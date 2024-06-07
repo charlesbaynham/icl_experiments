@@ -10,6 +10,9 @@ from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
 from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
     DroppedPumpedLatticeMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+    SingleAndorImage,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     TripleImageMOTMixin,
 )
@@ -38,4 +41,24 @@ class ClockSpecFromLatticeFrag(
     pass
 
 
+class BasicClockSpecFromLatticeFrag(
+    ClockSpectroscopyMixin,
+    DroppedPumpedLatticeMixin,
+    SingleAndorImage,
+    RedMOTWithExperiment,
+):
+    """
+    Clock spectroscopy from dropped lattice - single image
+
+    Load into a lattice, pump into a stretched state, drop the atoms by ramping
+    the lattice, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
+
+    Image only the ground state atoms
+    """
+
+    pass
+
+
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
+BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)
