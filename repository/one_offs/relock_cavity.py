@@ -238,7 +238,11 @@ class RelockCavityFrag(Fragment):
         if status != WLMMeasurementStatus.OKAY:
             raise RuntimeError("Wavemeter check failed")
 
-        return abs(actual_offset) < 10e6
+        locked = abs(actual_offset) < 10e6
+
+        logger.debug("Cavity lock status: %s", locked)
+
+        return locked
 
 
 class Relock689Frag(RelockCavityFrag, ExpFragment):
