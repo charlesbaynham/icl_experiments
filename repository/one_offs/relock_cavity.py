@@ -111,9 +111,6 @@ class RelockCavityFrag(Fragment):
             self.laser_name_devicedb
         )
 
-        # TODO: remove this once lock detection for the cavity is implemented
-        self.__lock_checks = 0
-
     def host_setup(self):
         self.toptica_controller.open()
         return super().host_setup()
