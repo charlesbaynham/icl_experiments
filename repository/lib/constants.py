@@ -400,7 +400,7 @@ class MirnySettings:
 _default_461 = 650504048e6
 _default_707 = 423913481e6
 _default_679 = 441332637e6
-_default_698 = 429228355e6 + 358e6  # Measured empirically
+_default_698 = 429228355e6 + 358e6 + 180e6  # Measured empirically
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
@@ -468,6 +468,7 @@ WAND_SETPOINTS_88 = {
         False,
     ),
     "698": (_default_698, False),
+    "Sirah": (_default_698, False),
 }
 
 
@@ -483,6 +484,7 @@ WAND_SETPOINTS_87 = {
         False,
     ),
     "698": (_default_698, False),
+    "Sirah": (_default_698, False),
 }
 
 # Spin polarisation settings
