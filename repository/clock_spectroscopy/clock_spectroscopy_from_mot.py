@@ -18,9 +18,6 @@ from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics imp
 logger = logging.getLogger(__name__)
 
 
-CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
-
-
 class MOTClockSpectroscopyExp(ClockSpectroscopyMixin, SingleAndorImage):
     """
     Basic clock spectroscopy from a red MOT
