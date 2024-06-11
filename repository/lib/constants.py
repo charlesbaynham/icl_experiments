@@ -71,6 +71,12 @@ URUKULED_BEAMS = [
         attenuation=13,
         urukul_device="urukul9912_aom_singlepass_461_imaging_switch",
     ),
+    UrukuledBeam(
+        "blue_USOC_delivery",
+        frequency=100e6,
+        attenuation=15,
+        urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
+    ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
@@ -119,7 +125,13 @@ IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         8600, 360e-3, 350e-3, 3e-3, associated_aom="blue_doublepass_injection"
     ),
-    "blue_IJD2_controller": IJDSettings(8800, 370.5e-3, 367e-3, 3e-3),
+    "blue_IJD2_controller": IJDSettings(
+        8800,
+        370.5e-3,
+        367e-3,
+        3e-3,
+        associated_aom="blue_USOC_delivery",  # This AOM should be associated with IJD1 but we can't currently associate multiple AOMs
+    ),
     "blue_IJD3_controller": IJDSettings(8850, 355e-3, 345e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(
         9460, 189.0e-3, 186.0e-3, 3e-3, associated_aom="red_doublepass_injection"
