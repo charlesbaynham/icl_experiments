@@ -93,7 +93,7 @@ class AndorCameraControl(Fragment):
                 f"Grabber ROI {i} y0",
                 default=y0,
                 min=0,
-                max=1024,
+                # max=1024,  # FIXME
             )
             self.setattr_param(
                 f"roi_{i}_y1",
@@ -101,7 +101,7 @@ class AndorCameraControl(Fragment):
                 f"Grabber ROI {i} y1",
                 default=y1,
                 min=0,
-                max=1024,
+                # max=1024,  # FIXME
             )
 
         self.setattr_param(
