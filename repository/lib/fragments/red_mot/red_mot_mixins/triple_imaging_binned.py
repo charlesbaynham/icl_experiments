@@ -78,20 +78,11 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         TODO: Set up Fast Kinetics mode here
         """
 
-        # 3x ROIs
+        # 1x ROI but we'll trigger three times
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=[
-                [0, 0, 512, 512]
-                # [
-                #     constants.ANDOR_ROI_X0 // 8,  # FIXME
-                #     constants.ANDOR_ROI_Y0 // 8,
-                #     constants.ANDOR_ROI_X1 // 8,
-                #     constants.ANDOR_ROI_Y1 // 8,
-                # ]
-                for _ in range(3)
-            ],
+            roi_defaults=[[0, 0, 512, 512]],  # FIXME
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl
@@ -148,7 +139,7 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
             m = [0.0]
             self.andor_camera_control.readout_ROIs(s, m, timeout_mu)
             sums[i] = s[0]
-            means[i] = s[0]
+            means[i] = m[0]
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
@@ -161,27 +152,3 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
             self.excitation_fraction.push((means[1] - means[2]) / bg)
 
         self.atom_number.push(means[0] + means[1] - 2 * means[2])
-
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-
-        TODO: Set up Fast Kinetics mode here
-        """
-
-        # 3x ROIs
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                    constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                ]
-                for i in range(3)
-            ],
-        )
-        self.andor_camera_control: AndorCameraControl
