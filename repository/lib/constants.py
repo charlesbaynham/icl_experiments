@@ -232,7 +232,7 @@ else:
 
 ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
-ANDOR_FAST_KINETICS_HEIGHT = height
+ANDOR_FAST_KINETICS_HEIGHT = 200
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
