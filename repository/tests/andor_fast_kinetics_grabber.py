@@ -83,6 +83,8 @@ class TestFastKineticsGrabber(ExpFragment):
                 logger.info("Loop = %d", loop)
                 for i in range(self.N_ROIs):
                     logger.info("[%d] %f", i, sums[i])
+
+                loop += 1
             except GrabberTimeoutException:
                 logger.info("loop = %d was the last", loop)
                 break
