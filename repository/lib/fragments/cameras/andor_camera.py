@@ -177,6 +177,7 @@ class AndorCameraControl(Fragment):
         mask = 0
 
         for i in range(self.num_rois):
+            self.core.break_realtime()
             self.grabber.setup_roi(
                 i,
                 roi_config[i, 0],
