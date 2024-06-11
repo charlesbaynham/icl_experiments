@@ -58,7 +58,7 @@ class TestFastKineticsGrabber(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
 
-        self.core.wait_until_mu(now_mu())
+        # self.core.wait_until_mu(now_mu())
         # self.core.reset()
 
         for _ in range(self.N_triggers):
