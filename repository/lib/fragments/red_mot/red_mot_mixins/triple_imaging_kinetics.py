@@ -83,9 +83,11 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
             roi_defaults=[
                 [
                     constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                    constants.ANDOR_FAST_KINETICS_OFFSET
+                    + i * constants.ANDOR_FAST_KINETICS_HEIGHT,
                     constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                    constants.ANDOR_FAST_KINETICS_OFFSET
+                    + (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
                 ]
                 for i in range(3)
             ],
