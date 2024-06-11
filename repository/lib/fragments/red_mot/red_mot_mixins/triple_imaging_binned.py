@@ -84,10 +84,10 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
             AndorCameraControl,
             roi_defaults=[
                 [
-                    constants.ANDOR_ROI_X0,
-                    constants.ANDOR_ROI_Y0,
-                    constants.ANDOR_ROI_X1,
-                    constants.ANDOR_ROI_Y1,
+                    constants.ANDOR_ROI_X0 // 8,  # FIXME
+                    constants.ANDOR_ROI_Y0 // 8,
+                    constants.ANDOR_ROI_X1 // 8,
+                    constants.ANDOR_ROI_Y1 // 8,
                 ]
                 for _ in range(3)
             ],
