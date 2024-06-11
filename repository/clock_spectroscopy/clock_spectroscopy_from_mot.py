@@ -10,8 +10,8 @@ from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
 from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
     SingleAndorImage,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
+from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_binned import (
+    TripleImageBinnedMixin,
 )
 
 
@@ -30,9 +30,7 @@ class MOTClockSpectroscopyExp(ClockSpectroscopyMixin, SingleAndorImage):
     pass
 
 
-class MOTClockSpectroscopyNormalizedExp(
-    ClockSpectroscopyMixin, TripleImageFastKineticsMixin
-):
+class MOTClockSpectroscopyNormalizedExp(ClockSpectroscopyMixin, TripleImageBinnedMixin):
     """
     Normalised clock spectroscopy from a red MOT
 

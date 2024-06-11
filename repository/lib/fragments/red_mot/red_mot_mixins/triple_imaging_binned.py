@@ -132,16 +132,23 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         """
         Hook to save data from the Andor camera
 
-        Runs in realtime after imaging is completed
+        Runs in realtime after imaging is completed.
+
+        We took three images, so read all of them out.
         """
         # Save Andor data
-        sums = [0] * 3
-        means = [0.0] * 3
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
+        n = 3
+        sums = [0] * n
+        means = [0.0] * n
+
+        timeout_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
+
+        for i in range(n):
+            s = [0]
+            m = [0.0]
+            self.andor_camera_control.readout_ROIs(s, m, timeout_mu)
+            sums[i] = s[0]
+            means[i] = s[0]
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
