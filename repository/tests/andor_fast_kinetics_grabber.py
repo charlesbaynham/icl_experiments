@@ -1,8 +1,10 @@
 import logging
 
+from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import GrabberTimeoutException
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from artiq.experiment import NumberValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
@@ -15,6 +17,7 @@ logger = logging.getLogger(__name__)
 class TestFastKineticsGrabber(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
+        self.core: Core
 
         self.setattr_argument(
             "N_ROIs", NumberValue(default=5, precision=0, scale=1, step=1, type="int")
@@ -54,6 +57,9 @@ class TestFastKineticsGrabber(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+
+        self.core.wait_until_mu(now_mu())
+        self.core.reset()
 
         for _ in range(self.N_triggers):
             delay(10e-3)
