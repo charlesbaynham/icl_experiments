@@ -71,7 +71,7 @@ class TestFastKineticsGrabber(ExpFragment):
         )
 
         for i in range(self.N):
-            logger.info("[%d] %f", i, means[i])
+            logger.info("[%d] %f", i, sums[i])
 
 
 TestFastKineticsGrabber = make_fragment_scan_exp(TestFastKineticsGrabber)
