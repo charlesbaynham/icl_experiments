@@ -232,8 +232,8 @@ if USE_LATTICE_MODE:
 
 else:
     if USE_SR87:
-        ANDOR_ROI_X0 = 178
-        ANDOR_ROI_X1 = 216
+        ANDOR_ROI_X0 = 150
+        ANDOR_ROI_X1 = 350
         ANDOR_ROI_Y0 = 285
         ANDOR_ROI_Y1 = 331
     else:
