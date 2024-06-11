@@ -61,7 +61,7 @@ class SwitchIsotopeFrag(ExpFragment):
                 logger.info("Disabling lock for laser %s", laser)
                 try:
                     self.wand_server.unlock(laser=laser, name="")
-                except ValueError:
+                except (ValueError, KeyError):
                     # Raised if this laser has no controller - fine, since we don't want it locked anyway!
                     pass
             else:
