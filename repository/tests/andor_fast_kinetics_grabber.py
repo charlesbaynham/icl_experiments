@@ -2,6 +2,7 @@ import logging
 
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import NumberValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 
@@ -15,7 +16,18 @@ class TestFastKineticsGrabber(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
 
-        self.N = 5
+        self.setattr_argument(
+            "N", NumberValue(default=5, precision=0, scale=1, step=1, type="int")
+        )
+        self.setattr_argument(
+            "height", NumberValue(default=10, precision=0, scale=1, step=1, type="int")
+        )
+
+        if self.N is None:
+            self.N = 3
+
+        if self.height is None:
+            self.height = 10
 
         # Nx ROIs
         self.setattr_fragment(
@@ -24,9 +36,9 @@ class TestFastKineticsGrabber(ExpFragment):
             roi_defaults=[
                 [
                     0,
-                    i * 10,
+                    i * self.height,
                     512,
-                    (i + 1) * 10,
+                    (i + 1) * self.height,
                 ]
                 for i in range(self.N)
             ],
