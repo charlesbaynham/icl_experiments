@@ -17,14 +17,19 @@ class TestFastKineticsGrabber(ExpFragment):
         self.setattr_device("core")
 
         self.setattr_argument(
-            "N", NumberValue(default=5, precision=0, scale=1, step=1, type="int")
+            "N_ROIs", NumberValue(default=5, precision=0, scale=1, step=1, type="int")
         )
+        self.setattr_argument(
+            "N_triggers",
+            NumberValue(default=5, precision=0, scale=1, step=1, type="int"),
+        )
+
         self.setattr_argument(
             "height", NumberValue(default=10, precision=0, scale=1, step=1, type="int")
         )
 
-        if self.N is None:
-            self.N = 3
+        if self.N_ROIs is None:
+            self.N_ROIs = 3
 
         if self.height is None:
             self.height = 10
@@ -40,7 +45,7 @@ class TestFastKineticsGrabber(ExpFragment):
                     512,
                     (i + 1) * self.height,
                 ]
-                for i in range(self.N)
+                for i in range(self.N_ROIs)
             ],
             add_pre_trigger_delay=True,
         )
@@ -50,7 +55,7 @@ class TestFastKineticsGrabber(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
 
-        for _ in range(8):
+        for _ in range(self.N_triggers):
             delay(10e-3)
             self.andor_camera_control.trigger(
                 exposure=1e-3,
@@ -67,8 +72,8 @@ class TestFastKineticsGrabber(ExpFragment):
         while True:
             try:
                 # Save Andor data
-                sums = [0] * self.N
-                means = [0.0] * self.N
+                sums = [0] * self.N_ROIs
+                means = [0.0] * self.N_ROIs
                 self.andor_camera_control.readout_ROIs(
                     sums,
                     means,
@@ -76,7 +81,7 @@ class TestFastKineticsGrabber(ExpFragment):
                 )
 
                 logger.info("Loop = %d", loop)
-                for i in range(self.N):
+                for i in range(self.N_ROIs):
                     logger.info("[%d] %f", i, sums[i])
             except GrabberTimeoutException:
                 logger.info("loop = %d was the last", loop)
