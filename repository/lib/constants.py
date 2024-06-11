@@ -155,21 +155,28 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-if USE_SR87 and USE_LATTICE_MODE:
-    # With 6A gradient
-    B_FIELD_BIAS_X = 1.1  # A
-    B_FIELD_BIAS_Y = -0.02  # A
-    B_FIELD_BIAS_Z = -1.4  # A
-elif not USE_SR87 and USE_LATTICE_MODE:
-    # With 1A gradient
-    B_FIELD_BIAS_X = 0.5  # A
-    B_FIELD_BIAS_Y = -0.02  # A
-    B_FIELD_BIAS_Z = -1.01  # A
+if USE_LATTICE_MODE:
+    if USE_SR87:
+        # With 6A gradient
+        B_FIELD_BIAS_X = 1.1  # A
+        B_FIELD_BIAS_Y = -0.02  # A
+        B_FIELD_BIAS_Z = -1.4  # A
+    else:
+        # With 1A gradient
+        B_FIELD_BIAS_X = 0.5  # A
+        B_FIELD_BIAS_Y = -0.02  # A
+        B_FIELD_BIAS_Z = -1.01  # A
 else:
     # Default fields in chamber 2 for nulling field
     B_FIELD_BIAS_X = 0.3  # A
     B_FIELD_BIAS_Y = -0.014  # A
-    B_FIELD_BIAS_Z = -1.04  # A
+
+    if USE_SR87:
+        B_FIELD_BIAS_Z = (
+            -0.8
+        )  # Sr87 prefers a bit of a bias field in the MOT. We should investigate
+    else:
+        B_FIELD_BIAS_Z = -1.04  # A
 
 B_FIELD_GRADIENT = 90.0  # A
 
@@ -213,10 +220,10 @@ if USE_LATTICE_MODE:
 
 else:
     if USE_SR87:
-        ANDOR_ROI_X0 = 50
-        ANDOR_ROI_X1 = 450
-        ANDOR_ROI_Y0 = 50
-        ANDOR_ROI_Y1 = 450
+        ANDOR_ROI_X0 = 178
+        ANDOR_ROI_X1 = 216
+        ANDOR_ROI_Y0 = 285
+        ANDOR_ROI_Y1 = 331
     else:
         ANDOR_ROI_X0 = x - width / 2
         ANDOR_ROI_X1 = x + width / 2
