@@ -95,6 +95,17 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         )
         self.andor_camera_control: AndorCameraControl
 
+        # If the andor is in fast kinetics mode and the height of pixels to emit
+        # is > 512, it will emit two frames onto Grabber instead of one. The
+        # first will be "nonsense" (probably with some digital information that
+        # the grabber isn't parsing) and the second will contain all the pixels,
+        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
+        # See labbook entry 2024-06-11.
+        self.andor_requires_storage_frame = (
+            constants.ANDOR_FAST_KINETICS_HEIGHT * 3 > constants.ANDOR_SENSOR_HEIGHT
+        )
+        self.kernel_invariants.add("andor_requires_storage_frame")
+
     @kernel
     def do_imaging_hook(self):
         """
@@ -136,11 +147,14 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         # Save Andor data
         sums = [0] * 3
         means = [0.0] * 3
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
+
+        for _ in range(2 if self.andor_requires_storage_frame else 1):
+            # Discard first nonsense frame if required
+            self.andor_camera_control.readout_ROIs(
+                sums,
+                means,
+                self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+            )
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
