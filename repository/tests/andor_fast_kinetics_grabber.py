@@ -15,7 +15,7 @@ class TestFastKineticsGrabber(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
 
-        self.N = 100
+        self.N = 5
 
         # Nx ROIs
         self.setattr_fragment(
@@ -37,12 +37,13 @@ class TestFastKineticsGrabber(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        delay(1e-3)
 
-        self.andor_camera_control.trigger(
-            exposure=1e-3,
-            control_shutter=False,
-        )
+        for _ in range(3):
+            delay(10e-3)
+            self.andor_camera_control.trigger(
+                exposure=1e-3,
+                control_shutter=False,
+            )
 
         self.save_data()
 
@@ -58,7 +59,7 @@ class TestFastKineticsGrabber(ExpFragment):
         )
 
         for i in range(self.N):
-            logger.info("[%] %f", i, means[i])
+            logger.info("[%d] %f", i, means[i])
 
 
 TestFastKineticsGrabber = make_fragment_scan_exp(TestFastKineticsGrabber)
