@@ -147,9 +147,11 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         self.andor_sum_1.push(sums[1])
         self.andor_sum_2.push(sums[2])
 
-        self.excitation_fraction.push(
-            (means[1] - means[2]) / (means[0] + means[1] - 2 * means[2])
-        )
+        bg = means[0] + means[1] - 2 * means[2]
+        if bg == 0:
+            self.excitation_fraction.push(0.0)
+        else:
+            self.excitation_fraction.push((means[1] - means[2]) / bg)
 
         self.atom_number.push(means[0] + means[1] - 2 * means[2])
 
