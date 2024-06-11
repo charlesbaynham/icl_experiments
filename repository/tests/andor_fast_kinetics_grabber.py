@@ -50,7 +50,7 @@ class TestFastKineticsGrabber(ExpFragment):
     def run_once(self):
         self.core.break_realtime()
 
-        for _ in range(3):
+        for _ in range(8):
             delay(10e-3)
             self.andor_camera_control.trigger(
                 exposure=1e-3,
