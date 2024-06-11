@@ -153,7 +153,7 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
-    duration_default = 100e-3
+    duration_default = 10e-6
 
     if USE_SR87:
         # Order:
@@ -183,7 +183,7 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     if USE_SR87:
-        duration_default = 10e-6
+        duration_default = 100e-3
     else:
         duration_default = 100e-3
 
@@ -195,13 +195,15 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
     if USE_SR87:
         # Sr 87
-        default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.015]
+        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.03]
         default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.015]
 
-        general_setter_default_starts = [1.0]
-        general_setter_default_ends = [1.0]
         default_urukul_detunings_start = [0]
         default_urukul_detunings_end = [0]
+
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [6.0]
+        general_setter_default_ends = [1.0]
 
     else:
         default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.0]
