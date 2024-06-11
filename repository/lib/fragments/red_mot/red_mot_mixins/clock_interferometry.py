@@ -31,7 +31,7 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
             "delay_between_interferometry_pulses",
             FloatParam,
             "Delay between interferometry pulses",
-            default=100e-9,
+            default=10e-6,
             unit="us",
         )
         self.delay_between_interferometry_pulses: FloatParamHandle
