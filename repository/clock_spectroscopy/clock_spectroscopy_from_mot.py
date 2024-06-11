@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 
 
-class MOTClockSpectroscopyExp(ClockSpectroscopyMixin, TripleImageMOTMixin):
+class MOTClockSpectroscopyExp(ClockSpectroscopyMixin, SingleAndorImage):
     """
     Basic clock spectroscopy from a red MOT
 
@@ -33,7 +33,7 @@ class MOTClockSpectroscopyExp(ClockSpectroscopyMixin, TripleImageMOTMixin):
     pass
 
 
-class MOTClockSpectroscopyNormalizedExp(ClockSpectroscopyMixin, SingleAndorImage):
+class MOTClockSpectroscopyNormalizedExp(ClockSpectroscopyMixin, TripleImageMOTMixin):
     """
     Normalised clock spectroscopy from a red MOT
 
