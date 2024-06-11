@@ -153,27 +153,3 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
             self.excitation_fraction.push((means[1] - means[2]) / bg)
 
         self.atom_number.push(means[0] + means[1] - 2 * means[2])
-
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-
-        TODO: Set up Fast Kinetics mode here
-        """
-
-        # 3x ROIs
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                    constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                ]
-                for i in range(3)
-            ],
-        )
-        self.andor_camera_control: AndorCameraControl
