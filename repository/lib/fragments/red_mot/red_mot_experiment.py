@@ -421,6 +421,10 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         By default, just turn off the red light
         """
+        self.default_post_narrowband_hook()
+
+    @kernel
+    def default_post_narrowband_hook(self):
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel

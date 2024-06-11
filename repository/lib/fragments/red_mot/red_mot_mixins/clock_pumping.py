@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -91,8 +92,11 @@ class ClockPumpingMixin(RedMOTWithExperiment):
         self.clock_dds.cfg_sw(False)
 
     @kernel
-    def pre_expansion_hook(self):
+    def post_narrowband_hook(self):
+        self.default_post_narrowband_hook()
+
         # Prepare the clock beam
+        # FIXME: Collision error here
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency + self.pumping_pulse_aom_detuning.get()
         )
