@@ -7,6 +7,9 @@ from repository.lib import constants
 from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+    SingleAndorImage,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     TripleImageMOTMixin,
 )
@@ -18,9 +21,21 @@ logger = logging.getLogger(__name__)
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 
 
-class BasicClockSpectroscopyExp(ClockSpectroscopyMixin, TripleImageMOTMixin):
+class MOTClockSpectroscopyExp(ClockSpectroscopyMixin, TripleImageMOTMixin):
     """
-    Basic clock spectroscopy
+    Basic clock spectroscopy from a red MOT
+
+    Use the up clock beam for spectroscopy, altering the (single-pass) AOM
+
+    Image the ground state atoms only
+    """
+
+    pass
+
+
+class MOTClockSpectroscopyNormalizedExp(ClockSpectroscopyMixin, SingleAndorImage):
+    """
+    Normalised clock spectroscopy from a red MOT
 
     Use the up clock beam for spectroscopy, altering the (single-pass) AOM
 
@@ -31,4 +46,7 @@ class BasicClockSpectroscopyExp(ClockSpectroscopyMixin, TripleImageMOTMixin):
     pass
 
 
-BasicClockSpectroscopy = make_fragment_scan_exp(BasicClockSpectroscopyExp)
+MOTClockSpectroscopy = make_fragment_scan_exp(MOTClockSpectroscopyExp)
+MOTClockSpectroscopyNormalized = make_fragment_scan_exp(
+    MOTClockSpectroscopyNormalizedExp
+)
