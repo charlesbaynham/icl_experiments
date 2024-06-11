@@ -16,10 +16,12 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 logger = logging.getLogger(__name__)
 
 
-class TripleImageFastKineticsMixin(RedMOTWithExperiment):
+class TripleImageBinnedMixin(RedMOTWithExperiment):
     """
     Implements normalized readout for a :py:class:`~RedMOTWithExperiment`
-    experiment
+    experiment with restricted camera ROI
+
+    Contrast with the Fast Kinetics triple imaging.
 
     This mixin uses the Andor camera to take three images and create
     ResultChannels for normalised state readout, assuming that the first image
@@ -83,11 +85,11 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
             roi_defaults=[
                 [
                     constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                    constants.ANDOR_ROI_Y0,
                     constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
+                    constants.ANDOR_ROI_Y1,
                 ]
-                for i in range(3)
+                for _ in range(3)
             ],
             add_pre_trigger_delay=True,
         )

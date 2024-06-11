@@ -12,7 +12,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import 
     SpectroscopyParamsMixin,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
-    TripleImageMOTMixin,
+    TripleImageFastKineticsMixin,
 )
 
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class SpectroscopyWithKinetics_MOTBeam(
-    FieldBoostMixin, TripleImageMOTMixin, SpectroscopyParamsMixin
+    FieldBoostMixin, TripleImageFastKineticsMixin, SpectroscopyParamsMixin
 ):
     """
     689nm spectroscopy MOTBEAM
@@ -55,7 +55,7 @@ class SpectroscopyWithKinetics_MOTBeam(
 
 
 class SpectroscopyWithKinetics_UpBeam(
-    FieldBoostMixin, TripleImageMOTMixin, SpectroscopyParamsMixin
+    FieldBoostMixin, TripleImageFastKineticsMixin, SpectroscopyParamsMixin
 ):
     """
     689nm spectroscopy UP

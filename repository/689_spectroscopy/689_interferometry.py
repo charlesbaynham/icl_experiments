@@ -17,7 +17,7 @@ from repository.lib import constants
 logger = logging.getLogger(__name__)
 
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
-    TripleImageMOTMixin,
+    TripleImageFastKineticsMixin,
 )
 
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
@@ -25,7 +25,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import 
 )
 
 
-class _InterferometryCommon(TripleImageMOTMixin, SpectroscopyParamsMixin):
+class _InterferometryCommon(TripleImageFastKineticsMixin, SpectroscopyParamsMixin):
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
             default_suservo_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
