@@ -97,17 +97,20 @@ class FluorescencePulseBase(Fragment):
 
     @kernel
     def do_imaging_pulse(
-        self,
-        ignore_initial_shutters=False,
-        ignore_final_shutters=False,
+        self, ignore_initial_shutters=False, ignore_final_shutters=False, duration=-1.0
     ):
         """
         Do an imaging pulse. Camera control is left to the user.
 
-        Advances the timeline by `fluorescence_pulse_duration`.
+        Use `fluorescence_pulse_duration` as the duration if `duration` is < 0.
+
+        Advances the timeline by the duration of the pulse.
         """
+        if duration < 0:
+            duration = self.fluorescence_pulse_duration.get()
+
         self.all_beam_toggler.turn_on_beams(ignore_shutters=ignore_initial_shutters)
-        delay(self.fluorescence_pulse_duration.get())
+        delay(duration)
         self.all_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
 
 
@@ -174,20 +177,24 @@ class ToggleableFluorescencePulse(Fragment):
 
     @kernel
     def do_imaging_pulse(
-        self, ignore_initial_shutters=False, ignore_final_shutters=False
+        self, ignore_initial_shutters=False, ignore_final_shutters=False, duration=-1.0
     ):
         """
         Do an imaging pulse with the requested beams. Camera control is left to the user.
 
-        Advances the timeline by `fluorescence_pulse_duration`.
+        Use `fluorescence_pulse_duration` as the duration if `duration` is < 0.
+
+        Advances the timeline by the duration of the pulse.
         """
         if self.image_with_mot_beams.get():
             self.mot_beams.do_imaging_pulse(
                 ignore_initial_shutters=ignore_initial_shutters,
                 ignore_final_shutters=ignore_final_shutters,
+                duration=duration,
             )
         else:
             self.imaging_beam.do_imaging_pulse(
                 ignore_initial_shutters=ignore_initial_shutters,
                 ignore_final_shutters=ignore_final_shutters,
+                duration=duration,
             )
