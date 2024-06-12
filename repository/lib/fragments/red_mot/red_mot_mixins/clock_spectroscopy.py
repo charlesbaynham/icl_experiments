@@ -103,6 +103,7 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+            enable_iir=True,
         )
 
         # Setup switch AOM
@@ -120,6 +121,7 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+            enable_iir=True,
         )
 
         self.clock_dds.sw.on()
