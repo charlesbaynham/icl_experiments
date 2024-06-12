@@ -76,7 +76,7 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
         # been set up already?" so we can avoid glitches from doing it again
         # which might e.g. unlock injected diodes
         self.core.break_realtime()
-        cpld: CPLD = self.dds.cpld
+        cpld = self.dds.cpld  # type: CPLD
         status = cpld.sta_read()
 
         if urukul_sta_pll_lock(status):
