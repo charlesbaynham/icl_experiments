@@ -41,7 +41,9 @@ RED_SUSERVO_INFOS = [
         "red_up",
     ]
 ]
-RED_URUKUL_INFOS = [constants.URUKULED_BEAMS["red_spinpol"]]
+RED_URUKUL_INFOS = [
+    # constants.URUKULED_BEAMS["red_spinpol"]  # FIXME I've had to disable the spin pol beam because it glitches the attenuator of the IJD
+]
 
 
 class RedBeamController(Fragment):

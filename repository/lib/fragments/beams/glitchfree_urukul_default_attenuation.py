@@ -91,9 +91,11 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
                 # attenuation on this urukul elsewhere
                 channel = self.dds.chip_select - 4
                 att_mu = cpld.att_to_mu(self.default_attenuation)
+
                 att_reg = cpld.att_reg & ~(0xFF << (channel * 8))
                 att_reg |= att_mu << (channel * 8)
                 cpld.att_reg = att_reg
+
         else:
             logger.warning(
                 "Urukul PLL unlocked - reinitiating DDS and CPLD and setting attenuation to %.1f",
