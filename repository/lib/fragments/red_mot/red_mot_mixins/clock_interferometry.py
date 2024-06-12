@@ -12,10 +12,14 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
+
 logger = logging.getLogger(__name__)
 
 from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
@@ -67,10 +71,17 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
     def do_spectroscopy_hook(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
-        # Set frequency and phase to initial
-        self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency
+        # Set frequency on the suservo, phase on the clock switch
+        self.clock_delivery_setter.set_suservo(
+            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.spectroscopy_pulse_aom_detuning.get(),
+            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+        )
+        self.clock_dds.set(
+            frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.phase_constant,
         )
 
@@ -82,8 +93,7 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
 
         # Phase step
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency
-            + self.spectroscopy_pulse_aom_detuning.get(),
+            frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.phase_constant + 1.0 * self.phase_step.get(),
         )
 
@@ -99,8 +109,7 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
         # Phase step
         t_end_pi_mu = now_mu()
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency
-            + self.spectroscopy_pulse_aom_detuning.get(),
+            frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.phase_constant + 4.0 * self.phase_step.get(),
         )
 
@@ -109,8 +118,6 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
             t_end_pi_mu
             + self.core.seconds_to_mu(self.delay_between_interferometry_pulses.get())
         )
-        self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency
-            + self.spectroscopy_pulse_aom_detuning.get(),
-            phase=self.phase_constant + 1.0 * self.phase_step.get(),
-        )
+        self.clock_dds.sw.on()
+        delay(t_pi_pulse)
+        self.clock_dds.sw.off()

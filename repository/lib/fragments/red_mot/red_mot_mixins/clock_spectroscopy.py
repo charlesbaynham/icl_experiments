@@ -5,7 +5,9 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
+from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
@@ -15,6 +17,7 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 logger = logging.getLogger(__name__)
 
@@ -45,22 +48,21 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
         self.setattr_param(
             "spectroscopy_pulse_aom_detuning",
             FloatParam,
-            "Frequency detuning of AOM during spectroscopy pulse",
+            "Frequency detuning of delivery AOM during spectroscopy pulse",
             default=0,
             unit="kHz",
         )
         self.spectroscopy_pulse_aom_detuning: FloatParamHandle
 
-        # TODO: Reinstate clock beam amplitude control when we have it!
-        # self.setattr_param(
-        #     "spectroscopy_pulse_aom_amplitude",
-        #     FloatParam,
-        #     "Amplitude of delivery AOM during spectroscopy pulse. SUServoing is disabled",
-        #     default=1.0,
-        #     min=0.0,
-        #     max=1.0,
-        # )
-        # self.spectroscopy_pulse_aom_amplitude: FloatParamHandle
+        self.setattr_param(
+            "spectroscopy_clock_delivery_setpoint",
+            FloatParam,
+            "Setpoint for clock delivery AOM",
+            default=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            min=0.0,
+            unit="V",
+        )
+        self.spectroscopy_clock_delivery_setpoint: FloatParamHandle
 
         self.setattr_param(
             "delay_repumps_after_first_pulse",
@@ -70,6 +72,13 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
             unit="ms",
         )
         self.delay_repumps_after_first_pulse: FloatParamHandle
+
+        self.setattr_fragment(
+            "clock_delivery_setter",
+            LibSetSUServoStatic,
+            channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
+        )
+        self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
@@ -86,17 +95,33 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
     def before_start_hook_clockspec(self):
         self.core.break_realtime()
 
-        self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
+        # Setup delivery AOM
+        self.clock_delivery_setter.set_suservo(
+            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+            + self.spectroscopy_pulse_aom_detuning.get(),
+            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+        )
 
+        # Setup switch AOM
+        self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
+        self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
         self.clock_dds.sw.off()
         self.clock_dds.cfg_sw(False)
 
     @kernel
     def do_spectroscopy_hook(self):
-        self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency
-            + self.spectroscopy_pulse_aom_detuning.get()
+        self.clock_delivery_setter.set_suservo(
+            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+            + self.spectroscopy_pulse_aom_detuning.get(),
+            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
         )
+
         self.clock_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
         self.clock_dds.sw.off()
