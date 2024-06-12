@@ -55,6 +55,11 @@ class SwitchIsotopeFrag(ExpFragment):
             setpoints = constants.WAND_SETPOINTS_88
 
         for laser, (setpoint, lock_enabled) in setpoints.items():
+            logger.info(
+                "Setting laser %s reference frequency to %.0f MHz",
+                laser,
+                setpoint * 1e-6,
+            )
             self.wand_server.set_reference_freq(laser=laser, f_ref=setpoint)
 
             if not lock_enabled:
