@@ -399,7 +399,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=1.8,
+        setpoint=1.8,  # 270 mW in AOM 0th order with no diffraction
     ),
     SUServoedBeam(
         "lattice_input_1379",
