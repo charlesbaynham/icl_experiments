@@ -1,5 +1,6 @@
 import logging
 
+from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.fragments.red_mot.red_mot_mixins.clock_interferometry import (
@@ -23,7 +24,10 @@ class MOTClockInterferometryNormalizedExp(
     Clock interferometry with clock pumping and fast kinetics
     """
 
-    pass
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockpumping()
+        self.before_start_hook_clockspec()
 
 
 MOTClockInterferometryNormalized = make_fragment_scan_exp(

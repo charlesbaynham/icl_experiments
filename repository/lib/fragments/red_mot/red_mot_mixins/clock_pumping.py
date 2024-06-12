@@ -6,7 +6,9 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
+from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
@@ -16,7 +18,7 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
-
+CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 logger = logging.getLogger(__name__)
 
 
@@ -61,16 +63,22 @@ class ClockPumpingMixin(RedMOTWithExperiment):
         )
         self.pumping_pulse_clearout_duration: FloatParamHandle
 
-        # TODO: Reinstate clock beam amplitude control when we have it!
-        # self.setattr_param(
-        #     "spectroscopy_pulse_aom_amplitude",
-        #     FloatParam,
-        #     "Amplitude of delivery AOM during spectroscopy pulse. SUServoing is disabled",
-        #     default=1.0,
-        #     min=0.0,
-        #     max=1.0,
-        # )
-        # self.spectroscopy_pulse_aom_amplitude: FloatParamHandle
+        self.setattr_param(
+            "pumping_clock_delivery_setpoint",
+            FloatParam,
+            "Setpoint for clock delivery AOM during pumping",
+            default=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            min=0.0,
+            unit="V",
+        )
+        self.pumping_clock_delivery_setpoint: FloatParamHandle
+
+        self.setattr_fragment(
+            "pumping_clock_delivery_setter",
+            LibSetSUServoStatic,
+            channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
+        )
+        self.pumping_clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
@@ -87,6 +95,16 @@ class ClockPumpingMixin(RedMOTWithExperiment):
     def before_start_hook_clockpumping(self):
         self.core.break_realtime()
 
+        # Setup delivery AOM
+        self.pumping_clock_delivery_setter.set_suservo(
+            freq=CLOCK_BEAM_DELIVERY_INFO.frequency,
+            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.pumping_clock_delivery_setpoint.get(),
+            enable_iir=True,
+        )
+
         self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
         self.clock_dds.sw.off()
         self.clock_dds.cfg_sw(False)
@@ -96,10 +114,17 @@ class ClockPumpingMixin(RedMOTWithExperiment):
         self.default_post_narrowband_hook()
 
         # Prepare the clock beam
-        # FIXME: Collision error here
-        self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency + self.pumping_pulse_aom_detuning.get()
+        self.pumping_clock_delivery_setter.set_suservo(
+            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+            + self.pumping_pulse_aom_detuning.get(),
+            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.pumping_clock_delivery_setpoint.get(),
+            enable_iir=True,
         )
+
+        self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
 
         # Pulse it onto the atoms
         self.clock_dds.sw.on()
