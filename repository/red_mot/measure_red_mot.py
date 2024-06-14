@@ -11,8 +11,8 @@ from repository.lib.fragments.red_mot.red_mot_mixins.bg_corrected_andor_image im
 from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
     ConstantLatticeMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
-    FLIRBlueMOTMeasurementMixin,
+from repository.lib.fragments.red_mot.red_mot_mixins.flir_measurement import (
+    FLIRMeasurementMixin,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
     SingleAndorImage,
@@ -30,9 +30,7 @@ class MeasureBBRedMOTFrag(RedMOTBase):
         self._save_data()
 
 
-class _MeasureNarrowbandMOTFrag(
-    FLIRBlueMOTMeasurementMixin, ConstantLatticeMixin, RedMOTWithExperiment
-):
+class _MeasureNarrowbandMOTFrag(ConstantLatticeMixin, RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
@@ -46,7 +44,9 @@ class _MeasureNarrowbandMOTFrag(
         pass
 
 
-class MeasureNarrowbandMOTFrag(SingleAndorImage, _MeasureNarrowbandMOTFrag):
+class MeasureNarrowbandMOTFrag(
+    FLIRMeasurementMixin, SingleAndorImage, _MeasureNarrowbandMOTFrag
+):
     """
     Make a narrowband MOT, image with the ANDOR and leave lattice light on
     """

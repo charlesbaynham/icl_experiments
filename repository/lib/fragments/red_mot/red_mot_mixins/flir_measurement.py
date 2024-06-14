@@ -1,0 +1,48 @@
+import logging
+
+from artiq.experiment import delay
+from artiq.experiment import kernel
+
+from repository.lib.fragments.red_mot.red_mot_experiment import (
+    RedMOTWithExperiment,
+)
+from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+    SingleAndorImage,
+)
+
+logger = logging.getLogger(__name__)
+
+
+class FLIRMeasurementMixin(SingleAndorImage, RedMOTWithExperiment):
+    """
+    Image the atoms using the FLIR cameras
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    This mixin also sets up SingleAndorImage, so the user does not need to
+    manually ensure compatibility.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook`
+    * :meth:`~save_flir_data_hook`
+    """
+
+    @kernel
+    def do_imaging_hook(self):
+        self.do_imaging_hook_andor()
+        self.do_imaging_hook_flir()
+
+    @kernel
+    def do_imaging_hook_flir(self):
+        # The FLIR cameras are not useful for the final imaging, so use them to
+        # image the blue MOT instead
+        delay(-self.red_broadband_time.get() - 10e-3)
+        self.camera_interface.trigger()
+        delay(+self.red_broadband_time.get() + 10e-3)
+
+    @kernel
+    def save_flir_data_hook(self):
+        # Save blue MOT pics
+        self.camera_interface.save_data()

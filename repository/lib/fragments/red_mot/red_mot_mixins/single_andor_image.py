@@ -31,6 +31,10 @@ class SingleAndorImage(RedMOTWithExperiment):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
+        self.do_imaging_hook_andor()
+
+    @kernel
+    def do_imaging_hook_andor(self):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         # Image ground state atoms
