@@ -409,6 +409,14 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=5.5,
     ),
+    SUServoedBeam(
+        "up_813",
+        frequency=200e6,
+        attenuation=15.0,
+        suservo_device="suservo_aom_813_up",
+        servo_enabled=True,
+        setpoint=5.5,
+    ),
 ]
 
 # Convert to dict for ease of use
