@@ -7,6 +7,9 @@ from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperi
 from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
     DroppedPumpedLatticeMixin,
 )
@@ -17,7 +20,6 @@ from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics imp
     TripleImageFastKineticsMixin,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,6 +27,7 @@ class ClockSpecFromLatticeFrag(
     ClockSpectroscopyMixin,
     DroppedPumpedLatticeMixin,
     TripleImageFastKineticsMixin,
+    FLIRBlueMOTMeasurementMixin,
     RedMOTWithExperiment,
 ):
     """
@@ -45,6 +48,7 @@ class BasicClockSpecFromLatticeFrag(
     ClockSpectroscopyMixin,
     DroppedPumpedLatticeMixin,
     SingleAndorImage,
+    FLIRBlueMOTMeasurementMixin,
     RedMOTWithExperiment,
 ):
     """

@@ -273,11 +273,7 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
-        # The FLIR cameras are not useful for the final imaging, so use them to
-        # image the blue MOT instead
-        delay(-self.red_broadband_time.get() - 10e-3)
-        self.camera_interface.trigger()
-        delay(+self.red_broadband_time.get() + 10e-3)
+        self.end_of_broadband_mot_hook()
 
         # The Andor camera shutter needs ~120ms to open, so start this at the
         # beginning of the red stages. If the total red mot sequence takes less
@@ -317,26 +313,16 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         self.post_sequence_cleanup_hook()
 
-        # Save blue MOT pics
         self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
+        # Normally I'd only have one hook for a given purpose, but since we
+        # often want to do one thing with the FLIR camera and another with the
+        # ANDOR, and since ARTIQ doesn't support inheritance properly, it's
+        # easier to have two methods.
+        # This one is intended for the FLIR cameras:
+        self.save_flir_data_hook()
 
+        # This one for the Andor
         self.save_data_hook()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        """
-        Run after each sequence is completed
-        """
-        self.post_sequence_cleanup_hook_base()
-
-    @kernel
-    def post_sequence_cleanup_hook_base(self):
-        self.core.break_realtime()
-        self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
-        self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
-            light_enabled=False
-        )
 
     @kernel
     def do_pulse(self, andor_exposure):
@@ -391,6 +377,29 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         """
         pass
 
+    @kernel
+    def save_flir_data_hook(self):
+        """
+        Run after the sequence has ended. This hook is intended to save data
+        from the FLIR cameras.
+        """
+        pass
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        """
+        Run after each sequence is completed
+        """
+        self.post_sequence_cleanup_hook_base()
+
+    @kernel
+    def post_sequence_cleanup_hook_base(self):
+        self.core.break_realtime()
+        self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
+        self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
+            light_enabled=False
+        )
+
     def pre_build_fragment_hook(self):
         """
         Hook run at the beginning of `build_fragment`
@@ -407,6 +416,15 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         Feel free to use break_realtime - it will be called again before the MOT
         is loaded.
+        """
+        pass
+
+    @kernel
+    def end_of_broadband_mot_hook(self):
+        """
+        Executed immediately after the broadband MOT stage ends, before the
+        broadband ramping is disabled. No timeline correction is performed, so
+        changes here will delay the narrowband red MOT.
         """
         pass
 
@@ -460,3 +478,6 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         completed.
         """
         raise NotImplementedError
+
+
+# %%

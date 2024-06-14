@@ -11,11 +11,14 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class AbsorptionRedMOT(RedMOTWithExperiment):
+class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
     """
     Image red MOT with absorption
     """

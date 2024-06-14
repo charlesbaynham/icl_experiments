@@ -9,16 +9,21 @@ from repository.lib.fragments.red_mot.red_mot_mixins.clock_interferometry import
 from repository.lib.fragments.red_mot.red_mot_mixins.clock_pumping import (
     ClockPumpingMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
-
 
 logger = logging.getLogger(__name__)
 
 
 class MOTClockInterferometryNormalizedExp(
-    ClockInterferometryMixin, ClockPumpingMixin, TripleImageFastKineticsMixin
+    ClockInterferometryMixin,
+    ClockPumpingMixin,
+    FLIRBlueMOTMeasurementMixin,
+    TripleImageFastKineticsMixin,
 ):
     """
     Clock interferometry with clock pumping and fast kinetics
