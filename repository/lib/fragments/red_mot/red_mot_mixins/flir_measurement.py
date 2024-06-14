@@ -36,11 +36,7 @@ class FLIRMeasurementMixin(SingleAndorImage, RedMOTWithExperiment):
 
     @kernel
     def do_imaging_hook_flir(self):
-        # The FLIR cameras are not useful for the final imaging, so use them to
-        # image the blue MOT instead
-        delay(-self.red_broadband_time.get() - 10e-3)
         self.camera_interface.trigger()
-        delay(+self.red_broadband_time.get() + 10e-3)
 
     @kernel
     def save_flir_data_hook(self):
