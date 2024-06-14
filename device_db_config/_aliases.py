@@ -43,6 +43,7 @@ aliases = {
     "suservo_aom3_1064": "suservo0_ch4",
     "suservo_aom4_1064": "suservo0_ch5",
     "suservo_aom5_1064": "suservo0_ch6",
+    "suservo_aom5_813_up": "suservo0_ch7",
     # Other
     "suservo_aom_singlepass_707": "suservo2_ch0",
     "suservo_aom_singlepass_679": "suservo2_ch1",
