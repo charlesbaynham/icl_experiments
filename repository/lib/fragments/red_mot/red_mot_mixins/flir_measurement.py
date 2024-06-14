@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import parallel
 
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
@@ -31,8 +31,9 @@ class FLIRMeasurementMixin(SingleAndorImage, RedMOTWithExperiment):
 
     @kernel
     def do_imaging_hook(self):
-        self.do_imaging_hook_andor()
-        self.do_imaging_hook_flir()
+        with parallel:
+            self.do_imaging_hook_andor()
+            self.do_imaging_hook_flir()
 
     @kernel
     def do_imaging_hook_flir(self):
