@@ -47,6 +47,8 @@ class RelockCavityFrag(Fragment):
     laser_name_devicedb = None
 
     def build_fragment(self):
+        self.set_default_scheduling(pipeline_name="cavity_relock")
+
         if self.laser_name_devicedb is None or self.laser_name_wand is None:
             raise TypeError(
                 "You must subclass this Fragment to provide laser_name_wand and laser_name_device_db"

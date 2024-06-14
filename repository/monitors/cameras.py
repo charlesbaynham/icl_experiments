@@ -6,10 +6,18 @@ from repository.lib.fragments.cameras.flir_camera import MonitorCameraExp
 
 
 class MonitorChamber2HorizCamera(MonitorCameraExp):
+    def build_fragment(self):
+        self.set_default_scheduling(pipeline_name="cam_h")
+        super().build_fragment()
+
     camera_class = Chamber2HorizontalCamera
 
 
 class MonitorChamber2VertCamera(MonitorCameraExp):
+    def build_fragment(self):
+        self.set_default_scheduling(pipeline_name="cam_v")
+        super().build_fragment()
+
     camera_class = Chamber2VerticalCamera
 
 
