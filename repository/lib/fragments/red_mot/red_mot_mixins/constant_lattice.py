@@ -17,38 +17,41 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 logger = logging.getLogger(__name__)
 
 
-class _LatticeTurnerOnerer(Fragment):
-    def build_fragment(self):
-        self.setattr_device("core")
-        self.core: Core
+def make_beam_turneronner(beam_name):
+    class TurnerOnerer(Fragment):
+        def build_fragment(self):
+            self.setattr_device("core")
+            self.core: Core
 
-        self.setattr_param(
-            "lattice_setpoint",
-            FloatParam,
-            "SUServo setpoint for lattice at high power",
-            default=constants.SUSERVOED_BEAMS["lattice_input_1379"].setpoint,
-            unit="V",
-        )
-        self.lattice_setpoint: FloatParamHandle
+            self.setattr_param(
+                "setpoint",
+                FloatParam,
+                "SUServo setpoint",
+                default=constants.SUSERVOED_BEAMS[beam_name].setpoint,
+                unit="V",
+            )
+            self.setpoint: FloatParamHandle
 
-        self.setattr_fragment(
-            "lattice_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[constants.SUSERVOED_BEAMS["lattice_input_1379"]]
-            ),
-        )
-        self.lattice_setter: SetBeamsToDefaults
+            self.setattr_fragment(
+                "setter",
+                make_set_beams_to_default(
+                    suservo_beam_infos=[constants.SUSERVOED_BEAMS[beam_name]]
+                ),
+            )
+            self.setter: SetBeamsToDefaults
 
-        self.first_run = True
+            self.first_run = True
 
-    @kernel
-    def device_setup(self) -> None:
-        if self.first_run:
-            self.first_run = False
-            self.core.break_realtime()
-            self.lattice_setter.turn_on_all()
+        @kernel
+        def device_setup(self) -> None:
+            if self.first_run:
+                self.first_run = False
+                self.core.break_realtime()
+                self.setter.turn_on_all()
 
-        self.device_setup_subfragments()
+            self.device_setup_subfragments()
+
+    return TurnerOnerer
 
 
 class ConstantLatticeMixin(RedMOTWithExperiment):
@@ -68,7 +71,8 @@ class ConstantLatticeMixin(RedMOTWithExperiment):
 
         # %% Fragments
 
-        self.setattr_fragment("lattice_turneronner", _LatticeTurnerOnerer)
-        self.lattice_turneronner: _LatticeTurnerOnerer
+        self.setattr_fragment(
+            "lattice_turneronner", make_beam_turneronner("lattice_input_1379")
+        )
 
-        self.setattr_param_rebind("lattice_setpoint", self.lattice_turneronner)
+        self.setattr_param_rebind("setpoint", self.lattice_turneronner)
