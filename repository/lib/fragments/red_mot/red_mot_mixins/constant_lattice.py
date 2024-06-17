@@ -56,7 +56,7 @@ def make_beam_turneronner(beam_name):
 
 class ConstantLatticeMixin(RedMOTWithExperiment):
     """
-    Leaves lattice light on throughout the entire sequence.
+    Leaves lattice light (cavity & 813) on throughout the entire sequence.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -72,7 +72,15 @@ class ConstantLatticeMixin(RedMOTWithExperiment):
         # %% Fragments
 
         self.setattr_fragment(
-            "lattice_turneronner", make_beam_turneronner("lattice_input_1379")
+            "lattice_1379_turneronner", make_beam_turneronner("lattice_input_1379")
         )
+        self.setattr_fragment("beam_813_turneronner", make_beam_turneronner("up_813"))
 
-        self.setattr_param_rebind("setpoint", self.lattice_turneronner)
+        self.setattr_param_rebind(
+            "setpoint_1379",
+            self.lattice_1379_turneronner,
+            original_name="setpoint",
+        )
+        self.setattr_param_rebind(
+            "setpoint_813", self.beam_813_turneronner, original_name="setpoint"
+        )
