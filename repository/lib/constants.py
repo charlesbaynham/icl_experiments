@@ -175,9 +175,9 @@ if USE_LATTICE_MODE:
         B_FIELD_BIAS_Z = -1.4  # A
     else:
         # With 1A gradient
-        B_FIELD_BIAS_X = 0.5  # A
-        B_FIELD_BIAS_Y = -0.02  # A
-        B_FIELD_BIAS_Z = -1.01  # A
+        B_FIELD_BIAS_X = 0.39  # A
+        B_FIELD_BIAS_Y = -0.01  # A
+        B_FIELD_BIAS_Z = -1.005  # A
 else:
     # Default fields in chamber 2 for nulling field
     B_FIELD_BIAS_X = 0.3  # A
