@@ -2,11 +2,13 @@ import logging
 
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib import constants
+from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,33 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
     * :meth:`~end_of_broadband_mot_hook`
     * :meth:`~save_flir_data_hook`
     """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+        )
+        self.camera_interface: DualCameraMeasurement
+
+        self.setattr_param_rebind(
+            "exposure_horiz",
+            self.camera_interface,
+            "exposure_horiz",
+            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+            description="Horizontal camera exposure time",
+            unit="us",
+        )
+        self.setattr_param_rebind(
+            "exposure_vert",
+            self.camera_interface,
+            "exposure_vert",
+            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+            description="Vertical camera exposure time",
+            unit="us",
+        )
+        self.exposure_horiz: FloatParamHandle
+        self.exposure_vert: FloatParamHandle
 
     @kernel
     def end_of_broadband_mot_hook(self):

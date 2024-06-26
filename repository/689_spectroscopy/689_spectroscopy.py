@@ -7,6 +7,9 @@ from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
+from repository.lib.fragments.red_mot.red_mot_experiment import (
+    RedMOTWithExperiment,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
@@ -14,7 +17,6 @@ from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import 
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +57,10 @@ class SpectroscopyWithKinetics_MOTBeam(
 
 
 class SpectroscopyWithKinetics_UpBeam(
-    FieldBoostMixin, TripleImageFastKineticsMixin, SpectroscopyParamsMixin
+    FieldBoostMixin,
+    TripleImageFastKineticsMixin,
+    SpectroscopyParamsMixin,
+    RedMOTWithExperiment,
 ):
     """
     689nm spectroscopy UP
