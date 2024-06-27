@@ -2,6 +2,7 @@ import logging
 
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
@@ -113,6 +114,20 @@ class SpectroscopyWithKinetics_UpBeam(
             "fluorescence_pulse_duration",
             default=constants.FLUORESCENCE_PULSE_DURATION_689,
         )
+
+    def get_default_analyses(self):
+        return [
+            OnlineFit(
+                "decaying_sinusoid",
+                data={
+                    "x": self.spectroscopy_pulse_time,
+                    "y": self.excitation_fraction,
+                },
+                constants={
+                    "t_dead": 0,
+                },
+            )
+        ]
 
     @kernel
     def pre_expansion_hook(self):
