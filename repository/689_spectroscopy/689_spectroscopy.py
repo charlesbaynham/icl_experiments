@@ -69,12 +69,8 @@ class SpectroscopyWithKinetics_UpBeam(
     """
 
     def pre_build_fragment_hook(self):
-        class _UpBeamSetter(SetBeamsToDefaults):
-            default_suservo_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
-
-        self.setattr_fragment("up_beam_default_setter", _UpBeamSetter)
-        self.up_beam_default_setter: SetBeamsToDefaults
-
+        # We assume that the up beam has already been configured by the MOT
+        # sequence, but that we must control the amplitude
         self.setattr_fragment(
             "up_beam_suservo",
             LibSetSUServoStatic,
@@ -83,10 +79,9 @@ class SpectroscopyWithKinetics_UpBeam(
         self.up_beam_suservo: LibSetSUServoStatic
 
     @kernel
-    def before_start_hook(self):
-        # Enable the Up beam with default settings, but turn off the AOM and open the shutter
-        self.core.break_realtime()
-        self.up_beam_default_setter.turn_on_all(light_enabled=True)
+    def pre_expansion_hook(self):
+        # Disable servoing, turn off the switch, configure the amplitude and
+        # open the shutter in preparation for a quick pulse
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
         self.up_beam_suservo.suservo_channel.set_y(
             profile=self.up_beam_suservo.suservo_profile,
