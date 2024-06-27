@@ -106,6 +106,14 @@ class SpectroscopyWithKinetics_UpBeam(
             self.andor_camera_control.bind_param(f"roi_{c}_x0", self.roi_x0)
             self.andor_camera_control.bind_param(f"roi_{c}_x1", self.roi_x1)
 
+        # Set up some defaults
+        self.setattr_param_rebind(
+            "fluorescence_pulse_duration",
+            self.fluorescence_pulse,
+            "fluorescence_pulse_duration",
+            default=constants.FLUORESCENCE_PULSE_DURATION_689,
+        )
+
     @kernel
     def pre_expansion_hook(self):
         # Disable servoing, turn off the switch, configure the amplitude and
