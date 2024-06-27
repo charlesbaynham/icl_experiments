@@ -82,7 +82,14 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=[[0, 0, 512, 512]],  # FIXME
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ],
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl
