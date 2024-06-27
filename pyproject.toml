@@ -16,7 +16,7 @@ toptica-wrapper = {git = "https://gitlab.com/aion-physics/code/artiq/drivers/top
 
 # As with artiq, aravis needs some nix packaging too. For now, this is in this
 # repo - see python-aravis.nix and its use in flake.nix
-# FIXME aravis = {git = "https://gitlab.com/aion-physics/code/artiq/forks/python-aravis.git"}
+aravis = {git = "https://gitlab.com/aion-physics/code/artiq/forks/python-aravis.git"}
 
 # The pin is to avoid bugs from strict checks in "PyO3" See e.g.
 # https://github.com/sphinx-doc/sphinx/issues/11662
@@ -49,4 +49,4 @@ build-backend = "poetry.core.masonry.api"
 xfail_strict = true
 testpaths = "tests"
 pythonpath = "."
-# FIXME addopts= "-n auto"
+addopts= "-n auto"
