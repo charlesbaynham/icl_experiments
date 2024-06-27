@@ -26,6 +26,13 @@ class SingleAndorImage(RedMOTWithExperiment):
     """
 
     @kernel
+    def start_of_red_broadband_hook(self):
+        # The Andor camera shutter needs ~120ms to open, so start this at the
+        # beginning of the red stages. If the total red mot sequence takes less
+        # time than this then we'll have problems
+        self.andor_camera_control.set_shutter(True)
+
+    @kernel
     def do_imaging_hook(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy

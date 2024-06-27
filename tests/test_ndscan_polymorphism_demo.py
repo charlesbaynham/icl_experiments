@@ -15,7 +15,8 @@ class TopLevelFrag(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
-        print("Hello")
+        self.subfrag_1.do_many_somethings()
+        self.subfrag_2.do_many_somethings()
 
 
 class MidLevelFrag(Fragment):
@@ -35,6 +36,11 @@ class MidLevelFrag(Fragment):
         for frag in self.subfrags:
             frag.do_something()
 
+    @kernel
+    def device_setup(self) -> None:
+        print("setup here")
+        self.device_setup_subfragments()
+
 
 class BottomLevelFrag(Fragment):
     def build_fragment(self, bottom_frag_arg=None):
@@ -45,6 +51,11 @@ class BottomLevelFrag(Fragment):
     @kernel
     def do_something(self):
         print(self.arg)
+
+    @kernel
+    def device_setup(self) -> None:
+        print("setup here")
+        self.device_setup_subfragments()
 
 
 @pytest.mark.xfail(reason="Expected behaviour, but watch out for it")

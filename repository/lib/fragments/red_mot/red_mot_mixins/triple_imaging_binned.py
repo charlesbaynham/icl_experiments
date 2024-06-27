@@ -82,10 +82,24 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=[[0, 0, 512, 512]],  # FIXME
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ],
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl
+
+    @kernel
+    def start_of_red_broadband_hook(self):
+        # The Andor camera shutter needs ~120ms to open, so start this at the
+        # beginning of the red stages. If the total red mot sequence takes less
+        # time than this then we'll have problems
+        self.andor_camera_control.set_shutter(True)
 
     @kernel
     def do_imaging_hook(self):

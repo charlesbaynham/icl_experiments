@@ -42,7 +42,7 @@ RED_SUSERVO_INFOS = [
     ]
 ]
 RED_URUKUL_INFOS = [
-    # constants.URUKULED_BEAMS["red_spinpol"]  # FIXME I've had to disable the spin pol beam because it glitches the attenuator of the IJD
+    # constants.URUKULED_BEAMS["red_spinpol"]  # TODO The spin polarization beam is disabled! Put it back
 ]
 
 

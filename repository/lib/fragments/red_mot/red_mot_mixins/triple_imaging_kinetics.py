@@ -38,6 +38,10 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
+        self._setup_params()
+        self._setup_andor()
+
+    def _setup_params(self):
         self.setattr_param(
             "delay_between_fluoresence_pulses",
             FloatParam,
@@ -103,6 +107,13 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
             constants.ANDOR_FAST_KINETICS_HEIGHT * 3 > constants.ANDOR_SENSOR_HEIGHT
         )
         self.kernel_invariants.add("andor_requires_storage_frame")
+
+    @kernel
+    def start_of_red_broadband_hook(self):
+        # The Andor camera shutter needs ~120ms to open, so start this at the
+        # beginning of the red stages. If the total red mot sequence takes less
+        # time than this then we'll have problems
+        self.andor_camera_control.set_shutter(True)
 
     @kernel
     def do_imaging_hook(self):

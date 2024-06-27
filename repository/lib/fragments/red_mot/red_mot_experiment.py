@@ -207,14 +207,11 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
-        self.end_of_broadband_mot_hook()
-
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
         delay(-self.red_broadband_time.get())
-        self.andor_camera_control.set_shutter(True)
+        self.start_of_red_broadband_hook()
         delay(+self.red_broadband_time.get())
+
+        self.end_of_broadband_mot_hook()
 
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
@@ -359,6 +356,18 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         Executed immediately after the broadband MOT stage ends, before the
         broadband ramping is disabled. No timeline correction is performed, so
         changes here will delay the narrowband red MOT.
+        """
+        pass
+
+    @kernel
+    def start_of_red_broadband_hook(self):
+        """
+        Executed as the broadband MOT stage starts.
+
+        This hook is called after the broadband MOT phase has already been
+        queued into the RTIO, so write here will consume new lanes.
+
+        TODO: Move this hook so that new lanes aren't needed
         """
         pass
 
