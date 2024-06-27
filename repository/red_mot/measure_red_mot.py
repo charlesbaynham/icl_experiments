@@ -6,10 +6,15 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTBase
-from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.red_mot.red_mot_experiment import (
+    RedMOTWithExperiment,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
 )
@@ -29,6 +34,30 @@ logger = logging.getLogger(__name__)
 class MeasureBBRedMOTFrag(RedMOTBase):
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment(
+            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+        )
+        self.camera_interface: DualCameraMeasurement
+
+        self.setattr_param_rebind(
+            "exposure_horiz",
+            self.camera_interface,
+            "exposure_horiz",
+            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+            description="Horizontal camera exposure time",
+            unit="us",
+        )
+        self.setattr_param_rebind(
+            "exposure_vert",
+            self.camera_interface,
+            "exposure_vert",
+            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
+            description="Vertical camera exposure time",
+            unit="us",
+        )
+        self.exposure_horiz: FloatParamHandle
+        self.exposure_vert: FloatParamHandle
 
         self._setup_andor()
 
@@ -73,7 +102,10 @@ class MeasureBBRedMOTFrag(RedMOTBase):
 
     @kernel
     def _save_data(self):
-        "Consume all slack and save the photos"
+        """
+        Consume all slack and save the photos
+        """
+
         self.core.wait_until_mu(now_mu())
         self.camera_interface.save_data()
         sums = [0]

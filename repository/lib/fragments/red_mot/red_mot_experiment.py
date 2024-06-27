@@ -48,19 +48,16 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
-from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
-from repository.lib import constants
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
@@ -81,11 +78,6 @@ class RedMOTBase(ExpFragment):
         self.setattr_fragment("red_mot", NarrowbandRedMOTFrag)
         self.red_mot: NarrowbandRedMOTFrag
 
-        self.setattr_fragment(
-            "camera_interface", DualCameraMeasurement, hardware_trigger=True
-        )
-        self.camera_interface: DualCameraMeasurement
-
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
 
@@ -102,25 +94,6 @@ class RedMOTBase(ExpFragment):
         self.expansion_time: FloatParamHandle
 
         # %% Rebound params
-
-        self.setattr_param_rebind(
-            "exposure_horiz",
-            self.camera_interface,
-            "exposure_horiz",
-            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
-            description="Horizontal camera exposure time",
-            unit="us",
-        )
-        self.setattr_param_rebind(
-            "exposure_vert",
-            self.camera_interface,
-            "exposure_vert",
-            default=constants.DEFAULT_CAMERA_EXPOSURE_TIME,
-            description="Vertical camera exposure time",
-            unit="us",
-        )
-        self.exposure_horiz: FloatParamHandle
-        self.exposure_vert: FloatParamHandle
 
         self.setattr_param_rebind("injection_aom_static_frequency", self.red_mot)
         self.setattr_param_rebind(
