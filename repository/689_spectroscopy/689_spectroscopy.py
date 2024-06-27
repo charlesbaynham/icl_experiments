@@ -14,6 +14,9 @@ from repository.lib import constants
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
+    ConstantLatticeMixin,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
@@ -66,6 +69,7 @@ class SpectroscopyWithKinetics_UpBeam(
     FieldBoostMixin,
     TripleImageFastKineticsMixin,
     SpectroscopyParamsMixin,
+    ConstantLatticeMixin,
     RedMOTWithExperiment,
 ):
     """
