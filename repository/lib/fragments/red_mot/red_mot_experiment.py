@@ -149,9 +149,6 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     """
 
     def build_fragment(self):
-        # Set this frag up first, so that later fragments' device_setup override it
-        self.pre_build_fragment_hook()
-
         super().build_fragment()
 
         self.setattr_fragment(
@@ -311,15 +308,6 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
             light_enabled=False
         )
-
-    def pre_build_fragment_hook(self):
-        """
-        Hook run at the beginning of `build_fragment`
-
-        TODO: Remove this, users can just override build_fragment and user
-        `super()` as god intended.
-        """
-        pass
 
     @kernel
     def before_start_hook(self):

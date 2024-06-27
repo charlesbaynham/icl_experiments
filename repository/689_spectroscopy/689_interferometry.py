@@ -26,7 +26,8 @@ from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import 
 
 
 class _InterferometryCommon(TripleImageFastKineticsMixin, SpectroscopyParamsMixin):
-    def pre_build_fragment_hook(self):
+    def build_fragment(self):
+        # TODO: Fix this, as 689 sepctroscopy has been fixed
         class _UpBeamSetter(SetBeamsToDefaults):
             default_suservo_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
 
@@ -40,7 +41,6 @@ class _InterferometryCommon(TripleImageFastKineticsMixin, SpectroscopyParamsMixi
         )
         self.up_beam_suservo: LibSetSUServoStatic
 
-    def build_fragment(self):
         super().build_fragment()
 
         self.setattr_param(

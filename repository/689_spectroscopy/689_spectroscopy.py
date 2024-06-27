@@ -30,13 +30,15 @@ class SpectroscopyWithKinetics_MOTBeam(
     689nm spectroscopy with fast kinetics imaging using the red MOT beam
     """
 
-    def pre_build_fragment_hook(self):
+    def build_fragment(self):
         self.setattr_fragment(
             "red_axial_minus",
             LibSetSUServoStatic,
             "suservo_aom_singlepass_689_red_mot_sigmaminus",
         )
         self.red_axial_minus: LibSetSUServoStatic
+
+        super().build_fragment()
 
     @kernel
     def pre_expansion_hook(self):
@@ -68,7 +70,7 @@ class SpectroscopyWithKinetics_UpBeam(
     689nm spectroscopy with fast kinetics imaging using the red up beam
     """
 
-    def pre_build_fragment_hook(self):
+    def build_fragment(self):
         # We assume that the up beam has already been configured by the MOT
         # sequence, but that we must control the amplitude
         self.setattr_fragment(
@@ -77,6 +79,8 @@ class SpectroscopyWithKinetics_UpBeam(
             constants.SUSERVOED_BEAMS["red_up"].suservo_device,
         )
         self.up_beam_suservo: LibSetSUServoStatic
+
+        super().build_fragment()
 
     @kernel
     def pre_expansion_hook(self):
