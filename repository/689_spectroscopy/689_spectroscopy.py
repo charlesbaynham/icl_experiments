@@ -3,16 +3,16 @@ import logging
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
-    TripleImageMOTMixin,
+    TripleImageFastKineticsMixin,
 )
 
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class SpectroscopyWithKinetics_MOTBeam(
-    FieldBoostMixin, TripleImageMOTMixin, SpectroscopyParamsMixin
+    FieldBoostMixin, TripleImageFastKineticsMixin, SpectroscopyParamsMixin
 ):
     """
     689nm spectroscopy MOTBEAM
@@ -55,7 +55,7 @@ class SpectroscopyWithKinetics_MOTBeam(
 
 
 class SpectroscopyWithKinetics_UpBeam(
-    FieldBoostMixin, TripleImageMOTMixin, SpectroscopyParamsMixin
+    FieldBoostMixin, TripleImageFastKineticsMixin, SpectroscopyParamsMixin
 ):
     """
     689nm spectroscopy UP

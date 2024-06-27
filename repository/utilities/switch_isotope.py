@@ -6,11 +6,12 @@ from artiq.coredevice.core import Core
 from artiq.master.scheduler import Scheduler
 from ndscan.experiment import *
 from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import FloatParamHandle
 from wand.server import ControlInterface as WANDControlInterface
 from wand.tools import WLMMeasurementStatus
 
 from repository.lib import constants
-from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
+from repository.lib.fragments.set_eom_sidebands import SetAllEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,8 @@ class SwitchIsotopeFrag(ExpFragment):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
-        self.setattr_fragment("set_sidebands_frag", SetEOMSidebandsFrag)
-        self.set_sidebands_frag: SetEOMSidebandsFrag
+        self.setattr_fragment("set_sidebands_frag", SetAllEOMSidebandsFrag)
+        self.set_sidebands_frag: SetAllEOMSidebandsFrag
 
         self.setattr_param(
             "sr87",
@@ -42,10 +43,24 @@ class SwitchIsotopeFrag(ExpFragment):
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
+        self.detuning_param_handles = {}
+        for laser, (_, locked) in constants.WAND_SETPOINTS_87.items():
+            if locked:
+                p: FloatParamHandle = self.setattr_param(
+                    f"detuning_{laser}",
+                    FloatParam,
+                    description=f"Detuning of laser {laser}",
+                    default=0.0,
+                    unit="MHz",
+                )
+                self.detuning_param_handles[laser] = p
+
+    @kernel
     def run_once(self) -> None:
         self.set_sidebands()
         self.steer_wand()
 
+    @rpc
     def steer_wand(self):
         if self.sr87.get():
             setpoints = constants.WAND_SETPOINTS_87
@@ -53,18 +68,32 @@ class SwitchIsotopeFrag(ExpFragment):
             setpoints = constants.WAND_SETPOINTS_88
 
         for laser, (setpoint, lock_enabled) in setpoints.items():
+            if lock_enabled:
+                detuning = self.detuning_param_handles[laser].get()
+            else:
+                detuning = 0
+
+            logger.info(
+                "Setting laser %s reference frequency to %.0f THz",
+                laser,
+                setpoint * 1e-12,
+            )
             self.wand_server.set_reference_freq(laser=laser, f_ref=setpoint)
 
             if not lock_enabled:
                 logger.info("Disabling lock for laser %s", laser)
                 try:
                     self.wand_server.unlock(laser=laser, name="")
-                except ValueError:
+                except (ValueError, KeyError):
                     # Raised if this laser has no controller - fine, since we don't want it locked anyway!
                     pass
             else:
-                logger.info("Setting laser %s to %.12f THz", laser, 1e-12 * setpoint)
-                self.wand_server.lock(laser=laser, set_point=0, timeout=None)
+                logger.info(
+                    "Setting laser %s to %.2f MHz",
+                    laser,
+                    detuning * 1e-6,
+                )
+                self.wand_server.lock(laser=laser, set_point=detuning, timeout=None)
 
         initial_laser_db = self.wand_server.get_laser_db()
 
@@ -106,7 +135,7 @@ class SwitchIsotopeFrag(ExpFragment):
                 for laser, unlocked in laser_unlocked.items():
                     self.scheduler.pause()
                     if unlocked:
-                        desired_offset = 0.0
+                        desired_offset = self.detuning_param_handles[laser].get()
                         meas = self.wand_server.get_freq(
                             laser=laser, offset_mode=True, age=1
                         )

@@ -16,10 +16,12 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 logger = logging.getLogger(__name__)
 
 
-class TripleImageFastKineticsMixin(RedMOTWithExperiment):
+class TripleImageBinnedMixin(RedMOTWithExperiment):
     """
     Implements normalized readout for a :py:class:`~RedMOTWithExperiment`
-    experiment
+    experiment with restricted camera ROI
+
+    Contrast with the Fast Kinetics triple imaging.
 
     This mixin uses the Andor camera to take three images and create
     ResultChannels for normalised state readout, assuming that the first image
@@ -38,10 +40,6 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self._setup_params()
-        self._setup_andor()
-
-    def _setup_params(self):
         self.setattr_param(
             "delay_between_fluoresence_pulses",
             FloatParam,
@@ -60,31 +58,6 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
-    def _setup_andor(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-
-        TODO: Set up Fast Kinetics mode here
-        """
-
-        # 3x ROIs
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                    constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                ]
-                for i in range(3)
-            ],
-            add_pre_trigger_delay=True,
-        )
-        self.andor_camera_control: AndorCameraControl
-
         self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
@@ -97,16 +70,29 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
-        # If the andor is in fast kinetics mode and the height of pixels to emit
-        # is > 512, it will emit two frames onto Grabber instead of one. The
-        # first will be "nonsense" (probably with some digital information that
-        # the grabber isn't parsing) and the second will contain all the pixels,
-        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
-        # See labbook entry 2024-06-11.
-        self.andor_requires_storage_frame = (
-            constants.ANDOR_FAST_KINETICS_HEIGHT * 3 > constants.ANDOR_SENSOR_HEIGHT
+    def hook_setup_andor(self):
+        """
+        Setup the Andor camera to use 3x ROIs since we're expecting fast
+        kinetics mode with 3 images
+
+        TODO: Set up Fast Kinetics mode here
+        """
+
+        # 1x ROI but we'll trigger three times
+        self.setattr_fragment(
+            "andor_camera_control",
+            AndorCameraControl,
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ],
+            add_pre_trigger_delay=True,
         )
-        self.kernel_invariants.add("andor_requires_storage_frame")
+        self.andor_camera_control: AndorCameraControl
 
     @kernel
     def do_imaging_hook(self):
@@ -144,19 +130,23 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         """
         Hook to save data from the Andor camera
 
-        Runs in realtime after imaging is completed
+        Runs in realtime after imaging is completed.
+
+        We took three images, so read all of them out.
         """
         # Save Andor data
-        sums = [0] * 3
-        means = [0.0] * 3
+        n = 3
+        sums = [0] * n
+        means = [0.0] * n
 
-        for _ in range(2 if self.andor_requires_storage_frame else 1):
-            # Discard first nonsense frame if required
-            self.andor_camera_control.readout_ROIs(
-                sums,
-                means,
-                self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-            )
+        timeout_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
+
+        for i in range(n):
+            s = [0]
+            m = [0.0]
+            self.andor_camera_control.readout_ROIs(s, m, timeout_mu)
+            sums[i] = s[0]
+            means[i] = m[0]
 
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])

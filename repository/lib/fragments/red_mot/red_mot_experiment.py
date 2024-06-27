@@ -56,12 +56,14 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
 from repository.lib import constants
+from repository.lib.constants import MIRNY_SETTINGS_87
+from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
-
+from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +139,15 @@ class RedMOTBase(ExpFragment):
         self.red_mot.broadband_red_phase.do_phase()
 
 
+class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
+    mirny_settings_87 = [
+        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
+    ]
+    mirny_settings_88 = [
+        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
+    ]
+
+
 class RedMOTWithExperiment(RedMOTBase, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
@@ -172,6 +183,13 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         super().build_fragment()
 
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsFrag
+
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
+
         self.setattr_param(
             "delay_after_spectroscopy",
             FloatParam,
@@ -192,16 +210,15 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
     @kernel
     def run_once(self):
+        self.core.break_realtime()
+        self.mirny_eom_sidebands.set_sidebands()
+
         self.before_start_hook()
 
         self.core.break_realtime()
         self._from_start_to_end_of_broadband_mot()
 
-        # The FLIR cameras are not useful for the final imaging, so use them to
-        # image the blue MOT instead
-        delay(-self.red_broadband_time.get() - 10e-3)
-        self.camera_interface.trigger()
-        delay(+self.red_broadband_time.get() + 10e-3)
+        self.end_of_broadband_mot_hook()
 
         # The Andor camera shutter needs ~120ms to open, so start this at the
         # beginning of the red stages. If the total red mot sequence takes less
@@ -241,23 +258,16 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         self.post_sequence_cleanup_hook()
 
-        # Save blue MOT pics
         self.core.wait_until_mu(now_mu())
-        self.camera_interface.save_data()
+        # Normally I'd only have one hook for a given purpose, but since we
+        # often want to do one thing with the FLIR camera and another with the
+        # ANDOR, and since ARTIQ doesn't support inheritance properly, it's
+        # easier to have two methods.
+        # This one is intended for the FLIR cameras:
+        self.save_flir_data_hook()
 
+        # This one for the Andor
         self.save_data_hook()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        """
-        Run after each sequence is completed
-        """
-        self.post_sequence_cleanup_hook_base()
-
-    @kernel
-    def post_sequence_cleanup_hook_base(self):
-        self.core.break_realtime()
-        self.red_mot.red_beam_controller.turn_off_mot_beams()
 
     @kernel
     def do_pulse(self, andor_exposure):
@@ -266,14 +276,10 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         mixins in :meth:`~do_imaging_hook` (but not used by default).
         """
         with parallel:
-            with sequential:
-                delay(-0.5 * andor_exposure)
-                self.andor_camera_control.trigger(
-                    exposure=andor_exposure,
-                    control_shutter=False,
-                )
-                delay(0.5 * andor_exposure)
-
+            self.andor_camera_control.trigger(
+                exposure=andor_exposure,
+                control_shutter=False,
+            )
             self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     # %% Hooks / overridable methods
@@ -316,6 +322,29 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         """
         pass
 
+    @kernel
+    def save_flir_data_hook(self):
+        """
+        Run after the sequence has ended. This hook is intended to save data
+        from the FLIR cameras.
+        """
+        pass
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        """
+        Run after each sequence is completed
+        """
+        self.post_sequence_cleanup_hook_base()
+
+    @kernel
+    def post_sequence_cleanup_hook_base(self):
+        self.core.break_realtime()
+        self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
+        self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
+            light_enabled=False
+        )
+
     def pre_build_fragment_hook(self):
         """
         Hook run at the beginning of `build_fragment`
@@ -336,6 +365,15 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         pass
 
     @kernel
+    def end_of_broadband_mot_hook(self):
+        """
+        Executed immediately after the broadband MOT stage ends, before the
+        broadband ramping is disabled. No timeline correction is performed, so
+        changes here will delay the narrowband red MOT.
+        """
+        pass
+
+    @kernel
     def post_narrowband_hook(self):
         """
         Hook for core actions after the narrowband red mot is completed, before
@@ -346,6 +384,10 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         By default, just turn off the red light
         """
+        self.default_post_narrowband_hook()
+
+    @kernel
+    def default_post_narrowband_hook(self):
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel
@@ -381,3 +423,6 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         completed.
         """
         raise NotImplementedError
+
+
+# %%

@@ -26,6 +26,7 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch6",
+    "urukul9910_aom_doublepass_461_USOC_delivery": "urukul5_ch2",
     "urukul9912_aom_singlepass_461_imaging_switch": "urukul2_ch3",
     # Red
     "urukul9910_aom_doublepass_689_red_injection": "urukul8_ch0",
@@ -42,11 +43,13 @@ aliases = {
     "suservo_aom3_1064": "suservo0_ch4",
     "suservo_aom4_1064": "suservo0_ch5",
     "suservo_aom5_1064": "suservo0_ch6",
+    "suservo_aom_up_813": "suservo0_ch7",
     # Other
     "suservo_aom_singlepass_707": "suservo2_ch0",
     "suservo_aom_singlepass_679": "suservo2_ch1",
     "suservo_aom_singlepass_1379_cavity_input": "suservo2_ch2",
     "urukul9912_aom_698_up_switch": "urukul2_ch2",
+    "suservo_aom_698_clock_delivery": "suservo0_ch0",
     "suservo_aom_698_squeezing_cavity_input": "suservo0_ch1",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
     # %% TTLs

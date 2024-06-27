@@ -8,10 +8,10 @@ from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TList
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 
 from repository.lib import constants
 from repository.lib.constants import USE_SR87
-from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
@@ -113,7 +113,11 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     You must do this elsewhere
     """
 
-    duration_default = constants.RED_BROADBAND_TIME
+    if USE_SR87:
+        duration_default = 120e-3
+    else:
+        duration_default = 100e-3
+
     time_step_default = (
         20e-3  # TODO: fix this by changing the ordering of the camera shutter queueing
     )
@@ -134,8 +138,12 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     # "suservo_aom_singlepass_689_red_mot_sigmaminus",
     # "suservo_aom_singlepass_689_red_mot_diagonal",
     # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.0]
-    default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.0]
+    if USE_SR87:
+        default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.03]
+        default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.03]
+    else:
+        default_suservo_setpoint_multiples_start = [2.2, 2.2, 2.5, 0.0]
+        default_suservo_setpoint_multiples_end = [2.2, 2.2, 2.5, 0.0]
 
     if USE_SR87:
         # Sr 87
@@ -149,32 +157,39 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
+    duration_default = 10e-6
+
     if USE_SR87:
-        duration_default = 0.1e-3
+        # Order:
+        # "suservo_aom_singlepass_689_red_mot_sigmaplus",
+        # "suservo_aom_singlepass_689_red_mot_sigmaminus",
+        # "suservo_aom_singlepass_689_red_mot_diagonal",
+        # "suservo_aom_singlepass_689_up",
+        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.03]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.015]
+
+        default_urukul_detunings_start = [0]
+        default_urukul_detunings_end = [0]
+
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [6.0]
+        general_setter_default_ends = [1.0]
     else:
-        duration_default = 100e-3
+        default_urukul_detunings_start = [150e3]
+        default_urukul_detunings_end = [50e3]
+        default_suservo_setpoint_multiples_start = [0.55, 0.35, 0.6, 0.0]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
 
-    default_urukul_detunings_start = [150e3]
-    default_urukul_detunings_end = [50e3]
-
-    # Order:
-    # "suservo_aom_singlepass_689_red_mot_sigmaplus",
-    # "suservo_aom_singlepass_689_red_mot_sigmaminus",
-    # "suservo_aom_singlepass_689_red_mot_diagonal",
-    # "suservo_aom_singlepass_689_up",
-    default_suservo_setpoint_multiples_start = [0.55, 0.35, 0.6, 0.0]
-    default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
-
-    # Chamber 2 MOT coils in amps
-    general_setter_default_starts = [3.0]
-    general_setter_default_ends = [1.0]
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [3.0]
+        general_setter_default_ends = [1.0]
 
 
 class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
-    duration_default = 100e-3
-    if False:
-        time_step_default = 1e10  # this is a nasty hack to skip ramping by making one step much longer than the full duration
-        # only start values will be used in this case
+    if USE_SR87:
+        duration_default = 100e-3
+    else:
+        duration_default = 100e-3
 
     # Order:
     # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -184,13 +199,15 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
     if USE_SR87:
         # Sr 87
-        default_suservo_setpoint_multiples_start = [0.6, 0.6, 0.6, 0.0]
-        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
-        general_setter_default_starts = [12.0]
-        general_setter_default_ends = [6.0]
-        default_urukul_detunings_start = [200e3]
-        default_urukul_detunings_end = [0e3]
-        time_step_default = 1e10
+        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.03]
+        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.015]
+
+        default_urukul_detunings_start = [0]
+        default_urukul_detunings_end = [0]
+
+        # Chamber 2 MOT coils in amps
+        general_setter_default_starts = [6.0]
+        general_setter_default_ends = [1.0]
 
     else:
         default_suservo_setpoint_multiples_start = [0.1, 0.1, 0.1, 0.0]

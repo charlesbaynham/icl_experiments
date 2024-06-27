@@ -79,7 +79,7 @@ def fragment_factory(
 ) -> Callable[[Type["Fragment"]], Fragment]:
     def fac(exp_class, **kwargs):
         frag = exp_class(
-            (device_mgr, dataset_mgr, argument_mgr, None), fragment_path=[], **kwargs
+            (device_mgr, dataset_mgr, argument_mgr, {}), fragment_path=[], **kwargs
         )
         frag.init_params()
         return frag
@@ -110,8 +110,10 @@ def fragment_precompiler(fragment_factory):
 
         exp_built = fragment_factory(exp)
 
-        if hasattr(exp_built.run_once, "artiq_embedded") and not hasattr(
-            exp_built, "core"
+        if (
+            hasattr(exp_built.run_once, "artiq_embedded")
+            and not exp_built.run_once.artiq_embedded.forbidden
+            and not hasattr(exp_built, "core")
         ):
             raise TypeError("Kernel run_once but no core device")
 

@@ -351,6 +351,24 @@ class GeneralRampingPhase(Fragment):
                 )
             )
 
+        # Add a global parameter that allows ramping all the suservo setpoints at the same time
+        self.setattr_param(
+            "setpoint_global_multiple_start",
+            FloatParam,
+            "Global multiple of nominal setpoint at start of ramp for all SUServos",
+            min=0,
+            default=1.0,
+        )
+        self.setattr_param(
+            "setpoint_global_multiple_end",
+            FloatParam,
+            "Global multiple of nominal setpoint at end of ramp for all SUServos",
+            min=0,
+            default=1.0,
+        )
+        self.setpoint_global_multiple_start: FloatParamHandle
+        self.setpoint_global_multiple_end: FloatParamHandle
+
         if not suservo_setters_and_param_handles:
             # If we don't have any SUServos to ramp, add a dummy object so that
             # the compiler doesn't complain, with pointers to a dummy parameter
@@ -520,6 +538,9 @@ class GeneralRampingPhase(Fragment):
         suservo_values = [0.0] * len(self.suservo_setters_and_param_handles)
         suservo_steps = [0.0] * len(self.suservo_setters_and_param_handles)
 
+        suservo_global_multiple_start = self.setpoint_global_multiple_start.get()
+        suservo_global_multiple_end = self.setpoint_global_multiple_end.get()
+
         for i in range(len(self.suservo_setters_and_param_handles)):
             nom_setpoint_handle = self.suservo_setters_and_param_handles[i][1]
             start_multiple_handle = self.suservo_setters_and_param_handles[i][2]
@@ -527,12 +548,18 @@ class GeneralRampingPhase(Fragment):
 
             # Get the start point for all the SUServo intensities
             nominal_value = nom_setpoint_handle.get()
-            suservo_values[i] = nominal_value * start_multiple_handle.get()
+            suservo_values[i] = (
+                nominal_value
+                * suservo_global_multiple_start
+                * start_multiple_handle.get()
+            )
 
             # Calculate the step sizes for all the SUServo steps
             suservo_steps[i] = self._calc_step_size(
-                nominal_value * start_multiple_handle.get(),
-                nominal_value * end_multiple_handle.get(),
+                nominal_value
+                * suservo_global_multiple_start
+                * start_multiple_handle.get(),
+                nominal_value * suservo_global_multiple_end * end_multiple_handle.get(),
                 num_points,
             )
 

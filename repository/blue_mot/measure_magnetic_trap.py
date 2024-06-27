@@ -6,6 +6,7 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -83,6 +84,19 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         )
         self.exposure: FloatParamHandle
 
+    def get_default_analyses(self):
+        super_analysis = super().get_default_analyses()
+
+        return super_analysis + [
+            OnlineFit(
+                "exponential_decay",
+                data={
+                    "x": self.dark_time,
+                    "y": self.camera_interface.image_vertical_mean,
+                },
+            )
+        ]
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -90,9 +104,9 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         # Turn on the 2D/3D beams & AOMs,
         # but block the important ones, leaving the repumpers on
-        self.mot_controller.enable_mot_defaults()
+        self.mot_controller.enable_mot_defaults(light_enabled=False)
         delay(20e-9)
-        self.mot_controller.turn_off_3d_and_2d_beams()
+        self.mot_controller.turn_on_repumpers()
 
         delay(
             100e-3
@@ -124,9 +138,11 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
         # Clear out the atoms
         delay(100e-3)
-        self.mot_controller.turn_off_3d_beams()  # but leave repumps on
+        self.mot_controller.turn_off_3d_beams(
+            ignore_shutters=True
+        )  # but leave repumps on
         delay(50e-3)
-        self.mot_controller.turn_on_3d_beams()
+        self.mot_controller.turn_on_3d_beams(ignore_shutters=True)
         delay(10e-3)
         self.camera_interface.trigger_background()
 

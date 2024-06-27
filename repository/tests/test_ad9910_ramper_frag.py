@@ -14,9 +14,8 @@ from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from pyaion.fragments.ad9910_ramper import AD9910Ramper
 from pyaion.lib.utils import get_local_devices
-
-from repository.lib.fragments.ad9910_ramper import AD9910Ramper
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +71,7 @@ class TestAD9910RamperFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        delay(10e-3)
+        delay(100e-3)
 
         self.ramper.start_ramp(self.df_dt, self.f_min, self.f_max, self.scan_type)
 

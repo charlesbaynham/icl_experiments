@@ -10,10 +10,18 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTBase
 from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.red_mot.red_mot_mixins.bg_corrected_andor_image import (
+    BGCorrectedAndorImage,
+)
+from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
+    ConstantLatticeMixin,
+)
+from repository.lib.fragments.red_mot.red_mot_mixins.flir_measurement import (
+    FLIRMeasurementMixin,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
     SingleAndorImage,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +87,14 @@ class MeasureBBRedMOTFrag(RedMOTBase):
         self.andor_mean.push(means[0])
 
 
-class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
+class _MeasureNarrowbandMOTFrag(ConstantLatticeMixin, RedMOTWithExperiment):
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Remove unused parameters
+        self.override_param("delay_after_spectroscopy", 0)
+        self.override_param("spectroscopy_field_gradient", 0)
+
     @kernel
     def do_spectroscopy_hook(self):
         # No spectroscopy needed - just do nothing and move straight to imaging
@@ -93,7 +108,29 @@ class MeasureNarrowbandMOTFrag(SingleAndorImage, RedMOTWithExperiment):
             self.override_param(p, 0)
 
 
+class MeasureNarrowbandMOTFrag(
+    FLIRMeasurementMixin, SingleAndorImage, _MeasureNarrowbandMOTFrag
+):
+    """
+    Make a narrowband MOT, image with the ANDOR and leave lattice light on
+    """
+
+    pass
+
+
+class MeasureNarrowbandMOTBGCorrectedFrag(
+    BGCorrectedAndorImage, _MeasureNarrowbandMOTFrag
+):
+    """
+    Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
+    """
+
+    pass
+
+
 MeasureBBRedMOT = make_fragment_scan_exp(MeasureBBRedMOTFrag)
-MeasureNarrowbandRedMOT = make_fragment_scan_exp(
-    MeasureNarrowbandMOTFrag, max_rtio_underflow_retries=0
+MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
+
+MeasureNarrowbandRedMOTBGCorrected = make_fragment_scan_exp(
+    MeasureNarrowbandMOTBGCorrectedFrag
 )

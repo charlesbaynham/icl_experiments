@@ -1180,13 +1180,13 @@ files = [
 
 [[package]]
 name = "generic-scpi-driver"
-version = "1.5.2"
+version = "1.5.3"
 description = "A generic template for creating python object-based drivers for SCPI hardware devices which communicate via VISA. Compatible with ARTIQ  installed with [artiq] modifier"
 optional = false
-python-versions = ">=3.8,<3.13"
+python-versions = "<3.13,>=3.8"
 files = [
-    {file = "generic_scpi_driver-1.5.2-py3-none-any.whl", hash = "sha256:6a78411b98857869b965972baef5326eae2557ac8d3d8ca5cb30ca9bc470e9d5"},
-    {file = "generic_scpi_driver-1.5.2.tar.gz", hash = "sha256:57feeb5582fec0b06ea61210cfedbc1610d5e66e129c2199e3add2efd3b3d209"},
+    {file = "generic_scpi_driver-1.5.3-py3-none-any.whl", hash = "sha256:673cea9c46b8098b3bcd68f12b26f2acd1237083982ca868e9798f0ce8486edc"},
+    {file = "generic_scpi_driver-1.5.3.tar.gz", hash = "sha256:41c78b063c78e438564567f6ed4e0ca0e2d59175634134502c2eb1ab24dc073f"},
 ]
 
 [package.dependencies]
@@ -2472,7 +2472,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://github.com/OxfordIonTrapGroup/ndscan.git"
 reference = "HEAD"
-resolved_reference = "b20864d832a4b8163fc51a8ac3a44f747129259e"
+resolved_reference = "2652a91b52b5ab344185384b197cb6cf6417719a"
 
 [[package]]
 name = "nest-asyncio"
@@ -3038,7 +3038,7 @@ toptica-lasersdk = "^3.1.1"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
 reference = "HEAD"
-resolved_reference = "855a9b25ad8decab6a46b3a713d2c1fc00fbdc65"
+resolved_reference = "cc9d332cc3b03d7a5569accff68ce015d4eba504"
 
 [[package]]
 name = "pycairo"
@@ -4390,13 +4390,13 @@ files = [
 
 [[package]]
 name = "toptica-lasersdk"
-version = "3.1.2"
+version = "3.2.0"
 description = "TOPTICA Python Laser SDK"
 optional = false
-python-versions = ">=3.6,<4"
+python-versions = "<4,>=3.6"
 files = [
-    {file = "toptica_lasersdk-3.1.2-py3-none-any.whl", hash = "sha256:634960319c3cc3da3a75a8d36f3fd04e0afacec1017e321bf79709a9024a37ee"},
-    {file = "toptica_lasersdk-3.1.2.tar.gz", hash = "sha256:4d39ffa07f65015a0794e5aa368200eb165d61768fd6654bae15fdf8266560c5"},
+    {file = "toptica_lasersdk-3.2.0-py3-none-any.whl", hash = "sha256:d1e4d9ea5b86f15a17b86fef849f69d20ee46e2cb3aeba4b6a305ab9625546c1"},
+    {file = "toptica_lasersdk-3.2.0.tar.gz", hash = "sha256:50d6b39e0e196b7099786ede0ead1bfa5ee09844845c853c58c2d6186cac9818"},
 ]
 
 [package.dependencies]
@@ -4405,7 +4405,7 @@ pyserial = "*"
 
 [[package]]
 name = "toptica-wrapper"
-version = "0.1"
+version = "0.2"
 description = "Thin wrapper for the Toptica DLC API"
 optional = false
 python-versions = ">=3.9,<3.13"
@@ -4416,13 +4416,13 @@ develop = false
 generic-scpi-driver = "^1.5"
 numpy = ">1.0"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
-toptica-lasersdk = "^3.1.2"
+toptica-lasersdk = "^3.2.0"
 
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/topticadlcpro.git"
 reference = "HEAD"
-resolved_reference = "2a928f200b05eff90971bd860c5c69c81d57d5fa"
+resolved_reference = "d99d0864101cccf2e7feed88a818e9b64c3e2b81"
 
 [[package]]
 name = "tornado"

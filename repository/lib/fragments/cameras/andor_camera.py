@@ -93,7 +93,7 @@ class AndorCameraControl(Fragment):
                 f"Grabber ROI {i} y0",
                 default=y0,
                 min=0,
-                max=512,
+                max=1024,
             )
             self.setattr_param(
                 f"roi_{i}_y1",
@@ -101,7 +101,7 @@ class AndorCameraControl(Fragment):
                 f"Grabber ROI {i} y1",
                 default=y1,
                 min=0,
-                max=512,
+                max=1024,
             )
 
         self.setattr_param(
@@ -177,6 +177,7 @@ class AndorCameraControl(Fragment):
         mask = 0
 
         for i in range(self.num_rois):
+            self.core.break_realtime()
             self.grabber.setup_roi(
                 i,
                 roi_config[i, 0],

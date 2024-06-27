@@ -66,10 +66,10 @@ class SetKoheronFrag(ExpFragment):
         )
         self.current: FloatParamHandle
 
-        temp = self.setattr_param(
-            f"{controller_name}_temperature",
+        self.setattr_param(
+            f"temperature",
             FloatParam,
-            description=f"{controller_name} Temperature",
+            description=f"Temperature",
             default=defaults.temperature,
             min=5000,
             max=15000,
@@ -77,7 +77,7 @@ class SetKoheronFrag(ExpFragment):
             scale=1,
             step=0.1,
         )
-        self.temperature: FloatParamHandle = temp
+        self.temperature: FloatParamHandle
 
         self.setattr_param(
             "temperature_waittime",

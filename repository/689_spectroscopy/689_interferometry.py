@@ -8,18 +8,16 @@ from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.fragments.beams.default_beam_setter import (
-    make_set_beams_to_default,
-)
-from repository.lib.fragments.beams.default_beam_setter import SetBeamsToDefaults
 
 logger = logging.getLogger(__name__)
 
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
-    TripleImageMOTMixin,
+    TripleImageFastKineticsMixin,
 )
 
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
@@ -27,7 +25,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import 
 )
 
 
-class _InterferometryCommon(TripleImageMOTMixin, SpectroscopyParamsMixin):
+class _InterferometryCommon(TripleImageFastKineticsMixin, SpectroscopyParamsMixin):
     def pre_build_fragment_hook(self):
         class _UpBeamSetter(SetBeamsToDefaults):
             default_suservo_beam_infos = [constants.SUSERVOED_BEAMS["red_up"]]
@@ -110,8 +108,7 @@ class UpBeamInterferometryIJD(_InterferometryCommon):
 
         # A bit fragile, but recalculate the injection AOM's frequency here
         freq = (
-            constants.RED_INJECTION_AOM_FREQUENCY
-            + self.red_mot.red_beam_controller.injection_aom_static_frequency.get()
+            self.red_mot.red_beam_controller.injection_aom_static_frequency.get()
             + self.spectroscopy_pulse_aom_detuning.get()
         )
 

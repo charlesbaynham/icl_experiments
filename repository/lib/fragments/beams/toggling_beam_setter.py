@@ -7,8 +7,10 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
-from pyaion.fragments.beam_setter import ControlBeamsWithoutCoolingAOM
 from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
+    ControlBeamsWithoutCoolingAOM,
+)
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -44,7 +46,7 @@ class ToggleListOfBeams(Fragment):
     :meth:`make_toggle_list_of_beams`.
 
     For each beam_info passed, this Fragment will either use
-    :class:`pyaion.fragments.beam_setters.ControlBeamsWithoutCoolingAOM` to open
+    :class:`pyaion.fragments.toggle_beams_with_AOM_and_shutters.ControlBeamsWithoutCoolingAOM` to open
     / close the shutters in sequence with the toggling to AOM, respecting beam
     delays such that the beams turn on when requested. Or, if no shutter is
     present, this Fragment will simply turn on the beam (with or without the

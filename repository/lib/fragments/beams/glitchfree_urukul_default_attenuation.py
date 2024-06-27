@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.coredevice.urukul import CPLD
 from artiq.coredevice.urukul import urukul_sta_pll_lock
 from artiq.experiment import delay
 from artiq.experiment import kernel
@@ -45,6 +46,7 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
         self.default_attenuation = default_attenuation
         self.urukul_channel = urukul_channel
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+        self.first_run = True
 
         # %% Kernel invariants
 
@@ -62,12 +64,20 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
 
     @kernel
     def device_setup(self):
+        self.device_setup_subfragments()
+
+        if not self.first_run:
+            return
+
+        self.first_run = False
+
         # Read the status register from the CPLD - we'll use this to detect
         # whether the PLL is locked and treat this as a proxy for "has this DDS
         # been set up already?" so we can avoid glitches from doing it again
         # which might e.g. unlock injected diodes
         self.core.break_realtime()
-        status = self.dds.cpld.sta_read()
+        cpld = self.dds.cpld  # type: CPLD
+        status = cpld.sta_read()
 
         if urukul_sta_pll_lock(status):
             if self.debug_mode:
@@ -75,6 +85,17 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
                     "Skipping Urukul attenuation setting - we're assuming it is unchanged from %.1f",
                     self.default_attenuation,
                 )
+
+                # Write this attenuation into the python version of the urukul's
+                # register so that it's proof against someone writing an
+                # attenuation on this urukul elsewhere
+                channel = self.dds.chip_select - 4
+                att_mu = cpld.att_to_mu(self.default_attenuation)
+
+                att_reg = cpld.att_reg & ~(0xFF << (channel * 8))
+                att_reg |= att_mu << (channel * 8)
+                cpld.att_reg = att_reg
+
         else:
             logger.warning(
                 "Urukul PLL unlocked - reinitiating DDS and CPLD and setting attenuation to %.1f",

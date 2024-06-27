@@ -7,14 +7,17 @@ from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperi
 from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
     DroppedPumpedLatticeMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.transported_lattice import (
-    DroppedLatticeWithTransportMixin,
+from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+    SingleAndorImage,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
-    TripleImageMOTMixin,
+    TripleImageFastKineticsMixin,
 )
 
 
@@ -24,7 +27,8 @@ logger = logging.getLogger(__name__)
 class ClockSpecFromLatticeFrag(
     ClockSpectroscopyMixin,
     DroppedPumpedLatticeMixin,
-    TripleImageMOTMixin,
+    TripleImageFastKineticsMixin,
+    FLIRBlueMOTMeasurementMixin,
     RedMOTWithExperiment,
 ):
     """
@@ -41,27 +45,25 @@ class ClockSpecFromLatticeFrag(
     pass
 
 
-class ClockSpecFromTransportedLatticeFrag(
+class BasicClockSpecFromLatticeFrag(
     ClockSpectroscopyMixin,
-    DroppedLatticeWithTransportMixin,
-    TripleImageMOTMixin,
+    DroppedPumpedLatticeMixin,
+    SingleAndorImage,
+    FLIRBlueMOTMeasurementMixin,
     RedMOTWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped lattice with transport
+    Clock spectroscopy from dropped lattice - single image
 
-    Load into a lattice, pump into a stretched state, transport them onto the
-    lattice location, drop the atoms by ramping the lattice, then use the up
-    clock beam for spectroscopy, altering the (single-pass) AOM.
+    Load into a lattice, pump into a stretched state, drop the atoms by ramping
+    the lattice, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
 
-    Image the ground state atoms, repump and image the excited state, then image
-    once more for background.
+    Image only the ground state atoms
     """
 
     pass
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
-ClockSpecFromTransportedLattice = make_fragment_scan_exp(
-    ClockSpecFromTransportedLatticeFrag
-)
+BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)

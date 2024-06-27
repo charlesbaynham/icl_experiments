@@ -1,11 +1,13 @@
 import logging
 from typing import *
+from typing import List
 
 from artiq.coredevice.adf5356 import ADF5356
 from artiq.coredevice.core import Core
 from artiq.coredevice.mirny import Mirny
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
@@ -13,16 +15,39 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
+from repository.lib.constants import MirnySettings
 
 logger = logging.getLogger(__name__)
 
 
-class SetEOMSidebandsFrag(ExpFragment):
+class SetEOMSidebandsFrag(Fragment):
     """
     Set all the EOM frequencies for using Sr88 vs Sr87
+
+    If built with `init_mirnys = False` then don't initiate the Mirnys and
+    assume that they're already set up.
     """
 
-    def build_fragment(self):
+    mirny_settings_87: List[MirnySettings] = None
+    mirny_settings_88: List[MirnySettings] = None
+
+    def build_fragment(self, init_mirnys=True):
+        self.init_mirnys = init_mirnys
+
+        if self.mirny_settings_87 is None or self.mirny_settings_88 is None:
+            raise TypeError(
+                "You must subclass this class and provide mirny_settings_87 and mirny_settings_88"
+            )
+
+        if len(self.mirny_settings_87) != len(self.mirny_settings_88):
+            raise TypeError(
+                "The length of mirny_settings_87 and mirny_settings_88 must be the same"
+            )
+
+        for a, b in zip(self.mirny_settings_87, self.mirny_settings_88):
+            if a.device_name != b.device_name:
+                raise TypeError("The mirny settings must appear in the same order")
+
         self.setattr_device("core")
         self.core: Core
 
@@ -35,48 +60,76 @@ class SetEOMSidebandsFrag(ExpFragment):
         self.sr87: BoolParamHandle
 
         self.attenuation_handles: List[FloatParamHandle] = []
+        self.frequency_handles: List[FloatParamHandle] = []
 
-        for settings in MIRNY_SETTINGS_87:
+        for settings in self.mirny_settings_87:
             handle_attenuation = self.setattr_param(
                 f"attenuation_{settings.device_name}",
                 FloatParam,
-                f"Attenuation for channel {settings.device_name}",
-                default=settings.attenuation,
-                min=0,
+                f"{settings.device_name} attenuation (-1 = default)",
+                default=-1,
+                min=-1,
             )
             self.attenuation_handles.append(handle_attenuation)
+
+            handle_frequency = self.setattr_param(
+                f"frequency_{settings.device_name}",
+                FloatParam,
+                f"{settings.device_name} frequency (-1 = default)",
+                default=-1,
+                min=-1,
+                unit="MHz",
+            )
+            self.frequency_handles.append(handle_frequency)
+
+            self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+
+            self.kernel_invariants = getattr(self, "kernel_invariants", set()) | {
+                "debug_mode",
+                "init_mirnys",
+                "mirny_settings",
+                "mirnys",
+                "mirny_channels",
+            }
 
     def host_setup(self):
         super().host_setup()
 
         self.mirny_settings = (
-            MIRNY_SETTINGS_87 if self.sr87.get() else MIRNY_SETTINGS_88
+            self.mirny_settings_87 if self.sr87.get() else self.mirny_settings_88
         )
 
         self.mirny_channels: List[ADF5356] = []
         self.mirnys = set()
+
+        logger.debug("Preparing EOM sidebands with sr87 = %s", self.sr87.get())
 
         for settings in self.mirny_settings:
             channel = self.get_device(settings.device_name)
             self.mirny_channels.append(channel)
             self.mirnys.add(channel.cpld)
 
+            logger.debug("Added channel %s", settings.device_name)
+
         self.mirnys: List[Mirny] = list(self.mirnys)
 
-        logger.info("Preparing EOM sidebands with sr87 = %s", self.sr87.get())
+        self.first_run = True
 
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        self.core.break_realtime()
+        if self.init_mirnys and self.first_run:
+            self.first_run = False
 
-        for mirny_cpld in self.mirnys:
-            mirny_cpld.init()
+            self.core.break_realtime()
 
-        for i in range(len(self.mirny_channels)):
-            mirny_channel = self.mirny_channels[i]
-            mirny_channel.init()
+            for mirny_cpld in self.mirnys:
+                mirny_cpld.init()
+
+            for i in range(len(self.mirny_channels)):
+                mirny_channel = self.mirny_channels[i]
+                mirny_channel.init()
 
     @kernel
     def set_sidebands(self):
@@ -85,9 +138,24 @@ class SetEOMSidebandsFrag(ExpFragment):
             mirny_settings = self.mirny_settings[i]
 
             attenuation_handle = self.attenuation_handles[i]
-            attenuation = attenuation_handle.get()
 
-            frequency = self.mirny_settings[i].frequency
+            attenuation = attenuation_handle.get()
+            if attenuation < 0:
+                attenuation = mirny_settings.attenuation
+
+            frequency_handle = self.frequency_handles[i]
+            frequency = frequency_handle.get()
+            if frequency < 0:
+                frequency = mirny_settings.frequency
+
+            if self.debug_mode:
+                logger.info(
+                    "Setting freq=%.3f MHz, att=%f for %s",
+                    frequency,
+                    attenuation,
+                    mirny_settings.device_name,
+                )
+                self.core.break_realtime()
 
             # Disable the output momentarily to avoid sending the wrong settings
             # at any point
@@ -95,6 +163,11 @@ class SetEOMSidebandsFrag(ExpFragment):
             mirny_channel.set_frequency(frequency)
             mirny_channel.set_att(attenuation)
             mirny_channel.sw.set_o(mirny_settings.rf_switch)
+
+
+class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
+    mirny_settings_87 = MIRNY_SETTINGS_87
+    mirny_settings_88 = MIRNY_SETTINGS_88
 
     @kernel
     def run_once(self):
