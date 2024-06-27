@@ -2,6 +2,7 @@ import logging
 
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from ndscan.experiment import FloatChannel
 
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.red_mot.red_mot_experiment import (
@@ -25,6 +26,20 @@ class SingleAndorImage(RedMOTWithExperiment):
     * :meth:`~save_data_hook`
     """
 
+    def hook_setup_andor(self):
+        """
+        Setup the Andor camera
+
+        This is a method so that children classes can override it
+        """
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_mean", FloatChannel)
+        self.andor_sum: FloatChannel
+        self.andor_mean: FloatChannel
+
     @kernel
     def start_of_red_broadband_hook(self):
         # The Andor camera shutter needs ~120ms to open, so start this at the
@@ -46,6 +61,17 @@ class SingleAndorImage(RedMOTWithExperiment):
 
         # Image ground state atoms
         self.do_pulse(andor_exposure)
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+
+    @kernel
+    def post_sequence_cleanup_hook_andor(self):
+        # Ensure shutter is closed, though it should be anyway
+        self.core.break_realtime()
+        self.andor_camera_control.set_shutter(False)
 
     @kernel
     def save_data_hook(self):

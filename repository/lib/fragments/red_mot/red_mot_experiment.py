@@ -49,7 +49,6 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from ndscan.experiment import ExpFragment
-from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -57,7 +56,6 @@ from numpy import int64
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
@@ -103,22 +101,6 @@ class RedMOTBase(ExpFragment):
             description="Broadband phase duration",
         )
         self.red_broadband_time: FloatParamHandle
-
-        self.hook_setup_andor()
-
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera
-
-        This is a method so that children classes can override it
-        """
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
-
-        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_mean", FloatChannel)
-        self.andor_sum: FloatChannel
-        self.andor_mean: FloatChannel
 
     @kernel
     def _from_start_to_end_of_broadband_mot(self):
@@ -197,6 +179,8 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
+        self.hook_setup_andor()
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
@@ -239,8 +223,6 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         delay(self.delay_after_spectroscopy.get())
 
         self.do_imaging_hook()
-
-        self.andor_camera_control.set_shutter(False)
 
         self.post_sequence_cleanup_hook()
 
@@ -286,10 +268,9 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         :class:`~AndorCameraControl` Fragment as an attribute named
         "andor_camera_control".
 
-        By default, delegate to :class:`~RedMOTBase` which configures a single
-        ROI.
+        By default, do nothing.
         """
-        return super().hook_setup_andor()
+        pass
 
     @abc.abstractmethod
     def do_imaging_hook(self):

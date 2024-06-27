@@ -39,7 +39,6 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         super().build_fragment()
 
         self._setup_params()
-        self._setup_andor()
 
     def _setup_params(self):
         self.setattr_param(
@@ -176,3 +175,14 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
             self.excitation_fraction.push((means[1] - means[2]) / bg)
 
         self.atom_number.push(means[0] + means[1] - 2 * means[2])
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+
+    @kernel
+    def post_sequence_cleanup_hook_andor(self):
+        # Ensure shutter is closed, though it should be anyway
+        self.core.break_realtime()
+        self.andor_camera_control.set_shutter(False)

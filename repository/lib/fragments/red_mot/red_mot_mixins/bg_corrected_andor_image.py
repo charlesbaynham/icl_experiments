@@ -103,3 +103,14 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         self.andor_sum.push(sum_atoms[0])
         self.andor_mean.push(mean_atoms[0])
         self.andor_mean_bg_corrected.push(mean_atoms[0] - mean_bg[0])
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+
+    @kernel
+    def post_sequence_cleanup_hook_andor(self):
+        # Ensure shutter is closed, though it should be anyway
+        self.core.break_realtime()
+        self.andor_camera_control.set_shutter(False)
