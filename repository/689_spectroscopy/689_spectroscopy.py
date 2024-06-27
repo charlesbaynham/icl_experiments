@@ -3,6 +3,7 @@ import logging
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
@@ -81,6 +82,29 @@ class SpectroscopyWithKinetics_UpBeam(
         self.up_beam_suservo: LibSetSUServoStatic
 
         super().build_fragment()
+
+        # Rebind the default fast kinetics X ROIs and set their defaults
+        self.setattr_param_like(
+            "roi_x0",
+            self.andor_camera_control,
+            "roi_0_x0",
+            description="Grabber ROI x0",
+            default=constants.ANDOR_689_FAST_KINETICS_X0,
+        )
+        self.setattr_param_like(
+            "roi_x1",
+            self.andor_camera_control,
+            "roi_0_x1",
+            description="Grabber ROI x1",
+            default=constants.ANDOR_689_FAST_KINETICS_X1,
+        )
+
+        self.roi_x0: FloatParamHandle
+        self.roi_x1: FloatParamHandle
+
+        for c in "012":
+            self.andor_camera_control.bind_param(f"roi_{c}_x0", self.roi_x0)
+            self.andor_camera_control.bind_param(f"roi_{c}_x1", self.roi_x1)
 
     @kernel
     def pre_expansion_hook(self):
