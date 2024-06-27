@@ -197,6 +197,16 @@ B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
     B_FIELD_BIAS_MOT_Z,
 )
 
+
+# Use the lattice bias fields if the bodgy USE_LATTICE variable is set
+# TODO: Get rid of this once we're shifting lattices
+if USE_LATTICE_MODE:
+    B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
+        B_FIELD_BIAS_LATTICE_X,
+        B_FIELD_BIAS_LATTICE_Y,
+        B_FIELD_BIAS_LATTICE_Z,
+    )
+
 B_FIELD_GRADIENT = 90.0  # A
 
 
