@@ -26,9 +26,9 @@ class LatticeLoadFieldRamper(GeneralRampingPhase):
     add_final_point = True
 
     general_setter_default_starts = [
-        constants.B_FIELD_BIAS_NULL_X,
-        constants.B_FIELD_BIAS_NULL_Y,
-        constants.B_FIELD_BIAS_NULL_Z,
+        constants.B_FIELD_BIAS_MOT_X,
+        constants.B_FIELD_BIAS_MOT_Y,
+        constants.B_FIELD_BIAS_MOT_Z,
     ]
 
     general_setter_default_ends = [
