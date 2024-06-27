@@ -167,28 +167,35 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-if USE_LATTICE_MODE:
-    if USE_SR87:
-        # With 6A gradient
-        B_FIELD_BIAS_X = 1.1  # A
-        B_FIELD_BIAS_Y = -0.02  # A
-        B_FIELD_BIAS_Z = -1.4  # A
-    else:
-        # With 1A gradient
-        B_FIELD_BIAS_X = 0.39  # A
-        B_FIELD_BIAS_Y = -0.01  # A
-        B_FIELD_BIAS_Z = -1.005  # A
+if USE_SR87:
+    # With 6A gradient
+    B_FIELD_BIAS_LATTICE_X = 1.1  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.4  # A
 else:
-    # Default fields in chamber 2 for nulling field
-    B_FIELD_BIAS_X = 0.3  # A
-    B_FIELD_BIAS_Y = -0.014  # A
+    # With 1A gradient
+    B_FIELD_BIAS_LATTICE_X = 0.5  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.01  # A
 
-    if USE_SR87:
-        B_FIELD_BIAS_Z = (
-            -0.8
-        )  # Sr87 prefers a bit of a bias field in the MOT. We should investigate
-    else:
-        B_FIELD_BIAS_Z = -1.04  # A
+# Default fields in chamber 2 for nulling field
+B_FIELD_BIAS_MOT_X = 0.3  # A
+B_FIELD_BIAS_MOT_Y = -0.014  # A
+
+if USE_SR87:
+    B_FIELD_BIAS_MOT_Z = (
+        -0.8
+    )  # Sr87 prefers a bit of a bias field in the MOT. We should investigate
+else:
+    B_FIELD_BIAS_MOT_Z = -1.04  # A
+
+
+# Legacy naming
+B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
+    B_FIELD_BIAS_MOT_X,
+    B_FIELD_BIAS_MOT_Y,
+    B_FIELD_BIAS_MOT_Z,
+)
 
 B_FIELD_GRADIENT = 90.0  # A
 
