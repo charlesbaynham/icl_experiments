@@ -7,7 +7,6 @@ from artiq.experiment import sequential
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
