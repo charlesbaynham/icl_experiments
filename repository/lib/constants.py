@@ -77,6 +77,18 @@ URUKULED_BEAMS = [
         attenuation=15,
         urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
     ),
+    UrukuledBeam(
+        "dipole_trap_1064_delivery",
+        frequency=110e6,
+        attenuation=30.0,
+        urukul_device="urukul_aom_1064_delivery",
+    ),
+    UrukuledBeam(
+        "dipole_trap_1064_switch",
+        frequency=110e6,
+        attenuation=30.0,
+        urukul_device="urukul_aom_1064_switch",
+    ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
@@ -435,7 +447,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "up_813",
-        frequency=187.6e6,
+        frequency=180e6,
         attenuation=0.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
@@ -554,3 +566,8 @@ WAND_SETPOINTS_87 = {
 TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
 DURATION_OF_SPIN_POL = 20e-3
 TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3
+
+# %% Dipole trap settings
+
+DIPOLE_TRAP_HOLD_TIME = 200e-3
+DIPOLE_TRAP_LOADING_TIME = 50e-3
