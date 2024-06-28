@@ -1,5 +1,7 @@
 import logging
 
+from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -19,7 +21,6 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 logger = logging.getLogger(__name__)
 
 
-# FIXME This is not finished
 class DipoleTrapMixin(RedMOTWithExperiment):
     """
     Loads atoms into a dipole trap before spectroscopy
@@ -33,7 +34,6 @@ class DipoleTrapMixin(RedMOTWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     """
 
@@ -60,74 +60,47 @@ class DipoleTrapMixin(RedMOTWithExperiment):
 
         # %% Fragments
 
-        self.setattr_fragment(
-            "lattice_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["lattice_input_1379"].suservo_device,
-        )
-        self.lattice_suservo: LibSetSUServoStatic
+        self.dipole_delivery_urukul: AD9910 = self.get_device("dipole_trap_1064_switch")
+
+        if not hasattr(self.dipole_delivery_urukul, "sw"):
+            raise TypeError(
+                "This mixin assumes that the 1064 delivery AOM is controlled by an Urukul channel with a dedicated TTL for the RF switch"
+            )
+
+        self.dipole_delivery_sw: TTLOut = self.dipole_delivery_urukul.sw
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("dipole_delivery_sw")
 
         self.setattr_fragment(
             "dipole_trap_setter",
             make_set_beams_to_default(
                 urukul_beam_infos=[
-                    constants.URUKULED_BEAMS["dipole_trap_1064_delivery"],
+                    constants.URUKULED_BEAMS[
+                        "dipole_trap_1064_delivery"
+                    ],  # FIXME: the dipole trap delivery needs to be on a SUServo and needs to be enabled throughout
                     constants.URUKULED_BEAMS["dipole_trap_1064_switch"],
-                ]
+                ],
+                automatic_setup=True,
             ),
         )
         self.dipole_trap_setter: SetBeamsToDefaults
 
     @kernel
-    def device_setup(self) -> None:
-        self.core.break_realtime()
-        self.dipole_trap_setter.turn_on_all(light_enabled=False)
-
-        self.device_setup_subfragments()
-
-    @kernel
     def post_narrowband_hook(self):
-        self.load_into_lattice()
-        self.spin_polarize()
-        self.ramp_down_lattice()
+        self.post_narrowband_hook_dipole_trap()
 
     @kernel
-    def load_into_lattice(self):
+    def post_narrowband_hook_dipole_trap(self):
         """
-        Load into the lattice with a bang - no ramping for now. Don't do the
-        shutter wiggle thing, since that would clash with the spin pol pulse
-        we're about to do
+        Load into the dipole trap while the red MOT is still on and then hold it
+        for the configured time before dropping the atoms.
         """
-        self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())
+        load_time_mu = self.core.seconds_to_mu(self.dipole_trap_load_time.get())
+
+        delay_mu(-load_time_mu)
+        self.dipole_delivery_sw.on()
+        delay_mu(load_time_mu)
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-
-    @kernel
-    def spin_polarize(self):
-        """
-        Spin polarize the atoms trapped in the lattice by pulsing the selected
-        beam after allowing the atoms to equlibriate in the lattice for a time,
-        then hold them afterwards for some time.
-        """
-        delay(self.delay_before_spinpol_pulse.get())
-        self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
-        delay(self.duration_spinpol_pulse.get())
-        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
-        delay(self.delay_after_spinpol_pulse.get())
-
-    @kernel
-    def ramp_down_lattice(self):
-        """
-        For now, just drop the lattice setpoint immediately.
-
-        We could implement a ramp later if it turns out to be required, or we
-        could (temporarily) reduce the gain on the SUServo loop to effectivly
-        low-pass filter this step
-        """
-        self.lattice_suservo.set_setpoint(self.lattice_low_setpoint.get())
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-
-        # After the sequence completes, put the lattice back to its high setpoint
-        self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())
+        delay(self.dipole_trap_hold_time.get())
+        self.dipole_delivery_sw.off()
