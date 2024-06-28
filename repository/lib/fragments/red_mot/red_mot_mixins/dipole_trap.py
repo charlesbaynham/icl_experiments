@@ -60,7 +60,9 @@ class DipoleTrapMixin(RedMOTWithExperiment):
 
         # %% Fragments
 
-        self.dipole_delivery_urukul: AD9910 = self.get_device("dipole_trap_1064_switch")
+        self.dipole_delivery_urukul: AD9910 = self.get_device(
+            constants.URUKULED_BEAMS["dipole_trap_1064_switch"].urukul_device
+        )
 
         if not hasattr(self.dipole_delivery_urukul, "sw"):
             raise TypeError(
@@ -82,6 +84,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
                     constants.URUKULED_BEAMS["dipole_trap_1064_switch"],
                 ],
                 automatic_setup=True,
+                name="dipole_trap_setter",
             ),
         )
         self.dipole_trap_setter: SetBeamsToDefaults
