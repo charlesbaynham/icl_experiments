@@ -1,6 +1,5 @@
 {
-  # FIXME inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
-  inputs.pyaion.url = "/home/charles/pyaion";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq
