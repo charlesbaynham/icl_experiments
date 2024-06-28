@@ -3009,7 +3009,7 @@ files = [
 
 [[package]]
 name = "pyaion"
-version = "0.0.1"
+version = "1.1"
 description = "A package for AION users. This should be used to share code useful across the collaboration, both for ARTIQ experimental control and otherwise."
 optional = false
 python-versions = ">=3.10,<3.12"
@@ -3038,7 +3038,7 @@ toptica-lasersdk = "^3.1.1"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
 reference = "HEAD"
-resolved_reference = "cc9d332cc3b03d7a5569accff68ce015d4eba504"
+resolved_reference = "c59b89809b843cf37b0321cfb528e9f1f3156301"
 
 [[package]]
 name = "pycairo"
