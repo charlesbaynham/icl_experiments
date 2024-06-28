@@ -211,11 +211,11 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1719561207,
-        "narHash": "sha256-PEAHLQl9PE90DLRm/HODt1tB14E0In83c05UU4RTcCQ=",
+        "lastModified": 1719564936,
+        "narHash": "sha256-G3aWwc1UxedKyXf2ZTYfIckuimdpjRU6XrMljHCP9Jk=",
         "ref": "refs/heads/automatic-beam-setter",
-        "rev": "cc5577eb025dc873a7a9f79613ff1b4075ff546a",
-        "revCount": 148,
+        "rev": "2fd52897e47a81098ff4f7775269c6fe0d4cb609",
+        "revCount": 152,
         "type": "git",
         "url": "file:///home/charles/pyaion"
       },
