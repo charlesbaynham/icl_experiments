@@ -7,12 +7,14 @@ from artiq.experiment import sequential
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.red_mot.red_mot_experiment import (
     RedMOTWithExperiment,
+)
+from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
+    ConstantLatticeMixin,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
@@ -66,6 +68,7 @@ class SpectroscopyWithKinetics_UpBeam(
     FieldBoostMixin,
     TripleImageFastKineticsMixin,
     SpectroscopyParamsMixin,
+    ConstantLatticeMixin,
     RedMOTWithExperiment,
 ):
     """

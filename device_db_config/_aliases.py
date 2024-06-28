@@ -35,7 +35,6 @@ aliases = {
     "suservo_aom_singlepass_689_up": "suservo2_ch5",
     "suservo_aom_singlepass_689_red_mot_sigmaplus": "suservo2_ch6",
     "suservo_aom_singlepass_689_red_mot_sigmaminus": "suservo2_ch7",
-    "urukul_aom_singlepass_transfer_cavity": "urukul2_ch0",
     # 1064
     "urukul_aom_1064_delivery": "urukul2_ch0",
     "urukul_aom_1064_switch": "urukul2_ch1",
