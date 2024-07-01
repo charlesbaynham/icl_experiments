@@ -68,12 +68,25 @@
             exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
           '');
 
+          wand_gui_launcher = let
+            config_file = "${self}/scripts/icl_aion_gui_config.pyon";
+          in
+            (pkgs.writeShellScriptBin "script" ''
+              export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
+
+              export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
+              cp "${config_file}" "$WAND_CONFIG_PATH"
+              exec wand_gui -n icl_aion "$@"
+            '');
+
         in
         {
           inherit (overriddenOutputs) formatter devShells;
 
           packages = overriddenOutputs.packages // {
             default = dashboard_launcher;
+            dashboard = dashboard_launcher;
+            wand = wand_gui_launcher;
           };
 
           apps = overriddenOutputs.apps // {
@@ -140,16 +153,7 @@
             };
 
             wand = flake-utils.lib.mkApp {
-              drv =
-                let config_file = "${self}/scripts/icl_aion_gui_config.pyon";
-                in
-                (pkgs.writeShellScriptBin "script" ''
-                  export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
-
-                  export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
-                  cp "${config_file}" "$WAND_CONFIG_PATH"
-                  exec wand_gui -n icl_aion "$@"
-                '');
+              drv = wand_gui_launcher;
             };
 
             wand_server = flake-utils.lib.mkApp {
