@@ -61,7 +61,7 @@
             ];
           });
 
-          dashboard_launcher = (pkgs.writeShellScriptBin "dashboard" ''
+          dashboard_launcher = (pkgs.writeShellScriptBin "icl_dashboard" ''
             # If you want to reset the dashboard settings each time, uncomment this line
             # export XDG_CONFIG_HOME=$(mktemp -d)
 
@@ -71,7 +71,7 @@
           wand_gui_launcher = let
             config_file = "${self}/scripts/icl_aion_gui_config.pyon";
           in
-            (pkgs.writeShellScriptBin "wand" ''
+            (pkgs.writeShellScriptBin "icl_wand" ''
               export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
 
               export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
