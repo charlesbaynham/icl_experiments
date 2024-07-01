@@ -61,9 +61,20 @@
             ];
           });
 
+          dashboard_launcher = (pkgs.writeShellScriptBin "dashboard" ''
+            # If you want to reset the dashboard settings each time, uncomment this line
+            # export XDG_CONFIG_HOME=$(mktemp -d)
+
+            exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
+          '');
+
         in
         {
-          inherit (overriddenOutputs) packages formatter devShells;
+          inherit (overriddenOutputs) formatter devShells;
+
+          packages = overriddenOutputs.packages // {
+            default = dashboard_launcher;
+          };
 
           apps = overriddenOutputs.apps // {
             backup_datasets =
@@ -125,12 +136,7 @@
             # Temporary hack to get the dashboard to launch with "nix run" and
             # default to ICL's settings
             default = flake-utils.lib.mkApp {
-              drv = (pkgs.writeShellScriptBin "script" ''
-                # If you want to reset the dashboard settings each time, uncomment this line
-                # export XDG_CONFIG_HOME=$(mktemp -d)
-
-                exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
-              '');
+              drv = dashboard_launcher;
             };
 
             wand = flake-utils.lib.mkApp {
