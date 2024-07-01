@@ -2,11 +2,6 @@
   inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  # TODO: Go back to pyaion artiq
-  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=icl";
-  inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.pyaion.inputs.artiq.follows = "alt_artiq";
-
   outputs = { self, nixpkgs, flake-utils, pyaion, ... }:
     flake-utils.lib.eachSystem [ "x86_64-linux" ]
       (system:
