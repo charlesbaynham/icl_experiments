@@ -71,7 +71,7 @@
           wand_gui_launcher = let
             config_file = "${self}/scripts/icl_aion_gui_config.pyon";
           in
-            (pkgs.writeShellScriptBin "script" ''
+            (pkgs.writeShellScriptBin "wand" ''
               export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
 
               export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
