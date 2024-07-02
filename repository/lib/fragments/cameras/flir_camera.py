@@ -367,6 +367,8 @@ class MonitorCameraExp(ExpFragment, abc.ABC):
             "delay", FloatParam, description="Delay", unit="ms", default=500e-3
         )
 
+        self.setattr_param_rebind("save_raw", self.camera, default=True)
+
         self.exposure: FloatParamHandle
         self.delay: FloatParamHandle
 
