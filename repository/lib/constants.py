@@ -96,15 +96,6 @@ URUKULED_BEAMS = [
 URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 
 
-RED_SPINPOL_SETTINGS = UrukuledBeam(  # TODO: Get rid of this once !31 is merged
-    "red_spinpol",
-    frequency=366.6e6,
-    attenuation=0.0,
-    amplitude=1.0,  # TODO: Remove this after pyaion update
-    urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
-)
-
-
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
 # polarizing beam (i.e. not their normal MOT beams)
 RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
