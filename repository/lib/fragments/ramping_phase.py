@@ -664,9 +664,10 @@ class GeneralRampingPhase(Fragment):
                             amplitude_values[i],
                         )
 
-                    ad9910.set(
-                        frequency=frequency_values[i], amplitude=amplitude_values[i]
-                    )
+                    # FIXME
+                    # ad9910.set(
+                    #     frequency=frequency_values[i], amplitude=amplitude_values[i]
+                    # )
                     delay_mu(t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                     frequency_values[i] += frequency_steps[i]
