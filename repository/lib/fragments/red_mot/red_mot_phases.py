@@ -25,9 +25,10 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
     * Add control of the B fields in chamber 2
     """
 
-    urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
-    default_urukul_amplitudes_start = [1.0]
-    default_urukul_amplitudes_end = [1.0]
+    # FIXME
+    # urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
+    # default_urukul_amplitudes_start = [1.0]
+    # default_urukul_amplitudes_end = [1.0]
     suservos = [
         "suservo_aom_singlepass_689_red_mot_sigmaplus",
         "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -39,7 +40,7 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(GeneralRampingPhase):
     # much will happen. This is done so that all the phases can share the same
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_urukul_nominal_frequencies = [0.0]
+    # default_urukul_nominal_frequencies = [0.0] # FIXME
     default_suservo_nominal_setpoints = [0.0] * 4
 
     # The general ramp here ramps the chamber 2 MOT coils in amps
@@ -175,8 +176,8 @@ class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):
         general_setter_default_starts = [6.0]
         general_setter_default_ends = [1.0]
     else:
-        default_urukul_detunings_start = [150e3]
-        default_urukul_detunings_end = [50e3]
+        # default_urukul_detunings_start = [150e3]
+        # default_urukul_detunings_end = [50e3]  # FIXME
         default_suservo_setpoint_multiples_start = [0.55, 0.35, 0.6, 0.0]
         default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.0]
 
@@ -216,5 +217,5 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
         general_setter_default_starts = [1.0]
         general_setter_default_ends = [1.0]
 
-        default_urukul_detunings_start = [50e3]
-        default_urukul_detunings_end = [10e3]
+        # default_urukul_detunings_start = [50e3]
+        # default_urukul_detunings_end = [10e3]  # FIXME
