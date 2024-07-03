@@ -650,7 +650,8 @@ class GeneralRampingPhase(Fragment):
                 for i in range(len(general_values)):
                     general_values[i] += general_steps[i]
 
-                delay_mu(t_one_rtio_cycle_mu)  # Avoid using multiple lanes
+                # FIXME
+                delay_mu(10 * t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                 # %% Set AD9910 frequencies
                 for i in range(len(self.ad9910_channels_and_param_handles)):
@@ -664,11 +665,11 @@ class GeneralRampingPhase(Fragment):
                             amplitude_values[i],
                         )
 
+                    ad9910.set(
+                        frequency=frequency_values[i], amplitude=amplitude_values[i]
+                    )
                     # FIXME
-                    # ad9910.set(
-                    #     frequency=frequency_values[i], amplitude=amplitude_values[i]
-                    # )
-                    delay_mu(t_one_rtio_cycle_mu)  # Avoid using multiple lanes
+                    delay_mu(10 * t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                     frequency_values[i] += frequency_steps[i]
                     amplitude_values[i] += amplitude_steps[i]
