@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Hypothesis: the AD9910 code is consuming more than one lane in the latest ARTIQ update. That's a regression.
 # TODO: Write a test here to check this. Use "test_lanes_during_ramps.py" as inspiration.
 
-NUM_LANES = 9
+NUM_LANES = 16
 
 
 class TestAD9910LaneUsage(EnvExperiment):
