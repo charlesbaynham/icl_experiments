@@ -39,6 +39,32 @@ class GeneralRampingPhase(Fragment):
     This fragment should be subclassed for each desired phase. Default settings
     for its parameters can be set by setting the appropriate class variable.
 
+    ## Intensity and detuning ramps
+
+    To ramp the intensity of beams controlled by SUServos or detunings
+    controlled by Urukuls, you could use a phase like e.g.::
+
+        class ExampleRampingPhase(GeneralRampingPhase):
+            duration_default = 50e-3
+
+            suservos = [
+                "suservo_example_a",
+                "suservo_example_b",
+                "suservo_example_c",
+            ]
+            default_suservo_nominal_setpoints = [1.0, 2.0, 0.01]
+            default_suservo_setpoint_multiples_start = [1.0, 2.5, 100]
+            default_suservo_setpoint_multiples_end = [0.0, 2.5, 1]
+
+            urukuls = [
+                "ad9910_example_a", "ad9910_example_b",
+            ]
+            default_urukul_nominal_frequencies = [340e6, 200e6]
+            default_urukul_detunings_start = [1e6, 0.0]
+            default_urukul_detunings_end = [-1e6, 0.0]
+            default_urukul_amplitudes_start = [1.0] * 2
+            default_urukul_amplitudes_end = [1.0] * 2
+
     ### General ramping
 
     To ramp general parameters that aren't SUServos or AD9910s, you can define
@@ -50,16 +76,13 @@ class GeneralRampingPhase(Fragment):
         class DemoPhase(GeneralRampingPhase):
             general_setter_names = ["some_current_1", "some_current_2"]
             general_setter_param_options = [
-                {"min": 0, "max": 150, "unit": "A"},
-                {"min": 0, "max": 10, "unit": "A"},
-            ]
-            general_setter_default_starts = [100.0, 10.0]
+                {"min": 0, "max": 150, "unit": "A"}, {"min": 0, "max": 10,
+                "unit": "A"},
+            ] general_setter_default_starts = [100.0, 10.0]
             general_setter_default_ends = [10.0, 5.0]
 
-            @kernel
-            def general_setter(self, vals: TList(TFloat)):
-                # Ideally do something more interesting than this:
-                print(vals)
+            @kernel def general_setter(self, vals: TList(TFloat)):
+                # Ideally do something more interesting than this: print(vals)
 
     This method will be called once for each step of the ramp and passed a list
     of floats of the same size as `self.general_setter_starts`. You can use this
@@ -81,8 +104,8 @@ class GeneralRampingPhase(Fragment):
     ...and nothing at 5ms. The ramps therefore never quite reach their final
     values, on the assumption that the next phase will write these.
 
-    If you would like the final values to be set as well, set
-    `add_final_point = True`.
+    If you would like the final values to be set as well, set `add_final_point =
+    True`.
     """
 
     time_step_default = 100e-6
