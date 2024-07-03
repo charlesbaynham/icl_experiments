@@ -35,7 +35,9 @@ class _MeasureNarrowbandMOTFrag(ConstantLatticeMixin, RedMOTWithExperiment):
 
 
 class MeasureNarrowbandMOTFrag(
-    FLIRMeasurementMixin, SingleAndorImage, _MeasureNarrowbandMOTFrag
+    # FLIRMeasurementMixin,
+    SingleAndorImage,
+    _MeasureNarrowbandMOTFrag,
 ):
     """
     Make a narrowband MOT, image with the ANDOR and leave lattice light on
