@@ -29,10 +29,13 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         self.core.break_realtime()
 
-        # This should cause an RTIO sequence error unless we're only using a single lane
         with parallel:
             for ttl in self.ttls:
                 ttl.on()
 
         self.core.wait_until_mu(now_mu())
-        logger.info("Test done")
+        logger.info("Test done, resetting TTLs")
+
+        for ttl in self.ttls:
+            self.core.break_realtime()
+            ttl.off()
