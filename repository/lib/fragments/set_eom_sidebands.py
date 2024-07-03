@@ -129,6 +129,7 @@ class SetEOMSidebandsFrag(Fragment):
 
             for i in range(len(self.mirny_channels)):
                 mirny_channel = self.mirny_channels[i]
+                mirny_channel.sync()
                 mirny_channel.init()
 
     @kernel
