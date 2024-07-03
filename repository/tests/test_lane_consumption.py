@@ -24,39 +24,29 @@ class TestAD9910LaneUsage(EnvExperiment):
         self.setattr_device("core")
         self.core: Core
 
-        self.urukul_channels: List[AD9910] = [
-            self.get_device(f"urukul5_ch{i}") for i in range(4)
-        ] + [self.get_device(f"urukul8_ch{i}") for i in range(4)]
+        # self.urukul_channels: List[AD9910] = [
+        #     self.get_device(f"urukul5_ch{i}") for i in range(4)
+        # ] + [self.get_device(f"urukul8_ch{i}") for i in range(4)]
 
-        self.setattr_device("ttl0")
-        self.ttl0: TTLOut
+        # self.setattr_device("ttl0")
+        # self.ttl0: TTLOut
 
-        for uc in self.urukul_channels:
-            print(uc)
+        # for uc in self.urukul_channels:
+        #     print(uc)
 
-        logger.warning("This test does not work! Do not trust it")
+        self.setattr_device("urukul5_ch0")
+        self.urukul5_ch0: AD9910
 
     @kernel
     def run(self):
         logger.info("Starting test")
 
-        for _ in range(1):
-            self.core.break_realtime()
+        self.core.break_realtime()
 
-            t_now_mu = now_mu()
-            for i in range(8):
-                urukul_channel = self.urukul_channels[i]
+        t_now_mu = now_mu()
 
-                at_mu(t_now_mu)
-                urukul_channel.set(100e6, 0.0, amplitude=0.0)
-
+        for i in range(9):
             at_mu(t_now_mu)
-            self.ttl0.on()
+            self.urukul5_ch0.set(frequency=100e6, phase=0.0, amplitude=0.0)
 
-            delay(1e-3)
-            self.ttl0.off()
-
-            logger.info("Test done")
-
-            delay(1.0)
-            self.core.wait_until_mu(now_mu())
+        logger.info("Test done")
