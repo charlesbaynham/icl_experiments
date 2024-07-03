@@ -98,13 +98,12 @@ class NarrowbandRedMOTFrag(Fragment):
 
         # Bind the default frequency in the phases to this Fragment's version of
         # the same (N.B. don't bother for the Broadband phase since it has no Urukul)
-        # FIXME
-        # self.narrow_red_capture_phase.bind_ad9910_frequency_params(
-        #     [self.injection_aom_static_frequency]
-        # )
-        # self.narrow_red_compression_phase.bind_ad9910_frequency_params(
-        #     [self.injection_aom_static_frequency]
-        # )
+        self.narrow_red_capture_phase.bind_ad9910_frequency_params(
+            [self.injection_aom_static_frequency]
+        )
+        self.narrow_red_compression_phase.bind_ad9910_frequency_params(
+            [self.injection_aom_static_frequency]
+        )
 
         # Bind the SUServo setpoint parameters to those defined in the red default beam setter
         self.broadband_red_phase.bind_suservo_setpoint_params_to_default_beam_setter(
