@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class SetTopticaState(EnvExperiment):
+    """
+    Enable or disable the current for the Toptica lasers
+    """
+
     def build(self) -> None:
         self.toptica_device_names = []
         for device_name, device_entry in self.get_device_db().items():
