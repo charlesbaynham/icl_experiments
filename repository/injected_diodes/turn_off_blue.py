@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class TurnOffBlue(EnvExperiment):
-    """Turn off all the blue injected diodes"""
+    """Turn off all the injected diodes"""
 
     def run(self):
         controller_names = [
