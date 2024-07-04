@@ -48,9 +48,15 @@ class SetTopticaState(EnvExperiment):
         self.laser_is_controlled = [getattr(self, a) for a in self.toptica_args]
 
     def run(self):
-        for laser, is_controlled in zip(self.topticas, self.laser_is_controlled):
+        for laser_name, laser, is_controlled in zip(
+            self.toptica_device_names, self.topticas, self.laser_is_controlled
+        ):
             if is_controlled:
-                logger.info("Setting laser %s to %s", laser, self.current_state)
+                logger.info(
+                    "Setting laser %s's state to %s",
+                    laser_name,
+                    "ON" if self.current_state else "OFF",
+                )
 
                 # Open a connection
                 laser.get_dlcpro().open()
