@@ -85,7 +85,7 @@
             "fast_enabled_at": 0,
             "fast_mode": false,
             "fast_mode_set_at": 1683033888.1694472,
-            "lock_capture_range": 3000000000.0,
+            "lock_capture_range": 10e9,
             "lock_gain": 1e-10,
             "lock_owner": "",
             "lock_poll_time": 10.0,
