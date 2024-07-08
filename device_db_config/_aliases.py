@@ -31,7 +31,7 @@ aliases = {
     # Red
     "urukul9910_aom_doublepass_689_red_injection": "urukul8_ch0",
     "urukul9910_aom_doublepass_689_red_spinpol": "urukul8_ch1",
-    "suservo_aom_singlepass_689_red_mot_diagonal": "suservo2_ch4",
+    "suservo_aom_singlepass_689_red_mot_diagonal": "suservo2_ch2",
     "suservo_aom_singlepass_689_up": "suservo2_ch5",
     "suservo_aom_singlepass_689_red_mot_sigmaplus": "suservo2_ch6",
     "suservo_aom_singlepass_689_red_mot_sigmaminus": "suservo2_ch7",
@@ -46,7 +46,7 @@ aliases = {
     # Other
     "suservo_aom_singlepass_707": "suservo2_ch0",
     "suservo_aom_singlepass_679": "suservo2_ch1",
-    "suservo_aom_singlepass_1379_cavity_input": "suservo2_ch2",
+    "suservo_aom_singlepass_1379_cavity_input": "suservo2_ch4",
     "urukul9912_aom_698_up_switch": "urukul2_ch2",
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
     "suservo_aom_698_squeezing_cavity_input": "suservo0_ch1",
