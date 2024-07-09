@@ -8,6 +8,7 @@ from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.parameters import StringParam
 from ndscan.experiment.parameters import StringParamHandle
 
@@ -47,6 +48,7 @@ class ReadSamplerADC(ReadADC):
         self,
         sampler_device: Optional[Sampler] = None,
         sampler_channel: Optional[int] = None,
+        sampler_pgia_gain: Optional[int] = None,  #  0,1,2 or 3
     ):
         """
         Build this (sub)fragment
@@ -54,9 +56,8 @@ class ReadSamplerADC(ReadADC):
         If sampler_device and sampler_channel are provided then this fragment will have no parameters.
         Otherwise, it will expose these as ndscan parameters instead.
         """
-        if sampler_channel is not None and sampler_channel is not None:
+        if sampler_channel is not None:
             self.sampler_channel: int = sampler_channel
-            self.sampler_device: Sampler = sampler_device
         else:
             self.setattr_param(
                 "sampler_channel_number",
@@ -66,6 +67,11 @@ class ReadSamplerADC(ReadADC):
                 min=0,
                 max=7,
             )
+            self.sampler_channel_number: IntParamHandle
+
+        if sampler_channel is not None:
+            self.sampler_device: Sampler = sampler_device
+        else:
             self.setattr_param(
                 "sampler_device_name",
                 StringParam,
@@ -73,6 +79,19 @@ class ReadSamplerADC(ReadADC):
                 default='""',
             )
             self.sampler_device_name: StringParamHandle
+
+        if sampler_pgia_gain is not None:
+            self.sampler_pgia_gain_value = sampler_pgia_gain
+        else:
+            self.setattr_param(
+                "sampler_channel_gain",
+                IntParam,
+                description="Sampler PGIA gain (0, 1, 2 or 3)",
+                default=0,
+                min=0,
+                max=3,
+            )
+            self.sampler_channel_gain: IntParamHandle
 
         self.core: Core = self.get_device("core")
 
@@ -83,9 +102,13 @@ class ReadSamplerADC(ReadADC):
         self.kernel_invariants = kernel_invariants | {"debug_mode"}
 
     def host_setup(self):
-        if hasattr(self, "sampler_channel_number"):
-            self.sampler_device = self.get_device(self.sampler_device_name.get())
+        if self.sampler_channel is None:
             self.sampler_channel = self.sampler_channel_number.get()
+        if self.sampler_device is None:
+            self.sampler_device = self.get_device(self.sampler_device_name.get())
+        if self.sampler_pgia_gain_value is None:
+            self.sampler_pgia_gain_value = self.sampler_channel_gain.get()
+
         super().host_setup()
 
     @kernel
@@ -99,6 +122,9 @@ class ReadSamplerADC(ReadADC):
             self.core.break_realtime()
 
         self.sampler_device.init()
+        self.sampler_device.set_gain_mu(
+            self.sampler_channel, self.sampler_pgia_gain_value
+        )
 
     @kernel
     def read_adc(self):
