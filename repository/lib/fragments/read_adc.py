@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from artiq.coredevice.core import Core
@@ -9,6 +10,8 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import StringParam
 from ndscan.experiment.parameters import StringParamHandle
+
+logger = logging.getLogger(__name__)
 
 
 class ReadADC(Fragment):
@@ -73,6 +76,12 @@ class ReadSamplerADC(ReadADC):
 
         self.core: Core = self.get_device("core")
 
+        self.debug_mode = logger.isEnabledFor(logging.DEBUG)
+
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {"debug_mode"}
+
     def host_setup(self):
         if hasattr(self, "sampler_channel_number"):
             self.sampler_device = self.get_device(self.sampler_device_name.get())
@@ -83,6 +92,12 @@ class ReadSamplerADC(ReadADC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
         self.core.break_realtime()
+
+        if self.debug_mode:
+            gains_mu = self.sampler_device.get_gains_mu()
+            logger.info("Gains before setting were %s", gains_mu)
+            self.core.break_realtime()
+
         self.sampler_device.init()
 
     @kernel
