@@ -102,11 +102,11 @@ class ReadSamplerADC(ReadADC):
         self.kernel_invariants = kernel_invariants | {"debug_mode"}
 
     def host_setup(self):
-        if self.sampler_channel is None:
+        if not hasattr(self, "sampler_channel"):
             self.sampler_channel = self.sampler_channel_number.get()
-        if self.sampler_device is None:
+        if not hasattr(self, "sampler_device"):
             self.sampler_device = self.get_device(self.sampler_device_name.get())
-        if self.sampler_pgia_gain_value is None:
+        if not hasattr(self, "sampler_pgia_gain_value"):
             self.sampler_pgia_gain_value = self.sampler_channel_gain.get()
 
         super().host_setup()
