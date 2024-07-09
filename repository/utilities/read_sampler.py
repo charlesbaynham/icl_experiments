@@ -19,7 +19,7 @@ class ReadSamplerFrag(ExpFragment):
         self.sampler_reader: ReadSamplerADC
 
         self.setattr_param_rebind("sampler_device_name", self.sampler_reader)
-        self.setattr_param_rebind("sampler_channel", self.sampler_reader)
+        self.setattr_param_rebind("sampler_channel_number", self.sampler_reader)
 
         self.setattr_result("reading", FloatChannel)
         self.reading: FloatChannel
