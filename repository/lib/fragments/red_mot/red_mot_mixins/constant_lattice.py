@@ -74,7 +74,7 @@ class ConstantLatticeMixin(RedMOTWithExperiment):
         self.setattr_fragment(
             "lattice_1379_turneronner", make_beam_turneronner("lattice_input_1379")
         )
-        self.setattr_fragment("beam_813_turneronner", make_beam_turneronner("up_813"))
+        self.setattr_fragment("beam_813_turneronner", make_beam_turneronner("down_813"))
 
         self.setattr_param_rebind(
             "setpoint_1379",
