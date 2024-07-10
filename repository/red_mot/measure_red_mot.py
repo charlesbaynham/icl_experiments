@@ -35,7 +35,7 @@ class _MeasureNarrowbandMOTFrag(ConstantLatticeMixin, RedMOTWithExperiment):
 
 
 class MeasureNarrowbandMOTFrag(
-    # FLIRMeasurementMixin,
+    FLIRMeasurementMixin,
     SingleAndorImage,
     _MeasureNarrowbandMOTFrag,
 ):
