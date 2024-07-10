@@ -13,6 +13,9 @@ from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
 from repository.lib.fragments.red_mot.red_mot_mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
     SingleAndorImage,
 )
@@ -36,6 +39,7 @@ class _MeasureNarrowbandMOTFrag(ConstantLatticeMixin, RedMOTWithExperiment):
 
 class MeasureNarrowbandMOTFrag(
     FLIRMeasurementMixin,
+    ExponentialDecayMixin,
     SingleAndorImage,
     _MeasureNarrowbandMOTFrag,
 ):
