@@ -81,7 +81,7 @@ URUKULED_BEAMS = [
         "dipole_trap_1064_delivery",
         frequency=110e6,
         attenuation=30.0,
-        urukul_device="urukul_aom_1064_delivery",
+        urukul_device="suservo_aom_1064_delivery",
     ),
     UrukuledBeam(
         "dipole_trap_1064_switch",
