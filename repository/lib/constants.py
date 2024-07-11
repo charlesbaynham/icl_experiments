@@ -78,12 +78,6 @@ URUKULED_BEAMS = [
         urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
     ),
     UrukuledBeam(
-        "dipole_trap_1064_delivery",
-        frequency=110e6,
-        attenuation=30.0,
-        urukul_device="suservo_aom_1064_delivery",
-    ),
-    UrukuledBeam(
         "dipole_trap_1064_switch",
         frequency=110e6,
         attenuation=30.0,
@@ -443,6 +437,12 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
         setpoint=3.5,
+    ),
+    SUServoedBeam(
+        "dipole_trap_1064_delivery",
+        frequency=110e6,
+        attenuation=30.0,
+        suservo_device="suservo_aom_1064_delivery",
     ),
 ]
 

@@ -17,43 +17,6 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 logger = logging.getLogger(__name__)
 
 
-def make_beam_turneronner(beam_name):
-    class TurnerOnerer(Fragment):
-        def build_fragment(self):
-            self.setattr_device("core")
-            self.core: Core
-
-            self.setattr_param(
-                "setpoint",
-                FloatParam,
-                "SUServo setpoint",
-                default=constants.SUSERVOED_BEAMS[beam_name].setpoint,
-                unit="V",
-            )
-            self.setpoint: FloatParamHandle
-
-            self.setattr_fragment(
-                "setter",
-                make_set_beams_to_default(
-                    suservo_beam_infos=[constants.SUSERVOED_BEAMS[beam_name]]
-                ),
-            )
-            self.setter: SetBeamsToDefaults
-
-            self.first_run = True
-
-        @kernel
-        def device_setup(self) -> None:
-            if self.first_run:
-                self.first_run = False
-                self.core.break_realtime()
-                self.setter.turn_on_all()
-
-            self.device_setup_subfragments()
-
-    return TurnerOnerer
-
-
 class ConstantLatticeMixin(RedMOTWithExperiment):
     """
     Leaves lattice light (cavity & 813) on throughout the entire sequence.
@@ -70,21 +33,16 @@ class ConstantLatticeMixin(RedMOTWithExperiment):
         super().build_fragment()
 
         # %% Fragments
-
         self.setattr_fragment(
-            "lattice_1379_turneronner", make_beam_turneronner("lattice_input_1379")
+            "constant_dipole_traps_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[
+                    constants.SUSERVOED_BEAMS["lattice_input_1379"],
+                    constants.SUSERVOED_BEAMS["down_813"],
+                    constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
+                ],
+                urukul_beam_infos=[constants.URUKULED_BEAMS["dipole_trap_1064_switch"]],
+                use_automatic_setup=True,
+            ),
         )
-        self.setattr_fragment("beam_813_turneronner", make_beam_turneronner("down_813"))
-        self.setattr_fragment(
-            "dipole_1064_turneronner",
-            make_beam_turneronner("dipole_trap_1064_delivery"),
-        )
-
-        self.setattr_param_rebind(
-            "setpoint_1379",
-            self.lattice_1379_turneronner,
-            original_name="setpoint",
-        )
-        self.setattr_param_rebind(
-            "setpoint_813", self.beam_813_turneronner, original_name="setpoint"
-        )
+        self.constant_dipole_traps_setter: SetBeamsToDefaults
