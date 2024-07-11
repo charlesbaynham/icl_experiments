@@ -77,12 +77,12 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         self.setattr_fragment(
             "dipole_trap_setter",
             make_set_beams_to_default(
-                urukul_beam_infos=[
-                    constants.URUKULED_BEAMS[
-                        "dipole_trap_1064_delivery"
-                    ],  # FIXME: the dipole trap delivery needs to be on a SUServo and needs to be enabled throughout
-                    constants.URUKULED_BEAMS["dipole_trap_1064_switch"],
+                suservo_beam_infos=[
+                    constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"]
                 ],
+                urukul_beam_infos=[
+                    constants.URUKULED_BEAMS["dipole_trap_1064_switch"],
+                ],  # FIXME: This needs thinking about more. sw needs to be software controlled, or IDC cable needs installing
                 automatic_setup=True,
                 name="dipole_trap_setter",
             ),
