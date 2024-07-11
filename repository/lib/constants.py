@@ -80,7 +80,7 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         "dipole_trap_1064_switch",
         frequency=110e6,
-        attenuation=30.0,
+        attenuation=3.0,
         urukul_device="urukul_aom_1064_switch",
     ),
 ]
@@ -441,7 +441,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "dipole_trap_1064_delivery",
         frequency=110e6,
-        attenuation=10.0,
+        attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
     ),
 ]
