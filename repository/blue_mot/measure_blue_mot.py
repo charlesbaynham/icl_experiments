@@ -149,6 +149,7 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         )
         self.exposure: FloatParamHandle
 
+        # FIXME: This rebinding appears not to work
         self.dual_cameras.bind_param("exposure_vert", self.exposure)
 
         self.setattr_param(
