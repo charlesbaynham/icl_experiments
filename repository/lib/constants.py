@@ -129,7 +129,7 @@ IJD_DEFAULTS = {
         3e-3,
         associated_aom="blue_USOC_delivery",  # This AOM should be associated with IJD1 but we can't currently associate multiple AOMs
     ),
-    "blue_IJD3_controller": IJDSettings(8850, 355e-3, 345e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(8850, 358e-3, 348e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(
         9460, 189.0e-3, 186.0e-3, 3e-3, associated_aom="red_doublepass_injection"
     ),
