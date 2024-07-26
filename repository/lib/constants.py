@@ -30,7 +30,7 @@ SR_FACTS = {
 }
 
 
-USE_SR87 = True
+USE_SR87 = False
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
 USE_LATTICE_MODE = True
@@ -377,9 +377,9 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_up",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=1.1,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
+        setpoint=2.0,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
         initial_amplitude=0.05,
-        photodiode_offset=0.0188,  # TODO: This is a guess
+        photodiode_offset=0.017,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
