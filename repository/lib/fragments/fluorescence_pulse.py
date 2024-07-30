@@ -93,7 +93,7 @@ class FluorescencePulseBase(Fragment):
 
         # # Configure and enable the SUServos for all configured beams, and also the delivery beam
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
-        self.delivery_beam_setter.turn_on_all(light_enabled=True)
+        # self.delivery_beam_setter.turn_on_all(light_enabled=True)
 
     @kernel
     def do_imaging_pulse(
@@ -120,6 +120,7 @@ class ImagingFluorescencePulse(FluorescencePulseBase):
     """
 
     urukul_beam_infos = [constants.URUKULED_BEAMS["blue_imaging_switch"]]
+    suservo_beam_infos = [constants.SUSERVOED_BEAMS["blue_imaging_delivery"]]
 
 
 class MOTBeamFluorescencePulse(FluorescencePulseBase):
