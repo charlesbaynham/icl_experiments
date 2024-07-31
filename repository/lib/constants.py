@@ -443,6 +443,8 @@ SUSERVOED_BEAMS = [
         frequency=110e6,
         attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
+        servo_enabled=True,
+        setpoint=7.0,
     ),
 ]
 
