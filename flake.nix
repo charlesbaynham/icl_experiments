@@ -3,7 +3,7 @@
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq
-  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?rev=52420bba40d8d181c1554664a1344eaef5f743eb";
+  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=refs/tags/pin_2024_08";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
