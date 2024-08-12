@@ -15,13 +15,14 @@
       "locked": {
         "lastModified": 1709223631,
         "narHash": "sha256-1/k7jlewV5DaIDiPnbec6eoDIiIIToJSxTwb2sLUZAo=",
-        "rev": "52420bba40d8d181c1554664a1344eaef5f743eb",
+        "ref": "refs/tags/pin_2024_08",
+        "rev": "afe4cca982e939906e7ebf98ac39a0f400f629b6",
         "revCount": 8682,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
       "original": {
-        "rev": "52420bba40d8d181c1554664a1344eaef5f743eb",
+        "ref": "refs/tags/pin_2024_08",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       }
