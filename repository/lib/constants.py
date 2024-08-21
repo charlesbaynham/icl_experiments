@@ -441,7 +441,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "up_813",
         frequency=90e6,
-        attenuation=8.0,
+        attenuation=7.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
         setpoint=3.5,
