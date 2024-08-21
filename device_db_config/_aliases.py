@@ -38,11 +38,12 @@ aliases = {
     # 1064
     "suservo_aom_1064_delivery": "suservo0_ch3",
     "urukul_aom_1064_switch": "urukul2_ch1",
-    # Other 1064 channels, currently unused
+    # Other 1064 channels
     "suservo_aom3_1064": "suservo0_ch4",
     "suservo_aom4_1064": "suservo0_ch5",
-    "suservo_aom5_1064": "suservo0_ch6",
+    # 813 channels
     "suservo_aom_down_813": "suservo0_ch7",
+    "suservo_aom_up_813": "suservo0_ch6",
     # Other
     "suservo_aom_singlepass_707": "suservo2_ch0",
     "suservo_aom_singlepass_679": "suservo2_ch1",
