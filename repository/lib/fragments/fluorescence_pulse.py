@@ -82,7 +82,6 @@ class FluorescencePulseBase(Fragment):
             "delivery_beam_toggler",
             make_toggle_list_of_beams(
                 [constants.SUSERVOED_BEAMS["blue_imaging_delivery"]],
-                name="DeliveryBeamSettings",
             ),
         )
         self.delivery_beam_toggler: ToggleListOfBeams
