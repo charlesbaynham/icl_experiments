@@ -224,6 +224,8 @@ RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
 DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
+DEFAULT_DELIVERY_SETTLING_DURATION = 200e-6
+"Default duration of the delay between turning on the delivery AOM and turning on the fluoresence probe."
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"

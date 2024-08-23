@@ -4,12 +4,14 @@ from typing import Optional
 
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.models import SUServoedBeam
@@ -75,6 +77,16 @@ class FluorescencePulseBase(Fragment):
         )
         self.delivery_beam_setter: SetBeamsToDefaults
 
+        # Create a toggler for the delivery AOM, to allow it to be switched earlier from the fluorescence beam
+        self.setattr_fragment(
+            "delivery_beam_toggler",
+            make_toggle_list_of_beams(
+                [constants.SUSERVOED_BEAMS["blue_imaging_delivery"]],
+                name="DeliveryBeamSettings",
+            ),
+        )
+        self.delivery_beam_toggler: ToggleListOfBeams
+
         self.setattr_param(
             "fluorescence_pulse_duration",
             FloatParam,
@@ -85,6 +97,16 @@ class FluorescencePulseBase(Fragment):
         )
         self.fluorescence_pulse_duration: FloatParamHandle
 
+        self.setattr_param(
+            "delivery_settling_duration",
+            FloatParam,
+            "Duration of the settling time for the imaging delivery AOM",
+            default=constants.DEFAULT_DELIVERY_SETTLING_DURATION,
+            unit="us",
+            min=0,
+        )
+        self.delivery_settling_duration: FloatParamHandle
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
@@ -93,7 +115,7 @@ class FluorescencePulseBase(Fragment):
 
         # # Configure and enable the SUServos for all configured beams, and also the delivery beam
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
-        self.delivery_beam_setter.turn_on_all(light_enabled=True)
+        self.delivery_beam_setter.turn_on_all(light_enabled=False)
 
     @kernel
     def do_imaging_pulse(
@@ -108,10 +130,23 @@ class FluorescencePulseBase(Fragment):
         """
         if duration < 0:
             duration = self.fluorescence_pulse_duration.get()
-
+        delivery_settling_duration_mu = self.core.seconds_to_mu(
+            self.delivery_settling_duration.get()
+        )
+        delay_mu(-delivery_settling_duration_mu)
+        self.delivery_beam_toggler.turn_on_beams(
+            ignore_shutters=ignore_initial_shutters
+        )
+        delay_mu(delivery_settling_duration_mu)
         self.all_beam_toggler.turn_on_beams(ignore_shutters=ignore_initial_shutters)
         delay(duration)
         self.all_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
+        delay_mu(
+            int64(self.core.ref_multiplier)
+        )  # minimum delay to avoid use of extra lane (1 coarse rtio cycle)
+        self.delivery_beam_toggler.turn_off_beams(
+            ignore_shutters=ignore_initial_shutters
+        )
 
 
 class ImagingFluorescencePulse(FluorescencePulseBase):
@@ -120,7 +155,6 @@ class ImagingFluorescencePulse(FluorescencePulseBase):
     """
 
     urukul_beam_infos = [constants.URUKULED_BEAMS["blue_imaging_switch"]]
-    # suservo_beam_infos = [constants.SUSERVOED_BEAMS["blue_imaging_delivery"]]
 
 
 class MOTBeamFluorescencePulse(FluorescencePulseBase):
