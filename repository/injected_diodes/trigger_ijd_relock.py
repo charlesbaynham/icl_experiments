@@ -47,6 +47,9 @@ class TriggerIJDRelockFrag(ExpFragment):
         )
         self.red_bool: BoolParamHandle
 
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_device("ttl12")
         self.ttl12: TTLOut
 
