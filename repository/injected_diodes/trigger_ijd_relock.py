@@ -47,8 +47,8 @@ class TriggerIJDRelockFrag(ExpFragment):
         )
         self.red_bool: BoolParamHandle
 
-        self.setattr_device("TTL_blue_ijds")
-        self.TTL_blue_ijds: TTLOut
+        self.setattr_device("ttl12")
+        self.ttl12: TTLOut
 
     def host_setup(self):
         super().host_setup()
@@ -59,9 +59,9 @@ class TriggerIJDRelockFrag(ExpFragment):
     @kernel
     def relock(self) -> None:
         if self.blue_bool:
-            self.TTL_blue_ijds.output()
+            self.ttl12.output()
             delay(1e-3)
-            self.TTL_blue_ijds.pulse(10e-3)
+            self.ttl12.pulse(10e-3)
 
 
 TriggerIJDRelock = make_fragment_scan_exp(TriggerIJDRelockFrag)
