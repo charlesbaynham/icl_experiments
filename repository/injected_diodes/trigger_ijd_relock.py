@@ -58,6 +58,7 @@ class TriggerIJDRelockFrag(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
+        self.core.break_realtime()
         self.relock()
 
     @kernel
