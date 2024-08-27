@@ -62,9 +62,11 @@ class TriggerIJDRelockFrag(ExpFragment):
     @kernel
     def relock(self) -> None:
         if self.blue_bool:
-            self.ttl12.output()
-            delay(1e-3)
             self.ttl12.pulse(10e-3)
+
+    @kernel
+    def run(self):
+        self.relock()
 
 
 TriggerIJDRelock = make_fragment_scan_exp(TriggerIJDRelockFrag)
