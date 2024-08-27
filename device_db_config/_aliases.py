@@ -69,6 +69,7 @@ aliases = {
     "ttl_camera_trigger_andor": "ttl4",
     "ttl_camera_trigger_horizontal": "ttl6",
     "ttl_camera_trigger_vertical": "ttl7",
+    "TTL_blue_ijds": "ttl12",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch1",
     "mirny_eom_cavity_offset_689": "mirny1_ch0",
