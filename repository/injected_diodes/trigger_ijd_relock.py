@@ -47,7 +47,7 @@ class TriggerIJDRelockFrag(ExpFragment):
         )
         self.red_bool: BoolParamHandle
 
-        self.setattr_device("TTL_blue_idjs")
+        self.setattr_device("TTL_blue_ijds")
         self.TTL_blue_ijds: TTLOut
 
     def host_setup(self):
