@@ -56,12 +56,14 @@ class TriggerIJDRelockFrag(ExpFragment):
     def host_setup(self):
         super().host_setup()
 
+    @kernel
     def run_once(self) -> None:
         self.relock()
 
     @kernel
     def relock(self) -> None:
         if self.blue_bool:
+            delay(1e-3)
             self.ttl12.pulse(10e-3)
 
     @kernel
