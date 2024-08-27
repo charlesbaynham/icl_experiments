@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class TriggerIJDRelockFrag(ExpFragment):
     """
-    Relock one injected diode
+    Trigger IJD relock
     """
 
     def build_fragment(self, *args, **kwargs) -> None:
