@@ -472,7 +472,7 @@ class MirnySettings:
 
 
 # These frequencies were chosen empirically based on the atoms
-_default_461 = 650504048e6 - 10e6 + 25e6
+_default_461 = 650504048e6 - 10e6 + 25e6 - 40e6
 _default_707 = 423913481e6
 _default_679 = 441332637e6
 _default_698 = 429228355e6 + 358e6 + 180e6 - 522e6 + 16.3e6  # Measured empirically
