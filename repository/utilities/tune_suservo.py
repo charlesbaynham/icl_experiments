@@ -52,11 +52,18 @@ class TuneSUServo(EnvExperiment):
             NumberValue(default=100e6, precision=1, type="float", unit="MHz"),
         )
         self.frequency: float
+
         self.setattr_argument(
             "attenuation",
             NumberValue(default=30.0, precision=1, type="float", unit="dB"),
         )
         self.attenuation: float
+
+        self.setattr_argument(
+            "amplitude",
+            NumberValue(default=1.0, precision=1, type="float", min=0, max=1),
+        )
+        self.amplitude: float
 
         self.setattr_argument(
             "num_points",
@@ -114,7 +121,9 @@ class TuneSUServo(EnvExperiment):
         self.set_all_attenuations(30.0)
         self.set_this_attenuation(self.attenuation)
 
-        self.set_dds_params(self.frequency, 1.0, False, setpoint_v=self.setpoint)
+        self.set_dds_params(
+            self.frequency, self.amplitude, False, setpoint_v=self.setpoint
+        )
         self.suservo_channel.set_iir(
             PROFILE_NUM, self.adc_channel, self.kp, self.ki, self.gain_limit, self.delay
         )
