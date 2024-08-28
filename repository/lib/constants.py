@@ -341,8 +341,9 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_imaging_delivery",
         116e6,
-        22,
-        "suservo_aom_singlepass_461_imaging_delivery",
+        attenuation=22,
+        initial_amplitude=0.05,
+        suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=2.0,
     ),
