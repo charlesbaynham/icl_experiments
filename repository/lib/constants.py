@@ -33,7 +33,7 @@ SR_FACTS = {
 USE_SR87 = False
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
-USE_LATTICE_MODE = True
+USE_LATTICE_MODE = False
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
 
 
