@@ -136,7 +136,7 @@ class FluorescencePulseBase(Fragment):
         self.delivery_beam_setter.turn_on_all(light_enabled=False)
 
         # Boost the delivery SUServo's gain
-        # self.delivery_beam_suservo.set_iir_params(ki=self.delivery_suservo_kI.get())
+        self.delivery_beam_suservo.set_iir_params(ki=self.delivery_suservo_kI.get())
 
     @kernel
     def do_imaging_pulse(
