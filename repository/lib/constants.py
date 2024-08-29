@@ -139,6 +139,8 @@ IJD_DEFAULTS = {
 }
 "Injected diode default settings"
 
+RED_IJD_RELOCK_FREQUENCY_BOOST = 2e6
+"Amount to increase red AOM frequency from default while relocking the IJD"
 
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state

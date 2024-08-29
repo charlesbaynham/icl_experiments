@@ -316,6 +316,15 @@ class RelockAllIJDsFrag(ExpFragment):
             frag.bind_param("num_points", self.num_points)
             frag.frag_ijd_scanner.bind_param("current_waittime", self.current_waittime)
 
+        self.frag_relocker_red_IJD1_controller: RelockIJDFrag
+        prev_default = constants.URUKULED_BEAMS["red_doublepass_injection"]
+        self.setattr_param_rebind(
+            "red_aom_frequency",
+            self.frag_relocker_red_IJD1_controller.beam_setter,
+            f"frequency_{prev_default.name}",
+            default=prev_default.frequency + constants.RED_IJD_RELOCK_FREQUENCY_BOOST,
+        )
+
     def run_once(self) -> None:
         # Manually call the device_setup, since this is not a kernel function
         self.device_setup()
