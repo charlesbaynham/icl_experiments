@@ -199,14 +199,14 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
     if USE_SR87:
         # Sr 87
-        default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.03]
-        default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.015]
+        default_suservo_setpoint_multiples_start = [0.6, 0.6, 0.6, 0.09]
+        default_suservo_setpoint_multiples_end = [0.05, 0.05, 0.05, 0.012]
 
-        default_urukul_detunings_start = [80e3]
+        default_urukul_detunings_start = [100e3]
         default_urukul_detunings_end = [0]
 
         # Chamber 2 MOT coils in amps
-        general_setter_default_starts = [6.0]
+        general_setter_default_starts = [1.0]
         general_setter_default_ends = [1.0]
 
     else:
