@@ -152,6 +152,14 @@ class RelockIJDFrag(ExpFragment):
             urukul_beam_infos=beam_infos, use_automatic_setup=True
         )
 
+    @kernel
+    def device_setup(self):
+        print("Hello from the relock IJD device_setup")
+        self.device_setup_subfragments()
+
+        self.core.break_realtime()
+        self.beam_setter.turn_on_all()
+
     def host_setup(self):
         super().host_setup()
 
@@ -309,6 +317,9 @@ class RelockAllIJDsFrag(ExpFragment):
             frag.frag_ijd_scanner.bind_param("current_waittime", self.current_waittime)
 
     def run_once(self) -> None:
+        # Manually call the device_setup, since this is not a kernel function
+        self.device_setup()
+
         # Relock each IJD in order
         for i in range(len(self.ijd_controller_frags)):
             ijd_relock_frag = self.ijd_controller_frags[i]
