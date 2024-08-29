@@ -224,7 +224,7 @@ RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
 DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
-DEFAULT_DELIVERY_SETTLING_DURATION = 200e-6
+DEFAULT_DELIVERY_SETTLING_DURATION = 50e-6
 "Default duration of the delay between turning on the delivery AOM and turning on the fluoresence probe."
 
 DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000
