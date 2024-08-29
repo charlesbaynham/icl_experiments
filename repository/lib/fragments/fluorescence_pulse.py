@@ -11,8 +11,6 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
@@ -119,12 +117,13 @@ class FluorescencePulseBase(Fragment):
 
         self.setattr_param(
             "delivery_suservo_kI",
-            IntParam,
+            FloatParam,
             "kI parameter for the delivery SUServo",
             default=constants.DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I,
             max=0,
+            min=-1e9,
         )
-        self.delivery_suservo_kI: IntParamHandle
+        self.delivery_suservo_kI: FloatParamHandle
 
     @kernel
     def device_setup(self) -> None:
@@ -137,7 +136,7 @@ class FluorescencePulseBase(Fragment):
         self.delivery_beam_setter.turn_on_all(light_enabled=False)
 
         # Boost the delivery SUServo's gain
-        self.delivery_beam_suservo.set_iir_params(ki=self.delivery_suservo_kI.get())
+        # self.delivery_beam_suservo.set_iir_params(ki=self.delivery_suservo_kI.get())
 
     @kernel
     def do_imaging_pulse(
@@ -243,7 +242,7 @@ class ToggleableFluorescencePulse(Fragment):
 
         Advances the timeline by the duration of the pulse.
         """
-        if self.image_with_mot_beams.get():
+        if self.image_with_mot_beams_invariant:
             self.mot_beams.do_imaging_pulse(
                 ignore_initial_shutters=ignore_initial_shutters,
                 ignore_final_shutters=ignore_final_shutters,
