@@ -157,11 +157,7 @@ class RelockIJDFrag(ExpFragment):
 
     @kernel
     def device_setup(self):
-        print("Hello from the relock IJD device_setup")
         self.device_setup_subfragments()
-
-        self.core.break_realtime()
-        self.beam_setter.turn_on_all()
 
     def host_setup(self):
         super().host_setup()
@@ -170,6 +166,7 @@ class RelockIJDFrag(ExpFragment):
         self.ijd_controller: CTL200 = self.frag_ijd_scanner.controller
 
     def run_once(self) -> None:
+        self.device_setup()
         self.relock()
 
     def relock(self) -> None:
