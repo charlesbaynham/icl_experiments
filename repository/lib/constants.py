@@ -227,6 +227,9 @@ DEFAULT_IMAGING_PULSE = 50e-6
 DEFAULT_DELIVERY_SETTLING_DURATION = 200e-6
 "Default duration of the delay between turning on the delivery AOM and turning on the fluoresence probe."
 
+DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000
+"$k_I$ constant for the flourescence beam's SUServo loop"
+
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
 
