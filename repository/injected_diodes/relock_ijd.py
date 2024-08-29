@@ -148,8 +148,11 @@ class RelockIJDFrag(ExpFragment):
             logger.info("Adding %s to beam setter for %s", beam_name, self)
             beam_infos.append(constants.URUKULED_BEAMS[beam_name])
 
-        self.beam_setter = make_set_beams_to_default(
-            urukul_beam_infos=beam_infos, use_automatic_setup=True
+        self.beam_setter = self.setattr_fragment(
+            "beam_setter",
+            make_set_beams_to_default(
+                urukul_beam_infos=beam_infos, use_automatic_setup=True
+            ),
         )
 
     @kernel
