@@ -143,10 +143,10 @@ class RelockIJDFrag(ExpFragment):
         self.controller_name = controller_name
         beam_infos = []
         if controller_name and (
-            beam_name := IJD_DEFAULTS[controller_name].associated_beam
+            beam_names := IJD_DEFAULTS[controller_name].associated_beams
         ):
-            logger.info("Adding %s to beam setter for %s", beam_name, self)
-            beam_infos.append(constants.URUKULED_BEAMS[beam_name])
+            logger.info("Adding %s to beam setter for %s", beam_names, self)
+            beam_infos += [constants.URUKULED_BEAMS[b] for b in beam_names]
 
         self.beam_setter = self.setattr_fragment(
             "beam_setter",

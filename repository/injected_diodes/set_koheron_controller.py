@@ -126,26 +126,6 @@ class SetKoheronFrag(ExpFragment):
         self.num_points: IntParamHandle
 
         self.setattr_param(
-            "aom_attenuation",
-            FloatParam,
-            description="Attenuation of injection AOM",
-            default=20,
-            min=0,
-            max=30,
-            unit="dB",
-            step=0.1,
-        )
-        self.aom_attenuation: FloatParamHandle
-
-        self.setattr_param(
-            "change_aom",
-            BoolParam,
-            description="If False, ignore the injection AOM",
-            default="False",
-        )
-        self.change_aom: BoolParamHandle
-
-        self.setattr_param(
             "always_wait_at_start",
             BoolParam,
             description="Wait for the temperature to settle before starting the first scan",
@@ -199,16 +179,6 @@ class SetKoheronFrag(ExpFragment):
             )
             self.adc_reader: ReadSamplerADC
 
-        if (controller_name) and (
-            aom_name := constants.IJD_DEFAULTS[controller_name].associated_beam
-        ):
-            urukul_device = constants.URUKULED_BEAMS[aom_name].urukul_device
-            self.aom_urukul = self.get_device(urukul_device)
-        else:
-            self.aom_urukul = DummyAD9910()
-
-        self.aom_urukul: AD9910
-
         # And define a results channel as output
         self.setattr_result("voltage")
         self.voltage: ResultChannel
@@ -220,8 +190,6 @@ class SetKoheronFrag(ExpFragment):
         self.last_current: TFloat = -1.0
         self.last_attenuation: TFloat = -1.0
 
-        self.urukul_has_been_initted = False
-
     def host_setup(self):
         if not self.controller.status():
             logger.warning("CTL200 controller was off - turning on...")
@@ -230,13 +198,6 @@ class SetKoheronFrag(ExpFragment):
         logger.debug(f"Current = {self.current.get()}")
 
         return super().host_setup()
-
-    @kernel
-    def device_setup(self):
-        if self.change_aom.get() and not self.urukul_has_been_initted:
-            self.urukul_has_been_initted = True
-            self.core.break_realtime()
-            self.aom_urukul.init()
 
     @kernel
     def run_once(self):
@@ -250,12 +211,6 @@ class SetKoheronFrag(ExpFragment):
         voltages = [0.0] * self.num_points.get()
 
         self.core.break_realtime()
-
-        if self.change_aom.get():
-            attenuation = self.aom_attenuation.get()
-            if attenuation != self.last_attenuation:
-                self.last_attenuation = attenuation
-                self.aom_urukul.set_att(self.aom_attenuation.get())
 
         if current_waittime > 0.0:
             delay(current_waittime)
