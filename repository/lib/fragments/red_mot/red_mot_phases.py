@@ -202,7 +202,7 @@ class NarrowRedCompressionPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
         default_suservo_setpoint_multiples_start = [0.3, 0.3, 0.3, 0.03]
         default_suservo_setpoint_multiples_end = [0.1, 0.1, 0.1, 0.015]
 
-        default_urukul_detunings_start = [0]
+        default_urukul_detunings_start = [80e3]
         default_urukul_detunings_end = [0]
 
         # Chamber 2 MOT coils in amps
