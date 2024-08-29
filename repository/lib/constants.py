@@ -482,8 +482,8 @@ class MirnySettings:
 
 # These frequencies were chosen empirically based on the atoms
 _default_461 = 650504048e6 - 10e6 + 25e6 - 10e6 + 6e6
-_default_707 = 423913481e6
-_default_679 = 441332637e6
+_default_707 = 423913478e6
+_default_679 = 441332627e6
 _default_698 = 429228355e6 + 358e6 + 180e6 - 522e6 + 16.3e6  # Measured empirically
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
@@ -524,7 +524,7 @@ MIRNY_SETTINGS_87 = [
         attenuation=5.0,
     ),
     MirnySettings(
-        device_name="mirny_eom_707_sideband_A", frequency=576e6, attenuation=20.0
+        device_name="mirny_eom_707_sideband_A", frequency=585e6, attenuation=20.0
     ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_B", frequency=487e6, attenuation=24.0
