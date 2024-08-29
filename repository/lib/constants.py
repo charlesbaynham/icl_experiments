@@ -184,7 +184,7 @@ if USE_SR87:
         -0.8
     )  # Sr87 prefers a bit of a bias field in the MOT. We should investigate
 else:
-    B_FIELD_BIAS_MOT_Z = -1.04  # A
+    B_FIELD_BIAS_MOT_Z = -0.8
 
 
 # Legacy naming
