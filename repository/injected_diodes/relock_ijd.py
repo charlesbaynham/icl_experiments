@@ -27,6 +27,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 import repository.lib.constants as constants
 from repository.injected_diodes.set_koheron_controller import SetKoheronFrag
@@ -122,9 +123,6 @@ class RelockIJDFrag(ExpFragment):
             controller_name=controller_name,
         )
 
-        # Disable AOM setting by the scanner - we'll handle it here
-        self.frag_ijd_scanner.override_param("change_aom", False)
-
         setattr_subscan(
             self,
             "scan_ijd_current",
@@ -143,25 +141,15 @@ class RelockIJDFrag(ExpFragment):
         self.core: Core
 
         self.controller_name = controller_name
+        beam_infos = []
         if controller_name and (
-            aom_name := IJD_DEFAULTS[controller_name].associated_aom
+            beam_name := IJD_DEFAULTS[controller_name].associated_beam
         ):
-            if beam := constants.URUKULED_BEAMS[aom_name]:
-                urukul_channel_name, freq, att = (
-                    beam.urukul_device,
-                    beam.frequency,
-                    beam.attenuation,
-                )
+            beam_infos.append(constants.URUKULED_BEAMS[beam_name])
 
-                self.urukul_channel: AD9910 = self.get_device(urukul_channel_name)
-                self.urukul_channel_name = urukul_channel_name
-                self.aom_freq, self.aom_attenuation = freq, att
-            else:
-                logger.warning(
-                    "AOM {} associated with {} not defined in constants".format(
-                        controller_name, aom_name
-                    )
-                )
+        self.beam_setter = make_set_beams_to_default(
+            urukul_beam_infos=beam_infos, use_automatic_setup=True
+        )
 
     def host_setup(self):
         super().host_setup()
@@ -172,25 +160,7 @@ class RelockIJDFrag(ExpFragment):
     def run_once(self) -> None:
         self.relock()
 
-    @kernel
-    def set_aom(self, freq: TFloat, att: TFloat):
-        self.core.break_realtime()
-        self.urukul_channel.init()
-        self.urukul_channel.set(frequency=freq, amplitude=1.0)
-        self.urukul_channel.set_att(att)
-        self.urukul_channel.sw.on()
-
     def relock(self) -> None:
-        # Set AOM if required
-        if hasattr(self, "urukul_channel"):
-            logger.info(
-                "Setting AOM %s to %.0f MHz, %.1f dB",
-                self.urukul_channel_name,
-                1e-6 * self.aom_freq,
-                self.aom_attenuation,
-            )
-            self.set_aom(self.aom_freq, self.aom_attenuation)
-
         # scan over a range of currents on the IJD
         coordinates, values, analysis_results = self.scan_ijd_current.run(  # type: ignore
             [

@@ -114,24 +114,24 @@ class IJDSettings:
     "Current step to make above lockpoint for relocking / A"
     relock_waittime: float = 1.0
     "Time to wait between relock steps / s. Default = 1.0"
-    associated_aom: Optional[str] = None
-    "AOMs from AD9910_BEAMS required for IJD to lock"
+    associated_beam: Optional[str] = None
+    "Beam from AD9910_BEAMS required for IJD to lock"
 
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
-        8600, 360e-3, 350e-3, 3e-3, associated_aom="blue_doublepass_injection"
+        8600, 360e-3, 350e-3, 3e-3, associated_beam="blue_doublepass_injection"
     ),
     "blue_IJD2_controller": IJDSettings(
         8800,
         370.5e-3,
         367e-3,
         3e-3,
-        associated_aom="blue_USOC_delivery",  # This AOM should be associated with IJD1 but we can't currently associate multiple AOMs
+        associated_beam="blue_USOC_delivery",  # This AOM should be associated with IJD1 but we can't currently associate multiple AOMs
     ),
     "blue_IJD3_controller": IJDSettings(8850, 358e-3, 348e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(
-        9460, 190.0e-3, 187.0e-3, 3e-3, associated_aom="red_doublepass_injection"
+        9460, 190.0e-3, 187.0e-3, 3e-3, associated_beam="red_doublepass_injection"
     ),
 }
 "Injected diode default settings"

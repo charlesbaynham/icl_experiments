@@ -200,7 +200,7 @@ class SetKoheronFrag(ExpFragment):
             self.adc_reader: ReadSamplerADC
 
         if (controller_name) and (
-            aom_name := constants.IJD_DEFAULTS[controller_name].associated_aom
+            aom_name := constants.IJD_DEFAULTS[controller_name].associated_beam
         ):
             urukul_device = constants.URUKULED_BEAMS[aom_name].urukul_device
             self.aom_urukul = self.get_device(urukul_device)
