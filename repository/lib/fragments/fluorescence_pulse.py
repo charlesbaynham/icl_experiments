@@ -133,7 +133,7 @@ class FluorescencePulseBase(Fragment):
 
         # Configure and enable the SUServos for all configured beams, and also the delivery beam
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
-        self.delivery_beam_setter.turn_on_all(light_enabled=False)
+        self.delivery_beam_setter.turn_on_all(light_enabled=True)  # FIXME
 
         # Boost the delivery SUServo's gain
         self.delivery_beam_suservo.set_iir_params(ki=self.delivery_suservo_kI.get())
