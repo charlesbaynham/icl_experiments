@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.experiment import BooleanValue
 from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
@@ -28,6 +29,7 @@ class AD9910Writer(EnvExperiment):
             "amp", NumberValue(default=1, max=1.0, min=0.0, precision=2)
         )
         self.setattr_argument("att", NumberValue(default=30.0, unit="dB"))
+        self.setattr_argument("rf_sw", BooleanValue(default=True))
 
     @kernel
     def run(self):
@@ -40,11 +42,12 @@ class AD9910Writer(EnvExperiment):
         )
 
         logger.info(
-            "%s - setting f=%.6f, att = %.1f dB, amp = %.2f",
+            "%s - setting f=%.6f, att = %.1f dB, amp = %.2f, rf_sw=%s",
             self.dds_name,
             self.freq,
             self.att,
             self.amp,
+            self.rf_sw,
         )
 
         self.core.break_realtime()
@@ -53,4 +56,4 @@ class AD9910Writer(EnvExperiment):
         self.dds.set(self.freq)
         self.dds.set_amplitude(self.amp)
         self.dds.set_att(self.att)
-        self.dds.sw.on()
+        self.dds.sw.set_o(self.rf_sw)
