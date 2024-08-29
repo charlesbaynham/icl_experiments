@@ -202,6 +202,12 @@ class ToggleableFluorescencePulse(Fragment):
         self.imaging_beam: FluorescencePulseBase
         self.mot_beams: FluorescencePulseBase
 
+        # Detach both the FluorescencePulse fragments so that their setup /
+        # teardown functions do not get called automatically. We only want to
+        # call the one that we're using, so we'll call it manually
+        self.detach_fragment(self.imaging_beam)
+        self.detach_fragment(self.mot_beams)
+
         # Rebind the pulse durations so they are both controlled from this fragment
         self.setattr_param_like("fluorescence_pulse_duration", self.imaging_beam)
         self.imaging_beam.bind_param(
@@ -229,7 +235,39 @@ class ToggleableFluorescencePulse(Fragment):
     def host_setup(self):
         # Optimization - bools cannot be scanned, so bake it in as a kernel invariant
         self.image_with_mot_beams_invariant = self.image_with_mot_beams.get()
+
+        # Call manually for the imaging beam subfrags.
+        # Unlike device_setup, always call host_setup otherwise we'll have invalid kernels
+        self.mot_beams.host_setup()
+        self.imaging_beam.host_setup()
+
         return super().host_setup()
+
+    def host_cleanup(self):
+        self.mot_beams.host_cleanup()
+        self.imaging_beam.host_cleanup()
+
+        return super().host_cleanup()
+
+    @kernel
+    def device_setup(self) -> None:
+        # Call manually for the imaging beam subfrags, only using the one we want
+        if self.image_with_mot_beams_invariant:
+            self.mot_beams.device_setup()
+        else:
+            self.imaging_beam.device_setup()
+
+        self.device_setup_subfragments()
+
+    @kernel
+    def device_cleanup(self) -> None:
+        # Call manually for the imaging beam subfrags, only using the one we want
+        if self.image_with_mot_beams_invariant:
+            self.mot_beams.device_cleanup()
+        else:
+            self.imaging_beam.device_cleanup()
+
+        self.device_setup_subfragments()
 
     @kernel
     def do_imaging_pulse(
