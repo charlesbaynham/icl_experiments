@@ -31,11 +31,11 @@ class SetTopticaState(EnvExperiment):
         ]
 
         self.setattr_argument(
-            "enable_lasers_current",
+            "enable_laser_currents",
             BooleanValue(default=False),
             tooltip="For the lasers being controlled, enable the current?",
         )
-        self.current_state: bool
+        self.enable_laser_currents: bool
 
         self.toptica_args = []
         for d in self.toptica_device_names:
@@ -59,10 +59,10 @@ class SetTopticaState(EnvExperiment):
                 logger.info(
                     "Setting laser %s's state to %s",
                     laser_name,
-                    "ON" if self.current_state else "OFF",
+                    "ON" if self.enable_laser_currents else "OFF",
                 )
 
                 # Open a connection
                 laser.get_dlcpro().open()
-                laser.get_laser().dl.cc.enabled.set(self.current_state)
+                laser.get_laser().dl.cc.enabled.set(self.enable_laser_currents)
                 laser.get_dlcpro().close()
