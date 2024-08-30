@@ -133,7 +133,7 @@ class FluorescencePulseBase(Fragment):
 
         # Configure and enable the SUServos for all configured beams, and also the delivery beam
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
-        self.delivery_beam_setter.turn_on_all(light_enabled=True)
+        self.delivery_beam_setter.turn_on_all(light_enabled=False)
 
         # Boost the delivery SUServo's gain
         self.delivery_beam_suservo.set_iir_params(ki=self.delivery_suservo_kI.get())
@@ -154,20 +154,20 @@ class FluorescencePulseBase(Fragment):
         delivery_settling_duration_mu = self.core.seconds_to_mu(
             self.delivery_settling_duration.get()
         )
-        # delay_mu(-delivery_settling_duration_mu)
-        # self.delivery_beam_toggler.turn_on_beams(
-        #     ignore_shutters=ignore_initial_shutters
-        # )
-        # delay_mu(delivery_settling_duration_mu)
+        delay_mu(-delivery_settling_duration_mu)
+        self.delivery_beam_toggler.turn_on_beams(
+            ignore_shutters=ignore_initial_shutters
+        )
+        delay_mu(delivery_settling_duration_mu)
         self.all_beam_toggler.turn_on_beams(ignore_shutters=ignore_initial_shutters)
         delay(duration)
         self.all_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
         delay_mu(
             int64(self.core.ref_multiplier)
         )  # minimum delay to avoid use of extra lane (1 coarse rtio cycle)
-        # self.delivery_beam_toggler.turn_off_beams(
-        #     ignore_shutters=ignore_initial_shutters
-        # )
+        self.delivery_beam_toggler.turn_off_beams(
+            ignore_shutters=ignore_initial_shutters
+        )
 
 
 class ImagingFluorescencePulse(FluorescencePulseBase):
