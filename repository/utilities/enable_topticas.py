@@ -31,7 +31,7 @@ class SetTopticaState(EnvExperiment):
         ]
 
         self.setattr_argument(
-            "current_state",
+            "enable_lasers_current",
             BooleanValue(default=False),
             tooltip="For the lasers being controlled, enable the current?",
         )
