@@ -61,20 +61,6 @@ class DipoleTrapMixin(RedMOTWithExperiment):
 
         # %% Fragments
 
-        self.dipole_switch_urukul: AD9910 = self.get_device(
-            constants.URUKULED_BEAMS["dipole_trap_1064_switch"].urukul_device
-        )
-
-        if not hasattr(self.dipole_switch_urukul, "sw"):
-            raise TypeError(
-                "This mixin assumes that the 1064 switch AOM is controlled by an Urukul channel with a dedicated TTL for the RF switch"
-            )
-
-        self.dipole_switch_ttl: TTLOut = self.dipole_switch_urukul.sw
-
-        self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("dipole_delivery_sw")
-
         self.setattr_fragment(
             "dipole_trap_setter",
             make_set_beams_to_default(
@@ -89,6 +75,23 @@ class DipoleTrapMixin(RedMOTWithExperiment):
             ),
         )
         self.dipole_trap_setter: SetBeamsToDefaults
+
+    def host_setup(self):
+        self.dipole_switch_urukul: AD9910 = self.get_device(
+            constants.URUKULED_BEAMS["dipole_trap_1064_switch"].urukul_device
+        )
+
+        if not hasattr(self.dipole_switch_urukul, "sw"):
+            raise TypeError(
+                "This mixin assumes that the 1064 switch AOM is controlled by an Urukul channel with a dedicated TTL for the RF switch"
+            )
+
+        self.dipole_switch_ttl: TTLOut = self.dipole_switch_urukul.sw
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("dipole_delivery_sw")
+
+        return super().host_setup()
 
     @kernel
     def post_narrowband_hook(self):
