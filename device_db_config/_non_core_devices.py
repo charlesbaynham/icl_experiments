@@ -147,6 +147,8 @@ def get_non_core_devices(simulation_mode=False):
                 "laser": "laser1",
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         "toptica_679": {
             "type": "local",
@@ -157,6 +159,8 @@ def get_non_core_devices(simulation_mode=False):
                 "laser": "laser2",
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         "toptica_1379": {
             "type": "local",
@@ -167,6 +171,8 @@ def get_non_core_devices(simulation_mode=False):
                 "laser": "laser1",
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         "toptica_698": {
             "type": "local",
@@ -178,6 +184,8 @@ def get_non_core_devices(simulation_mode=False):
                 "falc": 2,
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         "toptica_707": {
             "type": "local",
@@ -188,6 +196,8 @@ def get_non_core_devices(simulation_mode=False):
                 "laser": "laser1",
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         "toptica_689": {
             "type": "local",
@@ -199,6 +209,8 @@ def get_non_core_devices(simulation_mode=False):
                 "falc": 1,
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         "toptica_487": {
             "type": "local",
@@ -209,6 +221,8 @@ def get_non_core_devices(simulation_mode=False):
                 "laser": "laser1",
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         "toptica_641": {
             "type": "local",
@@ -219,6 +233,8 @@ def get_non_core_devices(simulation_mode=False):
                 "laser": "laser2",
                 "simulation": simulation_mode,
             },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
         },
         # Example devices: edit to suit your lab
         # An example of a local device:

@@ -26,7 +26,6 @@ from sipyco.sync_struct import Notifier
 from sipyco.sync_struct import process_mod
 
 from tests.marker_exp import MarkerExperiment
-from tests.mock_device import MockDevice
 from tests.wait_for_port import wait_for_port
 
 logger = logging.getLogger(__name__)
@@ -35,7 +34,7 @@ ARTIQ_MASTER_CHECK_PORT = 3251
 
 MOCKED_DEVICE_DESC = {
     "type": "local",
-    "module": "tests.mock_device",
+    "module": "repository.lib.mock_device",
     "class": "MockDevice",
     "mocked": True,
 }

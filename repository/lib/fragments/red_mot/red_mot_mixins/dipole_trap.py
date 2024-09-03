@@ -83,7 +83,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
                 urukul_beam_infos=[
                     constants.URUKULED_BEAMS["dipole_trap_1064_switch"],
                 ],  # FIXME: This needs thinking about more. sw needs to be software controlled, or IDC cable needs installing
-                automatic_setup=True,
+                use_automatic_setup=True,
                 name="dipole_trap_setter",
             ),
         )
