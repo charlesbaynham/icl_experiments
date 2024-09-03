@@ -18,11 +18,9 @@ from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
 logger = logging.getLogger(__name__)
 
 
-class MeasureDipoleTrapFrag(
-    DipoleTrapMixin, FLIRMeasurementMixin, SingleAndorImage, RedMOTWithExperiment
-):
+class MeasureDipoleTrapFrag(DipoleTrapMixin, SingleAndorImage, RedMOTWithExperiment):
     """
-    Make a narrowband MOT, image with the ANDOR and leave lattice light on
+    Make a dipole trap and image it with the Andor
     """
 
     def build_fragment(self):

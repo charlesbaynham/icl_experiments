@@ -59,6 +59,33 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         )
         self.dipole_trap_load_time: FloatParamHandle
 
+        self.setattr_param(
+            "dipole_trap_molasses_duration",
+            FloatParam,
+            "Time to run rMOT beams in molasses mode",
+            default=constants.DIPOLE_TRAP_MOLASSES_DURATION,
+            min=0,
+            unit="ms",
+        )
+        self.dipole_trap_molasses_duration: FloatParamHandle
+
+        self.setattr_param(
+            "dipole_trap_molasses_detuning",
+            FloatParam,
+            "Detuning for rMOT beams in molasses mode",
+            default=constants.DIPOLE_TRAP_MOLASSES_DETUNING,
+            unit="kHz",
+        )
+        self.dipole_trap_molasses_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "dipole_trap_molasses_suservo_multiple",
+            FloatParam,
+            "SUServo multiple for rMOT beams in molasses mode",
+            default=constants.DIPOLE_TRAP_MOLASSES_SETPOINT_MULTIPLE,
+        )
+        self.dipole_trap_molasses_suservo_multiple: FloatParamHandle
+
         # %% Fragments
 
         self.setattr_fragment(
@@ -120,6 +147,18 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         # Set the spectroscopy field gradient at the start of the dipole trap
         # (after the "loading" phase)
         self.set_fields_hook_default()
+
+        # If configured, add a molasses stage
+        molasses_time = self.dipole_trap_molasses_duration.get()
+        if molasses_time > 0.0:
+            self.red_mot.red_beam_controller.set_mot_detuning(
+                self.dipole_trap_molasses_detuning.get()
+            )
+            suservo_multiple = self.dipole_trap_molasses_suservo_multiple.get()
+            self.red_mot.red_beam_controller.set_mot_suservo_amplitudes(
+                suservo_multiple, suservo_multiple, suservo_multiple, suservo_multiple
+            )
+            delay(self.dipole_trap_molasses_duration.get())
 
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
