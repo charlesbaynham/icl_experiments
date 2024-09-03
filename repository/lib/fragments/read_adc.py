@@ -6,11 +6,11 @@ from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import kernel
+from artiq.experiment import StringValue
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from ndscan.experiment.parameters import StringParam
-from ndscan.experiment.parameters import StringParamHandle
+from pyaion.lib.utils import get_local_devices
 
 logger = logging.getLogger(__name__)
 
@@ -72,13 +72,15 @@ class ReadSamplerADC(ReadADC):
         if sampler_channel is not None:
             self.sampler_device: Sampler = sampler_device
         else:
-            self.setattr_param(
+            first_sampler_in_devicedb = get_local_devices(self, Sampler)[0]
+            self.setattr_argument(
                 "sampler_device_name",
-                StringParam,
-                description="Sampler device to read",
-                default='""',
+                StringValue(default=first_sampler_in_devicedb),
+                tooltip="Sampler device to read",
             )
-            self.sampler_device_name: StringParamHandle
+            self.sampler_device_name: str
+
+            self.sampler_device: Sampler = self.get_device(self.sampler_device_name)
 
         if sampler_pgia_gain is not None:
             self.sampler_pgia_gain_value = sampler_pgia_gain
@@ -104,8 +106,6 @@ class ReadSamplerADC(ReadADC):
     def host_setup(self):
         if not hasattr(self, "sampler_channel"):
             self.sampler_channel = self.sampler_channel_number.get()
-        if not hasattr(self, "sampler_device"):
-            self.sampler_device = self.get_device(self.sampler_device_name.get())
         if not hasattr(self, "sampler_pgia_gain_value"):
             self.sampler_pgia_gain_value = self.sampler_channel_gain.get()
 
