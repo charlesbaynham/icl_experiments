@@ -650,7 +650,7 @@ class GeneralRampingPhase(Fragment):
                 for i in range(len(general_values)):
                     general_values[i] += general_steps[i]
 
-                # FIXME
+                # TODO: Pick up the new-artiq-version debugging from here
                 delay_mu(10 * t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                 # %% Set AD9910 frequencies
@@ -668,7 +668,7 @@ class GeneralRampingPhase(Fragment):
                     ad9910.set(
                         frequency=frequency_values[i], amplitude=amplitude_values[i]
                     )
-                    # FIXME
+                    # TODO: ...and from here
                     delay_mu(10 * t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                     frequency_values[i] += frequency_steps[i]

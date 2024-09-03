@@ -2,7 +2,9 @@
   inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  # TODO: Go back to pyaion artiq
+  # TODO: Go back to pyaion artiq. This is currently hard because we're getting
+  # sequence errors coming from somewhere in the red MOT sequence when we
+  # update. It's not clear why
   inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=refs/tags/pin_2024_08";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
