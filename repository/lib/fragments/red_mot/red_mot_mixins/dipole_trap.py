@@ -60,16 +60,16 @@ class DipoleTrapMixin(RedMOTWithExperiment):
 
         # %% Fragments
 
-        self.dipole_delivery_urukul: AD9910 = self.get_device(
+        self.dipole_switch_urukul: AD9910 = self.get_device(
             constants.URUKULED_BEAMS["dipole_trap_1064_switch"].urukul_device
         )
 
-        if not hasattr(self.dipole_delivery_urukul, "sw"):
+        if not hasattr(self.dipole_switch_urukul, "sw"):
             raise TypeError(
-                "This mixin assumes that the 1064 delivery AOM is controlled by an Urukul channel with a dedicated TTL for the RF switch"
+                "This mixin assumes that the 1064 switch AOM is controlled by an Urukul channel with a dedicated TTL for the RF switch"
             )
 
-        self.dipole_delivery_sw: TTLOut = self.dipole_delivery_urukul.sw
+        self.dipole_switch_ttl: TTLOut = self.dipole_switch_urukul.sw
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("dipole_delivery_sw")
@@ -82,7 +82,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
                 ],
                 urukul_beam_infos=[
                     constants.URUKULED_BEAMS["dipole_trap_1064_switch"],
-                ],  # FIXME: This needs thinking about more. sw needs to be software controlled, or IDC cable needs installing
+                ],
                 use_automatic_setup=True,
                 name="dipole_trap_setter",
             ),
@@ -102,8 +102,11 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         load_time_mu = self.core.seconds_to_mu(self.dipole_trap_load_time.get())
 
         delay_mu(-load_time_mu)
-        self.dipole_delivery_sw.on()
+        self.dipole_switch_ttl.on()
         delay_mu(load_time_mu)
+
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+
         delay(self.dipole_trap_hold_time.get())
-        self.dipole_delivery_sw.off()
+
+        self.dipole_switch_ttl.off()
