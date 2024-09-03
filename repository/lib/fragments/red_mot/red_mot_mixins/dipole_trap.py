@@ -35,6 +35,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~post_narrowband_hook`
+    * :meth:`~set_fields_hook`
     """
 
     def build_fragment(self):
@@ -94,6 +95,14 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         self.post_narrowband_hook_dipole_trap()
 
     @kernel
+    def set_fields_hook(self):
+        """
+        Prevent field setting in the normal place: we'll do it at the start of
+        the dipole trap instead
+        """
+        pass
+
+    @kernel
     def post_narrowband_hook_dipole_trap(self):
         """
         Load into the dipole trap while the red MOT is still on and then hold it
@@ -104,6 +113,10 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         delay_mu(-load_time_mu)
         self.dipole_switch_ttl.on()
         delay_mu(load_time_mu)
+
+        # Set the spectroscopy field gradient at the start of the dipole trap
+        # (after the "loading" phase)
+        self.set_fields_hook_default()
 
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 

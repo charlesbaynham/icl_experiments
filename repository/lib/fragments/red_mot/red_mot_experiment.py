@@ -377,7 +377,10 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         Any changes to the cursor made by this function will be respected, i.e.
         the rest of the sequence CAN be delayed by this hook
         """
+        self.set_fields_hook_default()
 
+    @kernel
+    def set_fields_hook_default(self):
         self.red_mot.chamber_2_field_setter.set_mot_gradient(
             self.spectroscopy_field_gradient.get()
         )
