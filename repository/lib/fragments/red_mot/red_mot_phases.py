@@ -147,8 +147,8 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
 
     if USE_SR87:
         # Sr 87
-        general_setter_default_starts = [12.0]
-        general_setter_default_ends = [12.0]
+        general_setter_default_starts = [6.0]
+        general_setter_default_ends = [6.0]
 
     else:
         # Chamber 2 MOT coils in amps
