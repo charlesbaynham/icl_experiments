@@ -8,7 +8,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.bg_corrected_andor_image im
     BGCorrectedAndorImage,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
-    ConstantLatticeMixin,
+    ConstantBeamsMixin,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.flir_measurement import (
     FLIRMeasurementMixin,
@@ -23,7 +23,7 @@ from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
 logger = logging.getLogger(__name__)
 
 
-class _MeasureNarrowbandMOTFrag(ConstantLatticeMixin, RedMOTWithExperiment):
+class _MeasureNarrowbandMOTFrag(ConstantBeamsMixin, RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 

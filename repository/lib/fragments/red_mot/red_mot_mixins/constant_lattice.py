@@ -17,9 +17,15 @@ from repository.lib.fragments.red_mot.red_mot_experiment import (
 logger = logging.getLogger(__name__)
 
 
-class ConstantLatticeMixin(RedMOTWithExperiment):
+class ConstantBeamsMixin(RedMOTWithExperiment):
     """
-    Leaves lattice light (cavity & 813) on throughout the entire sequence.
+    Leaves a list of SUServo beams on throughout the entire sequence.
+
+    Current list:
+    * 1379 lattice
+    * down_813
+    * up_813
+    * dipole_trap_1064_delivery
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
