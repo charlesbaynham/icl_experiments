@@ -38,7 +38,7 @@ class _MeasureNarrowbandMOTFrag(ConstantBeamsMixin, RedMOTWithExperiment):
 
 
 class MeasureNarrowbandMOTFrag(
-    # FLIRMeasurementMixin, # FIXME
+    FLIRMeasurementMixin,
     ExponentialDecayMixin,
     SingleAndorImage,
     _MeasureNarrowbandMOTFrag,
