@@ -388,7 +388,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_up",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=2.0,  # Chosen based on measured 1.4V at max power on 2024/02/26 (i.e. not carefully)
+        setpoint=0.6,
         initial_amplitude=0.05,
         photodiode_offset=0.017,
     ),
