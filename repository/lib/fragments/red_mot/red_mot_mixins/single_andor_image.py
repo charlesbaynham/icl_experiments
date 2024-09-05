@@ -2,6 +2,7 @@ import logging
 
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import parallel
 from ndscan.experiment import FloatChannel
 
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
@@ -39,6 +40,19 @@ class SingleAndorImage(RedMOTWithExperiment):
         self.setattr_result("andor_mean", FloatChannel)
         self.andor_sum: FloatChannel
         self.andor_mean: FloatChannel
+
+    @kernel
+    def do_pulse(self, andor_exposure):
+        """
+        Default implementation of a fluorescence pulse, available for use by
+        mixins in :meth:`~do_imaging_hook` (but not used by default).
+        """
+        with parallel:
+            self.andor_camera_control.trigger(
+                exposure=andor_exposure,
+                control_shutter=False,
+            )
+            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     @kernel
     def start_of_red_broadband_hook(self):
