@@ -37,6 +37,9 @@ class TestAD9910LaneUsage(EnvExperiment):
         self.setattr_device("urukul8_ch2")  # This is currently unused
         self.dds: AD9910 = self.urukul8_ch2
 
+        self.setattr_device("ttl1")  # This is currently unused
+        self.ttl: TTLOut = self.ttl1
+
     @kernel
     def run(self):
         logger.info("Starting test")
@@ -49,8 +52,7 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
-            delay(-10e-3)
-            f = 100e6 + float(i)
-            self.dds.set(frequency=f, phase=0.0, amplitude=0.0)
+            delay(-1e-3)
+            self.ttl.set_o(False)
 
         logger.info("Test done")
