@@ -34,11 +34,9 @@ class TestAD9910LaneUsage(EnvExperiment):
         )
         self.num: int
 
-        self.setattr_device("urukul8_ch2")  # This is currently unused and is on the red
-        self.setattr_device(
-            "urukul2_ch0"
-        )  # This is currently unused and is on the master
-        self.dds: AD9910 = self.urukul2_ch0
+        self.setattr_argument("urukul_channel", StringValue(default="urukul8_ch2"))
+
+        self.dds: AD9910 = self.get_device(self.urukul_channel)
 
         self.setattr_device("ttl1")  # This is currently unused and is on the master
         self.ttl: TTLOut = self.ttl1
