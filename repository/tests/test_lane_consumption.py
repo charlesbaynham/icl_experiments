@@ -41,14 +41,15 @@ class TestAD9910LaneUsage(EnvExperiment):
     def run(self):
         logger.info("Starting test")
 
-        self.core.break_realtime()
-        self.dds.sw.off()  # Safety first
-        self.core.break_realtime()
+        self.core.reset()
 
-        t_now_mu = now_mu()
+        self.dds.sw.off()  # Safety first
+
+        delay(500e3)  # Make loads of slack
 
         for i in range(self.num):
-            at_mu(t_now_mu)
+            # Write in backwards order to ensure that we use a new lane each time
+            delay(-10e-3)
             f = 100e6 + float(i)
             self.dds.set(frequency=f, phase=0.0, amplitude=0.0)
 
