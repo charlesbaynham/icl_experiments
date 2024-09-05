@@ -63,8 +63,45 @@ from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 logger = logging.getLogger(__name__)
 
 
-class RedMOTBase(ExpFragment):
-    def build_fragment(self) -> None:
+class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
+    mirny_settings_87 = [
+        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
+    ]
+    mirny_settings_88 = [
+        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
+    ]
+
+
+class RedMOTWithExperiment(ExpFragment, abc.ABC):
+    """
+    Run a sequence that makes a red MOT, allows setting of expansion and coils,
+    does something to it (e.g. a spectroscopy or interferometry sequence) then
+    images it.
+
+    Note that this is not a Fragment to be added as a subfragment, but an
+    ExpFragment designed to be used as a top-level experiment but subclassed to
+    control its features.
+
+    This ExpFragment cannot be used as is - you should subclass it and implement
+    methods in your child class. You must implement these:
+
+    * `do_spectroscopy_hook`
+    * `do_imaging_hook`
+
+    You probably want to implement:
+
+    * `save_data_hook`
+
+    And you may wish to implement other `..._hook` methods.
+
+    Example
+    -------
+
+    For a simple implementation see
+    :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
+    """
+
+    def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
@@ -101,48 +138,6 @@ class RedMOTBase(ExpFragment):
             description="Broadband phase duration",
         )
         self.red_broadband_time: FloatParamHandle
-
-
-class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
-    mirny_settings_87 = [
-        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
-    ]
-    mirny_settings_88 = [
-        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
-    ]
-
-
-class RedMOTWithExperiment(RedMOTBase, abc.ABC):
-    """
-    Run a sequence that makes a red MOT, allows setting of expansion and coils,
-    does something to it (e.g. a spectroscopy or interferometry sequence) then
-    images it.
-
-    Note that this is not a Fragment to be added as a subfragment, but an
-    ExpFragment designed to be used as a top-level experiment but subclassed to
-    control its features.
-
-    This ExpFragment cannot be used as is - you should subclass it and implement
-    methods in your child class. You must implement these:
-
-    * `do_spectroscopy_hook`
-    * `do_imaging_hook`
-
-    You probably want to implement:
-
-    * `save_data_hook`
-
-    And you may wish to implement other `..._hook` methods.
-
-    Example
-    -------
-
-    For a simple implementation see
-    :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
 
         self.setattr_fragment(
             "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
