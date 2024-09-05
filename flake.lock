@@ -1,10 +1,11 @@
 {
   "nodes": {
-    "alt_artiq": {
+    "artiq": {
       "inputs": {
         "artiq-comtools": "artiq-comtools",
         "mozilla-overlay": "mozilla-overlay",
         "nixpkgs": [
+          "pyaion",
           "nixpkgs"
         ],
         "sipyco": "sipyco",
@@ -13,29 +14,30 @@
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1709223631,
-        "narHash": "sha256-1/k7jlewV5DaIDiPnbec6eoDIiIIToJSxTwb2sLUZAo=",
-        "ref": "refs/tags/pin_2024_08",
-        "rev": "afe4cca982e939906e7ebf98ac39a0f400f629b6",
-        "revCount": 8682,
+        "lastModified": 1719403569,
+        "narHash": "sha256-JyunXJsZGWaTXEiOF0tDScJt1fir5QbU5viO7hnB7kY=",
+        "ref": "refs/heads/master",
+        "rev": "422a57587077458fb468971b5882dbcb5909c8dc",
+        "revCount": 8882,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
       "original": {
-        "ref": "refs/tags/pin_2024_08",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       }
     },
     "artiq-comtools": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": [
-          "alt_artiq",
+          "pyaion",
+          "artiq",
           "nixpkgs"
         ],
         "sipyco": [
-          "alt_artiq",
+          "pyaion",
+          "artiq",
           "sipyco"
         ]
       },
@@ -58,6 +60,23 @@
         "systems": "systems"
       },
       "locked": {
+        "lastModified": 1694529238,
+        "narHash": "sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt+xmY=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "ff7b65b44d01cf9ba6a71320833626af21126384",
+        "type": "github"
+      },
+      "original": {
+        "id": "flake-utils",
+        "type": "indirect"
+      }
+    },
+    "flake-utils_2": {
+      "inputs": {
+        "systems": "systems_2"
+      },
+      "locked": {
         "lastModified": 1710146030,
         "narHash": "sha256-SZ5L6eA7HJ/nmkzGG7/ISclqe6oZdOZTNoesiInkXPQ=",
         "owner": "numtide",
@@ -69,23 +88,6 @@
         "owner": "numtide",
         "repo": "flake-utils",
         "type": "github"
-      }
-    },
-    "flake-utils_2": {
-      "inputs": {
-        "systems": "systems_2"
-      },
-      "locked": {
-        "lastModified": 1694529238,
-        "narHash": "sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt+xmY=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "ff7b65b44d01cf9ba6a71320833626af21126384",
-        "type": "github"
-      },
-      "original": {
-        "id": "flake-utils",
-        "type": "indirect"
       }
     },
     "flake-utils_3": {
@@ -203,9 +205,7 @@
     },
     "pyaion": {
       "inputs": {
-        "artiq": [
-          "alt_artiq"
-        ],
+        "artiq": "artiq",
         "flake-utils": "flake-utils_3",
         "nixpkgs": "nixpkgs",
         "poetry2nix": "poetry2nix"
@@ -226,8 +226,7 @@
     },
     "root": {
       "inputs": {
-        "alt_artiq": "alt_artiq",
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils",
         "nixpkgs": [
           "pyaion",
           "nixpkgs"
@@ -238,7 +237,8 @@
     "sipyco": {
       "inputs": {
         "nixpkgs": [
-          "alt_artiq",
+          "pyaion",
+          "artiq",
           "nixpkgs"
         ]
       },
