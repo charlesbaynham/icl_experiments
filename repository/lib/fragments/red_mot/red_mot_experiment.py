@@ -102,13 +102,6 @@ class RedMOTBase(ExpFragment):
         )
         self.red_broadband_time: FloatParamHandle
 
-    @kernel
-    def _from_start_to_end_of_broadband_mot(self):
-        self.blue_3d_mot.load_mot(clearout=True)
-        self.blue_3d_mot.turn_off_3d_and_2d_beams()
-        self.red_mot.prepare_for_broadband_phase()
-        self.red_mot.broadband_red_phase.do_phase()
-
 
 class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
     mirny_settings_87 = [
@@ -186,7 +179,11 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
         self.before_start_hook()
 
         self.core.break_realtime()
-        self._from_start_to_end_of_broadband_mot()
+
+        self.blue_3d_mot.load_mot(clearout=True)
+        self.blue_3d_mot.turn_off_3d_and_2d_beams()
+        self.red_mot.prepare_for_broadband_phase()
+        self.red_mot.broadband_red_phase.do_phase()
 
         delay(-self.red_broadband_time.get())
         self.start_of_red_broadband_hook()
@@ -196,7 +193,9 @@ class RedMOTWithExperiment(RedMOTBase, abc.ABC):
 
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
-        self.red_mot.transition_broadband_to_narrowband()
+        self.red_mot.terminate_broadband_mot()
+
+        self.red_mot.do_narrowband_red_mot()
 
         # Do the post-narrowband actions. By default, turn off the red MOT light
         self.post_narrowband_hook()

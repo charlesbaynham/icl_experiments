@@ -156,13 +156,11 @@ class NarrowbandRedMOTFrag(Fragment):
         self.red_beam_controller.turn_on_mot_beams()
 
     @kernel
-    def transition_broadband_to_narrowband(self):
+    def terminate_broadband_mot(self):
         """
-        Perform all the ramping phases that occurs after the broadband red MOT
-        to create a narrowband MOT.
+        Disable the broadband MOT, in preparation for a narrband MOT
 
-        Advances the timeline by the duration of the phases + the final hold
-        time.
+        Advances the timeline by the duration of a few SPI writes.
         """
         # Delay by at least RAMP_SPI_DELAY > SPI write duration. This is so that
         # get_total_narrowband_duration can predict the total duration of these
@@ -174,6 +172,13 @@ class NarrowbandRedMOTFrag(Fragment):
         if self.disable_679_during_narrowband.get():
             self.ttl_shutter_repump_679.off()
 
+    @kernel
+    def do_narrowband_red_mot(self):
+        """
+        Perform the narrowband red mot phases
+
+        Advances the timeline by the duration of the narrowband red MOT + hold time
+        """
         self.narrow_red_capture_phase.do_phase()
         self.narrow_red_compression_phase.do_phase()
 
