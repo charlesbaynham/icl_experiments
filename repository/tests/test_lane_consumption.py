@@ -47,11 +47,14 @@ class TestAD9910LaneUsage(EnvExperiment):
         logger.info("Starting test")
 
         self.core.break_realtime()
+        self.dds.sw.off()  # Safety first
+        self.core.break_realtime()
 
         t_now_mu = now_mu()
 
         for i in range(9):
             at_mu(t_now_mu)
-            self.dds.set(frequency=100e6, phase=0.0, amplitude=0.0)
+            f = 100e6 + float(i)
+            self.dds.set(frequency=f, phase=0.0, amplitude=0.0)
 
         logger.info("Test done")
