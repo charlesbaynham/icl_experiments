@@ -223,7 +223,7 @@ Here are some which don't fit into obvious locations in the code:
 TODO: Merge camera imaging so that only one applet is created per camera
 TODO: Figure out how to not broadcast massive ndscan datasets to every client
 TODO: Blow away atoms in spectroscopy sequence, and reimage the remaining ones
-
+TODO: The ARTIQ release notes claim "Support for WRPLL low-noise clock recovery" - use it!
 
 Authors
 =======
