@@ -56,6 +56,7 @@ class TestAD9910LaneUsage(EnvExperiment):
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
             delay(-1e-3)
-            self.ttl.set_o(False)
+            self.ttl.set_o(bool(i % 2))
+            print(i)
 
         logger.info("Test done")
