@@ -12,7 +12,7 @@ from artiq.experiment import delay_mu
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
-from ndscan.experiment import *
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,3 @@ class TestAD9910LaneUsage(EnvExperiment):
             self.dds.set(frequency=100e6, phase=0.0, amplitude=0.0)
 
         logger.info("Test done")
-
-
-TestAD9910LaneUsageExp = make_fragment_scan_exp(TestAD9910LaneUsage)
