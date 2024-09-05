@@ -39,8 +39,8 @@ class TestAD9910LaneUsage(EnvExperiment):
         # for uc in self.urukul_channels:
         #     print(uc)
 
-        self.setattr_device("urukul5_ch0")
-        self.urukul5_ch0: AD9910
+        self.setattr_device("urukul8_ch2")  # This is currently unused
+        self.dds: AD9910 = self.urukul8_ch2
 
     @kernel
     def run(self):
@@ -52,7 +52,7 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         for i in range(9):
             at_mu(t_now_mu)
-            self.urukul5_ch0.set(frequency=100e6, phase=0.0, amplitude=0.0)
+            self.dds.set(frequency=100e6, phase=0.0, amplitude=0.0)
 
         logger.info("Test done")
 
