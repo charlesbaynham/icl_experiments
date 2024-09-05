@@ -29,15 +29,10 @@ class TestAD9910LaneUsage(EnvExperiment):
         self.setattr_device("core")
         self.core: Core
 
-        # self.urukul_channels: List[AD9910] = [
-        #     self.get_device(f"urukul5_ch{i}") for i in range(4)
-        # ] + [self.get_device(f"urukul8_ch{i}") for i in range(4)]
-
-        # self.setattr_device("ttl0")
-        # self.ttl0: TTLOut
-
-        # for uc in self.urukul_channels:
-        #     print(uc)
+        self.setattr_argument(
+            "num", NumberValue(default=9, type="int", precision=0, scale=1, step=1)
+        )
+        self.num: int
 
         self.setattr_device("urukul8_ch2")  # This is currently unused
         self.dds: AD9910 = self.urukul8_ch2
@@ -52,7 +47,7 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         t_now_mu = now_mu()
 
-        for i in range(9):
+        for i in range(self.num):
             at_mu(t_now_mu)
             f = 100e6 + float(i)
             self.dds.set(frequency=f, phase=0.0, amplitude=0.0)
