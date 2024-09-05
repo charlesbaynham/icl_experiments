@@ -50,6 +50,9 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         delay(500e3)  # Make loads of slack
 
+        # Do an AD9910 write, consuming at least one lane, maybe more
+        self.dds.set(frequency=100e6)
+
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
             delay(-1e-3)
