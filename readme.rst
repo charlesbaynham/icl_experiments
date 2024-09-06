@@ -225,6 +225,22 @@ TODO: Figure out how to not broadcast massive ndscan datasets to every client
 TODO: Blow away atoms in spectroscopy sequence, and reimage the remaining ones
 TODO: The ARTIQ release notes claim "Support for WRPLL low-noise clock recovery" - use it!
 
+TODO: SED upgrade exploration:
+
+   The SED update in ARTIQ-8 broke our sequences by introducing event spreading
+   for DRTIO crates. We can recover past behavior by disabling this, but better
+   would be a SED upgrade. Can't we ship events to the lane with the lowest,
+   furthest timestamp? That seems like it would work.
+
+   The algorithm would be:
+   * Always know which lane has the lowest timestamp (0 if no events, deterministic ordering if multiple are the same)
+   * If our lane will underflow, switch
+   * Stay on current lane if not yet at watermark
+   * If at watermark, switch
+
+   Have I missed a problem with this?
+
+
 Authors
 =======
 
