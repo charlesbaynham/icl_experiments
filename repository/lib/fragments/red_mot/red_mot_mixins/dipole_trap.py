@@ -146,7 +146,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
 
         # Set the spectroscopy field gradient at the start of the dipole trap
         # (after the "loading" phase)
-        self.set_fields_hook_default()
+        self.set_fields_default()
 
         # If configured, add a molasses stage
         molasses_time = self.dipole_trap_molasses_duration.get()
