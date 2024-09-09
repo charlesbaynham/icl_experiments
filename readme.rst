@@ -229,16 +229,24 @@ TODO: SED upgrade exploration:
 
    The SED update in ARTIQ-8 broke our sequences by introducing event spreading
    for DRTIO crates. We can recover past behavior by disabling this, but better
-   would be a SED upgrade. Can't we ship events to the lane with the lowest,
-   furthest timestamp? That seems like it would work.
+   would be a SED upgrade. Can't we ship events to the lane with the highest
+   negative delta? That seems like it would work.
 
    The algorithm would be:
-   * Always know which lane has the lowest timestamp (0 if no events, deterministic ordering if multiple are the same)
-   * If our lane will underflow, switch
-   * Stay on current lane if not yet at watermark
-   * If at watermark, switch
+   * Keep track of the highest timestamps in all the lanes (this happens already)
+   * Subtract our current event's timestamp to calculate the slack
+   * Set all events with timestamps < 0 to infinity (underflow here if all are < 0)
+   * Perform a combinatorial sort using a BitonicSort from migen
+   * Choose the first item, i.e. the lane with the smallest amount of positive slack
 
-   Have I missed a problem with this?
+   Have I missed a problem with this? Potential problems:
+
+   * All these steps can be done combinatorially, but they might still be too
+     gate-heavy to work. Maybe vivado will throw a wobbly.
+
+   * I don't know much about the SED code and I don't understand why it
+     currently uses 4 syncronous cycles - I'd have thought you could do it with
+     fewer. My ignorance might be limiting my ability to foresee problems...
 
 
 Authors
