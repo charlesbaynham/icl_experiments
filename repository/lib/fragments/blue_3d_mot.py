@@ -53,6 +53,9 @@ class BlueRampingPhaseWithFields(GeneralRampingPhase):
     * Add control of the B fields in chamber 2
     """
 
+    duration_default = constants.BLUE_TRANSFER_MOT_DURATION
+    time_step_default = 1e-3
+
     suservos = [
         "suservo_aom_singlepass_461_3DMOT_axialminus",
         "suservo_aom_singlepass_461_3DMOT_axialplus",
@@ -304,6 +307,7 @@ class Blue3DMOTFrag(Fragment):
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
+        self.blue_transfer_MOT.precalculate_dma_handle()
 
         if not self.manual_init:
             self.core.break_realtime()
