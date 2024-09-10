@@ -53,6 +53,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
+from repository.lib.constants import DELAY_INTO_RED_MOT_FOR_BLUE_BEAM_SWITCHOFF
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
@@ -118,6 +119,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # %% Params
 
+        self.setattr_param(
+            "delay_into_red_mot_for_blue_beam_switchoff",
+            FloatParam,
+            "Delay into red mot before blue beams switch off",
+            default=DELAY_INTO_RED_MOT_FOR_BLUE_BEAM_SWITCHOFF,
+            unit="us",
+        )
+        self.delay_into_red_mot_for_blue_beam_switchoff: FloatParamHandle
+
         # Expansion time - can be negative
         self.setattr_param(
             "expansion_time",
@@ -176,7 +186,11 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.core.break_realtime()
 
         self.blue_3d_mot.load_mot(clearout=True)
+        self.blue_3d_mot.do_blue_transfer_mot()
+        delay(self.delay_into_red_mot_for_blue_beam_switchoff)
         self.blue_3d_mot.turn_off_3d_and_2d_beams()
+        # Note: this is a simple way to delay, but will probably fill an extra lane (greater risk of underflow)
+        delay(-self.delay_into_red_mot_for_blue_beam_switchoff)
         self.red_mot.prepare_for_broadband_phase()
         self.red_mot.broadband_red_phase.do_phase()
 
