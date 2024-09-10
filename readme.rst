@@ -223,6 +223,30 @@ Here are some which don't fit into obvious locations in the code:
 TODO: Merge camera imaging so that only one applet is created per camera
 TODO: Figure out how to not broadcast massive ndscan datasets to every client
 TODO: Blow away atoms in spectroscopy sequence, and reimage the remaining ones
+TODO: The ARTIQ release notes claim "Support for WRPLL low-noise clock recovery" - use it!
+
+TODO: SED upgrade exploration:
+
+   The SED update in ARTIQ-8 broke our sequences by introducing event spreading
+   for DRTIO crates. We can recover past behavior by disabling this, but better
+   would be a SED upgrade. Can't we ship events to the lane with the highest
+   negative delta? That seems like it would work.
+
+   The algorithm would be:
+   * Keep track of the highest timestamps in all the lanes (this happens already)
+   * Subtract our current event's timestamp to calculate the slack
+   * Set all events with timestamps < 0 to infinity (underflow here if all are < 0)
+   * Perform a combinatorial sort using a BitonicSort from migen
+   * Choose the first item, i.e. the lane with the smallest amount of positive slack
+
+   Have I missed a problem with this? Potential problems:
+
+   * All these steps can be done combinatorially, but they might still be too
+     gate-heavy to work. Maybe vivado will throw a wobbly.
+
+   * I don't know much about the SED code and I don't understand why it
+     currently uses 4 syncronous cycles - I'd have thought you could do it with
+     fewer. My ignorance might be limiting my ability to foresee problems...
 
 
 Authors

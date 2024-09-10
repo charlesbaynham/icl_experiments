@@ -15,8 +15,12 @@ from artiq.experiment import sequential
 
 logger = logging.getLogger(__name__)
 
-# Hypothesis: the AD9910 code is consuming more than one lane in the latest ARTIQ update. That's a regression.
-# TODO: Write a test here to check this. Use "test_lanes_during_ramps.py" as inspiration.
+# Hypothesis: the AD9910 code is consuming more than one lane in the latest
+# ARTIQ update. That's a regression.
+
+# Conclusion: this was not the case. The AD9910 was being perfectly polite in
+# its lane usage. The problem was that an ARTIQ update had enabled spread_events
+# for DRTIO satellites, breaking our ramping sequences.
 
 
 class TestAD9910LaneUsage(EnvExperiment):

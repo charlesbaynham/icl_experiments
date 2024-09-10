@@ -1210,25 +1210,81 @@ device_db["ttl23"] = {
     "arguments": {"channel": 0x020023},
 }
 
-device_db["led6"] = {
+device_db["ttl24"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
     "class": "TTLOut",
     "arguments": {"channel": 0x020024},
 }
 
-device_db["led7"] = {
+device_db["ttl25"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
     "class": "TTLOut",
     "arguments": {"channel": 0x020025},
 }
 
-device_db["led8"] = {
+device_db["ttl26"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
     "class": "TTLOut",
     "arguments": {"channel": 0x020026},
+}
+
+device_db["ttl27"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020027},
+}
+
+device_db["ttl28"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020028},
+}
+
+device_db["ttl29"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x020029},
+}
+
+device_db["ttl30"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02002A},
+}
+
+device_db["ttl31"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02002B},
+}
+
+device_db["led6"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02002C},
+}
+
+device_db["led7"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02002D},
+}
+
+device_db["led8"] = {
+    "type": "local",
+    "module": "artiq.coredevice.ttl",
+    "class": "TTLOut",
+    "arguments": {"channel": 0x02002E},
 }
 
 # DEST#3 peripherals
