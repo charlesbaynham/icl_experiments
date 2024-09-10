@@ -5,6 +5,8 @@ from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import TFloat
+from artiq.experiment import TList
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
