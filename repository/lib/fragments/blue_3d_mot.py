@@ -162,6 +162,15 @@ class Blue3DMOTFrag(Fragment):
         self.mot_all_beam_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
+            "blue_push_beam_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["blue_push_beam"],
+            ],
+        )
+        self.blue_push_beam_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
             "mot_2d_and_3d_beams_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
@@ -366,6 +375,14 @@ class Blue3DMOTFrag(Fragment):
         return self.mot_all_beam_setter.turn_beams_off()
 
     @kernel
+    def turn_on_push_beam(self):
+        return self.blue_push_beam_setter.turn_beams_on()
+
+    @kernel
+    def turn_off_push_beam(self):
+        return self.blue_push_beam_setter.turn_beams_off()
+
+    @kernel
     def turn_on_3d_beams(self, ignore_shutters=False):
         return self.mot_3d_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
 
@@ -420,3 +437,13 @@ class Blue3DMOTFrag(Fragment):
 
         self.turn_on_all_beams()
         delay(self.loading_time.get())
+
+    @kernel
+    def do_blue_transfer_mot(self):
+        """
+        Perform the blue transfer mot phase
+
+        Advances the timeline by the duration of the blue transfer MOT
+        """
+        self.turn_off_push_beam()
+        self.blue_transfer_MOT.do_phase()
