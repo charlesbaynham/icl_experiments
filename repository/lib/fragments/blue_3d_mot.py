@@ -450,4 +450,5 @@ class Blue3DMOTFrag(Fragment):
         delay(-5e-3)
         self.turn_off_push_beam()
         delay(5e-3)
-        self.blue_transfer_MOT.do_phase()
+        # self.blue_transfer_MOT.do_phase()
+        delay(9e-3)
