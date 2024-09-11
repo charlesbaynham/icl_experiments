@@ -70,6 +70,8 @@ class BlueRampingPhaseWithFields(GeneralRampingPhase):
     default_suservo_setpoint_multiples_end = (
         constants.BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_END
     )
+    general_setter_default_starts = [constants.BLUE_TRANSFER_MOT_GRADIENT_START]
+    general_setter_default_ends = [constants.BLUE_TRANSFER_MOT_GRADIENT_END]
 
     # The general ramp here ramps the chamber 2 MOT coils in amps
     general_setter_names = ["chamber_2_mot_current"]
