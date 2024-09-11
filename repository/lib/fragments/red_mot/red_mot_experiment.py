@@ -187,10 +187,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.blue_3d_mot.load_mot(clearout=True)
         self.blue_3d_mot.do_blue_transfer_mot()
-        delay(self.delay_into_red_mot_for_blue_beam_switchoff)
+        delay(self.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.blue_3d_mot.turn_off_3d_and_2d_beams()
         # Note: this is a simple way to delay, but will probably fill an extra lane (greater risk of underflow)
-        delay(-self.delay_into_red_mot_for_blue_beam_switchoff)
+        delay(-self.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.red_mot.prepare_for_broadband_phase()
         self.red_mot.broadband_red_phase.do_phase()
 
