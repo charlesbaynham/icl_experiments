@@ -159,14 +159,14 @@ class Blue3DMOTFrag(Fragment):
             "mot_all_beam_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.SUSERVOED_BEAMS["blue_push_beam"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
                 constants.SUSERVOED_BEAMS["repump_679"],
                 constants.SUSERVOED_BEAMS["repump_707"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
+                constants.SUSERVOED_BEAMS["blue_push_beam"],
             ],
         )
         self.mot_all_beam_setter: ControlBeamsWithoutCoolingAOM
@@ -184,10 +184,10 @@ class Blue3DMOTFrag(Fragment):
             "mot_2d_and_3d_beams_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
-                constants.SUSERVOED_BEAMS["blue_push_beam"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
+                constants.SUSERVOED_BEAMS["blue_push_beam"],
                 constants.SUSERVOED_BEAMS["blue_2dmot_A"],
                 constants.SUSERVOED_BEAMS["blue_2dmot_B"],
             ],
@@ -447,8 +447,7 @@ class Blue3DMOTFrag(Fragment):
 
         Advances the timeline by the duration of the blue transfer MOT
         """
-        delay(-5e-3)
+        delay_mu(-int64(self.core.ref_multiplier))
         self.turn_off_push_beam()
-        delay(5e-3)
-        # self.blue_transfer_MOT.do_phase()
-        delay(9e-3)
+        delay_mu(int64(self.core.ref_multiplier))
+        self.blue_transfer_MOT.do_phase()

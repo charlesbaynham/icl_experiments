@@ -292,7 +292,7 @@ SUSERVOED_BEAMS = [
         20,
         "suservo_aom_singlepass_461_pushbeam",
         "TTL_shutter_461_pushbeam",
-        shutter_delay=5e-3,  # FIXME
+        shutter_delay=20e-3,
         setpoint=0.8,
         servo_enabled=True,
     ),
