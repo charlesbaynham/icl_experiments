@@ -281,7 +281,7 @@ FLUORESCENCE_PULSE_DURATION_689 = 4e-6
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
 
-SRS_SHUTTER_DELAY = 3e-3
+SRS_SHUTTER_DELAY = 5e-3
 
 # Information about beams controlled by AOMs
 SUSERVOED_BEAMS = [
