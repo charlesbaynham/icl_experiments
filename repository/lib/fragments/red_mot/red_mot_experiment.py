@@ -177,6 +177,20 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.hook_setup_andor()
 
     @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        # Preload phases' handles
+        self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()
+        self.red_mot.broadband_red_phase.precalculate_dma_handle()
+        self.red_mot.narrow_red_capture_phase.precalculate_dma_handle()
+        self.red_mot.narrow_red_compression_phase.precalculate_dma_handle()
+
+        # Setup beam state
+        self.core.break_realtime()
+        delay(1e-3)
+
+    @kernel
     def run_once(self):
         self.core.break_realtime()
         self.mirny_eom_sidebands.set_sidebands()
