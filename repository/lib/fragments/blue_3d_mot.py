@@ -195,6 +195,19 @@ class Blue3DMOTFrag(Fragment):
         self.mot_2d_and_3d_beams_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
+            "mot_2d_and_3d_beams_nopush_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
+            ],
+        )
+        self.mot_2d_and_3d_beams_nopush_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
             "mot_3d_beams_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
@@ -367,6 +380,10 @@ class Blue3DMOTFrag(Fragment):
     @kernel
     def turn_off_3d_and_2d_beams(self):
         return self.mot_2d_and_3d_beams_setter.turn_beams_off()
+
+    @kernel
+    def turn_off_3d_and_2d_beams_nopush(self):
+        return self.mot_2d_and_3d_beams_nopush_setter.turn_beams_off()
 
     @kernel
     def turn_on_all_beams(self):
