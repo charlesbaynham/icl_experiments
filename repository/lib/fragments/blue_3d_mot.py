@@ -447,5 +447,6 @@ class Blue3DMOTFrag(Fragment):
 
         Advances the timeline by the duration of the blue transfer MOT
         """
-        # self.turn_off_push_beam()
+        self.turn_off_push_beam()
+        delay(1e-6)
         self.blue_transfer_MOT.do_phase()
