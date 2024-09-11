@@ -289,7 +289,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_push_beam",
         150e6,
-        20,
+        5,  # FIXME
         "suservo_aom_singlepass_461_pushbeam",
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
