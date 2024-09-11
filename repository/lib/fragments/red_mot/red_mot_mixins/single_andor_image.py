@@ -42,19 +42,6 @@ class SingleAndorImage(RedMOTWithExperiment):
         self.andor_mean: FloatChannel
 
     @kernel
-    def do_pulse(self, andor_exposure):
-        """
-        Default implementation of a fluorescence pulse, available for use by
-        mixins in :meth:`~do_imaging_hook` (but not used by default).
-        """
-        with parallel:
-            self.andor_camera_control.trigger(
-                exposure=andor_exposure,
-                control_shutter=False,
-            )
-            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-
-    @kernel
     def start_of_red_broadband_hook(self):
         # The Andor camera shutter needs ~120ms to open, so start this at the
         # beginning of the red stages. If the total red mot sequence takes less
