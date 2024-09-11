@@ -242,6 +242,19 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # This one for the Andor
         self.save_data_hook()
 
+    @kernel
+    def do_pulse(self, andor_exposure):
+        """
+        Default implementation of a fluorescence pulse, available for use by
+        mixins in :meth:`~do_imaging_hook` (but not used by default).
+        """
+        with parallel:
+            self.andor_camera_control.trigger(
+                exposure=andor_exposure,
+                control_shutter=False,
+            )
+            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+
     # %% Hooks / overridable methods
     #
     # The remaining methods in this class are designed to be overridden by
