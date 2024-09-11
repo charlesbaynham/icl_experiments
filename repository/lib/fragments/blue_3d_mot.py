@@ -3,6 +3,7 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
@@ -446,4 +447,5 @@ class Blue3DMOTFrag(Fragment):
         Advances the timeline by the duration of the blue transfer MOT
         """
         self.turn_off_push_beam()
+        delay_mu(int64(self.core.ref_multiplier))
         self.blue_transfer_MOT.do_phase()
