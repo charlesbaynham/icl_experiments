@@ -12,6 +12,7 @@ from artiq.experiment import TList
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
@@ -446,6 +447,5 @@ class Blue3DMOTFrag(Fragment):
 
         Advances the timeline by the duration of the blue transfer MOT
         """
-        self.turn_off_push_beam()
-        delay_mu(int64(self.core.ref_multiplier))
+        # self.turn_off_push_beam()
         self.blue_transfer_MOT.do_phase()
