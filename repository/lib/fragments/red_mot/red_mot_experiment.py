@@ -180,13 +180,13 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        # Preload phases' handles
+        # Preload phases' handles. These have to be grouped together, instead of handled in separate subfragment setups, otherwise only the last-compiled dma handle is valid
         self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()
         self.red_mot.broadband_red_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_capture_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_compression_phase.precalculate_dma_handle()
 
-        # Setup beam state
+        # Probably pointless delay
         self.core.break_realtime()
         delay(1e-3)
 
