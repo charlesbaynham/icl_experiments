@@ -106,6 +106,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_device("core")
         self.core: Core
 
+        self.first_run = True
+
         # %% Fragments
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
@@ -189,6 +191,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # Probably pointless delay
         self.core.break_realtime()
         delay(1e-3)
+
+        if self.first_run:
+            delay(1)
+            self.first_run = False
 
     @kernel
     def run_once(self):
