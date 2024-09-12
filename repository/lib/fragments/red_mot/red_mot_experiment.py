@@ -193,7 +193,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         delay(1e-3)
 
         if self.first_run:
-            logger.debug("frist run!")
+            logger.warning("first run!")
             delay(3.0)
             self.first_run = False
 
