@@ -388,7 +388,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_up",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=0.6,
+        setpoint=0.4,
         initial_amplitude=0.05,
         photodiode_offset=0.017,
     ),
@@ -596,4 +596,4 @@ BLUE_TRANSFER_MOT_GRADIENT_START = B_FIELD_GRADIENT
 BLUE_TRANSFER_MOT_GRADIENT_END = 90.0
 # Order: "suservo_aom_singlepass_461_3DMOT_axialminus","suservo_aom_singlepass_461_3DMOT_axialplus","suservo_aom_singlepass_461_3DMOT_radial"
 BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_START = [1.0, 1.0, 1.0]
-BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_END = [0.0, 0.0, 0.0]
+BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_END = [1.0, 1.0, 1.0]
