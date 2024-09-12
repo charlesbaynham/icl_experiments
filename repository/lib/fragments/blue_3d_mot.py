@@ -56,7 +56,7 @@ class BlueRampingPhaseWithFields(GeneralRampingPhase):
     """
 
     duration_default = constants.BLUE_TRANSFER_MOT_DURATION
-    time_step_default = 1e-3
+    time_step_default = constants.BLUE_TRANSFER_MOT_RAMP_TIMESTEP
 
     suservos = [
         "suservo_aom_singlepass_461_3DMOT_axialminus",
