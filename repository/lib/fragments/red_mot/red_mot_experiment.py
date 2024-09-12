@@ -193,7 +193,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         delay(1e-3)
 
         if self.first_run:
-            delay(1)
+            delay(1.0)
             self.first_run = False
 
     @kernel
