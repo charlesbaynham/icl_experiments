@@ -322,6 +322,14 @@ class Blue3DMOTFrag(Fragment):
         self.kernel_invariants = kernel_invariants | {"debug_mode", "manual_init"}
 
     @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        if not self.manual_init:
+            self.core.break_realtime()
+            self.init()
+
+    @kernel
     def init(self):
         """
         Set up beam state for the blue MOT
