@@ -388,7 +388,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_up",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=0.6,
+        setpoint=0.4,
         initial_amplitude=0.05,
         photodiode_offset=0.017,
     ),
@@ -587,3 +587,14 @@ DIPOLE_TRAP_LOADING_TIME = 50e-3
 DIPOLE_TRAP_MOLASSES_DURATION = 0.0
 DIPOLE_TRAP_MOLASSES_DETUNING = 10e3
 DIPOLE_TRAP_MOLASSES_SETPOINT_MULTIPLE = 0.05
+
+# 3D blue transfer MOT settings
+
+DELAY_INTO_RED_MOT_FOR_BLUE_BEAM_SWITCHOFF = 3e-3
+BLUE_TRANSFER_MOT_DURATION = 4e-3
+BLUE_TRANSFER_MOT_RAMP_TIMESTEP = 100e-6
+BLUE_TRANSFER_MOT_GRADIENT_START = B_FIELD_GRADIENT
+BLUE_TRANSFER_MOT_GRADIENT_END = 90.0
+# Order: "suservo_aom_singlepass_461_3DMOT_axialminus","suservo_aom_singlepass_461_3DMOT_axialplus","suservo_aom_singlepass_461_3DMOT_radial"
+BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_START = [1.0, 1.0, 1.0]
+BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_END = [0.05, 0.05, 0.05]

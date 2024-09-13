@@ -129,11 +129,6 @@ class NarrowbandRedMOTFrag(Fragment):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        # Preload phases' handles
-        self.broadband_red_phase.precalculate_dma_handle()
-        self.narrow_red_capture_phase.precalculate_dma_handle()
-        self.narrow_red_compression_phase.precalculate_dma_handle()
-
         # Setup beam state
         self.core.break_realtime()
         delay(1e-3)
