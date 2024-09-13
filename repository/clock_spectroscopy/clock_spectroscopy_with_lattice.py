@@ -10,6 +10,9 @@ from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
 from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.fragments.red_mot.red_mot_mixins.flir_measurement import (
+    FLIRMeasurementMixin,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
     DroppedPumpedLatticeMixin,
 )
@@ -48,7 +51,7 @@ class BasicClockSpecFromLatticeFrag(
     ClockSpectroscopyMixin,
     DroppedPumpedLatticeMixin,
     SingleAndorImage,
-    FLIRBlueMOTMeasurementMixin,
+    FLIRMeasurementMixin,
     RedMOTWithExperiment,
 ):
     """
