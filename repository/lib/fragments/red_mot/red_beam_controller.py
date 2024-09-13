@@ -42,6 +42,7 @@ RED_SUSERVO_INFOS = [
     ]
 ]
 
+
 class RedBeamController(Fragment):
     """
     Methods for making and controlling the red beams in chamber 2
@@ -82,7 +83,7 @@ class RedBeamController(Fragment):
         self.setattr_fragment(
             "sigmaminus_toggler",
             ControlBeamsWithoutCoolingAOM,
-            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]],
+            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaminus"]],
         )
         self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
 
@@ -218,7 +219,7 @@ class RedBeamController(Fragment):
             "Which spinpol beam? True = sigmaplus, False = sigmaminus",
             default=True,
         )
-
+        self.spinpol_aom_static_frequency: FloatParamHandle
         self.injection_aom_static_frequency: FloatParamHandle
         self.ramp_frequency: FloatParamHandle
         self.ramp_lower_detuning: FloatParamHandle
