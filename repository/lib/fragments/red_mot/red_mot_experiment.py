@@ -200,6 +200,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.core.break_realtime()
 
         self.blue_3d_mot.load_mot(clearout=True)
+        self.end_of_blue_3d_mot_loading_hook()
         self.blue_3d_mot.do_blue_transfer_mot()
         delay(self.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
@@ -338,6 +339,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         Feel free to use break_realtime - it will be called again before the MOT
         is loaded.
+        """
+        pass
+
+    @kernel
+    def end_of_blue_3d_mot_loading_hook(self):
+        """
+        Executed when the loading blue MOT ends, as the ramping blue MOT phase begins.
+
+        This will clash with the blue ramping phase: only add events here if you include a negative delay
         """
         pass
 

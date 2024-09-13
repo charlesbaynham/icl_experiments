@@ -54,12 +54,12 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
         self.exposure_vert: FloatParamHandle
 
     @kernel
-    def end_of_broadband_mot_hook(self):
+    def end_of_blue_3d_mot_loading_hook(self):
         # The FLIR cameras are not useful for the final imaging, so use them to
         # image the blue MOT instead
-        delay(-self.red_broadband_time.get() - 10e-3)
+        delay(-10e-3)
         self.camera_interface.trigger()
-        delay(+self.red_broadband_time.get() + 10e-3)
+        delay(10e-3)
 
     @kernel
     def save_flir_data_hook(self):
