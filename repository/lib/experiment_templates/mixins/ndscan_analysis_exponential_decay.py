@@ -1,6 +1,6 @@
 from ndscan.experiment import *
 
-from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+from repository.lib.experiment_templates.mixins.single_andor_image import (
     SingleAndorImage,
 )
 

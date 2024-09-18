@@ -10,18 +10,18 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.fragments.red_mot.red_mot_experiment import (
-    RedMOTWithExperiment,
-)
-from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
+from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
-from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
+from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
+from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
+from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
+)
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperiment,
 )
 
 logger = logging.getLogger(__name__)

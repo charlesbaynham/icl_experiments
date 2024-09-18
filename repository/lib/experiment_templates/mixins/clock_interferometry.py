@@ -22,7 +22,7 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
 

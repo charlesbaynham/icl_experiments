@@ -1,28 +1,34 @@
 import logging
 
-from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import parallel
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.red_mot.red_mot_experiment import (
+from repository.lib.experiment_templates.mixins.single_andor_image import (
+    SingleAndorImage,
+)
+from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperiment,
 )
+from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 
 logger = logging.getLogger(__name__)
 
 
-class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
+class FLIRMeasurementMixin(SingleAndorImage, RedMOTWithExperiment):
     """
-    Image the blue MOT using the FLIR cameras
+    Image the atoms using the FLIR cameras
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
 
+    This mixin also sets up SingleAndorImage, so the user does not need to
+    manually ensure compatibility.
+
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~end_of_broadband_mot_hook`
+    * :meth:`~do_imaging_hook`
     * :meth:`~save_flir_data_hook`
     """
 
@@ -54,12 +60,14 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
         self.exposure_vert: FloatParamHandle
 
     @kernel
-    def end_of_broadband_mot_hook(self):
-        # The FLIR cameras are not useful for the final imaging, so use them to
-        # image the blue MOT instead
-        delay(-self.red_broadband_time.get() - 10e-3)
+    def do_imaging_hook(self):
+        with parallel:
+            self.do_imaging_hook_andor()
+            self.do_imaging_hook_flir()
+
+    @kernel
+    def do_imaging_hook_flir(self):
         self.camera_interface.trigger()
-        delay(+self.red_broadband_time.get() + 10e-3)
 
     @kernel
     def save_flir_data_hook(self):

@@ -2,19 +2,19 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.fragments.red_mot.red_mot_mixins.clock_pumping import (
+from repository.lib.experiment_templates.mixins.clock_pumping import (
     ClockPumpingMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
+from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+from repository.lib.experiment_templates.mixins.single_andor_image import (
     SingleAndorImage,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
+from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
 
