@@ -5,10 +5,10 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from ndscan.experiment import FloatChannel
 
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.red_mot.red_mot_experiment import (
+from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperiment,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 
 logger = logging.getLogger(__name__)

@@ -7,13 +7,13 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.red_mot.red_mot_experiment import (
-    RedMOTWithExperiment,
-)
-from repository.lib.fragments.red_mot.red_mot_mixins.flir_blue_mot_measurement import (
+from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperiment,
+)
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 

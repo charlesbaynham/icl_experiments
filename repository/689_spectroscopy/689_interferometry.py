@@ -15,11 +15,11 @@ from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.fragments.red_mot.red_mot_mixins.triple_imaging_kinetics import (
+from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
 
-from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
+from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 

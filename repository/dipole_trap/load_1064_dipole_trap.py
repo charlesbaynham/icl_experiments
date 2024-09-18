@@ -6,14 +6,14 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.fragments.red_mot.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.red_mot.red_mot_mixins.dipole_trap import DipoleTrapMixin
-from repository.lib.fragments.red_mot.red_mot_mixins.flir_measurement import (
+from repository.lib.experiment_templates.mixins.dipole_trap import DipoleTrapMixin
+from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
-from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+from repository.lib.experiment_templates.mixins.single_andor_image import (
     SingleAndorImage,
 )
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
 
