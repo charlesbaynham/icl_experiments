@@ -1,0 +1,4 @@
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+from pyaion.utilities.set_suservo_static import SetSUServoStaticExp
+
+SetSUServoStaticExp = make_fragment_scan_exp(SetSUServoStatic)
