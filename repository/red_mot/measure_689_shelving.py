@@ -10,7 +10,6 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.result_channels import FloatChannel
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.dual_camera_measurer import BGCorrectedMeasurement

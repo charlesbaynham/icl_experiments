@@ -1,7 +1,6 @@
 import logging
 
 import requests
-from ndscan.experiment import StringParam
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 

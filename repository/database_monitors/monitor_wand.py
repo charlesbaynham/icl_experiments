@@ -5,7 +5,6 @@ from qbutler.calibration import CalibrationResult
 from sipyco.pc_rpc import Client as RPCClient
 from wand.tools import WLMMeasurementStatus
 
-
 logger = logging.getLogger(__name__)
 TIMEOUT = 5
 POLL_TIME = 30

@@ -6,7 +6,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
-
 logger = logging.getLogger(__name__)
 
 

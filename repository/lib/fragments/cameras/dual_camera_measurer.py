@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import parallel
@@ -19,7 +18,6 @@ from ndscan.experiment.result_channels import OpaqueChannel
 
 from repository.lib.fragments.cameras.flir_camera import Chamber2HorizontalCamera
 from repository.lib.fragments.cameras.flir_camera import Chamber2VerticalCamera
-
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +205,6 @@ class _DualCameraBase(Fragment):
 
         Can be overridden by subclasses if required.
         """
-        pass
 
 
 class DualCameraMeasurement(_DualCameraBase):

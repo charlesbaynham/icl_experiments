@@ -3,13 +3,13 @@ from typing import List
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.zotino import Zotino
+from artiq.experiment import TFloat
+from artiq.experiment import TInt32
+from artiq.experiment import TList
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import portable
-from artiq.experiment import TFloat
-from artiq.experiment import TInt32
-from artiq.experiment import TList
 from ndscan.experiment import Fragment
 
 from device_db_config.configuration import VoltageControlledCurrentSupply

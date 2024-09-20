@@ -6,12 +6,12 @@ later.
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from artiq.experiment import TInt64
 from artiq.experiment import TList
+from artiq.experiment import delay_mu
+from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 
 from device_db_config import get_configuration_from_db

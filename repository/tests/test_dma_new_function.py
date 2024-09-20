@@ -3,7 +3,6 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.coredevice.dma import dma_is_recording
-from artiq.experiment import *
 from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 

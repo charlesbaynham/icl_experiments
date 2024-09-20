@@ -11,7 +11,6 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import FloatParam
 from pyaion.lib.utils import get_local_devices
 
-
 logger = logging.getLogger(__name__)
 
 

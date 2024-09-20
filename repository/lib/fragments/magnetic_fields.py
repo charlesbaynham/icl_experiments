@@ -1,9 +1,9 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import TFloat
 from artiq.experiment import kernel
 from artiq.experiment import rpc
-from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle

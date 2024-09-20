@@ -1,17 +1,11 @@
 import logging
 
-from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
-from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_LIMIT
-from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_RATE
-from artiq.coredevice.ad9910 import _AD9910_REG_RAMP_STEP
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
-from artiq.experiment import EnvExperiment
-from artiq.experiment import kernel
 from artiq.experiment import NumberValue
-from artiq.experiment import TFloat
+from artiq.experiment import delay
+from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from pyaion.fragments.ad9910_ramper import AD9910Ramper

@@ -6,14 +6,12 @@ from artiq.experiment import *
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase
-
 
 logger = logging.getLogger(__name__)
 

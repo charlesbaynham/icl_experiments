@@ -6,9 +6,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_pumping import (
-    ClockPumpingMixin,
-)
+from repository.lib.experiment_templates.mixins.clock_pumping import ClockPumpingMixin
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )

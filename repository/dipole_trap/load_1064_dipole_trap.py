@@ -1,15 +1,9 @@
 import logging
 
-from artiq.experiment import delay
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import parallel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.dipole_trap import DipoleTrapMixin
-from repository.lib.experiment_templates.mixins.flir_measurement import (
-    FLIRMeasurementMixin,
-)
 from repository.lib.experiment_templates.mixins.single_andor_image import (
     SingleAndorImage,
 )

@@ -3,13 +3,12 @@ import time
 from typing import Optional
 
 import numpy as np
-from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
+from artiq.experiment import TFloat
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import rpc
-from artiq.experiment import TFloat
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import BoolParam
 from ndscan.experiment import ExpFragment
@@ -23,9 +22,7 @@ from ndscan.experiment.parameters import IntParamHandle
 
 from device_db_config import get_configuration_from_db
 from repository.lib import constants
-from repository.lib.dummy_devices import DummyAD9910
 from repository.lib.fragments.read_adc import ReadSamplerADC
-
 
 logger = logging.getLogger(__name__)
 

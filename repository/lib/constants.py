@@ -21,7 +21,6 @@ from dataclasses import field
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
-
 SR_FACTS = {
     "FREQUENCIES": {
         "689_88": 434829121311e3,  # 10.1103/PhysRevLett.91.243002

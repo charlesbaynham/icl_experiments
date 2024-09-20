@@ -1,14 +1,5 @@
-import logging
-import time
-
-from artiq.experiment import EnumerationValue
-from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
-from artiq.experiment import TerminationRequested
-from koheron_ctl200_laser_driver import CTL200
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
-from toptica.lasersdk.dlcpro.v1_9_0 import DLCpro
 from toptica_wrapper.driver import TopticaDLCPro
 
 

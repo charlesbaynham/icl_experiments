@@ -20,9 +20,7 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
 from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import (
-    RedMOTWithExperiment,
-)
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
 

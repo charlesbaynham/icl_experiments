@@ -6,7 +6,8 @@ class EchoEnvironment(EnvExperiment):
         pass
 
     def run(self):
-        import os, sys
+        import os
+        import sys
 
         ppath = "\n".join(sys.path)
 

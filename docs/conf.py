@@ -21,7 +21,6 @@ import re
 import sys
 from pathlib import Path
 
-
 # %% Path manipulation
 
 # Add the "repository" dir and its parent to the python path so that it can be

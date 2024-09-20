@@ -1,6 +1,5 @@
 import logging
 
-from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
@@ -41,8 +40,6 @@ class ClockSpecFromLatticeFrag(
     once more for background.
     """
 
-    pass
-
 
 class BasicClockSpecFromLatticeFrag(
     ClockSpectroscopyMixin,
@@ -60,8 +57,6 @@ class BasicClockSpecFromLatticeFrag(
 
     Image only the ground state atoms
     """
-
-    pass
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)

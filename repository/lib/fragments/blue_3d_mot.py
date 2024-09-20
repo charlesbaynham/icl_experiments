@@ -1,20 +1,20 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.experiment import TFloat
+from artiq.experiment import TList
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
-from artiq.experiment import TFloat
-from artiq.experiment import TList
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )

@@ -9,7 +9,6 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.fragments.cameras.dual_camera_measurer import BGCorrectedMeasurement
 
-
 logger = logging.getLogger(__name__)
 
 

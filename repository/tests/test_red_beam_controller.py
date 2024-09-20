@@ -3,7 +3,6 @@ from artiq.experiment import delay
 from artiq.experiment import now_mu
 from ndscan.experiment import *
 
-from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
 from repository.lib.fragments.red_mot import RedBeamController
 
 

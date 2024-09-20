@@ -2,18 +2,15 @@ import logging
 from datetime import datetime
 from datetime import timedelta
 
-import artiq
 from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLInOut
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
 from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import EnvExperiment
 from artiq.experiment import kernel
 from artiq.experiment import ms
-from artiq.experiment import now_mu
-from artiq.experiment import NumberValue
-from artiq.experiment import StringValue
 
 logger = logging.getLogger(__name__)
 

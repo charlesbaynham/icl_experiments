@@ -1,18 +1,10 @@
 import logging
-from typing import List
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import *
-from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import now_mu
-from artiq.experiment import parallel
-from artiq.experiment import sequential
-
 
 logger = logging.getLogger(__name__)
 

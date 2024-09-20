@@ -4,13 +4,12 @@ Define the phases available for making red MOTs
 This module currently breaks the rule about only storing physics-determined
 numbers in `constants.py`.
 """
-from artiq.experiment import host_only
-from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TList
+from artiq.experiment import host_only
+from artiq.experiment import kernel
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 
-from repository.lib import constants
 from repository.lib.constants import USE_SR87
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase

@@ -5,7 +5,6 @@ import math
 from functools import reduce
 
 import numpy as np
-from artiq.coredevice.suservo import SUServo
 from artiq.experiment import *
 
 

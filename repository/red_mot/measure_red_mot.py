@@ -47,8 +47,6 @@ class MeasureNarrowbandMOTFrag(
     Make a narrowband MOT, image with the ANDOR and leave lattice light on
     """
 
-    pass
-
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
     BGCorrectedAndorImage, _MeasureNarrowbandMOTFrag
@@ -56,8 +54,6 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
     """
     Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
     """
-
-    pass
 
 
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)

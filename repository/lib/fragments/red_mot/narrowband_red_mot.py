@@ -2,13 +2,11 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import at_mu
+from artiq.experiment import TFloat
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from artiq.experiment import parallel
-from artiq.experiment import TFloat
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle

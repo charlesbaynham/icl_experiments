@@ -10,9 +10,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import (
-    RedMOTWithExperiment,
-)
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)

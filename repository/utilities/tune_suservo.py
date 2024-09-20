@@ -4,20 +4,15 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import SUServo
-from artiq.coredevice.urukul import CPLD
 from artiq.experiment import BooleanValue
-from artiq.experiment import delay
 from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from artiq.experiment import NumberValue
-from artiq.experiment import parallel
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
-from ndscan.experiment import Fragment
+from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from pyaion.lib.utils import get_local_devices
-
 
 logger = logging.getLogger(__name__)
 

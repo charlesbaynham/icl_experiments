@@ -2,10 +2,6 @@
 TODO: Pass IJDSettings into Relock single IJD instead of rebinding parameters
 """
 import logging
-import time
-from typing import List
-from typing import Optional
-from typing import Tuple
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
@@ -15,10 +11,6 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
-
-import repository.lib.constants as constants
-from repository.injected_diodes.set_koheron_controller import SetKoheronFrag
-from repository.lib.constants import IJD_DEFAULTS
 
 # from ndscan.experiment import Fragment
 

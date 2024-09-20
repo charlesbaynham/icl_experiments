@@ -1,9 +1,8 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import *
-from ndscan.experiment import *
 from ndscan.experiment import FloatParam
+from ndscan.experiment import *
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl

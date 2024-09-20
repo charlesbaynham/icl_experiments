@@ -2,9 +2,7 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.clock_pumping import (
-    ClockPumpingMixin,
-)
+from repository.lib.experiment_templates.mixins.clock_pumping import ClockPumpingMixin
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
@@ -32,8 +30,6 @@ class MOTClockSpectroscopyExp(
     Image the ground state atoms only
     """
 
-    pass
-
 
 class MOTClockSpectroscopyNormalizedExp(
     ClockSpectroscopyMixin, FLIRBlueMOTMeasurementMixin, TripleImageFastKineticsMixin
@@ -46,8 +42,6 @@ class MOTClockSpectroscopyNormalizedExp(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background
     """
-
-    pass
 
 
 class MOTPumpedClockSpectroscopyNormalizedExp(
@@ -69,8 +63,6 @@ class MOTPumpedClockSpectroscopyNormalizedExp(
     * Image the ground state atoms, repump and image the excited state, then image
     once more for background
     """
-
-    pass
 
 
 MOTClockSpectroscopy = make_fragment_scan_exp(MOTClockSpectroscopyExp)

@@ -4,7 +4,6 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from pyaion.models import SUServoedBeam
 
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.constants import URUKULED_BEAMS

@@ -7,7 +7,6 @@ from . import _device_db as generated_device_db
 from . import _non_core_devices as non_core_devices
 from . import configuration as config
 
-
 logger = logging.getLogger(__name__)
 if logger.level <= logging.INFO:
     import pprint
