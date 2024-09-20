@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+from fixtures import *  # noqa
 
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger("qbutler").setLevel(logging.DEBUG)
