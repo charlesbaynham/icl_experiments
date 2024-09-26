@@ -72,8 +72,7 @@ logger = logging.getLogger(__name__)
 
 class SpectroscopyWithKinetics_UpBeam(
     FieldBoostMixin,
-    DroppedPumpedLatticeMixin,
-    SingleAndorImage,
+    TripleImageFastKineticsMixin,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
     RedMOTWithExperiment,
@@ -165,7 +164,58 @@ class SpectroscopyWithKinetics_UpBeam(
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
+class SpectroscopySingleImage_UpBeam(
+    FieldBoostMixin,
+    SingleAndorImage,
+    DroppedPumpedLatticeMixin,
+    SpectroscopyParamsMixin,
+    ConstantBeamsMixin,
+    RedMOTWithExperiment,
+):
+    """
+    689nm spectroscopy UP - single image
+
+    689nm spectroscopy using the red up beam
+    """
+
+    def build_fragment(self):
+        # We assume that the up beam has already been configured by the MOT
+        # sequence, but that we must control the amplitude
+        self.setattr_fragment(
+            "up_beam_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
+        )
+        self.up_beam_suservo: LibSetSUServoStatic
+
+        super().build_fragment()
+
+    @kernel
+    def pre_expansion_hook(self):
+        # Disable servoing, turn off the switch, configure the amplitude and
+        # open the shutter in preparation for a quick pulse
+        with parallel:
+            self.red_mot.red_beam_controller.set_mot_detuning(
+                self.spectroscopy_pulse_aom_detuning.get()
+            )
+            with sequential:
+                self.up_beam_suservo.set_channel_state(
+                    rf_switch_state=False, enable_iir=False
+                )
+                self.up_beam_suservo.suservo_channel.set_y(
+                    profile=self.up_beam_suservo.suservo_profile,
+                    y=self.spectroscopy_pulse_aom_amplitude.get(),
+                )
+
+    @kernel
+    def do_spectroscopy_hook(self):
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(self.spectroscopy_pulse_time.get())
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+
 # SpectroscopyWithKineticsMOTExp = make_fragment_scan_exp(
 #     SpectroscopyWithKinetics_MOTBeam
 # )
 SpectroscopyWithKineticyUpExp = make_fragment_scan_exp(SpectroscopyWithKinetics_UpBeam)
+SpectroscopySingleImageUpBeam = make_fragment_scan_exp(SpectroscopySingleImage_UpBeam)
