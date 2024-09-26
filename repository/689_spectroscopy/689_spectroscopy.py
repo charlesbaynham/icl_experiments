@@ -17,6 +17,12 @@ from repository.lib.fragments.red_mot.red_mot_mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
 from repository.lib.fragments.red_mot.red_mot_mixins.field_boost import FieldBoostMixin
+from repository.lib.fragments.red_mot.red_mot_mixins.pumped_lattice import (
+    DroppedPumpedLatticeMixin,
+)
+from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+    SingleAndorImage,
+)
 from repository.lib.fragments.red_mot.red_mot_mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
