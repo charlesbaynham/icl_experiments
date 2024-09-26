@@ -1,6 +1,7 @@
 """
 TODO: Pass IJDSettings into Relock single IJD instead of rebinding parameters
 """
+
 import logging
 
 from artiq.coredevice.core import Core

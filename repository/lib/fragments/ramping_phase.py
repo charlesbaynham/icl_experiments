@@ -75,13 +75,16 @@ class GeneralRampingPhase(Fragment):
         class DemoPhase(GeneralRampingPhase):
             general_setter_names = ["some_current_1", "some_current_2"]
             general_setter_param_options = [
-                {"min": 0, "max": 150, "unit": "A"}, {"min": 0, "max": 10,
-                "unit": "A"},
-            ] general_setter_default_starts = [100.0, 10.0]
+                {"min": 0, "max": 150, "unit": "A"},
+                {"min": 0, "max": 10,  "unit": "A"},
+            ]
+            general_setter_default_starts = [100.0, 10.0]
             general_setter_default_ends = [10.0, 5.0]
 
-            @kernel def general_setter(self, vals: TList(TFloat)):
-                # Ideally do something more interesting than this: print(vals)
+            @kernel
+            def general_setter(self, vals: TList(TFloat)):
+                # Ideally do something more interesting than this:
+                print(vals)
 
     This method will be called once for each step of the ramp and passed a list
     of floats of the same size as `self.general_setter_starts`. You can use this
@@ -227,9 +230,9 @@ class GeneralRampingPhase(Fragment):
 
         # Build ndscan parameters for all the ramping variables and arrays of
         # setters for the kernel to use
-        self.suservo_setters_and_param_handles = self.build_suservos()
-        self.ad9910_channels_and_param_handles = self.build_ad9910s()
-        self.general_setter_param_handles = self.build_general_setter_param_handles()
+        self.suservo_setters_and_param_handles = self._build_suservos()
+        self.ad9910_channels_and_param_handles = self._build_ad9910s()
+        self.general_setter_param_handles = self._build_general_setter_param_handles()
 
         # %% Other parameters
 
@@ -268,7 +271,7 @@ class GeneralRampingPhase(Fragment):
     def general_setter(self, vals: TList(TFloat)):
         pass
 
-    def build_general_setter_param_handles(self):
+    def _build_general_setter_param_handles(self):
         general_setter_in_use = len(self.general_setter_default_starts) > 0
 
         general_setter_param_handles: List[
@@ -312,7 +315,7 @@ class GeneralRampingPhase(Fragment):
 
         return general_setter_param_handles
 
-    def build_suservos(self):
+    def _build_suservos(self):
         suservo_setters_and_param_handles: List[
             Tuple[
                 LibSetSUServoStatic,
@@ -406,7 +409,7 @@ class GeneralRampingPhase(Fragment):
 
         return suservo_setters_and_param_handles
 
-    def build_ad9910s(self):
+    def _build_ad9910s(self):
         ad9910_channels_and_param_handles: List[
             Tuple[
                 AD9910,
@@ -510,6 +513,86 @@ class GeneralRampingPhase(Fragment):
             )
 
         return ad9910_channels_and_param_handles
+
+    def daisy_chain_with_previous_phase(
+        self,
+        previous_phase: "GeneralRampingPhase",
+        suservos=[],
+        ad9910s=[],
+        general_setters=[],
+        bind_nominal_setpoints=True,
+    ):
+        """
+        Bind the start points of the specified ramping parameters to the end
+        points of the previous ramping phase's parameters. Also, bind *all*
+        suservo nominal setpoints if they are present in the previous phase.
+
+        This is useful for chaining ramping phases together to avoid
+        discontinuous jumps in a parameter and/or to share the same nominal
+        setpoints for the SUServos.
+
+        If `suservos` is set to the string "all" instead of a list of which
+        SUServos to daisy-chain, daisy-chain all of them and also daisy-chain
+        the `setpoint_global_multiple_...` params.
+
+        Parameters
+        ----------
+        previous_phase : GeneralRampingPhase
+            The previous ramping phase to bind the start points to. Must ramp
+            the same things as this phase.
+        suservos : list(str)
+            List of suservos to daisy-chain, or the string "all"
+        ad9910s : list(str)
+            List of ad9910s to daisy-chain
+        general_setters : list(str)
+            List of general_setter_names to daisy-chain
+        bind_nominal_setpoints : bool, default=True
+            Bind *all* nominal setpoints that are present in the previous phase
+        """
+
+        if ad9910s:
+            raise NotImplementedError("Binding AD9910s is not yet implemented")
+
+        if general_setters:
+            raise NotImplementedError("Binding general setters is not yet implemented")
+
+        if isinstance(suservos, str) and suservos == "all":
+            # Special case: override all the SUServos
+            suservos = self.suservos
+
+            # Also, daisy-chain the "setpoint_global_multiple" params
+            self.bind_param(
+                "setpoint_global_multiple_start",
+                previous_phase.setpoint_global_multiple_end,
+            )
+
+        # For each suservo device in this phase, look for it in the previous
+        # phase. If found, bind this phase's nominal setpoint to that of the
+        # previous phase
+        for suservo_name, setters_and_handlers in zip(
+            self.suservos, self.suservo_setters_and_param_handles
+        ):
+            if suservo_name in previous_phase.suservos:
+                (
+                    _,
+                    setpoint_nominal_handle,
+                    setpoint_start_handle,
+                    setpoint_end_handle,
+                ) = setters_and_handlers
+
+                # Bind this suservo's nominal setpoint to the previous phase's
+                if bind_nominal_setpoints:
+                    self.bind_param(
+                        setpoint_nominal_handle.name,
+                        getattr(previous_phase, setpoint_nominal_handle.name),
+                    )
+
+                # If this suservo is one of the ones to daisy-chain, do so
+                if suservo_name in suservos:
+                    self.bind_param(
+                        setpoint_start_handle.name,
+                        getattr(previous_phase, setpoint_end_handle.name),
+                    )
 
     @portable
     def _calc_step_size(self, start: TFloat, end: TFloat, num_points: TInt32) -> TFloat:
@@ -649,8 +732,7 @@ class GeneralRampingPhase(Fragment):
                 for i in range(len(general_values)):
                     general_values[i] += general_steps[i]
 
-                # TODO: Pick up the new-artiq-version debugging from here
-                delay_mu(10 * t_one_rtio_cycle_mu)  # Avoid using multiple lanes
+                delay_mu(t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                 # %% Set AD9910 frequencies
                 for i in range(len(self.ad9910_channels_and_param_handles)):
@@ -667,8 +749,7 @@ class GeneralRampingPhase(Fragment):
                     ad9910.set(
                         frequency=frequency_values[i], amplitude=amplitude_values[i]
                     )
-                    # TODO: ...and from here
-                    delay_mu(10 * t_one_rtio_cycle_mu)  # Avoid using multiple lanes
+                    delay_mu(t_one_rtio_cycle_mu)  # Avoid using multiple lanes
 
                     frequency_values[i] += frequency_steps[i]
                     amplitude_values[i] += amplitude_steps[i]

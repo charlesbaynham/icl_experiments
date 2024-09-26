@@ -121,6 +121,8 @@ def fragment_precompiler(fragment_factory):
         exp_built.host_setup()
         exp_built.precompile()
 
+        return exp_built
+
     return do
 
 
