@@ -132,7 +132,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_param(
             "expansion_time",
             FloatParam,
-            "Time to expand MOT for before imaging",
+            "Time to wait before experiment",
             default=0.0,
             unit="us",
         )
