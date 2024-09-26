@@ -220,7 +220,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.red_mot.terminate_broadband_mot()
 
         self.red_mot.do_narrowband_red_mot()
-
+        # Set magnetic fields for the rest of the sequence
+        self.set_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
         self.post_narrowband_hook()
 
@@ -230,9 +231,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
-
-        # Set magnetic fields for the rest of the sequence
-        self.set_fields_hook()
 
         delay(self.expansion_time.get())
 
