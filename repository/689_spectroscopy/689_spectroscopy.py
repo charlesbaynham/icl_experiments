@@ -66,7 +66,8 @@ logger = logging.getLogger(__name__)
 
 class SpectroscopyWithKinetics_UpBeam(
     FieldBoostMixin,
-    TripleImageFastKineticsMixin,
+    DroppedPumpedLatticeMixin,
+    SingleAndorImage,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
     RedMOTWithExperiment,
