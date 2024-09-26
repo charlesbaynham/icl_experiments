@@ -1,6 +1,7 @@
 """
 Test a simple phase
 """
+
 import logging
 
 from artiq.coredevice.core import Core

@@ -157,3 +157,136 @@ def test_GeneralRampingPhaseNoSUServo(fragment_precompiler):
 
 def test_GeneralRampingPhaseNoAD9910(fragment_precompiler):
     fragment_precompiler(make_test_expfrag(GeneralRampingPhaseNoAD9910))
+
+
+### Try daisy-chaining phases
+
+
+class DaisyChainedPhasesBase(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment(
+            "test_phase_a",
+            GeneralRampingPhaseNoGeneral,
+        )
+        self.test_phase_a: GeneralRampingPhaseNoGeneral
+
+        self.setattr_fragment(
+            "test_phase_b",
+            GeneralRampingPhaseNoGeneral,
+        )
+        self.test_phase_b: GeneralRampingPhaseNoGeneral
+
+        self.configure_daisy_chaining()
+
+    @kernel
+    def run_once(self):
+        logger.info("Precomputing handles")
+        self.test_phase_a.precalculate_dma_handle()
+        self.test_phase_b.precalculate_dma_handle()
+
+        logger.info("Starting test phases")
+
+        self.core.break_realtime()
+
+        self.test_phase_a.do_phase()
+        self.test_phase_b.do_phase()
+
+        logger.info("Phase queuing completed")
+
+        logger.info(
+            "now_mu = %d, get_rtio_counter_mu = %d, diff=%fs",
+            now_mu(),
+            self.core.get_rtio_counter_mu(),
+            self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu()),
+        )
+
+        self.core.wait_until_mu(now_mu())
+
+        logger.info("Phase output completed")
+
+
+class DaisyChainedPhasesSpecific(DaisyChainedPhasesBase):
+    def configure_daisy_chaining(self):
+        self.test_phase_b.daisy_chain_with_previous_phase(
+            self.test_phase_a,
+            suservos=[
+                "suservo_aom_singlepass_461_imaging_delivery",
+                "suservo_aom_singlepass_461_2dmot_b",
+            ],
+        )
+
+
+def test_daisychained_phases_specific(fragment_precompiler):
+    built_frag = fragment_precompiler(DaisyChainedPhasesSpecific)
+
+    free_params = list(built_frag.test_phase_b._free_params.keys())
+
+    assert not any(
+        [("setpoint_nominal" in free_param_name) for free_param_name in free_params]
+    )
+
+    assert not any(
+        [
+            ("setpoint_multiple_start_" in free_param_name)
+            and ("suservo_aom_singlepass_461_imaging_delivery" in free_param_name)
+            for free_param_name in free_params
+        ]
+    )
+    assert (
+        sum(
+            [
+                ("setpoint_multiple_start_" in free_param_name)
+                and ("suservo_aom_singlepass_461_pushbeam" in free_param_name)
+                for free_param_name in free_params
+            ]
+        )
+        == 1
+    )
+    assert not any(
+        [
+            ("setpoint_multiple_start_" in free_param_name)
+            and ("suservo_aom_singlepass_461_2dmot_b" in free_param_name)
+            for free_param_name in free_params
+        ]
+    )
+    assert (
+        sum(
+            [
+                ("setpoint_multiple_start_" in free_param_name)
+                and ("suservo_aom_singlepass_689_red_mot_diagonal" in free_param_name)
+                for free_param_name in free_params
+            ]
+        )
+        == 1
+    )
+
+    assert "setpoint_global_multiple_start" in free_params
+
+
+class DaisyChainedPhasesAll(DaisyChainedPhasesBase):
+    def configure_daisy_chaining(self):
+        self.test_phase_b.daisy_chain_with_previous_phase(
+            self.test_phase_a, suservos="all"
+        )
+
+
+def test_daisychained_phases_all(fragment_precompiler):
+    built_frag = fragment_precompiler(DaisyChainedPhasesAll)
+
+    free_params = list(built_frag.test_phase_b._free_params.keys())
+
+    assert not any(
+        [("setpoint_nominal" in free_param_name) for free_param_name in free_params]
+    )
+
+    assert not any(
+        [
+            ("setpoint_multiple_start_" in free_param_name)
+            for free_param_name in free_params
+        ]
+    )
+
+    assert "setpoint_global_multiple_start" not in free_params
