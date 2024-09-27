@@ -421,7 +421,7 @@ class RedBeamController(Fragment):
         )
 
     @kernel
-    def stop_ramping_red(self, freq=0.0):
+    def stop_ramping_spinpol(self, freq=0.0):
         """
         Stop modulation of the spinpol DDS and return to static (or specified) frequency
         """
