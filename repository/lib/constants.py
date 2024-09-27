@@ -538,6 +538,16 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
 
+WAND_1379_EXPOSURES = [
+    200e-3,
+    100e-3,
+]
+"Exposure settings for the wavemeter when it's measuring the doubled 1379 on the 689 path"
+
+WAND_SHUTTERS_DELAY = 2.0
+# WAND_SHUTTERS_DELAY = 50e-3  # FIXME
+"Shutter closing delay before WAND measurements of the 689 and 1379"
+
 # WAND frequency references and lock settings for the two isotopes. Lasers not
 # listed will be ignored. Entries are a tuple of (reference, locked): the laser
 # frequency will be set to "reference" and the lock will be enabled / disabled
