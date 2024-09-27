@@ -170,6 +170,7 @@ def get_non_core_devices(simulation_mode=False):
             "arguments": {
                 "ip": "toptica-1379-698",
                 "laser": "laser1",
+                "falc": 1,
                 "simulation": simulation_mode,
             },
             "mockmodule": "repository.lib.mock_device",

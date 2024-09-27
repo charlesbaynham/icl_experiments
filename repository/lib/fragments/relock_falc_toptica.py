@@ -1,49 +1,56 @@
-"""
-Relock a Toptica ECDL to the cavity
-
-This is a test script which will be incorporated into a QButler Calibration
-later.
-
-The plan based on manual fiddling is:
-
-1. Set the ECDL to:
-    FALC enabled Unlim disabled Piezo scan disabled
-
-2. Use WAND to steer it back to 0 MHz offset (don't mess with the setpoint -
-   SwitchIsotope should have made sure we're set correctly for the current EOM
-   sidebands)
-
-3. Set piezo scan enabled (10 Hz, 0.05V)
-
-4. Set Unlim enabled
-
-5. Set scan disabled
-
-6 Check transmission
-
-7. If high, done. If low, repeat from 2.
-"""
-
 import logging
 import time
 
 from artiq.master.scheduler import Scheduler
-from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
-from ndscan.experiment import *
-from ndscan.experiment import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from toptica_wrapper.driver import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 from wand.tools import WLMMeasurementStatus
+
+from repository.lib.fragments.wand_steering import WandSteering
 
 logger = logging.getLogger(__name__)
 
 WAND_FAST_LOCK_POLLING = 0.5  # s
 
 
-class RelockCavityFrag(Fragment):
+class RelockFALCWithWavemeterFrag(Fragment):
+    """
+    Relock a Toptica laser that uses a FALC lock
+
+    This might be incorporated into a QButler Calibration
+    later.
+
+    Relock algorithm:
+
+
+    1. Set the ECDL to:
+        FALC enabled
+        Unlim disabled
+        Piezo scan disabled
+
+    2. Use WAND to steer it back to 0 MHz offset (don't mess with the setpoint -
+    SwitchIsotope should have made sure we're set correctly for the current EOM
+    sidebands)
+
+    3. Set piezo scan enabled (10 Hz, 0.05V)
+
+    4. Set Unlim enabled
+
+    5. Set scan disabled
+
+    6 Check transmission
+
+    7. If high, done. If low, repeat from 2.
+
+    Because this is a normal python class, you can override it using `super()`
+    as usual without having to worry about ARTIQ kernels.
+    """
+
     laser_name_wand = None
     laser_name_devicedb = None
 
@@ -57,6 +64,9 @@ class RelockCavityFrag(Fragment):
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
+
+        self.setattr_fragment("wand_steering", WandSteering)
+        self.wand_steering: WandSteering
 
         self.setattr_param(
             "piezo_scan_amplitude",
@@ -143,7 +153,9 @@ class RelockCavityFrag(Fragment):
             self.set_piezo_scan(enabled=False)
             self.set_FALC(main=False, unlim=False)
 
-            self.steer_wand(laser=self.laser_name_wand, offset=0.0, timeout=20)
+            self.wand_steering.steer_wand(
+                laser=self.laser_name_wand, offset=0.0, timeout=20
+            )
 
             self.set_piezo_scan(
                 enabled=True,
@@ -181,65 +193,8 @@ class RelockCavityFrag(Fragment):
         falc.main.enabled.set(main)
         falc.unlim.enabled.set(unlim)
 
-    def steer_wand(self, laser, offset=0.0, timeout=20.0, required_accuracy=2e6):
-        logger.info("Setting laser %s to %.6f MHz", laser, 1e-6 * offset)
-        self.wand_server.lock(laser=laser, set_point=offset, timeout=timeout)
-
-        initial_laser_db = self.wand_server.get_laser_db()
-
-        # Save initial settings so we can restore them at the end
-        initial_gain = initial_laser_db[laser]["lock_gain"]
-        initial_poll_time = initial_laser_db[laser]["lock_poll_time"]
-        initial_capture_range = initial_laser_db[laser]["lock_capture_range"]
-
-        logger.debug("Setting lock poll time = %.1fs", WAND_FAST_LOCK_POLLING)
-
-        try:
-            # Increase the poll rate and the gain with it
-            self.wand_server.set_lock_params(
-                laser=laser,
-                gain=initial_gain * initial_poll_time / WAND_FAST_LOCK_POLLING,
-                poll_time=WAND_FAST_LOCK_POLLING,
-                capture_range=initial_capture_range * 10,
-            )
-
-            t_end = time.time() + timeout
-
-            while time.time() < t_end:
-                self.scheduler.pause()
-
-                meas = self.wand_server.get_freq(laser=laser, offset_mode=True, age=1)
-                status, actual_offset, _ = meas
-
-                logger.debug(
-                    "Measured laser %s, result = %s, %.1f MHz",
-                    laser,
-                    status,
-                    1e-6 * actual_offset,
-                )
-
-                if status != WLMMeasurementStatus.OKAY:
-                    continue
-
-                if abs(offset - actual_offset) < required_accuracy:
-                    logger.info("Laser %s is locked", laser)
-                    break
-
-                time.sleep(1)
-
-        finally:
-            self.wand_server.set_lock_params(
-                laser=laser,
-                gain=initial_gain,
-                poll_time=initial_poll_time,
-                capture_range=initial_capture_range,
-            )
-            self.wand_server.unlock(laser=laser, name="")
-
-            logger.debug("Lock settings restored")
-
     def is_cavity_locked(self):
-        logger.warn(
+        logger.warning(
             "Cavity transmission detection not implemented yet! Using the wavemeter instead"
         )
 
@@ -256,23 +211,3 @@ class RelockCavityFrag(Fragment):
         logger.debug("Cavity lock status: %s", locked)
 
         return locked
-
-
-class Relock689Frag(RelockCavityFrag, ExpFragment):
-    laser_name_wand = "689"
-    laser_name_devicedb = "toptica_689"
-
-    def run_once(self) -> None:
-        self.relock()
-
-
-class Relock698Frag(RelockCavityFrag, ExpFragment):
-    laser_name_wand = "698"
-    laser_name_devicedb = "toptica_698"
-
-    def run_once(self) -> None:
-        self.relock()
-
-
-Relock689Cavity = make_fragment_scan_exp(Relock689Frag)
-Relock698Cavity = make_fragment_scan_exp(Relock698Frag)
