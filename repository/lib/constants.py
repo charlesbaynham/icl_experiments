@@ -544,8 +544,7 @@ WAND_1379_EXPOSURES = [
 ]
 "Exposure settings for the wavemeter when it's measuring the doubled 1379 on the 689 path"
 
-WAND_SHUTTERS_DELAY = 2.0
-# WAND_SHUTTERS_DELAY = 50e-3  # FIXME
+WAND_SHUTTERS_DELAY = 50e-3
 "Shutter closing delay before WAND measurements of the 689 and 1379"
 
 # WAND frequency references and lock settings for the two isotopes. Lasers not
