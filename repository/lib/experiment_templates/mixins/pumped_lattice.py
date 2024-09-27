@@ -1,6 +1,7 @@
 import logging
 
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -131,8 +132,12 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         then hold them afterwards for some time.
         """
         delay(self.delay_before_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.start_ramping_spinpol()
+        delay_mu(8)
         self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
         delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.stop_ramping_spinpol()
+        delay_mu(8)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
