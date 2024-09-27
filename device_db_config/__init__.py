@@ -9,6 +9,7 @@ devices, so you can relabel devices / channels by purpose.
 
 These three sources will be merged together when :meth:`.get_device_db` is called.
 """
+
 import importlib
 
 from . import _aliases

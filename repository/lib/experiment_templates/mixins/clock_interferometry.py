@@ -1,19 +1,13 @@
 import logging
 
-from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import OnlineFit
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.models import SUServoedBeam
-from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 
@@ -22,7 +16,7 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.fragments.red_mot.red_mot_mixins.clock_spectroscopy import (
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
 

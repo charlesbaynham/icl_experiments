@@ -1,6 +1,7 @@
 """
 Test a simple phase
 """
+
 import logging
 
 from artiq.coredevice.core import Core
@@ -8,10 +9,9 @@ from artiq.experiment import *
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
-from artiq.experiment import TFloat
 from ndscan.experiment import *
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase

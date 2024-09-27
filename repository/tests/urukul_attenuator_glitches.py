@@ -1,20 +1,14 @@
 import logging
 
-import numpy as np
-from artiq.coredevice.ad9910 import _AD9910_REG_AUX_DAC
-from artiq.coredevice.ad9910 import _AD9910_REG_CFR2
-from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE3
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.coredevice.urukul import *
 from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD
-from artiq.experiment import BooleanValue
-from artiq.experiment import delay
+from artiq.coredevice.urukul import *
 from artiq.experiment import EnvExperiment
-from artiq.experiment import kernel
 from artiq.experiment import NumberValue
-from artiq.experiment import TInt64
+from artiq.experiment import delay
+from artiq.experiment import kernel
 
 logger = logging.getLogger(__name__)
 REG_ADDR = 0x05

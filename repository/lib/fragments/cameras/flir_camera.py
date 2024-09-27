@@ -1,11 +1,11 @@
 import abc
 import logging
 import time
+from typing import TYPE_CHECKING
 from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Type
-from typing import TYPE_CHECKING
 
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
@@ -342,7 +342,6 @@ class MonitorCameraExp(ExpFragment, abc.ABC):
         The camera class that this experiment will monitor. Must be overridden
         by subclasses as a class property
         """
-        pass
 
     def build_fragment(self):
         self.setattr_result("timestamp", IntChannel, display_hints={"priority": -1})

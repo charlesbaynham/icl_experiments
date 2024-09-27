@@ -38,6 +38,7 @@ the same time::
         pass
 
 """
+
 import abc
 import logging
 
@@ -288,7 +289,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         By default, do nothing.
         """
-        pass
 
     @abc.abstractmethod
     def do_imaging_hook(self):
@@ -305,7 +305,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         Runs in realtime after imaging is completed
         """
-        pass
 
     @kernel
     def save_flir_data_hook(self):
@@ -313,7 +312,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         Run after the sequence has ended. This hook is intended to save data
         from the FLIR cameras.
         """
-        pass
 
     @kernel
     def post_sequence_cleanup_hook(self):
@@ -338,7 +336,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         Feel free to use break_realtime - it will be called again before the MOT
         is loaded.
         """
-        pass
 
     @kernel
     def end_of_blue_3d_mot_loading_hook(self):
@@ -347,7 +344,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         This will clash with the blue ramping phase: only add events here if you include a negative delay
         """
-        pass
 
     @kernel
     def end_of_broadband_mot_hook(self):
@@ -356,7 +352,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         broadband ramping is disabled. No timeline correction is performed, so
         changes here will delay the narrowband red MOT.
         """
-        pass
 
     @kernel
     def start_of_red_broadband_hook(self):
@@ -368,7 +363,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         TODO: Move this hook so that new lanes aren't needed
         """
-        pass
 
     @kernel
     def post_narrowband_hook(self):
@@ -395,7 +389,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         Any changes to the cursor made by this hook will be ignored
         """
-        pass
 
     @kernel
     def set_fields_hook(self):

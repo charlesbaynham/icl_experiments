@@ -1,16 +1,11 @@
-from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import kernel
 from ndscan.experiment import BoolParam
-from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
-from ndscan.experiment import IntParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.lib.utils import get_local_devices
 
 
 class TurnOn698Temporary(ExpFragment):

@@ -1,7 +1,6 @@
 from typing import Any
 from unittest.mock import MagicMock
 
-
 PASSTHROUGH_NAMES = [
     "set_feature",
     "get_feature",

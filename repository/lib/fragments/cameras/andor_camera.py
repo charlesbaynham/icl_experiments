@@ -4,18 +4,17 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import rpc
 from artiq.experiment import TArray
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
+from artiq.experiment import delay_mu
+from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.result_channels import FloatChannel
 from numpy import int64
 
 from repository.lib import constants

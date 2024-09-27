@@ -1,17 +1,10 @@
 import logging
-from typing import List
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import *
-from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import now_mu
-from artiq.experiment import parallel
-from artiq.experiment import sequential
 
 logger = logging.getLogger(__name__)
 
@@ -28,29 +21,35 @@ class TestAD9910LaneUsage(EnvExperiment):
         self.setattr_device("core")
         self.core: Core
 
-        # self.urukul_channels: List[AD9910] = [
-        #     self.get_device(f"urukul5_ch{i}") for i in range(4)
-        # ] + [self.get_device(f"urukul8_ch{i}") for i in range(4)]
+        self.setattr_argument(
+            "num", NumberValue(default=9, type="int", precision=0, scale=1, step=1)
+        )
+        self.num: int
 
-        # self.setattr_device("ttl0")
-        # self.ttl0: TTLOut
+        self.setattr_argument("urukul_channel", StringValue(default="urukul8_ch2"))
 
-        # for uc in self.urukul_channels:
-        #     print(uc)
+        self.dds: AD9910 = self.get_device(self.urukul_channel)
 
-        self.setattr_device("urukul5_ch0")
-        self.urukul5_ch0: AD9910
+        self.setattr_device("ttl1")  # This is currently unused and is on the master
+        self.ttl: TTLOut = self.ttl1
 
     @kernel
     def run(self):
         logger.info("Starting test")
 
-        self.core.break_realtime()
+        self.core.reset()
 
-        t_now_mu = now_mu()
+        self.dds.sw.off()  # Safety first
 
-        for i in range(9):
-            at_mu(t_now_mu)
-            self.urukul5_ch0.set(frequency=100e6, phase=0.0, amplitude=0.0)
+        delay(500e3)  # Make loads of slack
+
+        # Do an AD9910 write, consuming at least one lane, maybe more
+        self.dds.set(frequency=100e6)
+
+        for i in range(self.num):
+            # Write in backwards order to ensure that we use a new lane each time
+            delay(-1e-3)
+            self.ttl.set_o(bool(i % 2))
+            print(i)
 
         logger.info("Test done")

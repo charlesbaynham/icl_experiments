@@ -5,7 +5,6 @@ import toptica_wrapper
 from artiq.experiment import *
 from toptica_wrapper.driver import TopticaDLCPro
 
-
 logger = logging.getLogger(__name__)
 
 

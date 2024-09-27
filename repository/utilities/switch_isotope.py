@@ -1,6 +1,5 @@
 import logging
 import time
-from math import isnan
 
 from artiq.coredevice.core import Core
 from artiq.master.scheduler import Scheduler

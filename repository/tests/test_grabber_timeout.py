@@ -3,7 +3,6 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.grabber import OutOfSyncException
-from artiq.coredevice.rtio import rtio_input_data
 from artiq.coredevice.rtio import rtio_input_timestamped_data
 from artiq.experiment import *
 from artiq.experiment import delay
@@ -12,7 +11,6 @@ from artiq.language import us
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.result_channels import FloatChannel
-from numpy import int64
 
 logger = logging.getLogger(__name__)
 

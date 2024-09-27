@@ -4,10 +4,11 @@ exist solely for the purpose of working around ARTIQ's inability to infer the
 type of an empty list. You can therefore add one of these into your list in
 build() if it's empty, and it won't do anything when called.
 """
-from artiq.experiment import kernel
+
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
+from artiq.experiment import kernel
 
 
 # TODO: Use this for creating dummy classes

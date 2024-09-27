@@ -1,15 +1,11 @@
 import logging
 import time
-from tokenize import String
 
 import artiq
-from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
-from artiq.experiment import kernel
-from artiq.experiment import ms
-from artiq.experiment import NumberValue
-from artiq.experiment import rpc
 from artiq.experiment import StringValue
+from artiq.experiment import kernel
+from artiq.experiment import rpc
 
 logger = logging.getLogger(__name__)
 

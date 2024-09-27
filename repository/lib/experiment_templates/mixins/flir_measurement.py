@@ -5,13 +5,11 @@ from artiq.experiment import parallel
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
-from repository.lib.fragments.red_mot.red_mot_experiment import (
-    RedMOTWithExperiment,
-)
-from repository.lib.fragments.red_mot.red_mot_mixins.single_andor_image import (
+from repository.lib.experiment_templates.mixins.single_andor_image import (
     SingleAndorImage,
 )
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 
 logger = logging.getLogger(__name__)
 

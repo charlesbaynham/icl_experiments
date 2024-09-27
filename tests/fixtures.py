@@ -25,7 +25,6 @@ from pytest import fixture
 from sipyco.sync_struct import Notifier
 from sipyco.sync_struct import process_mod
 
-from tests.marker_exp import MarkerExperiment
 from tests.wait_for_port import wait_for_port
 
 logger = logging.getLogger(__name__)
@@ -122,6 +121,8 @@ def fragment_precompiler(fragment_factory):
         exp_built.host_setup()
         exp_built.precompile()
 
+        return exp_built
+
     return do
 
 
@@ -129,8 +130,8 @@ def fragment_precompiler(fragment_factory):
 def plot_graph(tmp_path):
     def func(name=None):
         import matplotlib.pyplot as plt
-        from qbutler.dag import _get_graph
         import networkx as nx
+        from qbutler.dag import _get_graph
 
         if name is None:
             name = "graph"

@@ -13,16 +13,16 @@
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1709223631,
-        "narHash": "sha256-1/k7jlewV5DaIDiPnbec6eoDIiIIToJSxTwb2sLUZAo=",
-        "ref": "refs/tags/pin_2024_08",
-        "rev": "afe4cca982e939906e7ebf98ac39a0f400f629b6",
-        "revCount": 8682,
+        "lastModified": 1725625423,
+        "narHash": "sha256-ScbvHw/fctscYLzQzbQx+4PqKvriNuKujiUshCPKUOU=",
+        "ref": "make-event-spreading-optional",
+        "rev": "e98dbf5adb5e60835acbfbf0dd635fd54b6c3fc4",
+        "revCount": 8886,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
       "original": {
-        "ref": "refs/tags/pin_2024_08",
+        "ref": "make-event-spreading-optional",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       }
@@ -76,11 +76,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1694529238,
-        "narHash": "sha256-zsNZZGTGnMOf9YpHKJqMSsa0dXbfmxeoJ7xHlrt+xmY=",
+        "lastModified": 1726560853,
+        "narHash": "sha256-X6rJYSESBVr3hBoH0WbKE5KvhPU5bloyZ2L4K60/fPQ=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "ff7b65b44d01cf9ba6a71320833626af21126384",
+        "rev": "c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a",
         "type": "github"
       },
       "original": {

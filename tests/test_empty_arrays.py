@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
-from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import kernel
 from artiq.experiment import TFloat
 from artiq.experiment import TList
+from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 
 
@@ -27,7 +26,7 @@ class EmptyFloatArray(ExpFragment):
 
     @kernel
     def do_measure(self, point):
-        result = point + 1
+        point + 1
 
 
 @pytest.mark.xfail(reason="ARTIQ issue #1626")
@@ -56,7 +55,7 @@ class EmptyFloatArrayWithHints(ExpFragment):
 
     @kernel
     def do_measure(self, point):
-        result = point + 1
+        point + 1
 
 
 def test_empty_float_array_with_hints(fragment_precompiler):

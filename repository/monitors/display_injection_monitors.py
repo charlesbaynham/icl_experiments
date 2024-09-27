@@ -13,7 +13,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from device_db_config import get_configuration_from_db
 
-
 logger = logging.getLogger(__name__)
 
 

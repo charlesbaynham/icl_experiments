@@ -1,25 +1,24 @@
 """
 TODO: Pass IJDSettings into Relock single IJD instead of rebinding parameters
 """
+
 import logging
 import time
 from typing import List
 from typing import Optional
 from typing import Tuple
 
-from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
+from artiq.experiment import TList
 from artiq.experiment import kernel
 from artiq.experiment import portable
-from artiq.experiment import TFloat
-from artiq.experiment import TList
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import LinearGenerator
-from ndscan.experiment import setattr_subscan
 from ndscan.experiment import Subscan
+from ndscan.experiment import setattr_subscan
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle

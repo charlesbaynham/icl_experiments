@@ -5,11 +5,8 @@ from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE0
 from artiq.coredevice.ad9910 import _PHASE_MODE_DEFAULT
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9910 import DEFAULT_PROFILE
-from artiq.coredevice.ad9910 import PHASE_MODE_ABSOLUTE
 from artiq.coredevice.ad9910 import PHASE_MODE_CONTINUOUS
-from artiq.coredevice.ad9910 import PHASE_MODE_TRACKING
 from artiq.coredevice.core import Core
-from artiq.coredevice.urukul import CPLD
 from artiq.experiment import *
 from artiq.experiment import at_mu
 from artiq.experiment import delay
@@ -17,7 +14,6 @@ from artiq.experiment import delay_mu
 from artiq.experiment import now_mu
 from numpy import int64
 from pyaion.lib.utils import get_local_devices
-
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +33,7 @@ class WriteAD9910FTW(EnvExperiment):
 
     @kernel
     def run(self):
-        t_one_cycle_mu = int64(self.core.ref_multiplier)
+        int64(self.core.ref_multiplier)
 
         self.core.reset()
 

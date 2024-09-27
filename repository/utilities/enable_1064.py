@@ -1,7 +1,5 @@
-from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import *
-from pyaion.lib.utils import get_local_devices
 
 
 class TurnOn1064Temporary(EnvExperiment):

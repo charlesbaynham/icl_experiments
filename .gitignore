@@ -5,6 +5,7 @@ result
 _build
 .vscode/*
 !.vscode/launch.json
+!.vscode/extensions.json
 .direnv
 html_out
 report.xml

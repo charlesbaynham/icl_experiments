@@ -2,10 +2,10 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.zotino import Zotino
-from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
-from artiq.experiment import kernel
 from artiq.experiment import NumberValue
+from artiq.experiment import delay
+from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam

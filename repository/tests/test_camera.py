@@ -3,8 +3,8 @@ import time
 
 import pandas as pd
 from artiq.coredevice.core import Core
-from artiq.experiment import delay
 from artiq.experiment import EnvExperiment
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import rpc

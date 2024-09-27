@@ -1,5 +1,4 @@
 import logging
-from typing import *
 from typing import List
 
 from artiq.coredevice.adf5356 import ADF5356

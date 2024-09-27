@@ -23,13 +23,14 @@ The plan based on manual fiddling is:
 
 7. If high, done. If low, repeat from 2.
 """
+
 import logging
 import time
 
 from artiq.master.scheduler import Scheduler
-from ndscan.experiment import *
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
+from ndscan.experiment import *
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle

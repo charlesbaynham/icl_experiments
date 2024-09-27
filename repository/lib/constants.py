@@ -14,13 +14,13 @@ If it makes sense to have hardware and experimental constants stored together
 (e.g. for the :class:`~pyaion.models.SUServoedBeam` objects below) then prefer
 this module.
 """
+
 from collections import OrderedDict
 from dataclasses import dataclass
 from dataclasses import field
 
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
-
 
 SR_FACTS = {
     "FREQUENCIES": {

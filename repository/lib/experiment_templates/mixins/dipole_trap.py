@@ -7,16 +7,11 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
-from repository.lib.fragments.red_mot.red_mot_experiment import (
-    RedMOTWithExperiment,
-)
-
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +125,6 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         Prevent field setting in the normal place: we'll do it at the start of
         the dipole trap instead
         """
-        pass
 
     @kernel
     def post_narrowband_hook_dipole_trap(self):
