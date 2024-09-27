@@ -66,6 +66,8 @@ aliases = {
     "ttl_shutter_red_up": "ttl21",
     "ttl_shutter_red_mot_diagonal": "ttl22",
     "ttl_shutter_red_axial_spin_pol": "ttl23",
+    "ttl_shutter_red_wavemeter_689_master": "ttl24",
+    "ttl_shutter_red_wavemeter_689_from_1379": "ttl25",
     "ttl_shutter_andor": "ttl0",
     "ttl_camera_trigger_andor": "ttl4",
     "ttl_camera_trigger_horizontal": "ttl6",

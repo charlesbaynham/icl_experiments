@@ -52,6 +52,12 @@ class DaisyChainedPhasesBase(ExpFragment):
         )
         self.test_phase_b: GeneralRampingPhaseNoGeneral
 
+        self.setattr_fragment(
+            "test_phase_c",
+            GeneralRampingPhaseNoGeneral,
+        )
+        self.test_phase_c: GeneralRampingPhaseNoGeneral
+
         self.configure_daisy_chaining()
 
     def configure_daisy_chaining(self):
@@ -62,6 +68,7 @@ class DaisyChainedPhasesBase(ExpFragment):
         logger.info("Precomputing handles")
         self.test_phase_a.precalculate_dma_handle()
         self.test_phase_b.precalculate_dma_handle()
+        self.test_phase_c.precalculate_dma_handle()
 
         logger.info("Starting test phases")
 
@@ -69,6 +76,7 @@ class DaisyChainedPhasesBase(ExpFragment):
 
         self.test_phase_a.do_phase()
         self.test_phase_b.do_phase()
+        self.test_phase_c.do_phase()
 
         logger.info("Phase queuing completed")
 
@@ -93,12 +101,26 @@ class DaisyChainedPhasesSpecific(DaisyChainedPhasesBase):
                 "suservo_aom_singlepass_461_2dmot_b",
             ],
         )
+        self.test_phase_c.daisy_chain_with_previous_phase(
+            self.test_phase_b,
+            suservos=[
+                "suservo_aom_singlepass_461_imaging_delivery",
+                "suservo_aom_singlepass_461_2dmot_b",
+            ],
+        )
 
 
 class DaisyChainedPhasesAll(DaisyChainedPhasesBase):
     def configure_daisy_chaining(self):
         self.test_phase_b.daisy_chain_with_previous_phase(
             self.test_phase_a,
+            suservos=[
+                "suservo_aom_singlepass_461_imaging_delivery",
+                "suservo_aom_singlepass_461_2dmot_b",
+            ],
+        )
+        self.test_phase_c.daisy_chain_with_previous_phase(
+            self.test_phase_b,
             suservos=[
                 "suservo_aom_singlepass_461_imaging_delivery",
                 "suservo_aom_singlepass_461_2dmot_b",

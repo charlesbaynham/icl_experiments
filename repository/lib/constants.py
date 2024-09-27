@@ -246,7 +246,7 @@ ANDOR_CAMERA_BACKGROUND_DELAY = 60e-3
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width, height = 230, 285, 100, 100
+x, y, width, height = 205, 290, 100, 100
 
 if USE_LATTICE_MODE:
     ANDOR_ROI_X0 = 50
@@ -537,6 +537,15 @@ MIRNY_SETTINGS_87 = [
 assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
+
+WAND_1379_EXPOSURES = [
+    200e-3,
+    100e-3,
+]
+"Exposure settings for the wavemeter when it's measuring the doubled 1379 on the 689 path"
+
+WAND_SHUTTERS_DELAY = 50e-3
+"Shutter closing delay before WAND measurements of the 689 and 1379"
 
 # WAND frequency references and lock settings for the two isotopes. Lasers not
 # listed will be ignored. Entries are a tuple of (reference, locked): the laser
