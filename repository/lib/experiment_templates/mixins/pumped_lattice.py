@@ -32,6 +32,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     def build_fragment(self):
@@ -153,7 +154,11 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         self.lattice_suservo.set_setpoint(self.lattice_low_setpoint.get())
 
     @kernel
-    def post_sequence_cleanup_hook_lattice(self):
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_lattice()
 
+    @kernel
+    def post_sequence_cleanup_hook_lattice(self):
         # After the sequence completes, put the lattice back to its high setpoint
         self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())

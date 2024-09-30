@@ -21,6 +21,7 @@ class SingleAndorImage(RedMOTWithExperiment):
 
     * :meth:`~do_imaging_hook`
     * :meth:`~save_data_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     def hook_setup_andor(self):

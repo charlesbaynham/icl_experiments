@@ -211,6 +211,12 @@ class SpectroscopySingleImage_UpBeam(
         delay(self.spectroscopy_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_lattice()
+        self.post_sequence_cleanup_hook_andor()
+
 
 # SpectroscopyWithKineticsMOTExp = make_fragment_scan_exp(
 #     SpectroscopyWithKinetics_MOTBeam
