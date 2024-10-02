@@ -13,7 +13,9 @@ from pyaion.models import SUServoedBeam
 
 from device_db_config import get_device_db
 from repository.lib import constants
-from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 logger = logging.getLogger(__name__)
 

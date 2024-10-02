@@ -14,7 +14,9 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib.dummy_devices import DummySUServoFrag
 from repository.lib.dummy_devices import DummyTTL
-from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 logger = logging.getLogger(__name__)
 

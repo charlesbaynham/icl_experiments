@@ -7,12 +7,14 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     SetBeamsToDefaults,
 )
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     make_set_beams_to_default,
+)
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
 )
 
 logger = logging.getLogger(__name__)

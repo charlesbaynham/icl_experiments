@@ -20,12 +20,14 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
-from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     SetBeamsToDefaults,
 )
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     make_set_beams_to_default,
+)
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
 )
 
 logger = logging.getLogger(__name__)

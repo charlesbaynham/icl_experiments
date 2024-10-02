@@ -25,12 +25,14 @@ import repository.lib.constants as constants
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
-from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     SetBeamsToDefaults,
 )
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     make_set_beams_to_default,
+)
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
 )
 
 logger = logging.getLogger(__name__)

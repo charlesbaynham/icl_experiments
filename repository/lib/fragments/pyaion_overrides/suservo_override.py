@@ -7,6 +7,7 @@ from artiq.coredevice.suservo import SUServo
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import rpc
 from ndscan.experiment import Fragment
@@ -187,6 +188,7 @@ class LibSetSUServoStatic(Fragment):
                 self.suservo_profile,
             )
             self.core.break_realtime()
+            delay_mu(int64(self.core.ref_multiplier))
 
         # Set the attenuator for this channel
         self.set_this_attenuation(attenuation)

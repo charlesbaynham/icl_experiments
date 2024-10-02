@@ -23,7 +23,9 @@ from pyaion.models import UrukuledBeam
 from pyaion.utilities.dummy_devices import DummyCPLD as DummyUrukul
 from pyaion.utilities.dummy_devices import *
 
-from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 logger = logging.getLogger(__name__)
 
