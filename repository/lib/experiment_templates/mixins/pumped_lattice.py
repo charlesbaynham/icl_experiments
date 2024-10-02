@@ -4,10 +4,10 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     SetBeamsToDefaults,
 )

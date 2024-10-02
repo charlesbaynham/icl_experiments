@@ -18,10 +18,10 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int32
 from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib.dummy_devices import DummyAD9910
 from repository.lib.dummy_devices import DummySUServoChannel
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 

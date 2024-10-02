@@ -5,7 +5,7 @@
 # from ndscan.experiment import FloatParam
 # from ndscan.experiment.entry_point import make_fragment_scan_exp
 # from ndscan.experiment.parameters import FloatParamHandle
-# from pyaion.fragments.suservo import LibSetSUServoStatic
+# from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 # from qbutler.calibration import Calibration
 # from qbutler.calibration import CalibrationResult
 # import repository.lib.constants as constants

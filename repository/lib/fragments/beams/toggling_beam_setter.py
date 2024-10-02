@@ -6,7 +6,6 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
@@ -15,6 +14,7 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib.dummy_devices import DummySUServoFrag
 from repository.lib.dummy_devices import DummyTTL
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 

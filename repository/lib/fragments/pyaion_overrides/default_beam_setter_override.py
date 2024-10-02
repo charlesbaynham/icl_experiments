@@ -17,12 +17,13 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 from pyaion.utilities.dummy_devices import DummyCPLD as DummyUrukul
 from pyaion.utilities.dummy_devices import *
+
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
@@ -504,7 +505,6 @@ class SetBeamsToDefaults(Fragment):
                     "Enabling AD9910 %s, freq=%s, amp=%s", info.device, freq, amp
                 )
                 self.core.break_realtime()
-            delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def _turn_on_ad9912s(self, light_enabled):

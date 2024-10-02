@@ -5,7 +5,8 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
+
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 
 
 class TurnOn698Temporary(ExpFragment):

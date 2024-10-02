@@ -9,11 +9,11 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 
 from device_db_config import get_device_db
 from repository.lib import constants
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 

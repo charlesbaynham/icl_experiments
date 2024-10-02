@@ -13,10 +13,10 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import OpaqueChannel
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from retry import retry
 
 from repository.lib.fragments.cameras.flir_camera import Chamber2HorizontalCamera
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 
 
 class TestFLIRCamera(EnvExperiment):

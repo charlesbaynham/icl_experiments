@@ -12,7 +12,6 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -21,6 +20,7 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
+from repository.lib.fragments.pyaion.suservo_override import LibSetSUServoStatic
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     SetBeamsToDefaults,
 )
