@@ -155,7 +155,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     @kernel
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_lattice()
+        # self.post_sequence_cleanup_hook_lattice()
 
     @kernel
     def post_sequence_cleanup_hook_lattice(self):
