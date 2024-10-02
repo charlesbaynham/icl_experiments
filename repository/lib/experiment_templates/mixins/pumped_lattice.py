@@ -138,6 +138,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         delay(self.duration_spinpol_pulse.get())
         # self.red_mot.red_beam_controller.stop_ramping_spinpol()
         # delay_mu(8)
+        delay(20e-3)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
