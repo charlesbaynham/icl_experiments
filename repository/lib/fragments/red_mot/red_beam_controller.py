@@ -17,8 +17,6 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 from pyaion.fragments.ad9910_ramper import AD9910Ramper
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
@@ -27,6 +25,12 @@ from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
 import repository.lib.constants as constants
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    SetBeamsToDefaults,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    make_set_beams_to_default,
 )
 
 logger = logging.getLogger(__name__)
