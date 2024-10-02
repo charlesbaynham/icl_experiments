@@ -526,6 +526,7 @@ class RedBeamController(Fragment):
     def turn_off_spin_pol(self, ignore_shutters=False):
         # Turn off the spin pol beam and reset the setpoint back to normal
         self.ttl_shutter_red_axial_mot.off()
+        delay(20e-3)
         delay_mu(int64(self.core.ref_multiplier))
         self.spinpol_setter.set_setpoint(self.spinpol_reset_setpoint_handle.get())
         delay_mu(int64(self.core.ref_multiplier))
