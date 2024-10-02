@@ -242,9 +242,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         delay(self.delay_after_spectroscopy.get())
 
         self.do_imaging_hook()
-        delay(1.0)
-        self.post_sequence_cleanup_hook()
 
+        self.post_sequence_cleanup_hook()
+        delay(1)
         self.core.wait_until_mu(now_mu())
         # Normally I'd only have one hook for a given purpose, but since we
         # often want to do one thing with the FLIR camera and another with the
