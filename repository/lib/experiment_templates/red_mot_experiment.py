@@ -242,7 +242,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         delay(self.delay_after_spectroscopy.get())
 
         self.do_imaging_hook()
-        delay(1)
+        delay(1.0)
         self.post_sequence_cleanup_hook()
 
         self.core.wait_until_mu(now_mu())
