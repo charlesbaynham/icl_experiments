@@ -111,7 +111,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     @kernel
     def post_narrowband_hook(self):
         self.load_into_lattice()
-        self.spin_polarize()
+        # self.spin_polarize()
         self.ramp_down_lattice()
 
     @kernel
