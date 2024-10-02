@@ -469,14 +469,15 @@ class SetBeamsToDefaults(Fragment):
                 )
                 self.core.break_realtime()
 
-            # settings.setter.set_suservo(
-            #     float(beam_info.frequency),
-            #     initial_amplitude,
-            #     float(beam_info.attenuation),
-            #     rf_switch_state=rf_switch_state,
-            #     setpoint_v=setpoint,
-            #     enable_iir=beam_info.servo_enabled and light_enabled,
-            # )
+            settings.setter.set_suservo(
+                float(beam_info.frequency),
+                initial_amplitude,
+                float(beam_info.attenuation),
+                rf_switch_state=rf_switch_state,
+                setpoint_v=setpoint,
+                enable_iir=beam_info.servo_enabled and light_enabled,
+            )
+            delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def _turn_on_ad9910s(self, light_enabled):
@@ -503,6 +504,7 @@ class SetBeamsToDefaults(Fragment):
                     "Enabling AD9910 %s, freq=%s, amp=%s", info.device, freq, amp
                 )
                 self.core.break_realtime()
+            delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def _turn_on_ad9912s(self, light_enabled):
