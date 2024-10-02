@@ -207,10 +207,9 @@ class SpectroscopySingleImage_UpBeam(
 
     @kernel
     def do_spectroscopy_hook(self):
-        # self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
-        # self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
-        # FIXME
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
     @kernel
     def post_sequence_cleanup_hook(self):
