@@ -243,8 +243,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.do_imaging_hook()
 
-        self.post_sequence_cleanup_hook_lattice()
-
         self.post_sequence_cleanup_hook()
 
         self.core.wait_until_mu(now_mu())
