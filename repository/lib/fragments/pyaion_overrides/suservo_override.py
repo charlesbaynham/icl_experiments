@@ -11,6 +11,7 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import rpc
 from ndscan.experiment import Fragment
+from numpy import int64
 
 logger = logging.getLogger(__name__)
 
