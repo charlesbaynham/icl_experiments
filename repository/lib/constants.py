@@ -96,6 +96,12 @@ RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
 
+RED_SPINPOL_RAMP_LIMIT = 4e6
+"Ramp extent for the spin polarising beam (n.b. will be double by the double-pass AOM)"
+
+RED_SPINPOL_AOM_RAMP_FREQUENCY = 30e3
+"Default ramp frequency for the spin polarising beam"
+
 # Lattice ramp-down configuration
 # TODO: Choose real lattice ramp parameters
 LATTICE_HIGH_SETPOINT_MULTIPLE = 1.0

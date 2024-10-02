@@ -225,7 +225,7 @@ class RedBeamController(Fragment):
             FloatParam,
             "689 spinpol AOM ramp frequency",
             unit="kHz",
-            default=0.0,
+            default=constants.RED_SPINPOL_AOM_RAMP_FREQUENCY,
         )
         self.setattr_param(
             "spinpol_ramp_lower_detuning",
@@ -239,7 +239,7 @@ class RedBeamController(Fragment):
             FloatParam,
             "Detuning of 689 spinpol AOM from nominal frequency at highest point of ramp",
             unit="MHz",
-            default=0.0,
+            default=constants.RED_SPINPOL_RAMP_LIMIT,
         )
         self.setattr_param(
             "spinpol_ramp_type",
@@ -302,9 +302,9 @@ class RedBeamController(Fragment):
 
         # Look up the SUServo setpoints from the beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[i] = (
-                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
-            )
+            self.suservo_nominal_amplitudes[
+                i
+            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = abs(
@@ -323,7 +323,10 @@ class RedBeamController(Fragment):
 
         # Precalculate the spinpol ramp rate required to get the requested modulation frequency
         self.spinpol_ramp_rate = abs(
-            (self.spinpol_ramp_lower_detuning.get() - self.spinpol_ramp_upper_detuning.get())
+            (
+                self.spinpol_ramp_lower_detuning.get()
+                - self.spinpol_ramp_upper_detuning.get()
+            )
             * self.spinpol_ramp_frequency.get()
         )
 
@@ -333,8 +336,9 @@ class RedBeamController(Fragment):
 
         if self.debug_mode:
             logger.info(
-                "Calculated required ramp_rate = %s kHz/s", self.spinpol_ramp_rate * 1e-3
-            )        
+                "Calculated required ramp_rate = %s kHz/s",
+                self.spinpol_ramp_rate * 1e-3,
+            )
 
         self.core.break_realtime()
 
@@ -415,8 +419,10 @@ class RedBeamController(Fragment):
 
         self.spinpol_aom_ramper.start_ramp(
             self.spinpol_ramp_rate,
-            self.spinpol_aom_static_frequency.get() + self.spinpol_ramp_lower_detuning.get(),
-            self.spinpol_aom_static_frequency.get() + self.spinpol_ramp_upper_detuning.get(),
+            self.spinpol_aom_static_frequency.get()
+            + self.spinpol_ramp_lower_detuning.get(),
+            self.spinpol_aom_static_frequency.get()
+            + self.spinpol_ramp_upper_detuning.get(),
             self.spinpol_ramp_type.get(),
         )
 
