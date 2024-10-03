@@ -9,6 +9,7 @@ from typing import Type
 
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import delay
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
@@ -26,6 +27,8 @@ from numpy.typing import ArrayLike
 
 from repository.lib.constants import CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
 from repository.lib.constants import CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
+from repository.lib.constants import FLIR_CAMERA_EXPOSURE_TIME
+from repository.lib.constants import FLIR_CAMERA_TRIGGER_PREEMPT_TIME
 
 if TYPE_CHECKING:
     from aravis import Camera
@@ -149,7 +152,7 @@ class CameraFrag(Fragment):
         self.cam.set_feature("TriggerSource", "Software")
         self.cam.set_feature("ExposureAuto", "Off")
         self.cam.set_feature("GainAuto", "Off")
-        self.cam.set_feature("ExposureTime", 1000)
+        self.cam.set_feature("ExposureTime", FLIR_CAMERA_EXPOSURE_TIME)
         self.cam.set_feature("Gain", 20)
 
         max_height = self.cam.get_feature("HeightMax")
@@ -250,7 +253,9 @@ class CameraFrag(Fragment):
 
     @kernel
     def _hardware_trigger(self):
+        delay(-FLIR_CAMERA_TRIGGER_PREEMPT_TIME)
         self.ttl_trigger.pulse(self.exposure)
+        delay(FLIR_CAMERA_TRIGGER_PREEMPT_TIME)
 
     @rpc(flags={"async"})
     def _software_trigger(self):
