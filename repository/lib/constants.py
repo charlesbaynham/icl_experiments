@@ -142,7 +142,7 @@ IJD_DEFAULTS = {
 RED_IJD_RELOCK_FREQUENCY_BOOST = 2e6
 "Amount to increase red AOM frequency from default while relocking the IJD"
 
-FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 00e-6
+FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 FLIR_CAMERA_EXPOSURE_TIME = (
     1000  # TODO: Check whether this has units of us - probably yes!
 )
