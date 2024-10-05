@@ -84,7 +84,7 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
     def run_once(self):
         self.laser_driver.set_current_mA(1e3 * self.current.get())
 
-        time.sleep(1)
+        time.sleep(0.1)
 
         self.take_data()
 
