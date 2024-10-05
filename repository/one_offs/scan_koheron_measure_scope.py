@@ -46,13 +46,12 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
     def get_data(self, chan):
         self.scope.write("SING")
         self.scope.query("*OPC?")
-        # data = scope.query("CHAN:DATA?")
-        data_raw = self.scope.query_bin_or_ascii_float_list(
-            "FORM ASC;:CHAN{}:DATA?".format(chan)
-        )
+
+        data_raw = self.scope.query_bin_block("FORM REAL,32;:CHAN{}:DATA?".format(chan))
         header = self.scope.query_bin_or_ascii_float_list(
             "CHANnel{}:DATA:HEADer?".format(chan)
         )
+
         x_vals = np.linspace(header[0], header[1], int(header[2]))
 
         return x_vals, data_raw
