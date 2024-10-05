@@ -65,10 +65,11 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
     def host_cleanup(self):
         self.scope.close()
 
-    def get_data(self, chan):
+    def take_data(self):
         self.scope.write("SING")
         self.scope.query("*OPC?")
 
+    def readout_data(self, chan):
         data_raw = self.scope.query_bin_or_ascii_float_list(
             "FORM ASC;:CHAN{}:DATA?".format(chan)
         )
@@ -85,8 +86,10 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
 
         time.sleep(1)
 
-        t, data_ch1 = self.get_data("1")
-        t, data_ch2 = self.get_data("2")
+        self.take_data()
+
+        t, data_ch1 = self.readout_data("1")
+        t, data_ch2 = self.readout_data("2")
 
         self.time.push(t)
         self.photodiode_signal.push(data_ch1)
