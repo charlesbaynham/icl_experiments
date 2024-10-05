@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from artiq.experiment import *
 from koheron_ctl200_laser_driver import CTL200
@@ -67,6 +69,12 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
     def run_once(self):
         t, data_ch1 = self.get_data("1")
         t, data_ch2 = self.get_data("2")
+
+        print(t)
+        print(data_ch1)
+        print(data_ch2)
+
+        time.sleep(1)
 
         self.time.push(t)
         self.photodiode_signal.push(data_ch1)
