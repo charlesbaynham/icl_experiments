@@ -1,3 +1,4 @@
+import numpy as np
 from artiq.experiment import *
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import *
@@ -42,9 +43,26 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
     def host_cleanup(self):
         self.scope.close()
 
+    def get_data(self, chan):
+        self.scope.write("SING")
+        self.scope.query("*OPC?")
+        # data = scope.query("CHAN:DATA?")
+        data_raw = self.scope.query_bin_or_ascii_float_list(
+            "FORM ASC;:CHAN{}:DATA?".format(chan)
+        )
+        header = self.scope.query_bin_or_ascii_float_list(
+            "CHANnel{}:DATA:HEADer?".format(chan)
+        )
+        x_vals = np.linspace(header[0], header[1], int(header[2]))
+
+        return x_vals, data_raw
+
     def run_once(self):
-        # self.scope.write("CHANnel1:SCALe 1.0")
-        pass
+        data_ch1 = self.get_data("1")
+        data_ch2 = self.get_data("2")
+
+        print(data_ch1)
+        print(data_ch2)
 
 
 ScanKoheronMeasureScope = make_fragment_scan_exp(ScanKoheronMeasureScopeFrag)
