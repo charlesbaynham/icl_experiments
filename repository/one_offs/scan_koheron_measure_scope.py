@@ -13,7 +13,7 @@ SETUP_CMDS = """
 CHAN:TYPE HRES
 CHAN:DATA:POIN DMAX
 CHANnel1:SCALe 1e-3
-CHANnel2:SCALe 10e-3
+CHANnel2:SCALe 100e-3
 CHANnel1:COUPling ACLimit
 CHANnel2:COUPling ACLimit
 TIMebase:RANGe 0.000006
@@ -21,7 +21,6 @@ TRIGger:A:SOURce CH2
 TRIGger:A:TYPE EDGE
 TRIGger:A:LEVel1:VALue 0.0
 WGENerator:FUNCtion SINusoid
-WGENerator:VOLTage 0.1
 WGENerator:VOLTage:OFFSet 0.0
 WGENerator:FREQuency 500000
 WGENerator:OUTPut ON
@@ -45,6 +44,17 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
             min=0,
         )
         self.current: FloatParamHandle
+
+        self.setattr_param(
+            "amplitude",
+            FloatParam,
+            description="Modulation amplitude",
+            default=0.1,
+            unit="V",
+            max=1,
+            min=0,
+        )
+        self.amplitude: FloatParamHandle
 
         self.laser_driver: CTL200 = self.get_device("blue_IJD1_controller")
 
@@ -82,6 +92,8 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
         return x_vals, data_raw
 
     def run_once(self):
+        self.scope.write(f"WGENerator:VOLTage {self.amplitude.get()}")
+
         self.laser_driver.set_current_mA(1e3 * self.current.get())
 
         time.sleep(0.1)
