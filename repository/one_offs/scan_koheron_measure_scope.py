@@ -34,6 +34,14 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
 
         self.laser_driver: CTL200 = self.get_device("blue_IJD1_controller")
 
+        self.setattr_result("time", OpaqueChannel)
+        self.setattr_result("current_modulation", OpaqueChannel)
+        self.setattr_result("photodiode_signal", OpaqueChannel)
+
+        self.time: ResultChannel
+        self.current_modulation: ResultChannel
+        self.photodiode_signal: ResultChannel
+
     def host_setup(self):
         self.scope = RsInstrument("TCPIP::scope2.lan::INSTR", id_query=True, reset=True)
 
@@ -57,11 +65,12 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
         return x_vals, data_raw
 
     def run_once(self):
-        data_ch1 = self.get_data("1")
-        data_ch2 = self.get_data("2")
+        t, data_ch1 = self.get_data("1")
+        t, data_ch2 = self.get_data("2")
 
-        print(data_ch1)
-        print(data_ch2)
+        self.time.push(t)
+        self.photodiode_signal.push(data_ch1)
+        self.current_modulation.push(data_ch2)
 
 
 ScanKoheronMeasureScope = make_fragment_scan_exp(ScanKoheronMeasureScopeFrag)
