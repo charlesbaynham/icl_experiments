@@ -27,7 +27,7 @@ WGENerator:FREQuency 500000
 WGENerator:OUTPut ON
 CHANnel1:STATe ON
 CHANnel2:STATe ON
-ACQuire:POINts 20000
+ACQuire:POINts 100000
 """
 
 
