@@ -31,6 +31,7 @@ toptica-lasersdk = "^3.1.1"
 tenma-power-supply = "^1.1.1"
 tti-power-supply = "^1.0.2"
 matplotlib = "^3.8.2"
+rsinstrument = "^1.82.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
