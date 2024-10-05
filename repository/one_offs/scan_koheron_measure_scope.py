@@ -4,6 +4,7 @@ import numpy as np
 from artiq.experiment import *
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import *
+from ndscan.experiment.parameters import FloatParamHandle
 from RsInstrument import *
 
 # See https://www.rohde-schwarz.com/webhelp/RTB_HTML_UserManual_en/Content/6f1f81df55074fde.htm
@@ -33,6 +34,17 @@ ACQuire:POINts 20000
 class ScanKoheronMeasureScopeFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
+
+        self.setattr_param(
+            "current",
+            FloatParam,
+            description="IJD1 current",
+            default=0.350,
+            unit="mA",
+            max=0.38,
+            min=0,
+        )
+        self.current: FloatParamHandle
 
         self.laser_driver: CTL200 = self.get_device("blue_IJD1_controller")
 
@@ -69,14 +81,12 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
         return x_vals, data_raw
 
     def run_once(self):
+        self.laser_driver.set_current_mA(1e3 * self.current.get())
+
+        time.sleep(0.1)
+
         t, data_ch1 = self.get_data("1")
         t, data_ch2 = self.get_data("2")
-
-        print(t)
-        print(data_ch1)
-        print(data_ch2)
-
-        time.sleep(1)
 
         self.time.push(t)
         self.photodiode_signal.push(data_ch1)
