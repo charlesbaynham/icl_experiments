@@ -26,7 +26,7 @@ ACQuire:POINts 20000
 """
 
 
-class ScanKoheronMeasureScope(ExpFragment):
+class ScanKoheronMeasureScopeFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
 
@@ -44,3 +44,6 @@ class ScanKoheronMeasureScope(ExpFragment):
     def run_once(self):
         # self.scope.write("CHANnel1:SCALe 1.0")
         pass
+
+
+ScanKoheronMeasureScope = make_fragment_scan_exp(ScanKoheronMeasureScopeFrag)
