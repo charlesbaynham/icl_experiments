@@ -16,7 +16,6 @@ CHANnel1:SCALe 1e-3
 CHANnel2:SCALe 100e-3
 CHANnel1:COUPling ACLimit
 CHANnel2:COUPling ACLimit
-TIMebase:RANGe 0.000006
 TRIGger:A:SOURce CH2
 TRIGger:A:TYPE EDGE
 TRIGger:A:LEVel1:VALue 0.0
@@ -33,6 +32,16 @@ ACQuire:POINts 100000
 class ScanKoheronMeasureScopeFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
+
+        self.setattr_param(
+            "timebase",
+            FloatParam,
+            description="Scope timebase",
+            default=6e-6,
+            unit="us",
+            min=0,
+        )
+        self.timebase: FloatParamHandle
 
         self.setattr_param(
             "current",
@@ -93,6 +102,7 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
 
     def run_once(self):
         self.scope.write(f"WGENerator:VOLTage {self.amplitude.get()}")
+        self.scope.write(f"TIMebase:RANGe {self.timebase.get()}")
 
         self.laser_driver.set_current_mA(1e3 * self.current.get())
 
