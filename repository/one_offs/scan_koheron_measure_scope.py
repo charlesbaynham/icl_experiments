@@ -13,7 +13,7 @@ SETUP_CMDS = """
 CHAN:TYPE HRES
 CHAN:DATA:POIN DMAX
 CHANnel1:SCALe 1e-3
-CHANnel2:SCALe 100e-3
+CHANnel2:SCALe 20e-3
 CHANnel1:COUPling ACLimit
 CHANnel2:COUPling ACLimit
 TRIGger:A:SOURce CH2
@@ -103,10 +103,11 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
     def run_once(self):
         self.scope.write(f"WGENerator:VOLTage {self.amplitude.get()}")
         self.scope.write(f"TIMebase:RANGe {self.timebase.get()}")
+        self.scope.query("*OPC?")
 
         self.laser_driver.set_current_mA(1e3 * self.current.get())
 
-        time.sleep(0.1)
+        time.sleep(0.5)
 
         self.take_data()
 
