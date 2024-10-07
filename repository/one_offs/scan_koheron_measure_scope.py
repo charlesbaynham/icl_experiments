@@ -82,6 +82,8 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
             self.scope.write(cmd)
 
     def host_cleanup(self):
+        self.scope.write(f"WGENerator:OUTPut OFF")
+
         self.scope.close()
 
     def take_data(self):
