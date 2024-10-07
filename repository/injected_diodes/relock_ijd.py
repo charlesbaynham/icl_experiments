@@ -30,7 +30,7 @@ from ndscan.experiment.parameters import IntParamHandle
 import repository.lib.constants as constants
 from repository.injected_diodes.set_koheron_controller import SetKoheronFrag
 from repository.lib.constants import IJD_DEFAULTS
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+from pyaion.fragments.default_beam_setter import (
     make_set_beams_to_default,
 )
 

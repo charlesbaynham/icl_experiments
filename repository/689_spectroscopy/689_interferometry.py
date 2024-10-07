@@ -10,7 +10,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+from pyaion.fragments.default_beam_setter import (
     SetBeamsToDefaults,
 )
 from repository.lib.fragments.pyaion_overrides.suservo_override import (

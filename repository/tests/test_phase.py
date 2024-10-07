@@ -12,10 +12,10 @@ from artiq.experiment import now_mu
 from ndscan.experiment import *
 
 from repository.lib import constants
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+from pyaion.fragments.default_beam_setter import (
     SetBeamsToDefaults,
 )
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+from pyaion.fragments.default_beam_setter import (
     make_set_beams_to_default,
 )
 from repository.lib.fragments.ramping_phase import GeneralRampingPhase

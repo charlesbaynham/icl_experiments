@@ -25,10 +25,10 @@ import repository.lib.constants as constants
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+from pyaion.fragments.default_beam_setter import (
     SetBeamsToDefaults,
 )
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+from pyaion.fragments.default_beam_setter import (
     make_set_beams_to_default,
 )
 from repository.lib.fragments.pyaion_overrides.suservo_override import (
