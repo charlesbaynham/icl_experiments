@@ -111,7 +111,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         self.dipole_switch_ttl: TTLOut = self.dipole_switch_urukul.sw
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("dipole_delivery_sw")
+        self.kernel_invariants.add("dipole_switch_ttl")
 
         return super().host_setup()
 
