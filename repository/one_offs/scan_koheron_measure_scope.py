@@ -15,6 +15,7 @@ CHAN:DATA:POIN DMAX
 CHANnel1:SCALe 1e-3
 CHANnel2:SCALe 20e-3
 CHANnel1:COUPling ACLimit
+CHANnel1:BANDwidth B20
 CHANnel2:COUPling ACLimit
 TRIGger:A:SOURce CH2
 TRIGger:A:TYPE EDGE
@@ -58,8 +59,8 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
             "amplitude",
             FloatParam,
             description="Modulation amplitude",
-            default=0.1,
-            unit="V",
+            default=0.025,
+            unit="mV",
             max=1,
             min=0,
         )
