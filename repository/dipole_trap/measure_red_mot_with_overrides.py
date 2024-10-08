@@ -15,15 +15,15 @@ logger = logging.getLogger(__name__)
 
 def make_experiment(
     name: str,
-    chamber_2_bias_x=0.4,
-    chamber_2_bias_y=0.02,
-    chamber_2_bias_z=-0.75,
-    chamber_2_mot_current_start=3,
-    chamber_2_mot_current_end=3,
-    roi_0_x0=130,
-    roi_0_x1=280,
-    roi_0_y0=150,
-    roi_0_y1=200,
+    chamber_2_bias_x,
+    chamber_2_bias_y,
+    chamber_2_bias_z,
+    chamber_2_mot_current_start,
+    chamber_2_mot_current_end,
+    roi_0_x0,
+    roi_0_x1,
+    roi_0_y0,
+    roi_0_y1,
 ):
     pass
 
@@ -78,7 +78,18 @@ def make_experiment(
     return make_fragment_scan_exp(Exp)
 
 
-LoadLowerDipoleTrap = make_experiment("LoadLowerDipoleTrap")
+LoadLowerDipoleTrap = make_experiment(
+    "LoadLowerDipoleTrap",
+    chamber_2_bias_x=0.4,
+    chamber_2_bias_y=0.02,
+    chamber_2_bias_z=-0.75,
+    chamber_2_mot_current_start=3,
+    chamber_2_mot_current_end=3,
+    roi_0_x0=130,
+    roi_0_x1=280,
+    roi_0_y0=150,
+    roi_0_y1=200,
+)
 
 
 LoadUpperDipoleTrap = make_experiment(
