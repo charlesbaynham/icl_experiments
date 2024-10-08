@@ -1,18 +1,15 @@
 import logging
 
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from pyaion.fragments.default_beam_setter import (
-    SetBeamsToDefaults,
-)
-from pyaion.fragments.default_beam_setter import (
-    make_set_beams_to_default,
-)
 from repository.lib.fragments.pyaion_overrides.suservo_override import (
     LibSetSUServoStatic,
 )
@@ -138,12 +135,12 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         then hold them afterwards for some time.
         """
         delay(self.delay_before_spinpol_pulse.get())
-        # self.red_mot.red_beam_controller.start_ramping_spinpol()
-        # delay_mu(8)
+        self.red_mot.red_beam_controller.start_ramping_spinpol()
+        delay_mu(8)
         self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
         delay(self.duration_spinpol_pulse.get())
-        # self.red_mot.red_beam_controller.stop_ramping_spinpol()
-        # delay_mu(8)
+        self.red_mot.red_beam_controller.stop_ramping_spinpol()
+        delay_mu(8)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
