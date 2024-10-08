@@ -79,3 +79,17 @@ def make_experiment(
 
 
 LoadLowerDipoleTrap = make_experiment("LoadLowerDipoleTrap")
+
+
+LoadUpperDipoleTrap = make_experiment(
+    "LoadUpperDipoleTrap",
+    chamber_2_bias_x=0.4,
+    chamber_2_bias_y=0.02,
+    chamber_2_bias_z=-1.015,
+    chamber_2_mot_current_start=3,
+    chamber_2_mot_current_end=3,
+    roi_0_x0=130,
+    roi_0_x1=280,
+    roi_0_y0=275,
+    roi_0_y1=325,
+)
