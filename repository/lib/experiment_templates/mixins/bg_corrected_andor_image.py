@@ -153,6 +153,8 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
 
         if self.andor_camera_control.save_raw_andor_image.get():
             self.andor_bg_corrected.push(corrected_img_array)
+        else:
+            self.andor_bg_corrected.push([])
 
     @kernel
     def save_data_hook(self):

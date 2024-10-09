@@ -113,6 +113,8 @@ class SingleAndorImage(RedMOTWithExperiment):
 
         if self.andor_camera_control.save_raw_andor_image.get():
             self.andor_image.push(img_array)
+        else:
+            self.andor_image.push([])
 
         self.set_dataset(
             DATASET_NAME,
