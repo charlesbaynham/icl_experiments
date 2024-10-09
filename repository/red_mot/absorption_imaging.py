@@ -195,7 +195,7 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.ccb.issue(
             "create_applet",
             f"andor_abs_img",
-            f"${{artiq_applet}}image andor_abs_img",
+            f"${{artiq_applet}}image andor_abs_img_dataset",
         )
 
     @rpc(flags={"async"})
@@ -243,13 +243,17 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         )
 
         self.set_dataset(
-            "andor_abs_img",
+            "andor_abs_img_dataset",
             img_abs,
             broadcast=True,
             persist=False,
             archive=False,
         )
-        # self.andor_abs_img.push(img_abs)
+        # TODO rebind this instead
+        if self.andor_camera_control.save_raw_andor_image.get():
+            self.andor_abs_img.push(img_abs)
+        else:
+            self.andor_abs_img.push([])
 
     @kernel
     def save_data_hook(self):
