@@ -29,7 +29,7 @@ ACQuire:POINts 100000
 """
 
 
-class ScanKoheronMeasureScopeFrag(ExpFragment):
+class ScanKoheronMeasureScope(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
 
@@ -123,4 +123,5 @@ class ScanKoheronMeasureScopeFrag(ExpFragment):
         self.current_modulation.push(data_ch2)
 
 
-ScanKoheronMeasureScope = make_fragment_scan_exp(ScanKoheronMeasureScopeFrag)
+# HACK remove expfragment from namespace to get around unit testing accessing the scope
+ScanKoheronMeasureScope = make_fragment_scan_exp(ScanKoheronMeasureScope)

@@ -118,6 +118,13 @@ def get_non_core_devices(simulation_mode=False):
                 "loglevel": logging.WARNING,
             },
         },
+        "andor_camera": {
+            "type": "controller",
+            "host": "labpc1.lan",
+            "port": 7777,
+            "target": "AndorDriver",
+            "command": 'aqctl_andor_cam --port {port} --bind {bind} --id "AndorCam" --temperature -60 --fan_mode "full"',
+        },
         "chamber_1_axial_coil_driver": {
             "type": "local",
             "module": "tenma_power_supply",
