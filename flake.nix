@@ -29,9 +29,11 @@
               qbutler = [ "setuptools" ];
               aravis = [ "setuptools" ];
               pygobject = [ "setuptools" ];
+              pyft232 =  [ "setuptools" ];
               tenma-power-supply = [ "poetry-core" ];
               toptica-wrapper = [ "poetry-core" ];
               wand = [ "poetry-core" ];
+              andor-artiq-ndsp = ["poetry-core"];
             };
             extra-overrides = [
               # Patch python-aravis to use poetry-resolved dependencies
@@ -48,6 +50,22 @@
                   nativeBuildInputs = [ ];
                   propagatedBuildInputs = prev.pycairo.propagatedBuildInputs;
                 };
+                pylablib = prev.pylablib.overridePythonAttrs {
+                  dontWrapQtApps = true;
+                };
+                andor-artiq-ndsp = prev.andor-artiq-ndsp.overridePythonAttrs {
+                  dontWrapQtApps = true;
+                };
+                numba = prev.numba.override {
+                  preferWheel = false;
+                };
+                pyusb = prev.pyusb.override {
+                  preferWheel = false;
+                };
+
+
+
+
 
                 # Our fork of wand used poetry for packaging, so we don't need
                 # to worry about deps. But it does have a graphical interface

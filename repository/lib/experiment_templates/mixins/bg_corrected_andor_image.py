@@ -1,9 +1,13 @@
 import logging
 
+import numpy as np
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
+from ndscan.experiment import OpaqueChannel
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -30,6 +34,8 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
+        self.setattr_device("ccb")
+
         self.setattr_param(
             "delay_before_bg_pulse",
             FloatParam,
@@ -39,6 +45,29 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
             default=constants.ANDOR_CAMERA_BACKGROUND_DELAY,
         )
         self.delay_before_bg_pulse: FloatParamHandle
+
+        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
+        self.use_andor_driver: BoolParamHandle
+
+    def host_setup(self):
+        self.ccb.issue(
+            "create_applet",
+            "Bg subtracted Andor image",
+            f"${{artiq_applet}}image {'corrected_img'}",
+        )
+        self.ccb.issue(
+            "create_applet",
+            "Andor image w/ atoms",
+            f"${{artiq_applet}}image {'atom_img_array'}",
+        )
+
+        self.ccb.issue(
+            "create_applet",
+            "Bg Andor image",
+            f"${{artiq_applet}}image {'bg_img_array'}",
+        )
+
+        return super().host_setup()
 
     def hook_setup_andor(self):
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
@@ -50,6 +79,13 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         self.andor_mean_bg_corrected: FloatChannel
         self.andor_sum: FloatChannel
         self.andor_mean: FloatChannel
+
+        self.setattr_result("andor_sum_slice_x", OpaqueChannel)
+        self.setattr_result("andor_sum_slice_y", OpaqueChannel)
+        self.setattr_result("andor_bg_corrected", OpaqueChannel)
+        self.andor_sum_slice_x: OpaqueChannel
+        self.andor_sum_slice_y: OpaqueChannel
+        self.andor_bg_corrected: OpaqueChannel
 
     @kernel
     def start_of_red_broadband_hook(self):
@@ -77,10 +113,54 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         # Image background with no atoms
         self.do_pulse(andor_exposure)
 
+    @rpc(flags={"async"})
+    def _call_camera_rpc(self):
+        # do stuff including writing to resultchannel
+        img_array = self.andor_camera_control.readout_image(timeout=1)
+        bg_img_array = self.andor_camera_control.readout_image(timeout=1)
+
+        corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
+        sum_slice_x, sum_slice_y = self.andor_camera_control.slice_image(
+            corrected_img_array
+        )
+
+        self.set_dataset(
+            "corrected_img",
+            corrected_img_array,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+        self.set_dataset(
+            "atom_img_array",
+            img_array,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+        self.set_dataset(
+            "bg_img_array",
+            bg_img_array,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+        self.andor_sum_slice_x.push(sum_slice_x)
+        self.andor_sum_slice_y.push(sum_slice_y)
+
+        if self.andor_camera_control.save_raw_andor_image.get():
+            self.andor_bg_corrected.push(corrected_img_array)
+
     @kernel
     def save_data_hook(self):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
+
+        if self.use_andor_driver.get():
+            self._call_camera_rpc()
 
         sum_atoms = [0]
         mean_atoms = [0.0]
