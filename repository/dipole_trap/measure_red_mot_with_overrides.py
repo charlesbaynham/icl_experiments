@@ -87,8 +87,8 @@ LoadLowerDipoleTrap = make_experiment(
     chamber_2_mot_current_end=3,
     roi_0_x0=130,
     roi_0_x1=280,
-    roi_0_y0=150,
-    roi_0_y1=200,
+    roi_0_y0=200,
+    roi_0_y1=260,
 )
 
 
