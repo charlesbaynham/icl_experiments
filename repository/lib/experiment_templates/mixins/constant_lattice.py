@@ -40,7 +40,9 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
                     constants.SUSERVOED_BEAMS["up_813"],
                     constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
                 ],
-                urukul_beam_infos=[constants.URUKULED_BEAMS["dipole_trap_1064_switch"]],
+                urukul_beam_infos=[
+                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"]
+                ],
                 use_automatic_setup=True,
             ),
         )

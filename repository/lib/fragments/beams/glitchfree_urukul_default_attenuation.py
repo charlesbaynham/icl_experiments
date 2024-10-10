@@ -17,7 +17,7 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
     This is useful when you need to avoid glitches on AOMs (e.g. for injection /
     cavity locks), but need the attenuation to be set up.
 
-    Note that reading the attenuation our from the Urukul is not a solution -
+    Note that reading the attenuation out from the Urukul is not a solution:
     the read involves clocking zeros into the attenuator shift register then
     clocking the correct value back in. This is followed by an update which
     doesn't change the value, but still causes a brief glitch.

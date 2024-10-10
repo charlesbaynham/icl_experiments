@@ -1,5 +1,6 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=daisy-chain-ramps";
+  # FIXME: go back to master branch once https://gitlab.com/aion-physics/code/artiq/pyaion/-/merge_requests/55 is merged
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq. This is currently hard because we're getting
@@ -88,9 +89,10 @@
             exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
           '');
 
-          wand_gui_launcher = let
-            config_file = "${self}/scripts/icl_aion_gui_config.pyon";
-          in
+          wand_gui_launcher =
+            let
+              config_file = "${self}/scripts/icl_aion_gui_config.pyon";
+            in
             (pkgs.writeShellScriptBin "icl_wand" ''
               export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
 

@@ -59,7 +59,7 @@ from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
-from repository.lib.fragments.red_mot import NarrowbandRedMOTFrag
+from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     This ExpFragment cannot be used as is - you should subclass it and implement
     methods in your child class. You must implement these:
 
-    * `do_spectroscopy_hook`
+    * `do_experiment_after_red_mot_hook`
 
     You probably want to implement:
 
@@ -112,8 +112,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
 
-        self.setattr_fragment("red_mot", NarrowbandRedMOTFrag)
-        self.red_mot: NarrowbandRedMOTFrag
+        self.setattr_fragment("red_mot", RedMOTThreePhaseFrag)
+        self.red_mot: RedMOTThreePhaseFrag
 
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
@@ -158,13 +158,13 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
 
         self.setattr_param(
-            "delay_after_spectroscopy",
+            "delay_after_experiment",
             FloatParam,
-            "Delay after spectroscopy before imaging",
+            "Delay after experiment before imaging",
             default=6e-6,
             unit="us",
         )
-        self.delay_after_spectroscopy: FloatParamHandle
+        self.delay_after_experiment: FloatParamHandle
 
         self.setattr_param(
             "spectroscopy_field_gradient",
@@ -181,15 +181,27 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        # Preload phases' handles. These have to be grouped together, instead of handled in separate subfragment setups, otherwise only the last-compiled dma handle is valid
+        self.DMA_initialization_hook()
+
+        # Probably pointless delay TODO: Check whether deleting this delay broke things: All dmas have to be called at the same time, so a delay here would mean child classes would have to copy/paste this device_setup code instead of calling super().device_setup and appending extra dmas
+        # self.core.break_realtime()
+        # delay(1e-3)
+
+    @kernel
+    def DMA_initialization_hook(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.DMA_initialization_hook_default()
+
+    @kernel
+    def DMA_initialization_hook_default(self):
         self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()
         self.red_mot.broadband_red_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_capture_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_compression_phase.precalculate_dma_handle()
-
-        # Probably pointless delay
-        self.core.break_realtime()
-        delay(1e-3)
 
     @kernel
     def run_once(self):
@@ -201,6 +213,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.core.break_realtime()
 
         self.blue_3d_mot.load_mot(clearout=True)
+        self.end_of_blue_3d_mot_loading_hook()
         self.blue_3d_mot.do_blue_transfer_mot()
         delay(self.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
@@ -208,39 +221,34 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         delay(-self.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.red_mot.prepare_for_broadband_phase()
         self.red_mot.broadband_red_phase.do_phase()
-
         delay(-self.red_broadband_time.get())
         self.start_of_red_broadband_hook()
         delay(+self.red_broadband_time.get())
-
         self.end_of_broadband_mot_hook()
-
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
-
         self.red_mot.do_narrowband_red_mot()
-
+        # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
+        self.set_postnarrowband_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
         self.post_narrowband_hook()
 
         # Do any other pre-expansion actions. By default, none
         t_light_off_mu = now_mu()
+        # TODO: To simplify, delete this pre_expansion_hook() and move its functionality to 689_spectroscopy - the one place it's used
         self.pre_expansion_hook()
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
 
-        # Set magnetic fields for the rest of the sequence
-        self.set_fields_hook()
-
         delay(self.expansion_time.get())
 
         # Do the spectroscopy / interfereometry / whatever sequence. This method
         # must be defined by child classes
-        self.do_spectroscopy_hook()
+        self.do_experiment_after_red_mot_hook()
 
-        delay(self.delay_after_spectroscopy.get())
+        delay(self.delay_after_experiment.get())
 
         self.do_imaging_hook()
 
@@ -349,6 +357,14 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
 
     @kernel
+    def end_of_blue_3d_mot_loading_hook(self):
+        """
+        Executed when the loading blue MOT ends, as the ramping blue MOT phase begins.
+
+        This will clash with the blue ramping phase: only add events here if you include a negative delay
+        """
+
+    @kernel
     def end_of_broadband_mot_hook(self):
         """
         Executed immediately after the broadband MOT stage ends, before the
@@ -394,7 +410,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
 
     @kernel
-    def set_fields_hook(self):
+    def set_postnarrowband_fields_hook(self):
         """
         Hook for setting magnetic fields immediately after end of red MOT. This
         fires at the same cursor position as the pre_expansion_hook, and runs
@@ -412,10 +428,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         )
 
     @abc.abstractmethod
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         """
-        Hook for the implementation of a spectroscopy / interfereometry /
-        whatever pulse, executed after the programmed expansion time is
+        Hook for the implementation of the following cooling stages or
+        whatever pulses, executed after the programmed expansion time is
         completed.
         """
         raise NotImplementedError

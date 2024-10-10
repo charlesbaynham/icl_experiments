@@ -28,11 +28,11 @@ class _MeasureNarrowbandMOTFrag(ConstantBeamsMixin, RedMOTWithExperiment):
         super().build_fragment()
 
         # Remove unused parameters
-        self.override_param("delay_after_spectroscopy", 0)
+        self.override_param("delay_after_experiment", 0)
         self.override_param("spectroscopy_field_gradient", 0)
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         # No spectroscopy needed - just do nothing and move straight to imaging
         pass
 

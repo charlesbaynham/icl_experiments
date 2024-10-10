@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 #         )
 
 #     @kernel
-#     def do_spectroscopy_hook(self):
+#     def do_experiment_after_red_mot_hook(self):
 #         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
 #         delay(self.spectroscopy_pulse_time.get())
 #         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
@@ -150,7 +150,7 @@ class SpectroscopyWithKinetics_UpBeam(
                 )
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.spectroscopy_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
