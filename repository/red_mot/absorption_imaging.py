@@ -256,7 +256,7 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
             self.andor_abs_img.push([])
 
     @kernel
-    def save_data_hook(self):
+    def save_andor_data_hook(self):
         """
         Hook to save data from the Andor camera
 

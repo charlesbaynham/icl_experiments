@@ -28,7 +28,7 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~do_imaging_hook`
+    * :meth:`~do_imaging_hook_andor`
     * :meth:`~save_data_hook`
     """
 
@@ -112,7 +112,7 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         self.andor_camera_control.set_shutter(True)
 
     @kernel
-    def do_imaging_hook(self):
+    def do_imaging_hook_andor(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
@@ -143,7 +143,7 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         self.do_pulse(andor_exposure)
 
     @kernel
-    def save_data_hook(self):
+    def save_andor_data_hook(self):
         """
         Hook to save data from the Andor camera
 

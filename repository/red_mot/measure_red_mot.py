@@ -1,7 +1,6 @@
 import logging
 
 from artiq.experiment import kernel
-from artiq.experiment import parallel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
@@ -50,8 +49,6 @@ class MeasureNarrowbandMOTFrag(
 
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
-    # Note that this must come before FLIRMeasurementMixin so that
-    # do_imaging_hook_andor is overridden for BG subtraction:
     BGCorrectedAndorImage,
     FLIRMeasurementMixin,
     _MeasureNarrowbandMOTFrag,
@@ -59,12 +56,6 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
     """
     Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
     """
-
-    @kernel
-    def do_imaging_hook(self):
-        with parallel:
-            self.do_imaging_hook_andor()
-            self.do_imaging_hook_flir()
 
 
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)

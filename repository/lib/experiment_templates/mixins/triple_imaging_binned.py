@@ -130,7 +130,7 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         self.do_pulse(andor_exposure)
 
     @kernel
-    def save_data_hook(self):
+    def save_andor_data_hook(self):
         """
         Hook to save data from the Andor camera
 

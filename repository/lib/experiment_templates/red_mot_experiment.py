@@ -88,11 +88,11 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     methods in your child class. You must implement these:
 
     * `do_spectroscopy_hook`
-    * `do_imaging_hook`
 
     You probably want to implement:
 
     * `save_data_hook`
+    * `do_imaging_hook`
 
     And you may wish to implement other `..._hook` methods.
 
@@ -255,7 +255,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.save_flir_data_hook()
 
         # This one for the Andor
-        self.save_data_hook()
+        self.save_andor_data_hook()
 
     @kernel
     def do_pulse(self, andor_exposure):
@@ -291,16 +291,26 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         By default, do nothing.
         """
 
-    @abc.abstractmethod
+    @kernel
     def do_imaging_hook(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        raise NotImplementedError
+        with parallel:
+            self.do_imaging_hook_andor()
+            self.do_imaging_hook_flir()
 
     @kernel
-    def save_data_hook(self):
+    def do_imaging_hook_andor(self):
+        pass
+
+    @kernel
+    def do_imaging_hook_flir(self):
+        pass
+
+    @kernel
+    def save_andor_data_hook(self):
         """
         Hook to save data from the Andor camera
 

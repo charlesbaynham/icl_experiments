@@ -27,8 +27,8 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~do_imaging_hook`
-    * :meth:`~save_data_hook`
+    * :meth:`~do_imaging_hook_andor`
+    * :meth:`~save_andor_data_hook`
     """
 
     def build_fragment(self):
@@ -95,10 +95,6 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         self.andor_camera_control.set_shutter(True)
 
     @kernel
-    def do_imaging_hook(self):
-        self.do_imaging_hook_andor()
-
-    @kernel
     def do_imaging_hook_andor(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
@@ -161,7 +157,7 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
             self.andor_bg_corrected.push([])
 
     @kernel
-    def save_data_hook(self):
+    def save_andor_data_hook(self):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
 

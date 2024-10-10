@@ -23,8 +23,8 @@ class SingleAndorImage(RedMOTWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~do_imaging_hook`
-    * :meth:`~save_data_hook`
+    * :meth:`~do_imaging_hook_andor`
+    * :meth:`~save_andor_data_hook`
     """
 
     def hook_setup_andor(self):
@@ -78,14 +78,6 @@ class SingleAndorImage(RedMOTWithExperiment):
         self.andor_camera_control.set_shutter(True)
 
     @kernel
-    def do_imaging_hook(self):
-        """
-        Hook for the imaging sequence. This hook runs after the spectroscopy
-        etc. is completed, and should handle imaging with the Andor camera.
-        """
-        self.do_imaging_hook_andor()
-
-    @kernel
     def do_imaging_hook_andor(self):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
@@ -132,7 +124,7 @@ class SingleAndorImage(RedMOTWithExperiment):
             self.andor_image.push([])
 
     @kernel
-    def save_data_hook(self):
+    def save_andor_data_hook(self):
         "Consume all slack and save the photos"
 
         self.core.wait_until_mu(now_mu())
