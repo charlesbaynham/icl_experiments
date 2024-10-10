@@ -1,6 +1,7 @@
 import logging
 
 from artiq.experiment import kernel
+from artiq.experiment import parallel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
@@ -61,8 +62,9 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
 
     @kernel
     def do_imaging_hook(self):
-        self.do_imaging_hook_andor()
-        self.do_imaging_hook_flir()
+        with parallel:
+            self.do_imaging_hook_andor()
+            self.do_imaging_hook_flir()
 
 
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
