@@ -105,24 +105,31 @@ class SingleAndorImage(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
-        # do stuff including writing to resultchannel
-        img_array = self.andor_camera_control.readout_image(timeout=1)
-        sum_slice_x, sum_slice_y = self.andor_camera_control.slice_image(img_array)
-        self.andor_sum_slice_x.push(sum_slice_x)
-        self.andor_sum_slice_y.push(sum_slice_y)
+        if self.use_andor_driver.get():
+            # Read out the image, write it to the result channels and plot it in a viewer applet
+            img_array = self.andor_camera_control.readout_image(timeout=1)
+            sum_slice_x, sum_slice_y = self.andor_camera_control.slice_image(img_array)
 
-        if self.andor_camera_control.save_raw_andor_image.get():
-            self.andor_image.push(img_array)
+            self.andor_sum_slice_x.push(sum_slice_x)
+            self.andor_sum_slice_y.push(sum_slice_y)
+
+            if self.andor_camera_control.save_raw_andor_image.get():
+                self.andor_image.push(img_array)
+            else:
+                self.andor_image.push([])
+
+            self.set_dataset(
+                DATASET_NAME,
+                img_array,
+                broadcast=True,
+                persist=False,
+                archive=False,
+            )
         else:
+            # We must always push something to ResultChannels, so push something empty
+            self.andor_sum_slice_x.push([])
+            self.andor_sum_slice_y.push([])
             self.andor_image.push([])
-
-        self.set_dataset(
-            DATASET_NAME,
-            img_array,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
 
     @kernel
     def save_data_hook(self):
@@ -130,8 +137,7 @@ class SingleAndorImage(RedMOTWithExperiment):
 
         self.core.wait_until_mu(now_mu())
 
-        if self.use_andor_driver.get():
-            self._call_camera_rpc()
+        self._call_camera_rpc()
 
         sums = [0]
         means = [0.0]
