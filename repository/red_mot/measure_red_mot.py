@@ -49,10 +49,10 @@ class MeasureNarrowbandMOTFrag(
 
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
-    FLIRMeasurementMixin,
-    # Note that this must come after FLIRMeasurementMixin so that
+    # Note that this must come before FLIRMeasurementMixin so that
     # do_imaging_hook_andor is overridden for BG subtraction:
     BGCorrectedAndorImage,
+    FLIRMeasurementMixin,
     _MeasureNarrowbandMOTFrag,
 ):
     """
