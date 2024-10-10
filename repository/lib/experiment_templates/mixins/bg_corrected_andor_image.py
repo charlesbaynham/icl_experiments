@@ -46,9 +46,6 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
-        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
-        self.use_andor_driver: BoolParamHandle
-
     def host_setup(self):
         self.ccb.issue(
             "create_applet",
@@ -86,6 +83,9 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         self.andor_sum_slice_x: OpaqueChannel
         self.andor_sum_slice_y: OpaqueChannel
         self.andor_bg_corrected: OpaqueChannel
+
+        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
+        self.use_andor_driver: BoolParamHandle
 
     @kernel
     def start_of_red_broadband_hook(self):
