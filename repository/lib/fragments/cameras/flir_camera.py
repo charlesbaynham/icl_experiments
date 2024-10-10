@@ -27,7 +27,6 @@ from numpy.typing import ArrayLike
 
 from repository.lib.constants import CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS
 from repository.lib.constants import CHAMBER_2_VERTICAL_CAMERA_DEFAULTS
-from repository.lib.constants import FLIR_CAMERA_EXPOSURE_TIME
 from repository.lib.constants import FLIR_CAMERA_TRIGGER_PREEMPT_TIME
 
 if TYPE_CHECKING:
@@ -152,7 +151,7 @@ class CameraFrag(Fragment):
         self.cam.set_feature("TriggerSource", "Software")
         self.cam.set_feature("ExposureAuto", "Off")
         self.cam.set_feature("GainAuto", "Off")
-        self.cam.set_feature("ExposureTime", FLIR_CAMERA_EXPOSURE_TIME)
+        self.cam.set_feature("ExposureTime", 1000)
         self.cam.set_feature("Gain", 20)
 
         max_height = self.cam.get_feature("HeightMax")
