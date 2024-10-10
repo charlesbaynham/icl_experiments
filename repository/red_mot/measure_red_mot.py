@@ -49,7 +49,11 @@ class MeasureNarrowbandMOTFrag(
 
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
-    BGCorrectedAndorImage, _MeasureNarrowbandMOTFrag
+    FLIRMeasurementMixin,
+    # Note that this must come after FLIRMeasurementMixin so that
+    # do_imaging_hook_andor is overridden for BG subtraction:
+    BGCorrectedAndorImage,
+    _MeasureNarrowbandMOTFrag,
 ):
     """
     Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
