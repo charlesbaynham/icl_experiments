@@ -25,7 +25,7 @@ class ClockPumpingMixin(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_spectroscopy_hook`
+    * :meth:`~do_experiment_after_red_mot_hook`
     * :meth:`~do_first_pulse`
     """
 

@@ -40,9 +40,7 @@ def build_phase_user(phase: Type[RedRampingPhaseWithFieldsAndSUServoBindings]):
             )
             self.chamber_2_field_setter: SetMagneticFieldsQuick
 
-            self.setattr_fragment(
-                "frag1", phase, chamber_2_field_setter=self.chamber_2_field_setter
-            )
+            self.setattr_fragment("frag1", phase)
             self.frag1: RedRampingPhaseWithFieldsAndSUServoBindings
 
             self.frag1.bind_suservo_setpoint_params_to_default_beam_setter(

@@ -23,7 +23,7 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
     """
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         pass
 
     def build_fragment(self):
@@ -35,7 +35,7 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.override_param("spectroscopy_field_gradient", 0.0)
 
         # Disable unused params
-        for p in ["delay_after_spectroscopy"]:
+        for p in ["delay_after_experiment"]:
             self.override_param(p, 0)
 
         # %% Params

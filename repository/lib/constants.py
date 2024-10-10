@@ -78,7 +78,7 @@ URUKULED_BEAMS = [
         urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
     ),
     UrukuledBeam(
-        "dipole_trap_1064_switch",
+        "dipole_trap_1064_freespace_AOM",
         frequency=110e6,
         attenuation=3.0,
         urukul_device="urukul_aom_1064_switch",
@@ -170,6 +170,13 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
+# TODO: Include FIELD_COMP as an offset to the other default fields below.
+# Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
+FIELD_COMP_X = 0.3
+FIELD_COMP_Y = -0.005
+FIELD_COMP_Z = -0.75
+FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
+
 if USE_SR87:
     # With 6A gradient
     B_FIELD_BIAS_LATTICE_X = 1.1  # A
@@ -193,7 +200,7 @@ else:
     B_FIELD_BIAS_MOT_Z = -0.8
 
 
-# Legacy naming
+# Legacy naming.
 B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
     B_FIELD_BIAS_MOT_X,
     B_FIELD_BIAS_MOT_Y,
@@ -668,3 +675,46 @@ else:
     RED_COMPRESSION_SUSERVO_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0]
     RED_COMPRESSION_MOT_CURRENT_START = [1.0]
     RED_COMPRESSION_MOT_CURRENT_END = [1.0]
+
+
+### DIPOLE TRAP DEFAULT PARAMETERS ###
+
+# Delay between end of red MOT and start of molasses
+DELAY_BEFORE_MOLASSES = 10e-3
+
+XODT_MOLASSES_DURATION = 100e-3
+# Order of suservos:
+# "suservo_aom_singlepass_689_red_mot_sigmaplus",
+# "suservo_aom_singlepass_689_red_mot_sigmaminus",
+# "suservo_aom_singlepass_689_red_mot_diagonal",
+# "suservo_aom_singlepass_689_up",
+# "suservo_aom_1064_delivery",
+# "suservo_aom_down_813"
+XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+# Urukul: "urukul9910_aom_doublepass_689_red_injection"
+XODT_MOLASSES_689_DETUNING_START = [
+    0e3,
+]
+XODT_MOLASSES_689_DETUNING_END = [
+    0e3,
+]
+# Chamber 2 bias coils in amps. Order: X,Y,Z
+XODT_MOLASSES_BIAS_FIELD_START = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+XODT_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+
+XODT_2ND_MOLASSES_DURATION = 100e-3
+XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+# Urukul: "urukul9910_aom_doublepass_689_red_injection"
+XODT_2ND_MOLASSES_689_DETUNING_START = [
+    0e3,
+]
+XODT_2ND_MOLASSES_689_DETUNING_END = [
+    0e3,
+]
+# Chamber 2 bias coils in amps. Order: X,Y,Z
+XODT_2ND_MOLASSES_BIAS_FIELD_START = [
+    a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+]
+XODT_2ND_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
