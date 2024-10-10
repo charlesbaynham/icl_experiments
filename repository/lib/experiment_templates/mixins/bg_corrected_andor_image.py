@@ -115,45 +115,50 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
-        # do stuff including writing to resultchannel
-        img_array = self.andor_camera_control.readout_image(timeout=1)
-        bg_img_array = self.andor_camera_control.readout_image(timeout=1)
+        if self.use_andor_driver.get():
+            # do stuff including writing to resultchannel
+            img_array = self.andor_camera_control.readout_image(timeout=1)
+            bg_img_array = self.andor_camera_control.readout_image(timeout=1)
 
-        corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
-        sum_slice_x, sum_slice_y = self.andor_camera_control.slice_image(
-            corrected_img_array
-        )
+            corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
+            sum_slice_x, sum_slice_y = self.andor_camera_control.slice_image(
+                corrected_img_array
+            )
 
-        self.set_dataset(
-            "corrected_img",
-            corrected_img_array,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
+            self.set_dataset(
+                "corrected_img",
+                corrected_img_array,
+                broadcast=True,
+                persist=False,
+                archive=False,
+            )
 
-        self.set_dataset(
-            "atom_img_array",
-            img_array,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
+            self.set_dataset(
+                "atom_img_array",
+                img_array,
+                broadcast=True,
+                persist=False,
+                archive=False,
+            )
 
-        self.set_dataset(
-            "bg_img_array",
-            bg_img_array,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
+            self.set_dataset(
+                "bg_img_array",
+                bg_img_array,
+                broadcast=True,
+                persist=False,
+                archive=False,
+            )
 
-        self.andor_sum_slice_x.push(sum_slice_x)
-        self.andor_sum_slice_y.push(sum_slice_y)
+            self.andor_sum_slice_x.push(sum_slice_x)
+            self.andor_sum_slice_y.push(sum_slice_y)
 
-        if self.andor_camera_control.save_raw_andor_image.get():
-            self.andor_bg_corrected.push(corrected_img_array)
+            if self.andor_camera_control.save_raw_andor_image.get():
+                self.andor_bg_corrected.push(corrected_img_array)
+            else:
+                self.andor_bg_corrected.push([])
         else:
+            self.andor_sum_slice_x.push([])
+            self.andor_sum_slice_y.push([])
             self.andor_bg_corrected.push([])
 
     @kernel
@@ -161,8 +166,7 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         "Consume all slack and save the photos"
         self.core.wait_until_mu(now_mu())
 
-        if self.use_andor_driver.get():
-            self._call_camera_rpc()
+        self._call_camera_rpc()
 
         sum_atoms = [0]
         mean_atoms = [0.0]
