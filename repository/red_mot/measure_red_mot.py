@@ -59,6 +59,11 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
     Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
     """
 
+    @kernel
+    def do_imaging_hook(self):
+        self.do_imaging_hook_andor()
+        self.do_imaging_hook_flir()
+
 
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
 
