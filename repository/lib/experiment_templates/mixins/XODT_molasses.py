@@ -60,6 +60,17 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         )
         self.delay_before_molasses: FloatParamHandle
 
+        self.setattr_param(
+            "mot_coil_current",
+            FloatParam,
+            "MOT coil current during molasses",
+            default=0.0,
+            unit="A",
+            min=0,
+            max=130,
+        )
+        self.mot_coil_current: FloatParamHandle
+
         self.molasses_xodt_1.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
@@ -133,7 +144,7 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         Wait a settling time before starting the molasses.
         """
         self.red_mot.chamber_2_field_setter.set_all_fields(
-            0.0,
+            self.mot_coil_current.get(),
             self.molasses_xodt_1.general_setter_default_starts[0],
             self.molasses_xodt_1.general_setter_default_starts[1],
             self.molasses_xodt_1.general_setter_default_starts[2],
