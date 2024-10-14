@@ -30,11 +30,12 @@
               qbutler = [ "setuptools" ];
               aravis = [ "setuptools" ];
               pygobject = [ "setuptools" ];
-              pyft232 =  [ "setuptools" ];
+              pyft232 = [ "setuptools" ];
               tenma-power-supply = [ "poetry-core" ];
               toptica-wrapper = [ "poetry-core" ];
               wand = [ "poetry-core" ];
-              andor-artiq-ndsp = ["poetry-core"];
+              relocker-driver = [ "poetry-core" ];
+              andor-artiq-ndsp = [ "poetry-core" ];
             };
             extra-overrides = [
               # Patch python-aravis to use poetry-resolved dependencies
@@ -51,6 +52,7 @@
                   nativeBuildInputs = [ ];
                   propagatedBuildInputs = prev.pycairo.propagatedBuildInputs;
                 };
+                relocker-driver = prev.relocker-driver.overridePythonAttrs { dontWrapQtApps = true; };
                 pylablib = prev.pylablib.overridePythonAttrs {
                   dontWrapQtApps = true;
                 };
@@ -89,9 +91,11 @@
             exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
           '');
 
+
           wand_gui_launcher =
             let
               config_file = "${self}/scripts/icl_aion_gui_config.pyon";
+
             in
             (pkgs.writeShellScriptBin "icl_wand" ''
               export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH

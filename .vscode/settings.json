@@ -10,5 +10,6 @@
         "Narrowband",
         "ndscan",
         "ROIs"
-    ]
+    ],
+    "editor.codeLens": true
 }
