@@ -128,11 +128,11 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         8800,
-        370.5e-3,
+        373e-3,
         367e-3,
         3e-3,
     ),
-    "blue_IJD3_controller": IJDSettings(8850, 358e-3, 348e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(8850, 360e-3, 350e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(
         9460, 191.0e-3, 188.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
     ),
