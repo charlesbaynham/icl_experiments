@@ -8,10 +8,10 @@ from artiq.applets.simple import SimpleApplet
 
 class SimpleImageViewer(pyqtgraph.ImageView):
     def __init__(self, args, req):
-        super().__init__(view=pg.PlotItem())
+        self.plot_item = pg.PlotItem()
+        super().__init__(view=self.plot_item)
         self.args = args
-        # Create two LineSegmentROI objects for the horizontal and vertical lines
-        # Add the crosshair lines to the ImageView
+
         self.crosshair = pg.CrosshairROI(
             pos=(0, 100), resizable=False, rotatable=False, movable=False
         )
