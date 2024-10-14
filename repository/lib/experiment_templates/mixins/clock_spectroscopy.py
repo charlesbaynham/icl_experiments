@@ -28,7 +28,7 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_spectroscopy_hook`
+    * :meth:`~do_experiment_after_red_mot_hook`
     * :meth:`~do_first_pulse`
     """
 
@@ -112,7 +112,7 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
         self.clock_dds.cfg_sw(False)
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.spectroscopy_pulse_aom_detuning.get(),

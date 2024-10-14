@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 RAMP_SPI_DELAY = 10e-6
 
 
-class NarrowbandRedMOTFrag(Fragment):
+class RedMOTThreePhaseFrag(Fragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -76,21 +76,18 @@ class NarrowbandRedMOTFrag(Fragment):
         self.setattr_fragment(
             "broadband_red_phase",
             BroadbandRedPhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
-        self.broadband_red_phase: NarrowRedCapturePhase
+        self.broadband_red_phase: BroadbandRedPhase
 
         self.setattr_fragment(
             "narrow_red_capture_phase",
             NarrowRedCapturePhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_capture_phase: NarrowRedCapturePhase
 
         self.setattr_fragment(
             "narrow_red_compression_phase",
             NarrowRedCompressionPhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.narrow_red_compression_phase: NarrowRedCompressionPhase
 

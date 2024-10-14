@@ -1,5 +1,6 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=daisy-chain-ramps";
+  # FIXME: go back to master branch once https://gitlab.com/aion-physics/code/artiq/pyaion/-/merge_requests/55 is merged
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq. This is currently hard because we're getting
@@ -29,9 +30,12 @@
               qbutler = [ "setuptools" ];
               aravis = [ "setuptools" ];
               pygobject = [ "setuptools" ];
+              pyft232 = [ "setuptools" ];
               tenma-power-supply = [ "poetry-core" ];
               toptica-wrapper = [ "poetry-core" ];
               wand = [ "poetry-core" ];
+              relocker-driver = [ "poetry-core" ];
+              andor-artiq-ndsp = [ "poetry-core" ];
             };
             extra-overrides = [
               # Patch python-aravis to use poetry-resolved dependencies
@@ -48,6 +52,23 @@
                   nativeBuildInputs = [ ];
                   propagatedBuildInputs = prev.pycairo.propagatedBuildInputs;
                 };
+                relocker-driver = prev.relocker-driver.overridePythonAttrs { dontWrapQtApps = true; };
+                pylablib = prev.pylablib.overridePythonAttrs {
+                  dontWrapQtApps = true;
+                };
+                andor-artiq-ndsp = prev.andor-artiq-ndsp.overridePythonAttrs {
+                  dontWrapQtApps = true;
+                };
+                numba = prev.numba.override {
+                  preferWheel = false;
+                };
+                pyusb = prev.pyusb.override {
+                  preferWheel = false;
+                };
+
+
+
+
 
                 # Our fork of wand used poetry for packaging, so we don't need
                 # to worry about deps. But it does have a graphical interface
@@ -70,9 +91,12 @@
             exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
           '');
 
-          wand_gui_launcher = let
-            config_file = "${self}/scripts/icl_aion_gui_config.pyon";
-          in
+
+          wand_gui_launcher =
+            let
+              config_file = "${self}/scripts/icl_aion_gui_config.pyon";
+
+            in
             (pkgs.writeShellScriptBin "icl_wand" ''
               export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
 

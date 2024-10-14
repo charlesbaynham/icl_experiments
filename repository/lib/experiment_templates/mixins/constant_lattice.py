@@ -1,13 +1,10 @@
 import logging
 
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from pyaion.fragments.default_beam_setter import (
-    SetBeamsToDefaults,
-)
-from pyaion.fragments.default_beam_setter import (
-    make_set_beams_to_default,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +40,9 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
                     constants.SUSERVOED_BEAMS["up_813"],
                     constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
                 ],
-                urukul_beam_infos=[constants.URUKULED_BEAMS["dipole_trap_1064_switch"]],
+                urukul_beam_infos=[
+                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"]
+                ],
                 use_automatic_setup=True,
             ),
         )

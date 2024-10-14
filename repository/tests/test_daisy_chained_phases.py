@@ -101,13 +101,13 @@ class DaisyChainedPhasesSpecific(DaisyChainedPhasesBase):
                 "suservo_aom_singlepass_461_2dmot_b",
             ],
         )
-        # self.test_phase_c.daisy_chain_with_previous_phase(
-        #     self.test_phase_b,
-        #     suservos=[
-        #         "suservo_aom_singlepass_461_imaging_delivery",
-        #         "suservo_aom_singlepass_461_2dmot_b",
-        #     ],
-        # )
+        self.test_phase_c.daisy_chain_with_previous_phase(
+            self.test_phase_b,
+            suservos=[
+                "suservo_aom_singlepass_461_imaging_delivery",
+                "suservo_aom_singlepass_461_2dmot_b",
+            ],
+        )
 
 
 # TODO: Solve transitivity error chaining nominal c->b->a
@@ -117,10 +117,10 @@ class DaisyChainedPhasesAll(DaisyChainedPhasesBase):
             self.test_phase_a,
             suservos="all",
         )
-        # self.test_phase_c.daisy_chain_with_previous_phase(
-        #     self.test_phase_b,
-        #     suservos="all",
-        # )
+        self.test_phase_c.daisy_chain_with_previous_phase(
+            self.test_phase_b,
+            suservos="all",
+        )
 
 
 DaisyChainedPhasesSpecificExp = make_fragment_scan_exp(DaisyChainedPhasesSpecific)

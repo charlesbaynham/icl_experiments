@@ -18,6 +18,7 @@ this module.
 from collections import OrderedDict
 from dataclasses import dataclass
 from dataclasses import field
+from typing import Optional
 
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -78,7 +79,7 @@ URUKULED_BEAMS = [
         urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
     ),
     UrukuledBeam(
-        "dipole_trap_1064_switch",
+        "dipole_trap_1064_freespace_AOM",
         frequency=110e6,
         attenuation=3.0,
         urukul_device="urukul_aom_1064_switch",
@@ -134,11 +135,11 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         8800,
-        370.5e-3,
+        373e-3,
         367e-3,
         3e-3,
     ),
-    "blue_IJD3_controller": IJDSettings(8850, 358e-3, 348e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(8850, 360e-3, 350e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(
         9460, 191.0e-3, 188.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
     ),
@@ -148,6 +149,103 @@ IJD_DEFAULTS = {
 RED_IJD_RELOCK_FREQUENCY_BOOST = 2e6
 "Amount to increase red AOM frequency from default while relocking the IJD"
 
+
+@dataclass
+class IJDRelockerSettings:
+    board_name: str
+    "Name of relocker board in device_db"
+    channel: int
+    "Channel on relocker board"
+    v_min: float
+    "Lowest voltage/end of scan"
+    v_max: float
+    "Highest voltage/start of scan"
+    n_steps: float
+    "Number of scan steps. cannot be >100"
+
+    window_frac: float
+    "Fraction of the way along the detected window to set the lock point"
+    min_diff: float
+    "Minimum acceptable size of jump on steep side of window"
+    v_low_threshold: float
+    "Maximum allowed value for the lowest read voltage for relocking to take place"
+    v_rise_threshold: float
+    "Voltage increase on shallow side of the window"
+    wait_time: float
+    "Time to settle before setting lock voltage"
+
+    auto_relock: bool
+    "Turn on auto relocking or not"
+
+    associated_controller: Optional[str] = None
+    "Koheron controller associated with the channel"
+
+    def __post_init__(self):
+        if self.n_steps > 100:
+            self.n_steps = 100
+
+
+IJD_RELOCKER_DEFAULTS = {
+    "blue_IJD1_relocker": IJDRelockerSettings(
+        "blue_relocker",
+        0,
+        -2,
+        2,
+        100,
+        0.6,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "blue_IJD1_controller",
+    ),
+    "blue_IJD2_relocker": IJDRelockerSettings(
+        "blue_relocker",
+        1,
+        -2,
+        2,
+        100,
+        0.6,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "blue_IJD2_controller",
+    ),
+    "blue_IJD3_relocker": IJDRelockerSettings(
+        "blue_relocker",
+        2,
+        -2,
+        2,
+        100,
+        0.6,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "blue_IJD3_controller",
+    ),
+    "red_IJD1_relocker": IJDRelockerSettings(
+        "red_relocker",
+        0,
+        -2,
+        2,
+        100,
+        0.5,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "red_IJD1_controller",
+    ),
+}
+"Settings for IJD relocker board channels"
+
+FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state
 CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
@@ -175,6 +273,13 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
+# TODO: Include FIELD_COMP as an offset to the other default fields below.
+# Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
+FIELD_COMP_X = 0.3
+FIELD_COMP_Y = -0.005
+FIELD_COMP_Z = -0.75
+FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
+
 if USE_SR87:
     # With 6A gradient
     B_FIELD_BIAS_LATTICE_X = 1.1  # A
@@ -198,7 +303,7 @@ else:
     B_FIELD_BIAS_MOT_Z = -0.8
 
 
-# Legacy naming
+# Legacy naming.
 B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
     B_FIELD_BIAS_MOT_X,
     B_FIELD_BIAS_MOT_Y,
@@ -566,7 +671,7 @@ WAND_SETPOINTS_88 = {
         _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
-    "689_doubled1379": (_default_689, False),
+    # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698, False),
 }
@@ -583,7 +688,7 @@ WAND_SETPOINTS_87 = {
         - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
         False,
     ),
-    "689_doubled1379": (_default_689, False),
+    # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698, False),
 }
@@ -613,3 +718,106 @@ BLUE_TRANSFER_MOT_GRADIENT_END = 90.0
 # Order: "suservo_aom_singlepass_461_3DMOT_axialminus","suservo_aom_singlepass_461_3DMOT_axialplus","suservo_aom_singlepass_461_3DMOT_radial"
 BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_START = [1.0, 1.0, 1.0]
 BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_END = [0.05, 0.05, 0.05]
+
+# Red MOT phase parameters
+
+# Order:
+# "suservo_aom_singlepass_689_red_mot_sigmaplus",
+# "suservo_aom_singlepass_689_red_mot_sigmaminus",
+# "suservo_aom_singlepass_689_red_mot_diagonal",
+# "suservo_aom_singlepass_689_up",
+
+# Broadband phase
+RED_BROADBAND_TIMESTEP = (
+    20e-3  # TODO: fix this by changing the ordering of the camera shutter queueing
+)
+if USE_SR87:
+    RED_BROADBAND_SUSERVO_MULTIPLES_START = [2.2, 2.2, 2.5, 0.5]
+    RED_BROADBAND_SUSERVO_MULTIPLES_END = [2.2, 2.2, 2.5, 0.5]
+    RED_BROADBAND_MOT_CURRENT_START = [6.0]
+    RED_BROADBAND_MOT_CURRENT_END = [6.0]
+    RED_BROADBAND_DURATION = 120e-3
+else:
+    RED_BROADBAND_SUSERVO_MULTIPLES_START = [2.2, 2.2, 2.5, 0.0]
+    RED_BROADBAND_SUSERVO_MULTIPLES_END = [2.2, 2.2, 2.5, 0.0]
+    RED_BROADBAND_MOT_CURRENT_START = [9.0]
+    RED_BROADBAND_MOT_CURRENT_END = [9.0]
+    RED_BROADBAND_DURATION = 100e-3
+
+# Capture Phase (i.e. 1st narrowband red MOT)
+RED_CAPTURE_DURATION = 10e-6
+if USE_SR87:
+    RED_CAPTURE_DETUNING_START = [0]
+    RED_CAPTURE_DETUNING_END = [0]
+    RED_CAPTURE_SUSERVO_MULTIPLES_START = [0.3, 0.3, 0.3, 0.5]
+    RED_CAPTURE_SUSERVO_MULTIPLES_END = [0.1, 0.1, 0.1, 0.25]
+    RED_CAPTURE_MOT_CURRENT_START = [6.0]
+    RED_CAPTURE_MOT_CURRENT_END = [2.0]
+else:
+    RED_CAPTURE_DETUNING_START = [150e3]
+    RED_CAPTURE_DETUNING_END = [50e3]
+    RED_CAPTURE_SUSERVO_MULTIPLES_START = [0.55, 0.35, 0.6, 0.0]
+    RED_CAPTURE_SUSERVO_MULTIPLES_END = [0.1, 0.1, 0.1, 0.0]
+    RED_CAPTURE_MOT_CURRENT_START = [3.0]
+    RED_CAPTURE_MOT_CURRENT_END = [1.0]
+
+
+# Compression Phase (i.e. 2nd and final stage of narrowband red MOT)
+RED_COMPRESSION_DURATION = 100e-3
+if USE_SR87:
+    RED_COMPRESSION_DETUNING_START = [100e3]
+    RED_COMPRESSION_DETUNING_END = [0]
+    RED_COMPRESSION_SUSERVO_MULTIPLES_START = [0.6, 0.6, 0.6, 1.5]
+    RED_COMPRESSION_SUSERVO_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2]
+    RED_COMPRESSION_MOT_CURRENT_START = [2.0]
+    RED_COMPRESSION_MOT_CURRENT_END = [2.0]
+else:
+    RED_COMPRESSION_DETUNING_START = [50e3]
+    RED_COMPRESSION_DETUNING_END = [10e3]
+    RED_COMPRESSION_SUSERVO_MULTIPLES_START = [0.1, 0.1, 0.1, 0.0]
+    RED_COMPRESSION_SUSERVO_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0]
+    RED_COMPRESSION_MOT_CURRENT_START = [1.0]
+    RED_COMPRESSION_MOT_CURRENT_END = [1.0]
+
+
+### DIPOLE TRAP DEFAULT PARAMETERS ###
+
+# Delay between end of red MOT and start of molasses
+DELAY_BEFORE_MOLASSES = 10e-3
+
+XODT_MOLASSES_DURATION = 100e-3
+# Order of suservos:
+# "suservo_aom_singlepass_689_red_mot_sigmaplus",
+# "suservo_aom_singlepass_689_red_mot_sigmaminus",
+# "suservo_aom_singlepass_689_red_mot_diagonal",
+# "suservo_aom_singlepass_689_up",
+# "suservo_aom_1064_delivery",
+# "suservo_aom_down_813"
+XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+# Urukul: "urukul9910_aom_doublepass_689_red_injection"
+XODT_MOLASSES_689_DETUNING_START = [
+    0e3,
+]
+XODT_MOLASSES_689_DETUNING_END = [
+    0e3,
+]
+# Chamber 2 bias coils in amps. Order: X,Y,Z
+XODT_MOLASSES_BIAS_FIELD_START = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+XODT_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+
+XODT_2ND_MOLASSES_DURATION = 100e-3
+XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+# Urukul: "urukul9910_aom_doublepass_689_red_injection"
+XODT_2ND_MOLASSES_689_DETUNING_START = [
+    0e3,
+]
+XODT_2ND_MOLASSES_689_DETUNING_END = [
+    0e3,
+]
+# Chamber 2 bias coils in amps. Order: X,Y,Z
+XODT_2ND_MOLASSES_BIAS_FIELD_START = [
+    a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+]
+XODT_2ND_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]

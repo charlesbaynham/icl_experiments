@@ -1,38 +1,41 @@
 import logging
 
+import numpy as np
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
+from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
-    FLIRBlueMOTMeasurementMixin,
-)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
 
-class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
+class AbsorptionRedMOT(RedMOTWithExperiment):
     """
     Image red MOT with absorption
     """
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         pass
 
     def build_fragment(self):
+        self.setattr_device("ccb")
+
         super().build_fragment()
 
         # Set the MOT field to off before the "spectroscopy" (i.e. imaging) starts
         self.override_param("spectroscopy_field_gradient", 0.0)
 
         # Disable unused params
-        for p in ["delay_after_spectroscopy"]:
+        for p in ["delay_after_experiment"]:
             self.override_param(p, 0)
 
         # %% Params
@@ -60,7 +63,7 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
         self.setattr_result("andor_sum_0", FloatChannel)
         self.setattr_result("andor_sum_1", FloatChannel)
         self.setattr_result("andor_sum_2", FloatChannel)
-        self.setattr_result("andor_sum_3", FloatChannel)
+        # self.setattr_result("andor_sum_3", FloatChannel)
 
         self.setattr_result("absorption", FloatChannel)
 
@@ -71,6 +74,9 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
 
         self.absorption: FloatChannel
 
+        self.setattr_result("andor_abs_img", OpaqueChannel)
+        self.andor_abs_img: OpaqueChannel
+
     def host_setup(self):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
         logger.warning(
@@ -80,6 +86,24 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
         )
 
         return super().host_setup()
+
+    @kernel
+    def start_of_red_broadband_hook(self):
+        # The Andor camera shutter needs ~120ms to open, so start this at the
+        # beginning of the red stages. If the total red mot sequence takes less
+        # time than this then we'll have problems
+        self.andor_camera_control.set_shutter(True)
+
+    # @kernel
+    # def do_pulse(self, andor_exposure):
+    #     """ """
+    #     with parallel:
+    #         self.andor_camera_control.trigger(
+    #             exposure=andor_exposure,
+    #             control_shutter=False,
+    #         )
+    #         # self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+    #         # logger.info("this is where I would do an imaging pulse")
 
     @kernel
     def do_imaging_hook(self):
@@ -102,9 +126,9 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
         delay(self.delay_before_background_pulse.get())
         self._do_pulse_no_light(andor_exposure)
 
-        # Trigger again since we're still in fast kinetics mode so we must take two images
-        delay(self.delay_between_absorption_pulses.get())
-        self._do_pulse_no_light(andor_exposure)
+        # # Trigger again since we're still in fast kinetics mode so we must take two images
+        # delay(self.delay_between_absorption_pulses.get())
+        # self._do_pulse_no_light(andor_exposure)
 
     @kernel
     def _do_pulse_no_light(self, andor_exposure):
@@ -121,6 +145,9 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
         """
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
+
+        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
+        self.use_andor_driver: BoolParamHandle
 
     # def hook_setup_andor(self):
     #     """
@@ -147,8 +174,89 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
     #     )
     #     self.andor_camera_control: AndorCameraControl
 
+    def host_setup(self):
+        super().host_setup()
+        self.ccb.issue(
+            "create_applet",
+            f"atoms_img",
+            f"${{artiq_applet}}image atoms_img",
+        )
+
+        self.ccb.issue(
+            "create_applet",
+            f"light_img",
+            f"${{artiq_applet}}image light_img",
+        )
+        self.ccb.issue(
+            "create_applet",
+            f"bg_img",
+            f"${{artiq_applet}}image bg_img",
+        )
+        self.ccb.issue(
+            "create_applet",
+            f"andor_abs_img",
+            f"${{artiq_applet}}image andor_abs_img_dataset",
+        )
+
+    @rpc(flags={"async"})
+    def _call_camera_rpc(self):
+        # imgs = self.andor_camera_control.readout_n_images(n_frames=3, timeout=1)
+        # atoms_img = imgs[0]
+        # light_img = imgs[1]
+        # bg_img = imgs[2]
+
+        atoms_img = self.andor_camera_control.readout_image(timeout=1)
+        light_img = self.andor_camera_control.readout_image(timeout=1)
+        bg_img = self.andor_camera_control.readout_image(timeout=1)
+
+        atoms_no_bg = atoms_img - bg_img
+        atoms_no_bg_m = np.ma.masked_less_equal(atoms_no_bg, 0)
+        light_no_bg = light_img - bg_img
+        light_no_bg_m = np.ma.masked_less_equal(light_no_bg, 0)
+        quotient = light_no_bg_m / atoms_no_bg_m
+        quotient_m = np.ma.masked_less_equal(quotient, 0)
+        img_abs: np.ma.MaskedArray = np.log(quotient_m)
+        logger.info(f"number invalid elements: {len(img_abs.mask)}")
+        img_abs = np.ma.fix_invalid(img_abs, img_abs.mask, fill_value=0)
+        img_abs = img_abs.data
+
+        self.set_dataset(
+            "atoms_img",
+            np.int32(atoms_img),
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        self.set_dataset(
+            "light_img",
+            light_img,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        self.set_dataset(
+            "bg_img",
+            bg_img,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+
+        self.set_dataset(
+            "andor_abs_img_dataset",
+            img_abs,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        # TODO rebind this instead
+        if self.andor_camera_control.save_raw_andor_image.get():
+            self.andor_abs_img.push(img_abs)
+        else:
+            self.andor_abs_img.push([])
+
     @kernel
-    def save_data_hook(self):
+    def save_andor_data_hook(self):
         """
         Hook to save data from the Andor camera
 
@@ -156,7 +264,7 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
         images.
         """
 
-        n = 4
+        n = 3
         sums = [0] * n
 
         timeout_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
@@ -170,9 +278,12 @@ class AbsorptionRedMOT(FLIRBlueMOTMeasurementMixin, RedMOTWithExperiment):
         self.andor_sum_0.push(sums[0])
         self.andor_sum_1.push(sums[1])
         self.andor_sum_2.push(sums[2])
-        self.andor_sum_3.push(sums[3])
+        # self.andor_sum_3.push(sums[3])
 
         self.absorption.push(sums[1] - sums[0])
+
+        if self.use_andor_driver.get():
+            self._call_camera_rpc()
 
 
 AbsorptionRedMOTExp = make_fragment_scan_exp(AbsorptionRedMOT)

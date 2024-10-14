@@ -8,11 +8,9 @@ from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 
 from repository.lib import constants
-from pyaion.fragments.default_beam_setter import (
-    SetBeamsToDefaults,
-)
 from repository.lib.fragments.pyaion_overrides.suservo_override import (
     LibSetSUServoStatic,
 )
@@ -102,7 +100,7 @@ class UpBeamInterferometryIJD(_InterferometryCommon):
         self.urukul9910_aom_doublepass_689_red_injection: AD9910
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Allow negative phases up to -10
@@ -202,7 +200,7 @@ class UpBeamInterferometrySUServo(_InterferometryCommon):
         self.suservo_aom_singlepass_689_up.set(en_out=0, en_iir=0, profile=0)
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Ensure we're on profile 0

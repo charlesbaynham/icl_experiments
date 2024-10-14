@@ -211,15 +211,16 @@
         "poetry2nix": "poetry2nix"
       },
       "locked": {
-        "lastModified": 1728319094,
-        "narHash": "sha256-ZX5881iLC6V1cxxWEvNN9MyoHmU4iMfyDMM0mi4vZ24=",
-        "ref": "refs/heads/master",
-        "rev": "125e9846572c4f99a3270ba2095ad003dd89eb8f",
-        "revCount": 160,
+        "lastModified": 1727530256,
+        "narHash": "sha256-k2Q7ZiaB1wR6hfHD53Qw8AZwoW/RL69Zc7RSaKEt9L0=",
+        "ref": "daisy-chain-ramps",
+        "rev": "67e907a41b29c20ea35102692fa966a6de91bba4",
+        "revCount": 165,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       },
       "original": {
+        "ref": "daisy-chain-ramps",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
       }

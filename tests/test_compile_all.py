@@ -61,10 +61,12 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 # Add xfailing modules
 xfails = [
     # ("ScanTopticaMOTFrag", "Toptica host setup is not mocked")
+    # ("ScanKoheronMeasureScopeFrag", "pipeline can't talk to scope")
 ]
 
 xfail_names = [x[0] for x in xfails]
 all_exp_fragments_marked = []
+
 for module, exp in all_exp_fragments:
     if any((name in exp.__name__ for name in xfail_names)):
         for xfail_name, xfail_reason in xfails:

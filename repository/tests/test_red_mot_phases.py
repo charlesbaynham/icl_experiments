@@ -4,15 +4,11 @@ from typing import *
 from artiq.experiment import *
 from artiq.experiment import delay
 from ndscan.experiment import *
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from pyaion.fragments.default_beam_setter import (
-    SetBeamsToDefaults,
-)
-from pyaion.fragments.default_beam_setter import (
-    make_set_beams_to_default,
-)
 from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
@@ -50,21 +46,18 @@ class TestRedPhasesExp(ExpFragment):
         self.setattr_fragment(
             "frag0",
             BroadbandRedPhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.frag0: RedRampingPhaseWithFieldsAndSUServoBindings
 
         self.setattr_fragment(
             "frag1",
             NarrowRedCapturePhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.frag1: RedRampingPhaseWithFieldsAndSUServoBindings
 
         self.setattr_fragment(
             "frag2",
             NarrowRedCompressionPhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.frag2: RedRampingPhaseWithFieldsAndSUServoBindings
 

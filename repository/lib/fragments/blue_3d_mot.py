@@ -1,18 +1,17 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import TFloat
-from artiq.experiment import TList
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
-from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
@@ -21,13 +20,9 @@ import repository.lib.constants as constants
 from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
-from pyaion.fragments.default_beam_setter import (
-    SetBeamsToDefaults,
+from repository.lib.fragments.ramping_phase_bound import (
+    GeneralRampingPhaseWithBindingAndMOTField,
 )
-from pyaion.fragments.default_beam_setter import (
-    make_set_beams_to_default,
-)
-from repository.lib.fragments.ramping_phase import GeneralRampingPhase
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +46,7 @@ BlueBeamSetter = make_set_beams_to_default(
 )
 
 
-class BlueRampingPhaseWithFields(GeneralRampingPhase):
+class BlueRampingPhaseWithFields(GeneralRampingPhaseWithBindingAndMOTField):
     """
     Subclass the GeneralRampingPhase specifically for the blue MOT transfer phase. I.e.:
 
@@ -78,68 +73,6 @@ class BlueRampingPhaseWithFields(GeneralRampingPhase):
     )
     general_setter_default_starts = [constants.BLUE_TRANSFER_MOT_GRADIENT_START]
     general_setter_default_ends = [constants.BLUE_TRANSFER_MOT_GRADIENT_END]
-
-    # The general ramp here ramps the chamber 2 MOT coils in amps
-    general_setter_names = ["chamber_2_mot_current"]
-    general_setter_param_options = [{"min": 0, "max": 150, "unit": "A"}]
-
-    def build_fragment(self, chamber_2_field_setter: SetMagneticFieldsQuick = None):
-        if chamber_2_field_setter is None:
-            raise TypeError("You must pass chamber_2_field_setter into build_fragment")
-        self.field_setter = chamber_2_field_setter
-        self.__binding_completed = False
-        return super().build_fragment()
-
-    def host_setup(self):
-        if not self.__binding_completed:
-            raise TypeError(
-                "bind_suservo_setpoint_params_to_default_beam_setter has not been called\n"
-                "This must be called from the Fragment which initiates this phase to rebind the blue beam setpoints"
-            )
-        return super().host_setup()
-
-    @kernel
-    def general_setter(self, vals: TList(TFloat)):
-        self.field_setter.set_mot_gradient(vals[0])
-
-    @host_only
-    def bind_suservo_setpoint_params_to_default_beam_setter(
-        self, beam_setter: SetBeamsToDefaults
-    ):
-        """
-        Use the GeneralRampingPhase's :meth:`~.bind_suservo_setpoint_params`
-        method to bind all this GeneralRampingPhase's suservo setpoint
-        parameters to those defined by a `SetBeamsToDefaults`.
-
-        This is a slightly ugly thing to do since it couples two objects that
-        shouldn't need to know about each other, i.e. the GeneralRampingPhase
-        whose responsibility is to ramp SUServo setpoints (and other things)
-        and the SetBeamsToDefaults object whose responsibility it is to set up
-        SUServos with their default settings.
-
-        However, by doing it like this there is a single place in the ndscan
-        parameter tree where all the setpoints for the blue beams are defined,
-        i.e. in the SetBeamsToDefaults owned by the Blue3DMOTFrag. This
-        method glues those two objects together, but I'm adding it here in the
-        blue MOT module since Charles previously chose to keep the GeneralRampingPhase code
-        decoupled from the beam_setter module.
-        """
-        # For the SUServo setpoints, bind these to the FloatParameters defined
-        # by the DefaultBeamSetter so that this is the only place which defines
-        # SUServo setpoints
-        info_and_settings = list(beam_setter.get_setpoints_beaminfo_setters().values())
-        handles = []
-        for suservo_device_name in self.suservos:
-            for info, settings in info_and_settings:
-                if info.suservo_device == suservo_device_name:
-                    handles.append(settings.setpoint_handle)
-                    break
-            else:
-                raise ValueError(
-                    f"SUServo {suservo_device_name} not found in all_beam_default_setter"
-                )
-        self.bind_suservo_setpoint_params(handles)
-        self.__binding_completed = True
 
 
 class Blue3DMOTFrag(Fragment):
@@ -247,7 +180,6 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_fragment(
             "blue_transfer_MOT",
             BlueRampingPhaseWithFields,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.blue_transfer_MOT: BlueRampingPhaseWithFields
 

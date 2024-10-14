@@ -78,6 +78,10 @@ intersphinx_mapping = {
         "https://aion-physics.gitlab.io/code/artiq/qbutler/",
         "https://aion-physics.gitlab.io/code/artiq/qbutler/objects.inv",
     ),
+    "pyaion": (
+        "https://aion-physics.gitlab.io/code/artiq/pyaion/",
+        "https://aion-physics.gitlab.io/code/artiq/pyaion/objects.inv",
+    ),
 }
 
 # Add any paths that contain templates here, relative to this directory.
