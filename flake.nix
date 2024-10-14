@@ -9,7 +9,9 @@
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
-  outputs = { self, nixpkgs, flake-utils, pyaion, ... }:
+  inputs.git-hooks.url = "github:cachix/git-hooks.nix";
+
+  outputs = { self, nixpkgs, flake-utils, pyaion, git-hooks, ... }:
     let
       # Configure ARTIQ services to bind to the labserver's AION IP address.
       # This is so that the server can run other ARTIQ sessions bound to other
@@ -117,21 +119,46 @@
 
         # Add a script to the shell hook that sets the DISPLAY environment variable
         # if we are running on WSL and a Windows X server is detected
-        devShells = overriddenOutputs.devShells // {
-          default = overriddenOutputs.devShells.default.overrideAttrs
-            (oldAttrs: {
+        devShells =
+          let
+            newDefaultShell = overriddenOutputs.devShells.default.overrideAttrs (prev: {
               shellHook = ''
-                ${oldAttrs.shellHook or ""}
-
+                ${self.checks.${system}.pre-commit-check.shellHook}
                 source ${self}/scripts/wsl_display_fix.sh
               '';
+              buildInputs = prev.buildInputs ++ self.checks.${system}.pre-commit-check.enabledPackages;
             });
-        };
+          in
+          overriddenOutputs.devShells // { default = newDefaultShell; };
 
         packages = overriddenOutputs.packages // {
           default = dashboard_launcher;
           dashboard = dashboard_launcher;
           wand = wand_gui_launcher;
+        };
+
+        checks = {
+          # Pre-commit formatting. see
+          # https://devenv.sh/reference/options/#pre-commithooks for a list of
+          # options
+          pre-commit-check = git-hooks.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              alejandra.enable = true;
+              autoflake.enable = true;
+              black.enable = true;
+              check-case-conflicts.enable = true;
+              check-merge-conflicts.enable = true;
+              check-yaml.enable = true;
+              end-of-file-fixer.enable = true;
+              isort.enable = true;
+              isort.args = [ "--profile" "black" "--force-single-line-imports" ];
+              mixed-line-endings.enable = true;
+              prettier.enable = true;
+              taplo.enable = true;
+              trim-trailing-whitespace.enable = true;
+            };
+          };
         };
 
         apps = overriddenOutputs.apps // {
