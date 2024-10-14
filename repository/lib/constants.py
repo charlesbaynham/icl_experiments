@@ -18,6 +18,7 @@ this module.
 from collections import OrderedDict
 from dataclasses import dataclass
 from dataclasses import field
+from typing import Optional
 
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -141,6 +142,102 @@ IJD_DEFAULTS = {
 
 RED_IJD_RELOCK_FREQUENCY_BOOST = 2e6
 "Amount to increase red AOM frequency from default while relocking the IJD"
+
+
+@dataclass
+class IJDRelockerSettings:
+    board_name: str
+    "Name of relocker board in device_db"
+    channel: int
+    "Channel on relocker board"
+    v_min: float
+    "Lowest voltage/end of scan"
+    v_max: float
+    "Highest voltage/start of scan"
+    n_steps: float
+    "Number of scan steps. cannot be >100"
+
+    window_frac: float
+    "Fraction of the way along the detected window to set the lock point"
+    min_diff: float
+    "Minimum acceptable size of jump on steep side of window"
+    v_low_threshold: float
+    "Maximum allowed value for the lowest read voltage for relocking to take place"
+    v_rise_threshold: float
+    "Voltage increase on shallow side of the window"
+    wait_time: float
+    "Time to settle before setting lock voltage"
+
+    auto_relock: bool
+    "Turn on auto relocking or not"
+
+    associated_controller: Optional[str] = None
+    "Koheron controller associated with the channel"
+
+    def __post_init__(self):
+        if self.n_steps > 100:
+            self.n_steps = 100
+
+
+IJD_RELOCKER_DEFAULTS = {
+    "blue_IJD1_relocker": IJDRelockerSettings(
+        "blue_relocker",
+        0,
+        -2,
+        2,
+        100,
+        0.6,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "blue_IJD1_controller",
+    ),
+    "blue_IJD2_relocker": IJDRelockerSettings(
+        "blue_relocker",
+        1,
+        -2,
+        2,
+        100,
+        0.6,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "blue_IJD2_controller",
+    ),
+    "blue_IJD3_relocker": IJDRelockerSettings(
+        "blue_relocker",
+        2,
+        -2,
+        2,
+        100,
+        0.6,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "blue_IJD3_controller",
+    ),
+    "red_IJD1_relocker": IJDRelockerSettings(
+        "red_relocker",
+        0,
+        -2,
+        2,
+        100,
+        0.5,
+        0.1,
+        1.4,
+        0.05,
+        1000,
+        True,
+        "red_IJD1_controller",
+    ),
+}
+"Settings for IJD relocker board channels"
 
 FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 # Order matters here since this is the order in which they are applied to the
