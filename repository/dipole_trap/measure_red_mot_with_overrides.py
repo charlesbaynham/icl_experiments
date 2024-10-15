@@ -2,6 +2,9 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
+)
 from repository.red_mot.measure_red_mot import MeasureNarrowbandMOTBGCorrectedFrag
 
 logger = logging.getLogger(__name__)
@@ -27,7 +30,7 @@ def make_experiment(
 ):
     pass
 
-    class Exp(MeasureNarrowbandMOTBGCorrectedFrag):
+    class Exp(ExponentialDecayMixin, MeasureNarrowbandMOTBGCorrectedFrag):
         def build_fragment(self):
             super().build_fragment()
 
