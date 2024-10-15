@@ -78,8 +78,8 @@ def make_experiment(
     return make_fragment_scan_exp(Exp)
 
 
-LoadLowerDipoleTrap = make_experiment(
-    "LoadLowerDipoleTrap",
+LoadBackwardDipoleTrap = make_experiment(
+    "LoadBackwardDipoleTrap",
     chamber_2_bias_x=0.4,
     chamber_2_bias_y=-0.03,
     chamber_2_bias_z=-0.868,
@@ -92,8 +92,8 @@ LoadLowerDipoleTrap = make_experiment(
 )
 
 
-LoadUpperDipoleTrap = make_experiment(
-    "LoadUpperDipoleTrap",
+LoadForwardDipoleTrap = make_experiment(
+    "LoadForwardDipoleTrap",
     chamber_2_bias_x=0.4,
     chamber_2_bias_y=0.02,
     chamber_2_bias_z=-1.015,
