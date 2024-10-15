@@ -201,44 +201,17 @@ class RelockerChannelFrag(ExpFragment):
         set_voltages = np.linspace(
             self.v_min.get(), self.v_max.get(), self.n_steps.get()
         )
-        np.zeros_like(read_voltages)
+        err = np.zeros_like(read_voltages)
         self.set_dataset(
-            f"{self.channel_name}_read_voltages",
+            f"{self.relocker_name}_{self.channel}_read_voltages",
             np.array(read_voltages),
             broadcast=True,
             archive=False,
         )
-        self.set_dataset(
-            f"{self.channel_name}_set_voltages",
-            set_voltages,
-            broadcast=True,
-            archive=False,
-        )
-
-        self.set_dataset(
-            f"{self.channel_name}_set_voltages",
-            set_voltages,
-            broadcast=True,
-            archive=False,
-        )
-
-        result = self.get_result()
-        logger.info(result)
-
-        self.set_dataset(
-            f"{self.channel_name}_result",
-            set_voltages,
-            broadcast=True,
-            archive=False,
-        )
-
-        [0.001] * len(set_voltages)
-
+        self.set_dataset("set_voltages", set_voltages, broadcast=True, archive=False)
+        self.set_dataset("err", err, broadcast=True, archive=False)
         cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x set_voltages --fit read_voltages --error err"
-        self.ccb.issue("create_applet", f"{self.channel_name}_simple", cmd)
-
-        cmd = f"${{python}} repository/lib/applets/ijd_window_plot.py {self.channel_name}_read_voltages --x {self.channel_name}_set_voltages --window {np.array(result)}"
-        self.ccb.issue("create_applet", f"{self.channel_name}_window", cmd)
+        self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
 
     def get_result(self):
         result = self.relocker.get_result(self.channel)
@@ -265,7 +238,7 @@ class RelockerChannelFrag(ExpFragment):
             self.relock()
         read_voltages = self.get_read_voltages()
         self.push_voltages_to_applet(read_voltages)
-        # logger.info(self.get_result())
+        logger.info(self.get_result())
 
 
 class RelockerFrag(ExpFragment):
