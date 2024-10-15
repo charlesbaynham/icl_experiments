@@ -232,7 +232,7 @@ class RelockerChannelFrag(ExpFragment):
             archive=False,
         )
 
-        [0.001] * len(self.voltages)
+        [0.001] * len(self.voltages.get())
 
         cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x set_voltages --fit read_voltages --error err"
         self.ccb.issue("create_applet", f"{self.channel_name}_simple", cmd)
