@@ -778,6 +778,7 @@ else:
 
 # Delay between end of red MOT and start of molasses
 DELAY_BEFORE_MOLASSES = 10e-3
+DELAY_BETWEEN_MOLASSES = 10e-3
 
 XODT_MOLASSES_DURATION = 100e-3
 # Order of suservos:

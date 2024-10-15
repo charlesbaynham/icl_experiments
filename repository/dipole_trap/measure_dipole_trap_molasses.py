@@ -3,6 +3,9 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
+    BGCorrectedAndorImage,
+)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
@@ -20,12 +23,54 @@ EXPOSE_MOLASSES_1_PARAMS = True
 EXPOSE_MOLASSES_2_PARAMS = True
 
 
-class _MeasureDipoleTrapFrag(XODTMolassesMixin):
+class MeasureDipoleTrapFrag(
+    BGCorrectedAndorImage,
+    FLIRMeasurementMixin,
+    ExponentialDecayMixin,
+    SingleAndorImage,
+    XODTMolassesMixin,
+):
+    """
+    Load a dipole trap, do 689 nm molasses, hold, and take BG subtracted image
+    """
+
     def build_fragment(self):
         super().build_fragment()
 
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
+
+        # Expose the bias field for moving the MOT to the right place
+        self.setattr_param_rebind("chamber_2_bias_x", self.blue_3d_mot)
+        self.setattr_param_rebind("chamber_2_bias_y", self.blue_3d_mot)
+        self.setattr_param_rebind("chamber_2_bias_z", self.blue_3d_mot)
+        self.setattr_param_rebind(
+            "chamber_2_red_narrowband_mot_current_start",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="chamber_2_mot_current_start",
+        )
+        self.setattr_param_rebind(
+            "chamber_2_red_narrowband_mot_current_end",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="chamber_2_mot_current_end",
+        )
+
+        self.setattr_param_rebind(
+            "roi_0_x0",
+            self.andor_camera_control,
+        )
+        self.setattr_param_rebind(
+            "roi_0_x1",
+            self.andor_camera_control,
+        )
+        self.setattr_param_rebind(
+            "roi_0_y0",
+            self.andor_camera_control,
+        )
+        self.setattr_param_rebind(
+            "roi_0_y1",
+            self.andor_camera_control,
+        )
 
         # Expose the molasses ramp parameters if desired
         if EXPOSE_MOLASSES_1_PARAMS:
@@ -50,17 +95,6 @@ class _MeasureDipoleTrapFrag(XODTMolassesMixin):
     def do_experiment_after_dipole_trap_hook(self):
         # Release the atoms for time of flight measurement
         self.dipole_beam_controller.turn_off_dipole_beams()
-
-
-class MeasureDipoleTrapFrag(
-    FLIRMeasurementMixin,
-    ExponentialDecayMixin,
-    SingleAndorImage,
-    _MeasureDipoleTrapFrag,
-):
-    """
-    Load a dipole trap, implement 689 molasses, release, and image with the ANDOR
-    """
 
 
 MeasureDipoleTrap = make_fragment_scan_exp(MeasureDipoleTrapFrag)
