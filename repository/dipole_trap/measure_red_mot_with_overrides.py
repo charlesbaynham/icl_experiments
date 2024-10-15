@@ -80,15 +80,15 @@ def make_experiment(
 
 LoadBackwardDipoleTrap = make_experiment(
     "LoadBackwardDipoleTrap",
-    chamber_2_bias_x=0.4,
-    chamber_2_bias_y=-0.03,
-    chamber_2_bias_z=-0.868,
+    chamber_2_bias_x=0.29,
+    chamber_2_bias_y=0.02,
+    chamber_2_bias_z=-1.14,
     chamber_2_mot_current_start=3,
     chamber_2_mot_current_end=3,
     roi_0_x0=130,
     roi_0_x1=280,
-    roi_0_y0=200,
-    roi_0_y1=260,
+    roi_0_y0=330,
+    roi_0_y1=375,
 )
 
 
