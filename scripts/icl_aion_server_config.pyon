@@ -147,7 +147,7 @@
         },
         "Sirah": {
             "auto_exposure": true,
-            "channel": 8,
+            "channel": 7,
             "display_colour": "white",
             "exposure": [
                 2,
