@@ -102,6 +102,10 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             [self.red_mot.injection_aom_static_frequency]
         )
 
+        self.molasses_xodt_2.bind_ad9910_frequency_params(
+            [self.red_mot.injection_aom_static_frequency]
+        )
+
         self.molasses_xodt_2.daisy_chain_with_previous_phase(
             self.molasses_xodt_1, suservos=suservos_XODT
         )
