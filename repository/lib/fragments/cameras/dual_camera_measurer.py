@@ -264,17 +264,18 @@ class DualCameraMeasurement(_DualCameraBase):
         self.image_vertical_mean.push(image_vert_mean)
 
         # convert to int instead of uint8 for saving
-        if self.save_raw:
-            h_data = np.array(image_horiz).astype("int")
-            v_data = np.array(image_vert).astype("int")
-        else:
+        h_data = np.array(image_horiz).astype("int")
+        v_data = np.array(image_vert).astype("int")
+
+        self._update_monitor(h_data, v_data)
+
+        # Save zeros if we're not saving data
+        if not self.save_raw:
             h_data = np.array([[0]]).astype("int")
             v_data = np.array([[0]]).astype("int")
 
         self.image_horizontal.push(h_data)
         self.image_vertical.push(v_data)
-
-        self._update_monitor(h_data, v_data)
 
 
 class BGCorrectedMeasurement(_DualCameraBase):
@@ -432,11 +433,11 @@ class BGCorrectedMeasurement(_DualCameraBase):
         self.image_horizontal_mean.push(image_horiz_mean)
         self.image_vertical_mean.push(image_vert_mean)
 
+        self._update_monitor(image_horiz, image_vert)
+
         if self.save_raw:
             self.image_horizontal.push(image_horiz)
             self.image_vertical.push(image_vert)
         else:
             self.image_horizontal.push(np.array([[0]]).astype("int"))
             self.image_vertical.push(np.array([[0]]).astype("int"))
-
-        self._update_monitor(image_horiz, image_vert)
