@@ -77,6 +77,7 @@ def make_experiment(
             )
 
     Exp.__name__ = name
+    Exp.__qualname__ = name
 
     return make_fragment_scan_exp(Exp)
 
