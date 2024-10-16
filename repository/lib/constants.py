@@ -589,7 +589,7 @@ class MirnySettings:
 _default_461 = 650504059e6
 _default_707 = 423913478e6
 _default_679 = 441332627e6
-_default_698 = 429228355e6 + 358e6 + 180e6 - 522e6 + 16.3e6  # Measured empirically
+_default_698 = 429228387.3e6  # Measured empirically
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
