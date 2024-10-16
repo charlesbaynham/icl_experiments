@@ -108,3 +108,18 @@ LoadForwardDipoleTrap = make_experiment(
     roi_0_y0=275,
     roi_0_y1=325,
 )
+
+
+LoadBothDipoleTraps = make_experiment(
+    "LoadBothDipoleTraps",
+    roi_0_x0=130,
+    roi_0_x1=280,
+    roi_0_y0=275,
+    roi_0_y1=375,
+    # TODO: These param are not right! They need choosing.
+    chamber_2_bias_x=0.4,
+    chamber_2_bias_y=0.02,
+    chamber_2_bias_z=-1.015,
+    chamber_2_mot_current_start=3,
+    chamber_2_mot_current_end=3,
+)
