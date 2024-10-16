@@ -61,15 +61,35 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         self.delay_before_molasses: FloatParamHandle
 
         self.setattr_param(
-            "mot_coil_current",
+            "delay_between_molasses",
             FloatParam,
-            "MOT coil current during molasses",
+            "Delay time between molasses for field settling",
+            default=constants.DELAY_BETWEEN_MOLASSES,
+            unit="ms",
+        )
+        self.delay_between_molasses: FloatParamHandle
+
+        self.setattr_param(
+            "mot_coil_current_first_molasses",
+            FloatParam,
+            "MOT coil current during first molasses",
             default=0.0,
             unit="A",
             min=0,
             max=130,
         )
-        self.mot_coil_current: FloatParamHandle
+        self.mot_coil_current_first_molasses: FloatParamHandle
+
+        self.setattr_param(
+            "mot_coil_current_2nd_molasses",
+            FloatParam,
+            "MOT coil current during 2nd molasses",
+            default=0.0,
+            unit="A",
+            min=0,
+            max=130,
+        )
+        self.mot_coil_current_2nd_molasses: FloatParamHandle
 
         self.molasses_xodt_1.bind_suservo_setpoint_params_to_default_beam_setter(
             [
@@ -79,6 +99,10 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         )
 
         self.molasses_xodt_1.bind_ad9910_frequency_params(
+            [self.red_mot.injection_aom_static_frequency]
+        )
+
+        self.molasses_xodt_2.bind_ad9910_frequency_params(
             [self.red_mot.injection_aom_static_frequency]
         )
 
@@ -111,7 +135,6 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         """
         Turn off red MOT beams (default hook), set coil currents, and wait
         """
-        self.default_post_narrowband_hook()
         self.post_narrowband_hook_xodt_molasses()
 
     @kernel
@@ -144,11 +167,13 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         Wait a settling time before starting the molasses.
         """
         self.red_mot.chamber_2_field_setter.set_all_fields(
-            self.mot_coil_current.get(),
+            self.mot_coil_current_first_molasses.get(),
             self.molasses_xodt_1.general_setter_default_starts[0],
             self.molasses_xodt_1.general_setter_default_starts[1],
             self.molasses_xodt_1.general_setter_default_starts[2],
         )
+        if self.delay_before_molasses.get() > 1e-6:
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(ignore_shutters=True)
         delay(self.delay_before_molasses.get())
 
     @kernel
@@ -156,5 +181,20 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         """
         Do the molasses ramping phases
         """
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(ignore_shutters=True)
         self.molasses_xodt_1.do_phase()
+        # Set fields in advance of 2nd molasses
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            self.mot_coil_current_2nd_molasses.get(),
+            self.molasses_xodt_2.general_setter_default_starts[0],
+            self.molasses_xodt_2.general_setter_default_starts[1],
+            self.molasses_xodt_2.general_setter_default_starts[2],
+        )
+        # Turn off MOT beams between molasses if there is a gap
+        if self.delay_between_molasses.get() > 1e-6:
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(ignore_shutters=True)
+
+        delay(self.delay_between_molasses.get())
+
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(ignore_shutters=True)
         self.molasses_xodt_2.do_phase()

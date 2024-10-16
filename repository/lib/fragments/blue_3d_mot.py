@@ -189,6 +189,15 @@ class Blue3DMOTFrag(Fragment):
         )
 
         self.setattr_param(
+            "delay_into_red_mot_for_blue_beam_switchoff",
+            FloatParam,
+            "Delay into red mot before blue beams switch off",
+            default=constants.DELAY_INTO_RED_MOT_FOR_BLUE_BEAM_SWITCHOFF,
+            unit="us",
+        )
+        self.delay_into_red_mot_for_blue_beam_switchoff: FloatParamHandle
+
+        self.setattr_param(
             "chamber_2_bias_x",
             FloatParam,
             "Bias current for chamber 2 - X",

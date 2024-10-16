@@ -236,7 +236,7 @@ IJD_RELOCKER_DEFAULTS = {
         100,
         0.5,
         0.1,
-        1.4,
+        1.15,
         0.05,
         1000,
         True,
@@ -592,10 +592,10 @@ class MirnySettings:
 
 
 # These frequencies were chosen empirically based on the atoms
-_default_461 = 650504048e6 - 10e6 + 25e6 - 10e6 + 6e6
+_default_461 = 650504059e6
 _default_707 = 423913478e6
 _default_679 = 441332627e6
-_default_698 = 429228355e6 + 358e6 + 180e6 - 522e6 + 16.3e6  # Measured empirically
+_default_698 = 429228387.3e6  # Measured empirically
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
@@ -784,6 +784,7 @@ else:
 
 # Delay between end of red MOT and start of molasses
 DELAY_BEFORE_MOLASSES = 10e-3
+DELAY_BETWEEN_MOLASSES = 10e-3
 
 XODT_MOLASSES_DURATION = 100e-3
 # Order of suservos:

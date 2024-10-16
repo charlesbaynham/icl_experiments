@@ -2,6 +2,9 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
+)
 from repository.red_mot.measure_red_mot import MeasureNarrowbandMOTBGCorrectedFrag
 
 logger = logging.getLogger(__name__)
@@ -27,7 +30,7 @@ def make_experiment(
 ):
     pass
 
-    class Exp(MeasureNarrowbandMOTBGCorrectedFrag):
+    class Exp(ExponentialDecayMixin, MeasureNarrowbandMOTBGCorrectedFrag):
         def build_fragment(self):
             super().build_fragment()
 
@@ -74,26 +77,27 @@ def make_experiment(
             )
 
     Exp.__name__ = name
+    Exp.__qualname__ = name
 
     return make_fragment_scan_exp(Exp)
 
 
-LoadLowerDipoleTrap = make_experiment(
-    "LoadLowerDipoleTrap",
-    chamber_2_bias_x=0.4,
-    chamber_2_bias_y=-0.03,
-    chamber_2_bias_z=-0.868,
+LoadBackwardDipoleTrap = make_experiment(
+    "LoadBackwardDipoleTrap",
+    chamber_2_bias_x=0.29,
+    chamber_2_bias_y=0.02,
+    chamber_2_bias_z=-1.14,
     chamber_2_mot_current_start=3,
     chamber_2_mot_current_end=3,
     roi_0_x0=130,
     roi_0_x1=280,
-    roi_0_y0=200,
-    roi_0_y1=260,
+    roi_0_y0=330,
+    roi_0_y1=375,
 )
 
 
-LoadUpperDipoleTrap = make_experiment(
-    "LoadUpperDipoleTrap",
+LoadForwardDipoleTrap = make_experiment(
+    "LoadForwardDipoleTrap",
     chamber_2_bias_x=0.4,
     chamber_2_bias_y=0.02,
     chamber_2_bias_z=-1.015,
@@ -103,4 +107,19 @@ LoadUpperDipoleTrap = make_experiment(
     roi_0_x1=280,
     roi_0_y0=275,
     roi_0_y1=325,
+)
+
+
+LoadBothDipoleTraps = make_experiment(
+    "LoadBothDipoleTraps",
+    roi_0_x0=130,
+    roi_0_x1=280,
+    roi_0_y0=275,
+    roi_0_y1=375,
+    # TODO: These param are not right! They need choosing.
+    chamber_2_bias_x=0.4,
+    chamber_2_bias_y=0.02,
+    chamber_2_bias_z=-1.015,
+    chamber_2_mot_current_start=3,
+    chamber_2_mot_current_end=3,
 )

@@ -128,7 +128,7 @@ class AndorCameraControl(Fragment):
         self.setattr_param(
             "use_andor_driver",
             BoolParam,
-            default=False,
+            default=True,
             description="andor driver mode",
         )
         self.use_andor_driver: BoolParamHandle

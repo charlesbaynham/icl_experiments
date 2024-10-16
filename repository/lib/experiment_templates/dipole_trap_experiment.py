@@ -38,6 +38,7 @@ the same time::
         pass
 
 """
+
 import abc
 import logging
 
@@ -83,11 +84,14 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.setattr_param(
             "dipole_hold_time",
             FloatParam,
-            "Time to hold final dipole trap before next stage",
+            "Time to hold final dipole trap before experiment",
             default=0.0,
             unit="us",
         )
         self.dipole_hold_time: FloatParamHandle
+
+        # Get rid of irrelevant delay after narrowband MOT
+        self.override_param("expansion_time", 0)
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
@@ -114,6 +118,15 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         """
         Hook for implementation of stages after the dipole trap evaporation stage. By default, do nothing.
         """
+        self.dipole_trap_evaporation_hook_default()
+
+    @kernel
+    def dipole_trap_evaporation_hook_default(self):
+        """
+        By default, turn off all the red beams to allow holding in dipole trap before experiment
+        """
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
 
     @abc.abstractmethod
     def do_experiment_after_dipole_trap_hook(self):
