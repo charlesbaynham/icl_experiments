@@ -63,6 +63,7 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.setattr_result("andor_sum_0", FloatChannel)
         self.setattr_result("andor_sum_1", FloatChannel)
         self.setattr_result("andor_sum_2", FloatChannel)
+        self.setattr_result("andor_sum_2", FloatChannel)
         # self.setattr_result("andor_sum_3", FloatChannel)
 
         self.setattr_result("absorption", FloatChannel)
@@ -216,9 +217,17 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         quotient = light_no_bg_m / atoms_no_bg_m
         quotient_m = np.ma.masked_less_equal(quotient, 0)
         img_abs: np.ma.MaskedArray = np.log(quotient_m)
-        logger.info(f"number invalid elements: {len(img_abs.mask)}")
         img_abs = np.ma.fix_invalid(img_abs, img_abs.mask, fill_value=0)
         img_abs = img_abs.data
+
+        pixel_size = 16e-6
+        lam = 460.86177e9
+        pi = np.pi
+        sigma = 3 * lam**2 / (2 * pi)
+
+        N = np.sum(np.sum(img_abs)) * pixel_size**2 / sigma
+
+        self.absorption.push(N)
 
         self.set_dataset(
             "atoms_img",
@@ -279,8 +288,6 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.andor_sum_1.push(sums[1])
         self.andor_sum_2.push(sums[2])
         # self.andor_sum_3.push(sums[3])
-
-        self.absorption.push(sums[1] - sums[0])
 
         if self.use_andor_driver.get():
             self._call_camera_rpc()
