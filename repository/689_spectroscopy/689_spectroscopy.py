@@ -9,15 +9,15 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
+from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
+    BGCorrectedAndorImage,
+)
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
 from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
     DroppedPumpedLatticeMixin,
-)
-from repository.lib.experiment_templates.mixins.single_andor_image import (
-    SingleAndorImage,
 )
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
@@ -166,7 +166,7 @@ class SpectroscopyWithKinetics_UpBeam(
 
 class SpectroscopySingleImage_UpBeam(
     FieldBoostMixin,
-    SingleAndorImage,
+    BGCorrectedAndorImage,  # FIXME: I changed this, needs testing
     DroppedPumpedLatticeMixin,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
