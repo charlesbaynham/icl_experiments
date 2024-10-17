@@ -68,13 +68,6 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         self.atom_number: FloatChannel
 
     def hook_setup_andor(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-
-        TODO: Set up Fast Kinetics mode here
-        """
-
         # 1x ROI but we'll trigger three times
         self.setattr_fragment(
             "andor_camera_control",
