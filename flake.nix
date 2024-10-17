@@ -36,6 +36,7 @@
               wand = [ "poetry-core" ];
               relocker-driver = [ "poetry-core" ];
               andor-artiq-ndsp = [ "poetry-core" ];
+              imperial-artiq-applets = ["poetry-core"];
             };
             extra-overrides = [
               # Patch python-aravis to use poetry-resolved dependencies
@@ -53,6 +54,7 @@
                   propagatedBuildInputs = prev.pycairo.propagatedBuildInputs;
                 };
                 relocker-driver = prev.relocker-driver.overridePythonAttrs { dontWrapQtApps = true; };
+                imperial-artiq-applets = prev.imperial-artiq-applets.overridePythonAttrs { dontWrapQtApps = true; };
                 pylablib = prev.pylablib.overridePythonAttrs {
                   dontWrapQtApps = true;
                 };
