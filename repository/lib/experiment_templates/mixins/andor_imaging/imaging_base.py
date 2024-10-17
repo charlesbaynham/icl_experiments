@@ -2,10 +2,9 @@ import abc
 import logging
 
 from artiq.experiment import kernel
-from artiq.experiment import now_mu, parallel
+from artiq.experiment import now_mu
+from artiq.experiment import parallel
 from artiq.experiment import rpc
-from ndscan.experiment import FloatChannel
-from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import BoolParamHandle
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
@@ -99,7 +98,6 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
-
         # FIXME: Needs to support a generic number of pictures
         # TBC what to do about the monitor
 
