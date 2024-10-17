@@ -210,7 +210,9 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         bg_img = self.andor_camera_control.readout_image(timeout=1)
 
         atoms_no_bg = atoms_img - bg_img
+        atoms_no_bg = atoms_no_bg.astype(float)
         light_no_bg = light_img - bg_img
+        light_no_bg = light_no_bg.astype(float)
         quotient = np.zeros_like(atoms_no_bg)
         np.divide(atoms_no_bg, light_no_bg, out=quotient, where=light_no_bg != 0)
         img_abs = -np.log(quotient)
