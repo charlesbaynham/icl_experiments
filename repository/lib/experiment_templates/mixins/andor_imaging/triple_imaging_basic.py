@@ -60,21 +60,8 @@ class TripleImageBasicMixin(AndorImagingBase):
         self.delay_before_background_pulse: FloatParamHandle
 
     def hook_setup_andor(self):
-        # 1x ROI but we'll trigger three times
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    constants.ANDOR_ROI_Y0,
-                    constants.ANDOR_ROI_X1,
-                    constants.ANDOR_ROI_Y1,
-                ]
-            ],
-            add_pre_trigger_delay=True,
-        )
-        self.andor_camera_control: AndorCameraControl
+        # Use the default ROI setup
+        super().hook_setup_andor()
 
         self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
@@ -89,42 +76,22 @@ class TripleImageBasicMixin(AndorImagingBase):
         self.atom_number: FloatChannel
 
     @kernel
-    def start_of_red_broadband_hook(self):
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
-        self.andor_camera_control.set_shutter(True)
-
-    @kernel
     def do_imaging_hook(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        andor_exposure = self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         # Image ground state atoms
-        self.do_first_pulse(andor_exposure)
+        self.do_pulse()
 
         # Image excited state atoms
         delay(self.delay_between_fluorescence_pulses.get())
-        self.do_second_pulse(andor_exposure)
+        self.do_pulse()
 
         # Take background measurement
         delay(self.delay_before_background_pulse.get())
-        self.do_third_pulse(andor_exposure)
-
-    @kernel
-    def do_first_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
-
-    @kernel
-    def do_second_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
-
-    @kernel
-    def do_third_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
+        self.do_pulse()
 
     @kernel
     def save_andor_data_hook(self):
@@ -135,6 +102,8 @@ class TripleImageBasicMixin(AndorImagingBase):
 
         We took three images, so read all of them out.
         """
+        # FIXME: Decide how to integrate this with AndorImagingBase
+
         # Save Andor data
         n = 3
         sums = [0] * n
@@ -160,14 +129,3 @@ class TripleImageBasicMixin(AndorImagingBase):
             self.excitation_fraction.push((means[1] - means[2]) / bg)
 
         self.atom_number.push(means[0] + means[1] - 2 * means[2])
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-
-    @kernel
-    def post_sequence_cleanup_hook_andor(self):
-        # Ensure shutter is closed, though it should be anyway
-        self.core.break_realtime()
-        self.andor_camera_control.set_shutter(False)

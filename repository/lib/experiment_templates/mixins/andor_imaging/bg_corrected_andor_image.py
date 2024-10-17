@@ -10,7 +10,7 @@ from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-
+from .imaging_base import AndorImagingBase
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
@@ -18,7 +18,7 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 logger = logging.getLogger(__name__)
 
 
-class BGCorrectedAndorImage(RedMOTWithExperiment):
+class BGCorrectedAndorImage(AndorImagingBase):
     """
     Image with a single fluorescence pulse using the Andor camera then take another for background subtraction
 
@@ -30,21 +30,6 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
     * :meth:`~do_imaging_hook_andor`
     * :meth:`~save_andor_data_hook`
     """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_device("ccb")
-
-        self.setattr_param(
-            "delay_before_bg_pulse",
-            FloatParam,
-            description="Delay before background pulse",
-            min=0,
-            unit="ms",
-            default=constants.ANDOR_CAMERA_BACKGROUND_DELAY,
-        )
-        self.delay_before_bg_pulse: FloatParamHandle
 
     def host_setup(self):
         self.ccb.issue(
@@ -67,8 +52,18 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         return super().host_setup()
 
     def hook_setup_andor(self):
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
+        # Use default imaging setup
+        super().hook_setup_andor()
+
+        self.setattr_param(
+            "delay_before_bg_pulse",
+            FloatParam,
+            description="Delay before background pulse",
+            min=0,
+            unit="ms",
+            default=constants.ANDOR_CAMERA_BACKGROUND_DELAY,
+        )
+        self.delay_before_bg_pulse: FloatParamHandle
 
         self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_mean", FloatChannel, display_hints={"priority": -1})
@@ -84,26 +79,14 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         self.andor_sum_slice_y: OpaqueChannel
         self.andor_bg_corrected: OpaqueChannel
 
-        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
-        self.use_andor_driver: BoolParamHandle
-
-    @kernel
-    def start_of_red_broadband_hook(self):
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
-        self.andor_camera_control.set_shutter(True)
-
     @kernel
     def do_imaging_hook_andor(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
         # Image atoms
-        self.do_pulse(andor_exposure)
+        self.do_pulse()
 
         # Drop them
         self.blue_3d_mot.chamber_2_field_setter.set_mot_gradient(0.0)
@@ -111,10 +94,11 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         delay(self.delay_before_bg_pulse.get())
 
         # Image background with no atoms
-        self.do_pulse(andor_exposure)
+        self.do_pulse()
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
+        # FIXME: as with others, should be generic
         if self.use_andor_driver.get():
             # do stuff including writing to resultchannel
             img_array = self.andor_camera_control.readout_image(timeout=1)
@@ -164,6 +148,7 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
     @kernel
     def save_andor_data_hook(self):
         "Consume all slack and save the photos"
+        # FIXME: genericise this
         self.core.wait_until_mu(now_mu())
 
         self._call_camera_rpc()
@@ -187,14 +172,3 @@ class BGCorrectedAndorImage(RedMOTWithExperiment):
         self.andor_sum.push(sum_atoms[0])
         self.andor_mean.push(mean_atoms[0])
         self.andor_mean_bg_corrected.push(mean_atoms[0] - mean_bg[0])
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-
-    @kernel
-    def post_sequence_cleanup_hook_andor(self):
-        # Ensure shutter is closed, though it should be anyway
-        self.core.break_realtime()
-        self.andor_camera_control.set_shutter(False)
