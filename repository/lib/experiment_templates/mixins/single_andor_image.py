@@ -48,14 +48,6 @@ class SingleAndorImage(RedMOTWithExperiment):
         self.andor_sum_slice_y: OpaqueChannel
         self.andor_image: OpaqueChannel
 
-        # self.set_dataset(
-        #     "single_andor_image",
-        #     np.array([[0.0]]),
-        #     broadcast=True,
-        #     persist=False,
-        #     archive=False,
-        # )
-
         self.setattr_device("ccb")
 
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
