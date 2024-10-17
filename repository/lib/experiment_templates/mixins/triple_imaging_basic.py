@@ -13,12 +13,14 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 logger = logging.getLogger(__name__)
 
 
-class TripleImageBinnedMixin(RedMOTWithExperiment):
+class TripleImageBasicMixin(RedMOTWithExperiment):
     """
     Implements normalized readout for a :py:class:`~RedMOTWithExperiment`
-    experiment with restricted camera ROI
+    experiment by just taking multiple images.
 
     Contrast with the Fast Kinetics triple imaging.
+
+    TODO: Add camera ROI restriction to speed up acquisition.
 
     This mixin uses the Andor camera to take three images and create
     ResultChannels for normalised state readout, assuming that the first image
