@@ -65,17 +65,24 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.setattr_result("andor_sum_2", FloatChannel)
         # self.setattr_result("andor_sum_3", FloatChannel)
 
-        self.setattr_result("absorption", FloatChannel)
+        # self.setattr_result("absorption", FloatChannel)
 
         self.andor_sum_0: FloatChannel
         self.andor_sum_1: FloatChannel
         self.andor_sum_2: FloatChannel
         self.andor_sum_3: FloatChannel
 
-        self.absorption: FloatChannel
+        # self.absorption: FloatChannel
 
-        self.setattr_result("andor_abs_img", OpaqueChannel)
-        self.andor_abs_img: OpaqueChannel
+        self.setattr_result("atoms_img_rslt", OpaqueChannel)
+        self.atoms_img_rslt: OpaqueChannel
+        self.setattr_result("light_img_rslt", OpaqueChannel)
+        self.light_img_rslt: OpaqueChannel
+        self.setattr_result("bg_img_rslt", OpaqueChannel)
+        self.bg_img_rslt: OpaqueChannel
+
+        # self.setattr_result("andor_abs_img", OpaqueChannel)
+        # self.andor_abs_img: OpaqueChannel
 
     def host_setup(self):
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
@@ -209,22 +216,26 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         light_img = self.andor_camera_control.readout_image(timeout=1)
         bg_img = self.andor_camera_control.readout_image(timeout=1)
 
-        atoms_no_bg = atoms_img - bg_img
-        atoms_no_bg = atoms_no_bg.astype(float)
-        light_no_bg = light_img - bg_img
-        light_no_bg = light_no_bg.astype(float)
-        quotient = np.zeros_like(atoms_no_bg)
-        np.divide(atoms_no_bg, light_no_bg, out=quotient, where=light_no_bg != 0)
-        img_abs = -np.log(quotient)
+        self.atoms_img_rslt.push(atoms_img)
+        self.light_img_rslt.push(light_img)
+        self.bg_img_rslt.push(bg_img)
 
-        pixel_size = 16e-6
-        lam = 460.86177e9
-        pi = np.pi
-        sigma = 3 * lam**2 / (2 * pi)
+        # atoms_no_bg = atoms_img - bg_img
+        # atoms_no_bg = atoms_no_bg.astype(float)
+        # light_no_bg = light_img - bg_img
+        # light_no_bg = light_no_bg.astype(float)
+        # quotient = np.zeros_like(atoms_no_bg)
+        # np.divide(atoms_no_bg, light_no_bg, out=quotient, where=light_no_bg != 0)
+        # img_abs = -np.log(quotient)
 
-        N = np.sum(np.sum(img_abs)) * pixel_size**2 / sigma
+        # pixel_size = 16e-6
+        # lam = 460.86177e9
+        # pi = np.pi
+        # sigma = 3 * lam**2 / (2 * pi)
 
-        self.absorption.push(N)
+        # N = np.sum(np.sum(img_abs)) * pixel_size**2 / sigma
+
+        # self.absorption.push(N)
 
         self.set_dataset(
             "atoms_img",
@@ -257,9 +268,13 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         )
         # TODO rebind this instead
         if self.andor_camera_control.save_raw_andor_image.get():
-            self.andor_abs_img.push(img_abs)
+            self.atoms_img_rslt.push(atoms_img)
+            self.light_img_rslt.push(light_img)
+            self.bg_img_rslt.push(bg_img)
         else:
-            self.andor_abs_img.push([])
+            self.atoms_img_rslt.push([])
+            self.light_img_rslt.push([])
+            self.bg_img_rslt.push([])
 
     @kernel
     def save_andor_data_hook(self):
