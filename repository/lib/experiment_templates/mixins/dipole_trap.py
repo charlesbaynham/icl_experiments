@@ -30,7 +30,6 @@ class DipoleTrapMixin(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~post_narrowband_hook`
-    * :meth:`~set_fields_hook`
     """
 
     def build_fragment(self):
@@ -90,7 +89,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
                     constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"]
                 ],
                 urukul_beam_infos=[
-                    constants.URUKULED_BEAMS["dipole_trap_1064_switch"],
+                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
                 ],
                 use_automatic_setup=True,
                 name="dipole_trap_setter",
@@ -100,7 +99,7 @@ class DipoleTrapMixin(RedMOTWithExperiment):
 
     def host_setup(self):
         self.dipole_switch_urukul: AD9910 = self.get_device(
-            constants.URUKULED_BEAMS["dipole_trap_1064_switch"].urukul_device
+            constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"].urukul_device
         )
 
         if not hasattr(self.dipole_switch_urukul, "sw"):
@@ -111,20 +110,13 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         self.dipole_switch_ttl: TTLOut = self.dipole_switch_urukul.sw
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("dipole_delivery_sw")
+        self.kernel_invariants.add("dipole_switch_ttl")
 
         return super().host_setup()
 
     @kernel
     def post_narrowband_hook(self):
         self.post_narrowband_hook_dipole_trap()
-
-    @kernel
-    def set_fields_hook(self):
-        """
-        Prevent field setting in the normal place: we'll do it at the start of
-        the dipole trap instead
-        """
 
     @kernel
     def post_narrowband_hook_dipole_trap(self):
@@ -137,10 +129,6 @@ class DipoleTrapMixin(RedMOTWithExperiment):
         delay_mu(-load_time_mu)
         self.dipole_switch_ttl.on()
         delay_mu(load_time_mu)
-
-        # Set the spectroscopy field gradient at the start of the dipole trap
-        # (after the "loading" phase)
-        self.set_fields_default()
 
         # If configured, add a molasses stage
         molasses_time = self.dipole_trap_molasses_duration.get()

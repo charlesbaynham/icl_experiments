@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+from andor_artiq_ndsp.driver import AndorDriver
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.ttl import TTLOut
@@ -9,12 +10,16 @@ from artiq.experiment import TBool
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from artiq.experiment import delay_mu
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import rpc
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 
 from repository.lib import constants
@@ -120,6 +125,60 @@ class AndorCameraControl(Fragment):
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
         self.num_rois = len(roi_defaults)
 
+        self.setattr_param(
+            "use_andor_driver",
+            BoolParam,
+            default=True,
+            description="andor driver mode",
+        )
+        self.use_andor_driver: BoolParamHandle
+
+        self.setattr_param(
+            "save_raw_andor_image",
+            BoolParam,
+            default=False,
+            description="save raw andor image",
+        )
+        self.save_raw_andor_image: BoolParamHandle
+
+        self.setattr_param(
+            "cam_roi_x0",
+            IntParam,
+            "Camera ROI x0",
+            default=0,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            "cam_roi_x1",
+            IntParam,
+            "Camera ROI x1",
+            default=512,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            "cam_roi_y0",
+            IntParam,
+            "Camera ROI y0",
+            default=0,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            "cam_roi_y1",
+            IntParam,
+            f"Camera ROI y1",
+            default=512,
+            min=0,
+            max=512,
+        )
+
+        self.cam_roi_x0: IntParamHandle
+        self.cam_roi_x1: IntParamHandle
+        self.cam_roi_y0: IntParamHandle
+        self.cam_roi_y1: IntParamHandle
+
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
@@ -127,6 +186,7 @@ class AndorCameraControl(Fragment):
             "num_rois",
             "ttl_trigger",
             "ttl_shutter",
+            "use_andor_driver",
         }
 
     @rpc
@@ -149,6 +209,33 @@ class AndorCameraControl(Fragment):
             ]
 
         return rois
+
+    def host_setup(self):
+        if self.use_andor_driver.get():
+            self.cam: AndorDriver = self.get_device("andor_camera")
+            self.set_roi()
+            self.cam.setup_shutter("open")
+            self.cam.set_trigger_mode("ext_exp")
+            # self.cam.set_acquisition_mode("kinetic")
+            self.cam.start_acquisition()
+
+        super().host_setup()
+
+    def host_cleanup(self):
+        if self.use_andor_driver.get():
+            if self.cam.acquisition_in_progress():
+                self.cam.stop_acquisition()
+            self.cam.setup_shutter("closed")
+        super().host_cleanup()
+
+    @host_only
+    def set_roi(self):
+        roi = {}
+        roi["hstart"] = int(self.cam_roi_x0.get())
+        roi["hend"] = int(self.cam_roi_x1.get())
+        roi["vstart"] = int(self.cam_roi_y0.get())
+        roi["vend"] = int(self.cam_roi_y1.get())
+        self.cam.set_roi(**roi)
 
     @kernel
     def device_setup(self) -> None:
@@ -283,3 +370,25 @@ class AndorCameraControl(Fragment):
                 means[i] = 0.0
             else:
                 means[i] = data[i] / area
+
+    @host_only
+    def readout_image(self, timeout=2.0):
+        self.cam.wait_for_frame(timeout=timeout, since="lastread")
+        img = self.cam.read_oldest_image()
+        img_array = np.array(img)
+        img_array = np.rot90(img_array, axes=(1, 0))
+        return img_array
+
+    @host_only
+    def readout_n_images(self, n_frames, timeout=2.0):
+        self.cam.wait_for_frame(nframes=n_frames, timeout=timeout, since="lastread")
+        imgs = self.cam.read_multiple_images()
+        for i, img in enumerate(imgs):
+            imgs[i] = np.rot90(np.array(img), axes=(1, 0))
+        return imgs
+
+    @host_only
+    def slice_image(self, img):
+        sum_slice_x = np.sum(img, axis=1)
+        sum_slice_y = np.sum(img, axis=0)
+        return sum_slice_x, sum_slice_y

@@ -62,7 +62,7 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
         ]
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Set frequency on the suservo, phase on the clock switch

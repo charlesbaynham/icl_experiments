@@ -39,7 +39,7 @@ class RedMOTWithClockLight(
         self.clock_dds.cfg_sw(True)
 
     @kernel
-    def do_spectroscopy_hook(self):
+    def do_experiment_after_red_mot_hook(self):
         pass
 
 

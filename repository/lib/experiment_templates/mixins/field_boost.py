@@ -16,7 +16,7 @@ class FieldBoostMixin(RedMOTWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~set_fields_hook`
+    * :meth:`~set_postnarrowband_fields_hook`
     """
 
     def build_fragment(self):
@@ -35,7 +35,7 @@ class FieldBoostMixin(RedMOTWithExperiment):
         self.z_coil_boost: FloatParamHandle
 
     @kernel
-    def set_fields_hook(self):
+    def set_postnarrowband_fields_hook(self):
         """
         Override default setting to write compensation coils as well as the
         gradient coil

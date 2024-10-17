@@ -44,9 +44,8 @@ class ClockSpecFromLatticeFrag(
 class BasicClockSpecFromLatticeFrag(
     ClockSpectroscopyMixin,
     DroppedPumpedLatticeMixin,
-    SingleAndorImage,
     FLIRBlueMOTMeasurementMixin,
-    RedMOTWithExperiment,
+    SingleAndorImage,
 ):
     """
     Clock spectroscopy from dropped lattice - single image

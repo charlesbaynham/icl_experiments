@@ -1,32 +1,25 @@
 import logging
 
 from artiq.experiment import kernel
-from artiq.experiment import parallel
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.single_andor_image import (
-    SingleAndorImage,
-)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 
 logger = logging.getLogger(__name__)
 
 
-class FLIRMeasurementMixin(SingleAndorImage, RedMOTWithExperiment):
+class FLIRMeasurementMixin(RedMOTWithExperiment):
     """
     Image the atoms using the FLIR cameras
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
 
-    This mixin also sets up SingleAndorImage, so the user does not need to
-    manually ensure compatibility.
-
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~do_imaging_hook`
+    * :meth:`~do_imaging_hook_flir`
     * :meth:`~save_flir_data_hook`
     """
 
@@ -56,12 +49,6 @@ class FLIRMeasurementMixin(SingleAndorImage, RedMOTWithExperiment):
         )
         self.exposure_horiz: FloatParamHandle
         self.exposure_vert: FloatParamHandle
-
-    @kernel
-    def do_imaging_hook(self):
-        with parallel:
-            self.do_imaging_hook_andor()
-            self.do_imaging_hook_flir()
 
     @kernel
     def do_imaging_hook_flir(self):

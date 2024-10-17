@@ -40,9 +40,6 @@ RED_SUSERVO_INFOS = [
         "red_up",
     ]
 ]
-RED_URUKUL_INFOS = [
-    # constants.URUKULED_BEAMS["red_spinpol"]  # TODO The spin polarization beam is disabled! Put it back
-]
 
 
 class RedBeamController(Fragment):
@@ -61,7 +58,6 @@ class RedBeamController(Fragment):
             "all_beam_default_setter",
             make_set_beams_to_default(
                 suservo_beam_infos=RED_SUSERVO_INFOS,
-                urukul_beam_infos=RED_URUKUL_INFOS,
                 name="RedBeamSettings",
             ),
         )
@@ -86,7 +82,7 @@ class RedBeamController(Fragment):
         self.setattr_fragment(
             "sigmaminus_toggler",
             ControlBeamsWithoutCoolingAOM,
-            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]],
+            beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaminus"]],
         )
         self.sigmaminus_toggler: ControlBeamsWithoutCoolingAOM
 
@@ -118,6 +114,14 @@ class RedBeamController(Fragment):
             constants.URUKULED_BEAMS["red_doublepass_injection"].attenuation,
         )
         self.GlitchFreeUrukulDefaultAttenuation: GlitchFreeUrukulDefaultAttenuation
+
+        # Init of the spin pol AOM without glitching
+        self.setattr_fragment(
+            "GlitchFreeUrukulSpinPol",
+            GlitchFreeUrukulDefaultAttenuation,
+            constants.URUKULED_BEAMS["red_spinpol"].urukul_device,
+            constants.URUKULED_BEAMS["red_spinpol"].attenuation,
+        )
 
         self.suservo_fragments: List[LibSetSUServoStatic] = []
         self.suservo_setpoint_offsets: List[float] = []
@@ -174,6 +178,14 @@ class RedBeamController(Fragment):
         )
 
         self.setattr_param(
+            "spinpol_aom_static_frequency",
+            FloatParam,
+            "Spin pol AOm nominal static frequency",
+            unit="MHz",
+            default=constants.URUKULED_BEAMS["red_spinpol"].frequency,
+        )
+
+        self.setattr_param(
             "ramp_frequency",
             FloatParam,
             "689 injection AOM ramp frequency",
@@ -206,7 +218,7 @@ class RedBeamController(Fragment):
             "Which spinpol beam? True = sigmaplus, False = sigmaminus",
             default=True,
         )
-
+        self.spinpol_aom_static_frequency: FloatParamHandle
         self.injection_aom_static_frequency: FloatParamHandle
         self.ramp_frequency: FloatParamHandle
         self.ramp_lower_detuning: FloatParamHandle
@@ -291,6 +303,7 @@ class RedBeamController(Fragment):
         delay_mu(int64(self.core.ref_multiplier))
 
         # Turn on the spin polarising AOM
+        self.spinpol_aom.set(self.spinpol_aom_static_frequency.get())
         self.spinpol_aom.sw.on()
 
         # Make sure that the shutters are closed before run_once starts

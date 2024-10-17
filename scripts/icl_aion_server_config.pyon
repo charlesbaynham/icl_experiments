@@ -121,30 +121,6 @@
             "host": "",
             "target": "",
         },
-        "689_doubled1379": {
-            "auto_exposure": true,
-            "channel": 7,
-            "display_colour": "blue",
-            "exposure": [
-                50,
-                50
-            ],
-            "f_ref": 0.0,
-            "fast_enabled_at": 0,
-            "fast_mode": false,
-            "fast_mode_set_at": 1683033888.1694472,
-            "lock_capture_range": 3000000000.0,
-            "lock_gain": 1e-10,
-            "lock_owner": "",
-            "lock_poll_time": 10.0,
-            "lock_ready": true,
-            "lock_set_point": 0,
-            "lock_timeout": null,
-            "locked": false,
-            "locked_at": 0,
-            "host": "",
-            "target": "",
-        },
         "698": {
             "auto_exposure": true,
             "channel": 3,
@@ -171,7 +147,7 @@
         },
         "Sirah": {
             "auto_exposure": true,
-            "channel": 8,
+            "channel": 7,
             "display_colour": "white",
             "exposure": [
                 2,

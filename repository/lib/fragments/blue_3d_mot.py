@@ -1,12 +1,9 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import TFloat
-from artiq.experiment import TList
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
-from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
@@ -23,7 +20,9 @@ import repository.lib.constants as constants
 from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
-from repository.lib.fragments.ramping_phase import GeneralRampingPhase
+from repository.lib.fragments.ramping_phase_bound import (
+    GeneralRampingPhaseWithBindingAndMOTField,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ BlueBeamSetter = make_set_beams_to_default(
 )
 
 
-class BlueRampingPhaseWithFields(GeneralRampingPhase):
+class BlueRampingPhaseWithFields(GeneralRampingPhaseWithBindingAndMOTField):
     """
     Subclass the GeneralRampingPhase specifically for the blue MOT transfer phase. I.e.:
 
@@ -74,68 +73,6 @@ class BlueRampingPhaseWithFields(GeneralRampingPhase):
     )
     general_setter_default_starts = [constants.BLUE_TRANSFER_MOT_GRADIENT_START]
     general_setter_default_ends = [constants.BLUE_TRANSFER_MOT_GRADIENT_END]
-
-    # The general ramp here ramps the chamber 2 MOT coils in amps
-    general_setter_names = ["chamber_2_mot_current"]
-    general_setter_param_options = [{"min": 0, "max": 150, "unit": "A"}]
-
-    def build_fragment(self, chamber_2_field_setter: SetMagneticFieldsQuick = None):
-        if chamber_2_field_setter is None:
-            raise TypeError("You must pass chamber_2_field_setter into build_fragment")
-        self.field_setter = chamber_2_field_setter
-        self.__binding_completed = False
-        return super().build_fragment()
-
-    def host_setup(self):
-        if not self.__binding_completed:
-            raise TypeError(
-                "bind_suservo_setpoint_params_to_default_beam_setter has not been called\n"
-                "This must be called from the Fragment which initiates this phase to rebind the blue beam setpoints"
-            )
-        return super().host_setup()
-
-    @kernel
-    def general_setter(self, vals: TList(TFloat)):
-        self.field_setter.set_mot_gradient(vals[0])
-
-    @host_only
-    def bind_suservo_setpoint_params_to_default_beam_setter(
-        self, beam_setter: SetBeamsToDefaults
-    ):
-        """
-        Use the GeneralRampingPhase's :meth:`~.bind_suservo_setpoint_params`
-        method to bind all this GeneralRampingPhase's suservo setpoint
-        parameters to those defined by a `SetBeamsToDefaults`.
-
-        This is a slightly ugly thing to do since it couples two objects that
-        shouldn't need to know about each other, i.e. the GeneralRampingPhase
-        whose responsibility is to ramp SUServo setpoints (and other things)
-        and the SetBeamsToDefaults object whose responsibility it is to set up
-        SUServos with their default settings.
-
-        However, by doing it like this there is a single place in the ndscan
-        parameter tree where all the setpoints for the blue beams are defined,
-        i.e. in the SetBeamsToDefaults owned by the Blue3DMOTFrag. This
-        method glues those two objects together, but I'm adding it here in the
-        blue MOT module since Charles previously chose to keep the GeneralRampingPhase code
-        decoupled from the beam_setter module.
-        """
-        # For the SUServo setpoints, bind these to the FloatParameters defined
-        # by the DefaultBeamSetter so that this is the only place which defines
-        # SUServo setpoints
-        info_and_settings = list(beam_setter.get_setpoints_beaminfo_setters().values())
-        handles = []
-        for suservo_device_name in self.suservos:
-            for info, settings in info_and_settings:
-                if info.suservo_device == suservo_device_name:
-                    handles.append(settings.setpoint_handle)
-                    break
-            else:
-                raise ValueError(
-                    f"SUServo {suservo_device_name} not found in all_beam_default_setter"
-                )
-        self.bind_suservo_setpoint_params(handles)
-        self.__binding_completed = True
 
 
 class Blue3DMOTFrag(Fragment):
@@ -243,7 +180,6 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_fragment(
             "blue_transfer_MOT",
             BlueRampingPhaseWithFields,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.blue_transfer_MOT: BlueRampingPhaseWithFields
 
@@ -251,6 +187,15 @@ class Blue3DMOTFrag(Fragment):
         self.blue_transfer_MOT.bind_suservo_setpoint_params_to_default_beam_setter(
             self.all_beam_default_setter
         )
+
+        self.setattr_param(
+            "delay_into_red_mot_for_blue_beam_switchoff",
+            FloatParam,
+            "Delay into red mot before blue beams switch off",
+            default=constants.DELAY_INTO_RED_MOT_FOR_BLUE_BEAM_SWITCHOFF,
+            unit="us",
+        )
+        self.delay_into_red_mot_for_blue_beam_switchoff: FloatParamHandle
 
         self.setattr_param(
             "chamber_2_bias_x",
@@ -320,6 +265,14 @@ class Blue3DMOTFrag(Fragment):
         # %% Kernel invariants
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {"debug_mode", "manual_init"}
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        if not self.manual_init:
+            self.core.break_realtime()
+            self.init()
 
     @kernel
     def init(self):

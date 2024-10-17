@@ -46,21 +46,18 @@ class TestRedPhasesExp(ExpFragment):
         self.setattr_fragment(
             "frag0",
             BroadbandRedPhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.frag0: RedRampingPhaseWithFieldsAndSUServoBindings
 
         self.setattr_fragment(
             "frag1",
             NarrowRedCapturePhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.frag1: RedRampingPhaseWithFieldsAndSUServoBindings
 
         self.setattr_fragment(
             "frag2",
             NarrowRedCompressionPhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.frag2: RedRampingPhaseWithFieldsAndSUServoBindings
 

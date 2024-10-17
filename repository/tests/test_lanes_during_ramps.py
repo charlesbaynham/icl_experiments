@@ -56,7 +56,6 @@ class TestRampLaneUse(ExpFragment):
         self.setattr_fragment(
             "test_phase",
             NarrowRedCapturePhase,
-            chamber_2_field_setter=self.chamber_2_field_setter,
         )
         self.test_phase: NarrowRedCapturePhase
 

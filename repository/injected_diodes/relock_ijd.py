@@ -29,8 +29,10 @@ from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 import repository.lib.constants as constants
+from repository.injected_diodes.relocker_board import RelockerChannelFrag
 from repository.injected_diodes.set_koheron_controller import SetKoheronFrag
 from repository.lib.constants import IJD_DEFAULTS
+from repository.lib.constants import IJD_RELOCKER_DEFAULTS
 
 # from ndscan.experiment import Fragment
 
@@ -121,6 +123,11 @@ class RelockIJDFrag(ExpFragment):
             SetKoheronFrag,
             controller_name=controller_name,
         )
+        for k, v in IJD_RELOCKER_DEFAULTS.items():
+            if v.associated_controller == controller_name:
+                self.relocker_frag: RelockerChannelFrag = self.setattr_fragment(
+                    f"frag_{k}", RelockerChannelFrag, k
+                )
 
         setattr_subscan(
             self,
@@ -169,6 +176,12 @@ class RelockIJDFrag(ExpFragment):
         self.relock()
 
     def relock(self) -> None:
+        auto_relocking = self.relocker_frag.get_auto_relock()
+        if auto_relocking:
+            self.relocker_frag.set_auto_relock(False)
+        self.relocker_frag.set_dac_voltage(0)
+
+        self.relocker_frag.set_auto_relock(False)
         # scan over a range of currents on the IJD
         coordinates, values, analysis_results = self.scan_ijd_current.run(  # type: ignore
             [
@@ -228,6 +241,8 @@ class RelockIJDFrag(ExpFragment):
                 "v_window": v_window_start,
             },
         )
+        if auto_relocking:
+            self.relocker_frag.set_auto_relock(True)
 
     @portable
     def find_lock_point(
