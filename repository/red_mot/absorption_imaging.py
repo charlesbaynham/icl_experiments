@@ -63,7 +63,6 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.setattr_result("andor_sum_0", FloatChannel)
         self.setattr_result("andor_sum_1", FloatChannel)
         self.setattr_result("andor_sum_2", FloatChannel)
-        self.setattr_result("andor_sum_2", FloatChannel)
         # self.setattr_result("andor_sum_3", FloatChannel)
 
         self.setattr_result("absorption", FloatChannel)
