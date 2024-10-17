@@ -211,7 +211,9 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
 
         atoms_no_bg = atoms_img - bg_img
         light_no_bg = light_img - bg_img
-        img_abs = light_no_bg / atoms_no_bg
+        quotient = np.zeros_like(atoms_no_bg)
+        np.divide(atoms_no_bg, light_no_bg, out=quotient, where=light_no_bg != 0)
+        img_abs = -np.log(quotient)
 
         pixel_size = 16e-6
         lam = 460.86177e9
