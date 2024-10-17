@@ -186,7 +186,6 @@ class AndorCameraControl(Fragment):
             "num_rois",
             "ttl_trigger",
             "ttl_shutter",
-            "use_andor_driver",
         }
 
     @rpc
