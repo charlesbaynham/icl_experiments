@@ -1,6 +1,6 @@
 import logging
 
-from artiq.experiment import delay
+from artiq.experiment import delay, host_only
 from artiq.experiment import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
@@ -9,7 +9,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
-from .imaging_base import AndorImagingBase
+from .imaging_base import AndorImagingBase, ANDOR_MONITOR_DATASET
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +33,11 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
     * :meth:`~save_data_hook`
     """
 
+    num_andor_images = 3  # TODO: No idea if this is right: we need to test this fragment with the new Andor driver code
+
     def build_fragment(self):
         super().build_fragment()
 
-        self._setup_params()
-
-    def _setup_params(self):
         self.setattr_param(
             "delay_between_fluorescence_pulses",
             FloatParam,
@@ -57,15 +56,9 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
-        self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("excitation_fraction", FloatChannel)
         self.setattr_result("atom_number", FloatChannel)
 
-        self.andor_sum_0: FloatChannel
-        self.andor_sum_1: FloatChannel
-        self.andor_sum_2: FloatChannel
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
@@ -93,6 +86,8 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl
+
+        self.hook_setup_andor_results()
 
         # If the andor is in fast kinetics mode and the height of pixels to emit
         # is > 512, it will emit two frames onto Grabber instead of one. The
@@ -157,13 +152,30 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
 
         self.atom_number.push(means[0] + means[1] - 2 * means[2])
 
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
+    @host_only
+    def update_andor_monitor_hook(self):
+        """
+        Update the andor monitor with an appropriate image
+        """
+        try:
+            img_gnd = self.andor_images[0].sink.get_last()
+            img_excited = self.andor_images[1].sink.get_last()
+            img_bg = self.andor_images[2].sink.get_last()
+        except AttributeError:
+            img_gnd = [[0.0]]
+            img_excited = [[0.0]]
+            img_bg = [[0.0]]
 
-    @kernel
-    def post_sequence_cleanup_hook_andor(self):
-        # Ensure shutter is closed, though it should be anyway
-        self.core.break_realtime()
-        self.andor_camera_control.set_shutter(False)
+        if img_gnd is None:
+            img_gnd = [[0.0]]
+            img_excited = [[0.0]]
+            img_bg = [[0.0]]
+
+        # TODO: Consider how to plot the excited atoms here
+        self.set_dataset(
+            ANDOR_MONITOR_DATASET,
+            img_gnd - img_bg,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )

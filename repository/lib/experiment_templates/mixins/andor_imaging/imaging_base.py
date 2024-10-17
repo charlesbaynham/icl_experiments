@@ -17,7 +17,7 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 logger = logging.getLogger(__name__)
 
 
-DATASET_NAME = "andor_monitor_image"
+ANDOR_MONITOR_DATASET = "andor_monitor_image"
 
 
 class AndorImagingBase(RedMOTWithExperiment):
@@ -59,14 +59,18 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
 
+        self.hook_setup_andor_results()
+
+    def hook_setup_andor_results(self):
         # Set up result channels for all the images
+        # FIXME: The sums should not match the number of images necessarily
         self.andor_sums: List[FloatChannel] = []
         self.andor_means: List[FloatChannel] = []
         self.andor_sum_slice_xs: List[OpaqueChannel] = []
         self.andor_sum_slice_ys: List[OpaqueChannel] = []
         self.andor_images: List[OpaqueChannel] = []
 
-        for i in self.num_andor_images:
+        for i in range(self.num_andor_images):
             sum = self.setattr_result(
                 f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
             )
@@ -86,7 +90,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.ccb.issue(
                 "create_applet",
                 "Single Andor image",
-                f"${{artiq_applet}}image {DATASET_NAME}",
+                f"${{artiq_applet}}image {ANDOR_MONITOR_DATASET}",
             )
         super().host_setup()
 
@@ -175,6 +179,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         so you can use these. NDScan supports a `get_last` method on
         ResultChannels sinks so you can use this: see the example below which
         shows the first image by default.
+
+        FIXME: This should automatically make monitors for each image, but be
+        customizable for e.g. background subtraction
         """
         try:
             img_array = self.andor_images[0].sink.get_last()
@@ -185,7 +192,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             img_array = [[0.0]]
 
         self.set_dataset(
-            DATASET_NAME,
+            ANDOR_MONITOR_DATASET,
             img_array,
             broadcast=True,
             persist=False,

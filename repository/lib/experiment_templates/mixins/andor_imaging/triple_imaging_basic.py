@@ -1,12 +1,12 @@
 import logging
 
-from artiq.experiment import delay
+from artiq.experiment import delay, host_only
 from artiq.experiment import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from .imaging_base import AndorImagingBase
+from .imaging_base import AndorImagingBase, ANDOR_MONITOR_DATASET
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,8 @@ class TripleImageBasicMixin(AndorImagingBase):
     * :meth:`~save_data_hook`
     """
 
+    num_andor_images = 3
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -59,15 +61,9 @@ class TripleImageBasicMixin(AndorImagingBase):
         # Use the default ROI setup
         super().hook_setup_andor()
 
-        self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("excitation_fraction", FloatChannel)
         self.setattr_result("atom_number", FloatChannel)
 
-        self.andor_sum_0: FloatChannel
-        self.andor_sum_1: FloatChannel
-        self.andor_sum_2: FloatChannel
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
@@ -88,6 +84,34 @@ class TripleImageBasicMixin(AndorImagingBase):
         # Take background measurement
         delay(self.delay_before_background_pulse.get())
         self.do_pulse()
+
+    @host_only
+    def update_andor_monitor_hook(self):
+        """
+        Update the andor monitor with an appropriate image
+        """
+        try:
+            img_gnd = self.andor_images[0].sink.get_last()
+            img_excited = self.andor_images[1].sink.get_last()
+            img_bg = self.andor_images[2].sink.get_last()
+        except AttributeError:
+            img_gnd = [[0.0]]
+            img_excited = [[0.0]]
+            img_bg = [[0.0]]
+
+        if img_gnd is None:
+            img_gnd = [[0.0]]
+            img_excited = [[0.0]]
+            img_bg = [[0.0]]
+
+        # TODO: Consider how to plot the excited atoms here
+        self.set_dataset(
+            ANDOR_MONITOR_DATASET,
+            img_gnd - img_bg,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
 
     @kernel
     def save_andor_data_hook(self):

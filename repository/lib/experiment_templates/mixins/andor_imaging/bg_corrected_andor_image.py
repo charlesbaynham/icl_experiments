@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from artiq.experiment import delay
+from artiq.experiment import delay, host_only
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import rpc
@@ -12,7 +12,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 
-from .imaging_base import AndorImagingBase
+from .imaging_base import AndorImagingBase, ANDOR_MONITOR_DATASET
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,8 @@ class BGCorrectedAndorImage(AndorImagingBase):
     * :meth:`~do_imaging_hook_andor`
     * :meth:`~save_andor_data_hook`
     """
+
+    num_andor_images = 2
 
     def host_setup(self):
         self.ccb.issue(
@@ -64,19 +66,13 @@ class BGCorrectedAndorImage(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+        # FIXME: This should be removed or made generic
         self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_mean", FloatChannel, display_hints={"priority": -1})
         self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_mean_bg_corrected: FloatChannel
         self.andor_sum: FloatChannel
         self.andor_mean: FloatChannel
-
-        self.setattr_result("andor_sum_slice_x", OpaqueChannel)
-        self.setattr_result("andor_sum_slice_y", OpaqueChannel)
-        self.setattr_result("andor_bg_corrected", OpaqueChannel)
-        self.andor_sum_slice_x: OpaqueChannel
-        self.andor_sum_slice_y: OpaqueChannel
-        self.andor_bg_corrected: OpaqueChannel
 
     @kernel
     def do_imaging_hook_andor(self):
@@ -95,54 +91,34 @@ class BGCorrectedAndorImage(AndorImagingBase):
         # Image background with no atoms
         self.do_pulse()
 
-    @rpc(flags={"async"})
-    def _call_camera_rpc(self):
-        # FIXME: as with others, should be generic
-        if self.use_andor_driver.get():
-            # do stuff including writing to resultchannel
-            img_array = self.andor_camera_control.readout_image(timeout=1)
-            bg_img_array = self.andor_camera_control.readout_image(timeout=1)
+    @host_only
+    def update_andor_monitor_hook(self):
+        """
+        Update the andor monitor with an appropriate image
 
+        Override this hook to select a different image. AndorImagingBase will
+        create `num_andor_images`  ResultChannels containing the Andor images,
+        so you can use these. NDScan supports a `get_last` method on
+        ResultChannels sinks so you can use this: see the example below which
+        shows the first image by default.
+        """
+        try:
+            img_array = self.andor_images[0].sink.get_last()
+            bg_img_array = self.andor_images[1].sink.get_last()
             corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
-            sum_slice_x, sum_slice_y = self.andor_camera_control.slice_image(
-                corrected_img_array
-            )
+        except AttributeError:
+            corrected_img_array = [[0.0]]
 
-            self.set_dataset(
-                "corrected_img",
-                corrected_img_array,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
+        if img_array is None:
+            corrected_img_array = [[0.0]]
 
-            self.set_dataset(
-                "atom_img_array",
-                img_array,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
-
-            self.set_dataset(
-                "bg_img_array",
-                bg_img_array,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
-
-            self.andor_sum_slice_x.push(sum_slice_x)
-            self.andor_sum_slice_y.push(sum_slice_y)
-
-            if self.andor_camera_control.save_raw_andor_image.get():
-                self.andor_bg_corrected.push(corrected_img_array)
-            else:
-                self.andor_bg_corrected.push([])
-        else:
-            self.andor_sum_slice_x.push([])
-            self.andor_sum_slice_y.push([])
-            self.andor_bg_corrected.push([])
+        self.set_dataset(
+            ANDOR_MONITOR_DATASET,
+            corrected_img_array,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
 
     @kernel
     def save_andor_data_hook(self):
