@@ -199,11 +199,11 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
             f"bg_img",
             f"${{artiq_applet}}image bg_img",
         )
-        self.ccb.issue(
-            "create_applet",
-            f"andor_abs_img",
-            f"${{artiq_applet}}image andor_abs_img_dataset",
-        )
+        # self.ccb.issue(
+        #     "create_applet",
+        #     f"andor_abs_img",
+        #     f"${{artiq_applet}}image andor_abs_img_dataset",
+        # )
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
@@ -259,13 +259,13 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
             archive=False,
         )
 
-        self.set_dataset(
-            "andor_abs_img_dataset",
-            img_abs,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
+        # self.set_dataset(
+        #     "andor_abs_img_dataset",
+        #     img_abs,
+        #     broadcast=True,
+        #     persist=False,
+        #     archive=False,
+        # )
         # TODO rebind this instead
         if self.andor_camera_control.save_raw_andor_image.get():
             self.atoms_img_rslt.push(atoms_img)
