@@ -1,4 +1,5 @@
 from ndscan.experiment import FloatChannel
+from artiq.master.worker_impl import CCB
 from ndscan.experiment import OpaqueChannel
 from typing import List
 import abc
@@ -41,11 +42,13 @@ class AndorImagingBase(RedMOTWithExperiment):
     """
 
     num_andor_images = 1
+    num_grabber_rois = 1
 
     def build_fragment(self):
         super().build_fragment()
 
         self.setattr_device("ccb")
+        self.ccb: CCB
 
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
@@ -62,25 +65,29 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.hook_setup_andor_results()
 
     def hook_setup_andor_results(self):
-        # Set up result channels for all the images
-        # FIXME: The sums should not match the number of images necessarily
+        # Set up result channels for all the Grabber ROIs
         self.andor_sums: List[FloatChannel] = []
         self.andor_means: List[FloatChannel] = []
+
+        for i in range(self.num_grabber_rois):
+            sum = self.setattr_result(
+                f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
+            )
+            mean = self.setattr_result(f"andor_mean_{i}", FloatChannel)
+
+            self.andor_sums.append(sum)
+            self.andor_means.append(mean)  # FIXME WIP
+
+        # Set up result channels for the Andor images
         self.andor_sum_slice_xs: List[OpaqueChannel] = []
         self.andor_sum_slice_ys: List[OpaqueChannel] = []
         self.andor_images: List[OpaqueChannel] = []
 
         for i in range(self.num_andor_images):
-            sum = self.setattr_result(
-                f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
-            )
-            mean = self.setattr_result(f"andor_mean_{i}", FloatChannel)
             slice_x = self.setattr_result(f"andor_sum_slice_x_{i}", OpaqueChannel)
             slice_y = self.setattr_result(f"andor_sum_slice_y_{i}", OpaqueChannel)
             image = self.setattr_result(f"andor_image_{i}", OpaqueChannel)
 
-            self.andor_sums.append(sum)
-            self.andor_means.append(mean)
             self.andor_sum_slice_xs.append(slice_x)
             self.andor_sum_slice_ys.append(slice_y)
             self.andor_images.append(image)
@@ -89,7 +96,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         if self.use_andor_driver.get():
             self.ccb.issue(
                 "create_applet",
-                "Single Andor image",
+                "Andor Monitor Image",
                 f"${{artiq_applet}}image {ANDOR_MONITOR_DATASET}",
             )
         super().host_setup()
