@@ -7,22 +7,19 @@ from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
-
-from repository.lib import constants
-
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
 
 
-class AbsorptionRedMOT(AndorImagingBase, RedMOTWithExperiment):
+class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
     """
     Image red MOT with absorption
     """
@@ -222,4 +219,4 @@ class AbsorptionRedMOT(AndorImagingBase, RedMOTWithExperiment):
             self._call_camera_rpc()
 
 
-AbsorptionRedMOTExp = make_fragment_scan_exp(AbsorptionRedMOT)
+AbsorptionRedMOT = make_fragment_scan_exp(AbsorptionRedMOTFrag)

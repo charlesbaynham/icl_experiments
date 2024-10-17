@@ -5,10 +5,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.parameters import BoolParamHandle
 
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from .imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)

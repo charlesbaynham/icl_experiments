@@ -6,9 +6,6 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
-)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
@@ -27,7 +24,6 @@ class MeasureDipoleTrapFrag(
     BGCorrectedAndorImage,
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
-    SingleAndorImage,
     XODTMolassesMixin,
 ):
     """

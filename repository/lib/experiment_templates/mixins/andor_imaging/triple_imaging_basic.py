@@ -6,11 +6,7 @@ from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib import constants
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from .imaging_base import AndorImagingBase
-
 
 logger = logging.getLogger(__name__)
 

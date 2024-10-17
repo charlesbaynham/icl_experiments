@@ -80,7 +80,8 @@ class AndorImagingBase(RedMOTWithExperiment):
                 exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
                 control_shutter=False,
             )
-            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+            if with_light:
+                self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     # In red_mot_experiment this is optional, but we make it compulsory here
     # since using this base class alone should be an error
