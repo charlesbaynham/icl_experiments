@@ -1,7 +1,11 @@
+from ndscan.experiment import FloatChannel
+from ndscan.experiment import OpaqueChannel
+from typing import List
 import abc
 import logging
 
-from artiq.experiment import kernel
+import numpy as np
+from artiq.experiment import kernel, host_only
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import rpc
@@ -36,6 +40,8 @@ class AndorImagingBase(RedMOTWithExperiment):
     * :meth:`~save_andor_data_hook`
     """
 
+    num_andor_images = 1
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -52,6 +58,28 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
+
+        # Set up result channels for all the images
+        self.andor_sums: List[FloatChannel] = []
+        self.andor_means: List[FloatChannel] = []
+        self.andor_sum_slice_xs: List[OpaqueChannel] = []
+        self.andor_sum_slice_ys: List[OpaqueChannel] = []
+        self.andor_images: List[OpaqueChannel] = []
+
+        for i in self.num_andor_images:
+            sum = self.setattr_result(
+                f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
+            )
+            mean = self.setattr_result(f"andor_mean_{i}", FloatChannel)
+            slice_x = self.setattr_result(f"andor_sum_slice_x_{i}", OpaqueChannel)
+            slice_y = self.setattr_result(f"andor_sum_slice_y_{i}", OpaqueChannel)
+            image = self.setattr_result(f"andor_image_{i}", OpaqueChannel)
+
+            self.andor_sums.append(sum)
+            self.andor_means.append(mean)
+            self.andor_sum_slice_xs.append(slice_x)
+            self.andor_sum_slice_ys.append(slice_y)
+            self.andor_images.append(image)
 
     def host_setup(self):
         if self.use_andor_driver.get():
@@ -102,34 +130,67 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
-        # FIXME: Needs to support a generic number of pictures
-        # TBC what to do about the monitor
+        # Readout and store the andor images
+        for (
+            andor_sum_slice_x,
+            andor_sum_slice_y,
+            andor_image,
+        ) in zip(
+            self.andor_sum_slice_xs,
+            self.andor_sum_slice_ys,
+            self.andor_images,
+        ):
+            if self.use_andor_driver.get():
+                # Read out the images
+                img_array = self.andor_camera_control.readout_image()
+                sum_slice_x, sum_slice_y = self.slice_image(img_array)
 
-        if self.use_andor_driver.get():
-            # Read out the image, write it to the result channels and plot it in a viewer applet
-            img_array = self.andor_camera_control.readout_image(timeout=1)
-            sum_slice_x, sum_slice_y = self.andor_camera_control.slice_image(img_array)
+                # Write them to the result channels
+                andor_sum_slice_x.push(sum_slice_x)
+                andor_sum_slice_y.push(sum_slice_y)
 
-            self.andor_sum_slice_x.push(sum_slice_x)
-            self.andor_sum_slice_y.push(sum_slice_y)
-
-            if self.andor_camera_control.save_raw_andor_image.get():
-                self.andor_image.push(img_array)
+                if self.andor_camera_control.save_raw_andor_image.get():
+                    andor_image.push(img_array)
+                else:
+                    andor_image.push([])
             else:
-                self.andor_image.push([])
+                # We must always push something to ResultChannels, so push something empty
+                andor_sum_slice_x.push([])
+                andor_sum_slice_y.push([])
+                andor_image.push([])
 
-            self.set_dataset(
-                DATASET_NAME,
-                img_array,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
-        else:
-            # We must always push something to ResultChannels, so push something empty
-            self.andor_sum_slice_x.push([])
-            self.andor_sum_slice_y.push([])
-            self.andor_image.push([])
+    @host_only
+    def slice_image(self, img):
+        sum_slice_x = np.sum(img, axis=1)
+        sum_slice_y = np.sum(img, axis=0)
+        return sum_slice_x, sum_slice_y
+
+    @host_only
+    def update_andor_monitor_hook(self):
+        """
+        Update the andor monitor with an appropriate image
+
+        Override this hook to select a different image. AndorImagingBase will
+        create `num_andor_images`  ResultChannels containing the Andor images,
+        so you can use these. NDScan supports a `get_last` method on
+        ResultChannels sinks so you can use this: see the example below which
+        shows the first image by default.
+        """
+        try:
+            img_array = self.andor_images[0].sink.get_last()
+        except AttributeError:
+            img_array = [[0.0]]
+
+        if img_array is None:
+            img_array = [[0.0]]
+
+        self.set_dataset(
+            DATASET_NAME,
+            img_array,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
 
     @kernel
     def save_andor_data_hook(self):

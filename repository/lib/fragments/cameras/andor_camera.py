@@ -385,9 +385,3 @@ class AndorCameraControl(Fragment):
         for i, img in enumerate(imgs):
             imgs[i] = np.rot90(np.array(img), axes=(1, 0))
         return imgs
-
-    @host_only
-    def slice_image(self, img):
-        sum_slice_x = np.sum(img, axis=1)
-        sum_slice_y = np.sum(img, axis=0)
-        return sum_slice_x, sum_slice_y
