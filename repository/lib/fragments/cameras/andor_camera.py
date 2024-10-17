@@ -51,7 +51,7 @@ class AndorCameraControl(Fragment):
                 constants.ANDOR_ROI_Y1,
             ]
         ],
-        add_pre_trigger_delay=False,
+        add_pre_trigger_delay=True,
     ):
         self.setattr_device("core")
         self.core: Core
