@@ -335,7 +335,7 @@ DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
-"Default duration of the delay between turning on the delivery AOM and turning on the fluoresence probe."
+"Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
 
 DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000
 "$k_I$ constant for the flourescence beam's SUServo loop"

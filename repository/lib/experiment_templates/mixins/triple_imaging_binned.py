@@ -22,7 +22,7 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
 
     This mixin uses the Andor camera to take three images and create
     ResultChannels for normalised state readout, assuming that the first image
-    is ground-state atoms, the second one is excitated state and the third is
+    is ground-state atoms, the second one is excited state and the third is
     background (i.e. no atoms at all).
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
@@ -38,13 +38,13 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         super().build_fragment()
 
         self.setattr_param(
-            "delay_between_fluoresence_pulses",
+            "delay_between_fluorescence_pulses",
             FloatParam,
             "Delay after first fluorescence pulse before second",
             default=1e-3,
             unit="ms",
         )
-        self.delay_between_fluoresence_pulses: FloatParamHandle
+        self.delay_between_fluorescence_pulses: FloatParamHandle
 
         self.setattr_param(
             "delay_before_background_pulse",
@@ -110,7 +110,7 @@ class TripleImageBinnedMixin(RedMOTWithExperiment):
         self.do_first_pulse(andor_exposure)
 
         # Image excited state atoms
-        delay(self.delay_between_fluoresence_pulses.get())
+        delay(self.delay_between_fluorescence_pulses.get())
         self.do_second_pulse(andor_exposure)
 
         # Take background measurement
