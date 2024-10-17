@@ -36,6 +36,14 @@ class AndorImagingBase(RedMOTWithExperiment):
     * :meth:`~save_andor_data_hook`
     """
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_device("ccb")
+
+        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
+        self.use_andor_driver: BoolParamHandle
+
     def hook_setup_andor(self):
         """
         Setup the Andor camera
@@ -44,11 +52,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
-
-        self.setattr_device("ccb")
-
-        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
-        self.use_andor_driver: BoolParamHandle
 
     def host_setup(self):
         if self.use_andor_driver.get():

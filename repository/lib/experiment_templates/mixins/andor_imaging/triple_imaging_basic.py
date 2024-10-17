@@ -9,11 +9,13 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from .imaging_base import AndorImagingBase
+
 
 logger = logging.getLogger(__name__)
 
 
-class TripleImageBasicMixin(RedMOTWithExperiment):
+class TripleImageBasicMixin(AndorImagingBase):
     """
     Implements normalized readout for a :py:class:`~RedMOTWithExperiment`
     experiment by just taking multiple images.

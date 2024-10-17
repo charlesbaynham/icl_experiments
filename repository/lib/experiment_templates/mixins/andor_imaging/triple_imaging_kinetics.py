@@ -9,12 +9,12 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-
+from .imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)
 
 
-class TripleImageFastKineticsMixin(RedMOTWithExperiment):
+class TripleImageFastKineticsMixin(AndorImagingBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
@@ -106,42 +106,22 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
         self.kernel_invariants.add("andor_requires_storage_frame")
 
     @kernel
-    def start_of_red_broadband_hook(self):
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
-        self.andor_camera_control.set_shutter(True)
-
-    @kernel
     def do_imaging_hook_andor(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        andor_exposure = self.fluorescence_pulse.fluorescence_pulse_duration.get()
 
         # Image ground state atoms
-        self.do_first_pulse(andor_exposure)
+        self.do_pulse()
 
         # Image excited state atoms
         delay(self.delay_between_fluorescence_pulses.get())
-        self.do_second_pulse(andor_exposure)
+        self.do_pulse()
 
         # Take background measurement
         delay(self.delay_before_background_pulse.get())
-        self.do_third_pulse(andor_exposure)
-
-    @kernel
-    def do_first_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
-
-    @kernel
-    def do_second_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
-
-    @kernel
-    def do_third_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
+        self.do_pulse()
 
     @kernel
     def save_andor_data_hook(self):
@@ -150,6 +130,9 @@ class TripleImageFastKineticsMixin(RedMOTWithExperiment):
 
         Runs in realtime after imaging is completed
         """
+
+        # FIXME: Decide how to integrate this with AndorImagingBase
+
         # Save Andor data
         sums = [0] * 3
         means = [0.0] * 3
