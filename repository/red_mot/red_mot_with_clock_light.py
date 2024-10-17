@@ -9,7 +9,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.single_andor_image import (
+from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment

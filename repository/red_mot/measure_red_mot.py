@@ -3,7 +3,7 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
+from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
 )
 from repository.lib.experiment_templates.mixins.constant_lattice import (
@@ -15,7 +15,7 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.mixins.single_andor_image import (
+from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment

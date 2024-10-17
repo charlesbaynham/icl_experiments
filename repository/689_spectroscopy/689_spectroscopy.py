@@ -17,7 +17,7 @@ from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMix
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
-from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
