@@ -210,14 +210,8 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         bg_img = self.andor_camera_control.readout_image(timeout=1)
 
         atoms_no_bg = atoms_img - bg_img
-        atoms_no_bg_m = np.ma.masked_less_equal(atoms_no_bg, 0)
         light_no_bg = light_img - bg_img
-        light_no_bg_m = np.ma.masked_less_equal(light_no_bg, 0)
-        quotient = light_no_bg_m / atoms_no_bg_m
-        quotient_m = np.ma.masked_less_equal(quotient, 0)
-        img_abs: np.ma.MaskedArray = np.log(quotient_m)
-        img_abs = np.ma.fix_invalid(img_abs, img_abs.mask, fill_value=0)
-        img_abs = img_abs.data
+        img_abs = light_no_bg / atoms_no_bg
 
         pixel_size = 16e-6
         lam = 460.86177e9
