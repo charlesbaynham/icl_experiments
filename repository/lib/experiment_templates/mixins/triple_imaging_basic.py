@@ -57,18 +57,6 @@ class TripleImageBasicMixin(RedMOTWithExperiment):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
-        self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("excitation_fraction", FloatChannel)
-        self.setattr_result("atom_number", FloatChannel)
-
-        self.andor_sum_0: FloatChannel
-        self.andor_sum_1: FloatChannel
-        self.andor_sum_2: FloatChannel
-        self.excitation_fraction: FloatChannel
-        self.atom_number: FloatChannel
-
     def hook_setup_andor(self):
         # 1x ROI but we'll trigger three times
         self.setattr_fragment(
@@ -85,6 +73,18 @@ class TripleImageBasicMixin(RedMOTWithExperiment):
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl
+
+        self.setattr_result("andor_sum_0", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_sum_1", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("andor_sum_2", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("excitation_fraction", FloatChannel)
+        self.setattr_result("atom_number", FloatChannel)
+
+        self.andor_sum_0: FloatChannel
+        self.andor_sum_1: FloatChannel
+        self.andor_sum_2: FloatChannel
+        self.excitation_fraction: FloatChannel
+        self.atom_number: FloatChannel
 
     @kernel
     def start_of_red_broadband_hook(self):
