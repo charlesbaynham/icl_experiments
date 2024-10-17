@@ -7,17 +7,22 @@ from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import BoolParamHandle
+
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    AndorImagingBase,
+)
+
+from repository.lib import constants
+
 
 logger = logging.getLogger(__name__)
 
 
-class AbsorptionRedMOT(RedMOTWithExperiment):
+class AbsorptionRedMOT(AndorImagingBase, RedMOTWithExperiment):
     """
     Image red MOT with absorption
     """
@@ -27,8 +32,6 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         pass
 
     def build_fragment(self):
-        self.setattr_device("ccb")
-
         super().build_fragment()
 
         # Set the MOT field to off before the "spectroscopy" (i.e. imaging) starts
@@ -78,104 +81,8 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         self.andor_abs_img: OpaqueChannel
 
     def host_setup(self):
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-        logger.warning(
-            "Please ensure that the Andor is in Kinetics mode (not Fast Kinetics) with NO EM GAIN!"
-            " And that exposure is set to at least %f us",
-            1e6 * andor_exposure,
-        )
-
-        return super().host_setup()
-
-    @kernel
-    def start_of_red_broadband_hook(self):
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
-        self.andor_camera_control.set_shutter(True)
-
-    # @kernel
-    # def do_pulse(self, andor_exposure):
-    #     """ """
-    #     with parallel:
-    #         self.andor_camera_control.trigger(
-    #             exposure=andor_exposure,
-    #             control_shutter=False,
-    #         )
-    #         # self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-    #         # logger.info("this is where I would do an imaging pulse")
-
-    @kernel
-    def do_imaging_hook(self):
-        """
-        Hook for the imaging sequence. This hook runs after the spectroscopy
-        etc. is completed, and should handle imaging with the Andor camera.
-        """
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
-        # Image with atoms
-        self.do_pulse(andor_exposure)
-
-        # Wait for atoms to disappear
-        delay(self.delay_between_absorption_pulses.get())
-
-        # Image without atoms
-        self.do_pulse(andor_exposure)
-
-        # Trigger the third time without any light
-        delay(self.delay_before_background_pulse.get())
-        self._do_pulse_no_light(andor_exposure)
-
-        # # Trigger again since we're still in fast kinetics mode so we must take two images
-        # delay(self.delay_between_absorption_pulses.get())
-        # self._do_pulse_no_light(andor_exposure)
-
-    @kernel
-    def _do_pulse_no_light(self, andor_exposure):
-        delay(-0.5 * andor_exposure)
-        self.andor_camera_control.trigger(
-            exposure=andor_exposure,
-            control_shutter=False,
-        )
-        delay(0.5 * andor_exposure)
-
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera with default settings
-        """
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
-
-        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
-        self.use_andor_driver: BoolParamHandle
-
-    # def hook_setup_andor(self):
-    #     """
-    #     Setup the Andor camera to use 4x ROIs since we're expecting fast
-    #     kinetics mode with 2x images which we'll repeat.
-
-    #     Each image is the full sensor size, so we'll use the normal ROI
-
-    #     TODO: Set up Fast Kinetics mode here too
-    #     """
-
-    #     self.setattr_fragment(
-    #         "andor_camera_control",
-    #         AndorCameraControl,
-    #         roi_defaults=[
-    #             [
-    #                 constants.ANDOR_ROI_X0,
-    #                 i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y0,
-    #                 constants.ANDOR_ROI_X1,
-    #                 i * constants.ANDOR_SENSOR_HEIGHT + constants.ANDOR_ROI_Y1,
-    #             ]
-    #             for i in range(2)
-    #         ],
-    #     )
-    #     self.andor_camera_control: AndorCameraControl
-
-    def host_setup(self):
         super().host_setup()
+
         self.ccb.issue(
             "create_applet",
             f"atoms_img",
@@ -197,6 +104,35 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
             f"andor_abs_img",
             f"${{artiq_applet}}image andor_abs_img_dataset",
         )
+
+        logger.warning(
+            "Please ensure that the Andor is in Kinetics mode (not Fast Kinetics) with NO EM GAIN!"
+            " And that exposure is set to at least %f us",
+            1e6
+            * (
+                self.fluorescence_pulse.fluorescence_pulse_duration.get()
+                + constants.ANDOR_CAMERA_TRIGGER_ENABLE_TIME
+            ),
+        )
+
+    @kernel
+    def do_imaging_hook(self):
+        """
+        Hook for the imaging sequence. This hook runs after the spectroscopy
+        etc. is completed, and should handle imaging with the Andor camera.
+        """
+        # Image with atoms
+        self.do_pulse()
+
+        # Wait for atoms to disappear
+        delay(self.delay_between_absorption_pulses.get())
+
+        # Image without atoms
+        self.do_pulse()
+
+        # Trigger the third time without any light
+        delay(self.delay_before_background_pulse.get())
+        self.do_pulse(with_light=False)
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
@@ -260,7 +196,7 @@ class AbsorptionRedMOT(RedMOTWithExperiment):
         """
         Hook to save data from the Andor camera
 
-        We took four images, each seperately as normal (i.e. not fast kinetics)
+        We took four images, each separately as normal (i.e. not fast kinetics)
         images.
         """
 

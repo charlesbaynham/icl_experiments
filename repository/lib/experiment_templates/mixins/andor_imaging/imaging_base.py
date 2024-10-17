@@ -70,7 +70,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.andor_camera_control.set_shutter(True)
 
     @kernel
-    def do_pulse(self):
+    def do_pulse(self, with_light=True):
         """
         Default implementation of a fluorescence pulse, available for use by
         mixins (but not used by default).
