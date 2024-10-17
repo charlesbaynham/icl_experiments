@@ -300,7 +300,7 @@ class AndorCameraControl(Fragment):
     @kernel
     def trigger(self, exposure: TFloat, control_shutter=False):
         """
-        Trigger an aquisition
+        Trigger an acquisition
 
         For now, you must manually set up the camera to respond to external
         triggers.
