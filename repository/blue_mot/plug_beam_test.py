@@ -107,6 +107,5 @@ class ScanPlugBeamParamsFrag(ExpFragment):
 
         delay(self.delay_between_points.get())
 
-
  
 ScanPlugBeamParams= make_fragment_scan_exp(ScanPlugBeamParamsFrag)
