@@ -70,7 +70,7 @@ class TripleImageBasicMixin(AndorImagingBase):
         self.atom_number: FloatChannel
 
     @kernel
-    def do_imaging_hook(self):
+    def do_imaging_hook_andor(self):
         """
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
