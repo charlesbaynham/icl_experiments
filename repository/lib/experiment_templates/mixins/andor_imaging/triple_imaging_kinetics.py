@@ -1,7 +1,6 @@
 import logging
 
 from artiq.experiment import delay
-from artiq.experiment import host_only
 from artiq.experiment import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
@@ -10,7 +9,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
-from .imaging_base import ANDOR_MONITOR_DATASET
 from .imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)
@@ -120,21 +118,3 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
             self.excitation_fraction.push((sums[1] - sums[2]) / atom_number)
 
         self.atom_number.push(atom_number)
-
-    @host_only
-    def update_andor_monitor_hook(self, images):
-        """
-        Update the andor monitor with an appropriate image
-        """
-        img_gnd = images[0]
-        # img_excited = images[1]
-        img_bg = images[2]
-
-        # TODO: Consider how to plot the excited atoms here
-        self.set_dataset(
-            ANDOR_MONITOR_DATASET,
-            img_gnd - img_bg,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
