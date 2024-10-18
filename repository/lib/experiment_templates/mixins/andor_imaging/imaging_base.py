@@ -245,7 +245,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         )
 
     @kernel
-    def save_andor_data_hook(self):
+    def save_grabber_data_hook(self):
         """
         Consume all slack and save the photos
         """
