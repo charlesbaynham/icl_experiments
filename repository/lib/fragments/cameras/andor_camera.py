@@ -378,10 +378,16 @@ class AndorCameraControl(Fragment):
         img_array = np.rot90(img_array, axes=(1, 0))
         return img_array
 
-    @host_only
-    def readout_n_images(self, n_frames, timeout=2.0):
-        self.cam.wait_for_frame(nframes=n_frames, timeout=timeout, since="lastread")
-        imgs = self.cam.read_multiple_images()
-        for i, img in enumerate(imgs):
-            imgs[i] = np.rot90(np.array(img), axes=(1, 0))
-        return imgs
+    ###
+    # This this wasn't working, and I haven't figured out why yet.
+    # For now, calling readout_image() n times does what
+    # readout_n_images(n) once should do anyway
+    # TODO: make it work
+    ###
+    # @host_only
+    # def readout_n_images(self, n_frames, timeout=2.0):
+    #     self.cam.wait_for_frame(nframes=n_frames, timeout=timeout, since="lastread")
+
+    #     for i, img in enumerate(imgs):
+    #         imgs[i] = np.rot90(np.array(img), axes=(1, 0))
+    #     return imgs
