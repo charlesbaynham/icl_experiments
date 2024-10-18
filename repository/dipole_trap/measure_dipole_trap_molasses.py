@@ -42,9 +42,21 @@ class MeasureDipoleTrapFrag(
         self.override_param("spectroscopy_field_gradient", 0)
 
         # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind("chamber_2_bias_x", self.blue_3d_mot)
-        self.setattr_param_rebind("chamber_2_bias_y", self.blue_3d_mot)
-        self.setattr_param_rebind("chamber_2_bias_z", self.blue_3d_mot)
+        self.setattr_param_rebind(
+            "chamber_2_bias_x",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[0],
+        )
+        self.setattr_param_rebind(
+            "chamber_2_bias_y",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[1],
+        )
+        self.setattr_param_rebind(
+            "chamber_2_bias_z",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[2],
+        )
         self.setattr_param_rebind(
             "chamber_2_red_narrowband_mot_current_start",
             self.red_mot.narrow_red_compression_phase,
