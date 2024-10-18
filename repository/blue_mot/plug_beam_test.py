@@ -83,10 +83,10 @@ class ScanPlugBeamParamsFrag(ExpFragment):
            "plug_aom_frequency", 
            FloatParam, 
            description="Frequency of plug beam AOM", 
-           default=165, 
+           default=165e6, 
            unit="MHz", 
-           min=145, 
-           max=185, 
+           min=0, 
+        #    max=185e6, 
         ) 
         self.plug_aom_frequency: FloatParamHandle
 
