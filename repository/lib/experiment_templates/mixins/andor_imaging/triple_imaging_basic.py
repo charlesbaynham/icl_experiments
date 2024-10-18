@@ -93,7 +93,7 @@ class TripleImageBasicMixin(AndorImagingBase):
         Update the andor monitor with an appropriate image
         """
         img_gnd = images[0]
-        images[1]
+        # img_excited = images[1]
         img_bg = images[2]
 
         # TODO: Consider how to plot the excited atoms here
