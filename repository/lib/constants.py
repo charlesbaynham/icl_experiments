@@ -462,7 +462,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "blue_plug_beam",
-        frequency=165e6,
+        165e6,
         20,
         "suservo_aom_doublepass_461_plug",
         setpoint=0.8,
