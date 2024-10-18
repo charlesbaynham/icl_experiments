@@ -98,14 +98,26 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         """
 
         # Image ground state atoms
-        self.do_pulse()
+        self.do_first_pulse()
 
         # Image excited state atoms
         delay(self.delay_between_fluorescence_pulses.get())
-        self.do_pulse()
+        self.do_second_pulse()
 
         # Take background measurement
         delay(self.delay_before_background_pulse.get())
+        self.do_third_pulse()
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+
+    @kernel
+    def do_second_pulse(self):
+        self.do_pulse()
+
+    @kernel
+    def do_third_pulse(self):
         self.do_pulse()
 
     @kernel
