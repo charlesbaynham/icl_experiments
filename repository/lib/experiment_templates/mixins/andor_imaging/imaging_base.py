@@ -13,6 +13,7 @@ from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import BoolParamHandle
 
+from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
@@ -71,7 +72,19 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         This is a method so that children classes can override it
         """
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.setattr_fragment(
+            "andor_camera_control",
+            AndorCameraControl,
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ]
+            * self.num_grabber_rois,
+        )
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
