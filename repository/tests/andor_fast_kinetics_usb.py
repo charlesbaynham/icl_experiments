@@ -30,6 +30,13 @@ class TestFastKineticsUSBFrag(ExpFragment):
             "height", NumberValue(default=10, precision=0, scale=1, step=1, type="int")
         )
 
+        self.setattr_argument(
+            "delay",
+            NumberValue(
+                default=10e-3, precision=0, unit="ms", scale=0.001, step=1, type="float"
+            ),
+        )
+
         if self.N_ROIs is None:
             self.N_ROIs = 3
 
@@ -58,7 +65,7 @@ class TestFastKineticsUSBFrag(ExpFragment):
         self.core.break_realtime()
 
         for _ in range(self.N_triggers):
-            delay(10e-3)
+            delay(self.delay)
             self.andor_camera_control.trigger(
                 exposure=1e-3,
                 control_shutter=False,
