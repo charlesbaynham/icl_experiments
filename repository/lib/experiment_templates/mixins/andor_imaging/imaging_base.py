@@ -253,15 +253,27 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         self._call_camera_rpc()
 
+        # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
         means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
+
         for i in range(self.num_grabber_readouts):
+            # Arrays to hold the ROIs from this readout
+            s = [0] * self.num_grabber_rois
+            m = [0.0] * self.num_grabber_rois
+
             self.andor_camera_control.readout_ROIs(
-                sums[i * self.num_grabber_rois : (i + 1) * self.num_grabber_rois],
-                means[i * self.num_grabber_rois : (i + 1) * self.num_grabber_rois],
+                s,
+                m,
                 timeout_mu=self.core.get_rtio_counter_mu()
                 + self.core.seconds_to_mu(1.0),
             )
+
+            # Copy ROI data from temporary arrays into main array
+            for j in range(self.num_grabber_rois):
+                sums[i * self.num_grabber_readouts + j] = s[j]
+                means[i * self.num_grabber_readouts + j] = m[j]
+
         for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
