@@ -32,7 +32,8 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~save_data_hook`
+    * :meth:`~process_andor_data_hook`
+    * :meth:`~update_andor_monitor_hook`
     """
 
     num_andor_images = 1
@@ -70,11 +71,8 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         """
         Setup the Andor camera to use 3x ROIs since we're expecting fast
         kinetics mode with 3 images
-
-        TODO: Set up Fast Kinetics mode here
         """
 
-        # 3x ROIs
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
@@ -88,21 +86,11 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
                 for i in range(3)
             ],
             add_pre_trigger_delay=True,
+            fast_kinetics_num_shots=3,
         )
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
-
-        # If the andor is in fast kinetics mode and the height of pixels to emit
-        # is > 512, it will emit two frames onto Grabber instead of one. The
-        # first will be "nonsense" (probably with some digital information that
-        # the grabber isn't parsing) and the second will contain all the pixels,
-        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
-        # See labbook entry 2024-06-11.
-        self.andor_requires_storage_frame = (
-            constants.ANDOR_FAST_KINETICS_HEIGHT * 3 > constants.ANDOR_SENSOR_HEIGHT
-        )
-        self.kernel_invariants.add("andor_requires_storage_frame")
 
     @kernel
     def do_imaging_hook_andor(self):
@@ -123,35 +111,15 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         self.do_pulse()
 
     @kernel
-    def save_grabber_data_hook(self):
-        """
-        Hook to save data from the Andor cameras
+    def process_andor_data_hook(self, sums, means):
+        atom_number = sums[0] + sums[1] - 2 * sums[2]
 
-        Runs in realtime after imaging is completed
-        """
-
-        # Save Andor data
-        sums = [0] * 3
-        means = [0.0] * 3
-
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-            discard_first_frame=,
-        )
-
-        self.andor_sum_0.push(sums[0])
-        self.andor_sum_1.push(sums[1])
-        self.andor_sum_2.push(sums[2])
-
-        bg = means[0] + means[1] - 2 * means[2]
-        if bg == 0:
+        if atom_number == 0:
             self.excitation_fraction.push(0.0)
         else:
-            self.excitation_fraction.push((means[1] - means[2]) / bg)
+            self.excitation_fraction.push((sums[1] - sums[2]) / atom_number)
 
-        self.atom_number.push(means[0] + means[1] - 2 * means[2])
+        self.atom_number.push(atom_number)
 
     @host_only
     def update_andor_monitor_hook(self, images):
