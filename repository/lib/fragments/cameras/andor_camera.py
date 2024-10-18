@@ -258,7 +258,6 @@ class AndorCameraControl(Fragment):
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
             self.cam.setup_shutter("open")
-            self.cam.set_trigger_mode("ext_exp")
 
             if self.fast_kinetics_mode:
                 self.cam.set_acquisition_mode("fast_kinetic")
@@ -267,8 +266,10 @@ class AndorCameraControl(Fragment):
                     subarea_height=self.fast_kinetics_height.get(),
                     exposure_time=self.fast_kinetics_exposure_time.get(),
                 )
+                self.cam.set_trigger_mode("ext")
             else:
                 self.cam.set_acquisition_mode("single")
+                self.cam.set_trigger_mode("ext_exp")
 
             self.cam.start_acquisition()
 
@@ -356,8 +357,12 @@ class AndorCameraControl(Fragment):
         """
         Trigger an acquisition
 
-        For now, you must manually set up the camera to respond to external
-        triggers.
+        If `use_andor_driver` is enabled, the right trigger mode will be
+        selected for you. Otherwise you must set it up yourself.
+
+        If fast_kinetics_mode is enabled, the exposure setting will only control
+        the shutter (if requested): the correct exposure must be set as
+        `fast_kinetics_exposure_time`.
 
         You should call :meth:`~.save_data` to read out the configured ROI at
         the end of your sequence.
@@ -391,7 +396,7 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.off()
 
     @kernel
-    def readout_ROIs(self, sums, means, timeout_mu, discard_first_frame=False):
+    def readout_ROIs(self, sums, means, timeout_mu):
         """
         Read out data from camera
 
@@ -402,13 +407,6 @@ class AndorCameraControl(Fragment):
 
         Sums and means must be arrays with length = number of ROIs. They will be
         altered with the results.
-
-        If the andor is in fast kinetics mode and the height of pixels to emit
-        is > 512, it will emit two frames onto Grabber instead of one. The
-        first will be "nonsense" (probably with some digital information that
-        the grabber isn't parsing) and the second will contain all the pixels,
-        up to a max of 1024 high (i.e. the image + storage EMCCDs).
-        See labbook entry 2024-06-11. In this case, you should use `discard_first_frame`.
 
         Parameters:
         sums (TArray(TInt32)): Array to hold the sum of each ROI
@@ -424,8 +422,14 @@ class AndorCameraControl(Fragment):
 
         # Get data
         data = [0] * self.num_rois
-        for _ in range(2 if discard_first_frame else 1):
-            # Discard first nonsense frame if required
+
+        # If the andor is in fast kinetics mode and the height of pixels to emit
+        # is > 512, it will emit two frames onto Grabber instead of one. The
+        # first will be "nonsense" (probably with some digital information that
+        # the grabber isn't parsing) and the second will contain all the pixels,
+        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
+        # See labbook entry 2024-06-11.
+        for _ in range(2 if self.andor_requires_storage_frame else 1):
             self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
         # TODO: assumes all ROIs have same area
