@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 ANDOR_MONITOR_DATASET = "andor_monitor_image"
+ANDOR_DETAILED_MONITOR_DATASETS = "andor_image_{i}"
 
 
 class AndorImagingBase(RedMOTWithExperiment):
@@ -107,9 +108,19 @@ class AndorImagingBase(RedMOTWithExperiment):
         if self.use_andor_driver.get():
             self.ccb.issue(
                 "create_applet",
-                "Andor Monitor Image",
+                "Andor monitor image",
                 f"${{artiq_applet}}image {ANDOR_MONITOR_DATASET}",
             )
+            
+            for i in range(self.num_andor_images):
+                dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
+                self.ccb.issue(
+                    "create_applet",
+                    f"Andor detail image {i}",
+                    f"${{artiq_applet}}image {dataset_name}",
+                )
+
+
         super().host_setup()
 
     @kernel
@@ -156,6 +167,18 @@ class AndorImagingBase(RedMOTWithExperiment):
         
         # Update the monitor
         if self.use_andor_driver.get():
+            # Update detailed images
+            for i, image in enumerate(images):
+                dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
+                self.set_dataset(
+                    dataset_name,
+                    image,
+                    broadcast=True,
+                    persist=False,
+                    archive=False,
+                )
+
+            # Update the main monitor
             self.update_andor_monitor_hook(images)
 
     
@@ -214,9 +237,6 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         By default, AndorImagingBase will plot the first image in the monitor.
         Override this hook to select a different image.
-
-        FIXME: This should automatically make monitors for each image, but be
-        customizable for e.g. background subtraction
         """
         self.set_dataset(
             ANDOR_MONITOR_DATASET,
