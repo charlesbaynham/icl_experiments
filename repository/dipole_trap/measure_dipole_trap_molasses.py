@@ -3,6 +3,7 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib import constants
 from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
 )
@@ -48,11 +49,13 @@ class MeasureDipoleTrapFrag(
             "chamber_2_red_narrowband_mot_current_start",
             self.red_mot.narrow_red_compression_phase,
             original_name="chamber_2_mot_current_start",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
         )
         self.setattr_param_rebind(
             "chamber_2_red_narrowband_mot_current_end",
             self.red_mot.narrow_red_compression_phase,
             original_name="chamber_2_mot_current_end",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
         )
 
         self.setattr_param_rebind(
