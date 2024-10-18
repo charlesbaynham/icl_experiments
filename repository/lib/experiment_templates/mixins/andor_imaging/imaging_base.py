@@ -76,7 +76,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             mean = self.setattr_result(f"andor_mean_{i}", FloatChannel)
 
             self.andor_sums.append(sum)
-            self.andor_means.append(mean)  # FIXME WIP
+            self.andor_means.append(mean)
 
         # Set up result channels for the Andor images
         self.andor_sum_slice_xs: List[OpaqueChannel] = []
@@ -225,3 +225,14 @@ class AndorImagingBase(RedMOTWithExperiment):
         for i in range(self.num_grabber_rois):            
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
+        
+        self.process_andor_data_hook(sums, means)
+        
+    @kernel
+    def process_andor_data_hook(self, sums, means):
+        """
+        Process the Andor data
+
+        This is a hook that can be overridden by subclasses to e.g. do background subtraction using the andor datasets
+        """
+        pass
