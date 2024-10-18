@@ -189,12 +189,21 @@ class AndorCameraControl(Fragment):
                 min=0,
                 max=512,
             )
+            self.setattr_param(
+                "fast_kinetics_exposure_time",
+                FloatParam,
+                "Fast kinetics exposure time",
+                default=1e-3,
+                unit="ms",
+                min=0,
+            )
 
         self.cam_roi_x0: IntParamHandle
         self.cam_roi_x1: IntParamHandle
         self.cam_roi_y0: IntParamHandle
         self.cam_roi_y1: IntParamHandle
         self.fast_kinetics_height: IntParamHandle
+        self.fast_kinetics_exposure_time: FloatParamHandle
 
         # %% Kernel variables
 
@@ -253,7 +262,11 @@ class AndorCameraControl(Fragment):
 
             if self.fast_kinetics_mode:
                 self.cam.set_acquisition_mode("fast_kinetic")
-                # FIXME Set up fast kinetics mode here
+                self.cam.setup_fast_kinetic_mode_full(
+                    num_acc=self.fast_kinetics_num_shots,
+                    subarea_height=self.fast_kinetics_height.get(),
+                    exposure_time=self.fast_kinetics_exposure_time.get(),
+                )
             else:
                 self.cam.set_acquisition_mode("single")
 
