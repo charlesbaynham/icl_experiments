@@ -1,9 +1,9 @@
 import logging
 
 import numpy as np
-from artiq.experiment import delay, host_only
+from artiq.experiment import delay
+from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -105,13 +105,16 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
     @host_only
     def get_andor_images(self):
         # Process the absorption image and save it into a ResultChannel
-        images = super().get_andor_images()    
+        images = super().get_andor_images()
 
-        if self.use_andor_driver.get() and self.andor_camera_control.save_raw_andor_image.get():
+        if (
+            self.use_andor_driver.get()
+            and self.andor_camera_control.save_raw_andor_image.get()
+        ):
             atoms_img = images[0]
             light_img = images[1]
             bg_img = images[2]
-            
+
             atoms_no_bg = atoms_img - bg_img
             atoms_no_bg_m = np.ma.masked_less_equal(atoms_no_bg, 0)
             light_no_bg = light_img - bg_img
@@ -129,11 +132,9 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
 
         return images
 
-
     @kernel
     def process_andor_data_hook(self, sums, means):
         self.absorption.push(sums[1] - sums[0])
-
 
 
 AbsorptionRedMOT = make_fragment_scan_exp(AbsorptionRedMOTFrag)

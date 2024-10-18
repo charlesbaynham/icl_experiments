@@ -1,12 +1,14 @@
 import logging
 
-from artiq.experiment import delay, host_only
+from artiq.experiment import delay
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from .imaging_base import AndorImagingBase, ANDOR_MONITOR_DATASET
+from .imaging_base import ANDOR_MONITOR_DATASET
+from .imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +68,6 @@ class TripleImageBasicMixin(AndorImagingBase):
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
-
-        
-
     @kernel
     def do_imaging_hook(self):
         """
@@ -93,9 +92,9 @@ class TripleImageBasicMixin(AndorImagingBase):
         Update the andor monitor with an appropriate image
         """
         img_gnd = images[0]
-        img_excited = images[1]
+        images[1]
         img_bg = images[2]
-    
+
         # TODO: Consider how to plot the excited atoms here
         self.set_dataset(
             ANDOR_MONITOR_DATASET,
@@ -108,7 +107,7 @@ class TripleImageBasicMixin(AndorImagingBase):
     @kernel
     def process_andor_data_hook(self, sums, means):
         bg = means[0] + means[1] - 2 * means[2]
-        
+
         if bg == 0:
             self.excitation_fraction.push(0.0)
         else:

@@ -1,10 +1,6 @@
 import logging
 
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import rpc
-from ndscan.experiment import FloatChannel
-from ndscan.experiment import OpaqueChannel
 
 from .imaging_base import AndorImagingBase
 
@@ -28,4 +24,3 @@ class SingleAndorImage(AndorImagingBase):
     def do_imaging_hook_andor(self):
         # Just image the atoms once
         self.do_pulse()
-

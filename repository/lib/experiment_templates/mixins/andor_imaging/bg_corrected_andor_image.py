@@ -1,18 +1,17 @@
 import logging
 
 import numpy as np
-from artiq.experiment import delay, host_only
+from artiq.experiment import delay
+from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
-from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 
-from .imaging_base import AndorImagingBase, ANDOR_MONITOR_DATASET
+from .imaging_base import ANDOR_MONITOR_DATASET
+from .imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +51,6 @@ class BGCorrectedAndorImage(AndorImagingBase):
         # we create another one for the bg-corrected data
         self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_mean_bg_corrected: FloatChannel
-        
-        
-
-    
-
 
     @kernel
     def do_imaging_hook_andor(self):
@@ -95,7 +89,6 @@ class BGCorrectedAndorImage(AndorImagingBase):
             archive=False,
         )
 
-    
     @kernel
     def process_andor_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])

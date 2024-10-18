@@ -1,15 +1,16 @@
-from ndscan.experiment import FloatChannel
-from artiq.master.worker_impl import CCB
-from ndscan.experiment import OpaqueChannel
-from typing import List
 import abc
 import logging
+from typing import List
 
 import numpy as np
-from artiq.experiment import kernel, host_only
+from artiq.experiment import host_only
+from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import rpc
+from artiq.master.worker_impl import CCB
+from ndscan.experiment import FloatChannel
+from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import BoolParamHandle
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
@@ -42,10 +43,9 @@ class AndorImagingBase(RedMOTWithExperiment):
     * :meth:`~save_andor_data_hook`
     """
 
-    
     num_andor_images = 1
     "How many images will the Andor driver read out"
-    
+
     num_grabber_rois = 1
     "How many ROIs in each image for the Grabber"
     num_grabber_readouts = 1
@@ -63,7 +63,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("num_andor_images")
         self.kernel_invariants.add("num_grabber_rois")
-        self.kernel_invariants.add("num_grabber_readouts")        
+        self.kernel_invariants.add("num_grabber_readouts")
 
     def hook_setup_andor(self):
         """
@@ -111,7 +111,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 "Andor monitor image",
                 f"${{artiq_applet}}image {ANDOR_MONITOR_DATASET}",
             )
-            
+
             for i in range(self.num_andor_images):
                 dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
                 self.ccb.issue(
@@ -119,7 +119,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                     f"Andor detail image {i}",
                     f"${{artiq_applet}}image {dataset_name}",
                 )
-
 
         super().host_setup()
 
@@ -164,7 +163,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
         images = self.get_andor_images()
-        
+
         # Update the monitor
         if self.use_andor_driver.get():
             # Update detailed images
@@ -181,7 +180,6 @@ class AndorImagingBase(RedMOTWithExperiment):
             # Update the main monitor
             self.update_andor_monitor_hook(images)
 
-    
     @host_only
     def get_andor_images(self):
         images = []
@@ -254,21 +252,22 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.core.wait_until_mu(now_mu())
 
         self._call_camera_rpc()
-        
+
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
-        means = [0.0] * self.num_grabber_rois* self.num_grabber_readouts
+        means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
         for i in range(self.num_grabber_readouts):
             self.andor_camera_control.readout_ROIs(
-                sums[i*self.num_grabber_rois : (i+1)*self.num_grabber_rois],
-                means[i*self.num_grabber_rois : (i+1)*self.num_grabber_rois],
-                timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+                sums[i * self.num_grabber_rois : (i + 1) * self.num_grabber_rois],
+                means[i * self.num_grabber_rois : (i + 1) * self.num_grabber_rois],
+                timeout_mu=self.core.get_rtio_counter_mu()
+                + self.core.seconds_to_mu(1.0),
             )
-        for i in range(self.num_grabber_rois* self.num_grabber_readouts):            
+        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
-        
+
         self.process_andor_data_hook(sums, means)
-        
+
     @kernel
     def process_andor_data_hook(self, sums, means):
         """
@@ -276,4 +275,3 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         This is a hook that can be overridden by subclasses to e.g. do background subtraction using the andor datasets
         """
-        pass
