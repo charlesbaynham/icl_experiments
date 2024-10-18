@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from artiq.experiment import delay
+from artiq.experiment import delay, host_only
 from artiq.experiment import kernel
 from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
@@ -23,6 +23,10 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
     """
     Image red MOT with absorption
     """
+
+    num_grabber_rois = 1
+    num_grabber_images = 3
+    num_andor_images = 3
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
@@ -60,18 +64,7 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
 
         # %% Results
 
-        self.setattr_result("andor_sum_0", FloatChannel)
-        self.setattr_result("andor_sum_1", FloatChannel)
-        self.setattr_result("andor_sum_2", FloatChannel)
-        # self.setattr_result("andor_sum_3", FloatChannel)
-
         self.setattr_result("absorption", FloatChannel)
-
-        self.andor_sum_0: FloatChannel
-        self.andor_sum_1: FloatChannel
-        self.andor_sum_2: FloatChannel
-        self.andor_sum_3: FloatChannel
-
         self.absorption: FloatChannel
 
         self.setattr_result("andor_abs_img", OpaqueChannel)
@@ -79,28 +72,6 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
 
     def host_setup(self):
         super().host_setup()
-
-        self.ccb.issue(
-            "create_applet",
-            f"atoms_img",
-            f"${{artiq_applet}}image atoms_img",
-        )
-
-        self.ccb.issue(
-            "create_applet",
-            f"light_img",
-            f"${{artiq_applet}}image light_img",
-        )
-        self.ccb.issue(
-            "create_applet",
-            f"bg_img",
-            f"${{artiq_applet}}image bg_img",
-        )
-        self.ccb.issue(
-            "create_applet",
-            f"andor_abs_img",
-            f"${{artiq_applet}}image andor_abs_img_dataset",
-        )
 
         logger.warning(
             "Please ensure that the Andor is in Kinetics mode (not Fast Kinetics) with NO EM GAIN!"
@@ -131,92 +102,38 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
         delay(self.delay_before_background_pulse.get())
         self.do_pulse(with_light=False)
 
-    @rpc(flags={"async"})
-    def _call_camera_rpc(self):
-        # imgs = self.andor_camera_control.readout_n_images(n_frames=3, timeout=1)
-        # atoms_img = imgs[0]
-        # light_img = imgs[1]
-        # bg_img = imgs[2]
+    @host_only
+    def get_andor_images(self):
+        # Process the absorption image and save it into a ResultChannel
+        images = super().get_andor_images()    
 
-        atoms_img = self.andor_camera_control.readout_image(timeout=1)
-        light_img = self.andor_camera_control.readout_image(timeout=1)
-        bg_img = self.andor_camera_control.readout_image(timeout=1)
+        if self.use_andor_driver.get() and self.andor_camera_control.save_raw_andor_image.get():
+            atoms_img = images[0]
+            light_img = images[1]
+            bg_img = images[2]
+            
+            atoms_no_bg = atoms_img - bg_img
+            atoms_no_bg_m = np.ma.masked_less_equal(atoms_no_bg, 0)
+            light_no_bg = light_img - bg_img
+            light_no_bg_m = np.ma.masked_less_equal(light_no_bg, 0)
+            quotient = light_no_bg_m / atoms_no_bg_m
+            quotient_m = np.ma.masked_less_equal(quotient, 0)
+            img_abs: np.ma.MaskedArray = np.log(quotient_m)
+            logger.info(f"number invalid elements: {len(img_abs.mask)}")
+            img_abs = np.ma.fix_invalid(img_abs, img_abs.mask, fill_value=0)
+            img_abs = img_abs.data
 
-        atoms_no_bg = atoms_img - bg_img
-        atoms_no_bg_m = np.ma.masked_less_equal(atoms_no_bg, 0)
-        light_no_bg = light_img - bg_img
-        light_no_bg_m = np.ma.masked_less_equal(light_no_bg, 0)
-        quotient = light_no_bg_m / atoms_no_bg_m
-        quotient_m = np.ma.masked_less_equal(quotient, 0)
-        img_abs: np.ma.MaskedArray = np.log(quotient_m)
-        logger.info(f"number invalid elements: {len(img_abs.mask)}")
-        img_abs = np.ma.fix_invalid(img_abs, img_abs.mask, fill_value=0)
-        img_abs = img_abs.data
-
-        self.set_dataset(
-            "atoms_img",
-            np.int32(atoms_img),
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
-        self.set_dataset(
-            "light_img",
-            light_img,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
-        self.set_dataset(
-            "bg_img",
-            bg_img,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
-
-        self.set_dataset(
-            "andor_abs_img_dataset",
-            img_abs,
-            broadcast=True,
-            persist=False,
-            archive=False,
-        )
-        # TODO rebind this instead
-        if self.andor_camera_control.save_raw_andor_image.get():
             self.andor_abs_img.push(img_abs)
         else:
             self.andor_abs_img.push([])
 
+        return images
+
+
     @kernel
-    def save_andor_data_hook(self):
-        """
-        Hook to save data from the Andor camera
-
-        We took four images, each separately as normal (i.e. not fast kinetics)
-        images.
-        """
-
-        n = 3
-        sums = [0] * n
-
-        timeout_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
-
-        for i in range(n):
-            s = [0]
-            m = [0.0]
-            self.andor_camera_control.readout_ROIs(s, m, timeout_mu)
-            sums[i] = s[0]
-
-        self.andor_sum_0.push(sums[0])
-        self.andor_sum_1.push(sums[1])
-        self.andor_sum_2.push(sums[2])
-        # self.andor_sum_3.push(sums[3])
-
+    def process_andor_data_hook(self, sums, means):
         self.absorption.push(sums[1] - sums[0])
 
-        if self.use_andor_driver.get():
-            self._call_camera_rpc()
 
 
 AbsorptionRedMOT = make_fragment_scan_exp(AbsorptionRedMOTFrag)

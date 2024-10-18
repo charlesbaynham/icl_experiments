@@ -152,8 +152,15 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
-        use_andor_driver = self.use_andor_driver.get()
+        images = self.get_andor_images()
+        
+        # Update the monitor
+        if self.use_andor_driver.get():
+            self.update_andor_monitor_hook(images)
 
+    
+    @host_only
+    def get_andor_images(self):
         images = []
 
         # Readout and store the andor images
@@ -166,7 +173,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_sum_slice_ys,
             self.andor_images,
         ):
-            if use_andor_driver:
+            if self.use_andor_driver.get():
                 # Read out the images
                 img_array = self.andor_camera_control.readout_image()
                 sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
@@ -188,10 +195,10 @@ class AndorImagingBase(RedMOTWithExperiment):
                 andor_sum_slice_x.push([])
                 andor_sum_slice_y.push([])
                 andor_image.push([])
-        
-        # Update the monitor
-        if use_andor_driver:
-            self.update_andor_monitor_hook(images)
+
+                images.append([])
+
+        return images
 
     @host_only
     @staticmethod

@@ -31,10 +31,13 @@ class TripleImageBasicMixin(AndorImagingBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook`
-    * :meth:`~save_data_hook`
+    * :meth:`~update_andor_monitor_hook`
+    * :meth:`~process_andor_data_hook`
     """
 
     num_andor_images = 3
+    num_grabber_readouts = 3
+    num_grabber_rois = 1
 
     def build_fragment(self):
         super().build_fragment()
@@ -57,15 +60,14 @@ class TripleImageBasicMixin(AndorImagingBase):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
-    def hook_setup_andor(self):
-        # Use the default ROI setup
-        super().hook_setup_andor()
-
         self.setattr_result("excitation_fraction", FloatChannel)
         self.setattr_result("atom_number", FloatChannel)
 
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
+
+
+        
 
     @kernel
     def do_imaging_hook(self):
@@ -104,35 +106,9 @@ class TripleImageBasicMixin(AndorImagingBase):
         )
 
     @kernel
-    def save_andor_data_hook(self):
-        """
-        Hook to save data from the Andor camera
-
-        Runs in realtime after imaging is completed.
-
-        We took three images, so read all of them out.
-        """
-        # FIXME: Decide how to integrate this with AndorImagingBase
-
-        # Save Andor data
-        n = 3
-        sums = [0] * n
-        means = [0.0] * n
-
-        timeout_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0)
-
-        for i in range(n):
-            s = [0]
-            m = [0.0]
-            self.andor_camera_control.readout_ROIs(s, m, timeout_mu)
-            sums[i] = s[0]
-            means[i] = m[0]
-
-        self.andor_sum_0.push(sums[0])
-        self.andor_sum_1.push(sums[1])
-        self.andor_sum_2.push(sums[2])
-
+    def process_andor_data_hook(self, sums, means):
         bg = means[0] + means[1] - 2 * means[2]
+        
         if bg == 0:
             self.excitation_fraction.push(0.0)
         else:

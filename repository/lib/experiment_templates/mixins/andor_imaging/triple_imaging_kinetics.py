@@ -127,6 +127,7 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         """
 
         # FIXME: Decide how to integrate this with AndorImagingBase
+        raise NotImplementedError("This needs to be integrated with AndorImagingBase")
 
         # Save Andor data
         sums = [0] * 3

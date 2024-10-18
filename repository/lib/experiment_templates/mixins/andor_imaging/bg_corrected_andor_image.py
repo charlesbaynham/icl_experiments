@@ -27,11 +27,13 @@ class BGCorrectedAndorImage(AndorImagingBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~save_andor_data_hook`
+    * :meth:`~process_andor_data_hook`
+    * :meth:`~update_andor_monitor_hook`
     """
 
     num_andor_images = 2
-    num_grabber_rois = 2
+    num_grabber_readouts = 2
+    num_grabber_rois = 1
 
     def host_setup(self):
         super().host_setup()
@@ -96,18 +98,4 @@ class BGCorrectedAndorImage(AndorImagingBase):
     
     @kernel
     def process_andor_data_hook(self, sums, means):
-        "Consume all slack and save the photos"
-        
-        # FIXME this won't work with the generic version...
-        self.andor_camera_control.readout_ROIs(
-            sum_atoms,
-            mean_atoms,
-            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-        self.andor_camera_control.readout_ROIs(
-            sum_bg,
-            mean_bg,
-            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-
         self.andor_mean_bg_corrected.push(means[0] - means[1])
