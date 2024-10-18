@@ -85,7 +85,15 @@ class AndorImagingBase(RedMOTWithExperiment):
             sum = self.setattr_result(
                 f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
             )
-            mean = self.setattr_result(f"andor_mean_{i}", FloatChannel)
+            mean = self.setattr_result(
+                f"andor_mean_{i}",
+                FloatChannel,
+                display_hints=(  # Show by default if there's only one ROI
+                    {}
+                    if (self.num_grabber_rois * self.num_grabber_readouts == 1)
+                    else {"priority": -1}
+                ),
+            )
 
             self.andor_sums.append(sum)
             self.andor_means.append(mean)
@@ -116,7 +124,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
                 self.ccb.issue(
                     "create_applet",
-                    f"Andor detail image {i}",
+                    f"Andor image {i}",
                     f"${{artiq_applet}}image {dataset_name}",
                 )
 
