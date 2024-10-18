@@ -39,6 +39,13 @@ class AndorCameraControl(Fragment):
     By default, this fragment produces 1x ROI with the region set in
     :module:`~.constants`. To override this, pass "roi_defaults" to
     :meth:`~.setattr_fragment`.
+
+    Parameters:
+    roi_defaults (List[List[int, int, int, int]]): List of ROIs to set up
+    add_pre_trigger_delay (bool): Whether to add a delay before triggering the
+        camera.
+    fast_kinetics_num_shots (int): Number of shots to per frame. If > 1,
+        fast kinetics mode will be used.
     """
 
     def build_fragment(
@@ -52,10 +59,8 @@ class AndorCameraControl(Fragment):
             ]
         ],
         add_pre_trigger_delay=True,
-        fast_kinetics_mode=False,
+        fast_kinetics_num_shots=1,
     ):
-        self.kernel_invariants = getattr(self, "kernel_invariants", set())
-
         self.setattr_device("core")
         self.core: Core
 
@@ -111,17 +116,6 @@ class AndorCameraControl(Fragment):
                 max=1024,
             )
 
-        # If the andor is in fast kinetics mode and the height of pixels to emit
-        # is > 512, it will emit two frames onto Grabber instead of one. The
-        # first will be "nonsense" (probably with some digital information that
-        # the grabber isn't parsing) and the second will contain all the pixels,
-        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
-        # See labbook entry 2024-06-11.
-        self.andor_requires_storage_frame = fast_kinetics_mode and (
-            constants.ANDOR_FAST_KINETICS_HEIGHT * 3 > constants.ANDOR_SENSOR_HEIGHT
-        )
-        self.kernel_invariants.add("andor_requires_storage_frame")
-
         self.setattr_param(
             "pre_trigger_delay",
             FloatParam,
@@ -134,10 +128,6 @@ class AndorCameraControl(Fragment):
 
         if not add_pre_trigger_delay:
             self.override_param("pre_trigger_delay", 0.0)
-
-        # %% Kernel variables
-        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.num_rois = len(roi_defaults)
 
         self.setattr_param(
             "use_andor_driver",
@@ -182,19 +172,42 @@ class AndorCameraControl(Fragment):
         self.setattr_param(
             "cam_roi_y1",
             IntParam,
-            f"Camera ROI y1",
+            "Camera ROI y1",
             default=512,
             min=0,
             max=512,
         )
 
+        self.fast_kinetics_mode = fast_kinetics_num_shots > 1
+
+        if self.fast_kinetics_mode:
+            self.setattr_param(
+                "fast_kinetics_height",
+                IntParam,
+                "Fast kinetics height",
+                default=constants.ANDOR_FAST_KINETICS_HEIGHT,
+                min=0,
+                max=512,
+            )
+
         self.cam_roi_x0: IntParamHandle
         self.cam_roi_x1: IntParamHandle
         self.cam_roi_y0: IntParamHandle
         self.cam_roi_y1: IntParamHandle
+        self.fast_kinetics_height: IntParamHandle
 
-        # %% Kernel invariants
+        # %% Kernel variables
+
+        self.fast_kinetics_num_shots = fast_kinetics_num_shots
+
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        self.num_rois = len(roi_defaults)
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("debug_enabled")
+        self.kernel_invariants.add("fast_kinetics_mode")
+        self.kernel_invariants.add("fast_kinetics_num_shots")
+        self.kernel_invariants.add("andor_requires_storage_frame")
         self.kernel_invariants.add("num_rois")
         self.kernel_invariants.add("ttl_trigger")
         self.kernel_invariants.add("ttl_shutter")
@@ -221,12 +234,29 @@ class AndorCameraControl(Fragment):
         return rois
 
     def host_setup(self):
+        # If the andor is in fast kinetics mode and the height of pixels to emit
+        # is > 512, it will emit two frames onto Grabber instead of one. The
+        # first will be "nonsense" (probably with some digital information that
+        # the grabber isn't parsing) and the second will contain all the pixels,
+        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
+        # See labbook entry 2024-06-11.
+        self.andor_requires_storage_frame = self.fast_kinetics_mode and (
+            self.fast_kinetics_height.get() * self.fast_kinetics_num_shots
+            > constants.ANDOR_SENSOR_HEIGHT
+        )
+
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
             self.cam.setup_shutter("open")
             self.cam.set_trigger_mode("ext_exp")
-            # self.cam.set_acquisition_mode("kinetic")
+
+            if self.fast_kinetics_mode:
+                self.cam.set_acquisition_mode("fast_kinetic")
+                # FIXME Set up fast kinetics mode here
+            else:
+                self.cam.set_acquisition_mode("single")
+
             self.cam.start_acquisition()
 
         super().host_setup()
