@@ -34,8 +34,8 @@ class BGCorrectedAndorImage(AndorImagingBase):
     num_grabber_readouts = 2
     num_grabber_rois = 1
 
-    def host_setup(self):
-        super().host_setup()
+    def build_fragment(self):
+        super().build_fragment()
 
         self.setattr_param(
             "delay_before_bg_pulse",
