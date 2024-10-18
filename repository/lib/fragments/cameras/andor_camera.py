@@ -372,6 +372,15 @@ class AndorCameraControl(Fragment):
 
     @host_only
     def readout_image(self, timeout=2.0):
+        """
+        Reads out an image from the camera with a specified timeout.
+
+        Parameters:
+        timeout (float): The maximum time to wait for a frame, in seconds. Default is 2.0 seconds.
+
+        Returns:
+        numpy.ndarray: The correctly rotated image as a NumPy array.
+        """
         self.cam.wait_for_frame(timeout=timeout, since="lastread")
         img = self.cam.read_oldest_image()
         img_array = np.array(img)

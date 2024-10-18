@@ -5,6 +5,7 @@ from artiq.coredevice.grabber import GrabberTimeoutException
 from artiq.experiment import NumberValue
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 
@@ -76,7 +77,6 @@ class TestFastKineticsUSBFrag(ExpFragment):
     @kernel
     def save_data(self):
         # Try to read out until we get a timeout error
-
         loop = 0
         while True:
             try:
@@ -97,6 +97,17 @@ class TestFastKineticsUSBFrag(ExpFragment):
             except GrabberTimeoutException:
                 logger.info("loop = %d was the last", loop)
                 break
+
+        self.readout_usb()
+
+    @rpc
+    def readout_usb(self):
+        loop = 0
+        while True:
+            img_array = self.andor_camera_control.readout_image()
+            print(img_array)
+            print("loop = ", loop)
+            loop += 1
 
 
 TestFastKineticsUSB = make_fragment_scan_exp(TestFastKineticsUSBFrag)
