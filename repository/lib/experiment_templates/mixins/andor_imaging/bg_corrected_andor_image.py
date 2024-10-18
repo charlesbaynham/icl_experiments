@@ -31,6 +31,7 @@ class BGCorrectedAndorImage(AndorImagingBase):
     """
 
     num_andor_images = 2
+    num_grabber_rois = 2
 
     def host_setup(self):
         self.ccb.issue(
@@ -50,12 +51,6 @@ class BGCorrectedAndorImage(AndorImagingBase):
             f"${{artiq_applet}}image {'bg_img_array'}",
         )
 
-        return super().host_setup()
-
-    def hook_setup_andor(self):
-        # Use default imaging setup
-        super().hook_setup_andor()
-
         self.setattr_param(
             "delay_before_bg_pulse",
             FloatParam,
@@ -66,13 +61,15 @@ class BGCorrectedAndorImage(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
-        # FIXME: This should be removed or made generic
-        self.setattr_result("andor_sum", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("andor_mean", FloatChannel, display_hints={"priority": -1})
+        # AndorImagingBase makes sum and mean resultchannels automatically, but
+        # we create another one for the bg-corrected data
         self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_mean_bg_corrected: FloatChannel
-        self.andor_sum: FloatChannel
-        self.andor_mean: FloatChannel
+        
+        return super().host_setup()
+
+    
+
 
     @kernel
     def do_imaging_hook_andor(self):
@@ -92,25 +89,16 @@ class BGCorrectedAndorImage(AndorImagingBase):
         self.do_pulse()
 
     @host_only
-    def update_andor_monitor_hook(self):
+    def update_andor_monitor_hook(self, images):
         """
         Update the andor monitor with an appropriate image
 
-        Override this hook to select a different image. AndorImagingBase will
-        create `num_andor_images`  ResultChannels containing the Andor images,
-        so you can use these. NDScan supports a `get_last` method on
-        ResultChannels sinks so you can use this: see the example below which
-        shows the first image by default.
+        By default, AndorImagingBase would show the first image. We show the
+        bg-corrected data instead.
         """
-        try:
-            img_array = self.andor_images[0].sink.get_last()
-            bg_img_array = self.andor_images[1].sink.get_last()
-            corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
-        except AttributeError:
-            corrected_img_array = [[0.0]]
-
-        if img_array is None:
-            corrected_img_array = [[0.0]]
+        img_array = images[0]
+        bg_img_array = images[1]
+        corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
 
         self.set_dataset(
             ANDOR_MONITOR_DATASET,

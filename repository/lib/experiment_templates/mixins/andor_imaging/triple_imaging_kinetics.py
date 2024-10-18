@@ -153,24 +153,14 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         self.atom_number.push(means[0] + means[1] - 2 * means[2])
 
     @host_only
-    def update_andor_monitor_hook(self):
+    def update_andor_monitor_hook(self, images):
         """
         Update the andor monitor with an appropriate image
         """
-        try:
-            img_gnd = self.andor_images[0].sink.get_last()
-            img_excited = self.andor_images[1].sink.get_last()
-            img_bg = self.andor_images[2].sink.get_last()
-        except AttributeError:
-            img_gnd = [[0.0]]
-            img_excited = [[0.0]]
-            img_bg = [[0.0]]
-
-        if img_gnd is None:
-            img_gnd = [[0.0]]
-            img_excited = [[0.0]]
-            img_bg = [[0.0]]
-
+        img_gnd = images[0]
+        img_excited = images[1]
+        img_bg = images[2]
+    
         # TODO: Consider how to plot the excited atoms here
         self.set_dataset(
             ANDOR_MONITOR_DATASET,

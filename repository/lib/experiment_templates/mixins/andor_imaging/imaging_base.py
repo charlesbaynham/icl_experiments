@@ -141,6 +141,10 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
+        use_andor_driver = self.use_andor_driver.get()
+
+        images = []
+
         # Readout and store the andor images
         for (
             andor_sum_slice_x,
@@ -151,15 +155,19 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_sum_slice_ys,
             self.andor_images,
         ):
-            if self.use_andor_driver.get():
+            if use_andor_driver:
                 # Read out the images
                 img_array = self.andor_camera_control.readout_image()
-                sum_slice_x, sum_slice_y = self.slice_image(img_array)
+                sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
 
                 # Write them to the result channels
                 andor_sum_slice_x.push(sum_slice_x)
                 andor_sum_slice_y.push(sum_slice_y)
 
+                # Save them to pass to the monitor
+                images.append(img_array)
+
+                # Save raw data if requested
                 if self.andor_camera_control.save_raw_andor_image.get():
                     andor_image.push(img_array)
                 else:
@@ -169,38 +177,32 @@ class AndorImagingBase(RedMOTWithExperiment):
                 andor_sum_slice_x.push([])
                 andor_sum_slice_y.push([])
                 andor_image.push([])
+        
+        # Update the monitor
+        if use_andor_driver:
+            self.update_andor_monitor_hook(images)
 
     @host_only
-    def slice_image(self, img):
+    @staticmethod
+    def slice_image(img):
         sum_slice_x = np.sum(img, axis=1)
         sum_slice_y = np.sum(img, axis=0)
         return sum_slice_x, sum_slice_y
 
     @host_only
-    def update_andor_monitor_hook(self):
+    def update_andor_monitor_hook(self, images: List[np.ndarray]):
         """
         Update the andor monitor with an appropriate image
 
-        Override this hook to select a different image. AndorImagingBase will
-        create `num_andor_images`  ResultChannels containing the Andor images,
-        so you can use these. NDScan supports a `get_last` method on
-        ResultChannels sinks so you can use this: see the example below which
-        shows the first image by default.
+        By default, AndorImagingBase will plot the first image in the monitor.
+        Override this hook to select a different image.
 
         FIXME: This should automatically make monitors for each image, but be
         customizable for e.g. background subtraction
         """
-        try:
-            img_array = self.andor_images[0].sink.get_last()
-        except AttributeError:
-            img_array = [[0.0]]
-
-        if img_array is None:
-            img_array = [[0.0]]
-
         self.set_dataset(
             ANDOR_MONITOR_DATASET,
-            img_array,
+            images[0],
             broadcast=True,
             persist=False,
             archive=False,
