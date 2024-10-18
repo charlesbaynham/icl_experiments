@@ -271,8 +271,10 @@ class AndorImagingBase(RedMOTWithExperiment):
 
             # Copy ROI data from temporary arrays into main array
             for j in range(self.num_grabber_rois):
-                sums[i * self.num_grabber_readouts + j] = s[j]
-                means[i * self.num_grabber_readouts + j] = m[j]
+                idx = i * self.num_grabber_rois + j
+
+                sums[idx] = s[j]
+                means[idx] = m[j]
 
         for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             self.andor_sums[i].push(sums[i])
