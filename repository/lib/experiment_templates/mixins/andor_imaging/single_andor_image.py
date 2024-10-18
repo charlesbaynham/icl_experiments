@@ -5,7 +5,6 @@ from artiq.experiment import kernel
 from .imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)
-DATASET_NAME = "single_andor_image"
 
 
 class SingleAndorImage(AndorImagingBase):

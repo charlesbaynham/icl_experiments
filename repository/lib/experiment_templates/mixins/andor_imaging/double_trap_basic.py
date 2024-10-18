@@ -5,7 +5,6 @@ from repository.lib import constants
 from .single_andor_image import SingleAndorImage
 
 logger = logging.getLogger(__name__)
-DATASET_NAME = "single_andor_image"
 
 
 class DoubleTrapImagingBasic(SingleAndorImage):
