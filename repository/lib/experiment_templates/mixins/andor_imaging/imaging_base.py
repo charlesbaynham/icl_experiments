@@ -41,7 +41,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~save_andor_data_hook`
+    * :meth:`~save_grabber_data_hook`
     """
 
     num_andor_images = 1

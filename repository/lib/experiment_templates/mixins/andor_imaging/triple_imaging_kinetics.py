@@ -35,7 +35,9 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
     * :meth:`~save_data_hook`
     """
 
-    num_andor_images = 3  # TODO: No idea if this is right: we need to test this fragment with the new Andor driver code
+    num_andor_images = 1
+    num_grabber_readouts = 1
+    num_grabber_rois = 3
 
     def build_fragment(self):
         super().build_fragment()
@@ -102,10 +104,6 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         )
         self.kernel_invariants.add("andor_requires_storage_frame")
 
-    def run_once():
-        # TODO: Decide how to integrate this with AndorImagingBase
-        raise NotImplementedError
-
     @kernel
     def do_imaging_hook_andor(self):
         """
@@ -124,40 +122,36 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         delay(self.delay_before_background_pulse.get())
         self.do_pulse()
 
-    # @kernel
-    # def save_andor_data_hook(self):
-    #     """
-    #     Hook to save data from the Andor camera
+    @kernel
+    def save_grabber_data_hook(self):
+        """
+        Hook to save data from the Andor cameras
 
-    #     Runs in realtime after imaging is completed
-    #     """
+        Runs in realtime after imaging is completed
+        """
 
-    #
-    #     raise NotImplementedError("This needs to be integrated with AndorImagingBase")
+        # Save Andor data
+        sums = [0] * 3
+        means = [0.0] * 3
 
-    #     # Save Andor data
-    #     sums = [0] * 3
-    #     means = [0.0] * 3
+        self.andor_camera_control.readout_ROIs(
+            sums,
+            means,
+            self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+            discard_first_frame=,
+        )
 
-    #     for _ in range(2 if self.andor_requires_storage_frame else 1):
-    #         # Discard first nonsense frame if required
-    #         self.andor_camera_control.readout_ROIs(
-    #             sums,
-    #             means,
-    #             self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-    #         )
+        self.andor_sum_0.push(sums[0])
+        self.andor_sum_1.push(sums[1])
+        self.andor_sum_2.push(sums[2])
 
-    #     self.andor_sum_0.push(sums[0])
-    #     self.andor_sum_1.push(sums[1])
-    #     self.andor_sum_2.push(sums[2])
+        bg = means[0] + means[1] - 2 * means[2]
+        if bg == 0:
+            self.excitation_fraction.push(0.0)
+        else:
+            self.excitation_fraction.push((means[1] - means[2]) / bg)
 
-    #     bg = means[0] + means[1] - 2 * means[2]
-    #     if bg == 0:
-    #         self.excitation_fraction.push(0.0)
-    #     else:
-    #         self.excitation_fraction.push((means[1] - means[2]) / bg)
-
-    #     self.atom_number.push(means[0] + means[1] - 2 * means[2])
+        self.atom_number.push(means[0] + means[1] - 2 * means[2])
 
     @host_only
     def update_andor_monitor_hook(self, images):
@@ -165,7 +159,7 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         Update the andor monitor with an appropriate image
         """
         img_gnd = images[0]
-        images[1]
+        # img_excited = images[1]
         img_bg = images[2]
 
         # TODO: Consider how to plot the excited atoms here

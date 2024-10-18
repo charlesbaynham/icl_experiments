@@ -52,7 +52,10 @@ class AndorCameraControl(Fragment):
             ]
         ],
         add_pre_trigger_delay=True,
+        fast_kinetics_mode=False,
     ):
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+
         self.setattr_device("core")
         self.core: Core
 
@@ -107,6 +110,17 @@ class AndorCameraControl(Fragment):
                 min=0,
                 max=1024,
             )
+
+        # If the andor is in fast kinetics mode and the height of pixels to emit
+        # is > 512, it will emit two frames onto Grabber instead of one. The
+        # first will be "nonsense" (probably with some digital information that
+        # the grabber isn't parsing) and the second will contain all the pixels,
+        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
+        # See labbook entry 2024-06-11.
+        self.andor_requires_storage_frame = fast_kinetics_mode and (
+            constants.ANDOR_FAST_KINETICS_HEIGHT * 3 > constants.ANDOR_SENSOR_HEIGHT
+        )
+        self.kernel_invariants.add("andor_requires_storage_frame")
 
         self.setattr_param(
             "pre_trigger_delay",
@@ -180,13 +194,10 @@ class AndorCameraControl(Fragment):
         self.cam_roi_y1: IntParamHandle
 
         # %% Kernel invariants
-        kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {
-            "debug_enabled",
-            "num_rois",
-            "ttl_trigger",
-            "ttl_shutter",
-        }
+        self.kernel_invariants.add("debug_enabled")
+        self.kernel_invariants.add("num_rois")
+        self.kernel_invariants.add("ttl_trigger")
+        self.kernel_invariants.add("ttl_shutter")
 
     @rpc
     def calculate_roi_config(self) -> TArray(TInt32, 2):
@@ -337,7 +348,7 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.off()
 
     @kernel
-    def readout_ROIs(self, sums, means, timeout_mu):
+    def readout_ROIs(self, sums, means, timeout_mu, discard_first_frame=False):
         """
         Read out data from camera
 
@@ -348,6 +359,21 @@ class AndorCameraControl(Fragment):
 
         Sums and means must be arrays with length = number of ROIs. They will be
         altered with the results.
+
+        If the andor is in fast kinetics mode and the height of pixels to emit
+        is > 512, it will emit two frames onto Grabber instead of one. The
+        first will be "nonsense" (probably with some digital information that
+        the grabber isn't parsing) and the second will contain all the pixels,
+        up to a max of 1024 high (i.e. the image + storage EMCCDs).
+        See labbook entry 2024-06-11. In this case, you should use `discard_first_frame`.
+
+        Parameters:
+        sums (TArray(TInt32)): Array to hold the sum of each ROI
+        means (TArray(TFloat)): Array to hold the mean of each ROI
+        timeout_mu (int): Timestamp of timeout in machine units
+        discard_first_frame (bool): Whether to discard the first frame. This is
+            useful when the camera is in fast kinetics mode and the first frame
+            is nonsense.
         """
 
         if len(means) != self.num_rois or len(sums) != self.num_rois:
@@ -355,7 +381,9 @@ class AndorCameraControl(Fragment):
 
         # Get data
         data = [0] * self.num_rois
-        self.grabber.input_mu(data, timeout_mu=timeout_mu)
+        for _ in range(2 if discard_first_frame else 1):
+            # Discard first nonsense frame if required
+            self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
         # TODO: assumes all ROIs have same area
         area = (self.roi_0_x1.get() - self.roi_0_x0.get()) * (
