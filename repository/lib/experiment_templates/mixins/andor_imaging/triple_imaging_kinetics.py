@@ -102,6 +102,10 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         )
         self.kernel_invariants.add("andor_requires_storage_frame")
 
+    def run_once():
+        # TODO: Decide how to integrate this with AndorImagingBase
+        raise NotImplementedError
+
     @kernel
     def do_imaging_hook_andor(self):
         """
@@ -128,7 +132,7 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
     #     Runs in realtime after imaging is completed
     #     """
 
-    #     # FIXME: Decide how to integrate this with AndorImagingBase
+    #
     #     raise NotImplementedError("This needs to be integrated with AndorImagingBase")
 
     #     # Save Andor data

@@ -21,7 +21,7 @@ class MOTClockInterferometryNormalizedExp(
     ClockInterferometryMixin,
     ClockPumpingMixin,
     FLIRBlueMOTMeasurementMixin,
-    # TripleImageFastKineticsMixin,  # FIXME
+    # TripleImageFastKineticsMixin,  # TODO: go back to fast kinetics
     TripleImageBasicMixin,
 ):
     """
