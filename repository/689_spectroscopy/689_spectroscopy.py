@@ -25,43 +25,6 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 logger = logging.getLogger(__name__)
 
 
-# class SpectroscopyWithKinetics_MOTBeam(
-#     FieldBoostMixin, TripleImageFastKineticsMixin, SpectroscopyParamsMixin
-# ):
-#     """
-#     689nm spectroscopy MOTBEAM
-
-#     689nm spectroscopy with fast kinetics imaging using the red MOT beam
-#     """
-
-#     def build_fragment(self):
-#         self.setattr_fragment(
-#             "red_axial_minus",
-#             LibSetSUServoStatic,
-#             "suservo_aom_singlepass_689_red_mot_sigmaminus",
-#         )
-#         self.red_axial_minus: LibSetSUServoStatic
-
-#         super().build_fragment()
-
-#     @kernel
-#     def pre_expansion_hook(self):
-#         self.red_mot.red_beam_controller.set_mot_detuning(
-#             self.spectroscopy_pulse_aom_detuning.get()
-#         )
-
-#         self.red_axial_minus.suservo_channel.set_y(
-#             profile=self.red_axial_minus.suservo_profile,
-#             y=self.spectroscopy_pulse_aom_amplitude.get(),
-#         )
-
-#     @kernel
-#     def do_experiment_after_red_mot_hook(self):
-#         self.red_axial_minus.set_channel_state(rf_switch_state=True, enable_iir=False)
-#         delay(self.spectroscopy_pulse_time.get())
-#         self.red_axial_minus.set_channel_state(rf_switch_state=False, enable_iir=False)
-
-
 class SpectroscopyWithKinetics_UpBeam(
     FieldBoostMixin,
     TripleImageFastKineticsMixin,
