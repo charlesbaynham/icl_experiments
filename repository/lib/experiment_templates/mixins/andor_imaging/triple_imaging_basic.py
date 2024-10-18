@@ -49,7 +49,7 @@ class TripleImageBasicMixin(AndorImagingBase):
             "delay_between_fluorescence_pulses",
             FloatParam,
             "Delay after first fluorescence pulse before second",
-            default=1e-3,
+            default=10e-3,
             unit="ms",
         )
         self.delay_between_fluorescence_pulses: FloatParamHandle
