@@ -107,11 +107,11 @@ class TripleImageBasicMixin(AndorImagingBase):
 
     @kernel
     def process_andor_data_hook(self, sums, means):
-        bg = means[0] + means[1] - 2 * means[2]
+        bg = sums[0] + sums[1] - 2 * sums[2]
 
         if bg == 0:
             self.excitation_fraction.push(0.0)
         else:
-            self.excitation_fraction.push((means[1] - means[2]) / bg)
+            self.excitation_fraction.push((sums[1] - sums[2]) / bg)
 
-        self.atom_number.push(means[0] + means[1] - 2 * means[2])
+        self.atom_number.push(sums[0] + sums[1] - 2 * sums[2])
