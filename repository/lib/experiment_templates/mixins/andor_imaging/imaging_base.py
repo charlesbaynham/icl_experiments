@@ -81,6 +81,10 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.andor_sums: List[FloatChannel] = []
         self.andor_means: List[FloatChannel] = []
 
+        # FIXME
+        print("self.num_grabber_rois", self.num_grabber_rois)
+        print("self.num_grabber_readouts", self.num_grabber_readouts)
+
         for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             sum = self.setattr_result(
                 f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}

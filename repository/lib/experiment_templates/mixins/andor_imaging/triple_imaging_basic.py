@@ -38,6 +38,7 @@ class TripleImageBasicMixin(AndorImagingBase):
     """
 
     num_andor_images = 3
+
     num_grabber_readouts = 3
     num_grabber_rois = 1
 
