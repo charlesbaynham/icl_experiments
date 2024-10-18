@@ -208,20 +208,20 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @kernel
     def save_andor_data_hook(self):
-        "Consume all slack and save the photos"
-
-        # FIXME Needs to support a generic number of ROIs
-
+        """
+        Consume all slack and save the photos
+        """
         self.core.wait_until_mu(now_mu())
 
         self._call_camera_rpc()
 
-        sums = [0]
-        means = [0.0]
+        sums = [0] * self.num_grabber_rois
+        means = [0.0] * self.num_grabber_rois
         self.andor_camera_control.readout_ROIs(
             sums,
             means,
             timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
         )
-        self.andor_sum.push(sums[0])
-        self.andor_mean.push(means[0])
+        for i in range(self.num_grabber_rois):            
+            self.andor_sums[i].push(sums[i])
+            self.andor_means[i].push(means[i])
