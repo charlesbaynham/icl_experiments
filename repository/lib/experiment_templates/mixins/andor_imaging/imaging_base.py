@@ -41,8 +41,14 @@ class AndorImagingBase(RedMOTWithExperiment):
     * :meth:`~save_andor_data_hook`
     """
 
+    
     num_andor_images = 1
+    "How many images will the Andor driver read out"
+    
     num_grabber_rois = 1
+    "How many ROIs in each image for the Grabber"
+    num_grabber_readouts = 1
+    "How many images will the Grabber read out"
 
     def build_fragment(self):
         super().build_fragment()
@@ -52,6 +58,11 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("num_andor_images")
+        self.kernel_invariants.add("num_grabber_rois")
+        self.kernel_invariants.add("num_grabber_readouts")        
 
     def hook_setup_andor(self):
         """
@@ -69,7 +80,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.andor_sums: List[FloatChannel] = []
         self.andor_means: List[FloatChannel] = []
 
-        for i in range(self.num_grabber_rois):
+        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             sum = self.setattr_result(
                 f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
             )
@@ -216,15 +227,16 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.core.wait_until_mu(now_mu())
 
         self._call_camera_rpc()
-
-        sums = [0] * self.num_grabber_rois
-        means = [0.0] * self.num_grabber_rois
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-        for i in range(self.num_grabber_rois):            
+        
+        sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
+        means = [0.0] * self.num_grabber_rois* self.num_grabber_readouts
+        for i in range(self.num_grabber_readouts):
+            self.andor_camera_control.readout_ROIs(
+                sums[i*self.num_grabber_rois : (i+1)*self.num_grabber_rois],
+                means[i*self.num_grabber_rois : (i+1)*self.num_grabber_rois],
+                timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
+            )
+        for i in range(self.num_grabber_rois* self.num_grabber_readouts):            
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
         

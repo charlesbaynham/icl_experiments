@@ -34,22 +34,7 @@ class BGCorrectedAndorImage(AndorImagingBase):
     num_grabber_rois = 2
 
     def host_setup(self):
-        self.ccb.issue(
-            "create_applet",
-            "Bg subtracted Andor image",
-            f"${{artiq_applet}}image {'corrected_img'}",
-        )
-        self.ccb.issue(
-            "create_applet",
-            "Andor image w/ atoms",
-            f"${{artiq_applet}}image {'atom_img_array'}",
-        )
-
-        self.ccb.issue(
-            "create_applet",
-            "Bg Andor image",
-            f"${{artiq_applet}}image {'bg_img_array'}",
-        )
+        super().host_setup()
 
         self.setattr_param(
             "delay_before_bg_pulse",
@@ -61,12 +46,12 @@ class BGCorrectedAndorImage(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
-        # AndorImagingBase makes sum and mean resultchannels automatically, but
+        # AndorImagingBase makes sum and mean ResultChannels automatically, but
         # we create another one for the bg-corrected data
         self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_mean_bg_corrected: FloatChannel
         
-        return super().host_setup()
+        
 
     
 
@@ -108,19 +93,12 @@ class BGCorrectedAndorImage(AndorImagingBase):
             archive=False,
         )
 
+    
     @kernel
-    def save_andor_data_hook(self):
+    def process_andor_data_hook(self, sums, means):
         "Consume all slack and save the photos"
-        # FIXME: genericise this
-        self.core.wait_until_mu(now_mu())
-
-        self._call_camera_rpc()
-
-        sum_atoms = [0]
-        mean_atoms = [0.0]
-        sum_bg = [0]
-        mean_bg = [0.0]
-
+        
+        # FIXME this won't work with the generic version...
         self.andor_camera_control.readout_ROIs(
             sum_atoms,
             mean_atoms,
@@ -132,6 +110,4 @@ class BGCorrectedAndorImage(AndorImagingBase):
             timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
         )
 
-        self.andor_sum.push(sum_atoms[0])
-        self.andor_mean.push(mean_atoms[0])
-        self.andor_mean_bg_corrected.push(mean_atoms[0] - mean_bg[0])
+        self.andor_mean_bg_corrected.push(means[0] - means[1])

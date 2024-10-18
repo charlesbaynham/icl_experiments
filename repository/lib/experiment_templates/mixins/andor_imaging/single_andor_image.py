@@ -22,7 +22,6 @@ class SingleAndorImage(AndorImagingBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~save_andor_data_hook`
     """
 
     @kernel
@@ -30,22 +29,3 @@ class SingleAndorImage(AndorImagingBase):
         # Just image the atoms once
         self.do_pulse()
 
-    @kernel
-    def save_andor_data_hook(self):
-        "Consume all slack and save the photos"
-
-        # FIXME Consider using generic implementation
-
-        self.core.wait_until_mu(now_mu())
-
-        self._call_camera_rpc()
-
-        sums = [0]
-        means = [0.0]
-        self.andor_camera_control.readout_ROIs(
-            sums,
-            means,
-            timeout_mu=self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1.0),
-        )
-        self.andor_sum.push(sums[0])
-        self.andor_mean.push(means[0])
