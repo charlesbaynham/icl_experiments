@@ -14,6 +14,27 @@ from .imaging_base import AndorImagingBase
 logger = logging.getLogger(__name__)
 
 
+def calculate_grabber_rois(
+    fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1
+):
+    """
+    Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
+    when in fast kinetics mode.
+
+    Returns a list of ROIs in (x0, y0, x1, y1) format.
+    """
+
+    return [
+        [
+            x0,
+            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            x1,
+            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+        ]
+        for i in range(num_images)
+    ]
+
+
 class TripleImageFastKineticsMixin(AndorImagingBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
@@ -59,6 +80,9 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         )
         self.delay_before_background_pulse: FloatParamHandle
 
+        self.fast_kinetics_setup_results()
+
+    def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction", FloatChannel)
         self.setattr_result("atom_number", FloatChannel)
 
@@ -74,15 +98,15 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=[
-                [
-                    constants.ANDOR_ROI_X0,
-                    i * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                    constants.ANDOR_ROI_X1,
-                    (i + 1) * constants.ANDOR_FAST_KINETICS_HEIGHT,
-                ]
-                for i in range(3)
-            ],
+            roi_defaults=calculate_grabber_rois(
+                fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT,
+                fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET,
+                num_images=3,
+                x0=constants.ANDOR_ROI_X0,
+                y0=constants.ANDOR_ROI_Y0,
+                x1=constants.ANDOR_ROI_X1,
+                y1=constants.ANDOR_ROI_Y1,
+            ),
             add_pre_trigger_delay=True,
             fast_kinetics_num_shots=3,
         )

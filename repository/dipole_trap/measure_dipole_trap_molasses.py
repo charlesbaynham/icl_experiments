@@ -9,6 +9,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingBasic,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingNormalised,
+)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
@@ -104,5 +107,12 @@ class MeasureDoubleDipoleTrapFrag(DoubleTrapImagingBasic, _MeasureDipoleTrapBase
     pass
 
 
+class NormalizedDoubleDipoleTrapFrag(
+    DoubleTrapImagingNormalised, _MeasureDipoleTrapBase
+):
+    pass
+
+
 MeasureDipoleTrap = make_fragment_scan_exp(MeasureDipoleTrapFrag)
 MeasureDoubleDipoleTrap = make_fragment_scan_exp(MeasureDoubleDipoleTrapFrag)
+NormalizedDoubleDipoleTrap = make_fragment_scan_exp(NormalizedDoubleDipoleTrapFrag)
