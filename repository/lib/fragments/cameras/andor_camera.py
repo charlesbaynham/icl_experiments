@@ -264,7 +264,7 @@ class AndorCameraControl(Fragment):
             self.cam.setup_shutter("open")
 
             if self.fast_kinetics_mode:
-                self.cam.set_acquisition_mode("fast_kinetic")
+                logger.info("Setting up fast kinetics mode")
                 self.cam.setup_fast_kinetic_mode_full(
                     num_acc=self.fast_kinetics_num_shots,
                     subarea_height=self.fast_kinetics_height.get(),
