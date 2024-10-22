@@ -272,7 +272,9 @@ class AndorCameraControl(Fragment):
                 )
                 self.cam.set_trigger_mode("ext")
             else:
-                self.cam.set_acquisition_mode("single")
+                logger.debug("Setting continuous acquisition mode")
+                self.cam.set_acquisition_mode("cont")
+                logger.debug("Setting external exposure mode")
                 self.cam.set_trigger_mode("ext_exp")
 
             self.cam.start_acquisition()
@@ -465,7 +467,7 @@ class AndorCameraControl(Fragment):
         """
         self.cam.wait_for_frame(timeout=timeout, since="lastread")
         img = self.cam.read_oldest_image()
-        if not img:
+        if img is None:
             raise AndorNoImageAvailable("There was no image to read out")
 
         img_array = np.array(img)
