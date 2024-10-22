@@ -27,6 +27,10 @@ from repository.lib import constants
 logger = logging.getLogger(__name__)
 
 
+class AndorNoImageAvailable(Exception):
+    pass
+
+
 class AndorCameraControl(Fragment):
     """
     Control the Andor camera and associated shutters / triggers
@@ -454,12 +458,19 @@ class AndorCameraControl(Fragment):
         timeout (float): The maximum time to wait for a frame, in seconds. Default is 2.0 seconds.
 
         Returns:
-        numpy.ndarray: The correctly rotated image as a NumPy array.
+            numpy.ndarray: The correctly rotated image as a NumPy array.
+
+        Raises:
+            AndorNoImageAvailable if no image is read out
         """
         self.cam.wait_for_frame(timeout=timeout, since="lastread")
         img = self.cam.read_oldest_image()
+        if not img:
+            raise AndorNoImageAvailable("There was no image to read out")
+
         img_array = np.array(img)
         img_array = np.rot90(img_array, axes=(1, 0))
+
         return img_array
 
     ###
