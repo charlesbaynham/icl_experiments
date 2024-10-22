@@ -479,7 +479,13 @@ class AndorCameraControl(Fragment):
         Raises:
             AndorNoImageAvailable if no image is read out
         """
-        self.cam.wait_for_frame(timeout=timeout, since="lastread")
+        if self.fast_kinetics_mode:
+            # FIXME WIP
+            self.cam.wait_for_frame(timeout=timeout, since="start")
+            self.cam.stop_acquisition()
+        else:
+            self.cam.wait_for_frame(timeout=timeout, since="lastread")
+
         img = self.cam.read_oldest_image()
         if img is None:
             raise AndorNoImageAvailable("There was no image to read out")

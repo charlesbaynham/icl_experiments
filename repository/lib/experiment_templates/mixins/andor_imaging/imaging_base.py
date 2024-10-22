@@ -217,8 +217,8 @@ class AndorImagingBase(RedMOTWithExperiment):
         ):
             if self.use_andor_driver.get():
                 # Read out the images
-                # img_array = self.andor_camera_control.readout_image()
-                img_array = [[0.0, 1.0], [1.0, 0.0]]  # FIXME
+                img_array = self.andor_camera_control.readout_image()
+                # img_array = np.array([[0.0, 1.0], [1.0, 0.0]])  # FIXME
                 sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
 
                 # Write them to the result channels
