@@ -126,6 +126,7 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
             img_abs = np.ma.fix_invalid(img_abs, img_abs.mask, fill_value=0)
             img_abs = img_abs.data
 
+        if self.andor_camera_control.save_raw_andor_image.get():
             self.andor_abs_img.push(img_abs)
         else:
             self.andor_abs_img.push([])

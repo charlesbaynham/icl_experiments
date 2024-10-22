@@ -269,9 +269,9 @@ B_FIELD_CH1_AXIAL = 0.0  # A
 
 # TODO: Include FIELD_COMP as an offset to the other default fields below.
 # Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
-FIELD_COMP_X = 0.3
-FIELD_COMP_Y = -0.005
-FIELD_COMP_Z = -0.75
+FIELD_COMP_X = 0.292
+FIELD_COMP_Y = -0.009
+FIELD_COMP_Z = -0.67
 FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
 
 if USE_SR87:
@@ -631,7 +631,7 @@ _default_689 = (
 MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=580.7e6,
+        frequency=580.7e6 - 2 * 0.56e6,
         attenuation=3.0,
     ),
     MirnySettings(
@@ -800,10 +800,9 @@ else:
 ### DIPOLE TRAP DEFAULT PARAMETERS ###
 
 # Delay between end of red MOT and start of molasses
-DELAY_BEFORE_MOLASSES = 10e-3
-DELAY_BETWEEN_MOLASSES = 10e-3
+DELAY_BEFORE_MOLASSES = 0.01e-3
+DELAY_BETWEEN_MOLASSES = 0.01e-3
 
-XODT_MOLASSES_DURATION = 100e-3
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
 # "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -811,31 +810,77 @@ XODT_MOLASSES_DURATION = 100e-3
 # "suservo_aom_singlepass_689_up",
 # "suservo_aom_1064_delivery",
 # "suservo_aom_down_813"
-XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
-XODT_MOLASSES_689_DETUNING_START = [
-    0e3,
-]
-XODT_MOLASSES_689_DETUNING_END = [
-    0e3,
-]
-# Chamber 2 bias coils in amps. Order: X,Y,Z
-XODT_MOLASSES_BIAS_FIELD_START = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
-XODT_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+# # Chamber 2 bias coils in amps. Order: X,Y,Z
+if USE_SR87:
+    RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 6.0
+    RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 6.0
 
-XODT_2ND_MOLASSES_DURATION = 100e-3
-XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-# Urukul: "urukul9910_aom_doublepass_689_red_injection"
-XODT_2ND_MOLASSES_689_DETUNING_START = [
-    0e3,
-]
-XODT_2ND_MOLASSES_689_DETUNING_END = [
-    0e3,
-]
-# Chamber 2 bias coils in amps. Order: X,Y,Z
-XODT_2ND_MOLASSES_BIAS_FIELD_START = [
-    a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-]
-XODT_2ND_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+    XODT_MOLASSES_DURATION = 80e-3
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_MOLASSES_689_DETUNING_START = [
+        0e3,
+    ]
+    XODT_MOLASSES_689_DETUNING_END = [
+        0e3,
+    ]
+    XODT_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
+    BIAS_DURING_MOTS_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
+    XODT_MOLASSES_MOT_CURRENT = 6.0
+
+    XODT_2ND_MOLASSES_DURATION = 0.01e-3
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_2ND_MOLASSES_689_DETUNING_START = [
+        0e3,
+    ]
+    XODT_2ND_MOLASSES_689_DETUNING_END = [
+        0e3,
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
+else:
+    RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 6.0
+    RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 6.0
+
+    XODT_MOLASSES_DURATION = 80e-3
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
+    XODT_MOLASSES_689_DETUNING_START = [
+        100e3,
+    ]
+    XODT_MOLASSES_689_DETUNING_END = [
+        135e3,
+    ]
+    XODT_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.148, 0.024, -0.58])
+    ]
+    XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
+    BIAS_DURING_MOTS_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
+    XODT_MOLASSES_MOT_CURRENT = 6.0
+
+    XODT_2ND_MOLASSES_DURATION = 0.01e-3
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_2ND_MOLASSES_689_DETUNING_START = [
+        0e3,
+    ]
+    XODT_2ND_MOLASSES_689_DETUNING_END = [
+        0e3,
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_2ND_MOLASSES_MOT_CURRENT = 0.0

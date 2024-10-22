@@ -3,6 +3,7 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
 )
@@ -42,18 +43,32 @@ class _MeasureDipoleTrapBase(
         self.override_param("spectroscopy_field_gradient", 0)
 
         # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind("chamber_2_bias_x", self.blue_3d_mot)
-        self.setattr_param_rebind("chamber_2_bias_y", self.blue_3d_mot)
-        self.setattr_param_rebind("chamber_2_bias_z", self.blue_3d_mot)
+        self.setattr_param_rebind(
+            "chamber_2_bias_x",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[0],
+        )
+        self.setattr_param_rebind(
+            "chamber_2_bias_y",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[1],
+        )
+        self.setattr_param_rebind(
+            "chamber_2_bias_z",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[2],
+        )
         self.setattr_param_rebind(
             "chamber_2_red_narrowband_mot_current_start",
             self.red_mot.narrow_red_compression_phase,
             original_name="chamber_2_mot_current_start",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
         )
         self.setattr_param_rebind(
             "chamber_2_red_narrowband_mot_current_end",
             self.red_mot.narrow_red_compression_phase,
             original_name="chamber_2_mot_current_end",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
         )
 
         # Expose the molasses ramp parameters if desired
