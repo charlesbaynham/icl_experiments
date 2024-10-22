@@ -73,7 +73,7 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             "mot_coil_current_first_molasses",
             FloatParam,
             "MOT coil current during first molasses",
-            default=0.0,
+            default=constants.XODT_MOLASSES_MOT_CURRENT,
             unit="A",
             min=0,
             max=130,
@@ -84,7 +84,7 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             "mot_coil_current_2nd_molasses",
             FloatParam,
             "MOT coil current during 2nd molasses",
-            default=0.0,
+            default=constants.XODT_2ND_MOLASSES_MOT_CURRENT,
             unit="A",
             min=0,
             max=130,
@@ -173,7 +173,9 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             self.molasses_xodt_1.general_setter_default_starts[2],
         )
         if self.delay_before_molasses.get() > 1e-6:
-            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(ignore_shutters=True)
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+                ignore_shutters=True
+            )
         delay(self.delay_before_molasses.get())
 
     @kernel
@@ -181,7 +183,9 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         """
         Do the molasses ramping phases
         """
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(ignore_shutters=True)
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
+            ignore_shutters=True
+        )
         self.molasses_xodt_1.do_phase()
         # Set fields in advance of 2nd molasses
         self.red_mot.chamber_2_field_setter.set_all_fields(
@@ -192,9 +196,13 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         )
         # Turn off MOT beams between molasses if there is a gap
         if self.delay_between_molasses.get() > 1e-6:
-            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(ignore_shutters=True)
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+                ignore_shutters=True
+            )
 
         delay(self.delay_between_molasses.get())
 
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(ignore_shutters=True)
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
+            ignore_shutters=True
+        )
         self.molasses_xodt_2.do_phase()
