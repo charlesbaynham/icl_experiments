@@ -271,13 +271,17 @@ class AndorCameraControl(Fragment):
                     exposure_time=self.fast_kinetics_exposure_time.get(),
                 )
                 self.cam.set_trigger_mode("ext")
+
+                # In fast kinetics mode do not start the acquisition: this must
+                # be done by device_setup each shot because it's not continuous.
             else:
                 logger.debug("Setting continuous acquisition mode")
                 self.cam.set_acquisition_mode("cont")
                 logger.debug("Setting external exposure mode")
                 self.cam.set_trigger_mode("ext_exp")
 
-            self.cam.start_acquisition()
+                # In continuous mode, start the acquisition immediately - it'll run forever
+                self.cam.start_acquisition()
 
         super().host_setup()
 
@@ -297,13 +301,23 @@ class AndorCameraControl(Fragment):
         roi["vend"] = int(self.cam_roi_y1.get())
         self.cam.set_roi(**roi)
 
+    @rpc(flags={"async"})
+    def _start_acquisition(self):
+        self.cam.start_acquisition()
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
         # Here we sadly need an RPC. That make this scan a bit slower, but only
-        # by a ms or so which is small compared to most (all?) of our sequences
+        # by a ms or so which is small compared to most (all?) of our sequences.
+        # TODO: detect if ROI is not scanned and only run this once in that case.
         roi_config = self.calculate_roi_config()
+
+        # If in fast kinetics mode we cannot acquire continuously, so trigger a
+        # new acquisition each cycle
+        if self.fast_kinetics_mode:
+            self._start_acquisition()
 
         self.core.break_realtime()
 
