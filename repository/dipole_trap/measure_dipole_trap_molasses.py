@@ -3,20 +3,17 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
+from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingBasic,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingNormalised,
 )
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
+)
+from repository.lib.experiment_templates.mixins.single_andor_image import (
+    SingleAndorImage,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolassesMixin
 
@@ -26,9 +23,11 @@ EXPOSE_MOLASSES_1_PARAMS = True
 EXPOSE_MOLASSES_2_PARAMS = True
 
 
-class _MeasureDipoleTrapBase(
+class MeasureDipoleTrapFrag(
+    BGCorrectedAndorImage,
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
+    SingleAndorImage,
     XODTMolassesMixin,
 ):
     """
@@ -56,6 +55,23 @@ class _MeasureDipoleTrapBase(
             original_name="chamber_2_mot_current_end",
         )
 
+        self.setattr_param_rebind(
+            "roi_0_x0",
+            self.andor_camera_control,
+        )
+        self.setattr_param_rebind(
+            "roi_0_x1",
+            self.andor_camera_control,
+        )
+        self.setattr_param_rebind(
+            "roi_0_y0",
+            self.andor_camera_control,
+        )
+        self.setattr_param_rebind(
+            "roi_0_y1",
+            self.andor_camera_control,
+        )
+
         # Expose the molasses ramp parameters if desired
         if EXPOSE_MOLASSES_1_PARAMS:
             names = [_ for _ in self.molasses_xodt_1._free_params.keys()]
@@ -81,38 +97,4 @@ class _MeasureDipoleTrapBase(
         self.dipole_beam_controller.turn_off_dipole_beams()
 
 
-class MeasureDipoleTrapFrag(BGCorrectedAndorImage, _MeasureDipoleTrapBase):
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param_rebind(
-            "roi_0_x0",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_x1",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y0",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y1",
-            self.andor_camera_control,
-        )
-
-
-class MeasureDoubleDipoleTrapFrag(DoubleTrapImagingBasic, _MeasureDipoleTrapBase):
-    pass
-
-
-class NormalizedDoubleDipoleTrapFrag(
-    DoubleTrapImagingNormalised, _MeasureDipoleTrapBase
-):
-    pass
-
-
 MeasureDipoleTrap = make_fragment_scan_exp(MeasureDipoleTrapFrag)
-MeasureDoubleDipoleTrap = make_fragment_scan_exp(MeasureDoubleDipoleTrapFrag)
-NormalizedDoubleDipoleTrap = make_fragment_scan_exp(NormalizedDoubleDipoleTrapFrag)

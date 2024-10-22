@@ -335,7 +335,7 @@ DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
-"Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
+"Default duration of the delay between turning on the delivery AOM and turning on the fluoresence probe."
 
 DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000
 "$k_I$ constant for the flourescence beam's SUServo loop"
@@ -371,32 +371,9 @@ else:
         ANDOR_ROI_Y0 = y - height / 2
         ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT = 40
-ANDOR_ROI_DIPOLE_WIDTH = 150
-
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = 125
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1 = (
-    ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 + ANDOR_ROI_DIPOLE_WIDTH
-)
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0 = 335
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1 = (
-    ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0 + ANDOR_ROI_DIPOLE_HEIGHT
-)
-
-ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0 = 125
-ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1 = (
-    ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0 + ANDOR_ROI_DIPOLE_WIDTH
-)
-ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0 = 280
-ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1 = (
-    ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0 + ANDOR_ROI_DIPOLE_HEIGHT
-)
-
 ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
-
 ANDOR_FAST_KINETICS_HEIGHT = 170
-ANDOR_FAST_KINETICS_OFFSET = 200
 
 
 # %% 689 spectroscopy defaults
@@ -482,6 +459,14 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
+    ),
+    SUServoedBeam(
+        "blue_plug_beam",
+        165e6,
+        20,
+        "suservo_aom_doublepass_461_plug",
+        setpoint=0.8,
+        servo_enabled=True,
     ),
     ### RED ###
     SUServoedBeam(
@@ -631,7 +616,7 @@ _default_689 = (
 MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=580.7e6,
+        frequency=580.7e6 - 2 * 0.56e6,
         attenuation=3.0,
     ),
     MirnySettings(

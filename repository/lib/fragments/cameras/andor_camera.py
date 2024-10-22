@@ -39,13 +39,6 @@ class AndorCameraControl(Fragment):
     By default, this fragment produces 1x ROI with the region set in
     :module:`~.constants`. To override this, pass "roi_defaults" to
     :meth:`~.setattr_fragment`.
-
-    Parameters:
-    roi_defaults (List[List[int, int, int, int]]): List of ROIs to set up
-    add_pre_trigger_delay (bool): Whether to add a delay before triggering the
-        camera.
-    fast_kinetics_num_shots (int): Number of shots to per frame. If > 1,
-        fast kinetics mode will be used.
     """
 
     def build_fragment(
@@ -58,8 +51,7 @@ class AndorCameraControl(Fragment):
                 constants.ANDOR_ROI_Y1,
             ]
         ],
-        add_pre_trigger_delay=True,
-        fast_kinetics_num_shots=1,
+        add_pre_trigger_delay=False,
     ):
         self.setattr_device("core")
         self.core: Core
@@ -129,6 +121,10 @@ class AndorCameraControl(Fragment):
         if not add_pre_trigger_delay:
             self.override_param("pre_trigger_delay", 0.0)
 
+        # %% Kernel variables
+        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        self.num_rois = len(roi_defaults)
+
         self.setattr_param(
             "use_andor_driver",
             BoolParam,
@@ -172,54 +168,26 @@ class AndorCameraControl(Fragment):
         self.setattr_param(
             "cam_roi_y1",
             IntParam,
-            "Camera ROI y1",
+            f"Camera ROI y1",
             default=512,
             min=0,
             max=512,
         )
 
-        self.fast_kinetics_mode = fast_kinetics_num_shots > 1
-
-        if self.fast_kinetics_mode:
-            self.setattr_param(
-                "fast_kinetics_height",
-                IntParam,
-                "Fast kinetics height",
-                default=constants.ANDOR_FAST_KINETICS_HEIGHT,
-                min=0,
-                max=512,
-            )
-            self.setattr_param(
-                "fast_kinetics_exposure_time",
-                FloatParam,
-                "Fast kinetics exposure time",
-                default=1e-3,
-                unit="ms",
-                min=0,
-            )
-
         self.cam_roi_x0: IntParamHandle
         self.cam_roi_x1: IntParamHandle
         self.cam_roi_y0: IntParamHandle
         self.cam_roi_y1: IntParamHandle
-        self.fast_kinetics_height: IntParamHandle
-        self.fast_kinetics_exposure_time: FloatParamHandle
 
-        # %% Kernel variables
-
-        self.fast_kinetics_num_shots = fast_kinetics_num_shots
-
-        self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.num_rois = len(roi_defaults)
-
-        self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("debug_enabled")
-        self.kernel_invariants.add("fast_kinetics_mode")
-        self.kernel_invariants.add("fast_kinetics_num_shots")
-        self.kernel_invariants.add("andor_requires_storage_frame")
-        self.kernel_invariants.add("num_rois")
-        self.kernel_invariants.add("ttl_trigger")
-        self.kernel_invariants.add("ttl_shutter")
+        # %% Kernel invariants
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "debug_enabled",
+            "num_rois",
+            "ttl_trigger",
+            "ttl_shutter",
+            "use_andor_driver",
+        }
 
     @rpc
     def calculate_roi_config(self) -> TArray(TInt32, 2):
@@ -243,34 +211,12 @@ class AndorCameraControl(Fragment):
         return rois
 
     def host_setup(self):
-        # If the andor is in fast kinetics mode and the height of pixels to emit
-        # is > 512, it will emit two frames onto Grabber instead of one. The
-        # first will be "nonsense" (probably with some digital information that
-        # the grabber isn't parsing) and the second will contain all the pixels,
-        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
-        # See labbook entry 2024-06-11.
-        self.andor_requires_storage_frame = self.fast_kinetics_mode and (
-            self.fast_kinetics_height.get() * self.fast_kinetics_num_shots
-            > constants.ANDOR_SENSOR_HEIGHT
-        )
-
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
             self.cam.setup_shutter("open")
-
-            if self.fast_kinetics_mode:
-                self.cam.set_acquisition_mode("fast_kinetic")
-                self.cam.setup_fast_kinetic_mode_full(
-                    num_acc=self.fast_kinetics_num_shots,
-                    subarea_height=self.fast_kinetics_height.get(),
-                    exposure_time=self.fast_kinetics_exposure_time.get(),
-                )
-                self.cam.set_trigger_mode("ext")
-            else:
-                self.cam.set_acquisition_mode("single")
-                self.cam.set_trigger_mode("ext_exp")
-
+            self.cam.set_trigger_mode("ext_exp")
+            # self.cam.set_acquisition_mode("kinetic")
             self.cam.start_acquisition()
 
         super().host_setup()
@@ -355,14 +301,10 @@ class AndorCameraControl(Fragment):
     @kernel
     def trigger(self, exposure: TFloat, control_shutter=False):
         """
-        Trigger an acquisition
+        Trigger an aquisition
 
-        If `use_andor_driver` is enabled, the right trigger mode will be
-        selected for you. Otherwise you must set it up yourself.
-
-        If fast_kinetics_mode is enabled, the exposure setting will only control
-        the shutter (if requested): the correct exposure must be set as
-        `fast_kinetics_exposure_time`.
+        For now, you must manually set up the camera to respond to external
+        triggers.
 
         You should call :meth:`~.save_data` to read out the configured ROI at
         the end of your sequence.
@@ -407,14 +349,6 @@ class AndorCameraControl(Fragment):
 
         Sums and means must be arrays with length = number of ROIs. They will be
         altered with the results.
-
-        Parameters:
-        sums (TArray(TInt32)): Array to hold the sum of each ROI
-        means (TArray(TFloat)): Array to hold the mean of each ROI
-        timeout_mu (int): Timestamp of timeout in machine units
-        discard_first_frame (bool): Whether to discard the first frame. This is
-            useful when the camera is in fast kinetics mode and the first frame
-            is nonsense.
         """
 
         if len(means) != self.num_rois or len(sums) != self.num_rois:
@@ -422,15 +356,7 @@ class AndorCameraControl(Fragment):
 
         # Get data
         data = [0] * self.num_rois
-
-        # If the andor is in fast kinetics mode and the height of pixels to emit
-        # is > 512, it will emit two frames onto Grabber instead of one. The
-        # first will be "nonsense" (probably with some digital information that
-        # the grabber isn't parsing) and the second will contain all the pixels,
-        # up to a max of 1024 high (i.e. the image + storage EMCCDs).
-        # See labbook entry 2024-06-11.
-        for _ in range(2 if self.andor_requires_storage_frame else 1):
-            self.grabber.input_mu(data, timeout_mu=timeout_mu)
+        self.grabber.input_mu(data, timeout_mu=timeout_mu)
 
         # TODO: assumes all ROIs have same area
         area = (self.roi_0_x1.get() - self.roi_0_x0.get()) * (
@@ -447,31 +373,22 @@ class AndorCameraControl(Fragment):
 
     @host_only
     def readout_image(self, timeout=2.0):
-        """
-        Reads out an image from the camera with a specified timeout.
-
-        Parameters:
-        timeout (float): The maximum time to wait for a frame, in seconds. Default is 2.0 seconds.
-
-        Returns:
-        numpy.ndarray: The correctly rotated image as a NumPy array.
-        """
         self.cam.wait_for_frame(timeout=timeout, since="lastread")
         img = self.cam.read_oldest_image()
         img_array = np.array(img)
         img_array = np.rot90(img_array, axes=(1, 0))
         return img_array
 
-    ###
-    # This this wasn't working, and I haven't figured out why yet.
-    # For now, calling readout_image() n times does what
-    # readout_n_images(n) once should do anyway
-    # TODO: make it work
-    ###
-    # @host_only
-    # def readout_n_images(self, n_frames, timeout=2.0):
-    #     self.cam.wait_for_frame(nframes=n_frames, timeout=timeout, since="lastread")
+    @host_only
+    def readout_n_images(self, n_frames, timeout=2.0):
+        self.cam.wait_for_frame(nframes=n_frames, timeout=timeout, since="lastread")
+        imgs = self.cam.read_multiple_images()
+        for i, img in enumerate(imgs):
+            imgs[i] = np.rot90(np.array(img), axes=(1, 0))
+        return imgs
 
-    #     for i, img in enumerate(imgs):
-    #         imgs[i] = np.rot90(np.array(img), axes=(1, 0))
-    #     return imgs
+    @host_only
+    def slice_image(self, img):
+        sum_slice_x = np.sum(img, axis=1)
+        sum_slice_y = np.sum(img, axis=0)
+        return sum_slice_x, sum_slice_y
