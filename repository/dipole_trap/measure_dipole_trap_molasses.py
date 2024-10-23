@@ -13,6 +13,10 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
+
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingBGSubtracted,
+)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
@@ -118,7 +122,9 @@ class MeasureDipoleTrapFrag(BGCorrectedAndorImage, _MeasureDipoleTrapBase):
         )
 
 
-class MeasureDoubleDipoleTrapFrag(DoubleTrapImagingBasic, _MeasureDipoleTrapBase):
+class MeasureDoubleDipoleTrapFrag(
+    DoubleTrapImagingBGSubtracted, _MeasureDipoleTrapBase
+):
     pass
 
 

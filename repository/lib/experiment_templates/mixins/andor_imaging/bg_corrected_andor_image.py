@@ -48,6 +48,9 @@ class BGCorrectedAndorImage(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+        self.bg_imaging_make_result_channel()
+
+    def bg_imaging_make_result_channel(self):
         # AndorImagingBase makes sum and mean ResultChannels automatically, but
         # we create another one for the bg-corrected data
         self.setattr_result("andor_mean_bg_corrected", FloatChannel)

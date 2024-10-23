@@ -7,28 +7,15 @@ from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 from .single_andor_image import SingleAndorImage
+from .imaging_base import AndorImagingBase
+from .bg_corrected_andor_image import BGCorrectedAndorImage
 from .triple_imaging_kinetics import TripleImageFastKineticsMixin
 from .triple_imaging_kinetics import calculate_grabber_rois
 
 logger = logging.getLogger(__name__)
 
 
-class DoubleTrapImagingBasic(SingleAndorImage):
-    """
-    Image two traps with a single fluorescence pulse
-
-    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
-    details.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_imaging_hook_andor`
-    """
-
-    num_andor_images = 1
-    num_grabber_readouts = 1
-    num_grabber_rois = 2
-
+class _DoubleTrapROIOverrides(AndorImagingBase):
     def build_fragment(self):
         super().build_fragment()
 
@@ -74,6 +61,51 @@ class DoubleTrapImagingBasic(SingleAndorImage):
             self.andor_camera_control,
             default=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
+
+
+class DoubleTrapImagingBasic(_DoubleTrapROIOverrides, SingleAndorImage):
+    """
+    Image two traps with a single fluorescence pulse
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    num_andor_images = 1
+    num_grabber_readouts = 1
+    num_grabber_rois = 2
+
+
+class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorImage):
+    """
+    Image two traps with two fluorescence pulses and background-subtract
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    num_andor_images = 2
+    num_grabber_readouts = 2
+    num_grabber_rois = 2
+
+    def bg_imaging_make_result_channel(self):
+        self.setattr_result("andor_sum_fwd_corrected", FloatChannel)
+        self.setattr_result("andor_sum_bkd_corrected", FloatChannel)
+        self.andor_sum_fwd_corrected: FloatChannel
+        self.andor_sum_bkd_corrected: FloatChannel
+
+    @kernel
+    def process_andor_data_hook(self, sums, means):
+        self.andor_sum_fwd_corrected.push(sums[0] - sums[2])
+        self.andor_sum_bkd_corrected.push(sums[1] - sums[3])
 
 
 class DoubleTrapImagingNormalised(TripleImageFastKineticsMixin):
