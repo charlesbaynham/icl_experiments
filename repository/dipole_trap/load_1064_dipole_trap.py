@@ -3,10 +3,10 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
+from repository.lib.experiment_templates.mixins.dipole_trap import DipoleTrapMixin
+from repository.lib.experiment_templates.mixins.single_andor_image import (
     SingleAndorImage,
 )
-from repository.lib.experiment_templates.mixins.dipole_trap import DipoleTrapMixin
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)

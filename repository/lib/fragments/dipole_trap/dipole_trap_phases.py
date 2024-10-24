@@ -68,7 +68,6 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     general_setter_default_starts = constants.XODT_MOLASSES_BIAS_FIELD_START
     general_setter_default_ends = constants.XODT_MOLASSES_BIAS_FIELD_END
 
-
 class MolassesInXODT_2(MolassesInXODT):
     """
     A 2nd molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT, and bias fields

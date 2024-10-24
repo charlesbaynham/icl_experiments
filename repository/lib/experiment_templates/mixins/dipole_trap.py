@@ -27,8 +27,6 @@ class DipoleTrapMixin(RedMOTWithExperiment):
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
 
-    TODO: Flash on dipole trap for the background images in bg-corrected imaging to avoid rolling shutter
-
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~post_narrowband_hook`

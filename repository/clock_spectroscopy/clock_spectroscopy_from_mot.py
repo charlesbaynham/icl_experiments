@@ -2,18 +2,18 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
-)
 from repository.lib.experiment_templates.mixins.clock_pumping import ClockPumpingMixin
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
+)
+from repository.lib.experiment_templates.mixins.single_andor_image import (
+    SingleAndorImage,
+)
+from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
+    TripleImageFastKineticsMixin,
 )
 
 logger = logging.getLogger(__name__)

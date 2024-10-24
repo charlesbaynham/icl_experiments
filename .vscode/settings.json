@@ -9,7 +9,6 @@
         "artiq",
         "Narrowband",
         "ndscan",
-        "pretrigger",
         "ROIs"
     ],
     "editor.codeLens": true
