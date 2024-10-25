@@ -35,6 +35,10 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
+
+    We override this to do nothing since this Mixin is now taking charge of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
     """
 
     def build_fragment(self):
@@ -136,6 +140,10 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         Turn off red MOT beams (default hook), set coil currents, and wait
         """
         self.post_narrowband_hook_xodt_molasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook(self):
+        pass
 
     @kernel
     def dipole_trap_molasses_hook(self):
