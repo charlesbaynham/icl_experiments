@@ -95,6 +95,28 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         )
         self.mot_coil_current_2nd_molasses: FloatParamHandle
 
+        self.setattr_param(
+            "stir_beam_detuning_molasses_1",
+            FloatParam,
+            "Detuning of the 689 stir beam during 1st molasses",
+            default=0,
+            unit="kHz",
+            min=-1e6,
+            max=1e6,
+        )
+        self.stir_beam_detuning_molasses_1: FloatParamHandle
+
+        self.setattr_param(
+            "stir_beam_detuning_molasses_2",
+            FloatParam,
+            "Detuning of the 689 stir beam during 2nd molasses",
+            default=0,
+            unit="kHz",
+            min=-1e6,
+            max=1e6,
+        )
+        self.stir_beam_detuning_molasses_2: FloatParamHandle
+
         self.molasses_xodt_1.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
@@ -195,6 +217,12 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             ignore_shutters=True
         )
         self.molasses_xodt_1.do_phase()
+
+        # Step the 689 stir frequency
+        self.mirny_eom_sidebands.set_689_stir_sideband_detuning(
+            detuning=self.stir_beam_detuning_molasses_1.get()
+        )
+
         # Set fields in advance of 2nd molasses
         self.red_mot.chamber_2_field_setter.set_all_fields(
             self.mot_coil_current_2nd_molasses.get(),
@@ -207,6 +235,11 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
                 ignore_shutters=True
             )
+
+        # Step the 689 stir frequency
+        self.mirny_eom_sidebands.set_689_stir_sideband_detuning(
+            detuning=self.stir_beam_detuning_molasses_2.get()
+        )
 
         delay(self.delay_between_molasses.get())
 
