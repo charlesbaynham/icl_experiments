@@ -216,6 +216,7 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
+
         # Step the 689 stir frequency
         self.mirny_eom_sidebands.set_689_stir_sideband_detuning(
             detuning=self.stir_beam_detuning_molasses_1.get()
