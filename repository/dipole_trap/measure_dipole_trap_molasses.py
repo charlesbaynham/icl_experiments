@@ -27,8 +27,8 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolasse
 
 logger = logging.getLogger(__name__)
 
-EXPOSE_MOLASSES_1_PARAMS = True
-EXPOSE_MOLASSES_2_PARAMS = True
+EXPOSE_MOLASSES_1_PARAMS = False
+EXPOSE_MOLASSES_2_PARAMS = False
 
 
 class _MeasureDipoleTrapBase(
