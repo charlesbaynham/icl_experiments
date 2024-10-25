@@ -77,13 +77,21 @@ class _MeasureDipoleTrapBase(
 
         # Expose the molasses ramp parameters if desired
         if EXPOSE_MOLASSES_1_PARAMS:
-            names = [_ for _ in self.molasses_xodt_1._free_params.keys()]
+            names = [
+                n
+                for n in self.molasses_xodt_1._free_params.keys()
+                if "suservo" not in n
+            ]
             for name in names:
                 self.setattr_param_rebind(
                     f"molasses_1_{name}", self.molasses_xodt_1, original_name=name
                 )
         if EXPOSE_MOLASSES_2_PARAMS:
-            names = [_ for _ in self.molasses_xodt_2._free_params.keys()]
+            names = [
+                n
+                for n in self.molasses_xodt_2._free_params.keys()
+                if "suservo" not in n
+            ]
             for name in names:
                 self.setattr_param_rebind(
                     f"molasses_2_{name}", self.molasses_xodt_2, original_name=name
