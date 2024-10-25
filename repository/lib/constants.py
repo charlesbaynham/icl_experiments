@@ -31,7 +31,7 @@ SR_FACTS = {
 }
 
 
-USE_SR87 = False
+USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
 USE_LATTICE_MODE = False
@@ -840,7 +840,7 @@ if USE_SR87:
         0e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+        a + b for a, b in zip(FIELD_COMP, [0.148, 0.024, -0.58])
     ]
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     BIAS_DURING_MOTS_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
