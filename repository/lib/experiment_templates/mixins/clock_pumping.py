@@ -25,8 +25,7 @@ class ClockPumpingMixin(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
+    * :meth:`~post_narrowband_hook`
     """
 
     def build_fragment(self):
@@ -107,6 +106,10 @@ class ClockPumpingMixin(RedMOTWithExperiment):
 
     @kernel
     def post_narrowband_hook(self):
+        self.post_narrowband_hook_clock_pumping()
+
+    @kernel
+    def post_narrowband_hook_clock_pumping(self):
         self.default_post_narrowband_hook()
 
         # Prepare the clock beam

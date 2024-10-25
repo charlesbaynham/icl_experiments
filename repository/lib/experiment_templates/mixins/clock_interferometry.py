@@ -22,6 +22,10 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 
 
 class ClockInterferometryMixin(ClockSpectroscopyMixin):
+    """
+    Uses do_experiment_after_red_mot_hook
+    """
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -63,6 +67,10 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
+        self.do_clock_interferometry()
+
+    @kernel
+    def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Set frequency on the suservo, phase on the clock switch
