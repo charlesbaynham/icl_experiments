@@ -1,11 +1,11 @@
+import numpy as np
+import pyqtgraph
+import pyqtgraph as pg
+from artiq.applets.simple import AppletRequestRPC
+from artiq.applets.simple import SimpleApplet
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QLabel
-import pyqtgraph as pg
-import pyqtgraph
-import numpy as np
-from artiq.applets.simple import SimpleApplet
 from pyqtgraph.Qt import QtGui
-from artiq.applets.simple import AppletRequestRPC
 
 translate = QtCore.QCoreApplication.translate
 
@@ -20,7 +20,6 @@ class SimpleAppletNoEmbed(SimpleApplet):
 
 
 class SimpleImageViewer(pyqtgraph.ImageView):
-
     def __init__(self, args, req: AppletRequestRPC):
         self.plot_item = pg.PlotItem()
         super().__init__(view=self.plot_item)
