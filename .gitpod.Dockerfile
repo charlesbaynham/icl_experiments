@@ -1,22 +1,25 @@
+# Gitpod have promised to support devcontainers, but it doesn't seem to work yet
+# so we still need this file. This is annoying, but we should be able to delete it eventually
+
 FROM gitpod/workspace-base
 
 USER root
 
-# Install Nix
+# Install Nix as root
 RUN addgroup --system nixbld \
   && adduser gitpod nixbld \
-  && for i in $(seq 1 30); do useradd -ms /bin/bash nixbld$i &&  adduser nixbld$i nixbld; done \
+  # && for i in $(seq 1 30); do useradd -ms /bin/bash nixbld$i &&  adduser nixbld$i nixbld; done \
   && mkdir -m 0755 /nix && chown gitpod /nix \
   && mkdir -p /etc/nix && echo 'sandbox = false' > /etc/nix/nix.conf
-
-# Install Nix
 CMD /bin/bash -l
+
+# Switch back to gitpod user
 USER gitpod
 ENV USER gitpod
 WORKDIR /home/gitpod
 
 RUN touch .bash_profile \
- && curl https://releases.nixos.org/nix/nix-2.9.1/install | sh
+ && curl -sL https://releases.nixos.org/nix/nix-2.24.9/install | bash -s -- --no-daemon
 
 # Configure nix
 RUN echo '. /home/gitpod/.nix-profile/etc/profile.d/nix.sh' >> /home/gitpod/.bashrc
@@ -25,16 +28,11 @@ RUN echo 'experimental-features = nix-command flakes' >> /home/gitpod/.config/ni
 RUN mkdir -p /home/gitpod/.config/nixpkgs
 RUN echo '{ allowUnfree = true; }' >> /home/gitpod/.config/nixpkgs/config.nix
 
-# Install cachix
+# Install cachix, git, direnv
 RUN . /home/gitpod/.nix-profile/etc/profile.d/nix.sh \
-  && nix-env -iA cachix -f https://cachix.org/api/v1/install \
-  && cachix use cachix
-
-# Install git
-RUN . /home/gitpod/.nix-profile/etc/profile.d/nix.sh \
-  && nix-env -i git git-lfs
-
-# Install direnv
-RUN . /home/gitpod/.nix-profile/etc/profile.d/nix.sh \
-  && nix-env -i direnv \
+  && nix profile install nixpkgs#cachix \
+  && cachix use cachix \
+  && cachix use aion-physics \
+  && nix profile install nixpkgs#git nixpkgs#git-lfs \
+  && nix profile install nixpkgs#direnv nixpkgs#nix-direnv \
   && direnv hook bash >> /home/gitpod/.bashrc
