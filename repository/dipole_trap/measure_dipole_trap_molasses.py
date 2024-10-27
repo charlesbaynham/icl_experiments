@@ -28,7 +28,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolasse
 logger = logging.getLogger(__name__)
 
 EXPOSE_MOLASSES_1_PARAMS = False
-EXPOSE_MOLASSES_2_PARAMS = False
+EXPOSE_MOLASSES_2_PARAMS = True
 
 
 class _MeasureDipoleTrapBase(
@@ -84,7 +84,6 @@ class _MeasureDipoleTrapBase(
             "red_narrowband_mot_689_up_end",
             self.red_mot.narrow_red_compression_phase,
             original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
-            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
         )
 
         # Expose the molasses ramp parameters if desired
