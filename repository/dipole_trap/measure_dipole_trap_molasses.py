@@ -74,6 +74,18 @@ class _MeasureDipoleTrapBase(
             original_name="chamber_2_mot_current_end",
             default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
         )
+        self.setattr_param_rebind(
+            "red_narrowband_mot_689_up_start",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
+            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
+        )
+        self.setattr_param_rebind(
+            "red_narrowband_mot_689_up_end",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
+            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
+        )
 
         # Expose the molasses ramp parameters if desired
         if EXPOSE_MOLASSES_1_PARAMS:
