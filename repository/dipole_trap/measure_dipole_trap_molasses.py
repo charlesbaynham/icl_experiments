@@ -98,11 +98,7 @@ class _MeasureDipoleTrapBase(
                     f"molasses_1_{name}", self.molasses_xodt_1, original_name=name
                 )
         if EXPOSE_MOLASSES_2_PARAMS:
-            names = [
-                n
-                for n in self.molasses_xodt_2._free_params.keys()
-                if "suservo" not in n
-            ]
+            names = [n for n in self.molasses_xodt_2._free_params.keys()]
             for name in names:
                 self.setattr_param_rebind(
                     f"molasses_2_{name}", self.molasses_xodt_2, original_name=name
