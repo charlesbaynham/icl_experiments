@@ -144,8 +144,8 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             "Detuning of the 689 stir beam during 1st molasses",
             default=0,
             unit="kHz",
-            min=-10e6,
-            max=10e6,
+            min=-2e6,
+            max=2e6,
         )
         self.stir_beam_detuning_molasses_1: FloatParamHandle
 
@@ -155,8 +155,8 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             "Detuning of the 689 stir beam during 2nd molasses",
             default=0,
             unit="kHz",
-            min=-10e6,
-            max=10e6,
+            min=-2e6,
+            max=2e6,
         )
         self.stir_beam_detuning_molasses_2: FloatParamHandle
 
