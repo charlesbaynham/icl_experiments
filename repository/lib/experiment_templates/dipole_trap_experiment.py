@@ -99,6 +99,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
+        self.post_dipole_trap_hook()
         self.do_experiment_after_dipole_trap_hook()
 
     @kernel
@@ -119,6 +120,12 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Hook for implementation of stages after the dipole trap evaporation stage. By default, do nothing.
         """
         self.dipole_trap_evaporation_hook_default()
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        """
+        Hook for implementation of stages immediately after the dipole trap is released. By default, do nothing.
+        """
 
     @kernel
     def dipole_trap_evaporation_hook_default(self):
