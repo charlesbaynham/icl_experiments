@@ -371,8 +371,8 @@ else:
         ANDOR_ROI_Y0 = y - height / 2
         ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT = 40
-ANDOR_ROI_DIPOLE_WIDTH = 150
+ANDOR_ROI_DIPOLE_HEIGHT = 30
+ANDOR_ROI_DIPOLE_WIDTH = 50
 
 ANDOR_DIPOLE_TRAP_FORWARD_X = 200
 ANDOR_DIPOLE_TRAP_FORWARD_Y = 295
@@ -812,6 +812,10 @@ else:
 
 
 ### DIPOLE TRAP DEFAULT PARAMETERS ###
+
+# Unused in Sr88 so only one setting needed
+XODT_2ND_MOLASSES_689_STIR_DETUNING = 900e3
+
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
 # "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -846,21 +850,21 @@ if USE_SR87:
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 10.0
 
-    DELAY_BETWEEN_MOLASSES = 0.01e-3
-    XODT_2ND_MOLASSES_DURATION = 0.01e-3
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    DELAY_BETWEEN_MOLASSES = 50e-3
+    XODT_2ND_MOLASSES_DURATION = 50e-3
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
     XODT_2ND_MOLASSES_689_DETUNING_START = [
-        0e3,
+        450e3,
     ]
     XODT_2ND_MOLASSES_689_DETUNING_END = [
-        0e3,
+        550e3,
     ]
     XODT_2ND_MOLASSES_BIAS_FIELD_START = [
         a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
     ]
     XODT_2ND_MOLASSES_BIAS_FIELD_END = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, -0.33])
     ]
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 else:
