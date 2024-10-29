@@ -282,16 +282,13 @@ class AndorCameraControl(Fragment):
                 )
                 self.cam.set_fast_kinetics_mode()
                 self.cam.set_external_trigger()
-
-                # In fast kinetics mode do not start the acquisition: this must
-                # be done by device_setup each shot because it's not continuous.
             else:
                 logger.debug("Setting continuous acquisition mode")
                 self.cam.set_run_till_abort_mode()
                 logger.debug("Setting external exposure mode")
                 self.cam.set_external_exposure_trigger()
-
-                # In continuous mode, start the acquisition immediately - it'll run forever
+                # Start the acquisition here: it'll run forever and we just
+                # readout images as they come in
                 self.cam.start_acquisition()
 
         super().host_setup()
@@ -489,9 +486,11 @@ class AndorCameraControl(Fragment):
         Raises:
             AndorNoImageAvailable if no image is read out
         """
-        self.cam.wait_for_acquisition(timeout_ms=1e3 * timeout)
+
         if self.fast_kinetics_mode:
-            self.cam.stop_acquisition()
+            self.cam.wait_for_acquisition(timeout=timeout)
+        else:
+            self.cam.wait_for_new_image(timeout=timeout)
 
         img = self.cam.get_oldest_image()
         if img is None:
