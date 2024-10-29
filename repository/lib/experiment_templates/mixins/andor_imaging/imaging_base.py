@@ -130,7 +130,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{artiq_applet}}image {ANDOR_MONITOR_DATASET}",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET}",
             )
 
             for i in range(self.num_andor_images):
@@ -138,7 +138,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.ccb.issue(
                     "create_applet",
                     f"Andor image {i}",
-                    f"${{artiq_applet}}image {dataset_name}",
+                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name}",
                 )
 
         super().host_setup()
