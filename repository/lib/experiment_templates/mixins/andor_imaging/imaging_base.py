@@ -271,8 +271,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         Consume all slack and save the photos
         """
-        self.core.wait_until_mu(now_mu())
-
         self._call_camera_rpc()
 
         # Arrays to hold all the ROIs
