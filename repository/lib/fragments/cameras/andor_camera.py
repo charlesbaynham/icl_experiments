@@ -197,8 +197,8 @@ class AndorCameraControl(Fragment):
                 "fast_kinetics_exposure_time",
                 FloatParam,
                 "Fast kinetics exposure time",
-                default=1e-3,
-                unit="ms",
+                default=1e-6,
+                unit="us",
                 min=0,
             )
             self.setattr_param(
