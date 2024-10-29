@@ -104,23 +104,8 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.clock_dds.sw.off()
         self.clock_dds.cfg_sw(False)
 
-
-class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
-    """
-    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_hook`
-    """
-
     @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_clock_pumping()
-
-    @kernel
-    def post_narrowband_hook_clock_pumping(self):
+    def clock_shelving(self):
         self.default_post_narrowband_hook()
 
         # Prepare the clock beam
@@ -145,3 +130,34 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.pumping_pulse_clearout_duration.get()
         )
+
+
+class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    """
+
+    @kernel
+    def post_narrowband_hook(self):
+        self.default_post_narrowband_hook()
+        self.clock_shelving()
+
+
+class ClockShelvingAndClearoutDipoleTrapMixin(ClockShelvingAndClearoutBase):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    """
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        self.clock_shelving()
