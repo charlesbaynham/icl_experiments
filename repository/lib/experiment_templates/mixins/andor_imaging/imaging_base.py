@@ -206,19 +206,20 @@ class AndorImagingBase(RedMOTWithExperiment):
         images = []
 
         # Readout and store the andor images
+        imgs_array = self.andor_camera_control.readout_all_new_images()
+
         for (
             andor_sum_slice_x,
             andor_sum_slice_y,
             andor_image,
+            img_array,
         ) in zip(
             self.andor_sum_slice_xs,
             self.andor_sum_slice_ys,
             self.andor_images,
+            imgs_array,
         ):
             if self.use_andor_driver.get():
-                # Read out the images
-                img_array = self.andor_camera_control.readout_image()
-                # img_array = np.array([[0.0, 1.0], [1.0, 0.0]])  # FIXME
                 sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
 
                 # Write them to the result channels

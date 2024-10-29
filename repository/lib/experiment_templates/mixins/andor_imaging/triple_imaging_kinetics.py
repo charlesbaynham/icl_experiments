@@ -60,7 +60,7 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 1
+    num_andor_images = 3
     num_grabber_readouts = 1
     num_grabber_rois = 3
 

@@ -476,18 +476,18 @@ class AndorCameraControl(Fragment):
                 means[i] = data[i] / area
 
     @host_only
-    def readout_image(self, timeout=2.0):
+    def readout_all_new_images(self, timeout=2.0):
         """
-        Reads out an image from the camera with a specified timeout.
+        Reads out all new images from the camera with a specified timeout.
 
         Parameters:
-        timeout (float): The maximum time to wait for a frame, in seconds. Default is 2.0 seconds.
+        timeout (float): The maximum time to wait for images, in seconds. Default is 2.0 seconds.
 
         Returns:
             numpy.ndarray: The correctly rotated image as a NumPy array.
 
         Raises:
-            AndorNoImageAvailable if no image is read out
+            AndorNoImageAvailable if no images were read out
         """
 
         if self.fast_kinetics_mode:
@@ -495,13 +495,12 @@ class AndorCameraControl(Fragment):
         else:
             self.cam.wait_for_new_image(timeout=timeout)
 
-        img = self.cam.get_oldest_image()
-        if img is None:
+        try:
+            imgs = self.cam.get_new_images()
+        except RuntimeError:
             raise AndorNoImageAvailable("There was no image to read out")
 
-        img = np.rot90(img, axes=(1, 0))
-
-        return img
+        return np.rot90(imgs, axes=(2, 1))
 
     ###
     # This this wasn't working, and I haven't figured out why yet.
