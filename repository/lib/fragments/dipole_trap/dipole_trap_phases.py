@@ -34,6 +34,8 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     """
     A molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT, and bias fields
 
+    We only define a single set of ramp parameters (unlike in the red MOT ramping phases) because we will probably only use this phase on Sr87
+
     The default suservo and urukul frequency "nominals" are set to zero at this point: To use these beams, they must be a bound to other parameters or values after this phase is instantiated or added as a subfragment
     """
 
@@ -71,6 +73,8 @@ class MolassesInXODT_2(MolassesInXODT):
     """
     A 2nd molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT, and bias fields
 
+    We only define a single set of ramp parameters (unlike in the red MOT ramping phases) because we will probably only use this phase on Sr87
+
     The default suservo and urukul frequency "nominals" are set to zero at this point: To use these beams, they must be a bound to other parameters or values after this phase is instantiated or added as a subfragment
     """
 
@@ -106,7 +110,7 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0] * len(suservos_XODT)
     # The start setpoints must be overridden by daisy-chaining to previous phase
-    default_suservo_setpoint_multiples_start = [0]*len(suservos_XODT)
+    default_suservo_setpoint_multiples_start = [0] * len(suservos_XODT)
     default_suservo_setpoint_multiples_end = (
         constants.XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END
     )
