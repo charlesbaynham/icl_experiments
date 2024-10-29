@@ -13,8 +13,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT, MolassesInXODT_2, XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 logger = logging.getLogger(__name__)
@@ -312,3 +311,31 @@ class XODTMolassesPlusFieldRampMixin(XODTMolassesMixin):
 
     * :meth:`~set_postnarrowband_fields_hook`
     """
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
+        )
+        self.bias_and_evap_ramp: XODTWithFieldRamp
+
+        self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
+            self.molasses_xodt_2, suservos=suservos_XODT
+        )
+
+    @kernel
+    def DMA_initialization_hook_evap_with_field_ramp(self):
+        self.bias_and_evap_ramp.precalculate_dma_handle()
+
+    @kernel
+    def dipole_trap_evaporation_hook_with_field_ramp(self):
+        """
+        Do the evap and field ramp
+        """
+        self.bias_and_evap_ramp.do_phase()
+
+    @kernel
+    def dipole_trap_evaporation_hook(self):
+        # Default hook turns off red beams - good!
+        self.dipole_trap_evaporation_hook_default()
+        self.dipole_trap_evaporation_hook_with_field_ramp()
