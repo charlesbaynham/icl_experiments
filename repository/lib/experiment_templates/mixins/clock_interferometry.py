@@ -17,11 +17,11 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyMixin,
+    ClockRabiSpectroscopyRedMotMixin,
 )
 
 
-class ClockInterferometryMixin(ClockSpectroscopyMixin):
+class ClockInterferometryMixin(ClockRabiSpectroscopyRedMotMixin):
     """
     Uses do_experiment_after_red_mot_hook
     """

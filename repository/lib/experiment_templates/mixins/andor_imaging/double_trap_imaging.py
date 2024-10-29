@@ -115,7 +115,7 @@ class DoubleTrapImagingNormalised(TripleImageFastKineticsMixin):
 
     Reumping is not handled here, but you can override e.g.
     :meth:`~do_first_pulse` to add it if required. See e.g.
-    :class:`~ClockSpectroscopyMixin`.
+    :class:`~ClockRabiSpectroscopyRedMotMixin`.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.

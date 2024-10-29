@@ -12,7 +12,7 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyMixin,
+    ClockRabiSpectroscopyRedMotMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class MOTClockSpectroscopyExp(
-    ClockSpectroscopyMixin, FLIRBlueMOTMeasurementMixin, SingleAndorImage
+    ClockRabiSpectroscopyRedMotMixin, FLIRBlueMOTMeasurementMixin, SingleAndorImage
 ):
     """
     Basic clock spectroscopy from a red MOT
@@ -34,7 +34,9 @@ class MOTClockSpectroscopyExp(
 
 
 class MOTClockSpectroscopyNormalizedExp(
-    ClockSpectroscopyMixin, FLIRBlueMOTMeasurementMixin, TripleImageFastKineticsMixin
+    ClockRabiSpectroscopyRedMotMixin,
+    FLIRBlueMOTMeasurementMixin,
+    TripleImageFastKineticsMixin,
 ):
     """
     Normalised clock spectroscopy from a red MOT
@@ -47,7 +49,7 @@ class MOTClockSpectroscopyNormalizedExp(
 
 
 class MOTPumpedClockSpectroscopyNormalizedExp(
-    ClockSpectroscopyMixin,
+    ClockRabiSpectroscopyRedMotMixin,
     ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
     TripleImageFastKineticsMixin,
