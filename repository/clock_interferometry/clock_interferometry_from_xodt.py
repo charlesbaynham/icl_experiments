@@ -7,24 +7,26 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
     DoubleTrapImagingBGSubtracted,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
-    ClockInterferometryMixin,
+    ClockInterferometryDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutRedMOTMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolassesMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTMolassesPlusFieldRampMixin,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class DifferentialClockInterferometryFrag(
-    ClockInterferometryMixin,
-    ClockShelvingAndClearoutRedMOTMixin,
+    ClockInterferometryDipoleTrapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
     FLIRBlueMOTMeasurementMixin,
-    XODTMolassesMixin,
+    XODTMolassesPlusFieldRampMixin,
     DoubleTrapImagingBGSubtracted,
 ):
     """
@@ -33,14 +35,8 @@ class DifferentialClockInterferometryFrag(
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockpumping()
         self.before_start_hook_clockspec()
         self.before_start_hook_xodt_molasses()
-
-    @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_clock_pumping()
-        self.post_narrowband_hook_xodt_molasses()
 
 
 DifferentialClockInterferometry = make_fragment_scan_exp(

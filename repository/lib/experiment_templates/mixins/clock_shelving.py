@@ -11,6 +11,9 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -148,16 +151,19 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
         self.clock_shelving()
 
 
-class ClockShelvingAndClearoutDipoleTrapMixin(ClockShelvingAndClearoutBase):
+class ClockShelvingAndClearoutDipoleTrapMixin(
+    ClockShelvingAndClearoutBase, DipoleTrapWithExperiment
+):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_hook`
+    * :meth:`~post_dipole_trap_hook`
     """
 
     @kernel
     def post_dipole_trap_hook(self):
+        self.dipole_beam_controller.turn_off_dipole_beams()
         self.clock_shelving()

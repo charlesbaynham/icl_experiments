@@ -10,10 +10,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
-    DipoleBeamController,
-)
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT, MolassesInXODT_2, XODTWithFieldRamp
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 logger = logging.getLogger(__name__)
@@ -42,9 +41,6 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
 
     def build_fragment(self):
         super().build_fragment()
-
-        self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
-        self.dipole_beam_controller: DipoleBeamController
 
         self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
         self.molasses_xodt_1: MolassesInXODT
@@ -292,6 +288,7 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         )
         self.molasses_xodt_2.do_phase()
 
+
 class XODTMolassesPlusFieldRampMixin(XODTMolassesMixin):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, implements two
@@ -311,6 +308,7 @@ class XODTMolassesPlusFieldRampMixin(XODTMolassesMixin):
 
     * :meth:`~set_postnarrowband_fields_hook`
     """
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -326,6 +324,12 @@ class XODTMolassesPlusFieldRampMixin(XODTMolassesMixin):
     @kernel
     def DMA_initialization_hook_evap_with_field_ramp(self):
         self.bias_and_evap_ramp.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
 
     @kernel
     def dipole_trap_evaporation_hook_with_field_ramp(self):

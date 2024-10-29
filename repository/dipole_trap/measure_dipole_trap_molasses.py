@@ -3,19 +3,14 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingBasic,
+    DoubleTrapImagingBGSubtracted,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
-)
-
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingBGSubtracted,
 )
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
@@ -23,7 +18,10 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolassesMixin,XODTMolassesPlusFieldRampMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolassesMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTMolassesPlusFieldRampMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -99,14 +97,12 @@ class MeasureDoubleDipoleTrapFrag(
 ):
     pass
 
+
 class MeasureDoubleDipoleTrapWithFieldRampFrag(
-    XODTMolassesPlusFieldRampMixin,MeasureDoubleDipoleTrapFrag):
-    
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    XODTMolassesPlusFieldRampMixin, MeasureDoubleDipoleTrapFrag
+):
+    pass
+
 
 class NormalizedDoubleDipoleTrapFrag(
     DoubleTrapImagingNormalised, _MeasureDipoleTrapBase
@@ -116,5 +112,7 @@ class NormalizedDoubleDipoleTrapFrag(
 
 MeasureDipoleTrap = make_fragment_scan_exp(MeasureDipoleTrapFrag)
 MeasureDoubleDipoleTrap = make_fragment_scan_exp(MeasureDoubleDipoleTrapFrag)
-MeasureDoubleDipoleTrapWithFieldRamp = make_fragment_scan_exp(MeasureDoubleDipoleTrapWithFieldRampFrag)
+MeasureDoubleDipoleTrapWithFieldRamp = make_fragment_scan_exp(
+    MeasureDoubleDipoleTrapWithFieldRampFrag
+)
 NormalizedDoubleDipoleTrap = make_fragment_scan_exp(NormalizedDoubleDipoleTrapFrag)

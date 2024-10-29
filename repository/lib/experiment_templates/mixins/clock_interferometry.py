@@ -10,6 +10,9 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
@@ -148,4 +151,23 @@ class ClockInterferometryRedMOTMixin(ClockInterferometryBase):
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
+        self.do_clock_interferometry()
+
+
+class ClockInterferometryDipoleTrapMixin(
+    ClockInterferometryBase, DipoleTrapWithExperiment
+):
+    """
+    Implements clock interferometry after the dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_dipole_trap_hook`
+    * :meth:`~do_first_pulse`
+    """
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        self.dipole_beam_controller.turn_off_dipole_beams()
         self.do_clock_interferometry()

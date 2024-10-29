@@ -48,6 +48,9 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
+    DipoleBeamController,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +82,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
+        self.dipole_beam_controller: DipoleBeamController
 
         # Hold time in dipole trap - can be negative
         self.setattr_param(
