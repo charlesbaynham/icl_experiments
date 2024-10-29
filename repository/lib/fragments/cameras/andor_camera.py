@@ -481,12 +481,10 @@ class AndorCameraControl(Fragment):
         """
         if self.fast_kinetics_mode:
             # FIXME WIP
-            self.cam.wait_for_frame(timeout=timeout, since="start")
             self.cam.stop_acquisition()
-        else:
-            self.cam.wait_for_frame(timeout=timeout, since="lastread")
+            img = self.cam.get_fast_kinetic_images()
 
-        img = self.cam.read_oldest_image()
+        img = self.cam.get_oldest_image()
         if img is None:
             raise AndorNoImageAvailable("There was no image to read out")
 
@@ -494,6 +492,20 @@ class AndorCameraControl(Fragment):
         img_array = np.rot90(img_array, axes=(1, 0))
 
         return img_array
+
+    # @host_only
+    # def readout_fast_kinetics_series(self):
+    #     """
+    #     Reads out a series of fast kinetics images from the camera.
+
+    #     Returns:
+    #         numpy.ndarray: array of images determined by .
+    #     """
+    #     self.cam.stop_acquisition()
+    #     imgs = self.cam.get_fast_kinetic_images()
+    #     img_array = np.array([np.rot90(img,)
+    #     img_array = np.rot90(img_array, axes=(1, 0))
+    #     return img_array
 
     ###
     # This this wasn't working, and I haven't figured out why yet.
