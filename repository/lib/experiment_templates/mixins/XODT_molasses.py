@@ -187,6 +187,7 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         dma handle is valid.
         """
         self.molasses_xodt_1.precalculate_dma_handle()
+        self.molasses_xodt_2.precalculate_dma_handle()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -291,3 +292,23 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             ignore_shutters=True
         )
         self.molasses_xodt_2.do_phase()
+
+class XODTMolassesPlusFieldRampMixin(XODTMolassesMixin):
+    """
+    Loads atoms into a dipole trap after the narrowband red MOT, implements two
+    ramping molasses, then a final evaporation and bias magnetic field ramp phase.
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~dipole_trap_molasses_hook`
+
+    We override this to do nothing since this Mixin is now taking charge of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
