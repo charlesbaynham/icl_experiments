@@ -489,7 +489,7 @@ class AndorCameraControl(Fragment):
         Raises:
             AndorNoImageAvailable if no image is read out
         """
-        self.cam.wait_for_acquisition()
+        self.cam.wait_for_acquisition(timeout_ms=1e3 * timeout)
         if self.fast_kinetics_mode:
             self.cam.stop_acquisition()
 
