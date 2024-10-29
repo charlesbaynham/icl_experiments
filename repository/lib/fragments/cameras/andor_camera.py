@@ -283,10 +283,12 @@ class AndorCameraControl(Fragment):
                 self.cam.set_fast_kinetics_mode()
                 self.cam.set_external_trigger()
             else:
+                logger.debug("Setting external exposure mode")
+                self.cam.setup_run_till_abort_mode(exposure_time=0.001)  # FIXME
+                # self.cam.set_external_exposure_trigger() # FIXME
+                self.cam.set_external_start_trigger()  # FIXME
                 logger.debug("Setting continuous acquisition mode")
                 self.cam.set_run_till_abort_mode()
-                logger.debug("Setting external exposure mode")
-                self.cam.set_external_exposure_trigger()
                 # Start the acquisition here: it'll run forever and we just
                 # readout images as they come in
                 self.cam.start_acquisition()
