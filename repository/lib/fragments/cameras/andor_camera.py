@@ -201,6 +201,14 @@ class AndorCameraControl(Fragment):
                 unit="ms",
                 min=0,
             )
+            self.setattr_param(
+                "fast_kinetics_offset",
+                IntParam,
+                "Fast kinetics offset",
+                default=constants.ANDOR_FAST_KINETICS_OFFSET,
+                min=0,
+                max=512,
+            )
 
         self.cam_roi_x0: IntParamHandle
         self.cam_roi_x1: IntParamHandle
@@ -208,6 +216,7 @@ class AndorCameraControl(Fragment):
         self.cam_roi_y1: IntParamHandle
         self.fast_kinetics_height: IntParamHandle
         self.fast_kinetics_exposure_time: FloatParamHandle
+        self.fast_kinetics_offset: IntParamHandle
 
         # %% Kernel variables
 
@@ -261,24 +270,26 @@ class AndorCameraControl(Fragment):
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
-            self.cam.setup_shutter("open")
+            self.cam.set_shutter_open()
 
             if self.fast_kinetics_mode:
                 logger.info("Setting up fast kinetics mode")
-                self.cam.setup_fast_kinetic_mode_full(
+                self.cam.setup_fast_kinetics_mode(
                     num_acc=self.fast_kinetics_num_shots,
                     subarea_height=self.fast_kinetics_height.get(),
                     exposure_time=self.fast_kinetics_exposure_time.get(),
+                    offset=self.fast_kinetics_offset.get(),
                 )
-                self.cam.set_trigger_mode("ext")
+                self.cam.set_fast_kinetics_mode()
+                self.cam.set_external_trigger()
 
                 # In fast kinetics mode do not start the acquisition: this must
                 # be done by device_setup each shot because it's not continuous.
             else:
                 logger.debug("Setting continuous acquisition mode")
-                self.cam.set_acquisition_mode("cont")
+                self.cam.set_run_till_abort_mode()
                 logger.debug("Setting external exposure mode")
-                self.cam.set_trigger_mode("ext_exp")
+                self.cam.set_external_exposure_trigger()
 
                 # In continuous mode, start the acquisition immediately - it'll run forever
                 self.cam.start_acquisition()
@@ -287,9 +298,8 @@ class AndorCameraControl(Fragment):
 
     def host_cleanup(self):
         if self.use_andor_driver.get():
-            if self.cam.acquisition_in_progress():
-                self.cam.stop_acquisition()
-            self.cam.setup_shutter("closed")
+            self.cam.stop_acquisition()
+            self.cam.set_shutter_closed()
         super().host_cleanup()
 
     @host_only
@@ -479,10 +489,9 @@ class AndorCameraControl(Fragment):
         Raises:
             AndorNoImageAvailable if no image is read out
         """
+        self.cam.wait_for_acquisition()
         if self.fast_kinetics_mode:
-            # FIXME WIP
             self.cam.stop_acquisition()
-            img = self.cam.get_fast_kinetic_images()
 
         img = self.cam.get_oldest_image()
         if img is None:
@@ -492,20 +501,6 @@ class AndorCameraControl(Fragment):
         img_array = np.rot90(img_array, axes=(1, 0))
 
         return img_array
-
-    # @host_only
-    # def readout_fast_kinetics_series(self):
-    #     """
-    #     Reads out a series of fast kinetics images from the camera.
-
-    #     Returns:
-    #         numpy.ndarray: array of images determined by .
-    #     """
-    #     self.cam.stop_acquisition()
-    #     imgs = self.cam.get_fast_kinetic_images()
-    #     img_array = np.array([np.rot90(img,)
-    #     img_array = np.rot90(img_array, axes=(1, 0))
-    #     return img_array
 
     ###
     # This this wasn't working, and I haven't figured out why yet.
