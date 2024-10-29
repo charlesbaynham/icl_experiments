@@ -197,9 +197,17 @@ class AndorCameraControl(Fragment):
                 "fast_kinetics_exposure_time",
                 FloatParam,
                 "Fast kinetics exposure time",
-                default=1e-3,
-                unit="ms",
+                default=1e-6,
+                unit="us",
                 min=0,
+            )
+            self.setattr_param(
+                "fast_kinetics_offset",
+                IntParam,
+                "Fast kinetics offset",
+                default=constants.ANDOR_FAST_KINETICS_OFFSET,
+                min=0,
+                max=512,
             )
 
         self.cam_roi_x0: IntParamHandle
@@ -208,6 +216,7 @@ class AndorCameraControl(Fragment):
         self.cam_roi_y1: IntParamHandle
         self.fast_kinetics_height: IntParamHandle
         self.fast_kinetics_exposure_time: FloatParamHandle
+        self.fast_kinetics_offset: IntParamHandle
 
         # %% Kernel variables
 
@@ -261,35 +270,29 @@ class AndorCameraControl(Fragment):
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
-            self.cam.setup_shutter("open")
+            self.cam.set_shutter_open()
 
             if self.fast_kinetics_mode:
                 logger.info("Setting up fast kinetics mode")
-                self.cam.setup_fast_kinetic_mode_full(
-                    num_acc=self.fast_kinetics_num_shots,
-                    subarea_height=self.fast_kinetics_height.get(),
-                    exposure_time=self.fast_kinetics_exposure_time.get(),
-                )
-                self.cam.set_trigger_mode("ext")
+                self.cam.set_external_start_trigger()
+                self.cam.set_fast_kinetics_mode()
+                # Fast kinetics mode must be set up per shot, so we do this in _start_acquisition
 
-                # In fast kinetics mode do not start the acquisition: this must
-                # be done by device_setup each shot because it's not continuous.
             else:
-                logger.debug("Setting continuous acquisition mode")
-                self.cam.set_acquisition_mode("cont")
                 logger.debug("Setting external exposure mode")
-                self.cam.set_trigger_mode("ext_exp")
-
-                # In continuous mode, start the acquisition immediately - it'll run forever
+                self.cam.set_external_exposure_trigger()
+                logger.debug("Setting continuous acquisition mode")
+                self.cam.set_run_till_abort_mode()
+                # Start the acquisition here: it'll run forever and we just
+                # readout images as they come in
                 self.cam.start_acquisition()
 
         super().host_setup()
 
     def host_cleanup(self):
         if self.use_andor_driver.get():
-            if self.cam.acquisition_in_progress():
-                self.cam.stop_acquisition()
-            self.cam.setup_shutter("closed")
+            self.cam.stop_acquisition()
+            self.cam.set_shutter_closed()
         super().host_cleanup()
 
     @host_only
@@ -303,6 +306,13 @@ class AndorCameraControl(Fragment):
 
     @rpc(flags={"async"})
     def _start_acquisition(self):
+        self.cam.setup_fast_kinetics_mode(
+            num_acc=self.fast_kinetics_num_shots,
+            subarea_height=self.fast_kinetics_height.get(),
+            exposure_time=self.fast_kinetics_exposure_time.get(),
+            offset=self.fast_kinetics_offset.get(),
+        )
+
         self.cam.start_acquisition()
 
     @kernel
@@ -466,34 +476,37 @@ class AndorCameraControl(Fragment):
                 means[i] = data[i] / area
 
     @host_only
-    def readout_image(self, timeout=2.0):
+    def readout_all_new_images(self, timeout=2.0, num_images=1):
         """
-        Reads out an image from the camera with a specified timeout.
+        Reads out all new images from the camera with a specified timeout.
 
         Parameters:
-        timeout (float): The maximum time to wait for a frame, in seconds. Default is 2.0 seconds.
+        timeout (float): The maximum time to wait for images, in seconds. Default is 2.0 seconds.
+        num_images (int): The number of images to read out. Default is 1.
 
         Returns:
             numpy.ndarray: The correctly rotated image as a NumPy array.
 
         Raises:
-            AndorNoImageAvailable if no image is read out
+            AndorNoImageAvailable if no images were read out
         """
-        if self.fast_kinetics_mode:
-            # FIXME WIP
-            self.cam.wait_for_frame(timeout=timeout, since="start")
-            self.cam.stop_acquisition()
-        else:
-            self.cam.wait_for_frame(timeout=timeout, since="lastread")
 
-        img = self.cam.read_oldest_image()
-        if img is None:
+        if self.fast_kinetics_mode:
+            self.cam.wait_for_acquisition(timeout=timeout)
+        else:
+            self.cam.wait_for_new_image(timeout=timeout, num_images=num_images)
+
+        try:
+            imgs = self.cam.get_new_images()
+        except RuntimeError:
             raise AndorNoImageAvailable("There was no image to read out")
 
-        img_array = np.array(img)
-        img_array = np.rot90(img_array, axes=(1, 0))
+        if imgs.shape[0] != num_images:
+            raise ValueError(
+                f"Wrong number of images! Shape was {imgs.shape}, expected number of images was {num_images}"
+            )
 
-        return img_array
+        return np.rot90(imgs, axes=(2, 1))
 
     ###
     # This this wasn't working, and I haven't figured out why yet.

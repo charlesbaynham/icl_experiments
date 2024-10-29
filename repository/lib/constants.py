@@ -31,7 +31,7 @@ SR_FACTS = {
 }
 
 
-USE_SR87 = True
+USE_SR87 = False
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
 USE_LATTICE_MODE = False
@@ -351,7 +351,7 @@ ANDOR_CAMERA_BACKGROUND_DELAY = 60e-3
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width, height = 205, 290, 100, 100
+x, y, width, height = 215, 182, 100, 100
 
 if USE_LATTICE_MODE:
     ANDOR_ROI_X0 = 50
@@ -409,8 +409,8 @@ ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1 = (
 ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
 
-ANDOR_FAST_KINETICS_HEIGHT = 170
-ANDOR_FAST_KINETICS_OFFSET = 200
+ANDOR_FAST_KINETICS_HEIGHT = height
+ANDOR_FAST_KINETICS_OFFSET = y - height / 2
 
 
 # %% 689 spectroscopy defaults
