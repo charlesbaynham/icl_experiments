@@ -10,24 +10,37 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockRabiSpectroscopyRedMotMixin,
-)
 
-
-class ClockInterferometryMixin(ClockRabiSpectroscopyRedMotMixin):
+class ClockInterferometryBase(ClockSpectroscopyBase):
     """
-    Uses do_experiment_after_red_mot_hook
+    Customizes ClockSpectroscopyBase for pi/2 - pi - pi/2 clock interferometry
+
+    Kernel hooks used (not including wherever the interferometry is done - needs customization):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=50e-6,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
 
         self.setattr_param(
             "delay_between_interferometry_pulses",
@@ -64,10 +77,6 @@ class ClockInterferometryMixin(ClockRabiSpectroscopyRedMotMixin):
                 },
             )
         ]
-
-    @kernel
-    def do_experiment_after_red_mot_hook(self):
-        self.do_clock_interferometry()
 
     @kernel
     def do_clock_interferometry(self):
@@ -124,3 +133,19 @@ class ClockInterferometryMixin(ClockRabiSpectroscopyRedMotMixin):
         self.clock_dds.sw.on()
         delay(t_pi_pulse)
         self.clock_dds.sw.off()
+
+
+class ClockInterferometryRedMOTMixin(ClockInterferometryBase):
+    """
+    Implements clock interferometry after the red MOT
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_red_mot_hook`
+    * :meth:`~do_first_pulse`
+    """
+
+    @kernel
+    def do_experiment_after_red_mot_hook(self):
+        self.do_clock_interferometry()

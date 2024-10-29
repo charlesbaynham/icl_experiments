@@ -108,11 +108,7 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     """
-    Adds the method for Rabi spectroscopy
-
-    * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
+    Customizes ClockSpectroscopyBase for Rabi spectroscopy
     """
 
     def build_fragment(self):
@@ -146,7 +142,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
 class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
     """
-    Uses a clock pulse for spectroscopy
+    Uses a clock pulse for spectroscopy after the red MOT
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
