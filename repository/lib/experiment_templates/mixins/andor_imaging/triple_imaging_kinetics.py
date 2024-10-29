@@ -24,6 +24,11 @@ def calculate_grabber_rois(
     Returns a list of ROIs in (x0, y0, x1, y1) format.
     """
 
+    if y1 > fast_kinetics_height + fast_kinetics_offset:
+        raise ValueError(
+            "The fast kinetics region is not large enough to cover the full ROI"
+        )
+
     return [
         [
             x0,
@@ -55,7 +60,7 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 1
+    num_andor_images = 3
     num_grabber_readouts = 1
     num_grabber_rois = 3
 

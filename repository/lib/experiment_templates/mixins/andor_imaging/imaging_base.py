@@ -130,7 +130,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{artiq_applet}}image {ANDOR_MONITOR_DATASET}",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET}",
             )
 
             for i in range(self.num_andor_images):
@@ -138,7 +138,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.ccb.issue(
                     "create_applet",
                     f"Andor image {i}",
-                    f"${{artiq_applet}}image {dataset_name}",
+                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name}",
                 )
 
         super().host_setup()
@@ -206,19 +206,22 @@ class AndorImagingBase(RedMOTWithExperiment):
         images = []
 
         # Readout and store the andor images
+        imgs_array = self.andor_camera_control.readout_all_new_images(
+            num_images=self.num_andor_images
+        )
+
         for (
             andor_sum_slice_x,
             andor_sum_slice_y,
             andor_image,
+            img_array,
         ) in zip(
             self.andor_sum_slice_xs,
             self.andor_sum_slice_ys,
             self.andor_images,
+            imgs_array,
         ):
             if self.use_andor_driver.get():
-                # Read out the images
-                img_array = self.andor_camera_control.readout_image()
-                # img_array = np.array([[0.0, 1.0], [1.0, 0.0]])  # FIXME
                 sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
 
                 # Write them to the result channels
@@ -271,8 +274,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         Consume all slack and save the photos
         """
-        self.core.wait_until_mu(now_mu())
-
         self._call_camera_rpc()
 
         # Arrays to hold all the ROIs
