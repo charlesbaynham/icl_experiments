@@ -9,7 +9,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_bas
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_pumping import (
+from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (

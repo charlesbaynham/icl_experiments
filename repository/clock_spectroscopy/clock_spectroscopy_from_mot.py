@@ -8,7 +8,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_pumping import (
+from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
