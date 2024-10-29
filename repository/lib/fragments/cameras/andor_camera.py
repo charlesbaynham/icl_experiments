@@ -281,12 +281,12 @@ class AndorCameraControl(Fragment):
                     offset=self.fast_kinetics_offset.get(),
                 )
                 self.cam.set_fast_kinetics_mode()
-                self.cam.set_external_trigger()
+                self.cam.set_external_start_trigger()
             else:
                 logger.debug("Setting external exposure mode")
                 self.cam.setup_run_till_abort_mode(exposure_time=0.001)  # FIXME
                 # self.cam.set_external_exposure_trigger() # FIXME
-                self.cam.set_external_start_trigger()  # FIXME
+                self.cam.set_external_trigger()  # FIXME
                 logger.debug("Setting continuous acquisition mode")
                 self.cam.set_run_till_abort_mode()
                 # Start the acquisition here: it'll run forever and we just
