@@ -18,7 +18,7 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockPumpingMixin(RedMOTWithExperiment):
+class ClockShelvingAndClearoutRedMOTMixin(RedMOTWithExperiment):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 

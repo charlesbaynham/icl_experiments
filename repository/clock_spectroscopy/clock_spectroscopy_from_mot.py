@@ -8,7 +8,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
     TripleImageFastKineticsMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_pumping import ClockPumpingMixin
+from repository.lib.experiment_templates.mixins.clock_pumping import (
+    ClockShelvingAndClearoutRedMOTMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyMixin,
 )
@@ -46,7 +48,7 @@ class MOTClockSpectroscopyNormalizedExp(
 
 class MOTPumpedClockSpectroscopyNormalizedExp(
     ClockSpectroscopyMixin,
-    ClockPumpingMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
     TripleImageFastKineticsMixin,
 ):

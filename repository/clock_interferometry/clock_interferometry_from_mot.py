@@ -9,7 +9,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_bas
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_pumping import ClockPumpingMixin
+from repository.lib.experiment_templates.mixins.clock_pumping import (
+    ClockShelvingAndClearoutRedMOTMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -19,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class MOTClockInterferometryNormalizedExp(
     ClockInterferometryMixin,
-    ClockPumpingMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
     # TripleImageFastKineticsMixin,  # TODO: go back to fast kinetics
     TripleImageBasicMixin,
