@@ -105,14 +105,12 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0] * len(suservos_XODT)
-
-    default_suservo_setpoint_multiples_start = (
-        constants.XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_START
-    )
+    # The start setpoints must be overridden by daisy-chaining to previous phase
+    default_suservo_setpoint_multiples_start = [0]*len(suservos_XODT)
     default_suservo_setpoint_multiples_end = (
         constants.XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END
     )
 
     # Chamber 2 bias coils in amps
-    general_setter_default_starts = constants.XODT_MOLASSES_BIAS_FIELD_START
-    general_setter_default_ends = constants.XODT_MOLASSES_BIAS_FIELD_END
+    general_setter_default_starts = constants.XODT_2ND_MOLASSES_BIAS_FIELD_END
+    general_setter_default_ends = constants.XODT_FINAL_BIAS_FIELD
