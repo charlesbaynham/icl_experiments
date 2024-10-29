@@ -276,12 +276,7 @@ class AndorCameraControl(Fragment):
                 logger.info("Setting up fast kinetics mode")
                 self.cam.set_external_start_trigger()
                 self.cam.set_fast_kinetics_mode()
-                self.cam.setup_fast_kinetics_mode(
-                    num_acc=self.fast_kinetics_num_shots,
-                    subarea_height=self.fast_kinetics_height.get(),
-                    exposure_time=self.fast_kinetics_exposure_time.get(),
-                    offset=self.fast_kinetics_offset.get(),
-                )
+                # Fast kinetics mode must be set up per shot, so we do this in _start_acquisition
 
             else:
                 logger.debug("Setting external exposure mode")
@@ -311,6 +306,13 @@ class AndorCameraControl(Fragment):
 
     @rpc(flags={"async"})
     def _start_acquisition(self):
+        self.cam.setup_fast_kinetics_mode(
+            num_acc=self.fast_kinetics_num_shots,
+            subarea_height=self.fast_kinetics_height.get(),
+            exposure_time=self.fast_kinetics_exposure_time.get(),
+            offset=self.fast_kinetics_offset.get(),
+        )
+
         self.cam.start_acquisition()
 
     @kernel
