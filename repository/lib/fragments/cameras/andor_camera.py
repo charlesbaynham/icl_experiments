@@ -499,7 +499,7 @@ class AndorCameraControl(Fragment):
         if img is None:
             raise AndorNoImageAvailable("There was no image to read out")
 
-        img = np.rot90(img, axes=(1, 0))  # FIXME I don't think this is needed
+        img = np.rot90(img, axes=(1, 0))
 
         return img
 
