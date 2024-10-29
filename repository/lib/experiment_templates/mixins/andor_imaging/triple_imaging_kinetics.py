@@ -24,6 +24,11 @@ def calculate_grabber_rois(
     Returns a list of ROIs in (x0, y0, x1, y1) format.
     """
 
+    if y1 > fast_kinetics_height + fast_kinetics_offset:
+        raise ValueError(
+            "The fast kinetics region is not large enough to cover the full ROI"
+        )
+
     return [
         [
             x0,
