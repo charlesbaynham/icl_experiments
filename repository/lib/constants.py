@@ -351,7 +351,7 @@ ANDOR_CAMERA_BACKGROUND_DELAY = 60e-3
 
 # The Andor camera has a sensor size of 512x512. These are only true for EM gain
 # mode! It's different in conventional gain mode
-x, y, width, height = 205, 290, 100, 100
+x, y, width, height = 222, 313, 100, 100
 
 if USE_LATTICE_MODE:
     ANDOR_ROI_X0 = 50
