@@ -28,7 +28,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_hook`
     """
 
     def build_fragment(self):
@@ -109,8 +108,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
     @kernel
     def clock_shelving(self):
-        self.default_post_narrowband_hook()
-
         # Prepare the clock beam
         self.pumping_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
