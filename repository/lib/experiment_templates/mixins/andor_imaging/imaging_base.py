@@ -206,7 +206,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         images = []
 
         # Readout and store the andor images
-        imgs_array = self.andor_camera_control.readout_all_new_images()
+        imgs_array = self.andor_camera_control.readout_all_new_images(
+            num_images=self.num_andor_images
+        )
 
         for (
             andor_sum_slice_x,
