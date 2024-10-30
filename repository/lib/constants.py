@@ -135,7 +135,7 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD3_controller": IJDSettings(8850, 360e-3, 350e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(
-        9460, 174.0e-3, 170.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
+        9460, 174.0e-3, 169.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
     ),
 }
 "Injected diode default settings"
