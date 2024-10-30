@@ -102,9 +102,8 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
     def before_start_hook(self):
         self.before_start_hook_clockspec()
 
-    @kernel
-    def do_first_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
+    def do_first_pulse(self):
+        self.do_pulse()
         delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
 

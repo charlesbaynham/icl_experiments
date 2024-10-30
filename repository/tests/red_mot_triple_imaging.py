@@ -28,6 +28,14 @@ class TestTripleImagingKinetics(TripleImageFastKineticsMixin, RedMOTWithExperime
         # No spectroscopy needed - just do nothing and move straight to imaging
         pass
 
+    @kernel
+    def do_second_pulse(self):
+        pass
+
+    @kernel
+    def do_third_pulse(self):
+        pass
+
 
 TestTripleImagingBasicExp = make_fragment_scan_exp(TestTripleImagingBasic)
 TestTripleImagingKineticsExp = make_fragment_scan_exp(TestTripleImagingKinetics)
