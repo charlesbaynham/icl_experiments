@@ -287,6 +287,9 @@ class AndorCameraControl(Fragment):
                 self.vertical_shift_time = (
                     self.fast_kinetics_height.get() * self.cam.get_vsspeed() * 1e-6
                 )
+                logger.info(
+                    "vertical_shift_time = %.2f us", self.vertical_shift_time * 1e6
+                )
                 self.kernel_invariants.add("vertical_shift_time")
 
             else:
