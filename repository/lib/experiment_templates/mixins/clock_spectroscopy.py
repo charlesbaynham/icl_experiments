@@ -11,8 +11,10 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.experiment_templates.dipole_trap_experiment import DipoleTrapWithExperiment
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -169,12 +171,6 @@ class ClockRabiSpectroscopyDipoleTrapMixin(
     * :meth:`~do_experiment_after_dipole_trap_hook`
     * :meth:`~do_first_pulse`
     """
-
-    def build_fragment(self):
-        # super() retrieves the red mot experiment build fragment from
-        # Clock...Base, so we need to add dipole trap customizations explicitly
-        super().build_fragment()
-        self.dipole_trap_build_fragment_customizations()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

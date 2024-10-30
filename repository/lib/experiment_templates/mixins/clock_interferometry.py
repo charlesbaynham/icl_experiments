@@ -167,12 +167,6 @@ class ClockInterferometryDipoleTrapMixin(
     * :meth:`~do_first_pulse`
     """
 
-    def build_fragment(self):
-        # super() retrieves the red mot experiment build fragment from
-        # Clock...Base, so we need to add dipole trap customizations explicitly
-        super().build_fragment()
-        self.dipole_trap_build_fragment_customizations()
-
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.dipole_beam_controller.turn_off_dipole_beams()
