@@ -289,6 +289,10 @@ class AndorCameraControl(Fragment):
                 # region. The driver will initiate the vertical shift speed to the
                 # fastest recommended. We need to know this because it will be added
                 # to the "exposure time" specified in Fast Kinetics mode.
+
+                # FIXME: This is failing the unit tests because the camera
+                # controller is being mocked. We need to specify a default
+                # output for its getters.
                 self.fast_kinetics_shift_time = (
                     self.fast_kinetics_height.get() * self.cam.get_vsspeed() * 1e-6
                 )
