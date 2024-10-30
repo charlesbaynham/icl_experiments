@@ -150,16 +150,16 @@ class DoubleTrapImagingNormalised(TripleImageFastKineticsMixin):
         """
 
         roi_defaults = calculate_grabber_rois(
-            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT,
-            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET,
+            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
+            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
             num_images=3,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
         ) + calculate_grabber_rois(
-            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT,
-            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET,
+            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
+            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
             num_images=3,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,

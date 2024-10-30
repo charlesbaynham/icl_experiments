@@ -22,6 +22,10 @@ def calculate_grabber_rois(
     when in fast kinetics mode.
 
     Returns a list of ROIs in (x0, y0, x1, y1) format.
+
+    TODO: For normalised clock readout, which may need repumping for several ms
+    between 461 flu pulses, we should write a more sophisticated ROI calculator to
+    account for the cloud falling under gravity.
     """
 
     print(
