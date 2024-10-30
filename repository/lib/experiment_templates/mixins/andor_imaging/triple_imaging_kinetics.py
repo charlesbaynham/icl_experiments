@@ -1,6 +1,6 @@
 import logging
 
-from artiq.experiment import delay
+from artiq.experiment import delay, at_mu, now_mu
 from artiq.experiment import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
@@ -23,6 +23,11 @@ def calculate_grabber_rois(
 
     Returns a list of ROIs in (x0, y0, x1, y1) format.
     """
+
+    print(
+        "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
+        (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
+    )
 
     if y1 > fast_kinetics_height + fast_kinetics_offset:
         raise ValueError(
@@ -68,22 +73,25 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         super().build_fragment()
 
         self.setattr_param(
-            "delay_between_fluorescence_pulses",
+            "delay_between_imaging_pulses",
             FloatParam,
-            "Delay after first fluorescence pulse before second",
+            "Total time between the starts of the three fluorescence pulses",
             default=1e-3,
             unit="ms",
         )
-        self.delay_between_fluorescence_pulses: FloatParamHandle
+        self.delay_between_imaging_pulses: FloatParamHandle
+        # Note the wording of this parameter - it's the time between the starts
+        # of the pulses, not the time the end of one and the start of the next
+        # one. This interacts non-trivially with the way that the Andor camera
+        # clocks out rows of the EMCCD in Fast Kinetics Mode. See the comments
+        # in :mod:`~.andor_camera` and the lab book entry from 2024-10-30 for
+        # more detail.
 
-        self.setattr_param(
-            "delay_before_background_pulse",
-            FloatParam,
-            "Delay after final fluorescence pulse before background measurement",
-            default=10e-3,
-            unit="ms",
+        # Force the camera's fast kinetics shot time to match our pulse time
+        self.andor_camera_control.bind_param(
+            "fast_kinetics_time_between_shots",
+            self.delay_between_imaging_pulses,
         )
-        self.delay_before_background_pulse: FloatParamHandle
 
         self.fast_kinetics_setup_results()
 
@@ -127,27 +135,38 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         """
 
         # Image ground state atoms
+        t_start_mu = now_mu()
         self.do_first_pulse()
 
         # Image excited state atoms
-        delay(self.delay_between_fluorescence_pulses.get())
+        at_mu(t_start_mu)
+        delay(self.delay_between_imaging_pulses.get())
         self.do_second_pulse()
 
         # Take background measurement
-        delay(self.delay_before_background_pulse.get())
+        at_mu(t_start_mu)
+        delay(2 * self.delay_between_imaging_pulses.get())
         self.do_third_pulse()
 
     @kernel
     def do_first_pulse(self):
+        # Normal fluorescence pulse at now_mu() + camera trigger, pre-empted by
+        # the time required to shift one Fast Kinetics region + a
+        # pre_trigger_delay
         self.do_pulse()
+
+    @kernel
+    def do_just_a_fluorescence_pulse(self):
+        # Just a fluorescence pulse - the camera has already been triggered and handles its own timings
+        self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     @kernel
     def do_second_pulse(self):
-        self.do_pulse()
+        self.do_just_a_fluorescence_pulse()
 
     @kernel
     def do_third_pulse(self):
-        self.do_pulse()
+        self.do_just_a_fluorescence_pulse()
 
     @kernel
     def process_andor_data_hook(self, sums, means):

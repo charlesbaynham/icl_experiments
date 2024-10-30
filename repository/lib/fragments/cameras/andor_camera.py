@@ -16,6 +16,8 @@ from artiq.experiment import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import EnumParam
+from ndscan.experiment.parameters import ParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -194,13 +196,18 @@ class AndorCameraControl(Fragment):
                 max=512,
             )
             self.setattr_param(
-                "fast_kinetics_exposure_time",
+                "fast_kinetics_time_between_shots",
                 FloatParam,
-                "Fast kinetics exposure time",
+                "Fast kinetics time between shots",
                 default=1e-6,
                 unit="us",
                 min=0,
             )
+            # Note that fast_kinetics_time_between_shots is not equal to the
+            # "exposure time" described in the Andor manual!
+            # fast_kinetics_time_between_shots == exposure time +
+            # fast_kinetics_shift_time
+
             self.setattr_param(
                 "fast_kinetics_offset",
                 IntParam,
@@ -215,7 +222,7 @@ class AndorCameraControl(Fragment):
         self.cam_roi_y0: IntParamHandle
         self.cam_roi_y1: IntParamHandle
         self.fast_kinetics_height: IntParamHandle
-        self.fast_kinetics_exposure_time: FloatParamHandle
+        self.fast_kinetics_time_between_shots: FloatParamHandle
         self.fast_kinetics_offset: IntParamHandle
 
         # %% Kernel variables
@@ -278,7 +285,27 @@ class AndorCameraControl(Fragment):
                 self.cam.set_fast_kinetics_mode()
                 # Fast kinetics mode must be set up per shot, so we do this in _start_acquisition
 
+                # Get the current time required to shift out one Fast Kinetics
+                # region. The driver will initiate the vertical shift speed to the
+                # fastest recommended. We need to know this because it will be added
+                # to the "exposure time" specified in Fast Kinetics mode.
+
+                # FIXME: This is failing the unit tests because the camera
+                # controller is being mocked. We need to specify a default
+                # output for its getters.
+                self.fast_kinetics_shift_time = (
+                    self.fast_kinetics_height.get() * self.cam.get_vsspeed() * 1e-6
+                )
+                logger.info(
+                    "fast_kinetics_shift_time = %.2f us",
+                    self.fast_kinetics_shift_time * 1e6,
+                )
+                self.kernel_invariants.add("fast_kinetics_shift_time")
+
             else:
+                self.fast_kinetics_shift_time = (
+                    0.0  # This is unused, but is here to prevent compilation errors
+                )
                 logger.debug("Setting external exposure mode")
                 self.cam.set_external_exposure_trigger()
                 logger.debug("Setting continuous acquisition mode")
@@ -306,10 +333,20 @@ class AndorCameraControl(Fragment):
 
     @rpc(flags={"async"})
     def _start_acquisition(self):
+        exposure_time = (
+            self.fast_kinetics_time_between_shots.get() - self.fast_kinetics_shift_time
+        )
+
+        if exposure_time < 0:
+            raise ValueError(
+                "fast_kinetics_time_between_shots must be greater than the time required"
+                f" to shift out one Fast Kinetics region = {1e6*self.fast_kinetics_shift_time:.3f} us"
+            )
+
         self.cam.setup_fast_kinetics_mode(
             num_acc=self.fast_kinetics_num_shots,
             subarea_height=self.fast_kinetics_height.get(),
-            exposure_time=self.fast_kinetics_exposure_time.get(),
+            exposure_time=exposure_time,
             offset=self.fast_kinetics_offset.get(),
         )
 
@@ -400,11 +437,37 @@ class AndorCameraControl(Fragment):
         If control_shutter == True, open the shutter <shutter_delay> in advance
         and then close if afterwards.
 
+        ### Pre-trigger delay detail
+
+        In normal mode:
+
         If this Fragment was built with add_pretrigger_delay == True, go back in
         time by <trigger_delay> then trigger the camera for <trigger_delay> +
         <exposure>. Otherwise, just expose the camera for <exposure>.
 
-        Advances the timeline by the duration of the camera's exposure
+        In Fast Kinetics mode:
+
+        The imaging sequence in Fast Kinetics mode is non-trivial and
+        undocumented. Fast Kinetics mode is setup with a height and exposure
+        time, defining a region that will be imaged. Clocking that region out
+        takes:
+
+        $$ t_{shift} = N_{rows} * t_{shift speed} $$
+
+        When a sequence is triggered, the camera *immediately* begins clocking
+        out one ROI, requiring $t_{shift}$ to complete. It then waits for
+        $t_{exposure}$. It then repeats these two steps for a total of $N$
+        shots.
+
+        That means that you cannot take images during the first $t_{shift}$
+        after triggering - surprising behaviour! We therefore will trigger the
+        camera $t_{shift} + t_{pretrigger}$ before the cursor to allow for this
+        shifting (as well as any other configured delay).
+
+        ### Timeline
+
+        Advances the timeline by the duration of the camera's exposure. Writes
+        events into the past by up to $t_{shift} + t_{pretrigger}$.
         """
 
         if control_shutter:
@@ -415,6 +478,11 @@ class AndorCameraControl(Fragment):
 
         pre_trigger_delay_mu = self.core.seconds_to_mu(self.pre_trigger_delay.get())
         exposure_mu = self.core.seconds_to_mu(exposure)
+
+        if self.fast_kinetics_mode:
+            pre_trigger_delay_mu += self.core.seconds_to_mu(
+                self.fast_kinetics_shift_time
+            )
 
         delay_mu(-pre_trigger_delay_mu)
 

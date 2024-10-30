@@ -125,7 +125,7 @@ class DoubleTrapImagingNormalised(TripleImageFastKineticsMixin):
     * :meth:`~do_imaging_hook_andor`
     """
 
-    num_andor_images = 1
+    num_andor_images = 3
     num_grabber_readouts = 1
     num_grabber_rois = 6
 
