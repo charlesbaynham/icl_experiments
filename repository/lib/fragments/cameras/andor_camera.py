@@ -196,13 +196,18 @@ class AndorCameraControl(Fragment):
                 max=512,
             )
             self.setattr_param(
-                "fast_kinetics_exposure_time",
+                "fast_kinetics_time_between_shots",
                 FloatParam,
-                "Fast kinetics exposure time",
+                "Fast kinetics time between shots",
                 default=1e-6,
                 unit="us",
                 min=0,
             )
+            # Note that fast_kinetics_time_between_shots is not equal to the
+            # "exposure time" described in the Andor manual!
+            # fast_kinetics_time_between_shots == exposure time +
+            # fast_kinetics_shift_time
+
             self.setattr_param(
                 "fast_kinetics_offset",
                 IntParam,
@@ -217,7 +222,7 @@ class AndorCameraControl(Fragment):
         self.cam_roi_y0: IntParamHandle
         self.cam_roi_y1: IntParamHandle
         self.fast_kinetics_height: IntParamHandle
-        self.fast_kinetics_exposure_time: FloatParamHandle
+        self.fast_kinetics_time_between_shots: FloatParamHandle
         self.fast_kinetics_offset: IntParamHandle
 
         # %% Kernel variables
@@ -324,10 +329,20 @@ class AndorCameraControl(Fragment):
 
     @rpc(flags={"async"})
     def _start_acquisition(self):
+        exposure_time = (
+            self.fast_kinetics_time_between_shots.get() - self.fast_kinetics_shift_time
+        )
+
+        if exposure_time < 0:
+            raise ValueError(
+                "fast_kinetics_time_between_shots must be greater than the time required"
+                f" to shift out one Fast Kinetics region = {1e6*self.fast_kinetics_shift_time:.3f} us"
+            )
+
         self.cam.setup_fast_kinetics_mode(
             num_acc=self.fast_kinetics_num_shots,
             subarea_height=self.fast_kinetics_height.get(),
-            exposure_time=self.fast_kinetics_exposure_time.get(),
+            exposure_time=exposure_time,
             offset=self.fast_kinetics_offset.get(),
         )
 
