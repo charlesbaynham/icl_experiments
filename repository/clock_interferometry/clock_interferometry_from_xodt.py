@@ -30,7 +30,7 @@ class DifferentialClockInterferometryFrag(
     DoubleTrapImagingBGSubtracted,
 ):
     """
-    Clock interferometry from the double XODTs
+    Clock interferometry from a double XODT
     """
 
     @kernel
