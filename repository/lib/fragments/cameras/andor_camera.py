@@ -300,7 +300,7 @@ class AndorCameraControl(Fragment):
 
             else:
                 self.fast_kinetics_shift_time = (
-                    0  # This is unused, but is here to prevent compilation errors
+                    0.0  # This is unused, but is here to prevent compilation errors
                 )
                 logger.debug("Setting external exposure mode")
                 self.cam.set_external_exposure_trigger()
