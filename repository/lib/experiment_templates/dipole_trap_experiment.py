@@ -82,6 +82,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
 
     def build_fragment(self):
         super().build_fragment()
+        self.dipole_trap_build_fragment_customizations()
+    
+    def dipole_trap_build_fragment_customizations(self):
 
         self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
         self.dipole_beam_controller: DipoleBeamController

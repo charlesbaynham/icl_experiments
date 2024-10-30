@@ -160,6 +160,12 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     * :meth:`~post_dipole_trap_hook`
     """
 
+    def build_fragment(self):
+        # super() retrieves the red mot experiment build fragment from
+        # Clock...Base, so we need to add dipole trap customizations explicitly
+        super().build_fragment()
+        self.dipole_trap_build_fragment_customizations()
+
     @kernel
     def post_dipole_trap_hook(self):
         self.dipole_beam_controller.turn_off_dipole_beams()
