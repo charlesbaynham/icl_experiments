@@ -143,11 +143,11 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
 
     @kernel
     def do_second_pulse(self):
-        self.do_pulse()
+        pass
 
     @kernel
     def do_third_pulse(self):
-        self.do_pulse()
+        pass
 
     @kernel
     def process_andor_data_hook(self, sums, means):
