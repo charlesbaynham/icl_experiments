@@ -269,9 +269,11 @@ B_FIELD_CH1_AXIAL = 0.0  # A
 
 # TODO: Include FIELD_COMP as an offset to the other default fields below.
 # Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
-FIELD_COMP_X = 0.292
+# Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
+# than previous calibration based on Zeeman spectroscopy
+FIELD_COMP_X = 0.31
 FIELD_COMP_Y = -0.009
-FIELD_COMP_Z = -0.67
+FIELD_COMP_Z = -0.69
 FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
 
 if USE_SR87:
@@ -580,7 +582,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=1.8,  # 270 mW in AOM 0th order with no diffraction
+        setpoint=1.8,
     ),
     SUServoedBeam(
         "lattice_input_1379",
