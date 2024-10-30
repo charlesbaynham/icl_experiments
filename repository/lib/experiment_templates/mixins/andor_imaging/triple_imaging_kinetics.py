@@ -148,7 +148,7 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         # Normal fluorescence pulse at now_mu() + camera trigger, pre-empted by
         # the time required to shift one Fast Kinetics region + a
         # pre_trigger_delay
-        self.do_pulse()
+        self.do_pulse(with_light=False)  # FIXME
 
     @kernel
     def do_just_a_fluorescence_pulse(self):
