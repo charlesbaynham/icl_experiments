@@ -25,9 +25,8 @@ def calculate_grabber_rois(
     """
 
     print(
-        "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1"(
-            fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1
-        )
+        "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
+        (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
     )
 
     if y1 > fast_kinetics_height + fast_kinetics_offset:
