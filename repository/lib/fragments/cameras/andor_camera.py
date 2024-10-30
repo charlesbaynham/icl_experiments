@@ -284,15 +284,19 @@ class AndorCameraControl(Fragment):
                 # region. The driver will initiate the vertical shift speed to the
                 # fastest recommended. We need to know this because it will be added
                 # to the "exposure time" specified in Fast Kinetics mode.
-                self.vertical_shift_time = (
+                self.fast_kinetics_shift_time = (
                     self.fast_kinetics_height.get() * self.cam.get_vsspeed() * 1e-6
                 )
                 logger.info(
-                    "vertical_shift_time = %.2f us", self.vertical_shift_time * 1e6
+                    "fast_kinetics_shift_time = %.2f us",
+                    self.fast_kinetics_shift_time * 1e6,
                 )
-                self.kernel_invariants.add("vertical_shift_time")
+                self.kernel_invariants.add("fast_kinetics_shift_time")
 
             else:
+                self.fast_kinetics_shift_time = (
+                    0  # This is unused, but is here to prevent compilation errors
+                )
                 logger.debug("Setting external exposure mode")
                 self.cam.set_external_exposure_trigger()
                 logger.debug("Setting continuous acquisition mode")
@@ -457,7 +461,9 @@ class AndorCameraControl(Fragment):
         exposure_mu = self.core.seconds_to_mu(exposure)
 
         if self.fast_kinetics_mode:
-            pre_trigger_delay_mu += self.core.seconds_to_mu(self.vertical_shift_time)
+            pre_trigger_delay_mu += self.core.seconds_to_mu(
+                self.fast_kinetics_shift_time
+            )
 
         delay_mu(-pre_trigger_delay_mu)
 
