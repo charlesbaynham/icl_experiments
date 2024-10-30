@@ -30,11 +30,11 @@ class TestTripleImagingKinetics(TripleImageFastKineticsMixin, RedMOTWithExperime
 
     @kernel
     def do_second_pulse(self):
-        self.do_pulse()
+        pass
 
     @kernel
     def do_third_pulse(self):
-        self.do_pulse()
+        pass
 
 
 TestTripleImagingBasicExp = make_fragment_scan_exp(TestTripleImagingBasic)
