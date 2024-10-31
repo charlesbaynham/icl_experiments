@@ -7,7 +7,9 @@ from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 from .single_andor_image import SingleAndorImage
-from .imaging_base import AndorImagingBase
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    AndorImagingBase,
+)
 from .bg_corrected_andor_image import BGCorrectedAndorImage
 from .triple_imaging_fast_kinetics import TripleImageFastKineticsMixin
 from .triple_imaging_fast_kinetics import calculate_grabber_rois
