@@ -127,6 +127,7 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
 
     @kernel
     def do_first_pulse(self):
+        # TODO: this mixin doesn't know about do_pulse. Perhaps pulse_with_repumping should be defined in the imaging mixin?
         self.do_pulse()
         delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
