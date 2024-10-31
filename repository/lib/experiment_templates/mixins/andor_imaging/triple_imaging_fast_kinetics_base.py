@@ -49,7 +49,7 @@ def calculate_grabber_rois(
     ]
 
 
-class TripleImageFastKineticsMixin(AndorImagingBase):
+class TripleImageFastKineticsBase(AndorImagingBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
@@ -115,21 +115,24 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=calculate_grabber_rois(
-                fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT,
-                fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET,
-                num_images=3,
-                x0=constants.ANDOR_ROI_X0,
-                y0=constants.ANDOR_ROI_Y0,
-                x1=constants.ANDOR_ROI_X1,
-                y1=constants.ANDOR_ROI_Y1,
-            ),
+            roi_defaults=self.get_grabber_roi_defaults(),
             add_pre_trigger_delay=True,
             fast_kinetics_num_shots=3,
         )
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
+
+    def get_grabber_roi_defaults(self):
+        return calculate_grabber_rois(
+            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT,
+            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET,
+            num_images=self.num_grabber_rois,
+            x0=constants.ANDOR_ROI_X0,
+            y0=constants.ANDOR_ROI_Y0,
+            x1=constants.ANDOR_ROI_X1,
+            y1=constants.ANDOR_ROI_Y1,
+        )
 
     @kernel
     def do_imaging_hook_andor(self):

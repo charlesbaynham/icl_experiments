@@ -5,7 +5,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
     TripleImageFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (

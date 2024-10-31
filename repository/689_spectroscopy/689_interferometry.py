@@ -15,7 +15,7 @@ from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
     TripleImageFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
