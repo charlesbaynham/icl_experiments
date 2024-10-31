@@ -6,7 +6,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image
     SingleAndorImage,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
-    TripleImageFastKineticsMixin,
+    TripleImageDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class ClockSpecFromLatticeFrag(
     ClockRabiSpectroscopyRedMotMixin,
     DroppedPumpedLatticeMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageDipoleTrapFastKineticsMixin,
     FLIRBlueMOTMeasurementMixin,
     RedMOTWithExperiment,
 ):

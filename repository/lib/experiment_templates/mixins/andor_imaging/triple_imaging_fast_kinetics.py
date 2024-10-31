@@ -51,6 +51,8 @@ class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
 
+    This variant implements a default ROI for imaging the forward dipole trap/.
+
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
@@ -59,13 +61,15 @@ class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
     """
 
     def get_grabber_roi_defaults(self):
-        return calculate_grabber_rois(fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT
-                                                fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET,
-                                                num_images=3
-                                                x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-                                                y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-                                                x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-                                                y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1)
+        return calculate_grabber_rois(
+            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP,
+            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP,
+            num_images=self.num_andor_images,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+        )
 
 
 class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
@@ -81,6 +85,8 @@ class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
 
+    This variant implements a two default ROIs for imaging both the forward and backward dipole traps.
+
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
@@ -88,19 +94,28 @@ class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
+    num_grabber_rois = 6
+
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
+
     def get_grabber_roi_defaults(self):
-        forward_rois = calculate_grabber_rois(fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-                                                fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-                                                num_images=3
-                                                x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-                                                y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-                                                x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-                                                y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1)
-        backward_rois = calculate_grabber_rois(fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-                                                fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-                                                num_images=3,
-                                                x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
-                                                y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
-                                                x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
-                                                y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1)
+        forward_rois = calculate_grabber_rois(
+            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
+            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
+            num_images=self.num_andor_images,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+        )
+        backward_rois = calculate_grabber_rois(
+            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
+            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
+            num_images=self.num_andor_images,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+        )
         return forward_rois + backward_rois

@@ -64,6 +64,8 @@ class AndorCameraControl(Fragment):
                 constants.ANDOR_ROI_Y1,
             ]
         ],
+        fast_kinetics_height_default=None,
+        fast_kinetics_offset_default=None,
         add_pre_trigger_delay=True,
         fast_kinetics_num_shots=1,
     ):
@@ -191,7 +193,7 @@ class AndorCameraControl(Fragment):
                 "fast_kinetics_height",
                 IntParam,
                 "Fast kinetics height",
-                default=constants.ANDOR_FAST_KINETICS_HEIGHT,
+                default=fast_kinetics_height_default,
                 min=0,
                 max=512,
             )
@@ -212,7 +214,7 @@ class AndorCameraControl(Fragment):
                 "fast_kinetics_offset",
                 IntParam,
                 "Fast kinetics offset",
-                default=constants.ANDOR_FAST_KINETICS_OFFSET,
+                default=fast_kinetics_offset_default,
                 min=0,
                 max=512,
             )

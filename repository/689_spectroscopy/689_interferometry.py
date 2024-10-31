@@ -16,14 +16,16 @@ from repository.lib import constants
 logger = logging.getLogger(__name__)
 
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
-    TripleImageFastKineticsMixin,
+    TripleImageDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 
 
-class _InterferometryCommon(TripleImageFastKineticsMixin, SpectroscopyParamsMixin):
+class _InterferometryCommon(
+    TripleImageDipoleTrapFastKineticsMixin, SpectroscopyParamsMixin
+):
     def build_fragment(self):
         # TODO: Fix this, as 689 sepctroscopy has been fixed
         class _UpBeamSetter(SetBeamsToDefaults):

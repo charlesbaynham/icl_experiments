@@ -6,7 +6,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTMolassesPlusFieldRampMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
-    TripleImageFastKineticsMixin,
+    TripleImageDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ClockSpecFromXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageDipoleTrapFastKineticsMixin,
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,
     DipoleTrapWithExperiment,

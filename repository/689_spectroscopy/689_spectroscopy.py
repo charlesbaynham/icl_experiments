@@ -11,7 +11,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
-    TripleImageFastKineticsMixin,
+    TripleImageRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class SpectroscopyWithKinetics_UpBeam(
     FieldBoostMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageRedMOTFastKineticsMixin,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
     RedMOTWithExperiment,
