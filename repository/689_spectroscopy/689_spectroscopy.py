@@ -173,6 +173,30 @@ class SpectroscopySingleImage_UpBeam(
         delay(self.spectroscopy_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
+    # @kernel
+    # def do_imaging_hook_andor(self):
+    #     """
+    #     Hook for the imaging sequence. This hook runs after the spectroscopy
+    #     etc. is completed, and should handle imaging with the Andor camera.
+    #     """
+
+    #     # set EM gain on
+    #     self.andor_camera_control.cam.set_EMCCD_gain(30)
+
+    #     # Image ground state atoms
+    #     t_start_mu = now_mu()
+    #     self.do_first_pulse()
+
+    #     # Image excited state atoms
+    #     at_mu(t_start_mu)
+    #     delay(self.delay_between_imaging_pulses.get())
+    #     self.do_second_pulse()
+
+    #     # Take background measurement
+    #     at_mu(t_start_mu)
+    #     delay(2 * self.delay_between_imaging_pulses.get())
+    #     self.do_third_pulse()
+
     @kernel
     def do_imaging_hook_andor(self):
         """
