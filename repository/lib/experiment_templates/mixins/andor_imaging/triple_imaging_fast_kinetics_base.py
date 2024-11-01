@@ -30,7 +30,7 @@ def calculate_grabber_rois(
     account for the cloud falling under gravity.
     """
 
-    print(
+    logger.debug(
         "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
         (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
     )
