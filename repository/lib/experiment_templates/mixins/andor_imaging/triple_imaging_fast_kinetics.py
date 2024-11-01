@@ -60,10 +60,13 @@ class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
+
     def get_grabber_roi_defaults(self):
         return calculate_grabber_rois(
-            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP,
-            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP,
+            fast_kinetics_height=self.fast_kinetics_height_default,
+            fast_kinetics_offset=self.fast_kinetics_offset_default,
             num_images=self.num_andor_images,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
@@ -96,13 +99,13 @@ class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
 
     num_grabber_rois = 6
 
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
     def get_grabber_roi_defaults(self):
         forward_rois = calculate_grabber_rois(
-            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
+            fast_kinetics_height=self.fast_kinetics_height_default,
+            fast_kinetics_offset=self.fast_kinetics_offset_default,
             num_images=self.num_andor_images,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,

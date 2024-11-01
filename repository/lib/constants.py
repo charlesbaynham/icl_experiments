@@ -351,8 +351,8 @@ ANDOR_CAMERA_TRIGGER_ENABLE_TIME = 1e-6
 ANDOR_CAMERA_BACKGROUND_DELAY = 60e-3
 "Delay before background image when using the Andor for background-corrected images"
 
-# The Andor camera has a sensor size of 512x512. These are only true for EM gain
-# mode! It's different in conventional gain mode
+# The Andor camera has a sensor size of 512x512. These are only ROI definitions will
+# only work in EM gain mode! The conventional gain readout has different X indices
 x, y, width, height = 215, 216, 100, 100
 
 if USE_LATTICE_MODE:
