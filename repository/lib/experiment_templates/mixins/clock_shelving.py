@@ -10,6 +10,9 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.pyaion_overrides.suservo_override import (
     LibSetSUServoStatic,
@@ -20,15 +23,13 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockPumpingMixin(RedMOTWithExperiment):
+class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
@@ -87,10 +88,10 @@ class ClockPumpingMixin(RedMOTWithExperiment):
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockpumping()
+        self.before_start_hook_clockshelving()
 
     @kernel
-    def before_start_hook_clockpumping(self):
+    def before_start_hook_clockshelving(self):
         self.core.break_realtime()
 
         # Setup delivery AOM
@@ -108,9 +109,7 @@ class ClockPumpingMixin(RedMOTWithExperiment):
         self.clock_dds.cfg_sw(False)
 
     @kernel
-    def post_narrowband_hook(self):
-        self.default_post_narrowband_hook()
-
+    def clock_shelving(self):
         # Prepare the clock beam
         self.pumping_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
@@ -133,3 +132,37 @@ class ClockPumpingMixin(RedMOTWithExperiment):
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.pumping_pulse_clearout_duration.get()
         )
+
+
+class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    """
+
+    @kernel
+    def post_narrowband_hook(self):
+        self.default_post_narrowband_hook()
+        self.clock_shelving()
+
+
+class ClockShelvingAndClearoutDipoleTrapMixin(
+    ClockShelvingAndClearoutBase, DipoleTrapWithExperiment
+):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_dipole_trap_hook`
+    """
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        self.dipole_beam_controller.turn_off_dipole_beams()
+        self.clock_shelving()

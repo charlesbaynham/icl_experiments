@@ -177,7 +177,10 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         from copy import deepcopy
 
         self.suservo_beam_infos = deepcopy(list(constants.SUSERVOED_BEAMS.values()))
-        self.urukul_beam_infos = [constants.URUKULED_BEAMS["red_spinpol"]]
+        self.urukul_beam_infos = [
+            constants.URUKULED_BEAMS["red_spinpol"],
+            constants.URUKULED_BEAMS["blue_imaging_switch"],
+        ]
 
         if self.disable_servoing:
             for info in self.suservo_beam_infos:

@@ -1,17 +1,22 @@
+# Gitpod have promised to support devcontainers but it doesn't seem to work yet
+# so we still need this file.
 image:
   file: .gitpod.Dockerfile
-tasks:
-- init: >
-    cachix use aion-physics &&
-    (yes | nix develop -c echo devShell build successful) &&
-    bash -c "nix-store --export \$(nix-store --query -R --include-outputs \$(nix path-info --all)) > /workspace/nix_export"
-- command: >
-    cachix use aion-physics &&
-    bash -c "nix-store --import < /workspace/nix_export" &&
-    (yes | nix develop -c echo devShell build import successful) &&
-    direnv allow
 
 vscode:
   extensions:
-  - bbenoist.Nix
   - mkhl.direnv
+  - ms-python.black-formatter
+  - streetsidesoftware.code-spell-checker
+  - editorconfig.editorconfig
+  - mhutchie.git-graph
+  - tamasfe.even-better-toml
+  - donjayamanne.githistory
+  - gitlab.gitlab-workflow
+  - eamodio.gitlens
+  - npxms.hide-gitignored
+  - jnoortheen.nix-ide
+  - ms-python.python
+  - ms-python.debugpy
+  - stkb.rewrap
+  - gruntfuggly.todo-tree
