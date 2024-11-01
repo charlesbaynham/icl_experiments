@@ -280,6 +280,7 @@ class AndorCameraControl(Fragment):
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
             self.cam.set_shutter_open()
+            self.cam.set_EMCCD_gain(30)
 
             if self.fast_kinetics_mode:
                 logger.info("Setting up fast kinetics mode")
