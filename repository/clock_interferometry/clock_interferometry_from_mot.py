@@ -27,7 +27,7 @@ class MOTClockInterferometryNormalizedExp(
     TripleImageBasicMixin,
 ):
     """
-    Clock interferometry with clock shelving and fast kinetics
+    Clock interferometry with clock pumping and fast kinetics
     """
 
     @kernel

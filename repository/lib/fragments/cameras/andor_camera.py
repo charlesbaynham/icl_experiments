@@ -344,7 +344,7 @@ class AndorCameraControl(Fragment):
                 "fast_kinetics_time_between_shots must be greater than the time required"
                 f" to shift out one Fast Kinetics region = {1e6*self.fast_kinetics_shift_time:.3f} us"
             )
-        self.cam.stop_acquisition()
+
         self.cam.setup_fast_kinetics_mode(
             num_acc=self.fast_kinetics_num_shots,
             subarea_height=self.fast_kinetics_height.get(),

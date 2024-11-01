@@ -55,7 +55,7 @@ class MOTPumpedClockSpectroscopyNormalizedExp(
     TripleImageRedMOTFastKineticsMixin,
 ):
     """
-    Normalised clock spectroscopy from a red MOT with clock shelving
+    Normalised clock spectroscopy from a red MOT with clock pumping
 
     Use the up clock beam for spectroscopy, altering the (single-pass) AOM.
 
