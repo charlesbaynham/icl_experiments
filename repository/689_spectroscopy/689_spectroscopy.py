@@ -126,7 +126,7 @@ class SpectroscopyWithKinetics_UpBeam(
 
 class SpectroscopySingleImage_UpBeam(
     FieldBoostMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageRedMOTFastKineticsMixin,
     DroppedPumpedLatticeMixin,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
