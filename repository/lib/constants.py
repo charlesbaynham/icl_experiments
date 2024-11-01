@@ -97,12 +97,6 @@ RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
 
-RED_SPINPOL_RAMP_LIMIT = 4e6
-"Ramp extent for the spin polarising beam (n.b. will be double by the double-pass AOM)"
-
-RED_SPINPOL_AOM_RAMP_FREQUENCY = 30e3
-"Default ramp frequency for the spin polarising beam"
-
 # Lattice ramp-down configuration
 # TODO: Choose real lattice ramp parameters
 LATTICE_HIGH_SETPOINT_MULTIPLE = 1.0
@@ -359,9 +353,15 @@ ANDOR_CAMERA_BACKGROUND_DELAY = 60e-3
 
 # The Andor camera has a sensor size of 512x512. These are only ROI definitions will
 # only work in EM gain mode! The conventional gain readout has different X indices
-x, y, width, height = 215, 216, 100, 100
+# x, y, width, height = 215, 216, 100, 100
 
 if USE_LATTICE_MODE:
+    x, y, width, height = (
+        215,
+        216,
+        100,
+        100,
+    )  # TODO: this needs to be done properly for lattice mode to match the below
     ANDOR_ROI_X0 = 50
     ANDOR_ROI_X1 = 300
     ANDOR_ROI_Y0 = 280
@@ -369,15 +369,15 @@ if USE_LATTICE_MODE:
 
 else:
     if USE_SR87:
-        ANDOR_ROI_X0 = 150
-        ANDOR_ROI_X1 = 350
-        ANDOR_ROI_Y0 = 255
-        ANDOR_ROI_Y1 = 331
+        x, y, width, height = 215, 273, 100, 100
+
     else:
-        ANDOR_ROI_X0 = x - width / 2
-        ANDOR_ROI_X1 = x + width / 2
-        ANDOR_ROI_Y0 = y - height / 2
-        ANDOR_ROI_Y1 = y + height / 2
+        x, y, width, height = 215, 216, 100, 100
+
+    ANDOR_ROI_X0 = x - width / 2
+    ANDOR_ROI_X1 = x + width / 2
+    ANDOR_ROI_Y0 = y - height / 2
+    ANDOR_ROI_Y1 = y + height / 2
 
 ANDOR_ROI_DIPOLE_HEIGHT = 30
 ANDOR_ROI_DIPOLE_WIDTH = 50
@@ -418,7 +418,7 @@ ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
 
 ANDOR_FAST_KINETICS_HEIGHT = height
-ANDOR_FAST_KINETICS_OFFSET = ANDOR_ROI_Y0
+ANDOR_FAST_KINETICS_OFFSET = round(y - height / 2)  # ANDOR_ROI_Y0
 
 ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP = height
 ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP = round(ANDOR_DIPOLE_TRAP_FORWARD_Y - height / 2)
@@ -514,14 +514,6 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
-    ),
-    SUServoedBeam(
-        "blue_plug_beam",
-        165e6,
-        20,
-        "suservo_aom_doublepass_461_plug",
-        setpoint=0.8,
-        servo_enabled=True,
     ),
     ### RED ###
     SUServoedBeam(

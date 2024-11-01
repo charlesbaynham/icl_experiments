@@ -5,6 +5,7 @@ This module currently breaks the rule about only storing physics-determined
 numbers in `constants.py`.
 """
 
+
 import repository.lib.constants as constants
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndMOTField,

@@ -123,7 +123,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_param(
             "expansion_time",
             FloatParam,
-            "Time to wait before experiment",
+            "Time to expand MOT for before imaging",
             default=0.0,
             unit="us",
         )
@@ -223,11 +223,13 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.set_postnarrowband_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
         self.post_narrowband_hook()
+        logger.info("Red MOT sequence complete")
 
         # Do any other pre-expansion actions. By default, none
         t_light_off_mu = now_mu()
         # TODO: To simplify, delete this pre_expansion_hook() and move its functionality to 689_spectroscopy - the one place it's used
         self.pre_expansion_hook()
+        logger.info("Expansion sequence starting")
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
@@ -236,12 +238,13 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Do the spectroscopy / interfereometry / whatever sequence. This method
         # must be defined by child classes
+        logger.info("Experiment sequence starting")
         self.do_experiment_after_red_mot_hook()
 
         delay(self.delay_after_experiment.get())
-
+        logger.info("Starting imaging sequence")
         self.do_imaging_hook()
-
+        logger.info("Imaging sequence complete")
         self.post_sequence_cleanup_hook()
 
         self.core.wait_until_mu(now_mu())
