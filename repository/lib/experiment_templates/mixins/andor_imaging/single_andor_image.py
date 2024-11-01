@@ -2,7 +2,7 @@ import logging
 
 from artiq.experiment import kernel
 
-from .imaging_base import AndorImagingBase
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)
 

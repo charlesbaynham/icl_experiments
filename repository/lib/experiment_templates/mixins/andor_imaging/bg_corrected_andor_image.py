@@ -10,8 +10,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 
-from .imaging_base import ANDOR_MONITOR_DATASET
-from .imaging_base import AndorImagingBase
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import ANDOR_MONITOR_DATASET
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import AndorImagingBase
 
 logger = logging.getLogger(__name__)
 
