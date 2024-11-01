@@ -371,7 +371,7 @@ else:
     if USE_SR87:
         ANDOR_ROI_X0 = 150
         ANDOR_ROI_X1 = 350
-        ANDOR_ROI_Y0 = 285
+        ANDOR_ROI_Y0 = 255
         ANDOR_ROI_Y1 = 331
     else:
         ANDOR_ROI_X0 = x - width / 2
