@@ -5,8 +5,8 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutRedMOTMixin,
@@ -36,7 +36,7 @@ class MOTClockSpectroscopyExp(
 class MOTClockSpectroscopyNormalizedExp(
     ClockRabiSpectroscopyRedMotMixin,
     FLIRBlueMOTMeasurementMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageRedMOTFastKineticsMixin,
 ):
     """
     Normalised clock spectroscopy from a red MOT
@@ -52,7 +52,7 @@ class MOTPumpedClockSpectroscopyNormalizedExp(
     ClockRabiSpectroscopyRedMotMixin,
     ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageRedMOTFastKineticsMixin,
 ):
     """
     Normalised clock spectroscopy from a red MOT with clock pumping

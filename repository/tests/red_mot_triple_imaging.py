@@ -7,8 +7,8 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_bas
     TripleImageBasicMixin,
 )
 
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
@@ -22,7 +22,9 @@ class TestTripleImagingBasic(TripleImageBasicMixin, RedMOTWithExperiment):
         pass
 
 
-class TestTripleImagingKinetics(TripleImageFastKineticsMixin, RedMOTWithExperiment):
+class TestTripleImagingKinetics(
+    TripleImageRedMOTFastKineticsMixin, RedMOTWithExperiment
+):
     @kernel
     def do_experiment_after_red_mot_hook(self):
         # No spectroscopy needed - just do nothing and move straight to imaging

@@ -303,6 +303,7 @@ class XODTMolassesPlusFieldRampMixin(XODTMolassesMixin):
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
 
     We override this to do nothing since this Mixin is now taking charge of field setting:
 

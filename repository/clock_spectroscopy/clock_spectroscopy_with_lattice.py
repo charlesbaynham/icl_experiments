@@ -5,8 +5,8 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class ClockSpecFromLatticeFrag(
     ClockRabiSpectroscopyRedMotMixin,
     DroppedPumpedLatticeMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageDipoleTrapFastKineticsMixin,
     FLIRBlueMOTMeasurementMixin,
     RedMOTWithExperiment,
 ):

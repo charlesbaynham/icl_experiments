@@ -36,54 +36,54 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         super().build_fragment()
 
         self.setattr_param(
-            "pumping_pulse_time",
+            "shelving_pulse_time",
             FloatParam,
-            "Length of clock pumping pulse",
+            "Length of clock shelving pulse",
             default=50e-6,
             unit="us",
         )
-        self.pumping_pulse_time: FloatParamHandle
+        self.shelving_pulse_time: FloatParamHandle
 
         self.setattr_param(
-            "pumping_pulse_aom_detuning",
+            "shelving_pulse_aom_detuning",
             FloatParam,
-            "Frequency detuning of AOM during clock pumping pulse",
+            "Frequency detuning of AOM during clock shelving pulse",
             default=0,
             unit="kHz",
         )
-        self.pumping_pulse_aom_detuning: FloatParamHandle
+        self.shelving_pulse_aom_detuning: FloatParamHandle
 
         self.setattr_param(
-            "pumping_pulse_clearout_duration",
+            "shelving_pulse_clearout_duration",
             FloatParam,
-            "Duration of 461 clearout pulse after pumping",
+            "Duration of 461 clearout pulse after shelving",
             default=500e-6,
             unit="us",
         )
-        self.pumping_pulse_clearout_duration: FloatParamHandle
+        self.shelving_pulse_clearout_duration: FloatParamHandle
 
         self.setattr_param(
-            "pumping_clock_delivery_setpoint",
+            "shelving_clock_delivery_setpoint",
             FloatParam,
-            "Setpoint for clock delivery AOM during pumping",
+            "Setpoint for clock delivery AOM during shelving",
             default=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             min=0.0,
             unit="V",
         )
-        self.pumping_clock_delivery_setpoint: FloatParamHandle
+        self.shelving_clock_delivery_setpoint: FloatParamHandle
 
         self.setattr_fragment(
-            "pumping_clock_delivery_setter",
+            "shelving_clock_delivery_setter",
             LibSetSUServoStatic,
             channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
         )
-        self.pumping_clock_delivery_setter: LibSetSUServoStatic
+        self.shelving_clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
         # Ensure clock dds urukul is initiated
-        self.pumping_initiator = self.setattr_fragment(
-            "pumping_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
+        self.shelving_initiator = self.setattr_fragment(
+            "shelving_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
         )
 
     @kernel
@@ -95,12 +95,12 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.core.break_realtime()
 
         # Setup delivery AOM
-        self.pumping_clock_delivery_setter.set_suservo(
+        self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency,
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.pumping_clock_delivery_setpoint.get(),
+            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
 
@@ -111,13 +111,13 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
-        self.pumping_clock_delivery_setter.set_suservo(
+        self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-            + self.pumping_pulse_aom_detuning.get(),
+            + self.shelving_pulse_aom_detuning.get(),
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.pumping_clock_delivery_setpoint.get(),
+            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
 
@@ -125,12 +125,12 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         # Pulse it onto the atoms
         self.clock_dds.sw.on()
-        delay(self.pumping_pulse_time.get())
+        delay(self.shelving_pulse_time.get())
         self.clock_dds.sw.off()
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.pumping_pulse_clearout_duration.get()
+            duration=self.shelving_pulse_clearout_duration.get()
         )
 
 

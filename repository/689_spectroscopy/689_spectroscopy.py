@@ -9,8 +9,8 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 class SpectroscopyWithKinetics_UpBeam(
     FieldBoostMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageRedMOTFastKineticsMixin,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
     RedMOTWithExperiment,

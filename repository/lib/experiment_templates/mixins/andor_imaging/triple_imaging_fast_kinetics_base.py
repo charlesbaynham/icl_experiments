@@ -9,7 +9,9 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
-from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import AndorImagingBase
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    AndorImagingBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ def calculate_grabber_rois(
     account for the cloud falling under gravity.
     """
 
-    print(
+    logger.debug(
         "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
         (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
     )
@@ -49,15 +51,18 @@ def calculate_grabber_rois(
     ]
 
 
-class TripleImageFastKineticsMixin(AndorImagingBase):
+class TripleImageFastKineticsBase(AndorImagingBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
 
-    This mixin uses the Andor camera to take three images and create
+    This mixin base uses the Andor camera to take three images and create
     ResultChannels for normalised state readout, assuming that the first image
     is ground-state atoms, the second one is excited state and the third is
     background (i.e. no atoms at all).
+
+    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
+    and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -72,6 +77,8 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
     num_andor_images = 3
     num_grabber_readouts = 1
     num_grabber_rois = 3
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self):
         super().build_fragment()
@@ -115,21 +122,26 @@ class TripleImageFastKineticsMixin(AndorImagingBase):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=calculate_grabber_rois(
-                fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT,
-                fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET,
-                num_images=3,
-                x0=constants.ANDOR_ROI_X0,
-                y0=constants.ANDOR_ROI_Y0,
-                x1=constants.ANDOR_ROI_X1,
-                y1=constants.ANDOR_ROI_Y1,
-            ),
+            roi_defaults=self.get_grabber_roi_defaults(),
+            fast_kinetics_height_default=self.fast_kinetics_height_default,
+            fast_kinetics_offset_default=self.fast_kinetics_offset_default,
             add_pre_trigger_delay=True,
             fast_kinetics_num_shots=3,
         )
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
+
+    def get_grabber_roi_defaults(self):
+        return calculate_grabber_rois(
+            fast_kinetics_height=self.fast_kinetics_height_default,
+            fast_kinetics_offset=self.fast_kinetics_offset_default,
+            num_images=self.num_grabber_rois,
+            x0=constants.ANDOR_ROI_X0,
+            y0=constants.ANDOR_ROI_Y0,
+            x1=constants.ANDOR_ROI_X1,
+            y1=constants.ANDOR_ROI_Y1,
+        )
 
     @kernel
     def do_imaging_hook_andor(self):

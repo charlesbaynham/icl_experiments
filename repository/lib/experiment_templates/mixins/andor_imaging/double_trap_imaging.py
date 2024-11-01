@@ -6,11 +6,21 @@ from ndscan.experiment import FloatChannel
 from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
-repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import SingleAndorImage
-from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import AndorImagingBase
-from .bg_corrected_andor_image import BGCorrectedAndorImage
-from .triple_imaging_kinetics import TripleImageFastKineticsMixin
-from .triple_imaging_kinetics import calculate_grabber_rois
+from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
+    SingleAndorImage,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    AndorImagingBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
+    BGCorrectedAndorImage,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageXXODTFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    calculate_grabber_rois,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +118,7 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
         self.andor_sum_bkd_corrected.push(sums[1] - sums[3])
 
 
-class DoubleTrapImagingNormalised(TripleImageFastKineticsMixin):
+class DoubleTrapImagingNormalised(TripleImageXXODTFastKineticsMixin):
     """
     Image two traps with three pulses of light, imaging the ground, excited and
     background.
@@ -125,58 +135,58 @@ class DoubleTrapImagingNormalised(TripleImageFastKineticsMixin):
     * :meth:`~do_imaging_hook_andor`
     """
 
-    num_andor_images = 3
-    num_grabber_readouts = 1
-    num_grabber_rois = 6
+    # num_andor_images = 3
+    # num_grabber_readouts = 1
+    # num_grabber_rois = 6
 
-    def fast_kinetics_setup_results(self):
-        self.setattr_result("excitation_fraction_forward", FloatChannel)
-        self.setattr_result("atom_number_forward", FloatChannel)
+    # def fast_kinetics_setup_results(self):
+    #     self.setattr_result("excitation_fraction_forward", FloatChannel)
+    #     self.setattr_result("atom_number_forward", FloatChannel)
 
-        self.setattr_result("excitation_fraction_backward", FloatChannel)
-        self.setattr_result("atom_number_backward", FloatChannel)
+    #     self.setattr_result("excitation_fraction_backward", FloatChannel)
+    #     self.setattr_result("atom_number_backward", FloatChannel)
 
-        self.excitation_fraction_forward: FloatChannel
-        self.atom_number_forward: FloatChannel
-        self.excitation_fraction_backward: FloatChannel
-        self.atom_number_backward: FloatChannel
+    #     self.excitation_fraction_forward: FloatChannel
+    #     self.atom_number_forward: FloatChannel
+    #     self.excitation_fraction_backward: FloatChannel
+    #     self.atom_number_backward: FloatChannel
 
-    def hook_setup_andor(self):
-        """
-        Setup the Andor camera to use 6x ROIs
+    # def hook_setup_andor(self):
+    #     """
+    #     Setup the Andor camera to use 6x ROIs
 
-        We're using fast kinetics mode. The first three ROIs are for the forward
-        trap, the last three are for the backwards trap.
-        """
+    #     We're using fast kinetics mode. The first three ROIs are for the forward
+    #     trap, the last three are for the backwards trap.
+    #     """
 
-        roi_defaults = calculate_grabber_rois(
-            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-            num_images=3,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
-        ) + calculate_grabber_rois(
-            fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-            fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-            num_images=3,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
-        )
+    #     roi_defaults = calculate_grabber_rois(
+    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
+    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
+    #         num_images=3,
+    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+    #     ) + calculate_grabber_rois(
+    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
+    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
+    #         num_images=3,
+    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+    #     )
 
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=roi_defaults,
-            add_pre_trigger_delay=True,
-            fast_kinetics_num_shots=3,
-        )
-        self.andor_camera_control: AndorCameraControl
+    #     self.setattr_fragment(
+    #         "andor_camera_control",
+    #         AndorCameraControl,
+    #         roi_defaults=roi_defaults,
+    #         add_pre_trigger_delay=True,
+    #         fast_kinetics_num_shots=3,
+    #     )
+    #     self.andor_camera_control: AndorCameraControl
 
-        self.hook_setup_andor_results()
+    #     self.hook_setup_andor_results()
 
     @kernel
     def process_andor_data_hook(self, sums, means):
