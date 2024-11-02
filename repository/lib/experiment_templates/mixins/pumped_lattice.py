@@ -13,8 +13,38 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 from repository.lib.fragments.pyaion_overrides.suservo_override import (
     LibSetSUServoStatic,
 )
+from repository.lib.fragments.ramping_phase_bound import (
+    GeneralRampingPhaseWithBindingAndBiasField,
+)
 
 logger = logging.getLogger(__name__)
+
+
+class FieldAndLatticeRampingPhase(GeneralRampingPhaseWithBindingAndBiasField):
+    """
+    A ramping phase with ramps for 1379 nm lattice and bias fields
+
+    We only define a single set of ramp parameters (unlike in the red MOT ramping phases) because we will probably only use this phase on Sr87
+
+    The default suservo "nominal" is set to zero: It must be a bound to other parameters or values after this phase is instantiated or added as a subfragment
+    """
+
+    duration_default = 100e-3
+    time_step_default = 1e-3
+
+    suservos = ["suservo_aom_singlepass_1379_cavity_input"]
+
+    # These must be overridden / rebound by consumer fragments otherwise not
+    # much will happen. This is done so that all the phases can share the same
+    # detuning / nominal setpoints. Use
+    # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
+    default_suservo_nominal_setpoints = [0.0]
+    default_suservo_setpoint_multiples_start = [1.0]
+    default_suservo_setpoint_multiples_end = [1.0]
+
+    # Chamber 2 bias coils in amps [X, Y, Z]
+    general_setter_default_starts = constants.FIELD_COMP
+    general_setter_default_ends = constants.FIELD_COMP
 
 
 class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
@@ -39,6 +69,13 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment(
+            "field_and_lattice_ramp",
+            FieldAndLatticeRampingPhase,
+            enforce_binding_to_defaults=False,
+        )
+        self.field_and_lattice_ramp: FieldAndLatticeRampingPhase
 
         self.setattr_param(
             "delay_before_spinpol_pulse",
@@ -104,6 +141,12 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         )
         self.lattice_setter: SetBeamsToDefaults
 
+        # Binds the lattice ramp nominal setpoint to high setpoint
+        self.field_and_lattice_ramp.bind_param(
+            "setpoint_nominal_suservo_aom_singlepass_1379_cavity_input",
+            self.lattice_high_setpoint,
+        )
+
     @kernel
     def device_setup(self) -> None:
         self.core.break_realtime()
@@ -115,7 +158,8 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     def post_narrowband_hook(self):
         self.load_into_lattice()
         self.spin_polarize()
-        self.ramp_down_lattice()
+        self.field_and_lattice_ramp.do_phase()
+        self.switch_lattice_low()
 
     @kernel
     def load_into_lattice(self):
@@ -145,7 +189,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         delay(self.delay_after_spinpol_pulse.get())
 
     @kernel
-    def ramp_down_lattice(self):
+    def switch_lattice_low(self):
         """
         For now, just drop the lattice setpoint immediately.
 
