@@ -150,6 +150,15 @@ class SpectroscopySingleImage_UpBeam(
 
         super().build_fragment()
 
+        # Ideally the ramp start fields would be bound to the boosted fields,
+        # but bind_param doesn't support such things. The field parameters will
+        # just have to be set the same manually on the dashboard
+        self.field_and_lattice_ramp.general_setter_default_starts = [
+            self.blue_3d_mot.chamber_2_bias_x.get() + self.x_coil_boost.get(),
+            self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
+            self.blue_3d_mot.chamber_2_bias_z.get() + self.z_coil_boost.get(),
+            ]
+
     @kernel
     def pre_expansion_hook(self):
         # Disable servoing, turn off the switch, configure the amplitude and

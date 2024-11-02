@@ -39,8 +39,8 @@ class FieldAndLatticeRampingPhase(GeneralRampingPhaseWithBindingAndBiasField):
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0]
-    default_suservo_setpoint_multiples_start = 1.0
-    default_suservo_setpoint_multiples_end = 1.0
+    default_suservo_setpoint_multiples_start = [1.0]
+    default_suservo_setpoint_multiples_end = [1.0]
 
     # Chamber 2 bias coils in amps [X, Y, Z]
     general_setter_default_starts = constants.FIELD_COMP
@@ -73,6 +73,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         self.setattr_fragment(
             "field_and_lattice_ramp",
             FieldAndLatticeRampingPhase,
+            enforce_binding_to_defaults=False,
         )
         self.field_and_lattice_ramp: FieldAndLatticeRampingPhase
 
@@ -140,13 +141,9 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         )
         self.lattice_setter: SetBeamsToDefaults
 
-        self.field_and_lattice_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
-            self.lattice_setter
-        )
-
-        # FIXME This needs to have a different multiplier for the lattice setpoint. Could just ues the default setpoint for this.
+        # Binds the lattice ramp nominal setpoint to high setpoint
         self.field_and_lattice_ramp.bind_param(
-            "setpoint_multiple_start_suservo_aom_singlepass_1379_cavity_input",
+            "setpoint_nominal_suservo_aom_singlepass_1379_cavity_input",
             self.lattice_high_setpoint,
         )
 
@@ -161,7 +158,8 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     def post_narrowband_hook(self):
         self.load_into_lattice()
         self.spin_polarize()
-        self.ramp_down_lattice()
+        self.field_and_lattice_ramp.do_phase()
+        self.switch_lattice_low()
 
     @kernel
     def load_into_lattice(self):
@@ -191,7 +189,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         delay(self.delay_after_spinpol_pulse.get())
 
     @kernel
-    def ramp_down_lattice(self):
+    def switch_lattice_low(self):
         """
         For now, just drop the lattice setpoint immediately.
 
