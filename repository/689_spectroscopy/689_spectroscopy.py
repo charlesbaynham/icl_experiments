@@ -150,6 +150,17 @@ class SpectroscopySingleImage_UpBeam(
 
         super().build_fragment()
 
+        # Expose the field ramp parameters automatically to the front panel
+        names = [
+            n
+            for n in self.field_and_lattice_ramp._free_params.keys()
+            if "suservo" not in n
+        ]
+        for name in names:
+            self.setattr_param_rebind(
+                f"ramp_after_spinpol_{name}", self.field_and_lattice_ramp, original_name=name
+            )
+
     @kernel
     def pre_expansion_hook(self):
         # Disable servoing, turn off the switch, configure the amplitude and
