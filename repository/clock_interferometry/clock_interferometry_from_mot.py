@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class MOTClockInterferometryNormalizedExp(
     ClockInterferometryRedMOTMixin,
-    # ClockShelvingAndClearoutRedMOTMixin, FIXME: Include shelving again
+    ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
     TripleImageRedMOTFastKineticsMixin,
 ):
