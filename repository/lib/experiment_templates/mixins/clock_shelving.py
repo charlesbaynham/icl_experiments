@@ -168,3 +168,4 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
         self.dipole_beam_controller.turn_off_dipole_beams()
         delay(100e-9)
         self.clock_shelving()
+        delay(1e-6)
