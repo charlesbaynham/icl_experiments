@@ -6,6 +6,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_basic import (
     TripleImageBasicMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageRedMOTFastKineticsMixin,
+)  #
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryRedMOTMixin,
 )
@@ -23,7 +26,7 @@ class MOTClockInterferometryNormalizedExp(
     ClockInterferometryRedMOTMixin,
     # ClockShelvingAndClearoutRedMOTMixin, FIXME: Include shelving again
     FLIRBlueMOTMeasurementMixin,
-    TripleImageFastKineticsMixin,  # TODO: go back to fast kinetics
+    TripleImageRedMOTFastKineticsMixin,  # TODO: go back to fast kinetics
     # TripleImageBasicMixin,
 ):
     """
