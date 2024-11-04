@@ -373,6 +373,11 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
     @kernel
     def default_post_narrowband_hook(self):
+        """
+        Turns off the red MOT beams. This advances the timeline by one
+        self.core.ref_multiplier, but includes several events in the future:
+        Simultaneous commands will populate new lanes.
+        """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel
