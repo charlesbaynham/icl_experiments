@@ -19,6 +19,12 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTMolassesPlusFieldRampMixin,
 )
 
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingNormalised,
+)
+
+from ndscan.experiment import OnlineFit
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +34,7 @@ class DifferentialClockInterferometryFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,
-    DoubleTrapImagingBGSubtracted,
+    DoubleTrapImagingNormalised,
 ):
     """
     Clock interferometry from a double XODT
@@ -38,6 +44,9 @@ class DifferentialClockInterferometryFrag(
     def before_start_hook(self):
         self.before_start_hook_clockspec()
         self.before_start_hook_xodt_molasses()
+
+    def get_default_analyses(self):
+        pass
 
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
