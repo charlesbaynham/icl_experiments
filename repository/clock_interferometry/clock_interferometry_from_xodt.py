@@ -40,7 +40,7 @@ class DifferentialClockInterferometryFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,
-    TripleImageDipoleTrapFastKineticsMixin,  # TODO: change back to DoubleTrapImagingNormalised,
+    DoubleTrapImagingNormalised,
 ):
     """
     Clock interferometry from a double XODT
