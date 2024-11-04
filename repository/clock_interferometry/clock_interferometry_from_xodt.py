@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
-    # ClockShelvingAndClearoutDipoleTrapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,
     DoubleTrapImagingNormalised,
