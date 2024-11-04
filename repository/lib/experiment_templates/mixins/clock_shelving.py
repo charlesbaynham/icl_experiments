@@ -127,10 +127,11 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.clock_dds.sw.off()
 
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.shelving_pulse_clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=self.shelving_pulse_clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
+        delay(self.shelving_pulse_clearout_duration.get())
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
