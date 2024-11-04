@@ -105,7 +105,7 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
     # FIXME we need to implement repumping somehow, even if the below doesn't work
     def do_first_pulse(self):
         self.do_pulse()
-        delay(self.delay_repumps_after_first_pulse.get())
+        # delay(self.delay_repumps_after_first_pulse.get())
         # self.blue_3d_mot.turn_on_repumpers()
 
 
