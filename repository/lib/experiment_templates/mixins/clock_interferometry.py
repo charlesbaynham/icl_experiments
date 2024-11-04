@@ -65,22 +65,6 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         # Allow negative phases up to -10
         self.phase_constant = 10.0
 
-    def get_default_analyses(self):
-        super_analysis = super().get_default_analyses()
-
-        return super_analysis + [
-            OnlineFit(
-                "sinusoid",
-                data={
-                    "x": self.phase_step,
-                    "y": self.excitation_fraction,
-                },
-                constants={
-                    "t_dead": -100.0,
-                },
-            )
-        ]
-
     @kernel
     def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
