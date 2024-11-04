@@ -118,7 +118,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
             + self.core.seconds_to_mu(self.delay_between_interferometry_pulses.get())
         )
         self.clock_dds.sw.on()
-        delay(t_pi_pulse)
+        delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
 
 
