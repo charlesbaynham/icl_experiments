@@ -45,9 +45,6 @@ class DifferentialClockInterferometryFrag(
         self.before_start_hook_clockspec()
         self.before_start_hook_xodt_molasses()
 
-    def get_default_analyses(self):
-        pass
-
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
     DifferentialClockInterferometryFrag
