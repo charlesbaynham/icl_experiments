@@ -34,7 +34,7 @@ class MOTClockInterferometryNormalizedExp(
 
     @kernel
     def before_start_hook(self):
-        # self.before_start_hook_clockshelving() FIXME: Include shelving again
+        self.before_start_hook_clockshelving()
         self.before_start_hook_clockspec()
 
 
