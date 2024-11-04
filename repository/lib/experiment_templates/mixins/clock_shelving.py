@@ -128,7 +128,8 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.shelving_pulse_clearout_duration.get()
+            duration=self.shelving_pulse_clearout_duration.get(),
+            ignore_final_shutters=True,
         )
 
 
