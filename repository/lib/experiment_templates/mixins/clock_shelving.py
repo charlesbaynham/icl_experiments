@@ -130,7 +130,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.shelving_pulse_clearout_duration.get()
         )
-        delay(self.shelving_pulse_clearout_duration.get())
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
