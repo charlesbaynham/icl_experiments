@@ -109,27 +109,28 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
-        self.shelving_clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-            + self.shelving_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
-            enable_iir=True,
-        )
+        # self.shelving_clock_delivery_setter.set_suservo(
+        #     freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+        #     + self.shelving_pulse_aom_detuning.get(),
+        #     amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+        #     attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+        #     rf_switch_state=True,
+        #     setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+        #     enable_iir=True,
+        # )
 
-        self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        # self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
 
         # Pulse it onto the atoms
-        self.clock_dds.sw.on()
+        # self.clock_dds.sw.on()
         delay(self.shelving_pulse_time.get())
-        self.clock_dds.sw.off()
+        # self.clock_dds.sw.off()
 
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.shelving_pulse_clearout_duration.get()
-        )
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=self.shelving_pulse_clearout_duration.get()
+        # )
+        delay(self.shelving_pulse_clearout_duration.get())
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
@@ -166,5 +167,4 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
         delay(-100e-9)
         self.dipole_beam_controller.turn_off_dipole_beams()
         delay(100e-9)
-        logger.info("HELLOOOOO")
         self.clock_shelving()
