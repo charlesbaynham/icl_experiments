@@ -26,16 +26,15 @@ class MOTClockInterferometryNormalizedExp(
     ClockInterferometryRedMOTMixin,
     # ClockShelvingAndClearoutRedMOTMixin, FIXME: Include shelving again
     FLIRBlueMOTMeasurementMixin,
-    TripleImageRedMOTFastKineticsMixin,  # TODO: go back to fast kinetics
-    # TripleImageBasicMixin,
+    TripleImageRedMOTFastKineticsMixin,
 ):
     """
-    Clock interferometry with clock shelving and fast kinetics
+    Clock interferometry from red MOT with clock shelving and fast kinetics
     """
 
     @kernel
     def before_start_hook(self):
-        # self.before_start_hook_clockshelving()
+        # self.before_start_hook_clockshelving() FIXME: Include shelving again
         self.before_start_hook_clockspec()
 
 
