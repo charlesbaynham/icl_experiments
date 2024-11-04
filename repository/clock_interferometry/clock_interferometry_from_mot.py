@@ -23,8 +23,8 @@ class MOTClockInterferometryNormalizedExp(
     ClockInterferometryRedMOTMixin,
     # ClockShelvingAndClearoutRedMOTMixin, FIXME: Include shelving again
     FLIRBlueMOTMeasurementMixin,
-    # TripleImageFastKineticsMixin,  # TODO: go back to fast kinetics
-    TripleImageBasicMixin,
+    TripleImageFastKineticsMixin,  # TODO: go back to fast kinetics
+    # TripleImageBasicMixin,
 ):
     """
     Clock interferometry with clock shelving and fast kinetics
