@@ -79,7 +79,6 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
 
     @kernel
     def before_start_hook_clockspec(self):
-        logger.info("Setting up clock spectroscopy")
         self.core.break_realtime()
 
         # Setup delivery AOM
@@ -156,7 +155,6 @@ class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
-        logger.info("Starting clock spectroscopy after red MOT")
         self.do_rabi_spectroscopy()
 
 
