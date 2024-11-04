@@ -122,9 +122,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
 
         # Pulse it onto the atoms
-        # self.clock_dds.sw.on()
+        self.clock_dds.sw.on()
         delay(self.shelving_pulse_time.get())
-        # self.clock_dds.sw.off()
+        self.clock_dds.sw.off()
 
         # Clear out the ground state
         # self.fluorescence_pulse.do_imaging_pulse(
