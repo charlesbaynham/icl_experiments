@@ -119,7 +119,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             enable_iir=True,
         )
 
-        # self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
 
         # Pulse it onto the atoms
         # self.clock_dds.sw.on()
