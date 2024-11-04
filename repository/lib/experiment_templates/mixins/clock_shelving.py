@@ -127,10 +127,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.clock_dds.sw.off()
 
         # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=self.shelving_pulse_clearout_duration.get()
-        # )
-        delay(self.shelving_pulse_clearout_duration.get())
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.shelving_pulse_clearout_duration.get()
+        )
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
@@ -163,5 +162,8 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     @kernel
     def post_dipole_trap_hook(self):
+        # These delays are to avoid collisions, but are not physically relevant
+        delay(-100e-9)
         self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(100e-9)
         self.clock_shelving()
