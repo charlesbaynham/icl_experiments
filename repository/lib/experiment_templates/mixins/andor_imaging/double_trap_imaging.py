@@ -139,17 +139,17 @@ class DoubleTrapImagingNormalised(TripleImageXXODTFastKineticsMixin):
     # num_grabber_readouts = 1
     # num_grabber_rois = 6
 
-    # def fast_kinetics_setup_results(self):
-    #     self.setattr_result("excitation_fraction_forward", FloatChannel)
-    #     self.setattr_result("atom_number_forward", FloatChannel)
+    def fast_kinetics_setup_results(self):
+        self.setattr_result("excitation_fraction_forward", FloatChannel)
+        self.setattr_result("atom_number_forward", FloatChannel)
 
-    #     self.setattr_result("excitation_fraction_backward", FloatChannel)
-    #     self.setattr_result("atom_number_backward", FloatChannel)
+        self.setattr_result("excitation_fraction_backward", FloatChannel)
+        self.setattr_result("atom_number_backward", FloatChannel)
 
-    #     self.excitation_fraction_forward: FloatChannel
-    #     self.atom_number_forward: FloatChannel
-    #     self.excitation_fraction_backward: FloatChannel
-    #     self.atom_number_backward: FloatChannel
+        self.excitation_fraction_forward: FloatChannel
+        self.atom_number_forward: FloatChannel
+        self.excitation_fraction_backward: FloatChannel
+        self.atom_number_backward: FloatChannel
 
     # def hook_setup_andor(self):
     #     """
