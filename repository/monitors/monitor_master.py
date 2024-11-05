@@ -74,7 +74,7 @@ MonitorMaster = make_monitor_controller(
         "ion_pump": MonitorIonPump,
         "ion_pump_cham2": MonitorIonPumpDup,
         "heartbeat": MonitorHeartbeat,
-        "turbopump": MonitorTurbo,
+        # "turbopump": MonitorTurbo,
         "blue_ijd1": MonitorBlueIJD1,
         "blue_ijd2": MonitorBlueIJD2,
         "blue_ijd3": MonitorBlueIJD3,

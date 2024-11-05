@@ -96,6 +96,7 @@
             "locked_at": 0,
             "host": "10.137.1.5",
             "target": "laser2",
+            "v_pzt_max": 125,
         },
         "689_IJD": {
             "auto_exposure": true,
