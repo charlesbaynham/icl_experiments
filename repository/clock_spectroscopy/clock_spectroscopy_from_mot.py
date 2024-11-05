@@ -3,7 +3,7 @@ import logging
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
-    NormalisedFastKineticsRedMOTMixin,
+    NormalisedRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
@@ -39,7 +39,7 @@ class MOTClockSpectroscopyExp(
 class MOTClockSpectroscopyNormalizedExp(
     ClockRabiSpectroscopyRedMotMixin,
     FLIRBlueMOTMeasurementMixin,
-    NormalisedFastKineticsRedMOTMixin,
+    NormalisedRedMOTFastKineticsMixin,
 ):
     """
     Normalised clock spectroscopy from a red MOT
