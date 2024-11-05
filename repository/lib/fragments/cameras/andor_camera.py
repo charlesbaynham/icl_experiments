@@ -16,8 +16,6 @@ from artiq.experiment import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
-from ndscan.experiment.parameters import EnumParam
-from ndscan.experiment.parameters import ParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
