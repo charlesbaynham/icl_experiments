@@ -3,33 +3,38 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.clock_interferometry import (
-    ClockInterferometryMixin,
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_basic import (
+    TripleImageBasicMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_pumping import ClockPumpingMixin
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageRedMOTFastKineticsMixin,
+)  #
+from repository.lib.experiment_templates.mixins.clock_interferometry import (
+    ClockInterferometryRedMOTMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_shelving import (
+    ClockShelvingAndClearoutRedMOTMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class MOTClockInterferometryNormalizedExp(
-    ClockInterferometryMixin,
-    ClockPumpingMixin,
+    ClockInterferometryRedMOTMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
-    TripleImageFastKineticsMixin,
+    TripleImageRedMOTFastKineticsMixin,
 ):
     """
-    Clock interferometry with clock pumping and fast kinetics
+    Clock interferometry from red MOT with clock shelving and fast kinetics
     """
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockpumping()
+        self.before_start_hook_clockshelving()
         self.before_start_hook_clockspec()
 
 

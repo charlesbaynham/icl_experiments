@@ -10,20 +10,40 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 logger = logging.getLogger(__name__)
 
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyMixin,
-)
 
+class ClockInterferometryBase(ClockSpectroscopyBase):
+    """
+    Customizes ClockSpectroscopyBase for pi/2 - pi - pi/2 clock interferometry
 
-class ClockInterferometryMixin(ClockSpectroscopyMixin):
+    Kernel hooks used (not including wherever the interferometry is done - needs customization):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_first_pulse`
+    """
+
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=50e-6,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
 
         self.setattr_param(
             "delay_between_interferometry_pulses",
@@ -45,24 +65,8 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
         # Allow negative phases up to -10
         self.phase_constant = 10.0
 
-    def get_default_analyses(self):
-        super_analysis = super().get_default_analyses()
-
-        return super_analysis + [
-            OnlineFit(
-                "sinusoid",
-                data={
-                    "x": self.phase_step,
-                    "y": self.excitation_fraction,
-                },
-                constants={
-                    "t_dead": -100.0,
-                },
-            )
-        ]
-
     @kernel
-    def do_experiment_after_red_mot_hook(self):
+    def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         # Set frequency on the suservo, phase on the clock switch
@@ -114,5 +118,43 @@ class ClockInterferometryMixin(ClockSpectroscopyMixin):
             + self.core.seconds_to_mu(self.delay_between_interferometry_pulses.get())
         )
         self.clock_dds.sw.on()
-        delay(t_pi_pulse)
+        delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
+
+
+class ClockInterferometryRedMOTMixin(ClockInterferometryBase):
+    """
+    Implements clock interferometry after the red MOT
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_red_mot_hook`
+    * :meth:`~do_first_pulse`
+    """
+
+    @kernel
+    def do_experiment_after_red_mot_hook(self):
+        self.do_clock_interferometry()
+
+
+class ClockInterferometryDipoleTrapMixin(
+    ClockInterferometryBase, DipoleTrapWithExperiment
+):
+    """
+    Implements clock interferometry after the dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_dipole_trap_hook`
+    * :meth:`~do_first_pulse`
+    """
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        # These delays are to avoid collisions, but are not physically relevant
+        delay(-100e-9)
+        self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(100e-9)
+        self.do_clock_interferometry()

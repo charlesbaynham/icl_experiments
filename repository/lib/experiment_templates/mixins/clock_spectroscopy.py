@@ -11,6 +11,9 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -19,28 +22,18 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockSpectroscopyMixin(RedMOTWithExperiment):
+class ClockSpectroscopyBase(RedMOTWithExperiment):
     """
-    Uses a clock pulse for spectroscopy
+    Sets up the clock beam for clock spectroscopy (including clock shelving or interferometry)
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_red_mot_hook`
     * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
         super().build_fragment()
-
-        self.setattr_param(
-            "spectroscopy_pulse_time",
-            FloatParam,
-            "Length of spectroscopy pulse",
-            default=50e-6,
-            unit="us",
-        )
-        self.spectroscopy_pulse_time: FloatParamHandle
 
         self.setattr_param(
             "spectroscopy_pulse_aom_detuning",
@@ -61,15 +54,6 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
         )
         self.spectroscopy_clock_delivery_setpoint: FloatParamHandle
 
-        self.setattr_param(
-            "delay_repumps_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before repumps turn on",
-            default=1e-3,
-            unit="ms",
-        )
-        self.delay_repumps_after_first_pulse: FloatParamHandle
-
         self.setattr_fragment(
             "clock_delivery_setter",
             LibSetSUServoStatic,
@@ -84,9 +68,14 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
             "clock_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
         )
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=1e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
 
     @kernel
     def before_start_hook_clockspec(self):
@@ -110,7 +99,35 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
         self.clock_dds.cfg_sw(False)
 
     @kernel
-    def do_experiment_after_red_mot_hook(self):
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()
+
+
+class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
+    """
+    Customizes ClockSpectroscopyBase for Rabi spectroscopy
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=50e-6,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
+
+    @kernel
+    def do_rabi_spectroscopy(self):
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.spectroscopy_pulse_aom_detuning.get(),
@@ -125,8 +142,40 @@ class ClockSpectroscopyMixin(RedMOTWithExperiment):
         delay(self.spectroscopy_pulse_time.get())
         self.clock_dds.sw.off()
 
+
+class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
+    """
+    Uses a clock pulse for spectroscopy after the red MOT
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_red_mot_hook`
+    * :meth:`~do_first_pulse`
+    """
+
     @kernel
-    def do_first_pulse(self, andor_exposure):
-        self.do_pulse(andor_exposure)
-        delay(self.delay_repumps_after_first_pulse.get())
-        self.blue_3d_mot.turn_on_repumpers()
+    def do_experiment_after_red_mot_hook(self):
+        self.do_rabi_spectroscopy()
+
+
+class ClockRabiSpectroscopyDipoleTrapMixin(
+    ClockRabiSpectroscopyBase, DipoleTrapWithExperiment
+):
+    """
+    Implements clock Rabi spectroscopy after the dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_dipole_trap_hook`
+    * :meth:`~do_first_pulse`
+    """
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        # These delays are to avoid collisions, but are not physically relevant
+        delay(-100e-9)
+        self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(100e-9)
+        self.do_rabi_spectroscopy()

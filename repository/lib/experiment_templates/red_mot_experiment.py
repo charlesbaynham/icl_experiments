@@ -239,9 +239,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.do_experiment_after_red_mot_hook()
 
         delay(self.delay_after_experiment.get())
-
         self.do_imaging_hook()
-
         self.post_sequence_cleanup_hook()
 
         self.core.wait_until_mu(now_mu())
@@ -253,20 +251,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.save_flir_data_hook()
 
         # This one for the Andor
-        self.save_andor_data_hook()
-
-    @kernel
-    def do_pulse(self, andor_exposure):
-        """
-        Default implementation of a fluorescence pulse, available for use by
-        mixins in :meth:`~do_imaging_hook` (but not used by default).
-        """
-        with parallel:
-            self.andor_camera_control.trigger(
-                exposure=andor_exposure,
-                control_shutter=False,
-            )
-            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
+        self.save_grabber_data_hook()
 
     # %% Hooks / overridable methods
     #
@@ -308,7 +293,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         pass
 
     @kernel
-    def save_andor_data_hook(self):
+    def save_grabber_data_hook(self):
         """
         Hook to save data from the Andor camera
 
@@ -388,6 +373,11 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
     @kernel
     def default_post_narrowband_hook(self):
+        """
+        Turns off the red MOT beams. This advances the timeline by one
+        self.core.ref_multiplier, but includes several events in the future:
+        Simultaneous commands will populate new lanes.
+        """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel

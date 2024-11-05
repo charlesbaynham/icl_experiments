@@ -11,6 +11,9 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -18,86 +21,84 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockPumpingMixin(RedMOTWithExperiment):
+class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
         super().build_fragment()
 
         self.setattr_param(
-            "pumping_pulse_time",
+            "shelving_pulse_time",
             FloatParam,
-            "Length of clock pumping pulse",
+            "Length of clock shelving pulse",
             default=50e-6,
             unit="us",
         )
-        self.pumping_pulse_time: FloatParamHandle
+        self.shelving_pulse_time: FloatParamHandle
 
         self.setattr_param(
-            "pumping_pulse_aom_detuning",
+            "shelving_pulse_aom_detuning",
             FloatParam,
-            "Frequency detuning of AOM during clock pumping pulse",
+            "Frequency detuning of AOM during clock shelving pulse",
             default=0,
             unit="kHz",
         )
-        self.pumping_pulse_aom_detuning: FloatParamHandle
+        self.shelving_pulse_aom_detuning: FloatParamHandle
 
         self.setattr_param(
-            "pumping_pulse_clearout_duration",
+            "shelving_pulse_clearout_duration",
             FloatParam,
-            "Duration of 461 clearout pulse after pumping",
+            "Duration of 461 clearout pulse after shelving",
             default=500e-6,
             unit="us",
         )
-        self.pumping_pulse_clearout_duration: FloatParamHandle
+        self.shelving_pulse_clearout_duration: FloatParamHandle
 
         self.setattr_param(
-            "pumping_clock_delivery_setpoint",
+            "shelving_clock_delivery_setpoint",
             FloatParam,
-            "Setpoint for clock delivery AOM during pumping",
+            "Setpoint for clock delivery AOM during shelving",
             default=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             min=0.0,
             unit="V",
         )
-        self.pumping_clock_delivery_setpoint: FloatParamHandle
+        self.shelving_clock_delivery_setpoint: FloatParamHandle
 
         self.setattr_fragment(
-            "pumping_clock_delivery_setter",
+            "shelving_clock_delivery_setter",
             LibSetSUServoStatic,
             channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
         )
-        self.pumping_clock_delivery_setter: LibSetSUServoStatic
+        self.shelving_clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
         # Ensure clock dds urukul is initiated
-        self.pumping_initiator = self.setattr_fragment(
-            "pumping_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
+        self.shelving_initiator = self.setattr_fragment(
+            "shelving_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
         )
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockpumping()
+        self.before_start_hook_clockshelving()
 
     @kernel
-    def before_start_hook_clockpumping(self):
+    def before_start_hook_clockshelving(self):
         self.core.break_realtime()
 
         # Setup delivery AOM
-        self.pumping_clock_delivery_setter.set_suservo(
+        self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency,
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.pumping_clock_delivery_setpoint.get(),
+            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
 
@@ -106,17 +107,15 @@ class ClockPumpingMixin(RedMOTWithExperiment):
         self.clock_dds.cfg_sw(False)
 
     @kernel
-    def post_narrowband_hook(self):
-        self.default_post_narrowband_hook()
-
+    def clock_shelving(self):
         # Prepare the clock beam
-        self.pumping_clock_delivery_setter.set_suservo(
+        self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-            + self.pumping_pulse_aom_detuning.get(),
+            + self.shelving_pulse_aom_detuning.get(),
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.pumping_clock_delivery_setpoint.get(),
+            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
 
@@ -124,10 +123,47 @@ class ClockPumpingMixin(RedMOTWithExperiment):
 
         # Pulse it onto the atoms
         self.clock_dds.sw.on()
-        delay(self.pumping_pulse_time.get())
+        delay(self.shelving_pulse_time.get())
         self.clock_dds.sw.off()
-
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.pumping_pulse_clearout_duration.get()
+            duration=self.shelving_pulse_clearout_duration.get(),
+            ignore_final_shutters=True,
         )
+
+
+class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    """
+
+    @kernel
+    def post_narrowband_hook(self):
+        self.default_post_narrowband_hook()
+        self.clock_shelving()
+
+
+class ClockShelvingAndClearoutDipoleTrapMixin(
+    ClockShelvingAndClearoutBase, DipoleTrapWithExperiment
+):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_dipole_trap_hook`
+    """
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        # These delays are to avoid collisions, but are not physically relevant
+        delay(-100e-9)
+        self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(100e-9)
+        self.clock_shelving()

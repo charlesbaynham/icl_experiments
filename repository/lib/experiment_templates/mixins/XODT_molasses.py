@@ -10,11 +10,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
-    DipoleBeamController,
-)
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 logger = logging.getLogger(__name__)
@@ -44,9 +42,6 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
-        self.dipole_beam_controller: DipoleBeamController
-
         self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
         self.molasses_xodt_1: MolassesInXODT
 
@@ -54,6 +49,49 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             "molasses_xodt_2", MolassesInXODT_2, enforce_binding_to_defaults=False
         )
         self.molasses_xodt_2: MolassesInXODT_2
+
+        # Remove unused parameters
+        self.override_param("spectroscopy_field_gradient", 0)
+
+        # Expose the bias field for moving the MOT to the right place
+        self.setattr_param_rebind(
+            "chamber_2_bias_x",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[0],
+        )
+        self.setattr_param_rebind(
+            "chamber_2_bias_y",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[1],
+        )
+        self.setattr_param_rebind(
+            "chamber_2_bias_z",
+            self.blue_3d_mot,
+            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[2],
+        )
+        self.setattr_param_rebind(
+            "chamber_2_red_narrowband_mot_current_start",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="chamber_2_mot_current_start",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
+        )
+        self.setattr_param_rebind(
+            "chamber_2_red_narrowband_mot_current_end",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="chamber_2_mot_current_end",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
+        )
+        self.setattr_param_rebind(
+            "red_narrowband_mot_689_up_start",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
+            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
+        )
+        self.setattr_param_rebind(
+            "red_narrowband_mot_689_up_end",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
+        )
 
         self.setattr_param(
             "delay_before_molasses",
@@ -101,8 +139,8 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             "Detuning of the 689 stir beam during 1st molasses",
             default=0,
             unit="kHz",
-            min=-1e6,
-            max=1e6,
+            min=-2e6,
+            max=2e6,
         )
         self.stir_beam_detuning_molasses_1: FloatParamHandle
 
@@ -110,10 +148,10 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             "stir_beam_detuning_molasses_2",
             FloatParam,
             "Detuning of the 689 stir beam during 2nd molasses",
-            default=0,
+            default=constants.XODT_2ND_MOLASSES_689_STIR_DETUNING,
             unit="kHz",
-            min=-1e6,
-            max=1e6,
+            min=-2e6,
+            max=2e6,
         )
         self.stir_beam_detuning_molasses_2: FloatParamHandle
 
@@ -144,6 +182,7 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
         dma handle is valid.
         """
         self.molasses_xodt_1.precalculate_dma_handle()
+        self.molasses_xodt_2.precalculate_dma_handle()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -248,3 +287,60 @@ class XODTMolassesMixin(DipoleTrapWithExperiment):
             ignore_shutters=True
         )
         self.molasses_xodt_2.do_phase()
+
+
+class XODTMolassesPlusFieldRampMixin(XODTMolassesMixin):
+    """
+    Loads atoms into a dipole trap after the narrowband red MOT, implements two
+    ramping molasses, then a final evaporation and bias magnetic field ramp phase.
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~dipole_trap_molasses_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
+
+    We override this to do nothing since this Mixin is now taking charge of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
+        )
+        self.bias_and_evap_ramp: XODTWithFieldRamp
+
+        self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
+            self.molasses_xodt_2, suservos=suservos_XODT
+        )
+
+    @kernel
+    def DMA_initialization_hook_evap_with_field_ramp(self):
+        self.bias_and_evap_ramp.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def dipole_trap_evaporation_hook_with_field_ramp(self):
+        """
+        Do the evap and field ramp
+        """
+        self.bias_and_evap_ramp.do_phase()
+
+    @kernel
+    def dipole_trap_evaporation_hook(self):
+        # Default hook turns off red beams - good!
+        self.dipole_trap_evaporation_hook_default()
+        self.dipole_trap_evaporation_hook_with_field_ramp()

@@ -92,3 +92,29 @@ class MolassesInXODT_2(MolassesInXODT):
     # Chamber 2 bias coils in amps
     general_setter_default_starts = constants.XODT_2ND_MOLASSES_BIAS_FIELD_START
     general_setter_default_ends = constants.XODT_2ND_MOLASSES_BIAS_FIELD_END
+
+
+class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
+    """
+    A phase with ramps for 1064/813 nm XODT and bias fields
+    """
+
+    duration_default = constants.XODT_EVAP_AND_FIELD_RAMP_DURATION
+    time_step_default = 1e-3
+
+    suservos = suservos_XODT
+
+    # These must be overridden / rebound by consumer fragments otherwise not
+    # much will happen. This is done so that all the phases can share the same
+    # detuning / nominal setpoints. Use
+    # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
+    default_suservo_nominal_setpoints = [0.0] * len(suservos_XODT)
+    # The start setpoints must be overridden by daisy-chaining to previous phase
+    default_suservo_setpoint_multiples_start = [0] * len(suservos_XODT)
+    default_suservo_setpoint_multiples_end = (
+        constants.XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END
+    )
+
+    # Chamber 2 bias coils in amps
+    general_setter_default_starts = constants.XODT_2ND_MOLASSES_BIAS_FIELD_END
+    general_setter_default_ends = constants.XODT_FINAL_BIAS_FIELD

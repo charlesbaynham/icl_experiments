@@ -151,6 +151,8 @@ def get_non_core_devices(simulation_mode=False):
             "host": "labpc1.lan",
             "port": 7777,
             "target": "AndorDriver",
+            "mockmodule": "repository.lib.fragments.cameras.andor_mock",
+            "mockclass": "MockAndorCamera",
             "command": 'aqctl_andor_cam --port {port} --bind {bind} --id "AndorCam" --temperature -60 --fan_mode "full"',
         },
         "chamber_1_axial_coil_driver": {
