@@ -75,6 +75,7 @@ aliases = {
     "TTL_blue_ijds": "ttl12",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch1",
+    "mirny_eom_cavity_offset_698": "mirny0_ch0",
     "mirny_eom_cavity_offset_689": "mirny1_ch0",
     "mirny_eom_707_sideband_A": "mirny1_ch1",
     "mirny_eom_707_sideband_B": "mirny1_ch2",
