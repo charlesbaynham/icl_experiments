@@ -6,6 +6,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
+from artiq.coredevice.ttl import TTLOut
 
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -32,7 +33,9 @@ class RedMOTWithClockLight(
     def build_fragment(self):
         super().build_fragment()
 
-        self.override_param("spectroscopy_pulse_time", 0.0)
+        self.setattr_device("ttl_shutter_repump_679")
+        self.ttl_shutter_repump_679: TTLOut
+
         self.override_param("delay_repumps_after_first_pulse", 0.0)
 
     @kernel
@@ -41,6 +44,13 @@ class RedMOTWithClockLight(
 
         # Turn on the click light immediately and leave it throughout
         self.clock_dds.cfg_sw(True)
+
+    @kernel
+    def start_of_red_broadband_hook(self):
+        self.start_of_red_broadband_hook_imaging_base()
+
+        # Turn off the 679 here so that we can shelve into the clock state
+        self.ttl_shutter_repump_679.off()
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
