@@ -6,13 +6,15 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockRabiSpectroscopyRedMotMixin,
-)
+
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +22,7 @@ logger = logging.getLogger(__name__)
 class RedMOTWithClockLight(
     SingleAndorImage,
     FLIRBlueMOTMeasurementMixin,
-    ClockRabiSpectroscopyRedMotMixin,
+    ClockSpectroscopyBase,
     RedMOTWithExperiment,
 ):
     """
@@ -36,6 +38,8 @@ class RedMOTWithClockLight(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+
+        # Turn on the click light immediately and leave it throughout
         self.clock_dds.cfg_sw(True)
 
     @kernel
