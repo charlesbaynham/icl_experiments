@@ -251,7 +251,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.save_flir_data_hook()
 
         # This one for the Andor
-        self.save_grabber_data_hook()
+        self.save_andor_data_hook()
 
     # %% Hooks / overridable methods
     #
@@ -293,7 +293,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         pass
 
     @kernel
-    def save_grabber_data_hook(self):
+    def save_andor_data_hook(self):
         """
         Hook to save data from the Andor camera
 
