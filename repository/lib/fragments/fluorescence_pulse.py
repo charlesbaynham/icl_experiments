@@ -181,8 +181,6 @@ class MOTBeamFluorescencePulse(FluorescencePulseBase):
     """
 
     suservo_beam_infos = [
-        constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
-        constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
         constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
     ]
 
