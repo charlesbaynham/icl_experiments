@@ -275,8 +275,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         Consume all slack and save the photos
         """
         self._call_camera_rpc()
-        sums, means = self.get_grabber_data()
-        self.process_grabber_data_hook(sums, means)
+        self.get_grabber_data()
 
     @kernel
     def get_grabber_data(self):
@@ -308,7 +307,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
 
-        return sums, means
+        self.process_grabber_data_hook(sums, means)
 
     @kernel
     def process_grabber_data_hook(self, sums, means):

@@ -180,7 +180,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         at_mu(t_post_mu)
         delay(self.delay_between_before_bg_img.get())
         self.pre_second_series()
-        self.do_second_series()()
+        self.do_second_series()
 
     @kernel
     def do_first_series(self):
