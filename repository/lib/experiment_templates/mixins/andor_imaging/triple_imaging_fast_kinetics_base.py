@@ -185,7 +185,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         self.do_just_a_fluorescence_pulse()
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         atom_number = sums[0] + sums[1] - 2 * sums[2]
 
         if atom_number == 0:

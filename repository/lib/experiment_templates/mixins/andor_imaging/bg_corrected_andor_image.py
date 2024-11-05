@@ -98,5 +98,5 @@ class BGCorrectedAndorImage(AndorImagingBase):
         )
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])

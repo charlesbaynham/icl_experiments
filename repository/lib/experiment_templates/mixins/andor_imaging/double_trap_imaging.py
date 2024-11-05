@@ -114,7 +114,7 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
         self.andor_sum_bkd_corrected: FloatChannel
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         self.andor_sum_fwd_corrected.push(sums[0] - sums[2])
         self.andor_sum_bkd_corrected.push(sums[1] - sums[3])
 
@@ -190,7 +190,7 @@ class DoubleTrapImagingNormalised(TripleImageXXODTFastKineticsMixin):
     #     self.hook_setup_andor_results()
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         atom_number_fwd = sums[0] + sums[1] - 2 * sums[2]
         atom_number_bwd = sums[3] + sums[4] - 2 * sums[5]
 

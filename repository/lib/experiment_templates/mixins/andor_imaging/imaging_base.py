@@ -200,6 +200,7 @@ class AndorImagingBase(RedMOTWithExperiment):
 
             # Update the main monitor
             self.update_andor_monitor_hook(images)
+            self.process_andor_image_hook(images)
 
     @host_only
     def get_andor_images(self):
@@ -275,6 +276,11 @@ class AndorImagingBase(RedMOTWithExperiment):
         Consume all slack and save the photos
         """
         self._call_camera_rpc()
+        sums, means = self.get_grabber_data()
+        self.process_grabber_data_hook(sums, means)
+
+    @kernel
+    def get_grabber_data(self):
 
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
@@ -303,12 +309,21 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
 
-        self.process_andor_data_hook(sums, means)
+        return sums, means
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         """
-        Process the Andor data
+        Process the Grabber data
 
         This is a hook that can be overridden by subclasses to e.g. do background subtraction using the andor datasets
+        """
+
+    @rpc(flags={"async"})
+    def process_andor_image_hook(self, images):
+        """
+        Hook to process the Andor image.
+        This method is intended to be overridden by subclasses to implement custom
+        processing of the Andor images after they have been read out. The default
+        implementation does nothing.
         """
