@@ -145,6 +145,7 @@
             "locked_at": 0,
             "host": "10.137.1.11",
             "target": "laser2",
+            "v_pzt_min": 5,
         },
         "Sirah": {
             "auto_exposure": true,
