@@ -12,5 +12,11 @@
         "pretrigger",
         "ROIs"
     ],
-    "editor.codeLens": true
+    "editor.codeLens": true,
+    "todo-tree.regex.regex": "\\b($TAGS)\\b",
+    "todo-tree.filtering.excludeGlobs": [
+        "**/node_modules/*/**",
+        "**/nix/aravis/**",
+        "**/flake.nix"
+    ]
 }

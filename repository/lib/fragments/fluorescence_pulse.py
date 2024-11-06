@@ -164,9 +164,7 @@ class FluorescencePulseBase(Fragment):
         delay_mu(
             int64(self.core.ref_multiplier)
         )  # minimum delay to avoid use of extra lane (1 coarse rtio cycle)
-        self.delivery_beam_toggler.turn_off_beams(
-            ignore_shutters=ignore_initial_shutters
-        )
+        self.delivery_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
 
 
 class ImagingFluorescencePulse(FluorescencePulseBase):
@@ -183,8 +181,6 @@ class MOTBeamFluorescencePulse(FluorescencePulseBase):
     """
 
     suservo_beam_infos = [
-        constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
-        constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
         constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
     ]
 

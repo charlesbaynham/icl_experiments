@@ -644,7 +644,11 @@ class MirnySettings:
 
 
 # These frequencies were chosen empirically based on the atoms
-_default_461 = 650504059e6
+_default_461 = (
+    650504059e6
+    # 2024-11-05
+    + 10e6
+)
 _default_707 = 423913478e6
 _default_679 = 441332627e6
 _default_698 = 429228387.3e6  # Measured empirically
@@ -678,6 +682,11 @@ MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=100e6, rf_switch=False
     ),
+    MirnySettings(
+        device_name="mirny_eom_cavity_offset_698",
+        frequency=675.85e6,
+        attenuation=0.0,
+    ),
 ]
 
 MIRNY_SETTINGS_87 = [
@@ -694,6 +703,11 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
+    ),
+    MirnySettings(
+        device_name="mirny_eom_cavity_offset_698",
+        frequency=675.85e6,
+        attenuation=0.0,
     ),
 ]
 

@@ -40,6 +40,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
+    * :meth:`~start_of_red_broadband_hook`
     * :meth:`~save_grabber_data_hook`
     """
 
@@ -144,6 +145,10 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @kernel
     def start_of_red_broadband_hook(self):
+        self.start_of_red_broadband_hook_imaging_base()
+
+    @kernel
+    def start_of_red_broadband_hook_imaging_base(self):
         # The Andor camera shutter needs ~120ms to open, so start this at the
         # beginning of the red stages. If the total red mot sequence takes less
         # time than this then we'll have problems

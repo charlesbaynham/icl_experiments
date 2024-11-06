@@ -212,9 +212,10 @@ To-do list
 ==========
 
 This repository uses the convention that to-do items are marked with the string
-"TODO". Temporary bodges which should be not be left in the code for longer than
-a few hours are marked with "FIXME" (these will cause the Gitlab pipeline to
-fail, to remind you to remove them).
+"TO<removeme>DO". Temporary bodges which should be not be left in the code for
+longer than a few hours are marked with "FIX<removeme>ME". These will cause the
+Gitlab pipeline to fail, to remind you to remove them. Get rid of the
+"<removeme>" bit! We need that here otherwise the pipeline would fail.
 
 You can use e.g. the "TodoTree" extension to extract a list of these.
 
