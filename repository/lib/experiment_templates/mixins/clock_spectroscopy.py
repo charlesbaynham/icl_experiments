@@ -72,7 +72,7 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
             "delay_repumps_after_first_pulse",
             FloatParam,
             "Delay after first fluorescence pulse before repumps turn on",
-            default=1e-3,
+            default=0.01e-3,
             unit="ms",
         )
         self.delay_repumps_after_first_pulse: FloatParamHandle

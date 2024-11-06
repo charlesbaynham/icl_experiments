@@ -70,28 +70,6 @@ class _MeasureDipoleTrapBase(
         self.dipole_beam_controller.turn_off_dipole_beams()
 
 
-class MeasureDipoleTrapFrag(BGCorrectedAndorImage, _MeasureDipoleTrapBase):
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param_rebind(
-            "roi_0_x0",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_x1",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y0",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y1",
-            self.andor_camera_control,
-        )
-
-
 class MeasureDoubleDipoleTrapFrag(
     DoubleTrapImagingBGSubtracted, _MeasureDipoleTrapBase
 ):
@@ -110,7 +88,6 @@ class NormalizedDoubleDipoleTrapFrag(
     pass
 
 
-MeasureDipoleTrap = make_fragment_scan_exp(MeasureDipoleTrapFrag)
 MeasureDoubleDipoleTrap = make_fragment_scan_exp(MeasureDoubleDipoleTrapFrag)
 MeasureDoubleDipoleTrapWithFieldRamp = make_fragment_scan_exp(
     MeasureDoubleDipoleTrapWithFieldRampFrag

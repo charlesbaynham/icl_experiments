@@ -1,12 +1,13 @@
 import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from artiq.experiment import kernel
 
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTMolassesPlusFieldRampMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
-    TripleImageDipoleTrapFastKineticsMixin,
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingNormalised,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -21,22 +22,27 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 logger = logging.getLogger(__name__)
 
 
-class ClockSpecFromXODTFrag(
+class ClockSpecFromXXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    TripleImageDipoleTrapFastKineticsMixin,
+    DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,
     DipoleTrapWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped XODT
+    Clock spectroscopy from dropped XXODT
 
-    Load into an XODT, then use the up clock beam for spectroscopy, altering the
+    Load into an XXODT, then use the up clock beam for spectroscopy, altering the
     (single-pass) AOM.
 
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
 
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
 
-ClockSpecFromXODT = make_fragment_scan_exp(ClockSpecFromXODTFrag)
+
+ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
