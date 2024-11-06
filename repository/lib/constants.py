@@ -23,6 +23,8 @@ from typing import Optional
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
+DELAY_BETWEEN_RTIO_EVENTS = 4e-9
+
 SR_FACTS = {
     "FREQUENCIES": {
         "689_88": 434829121311e3,  # 10.1103/PhysRevLett.91.243002
@@ -379,13 +381,13 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT = 30
-ANDOR_ROI_DIPOLE_WIDTH = 50
+ANDOR_ROI_DIPOLE_HEIGHT = 20
+ANDOR_ROI_DIPOLE_WIDTH = 20
 
-ANDOR_DIPOLE_TRAP_FORWARD_X = 200
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 295
+ANDOR_DIPOLE_TRAP_FORWARD_X = 193
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 300
 
-ANDOR_DIPOLE_TRAP_BACKWARD_X = 200
+ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 ANDOR_DIPOLE_TRAP_BACKWARD_Y = 355
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
@@ -517,6 +519,14 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
+    ),
+    SUServoedBeam(
+        "blue_plug_beam",
+        165e6,
+        20,
+        "suservo_aom_doublepass_461_plug",
+        setpoint=0.8,
+        servo_enabled=True,
     ),
     ### RED ###
     SUServoedBeam(
@@ -667,32 +677,10 @@ _default_689 = (
 )
 
 
-MIRNY_SETTINGS_88 = [
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_689",
-        frequency=580.7e6 - 2 * 0.56e6,
-        attenuation=3.0,
-    ),
-    MirnySettings(
-        device_name="mirny_eom_707_sideband_A", frequency=100e6, rf_switch=False
-    ),
-    MirnySettings(
-        device_name="mirny_eom_707_sideband_B", frequency=100e6, rf_switch=False
-    ),
-    MirnySettings(
-        device_name="mirny_eom_689_sideband", frequency=100e6, rf_switch=False
-    ),
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_698",
-        frequency=675.85e6,
-        attenuation=0.0,
-    ),
-]
-
 MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=_isotope_shift_689 - MIRNY_SETTINGS_88[0].frequency,
+        frequency=661.82e6,
         attenuation=5.0,
     ),
     MirnySettings(
@@ -706,10 +694,39 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_cavity_offset_698",
-        frequency=675.85e6,
+        frequency=673.87e6,
         attenuation=0.0,
     ),
 ]
+
+MIRNY_SETTINGS_88 = [
+    MirnySettings(
+        device_name="mirny_eom_cavity_offset_689",
+        frequency=_isotope_shift_689 - MIRNY_SETTINGS_87[0].frequency,
+        attenuation=3.0,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_A",
+        frequency=MIRNY_SETTINGS_87[1].frequency,
+        rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_B",
+        frequency=MIRNY_SETTINGS_87[2].frequency,
+        rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_689_sideband",
+        frequency=MIRNY_SETTINGS_87[3].frequency,
+        rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_cavity_offset_698",
+        frequency=MIRNY_SETTINGS_87[4].frequency,
+        attenuation=0.0,
+    ),
+]
+
 
 assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
@@ -869,7 +886,7 @@ if USE_SR87:
     ]
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 15e-3
+    XODT_MOLASSES_DURATION = 17e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
@@ -943,5 +960,5 @@ else:
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
-XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [0.5, 0.5]
+XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_FINAL_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.2, 0.0, 0.0])]

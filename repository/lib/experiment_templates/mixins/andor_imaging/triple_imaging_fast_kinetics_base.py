@@ -87,7 +87,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
             "delay_between_imaging_pulses",
             FloatParam,
             "Total time between the starts of the three fluorescence pulses",
-            default=1e-3,
+            default=3e-3,
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle

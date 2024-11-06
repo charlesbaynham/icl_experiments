@@ -28,6 +28,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fas
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
     TripleImageXXODTFastKineticsMixin,
 )
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 
 from ndscan.experiment import OnlineFit
 
@@ -37,10 +40,11 @@ logger = logging.getLogger(__name__)
 
 class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
+    # ClockShelvingAndClearoutDipoleTrapMixin, #TODO: Add this mixin
+    DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,
-    DoubleTrapImagingNormalised,
+    DipoleTrapWithExperiment,
 ):
     """
     Clock interferometry from a double XODT
