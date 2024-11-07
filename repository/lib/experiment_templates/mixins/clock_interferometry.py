@@ -152,8 +152,4 @@ class ClockInterferometryDipoleTrapMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        # These delays are to avoid collisions, but are not physically relevant
-        delay(-100e-9)
-        self.dipole_beam_controller.turn_off_dipole_beams()
-        delay(100e-9)
         self.do_clock_interferometry()

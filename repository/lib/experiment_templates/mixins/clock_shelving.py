@@ -2,9 +2,11 @@ import logging
 
 from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
@@ -28,6 +30,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
     """
 
     def build_fragment(self):
@@ -92,7 +95,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     def before_start_hook_clockshelving(self):
         self.core.break_realtime()
 
-        # Setup delivery AOM
         self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency,
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
@@ -119,12 +121,15 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             enable_iir=True,
         )
 
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        delay_mu(int64(self.core.ref_multiplier))
 
         # Pulse it onto the atoms
         self.clock_dds.sw.on()
         delay(self.shelving_pulse_time.get())
         self.clock_dds.sw.off()
+
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.shelving_pulse_clearout_duration.get(),
@@ -144,7 +149,8 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
 
     @kernel
     def post_narrowband_hook(self):
-        self.default_post_narrowband_hook()
+        self.post_narrowband_hook_default()
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_shelving()
 
 
@@ -162,8 +168,6 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     @kernel
     def post_dipole_trap_hook(self):
-        # These delays are to avoid collisions, but are not physically relevant
-        delay(-100e-9)
-        self.dipole_beam_controller.turn_off_dipole_beams()
-        delay(100e-9)
+        self.post_dipole_trap_hook_default()
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_shelving()

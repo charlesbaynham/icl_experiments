@@ -81,7 +81,8 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
     def before_start_hook_clockspec(self):
         self.core.break_realtime()
 
-        # Setup delivery AOM
+        # Setup delivery AOM. This might get overwritten by other
+        # before_start_hooks but that's fine, we set it later too.
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.spectroscopy_pulse_aom_detuning.get(),
@@ -174,8 +175,4 @@ class ClockRabiSpectroscopyDipoleTrapMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        # These delays are to avoid collisions, but are not physically relevant
-        delay(-100e-9)
-        self.dipole_beam_controller.turn_off_dipole_beams()
-        delay(100e-9)
         self.do_rabi_spectroscopy()

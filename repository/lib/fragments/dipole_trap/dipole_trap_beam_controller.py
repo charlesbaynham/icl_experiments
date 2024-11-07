@@ -4,11 +4,10 @@ from typing import List
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.experiment import TFloat
-from artiq.experiment import at_mu
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
+from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -129,14 +128,17 @@ class DipoleBeamController(Fragment):
 
     @kernel
     def turn_off_dipole_beams(self):
-        # Turns off all dipole beams. Does not advance timeline
-        t_start_mu = now_mu()
+        """
+        Turns off all dipole beams
+
+        Advances the timeline by a few coarse RTIO cycles
+        """
+
         for i in range(len(self.suservo_fragments)):
             self.suservo_fragments[i].set_channel_state(
                 rf_switch_state=False, enable_iir=False
             )
-            delay_mu(8)
-        at_mu(t_start_mu)
+            delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def set_dipole_suservo_setpoints(

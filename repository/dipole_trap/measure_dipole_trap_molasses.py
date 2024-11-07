@@ -63,8 +63,7 @@ class _MeasureDipoleTrapBase(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        # Release the atoms for time of flight measurement
-        self.dipole_beam_controller.turn_off_dipole_beams()
+        pass
 
 
 class MeasureDoubleDipoleTrapFrag(
