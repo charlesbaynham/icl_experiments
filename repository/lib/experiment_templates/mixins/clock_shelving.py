@@ -2,9 +2,11 @@ import logging
 
 from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
@@ -145,6 +147,7 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
     @kernel
     def post_narrowband_hook(self):
         self.post_narrowband_hook_default()
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_shelving()
 
 
@@ -163,4 +166,5 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     @kernel
     def post_dipole_trap_hook(self):
         self.post_dipole_trap_hook_default()
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_shelving()
