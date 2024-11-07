@@ -117,7 +117,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             default=1e-3,
             unit="ms",
         )
-        self.delay_between_before_bg_img: FloatParamHandle
+        self.delay_before_bg_img: FloatParamHandle
 
         self.fast_kinetics_setup_results()
 
