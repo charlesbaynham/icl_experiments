@@ -1,7 +1,6 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
-from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
@@ -111,27 +110,28 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
-        self.shelving_clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-            + self.shelving_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
-            enable_iir=True,
-        )
+        # self.shelving_clock_delivery_setter.set_suservo(
+        #     freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+        #     + self.shelving_pulse_aom_detuning.get(),
+        #     amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+        #     attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+        #     rf_switch_state=True,
+        #     setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+        #     enable_iir=True,
+        # )  FIXME
 
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        delay_mu(int64(self.core.ref_multiplier))
 
-        # Pulse it onto the atoms
-        self.clock_dds.sw.on()
-        delay(self.shelving_pulse_time.get())
-        self.clock_dds.sw.off()
+        # # Pulse it onto the atoms
+        # self.clock_dds.sw.on()
+        # delay(self.shelving_pulse_time.get())
+        # self.clock_dds.sw.off()  # FIXME!!
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.shelving_pulse_clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=self.shelving_pulse_clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # ) FIXME
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
