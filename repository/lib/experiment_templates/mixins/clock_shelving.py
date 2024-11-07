@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
+from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
@@ -124,15 +125,16 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
         delay_mu(int64(self.core.ref_multiplier))
 
-        # # Pulse it onto the atoms
-        # self.clock_dds.sw.on()
-        # delay(self.shelving_pulse_time.get())
-        # self.clock_dds.sw.off()  # FIXME!!
+        # Pulse it onto the atoms
+        self.clock_dds.sw.on()
+        delay(self.shelving_pulse_time.get())
+        self.clock_dds.sw.off()
+
         # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=self.shelving_pulse_clearout_duration.get(),
-        #     ignore_final_shutters=True,
-        # ) FIXME
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.shelving_pulse_clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
