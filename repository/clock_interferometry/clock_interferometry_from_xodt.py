@@ -4,7 +4,7 @@ from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingBGSubtracted,
+    DoubleTrapImagingNormalised,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
@@ -18,13 +18,6 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTMolassesPlusFieldRampMixin,
 )
-
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingNormalised,
-)
-
-from ndscan.experiment import OnlineFit
-
 
 logger = logging.getLogger(__name__)
 

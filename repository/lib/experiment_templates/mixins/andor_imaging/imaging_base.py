@@ -5,7 +5,6 @@ from typing import List
 import numpy as np
 from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import rpc
 from artiq.master.worker_impl import CCB

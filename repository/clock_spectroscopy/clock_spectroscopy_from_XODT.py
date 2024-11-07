@@ -2,8 +2,8 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTMolassesPlusFieldRampMixin,
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
     TripleImageDipoleTrapFastKineticsMixin,
@@ -14,8 +14,8 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)

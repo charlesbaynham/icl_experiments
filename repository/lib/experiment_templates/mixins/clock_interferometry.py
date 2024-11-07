@@ -4,7 +4,6 @@ from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
-from ndscan.experiment import OnlineFit
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.models import SUServoedBeam

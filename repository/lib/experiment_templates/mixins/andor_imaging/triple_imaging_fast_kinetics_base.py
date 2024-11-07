@@ -1,17 +1,18 @@
 import logging
 
-from artiq.experiment import delay, at_mu, now_mu
+from artiq.experiment import at_mu
+from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
