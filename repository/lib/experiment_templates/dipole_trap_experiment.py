@@ -99,6 +99,15 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         )
         self.dipole_hold_time: FloatParamHandle
 
+        self.setattr_param(
+            "dipole_pre_experiment_delay",
+            FloatParam,
+            "Time to delay experiment after dipole trap",
+            default=0.0,
+            unit="us",
+        )
+        self.dipole_pre_experiment_delay: FloatParamHandle
+
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
@@ -109,6 +118,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
         self.post_dipole_trap_hook()
+        delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
 
     @kernel
