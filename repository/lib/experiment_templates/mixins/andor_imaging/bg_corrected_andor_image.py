@@ -9,7 +9,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     ANDOR_MONITOR_DATASET,
 )

@@ -1,7 +1,10 @@
 import logging
+
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
     TripleImageFastKineticsBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
     calculate_grabber_rois,
 )
 

@@ -1,21 +1,19 @@
 import logging
 
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
-from artiq.coredevice.ttl import TTLOut
-
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyBase,
-)
 
 logger = logging.getLogger(__name__)
 
