@@ -1,7 +1,7 @@
 import logging
 
 from artiq.experiment import delay, at_mu, now_mu
-from artiq.experiment import kernel, host_only
+from artiq.experiment import kernel, host_only, rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -80,7 +80,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     """
 
     num_andor_images = 4
-    num_grabber_readouts = 2  # TODO: why is this 1 and not 2?
+    num_grabber_readouts = 2
     num_grabber_rois = 2
     num_images_per_series = 2
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
@@ -179,11 +179,12 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         """
         self.do_first_series()
         t_post_mu = now_mu()
-        self.post_first_series()
+        self.post_first_series()  # call rpc to get images, start next acquisition
         at_mu(t_post_mu)
         delay(self.delay_before_bg_img.get())
         self.pre_second_series()
         self.do_second_series()
+        self.post_second_series()  # call rpc to get images
 
     @kernel
     def do_first_series(self):
@@ -201,7 +202,11 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         """
         eg turn off beams, start acquisition
         """
-        self.core.wait_until_mu(now_mu())
+        self.post_first_series_rpc()
+
+    @rpc
+    def post_first_series_rpc(self):
+        self.first_series_images = self.get_andor_images()
         self.andor_camera_control.start_acquisition()
 
     @kernel
@@ -221,6 +226,14 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         at_mu(t_start_mu)
         delay(self.delay_between_imaging_pulses.get())
         self.do_second_pulse()
+
+    @kernel
+    def post_second_series(self):
+        self.post_second_series_rpc()
+
+    @rpc
+    def post_second_series_rpc(self):
+        self.second_series_images = self.get_andor_images()
 
     @kernel
     def do_first_pulse(self):
@@ -249,10 +262,19 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
         self.atom_number.push(atom_number)
 
+    @kernel
+    def save_andor_data_hook(self):
+        self.save_andor_data_hook_rpc()
+        self.get_grabber_data()
+
+    @rpc(flags={"async"})
+    def save_andor_data_hook_rpc(self):
+        images = self.first_series_images + self.second_series_images
+        self.process_andor_image_hook(images)
+        self.update_andor_monitor_hook(images)
+
     @host_only
     def process_andor_image_hook(self, images: List[np.ndarray]):
-        # for image in images:
-        #     image = image.astype(float) # TODO why didn't this work? something to do with artiq not liking redefining variables?
         ground_bg_corrected = images[0].astype(float) - images[2].astype(float)
         excited_bg_corrected = images[1].astype(float) - images[3].astype(float)
         self.set_dataset(
