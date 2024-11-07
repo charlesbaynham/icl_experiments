@@ -13,6 +13,7 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
+    ANDOR_DETAILED_MONITOR_DATASETS,
 )
 
 logger = logging.getLogger(__name__)
@@ -229,11 +230,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     @kernel
     def post_second_series(self):
-        self.post_second_series_rpc()
-
-    @rpc
-    def post_second_series_rpc(self):
-        self.second_series_images = self.get_andor_images()
+        pass
 
     @kernel
     def do_first_pulse(self):
@@ -262,14 +259,18 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
         self.atom_number.push(atom_number)
 
-    @kernel
-    def save_andor_data_hook(self):
-        self.save_andor_data_hook_rpc()
-        self.get_grabber_data()
-
     @rpc(flags={"async"})
-    def save_andor_data_hook_rpc(self):
-        images = self.first_series_images + self.second_series_images
+    def _call_camera_rpc(self):
+        images = self.first_series_images + self.get_andor_images()
+        for i, image in enumerate(images):
+            dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
+            self.set_dataset(
+                dataset_name,
+                image,
+                broadcast=True,
+                persist=False,
+                archive=False,
+            )
         self.process_andor_image_hook(images)
         self.update_andor_monitor_hook(images)
 
