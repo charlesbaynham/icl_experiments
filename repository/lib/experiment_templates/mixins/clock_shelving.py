@@ -2,11 +2,9 @@ import logging
 
 from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
@@ -95,7 +93,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     def before_start_hook_clockshelving(self):
         self.core.break_realtime()
 
-        # Setup delivery AOM
         self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency,
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
@@ -166,5 +163,4 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     @kernel
     def post_dipole_trap_hook_shelving(self):
         self.post_dipole_trap_hook_default()
-        delay_mu(int64(self.core.ref_multiplier))
         self.post_narrowband_hook_clock_shelving()
