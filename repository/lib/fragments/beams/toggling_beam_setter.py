@@ -16,10 +16,9 @@ from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
+from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.dummy_devices import DummySUServoFrag
 from repository.lib.dummy_devices import DummyTTL
-
-from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +154,7 @@ class ToggleListOfBeams(Fragment):
         Turns on all urukul and suservo beams in the ToggleListOfBeams instance
 
         Does not advance the timeline.
-        
+
         Event timings:
 
         * t < 0: Opens suservo shutters if present at t ~ -20 to -5 ms
@@ -166,7 +165,11 @@ class ToggleListOfBeams(Fragment):
 
         # Turn on the shuttered suservo beams
         self.shuttered_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
-        delay(3*DELAY_BETWEEN_RTIO_EVENTS*len(self.shuttered_beams_setter.beam_suservos))
+        delay(
+            3
+            * DELAY_BETWEEN_RTIO_EVENTS
+            * len(self.shuttered_beams_setter.beam_suservos)
+        )
 
         # Turn on the unshuttered suservo beams
         for i in range(len(self.suservo_frags)):
@@ -182,7 +185,7 @@ class ToggleListOfBeams(Fragment):
         for ttl in self.urukul_ttls:
             ttl.on()
             delay(DELAY_BETWEEN_RTIO_EVENTS)
-        
+
         # Reset the timeline
         at_mu(_start_mu)
 
@@ -192,7 +195,7 @@ class ToggleListOfBeams(Fragment):
         Turns off all urukul and suservo beams in the ToggleListOfBeams instance
 
         Does not advance the timeline.
-        
+
         Event timings:
 
         * t < 0: Opens suservo shutters if present at t ~ -20 to -5 ms
@@ -202,7 +205,11 @@ class ToggleListOfBeams(Fragment):
 
         # Turn off the shuttered suservo beams
         self.shuttered_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
-        delay(3*DELAY_BETWEEN_RTIO_EVENTS*len(self.shuttered_beams_setter.beam_suservos))
+        delay(
+            3
+            * DELAY_BETWEEN_RTIO_EVENTS
+            * len(self.shuttered_beams_setter.beam_suservos)
+        )
 
         # And the unshuttered suservo beams
         for suservo_frag in self.suservo_frags:
@@ -213,6 +220,6 @@ class ToggleListOfBeams(Fragment):
         for ttl in self.urukul_ttls:
             ttl.off()
             delay(DELAY_BETWEEN_RTIO_EVENTS)
-        
+
         # Reset the timeline
         at_mu(_start_mu)

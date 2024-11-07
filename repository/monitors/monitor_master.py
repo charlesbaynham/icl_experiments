@@ -20,7 +20,6 @@ from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureSidearm,
 )
 from repository.database_monitors.monitor_topticas import *
-from repository.database_monitors.monitor_turbopump import MonitorTurbo
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
 

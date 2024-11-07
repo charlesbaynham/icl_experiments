@@ -3,11 +3,9 @@ if "file_import" not in __name__:
     from .bg_corrected_andor_image import BGCorrectedAndorImage
     from .single_andor_image import SingleAndorImage
     from .triple_imaging_basic import TripleImageBasicMixin
-    from .triple_imaging_fast_kinetics import (
-        TripleImageRedMOTFastKineticsMixin,
-        TripleImageDipoleTrapFastKineticsMixin,
-        TripleImageXXODTFastKineticsMixin,
-    )
+    from .triple_imaging_fast_kinetics import TripleImageDipoleTrapFastKineticsMixin
+    from .triple_imaging_fast_kinetics import TripleImageRedMOTFastKineticsMixin
+    from .triple_imaging_fast_kinetics import TripleImageXXODTFastKineticsMixin
 
     __all__ = [
         "BGCorrectedAndorImage",
