@@ -14,6 +14,7 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
+from numpy import int64
 
 logger = logging.getLogger(__name__)
 
@@ -121,22 +122,25 @@ class DipoleBeamController(Fragment):
 
         # Look up the SUServo setpoints from the default beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[
-                i
-            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            self.suservo_nominal_amplitudes[i] = (
+                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            )
 
         self.core.break_realtime()
 
     @kernel
     def turn_off_dipole_beams(self):
-        # Turns off all dipole beams. Does not advance timeline
-        t_start_mu = now_mu()
+        """
+        Turns off all dipole beams
+
+        Advances the timeline by a few coarse RTIO cycles
+        """
+
         for i in range(len(self.suservo_fragments)):
             self.suservo_fragments[i].set_channel_state(
                 rf_switch_state=False, enable_iir=False
             )
-            delay_mu(8)
-        at_mu(t_start_mu)
+            delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def set_dipole_suservo_setpoints(

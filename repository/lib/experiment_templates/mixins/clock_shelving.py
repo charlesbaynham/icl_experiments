@@ -144,7 +144,7 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
 
     @kernel
     def post_narrowband_hook(self):
-        self.default_post_narrowband_hook()
+        self.post_narrowband_hook_default()
         self.clock_shelving()
 
 
@@ -161,9 +161,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     """
 
     @kernel
-    def post_dipole_trap_hook(self):
-        # These delays are to avoid collisions, but are not physically relevant
-        delay(-100e-9)
-        self.dipole_beam_controller.turn_off_dipole_beams()
-        delay(100e-9)
+    def post_dipole_trap_hook_shelving(self):
+        self.post_dipole_trap_hook_default()
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_shelving()

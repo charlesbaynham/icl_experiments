@@ -43,7 +43,8 @@ import abc
 import logging
 
 from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.experiment import kernel, delay_mu
+from numpy import int64
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -132,8 +133,19 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def post_dipole_trap_hook(self):
         """
-        Hook for implementation of stages immediately after the dipole trap is released. By default, do nothing.
+        Hook for implementation of stages immediately after the dipole trap is
+        released. By default, turn off the dipole trap beams.
         """
+        self.post_dipole_trap_hook_default()
+
+    @kernel
+    def post_dipole_trap_hook_default(self):
+        """
+        Turn off the dipole trap beams
+
+        Advances the timeline by a few coarse cycles
+        """
+        self.dipole_beam_controller.turn_off_dipole_beams()
 
     @kernel
     def dipole_trap_evaporation_hook_default(self):
