@@ -5,6 +5,8 @@ from artiq.experiment import kernel, host_only
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from typing import List
+import numpy as np
 
 from repository.lib import constants
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
@@ -246,7 +248,9 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.atom_number.push(atom_number)
 
     @host_only
-    def process_andor_image_hook(self, images):
+    def process_andor_image_hook(self, images: List[np.ndarray]):
+        for image in images:
+            image = image.astype(float)
         ground_bg_corrected = images[0] - images[2]
         excited_bg_corrected = images[1] - images[3]
         self.set_dataset(
