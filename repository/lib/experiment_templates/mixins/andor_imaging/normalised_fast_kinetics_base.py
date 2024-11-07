@@ -80,8 +80,8 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     """
 
     num_andor_images = 4
-    num_grabber_readouts = 2
-    num_grabber_rois = 2
+    num_grabber_readouts = 1
+    num_grabber_rois = 4
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
 
