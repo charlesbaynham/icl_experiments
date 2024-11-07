@@ -107,7 +107,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.clock_dds.cfg_sw(False)
 
     @kernel
-    def post_narrowband_hook_clock_shelving(self):
+    def clock_shelving(self):
         # Prepare the clock beam
         self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
@@ -145,7 +145,7 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
     @kernel
     def post_narrowband_hook(self):
         self.post_narrowband_hook_default()
-        self.post_narrowband_hook_clock_shelving()
+        self.clock_shelving()
 
 
 class ClockShelvingAndClearoutDipoleTrapMixin(
@@ -161,6 +161,6 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     """
 
     @kernel
-    def post_dipole_trap_hook_shelving(self):
+    def post_dipole_trap_hook(self):
         self.post_dipole_trap_hook_default()
-        self.post_narrowband_hook_clock_shelving()
+        self.clock_shelving()
