@@ -284,11 +284,8 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @kernel
     def get_grabber_data(self):
-        logger.info(
-            "Grabber rois: %s" self.num_grabber_rois)
-        logger.info(
-              "readouts: %s", self.num_grabber_readouts 
-        )
+        logger.info("Grabber rois: %s", self.num_grabber_rois)
+        logger.info("readouts: %s", self.num_grabber_readouts)
 
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
