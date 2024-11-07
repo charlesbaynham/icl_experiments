@@ -290,6 +290,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     @host_only
     def process_andor_image_hook(self, images: List[np.ndarray]):
+        super().process_andor_image_hook(images)
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
         excited_bg_corrected = images[1].astype(int) - images[3].astype(int)
         self.set_dataset(
