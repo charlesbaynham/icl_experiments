@@ -285,8 +285,11 @@ class AndorImagingBase(RedMOTWithExperiment):
     @kernel
     def get_grabber_data(self):
         logger.info(
-            f"Grabber rois: {self.num_grabber_rois}, readouts: {self.num_grabber_readouts}"
+            "Grabber rois: %s" self.num_grabber_rois)
+        logger.info(
+              "readouts: %s", self.num_grabber_readouts 
         )
+
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
         means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
@@ -302,7 +305,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 timeout_mu=self.core.get_rtio_counter_mu()
                 + self.core.seconds_to_mu(1.0),
             )
-            logger.info(f"Readout {i} done")
+            logger.info("Readout %s done", i)
 
             # Copy ROI data from temporary arrays into main array
             for j in range(self.num_grabber_rois):
