@@ -110,16 +110,17 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
-        # self.shelving_clock_delivery_setter.set_suservo(
-        #     freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-        #     + self.shelving_pulse_aom_detuning.get(),
-        #     amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-        #     attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-        #     rf_switch_state=True,
-        #     setpoint_v=self.shelving_clock_delivery_setpoint.get(),
-        #     enable_iir=True,
-        # )  FIXME
+        self.shelving_clock_delivery_setter.set_suservo(
+            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+            + self.shelving_pulse_aom_detuning.get(),
+            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+            enable_iir=True,
+        )
 
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
         delay_mu(int64(self.core.ref_multiplier))
 
