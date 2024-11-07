@@ -80,8 +80,9 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     """
 
     num_andor_images = 4
-    num_grabber_readouts = 1  # TODO: why is this 1 and not 2?
-    num_grabber_rois = 4
+    num_grabber_readouts = 2  # TODO: why is this 1 and not 2?
+    num_grabber_rois = 2
+    num_images_per_series = 2
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
 
@@ -153,7 +154,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             fast_kinetics_height_default=self.fast_kinetics_height_default,
             fast_kinetics_offset_default=self.fast_kinetics_offset_default,
             add_pre_trigger_delay=True,
-            fast_kinetics_num_shots=self.num_andor_images,
+            fast_kinetics_num_shots=self.num_images_per_series,
         )
         self.andor_camera_control: AndorCameraControl
 
