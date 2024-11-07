@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
-    # ClockShelvingAndClearoutDipoleTrapMixin, #TODO: Add this mixin
+    ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,

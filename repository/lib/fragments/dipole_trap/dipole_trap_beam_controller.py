@@ -4,17 +4,15 @@ from typing import List
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.experiment import TFloat
-from artiq.experiment import at_mu
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
+from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
-from numpy import int64
 
 logger = logging.getLogger(__name__)
 
@@ -122,9 +120,9 @@ class DipoleBeamController(Fragment):
 
         # Look up the SUServo setpoints from the default beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[i] = (
-                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
-            )
+            self.suservo_nominal_amplitudes[
+                i
+            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
 
         self.core.break_realtime()
 

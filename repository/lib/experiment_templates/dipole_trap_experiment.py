@@ -43,8 +43,7 @@ import abc
 import logging
 
 from artiq.experiment import delay
-from artiq.experiment import kernel, delay_mu
-from numpy import int64
+from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
