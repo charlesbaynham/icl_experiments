@@ -30,6 +30,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
     """
 
     def build_fragment(self):
