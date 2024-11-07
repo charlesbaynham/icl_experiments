@@ -98,6 +98,15 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         )
         self.dipole_hold_time: FloatParamHandle
 
+        self.setattr_param(
+            "dipole_pre_experiment_delay",
+            FloatParam,
+            "Time to delay experiment after dipole trap",
+            default=0.0,
+            unit="us",
+        )
+        self.dipole_pre_experiment_delay: FloatParamHandle
+
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
@@ -108,6 +117,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
         self.post_dipole_trap_hook()
+        delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
 
     @kernel
@@ -132,8 +142,19 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def post_dipole_trap_hook(self):
         """
-        Hook for implementation of stages immediately after the dipole trap is released. By default, do nothing.
+        Hook for implementation of stages immediately after the dipole trap is
+        released. By default, turn off the dipole trap beams.
         """
+        self.post_dipole_trap_hook_default()
+
+    @kernel
+    def post_dipole_trap_hook_default(self):
+        """
+        Turn off the dipole trap beams
+
+        Advances the timeline by a few coarse cycles
+        """
+        self.dipole_beam_controller.turn_off_dipole_beams()
 
     @kernel
     def dipole_trap_evaporation_hook_default(self):

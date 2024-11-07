@@ -369,10 +369,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         By default, just turn off the red light
         """
-        self.default_post_narrowband_hook()
+        self.post_narrowband_hook_default()
 
     @kernel
-    def default_post_narrowband_hook(self):
+    def post_narrowband_hook_default(self):
         """
         Turns off the red MOT beams. This advances the timeline by one
         self.core.ref_multiplier, but includes several events in the future:
