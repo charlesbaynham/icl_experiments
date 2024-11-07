@@ -80,7 +80,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     """
 
     num_andor_images = 4
-    num_grabber_readouts = 1
+    num_grabber_readouts = 1  # TODO: why is this 1 and not 2?
     num_grabber_rois = 4
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
@@ -249,8 +249,8 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     @host_only
     def process_andor_image_hook(self, images: List[np.ndarray]):
-        for image in images:
-            image = image.astype(float)
+        # for image in images:
+        #     image = image.astype(float) # TODO why didn't this work? something to do with artiq not liking redefining variables?
         ground_bg_corrected = images[0].astype(float) - images[2].astype(float)
         excited_bg_corrected = images[1].astype(float) - images[3].astype(float)
         self.set_dataset(
