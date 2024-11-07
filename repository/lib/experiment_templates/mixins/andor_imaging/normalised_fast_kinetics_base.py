@@ -201,6 +201,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         """
         eg turn off beams, start acquisition
         """
+        self.core.wait_until_mu(now_mu())
         self.andor_camera_control.start_acquisition()
 
     @kernel
