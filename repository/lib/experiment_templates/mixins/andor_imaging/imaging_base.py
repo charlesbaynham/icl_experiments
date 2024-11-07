@@ -205,7 +205,6 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @host_only
     def get_andor_images(self):
-
         # Readout and store the andor images
         imgs_array = self.andor_camera_control.readout_all_new_images(
             num_images=self.num_andor_images
@@ -221,7 +220,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         return sum_slice_x, sum_slice_y
 
     @host_only
-    def update_andor_monitor_hook(self, images: List[np.ndarray]):
+    def update_andor_monitor_hook(self, images):
         """
         Update the andor monitor with an appropriate image
 
