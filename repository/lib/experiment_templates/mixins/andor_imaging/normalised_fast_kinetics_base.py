@@ -110,7 +110,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         )
 
         self.setattr_param(
-            "delay_between_before_bg_img",
+            "delay_before_bg_img",
             FloatParam,
             "Delay before bg image series",
             default=1e-3,
@@ -180,7 +180,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         t_post_mu = now_mu()
         self.post_first_series()
         at_mu(t_post_mu)
-        delay(self.delay_between_before_bg_img.get())
+        delay(self.delay_before_bg_img.get())
         self.pre_second_series()
         self.do_second_series()
 
@@ -225,16 +225,16 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         # Normal fluorescence pulse at now_mu() + camera trigger, pre-empted by
         # the time required to shift one Fast Kinetics region + a
         # pre_trigger_delay
-        self.do_pulse()
+        self.do_just_a_fluorescence_pulse()
+
+    @kernel
+    def do_second_pulse(self):
+        self.do_just_a_fluorescence_pulse()
 
     @kernel
     def do_just_a_fluorescence_pulse(self):
         # Just a fluorescence pulse - the camera has already been triggered and handles its own timings
         self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-
-    @kernel
-    def do_second_pulse(self):
-        self.do_just_a_fluorescence_pulse()
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
