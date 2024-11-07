@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestNormalisedFastKinetics(
-    NormalisedRedMOTFastKineticsMixin, _MeasureNarrowbandMOTFrag, FLIRMeasurementMixin
+    NormalisedRedMOTFastKineticsMixin, _MeasureNarrowbandMOTFrag
 ):
     """
     Make a narrowband MOT, image with the ANDOR and leave lattice light on
