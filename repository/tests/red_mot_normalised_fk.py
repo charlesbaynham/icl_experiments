@@ -7,16 +7,21 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.red_mot.measure_red_mot import _MeasureNarrowbandMOTFrag
+from repository.lib.experiment_templates.mixins.flir_measurement import (
+    FLIRMeasurementMixin,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class TestNormalisedFastKinetics(
-    NormalisedRedMOTFastKineticsMixin, RedMOTWithExperiment
+    NormalisedRedMOTFastKineticsMixin, _MeasureNarrowbandMOTFrag, FLIRMeasurementMixin
 ):
-    @kernel
-    def do_experiment_after_red_mot_hook(self):
-        pass
+    """
+    Make a narrowband MOT, image with the ANDOR and leave lattice light on
+    Do two fast kinetics series to for normalised readout
+    """
 
 
 TestNormalisedFastKineticsExp = make_fragment_scan_exp(TestNormalisedFastKinetics)
