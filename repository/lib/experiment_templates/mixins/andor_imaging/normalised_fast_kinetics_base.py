@@ -1,20 +1,25 @@
 import logging
+from typing import List
 
-from artiq.experiment import delay, at_mu, now_mu
-from artiq.experiment import kernel, host_only, rpc
+import numpy as np
+from artiq.experiment import at_mu
+from artiq.experiment import delay
+from artiq.experiment import host_only
+from artiq.experiment import kernel
+from artiq.experiment import now_mu
+from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from typing import List
-import numpy as np
 
 from repository.lib import constants
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
-    AndorImagingBase,
     ANDOR_DETAILED_MONITOR_DATASETS,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    AndorImagingBase,
+)
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
@@ -273,6 +278,15 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             )
         self.process_andor_image_hook(images)
         self.update_andor_monitor_hook(images)
+
+    @host_only
+    def get_andor_images(self):
+        # Readout and store the andor images
+        imgs_array = self.andor_camera_control.readout_all_new_images(
+            num_images=self.num_images_per_series
+        )
+
+        return [img for img in imgs_array]
 
     @host_only
     def process_andor_image_hook(self, images: List[np.ndarray]):
