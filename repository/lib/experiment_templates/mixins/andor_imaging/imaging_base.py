@@ -298,7 +298,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 s,
                 m,
                 timeout_mu=self.core.get_rtio_counter_mu()
-                + self.core.seconds_to_mu(1.0),
+                + self.core.seconds_to_mu(10.0),
             )
 
             # Copy ROI data from temporary arrays into main array
