@@ -34,7 +34,7 @@ class BGCorrectedAndorImage(AndorImagingBase):
     """
 
     num_andor_images = 2
-
+    num_images_per_series = 2
     num_grabber_readouts = 2
     num_grabber_rois = 1
 
