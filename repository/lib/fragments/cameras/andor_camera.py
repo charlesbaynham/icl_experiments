@@ -518,11 +518,12 @@ class AndorCameraControl(Fragment):
             useful when the camera is in fast kinetics mode and the first frame
             is nonsense.
         """
+        logger.info("num_rois = %d", self.num_rois)
+        logger.info("length of sums = %d", len(sums))
+        logger.info("length of means = %d", len(means))
 
         if len(means) != self.num_rois or len(sums) != self.num_rois:
-            raise ValueError(
-                f"sums and means must be arrays with length num_rois = {self.num_rois}. got {len(sums)} and {len(means)}"
-            )
+            raise ValueError("sums and means must be arrays with length num_rois")
 
         # Get data
         data = [0] * self.num_rois
