@@ -535,14 +535,6 @@ SUSERVOED_BEAMS = [
         setpoint=0.8,
         servo_enabled=True,
     ),
-    SUServoedBeam(
-        "blue_plug_beam",
-        165e6,
-        20,
-        "suservo_aom_doublepass_461_plug",
-        setpoint=0.8,
-        servo_enabled=True,
-    ),
     ### RED ###
     SUServoedBeam(
         "red_mot_diagonal",

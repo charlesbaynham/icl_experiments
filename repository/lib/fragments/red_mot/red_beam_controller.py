@@ -220,7 +220,7 @@ class RedBeamController(Fragment):
             "ramp_type",
             IntParam,
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
-            default=1,
+            default=2,
         )
         self.setattr_param(
             "spinpol_ramp_frequency",
