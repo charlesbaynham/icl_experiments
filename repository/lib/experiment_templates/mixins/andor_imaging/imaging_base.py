@@ -46,7 +46,8 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     num_andor_images = 1
     "How many images will the Andor driver read out"
-
+    num_images_per_series = 1
+    "How many images will the Andor driver read out in each series"
     num_grabber_rois = 1
     "How many ROIs in each image for the Grabber"
     num_grabber_readouts = 1
