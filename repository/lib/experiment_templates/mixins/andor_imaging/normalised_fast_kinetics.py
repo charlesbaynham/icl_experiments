@@ -87,8 +87,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 4
-    num_grabber_rois = 2
+    num_grabber_rois = 4
 
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
@@ -97,7 +96,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
         forward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_grabber_rois,
+            num_images=self.num_images_per_series,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
@@ -106,7 +105,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
         backward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_grabber_rois,
+            num_images=self.num_images_per_series,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
