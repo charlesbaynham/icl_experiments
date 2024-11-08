@@ -41,8 +41,9 @@ class DifferentialClockInterferometryFrag(
         super().host_setup()
 
         # TODO: Make this not a horrible hack
-        logger.warning("Setting EMCCD gain to 30. BEWARE!!!")
-        self.andor_camera_control.cam.set_EMCCD_gain(30)
+        em_gain = 0
+        logger.warning("Setting EMCCD gain to %f. BEWARE!!!", em_gain)
+        self.andor_camera_control.cam.set_EMCCD_gain(em_gain)
 
     @kernel
     def before_start_hook(self):
