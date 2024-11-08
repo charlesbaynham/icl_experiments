@@ -87,7 +87,8 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_grabber_rois = 8
+    num_andor_images = 4
+    num_grabber_rois = 2
 
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
@@ -111,4 +112,4 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
-        return forward_rois + backward_rois
+        return forward_rois + backward_rois + forward_rois + backward_rois
