@@ -66,6 +66,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
 
+        # sometimes we have multiple acquisitions and need to store the images
+        self.image_store = []
+
     def hook_setup_andor(self):
         """
         Setup the Andor camera
@@ -187,7 +190,8 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
-        images = self.get_andor_images()
+        # Get new images and add them to any images we got earlier
+        images = self.image_store + self.get_andor_images()
         # Update detailed images
         for i, image in enumerate(images):
             dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
@@ -201,16 +205,17 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         # Update the main monitor
         self.update_andor_monitor_hook(images)
+        # Do any other processing
         self.process_andor_image_hook(images)
 
     @host_only
     def get_andor_images(self):
         # Readout and store the andor images
         imgs_array = self.andor_camera_control.readout_all_new_images(
-            num_images=self.num_andor_images
+            num_images=self.num_images_per_series
         )
 
-        return [img for img in imgs_array]
+        return imgs_array.tolist()
 
     @host_only
     @staticmethod
@@ -246,8 +251,6 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @kernel
     def get_grabber_data(self):
-        logger.info("Grabber rois: %s", self.num_grabber_rois)
-        logger.info("readouts: %s", self.num_grabber_readouts)
 
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
@@ -264,7 +267,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                 timeout_mu=self.core.get_rtio_counter_mu()
                 + self.core.seconds_to_mu(1.0),
             )
-            logger.info("Readout %s done", i)
 
             # Copy ROI data from temporary arrays into main array
             for j in range(self.num_grabber_rois):

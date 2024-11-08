@@ -13,9 +13,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
-    ANDOR_DETAILED_MONITOR_DATASETS,
-)
+
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
@@ -212,7 +210,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     @rpc
     def post_first_series_rpc(self):
-        self.first_series_images = self.get_andor_images()
+        self.image_store += self.get_andor_images()
         self.andor_camera_control.start_acquisition()
 
     @kernel
@@ -224,14 +222,8 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     @kernel
     def do_second_series(self):
-        # Image ground state atoms
-        t_start_mu = now_mu()
-        self.do_first_pulse()
-
-        # Image excited state atoms
-        at_mu(t_start_mu)
-        delay(self.delay_between_imaging_pulses.get())
-        self.do_second_pulse()
+        # second verse, same as the first
+        self.do_first_series()
 
     @kernel
     def post_second_series(self):
@@ -263,30 +255,6 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             self.excitation_fraction.push((sums[1] - sums[3]) / atom_number)
 
         self.atom_number.push(atom_number)
-
-    @rpc(flags={"async"})
-    def _call_camera_rpc(self):
-        images = self.first_series_images + self.get_andor_images()
-        for i, image in enumerate(images):
-            dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
-            self.set_dataset(
-                dataset_name,
-                image,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
-        self.process_andor_image_hook(images)
-        self.update_andor_monitor_hook(images)
-
-    @host_only
-    def get_andor_images(self):
-        # Readout and store the andor images
-        imgs_array = self.andor_camera_control.readout_all_new_images(
-            num_images=self.num_images_per_series
-        )
-
-        return [img for img in imgs_array]
 
     @host_only
     def process_andor_image_hook(self, images: List[np.ndarray]):
