@@ -973,9 +973,9 @@ else:
     ]
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 
-OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
-XODT_FINAL_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.2, 0.0, 0.0])]
+XODT_FINAL_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
