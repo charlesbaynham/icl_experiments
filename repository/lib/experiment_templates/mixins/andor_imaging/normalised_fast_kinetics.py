@@ -111,4 +111,4 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
-        return forward_rois + backward_rois + forward_rois + backward_rois
+        return forward_rois + backward_rois
