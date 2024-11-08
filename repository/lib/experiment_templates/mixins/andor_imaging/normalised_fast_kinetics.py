@@ -87,7 +87,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_grabber_rois = 4
+    num_grabber_rois = 8
 
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
