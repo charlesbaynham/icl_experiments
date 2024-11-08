@@ -10,11 +10,11 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
+    NormalisedXXODTFastKineticsMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
-    TripleImageXXODTFastKineticsMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -113,7 +113,7 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
         self.andor_sum_bkd_corrected.push(sums[1] - sums[3])
 
 
-class DoubleTrapImagingNormalised(TripleImageXXODTFastKineticsMixin):
+class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
     """
     Image two traps with three pulses of light, imaging the ground, excited and
     background.
@@ -185,19 +185,31 @@ class DoubleTrapImagingNormalised(TripleImageXXODTFastKineticsMixin):
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
-        atom_number_fwd = sums[0] + sums[1] - 2 * sums[2]
-        atom_number_bwd = sums[3] + sums[4] - 2 * sums[5]
+        sum_ground_fwd = sums[0]
+        sum_excited_fwd = sums[1]
+        sum_background_fwd_ground = sums[2]
+        sum_background_fwd_excited = sums[3]
+        sum_background_fwd = sum_background_fwd_ground + sum_background_fwd_excited
+        sum_ground_bwd = sums[4]
+        sum_excited_bwd = sums[5]
+        sum_background_bwd_ground = sums[6]
+        sum_background_bwd_excited = sums[7]
+        sum_background_bwd = sum_background_bwd_ground + sum_background_bwd_excited
+        atom_number_fwd = sum_ground_fwd + sum_excited_fwd - sum_background_fwd
+        atom_number_bwd = sum_ground_bwd + sum_excited_bwd - sum_background_bwd
 
         if atom_number_fwd == 0:
             self.excitation_fraction_forward.push(0.0)
         else:
-            self.excitation_fraction_forward.push((sums[1] - sums[2]) / atom_number_fwd)
+            self.excitation_fraction_forward.push(
+                (sum_excited_fwd - sum_background_fwd_excited) / atom_number_fwd
+            )
 
         if atom_number_bwd == 0:
             self.excitation_fraction_backward.push(0.0)
         else:
             self.excitation_fraction_backward.push(
-                (sums[4] - sums[5]) / atom_number_bwd
+                (sum_excited_bwd - sum_background_bwd_excited) / atom_number_bwd
             )
 
         self.atom_number_forward.push(atom_number_fwd)
