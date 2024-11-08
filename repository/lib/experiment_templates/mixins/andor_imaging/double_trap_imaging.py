@@ -187,11 +187,11 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
     def process_grabber_data_hook(self, sums, means):
         sum_ground_fwd = sums[0]
         sum_excited_fwd = sums[1]
-        sum_background_fwd_ground = sums[2]
-        sum_background_fwd_excited = sums[3]
+        sum_background_fwd_ground = sums[4]
+        sum_background_fwd_excited = sums[5]
         sum_background_fwd = sum_background_fwd_ground + sum_background_fwd_excited
-        sum_ground_bwd = sums[4]
-        sum_excited_bwd = sums[5]
+        sum_ground_bwd = sums[2]
+        sum_excited_bwd = sums[3]
         sum_background_bwd_ground = sums[6]
         sum_background_bwd_excited = sums[7]
         sum_background_bwd = sum_background_bwd_ground + sum_background_bwd_excited
