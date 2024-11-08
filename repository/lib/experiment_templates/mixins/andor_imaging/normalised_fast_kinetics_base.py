@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 import numpy as np
 from artiq.experiment import at_mu
@@ -13,7 +12,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
@@ -257,7 +255,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.atom_number.push(atom_number)
 
     @host_only
-    def process_andor_image_hook(self, images: List[np.ndarray]):
+    def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
         excited_bg_corrected = images[1].astype(int) - images[3].astype(int)

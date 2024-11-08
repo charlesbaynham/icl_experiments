@@ -192,6 +192,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     def _call_camera_rpc(self):
         # Get new images and add them to any images we got earlier
         images = self.image_store + self.get_andor_images()
+        self.image_store = []
         # Update detailed images
         for i, image in enumerate(images):
             dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
