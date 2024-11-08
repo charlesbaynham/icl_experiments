@@ -338,7 +338,9 @@ class EvapAndFieldRampBase(DipoleTrapWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("bias_and_evap_ramp", XODTWithFieldRamp)
+        self.setattr_fragment(
+            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
+        )
         self.bias_and_evap_ramp: XODTWithFieldRamp
 
     @kernel
