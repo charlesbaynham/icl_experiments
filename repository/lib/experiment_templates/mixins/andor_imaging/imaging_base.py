@@ -66,6 +66,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
 
+        # sometimes we have multiple acquisitions and need to store the images
+        self.image_store = []
+
     def hook_setup_andor(self):
         """
         Setup the Andor camera
@@ -126,8 +129,6 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_images.append(image)
 
     def host_setup(self):
-        # sometimes we have multiple acquisitions and need to store the images
-        self.image_store = np.array([])
         if self.use_andor_driver.get():
             self.ccb.issue(
                 "create_applet",
@@ -190,7 +191,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
         # Get new images and add them to any images we got earlier
-        images = np.append(self.image_store, self.get_andor_images())
+        images = self.image_store + self.get_andor_images()
         # Update detailed images
         for i, image in enumerate(images):
             dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
@@ -214,7 +215,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             num_images=self.num_images_per_series
         )
 
-        return imgs_array
+        return imgs_array.tolist()
 
     @host_only
     @staticmethod
@@ -250,6 +251,7 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @kernel
     def get_grabber_data(self):
+
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
         means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
