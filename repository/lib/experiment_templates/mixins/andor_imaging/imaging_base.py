@@ -193,8 +193,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         # Get new images and add them to any images we got earlier
         images = self.image_store + self.get_andor_images()
         self.image_store = []
+        images_array = np.array(images)
         # Update detailed images
-        for i, image in enumerate(images):
+        for i, image in enumerate(images_array):
             dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
             self.set_dataset(
                 dataset_name,
@@ -203,7 +204,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 persist=False,
                 archive=False,
             )
-        images_array = np.array(images)
+
         # Update the main monitor
         self.update_andor_monitor_hook(images_array)
         # Do any other processing
