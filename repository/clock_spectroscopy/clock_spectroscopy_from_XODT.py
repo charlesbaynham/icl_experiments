@@ -15,6 +15,9 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    OpticalPumpingDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTMolassesPlusFieldRampMixin,
 )
@@ -28,6 +31,7 @@ class ClockSpecFromXXODTFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTMolassesPlusFieldRampMixin,
     DipoleTrapWithExperiment,
+    OpticalPumpingDipoleTrapMixin,
 ):
     """
     Clock spectroscopy from dropped XXODT
@@ -39,10 +43,22 @@ class ClockSpecFromXXODTFrag(
     once more for background.
     """
 
+    def host_setup(self):
+        super().host_setup()
+
+        # TODO: Make this not a horrible hack
+        logger.warning("Setting EMCCD gain to 30. BEWARE!!!")
+        self.andor_camera_control.cam.set_EMCCD_gain(30)
+
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
         self.before_start_hook_xodt_molasses()
+
+    def host_cleanup(self):
+        logger.warning("EM gain turned off again")
+        self.andor_camera_control.cam.set_EMCCD_gain(0)
+        return super().host_cleanup()
 
 
 ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
