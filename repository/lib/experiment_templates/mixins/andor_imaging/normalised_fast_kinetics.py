@@ -1,9 +1,9 @@
 import logging
+
+from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsBase,
 )
-from repository.lib import constants
-
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     calculate_grabber_rois,
 )
@@ -111,4 +111,4 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
-        return forward_rois + backward_rois
+        return forward_rois + backward_rois + forward_rois + backward_rois
