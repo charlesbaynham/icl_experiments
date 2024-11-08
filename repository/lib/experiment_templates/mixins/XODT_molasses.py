@@ -330,7 +330,45 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.do_phase()
 
 
-class XODTMolassesPlusFieldRampMixin(XODTDoubleMolassesMixin):
+class EvapAndFieldRampBase(DipoleTrapWithExperiment):
+    """
+    Exposes the evaporation and field ramping phase for use in evaporation Mixins
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment("bias_and_evap_ramp", XODTWithFieldRamp)
+        self.bias_and_evap_ramp: XODTWithFieldRamp
+
+    @kernel
+    def DMA_initialization_hook_evap_with_field_ramp(self):
+        self.bias_and_evap_ramp.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        raise NotImplementedError(
+            "All the DMA handle calculations must be combined into one \
+                DMA_initialization_hook() method after Mixins are combined"
+        )
+
+    @kernel
+    def dipole_trap_evaporation_hook_with_field_ramp(self):
+        """
+        Do the evap and field ramp
+        """
+        self.bias_and_evap_ramp.do_phase()
+
+    @kernel
+    def dipole_trap_evaporation_hook(self):
+        # Default hook turns off red beams - good!
+        self.dipole_trap_evaporation_hook_default()
+        self.dipole_trap_evaporation_hook_with_field_ramp()
+
+
+class XODTDoubleMolassesPlusFieldRampMixin(
+    XODTDoubleMolassesMixin, EvapAndFieldRampBase
+):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, implements two
     ramping molasses, then a final evaporation and bias magnetic field ramp phase.
@@ -354,34 +392,12 @@ class XODTMolassesPlusFieldRampMixin(XODTDoubleMolassesMixin):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
-        )
-        self.bias_and_evap_ramp: XODTWithFieldRamp
-
         self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
             self.molasses_xodt_2, suservos=suservos_XODT
         )
-
-    @kernel
-    def DMA_initialization_hook_evap_with_field_ramp(self):
-        self.bias_and_evap_ramp.precalculate_dma_handle()
 
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def dipole_trap_evaporation_hook_with_field_ramp(self):
-        """
-        Do the evap and field ramp
-        """
-        self.bias_and_evap_ramp.do_phase()
-
-    @kernel
-    def dipole_trap_evaporation_hook(self):
-        # Default hook turns off red beams - good!
-        self.dipole_trap_evaporation_hook_default()
-        self.dipole_trap_evaporation_hook_with_field_ramp()

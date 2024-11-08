@@ -26,7 +26,7 @@ class OpticalPumpingBase(RedMOTWithExperiment):
             "delay_before_spinpol_pulse",
             FloatParam,
             "Time in lattice before the spin polarization pulse",
-            default=constants.TIME_IN_LATTICE_BEFORE_SPIN_POL,
+            default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
             unit="ms",
         )
         self.delay_before_spinpol_pulse: FloatParamHandle
@@ -44,7 +44,7 @@ class OpticalPumpingBase(RedMOTWithExperiment):
             "delay_after_spinpol_pulse",
             FloatParam,
             "Time in lattice after the spin polarization pulse",
-            default=constants.TIME_IN_LATTICE_AFTER_SPIN_POL,
+            default=constants.DELAY_AFTER_OPTICAL_PUMPING,
             unit="ms",
         )
         self.delay_after_spinpol_pulse: FloatParamHandle
@@ -63,7 +63,46 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         delay(self.delay_after_spinpol_pulse.get())
 
 
-class OpticalPumpingDipoleTrapMixin(OpticalPumpingBase):
+class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
+    """
+    Exposes spin_polarize() and set_fields_for_optical_pumping() methods
+    for use in optical pumping Mixins
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        for idx, c in enumerate("xyz"):
+            self.setattr_param(
+                f"bias_{c}_for_pumping",
+                FloatParam,
+                default=constants.OPTICAL_PUMPING_BIAS_FIELD[idx],
+                description=f"Boost to {c} coil current",
+                unit="A",
+            )
+        self.bias_x_for_pumping: FloatParamHandle
+        self.bias_y_for_pumping: FloatParamHandle
+        self.bias_z_for_pumping: FloatParamHandle
+
+    @kernel
+    def set_fields_for_optical_pumping(self):
+        """
+        Set the bias fields for optical pumping
+
+        Advances the timeline by 5 us to avoid RTIO clashes with previous phase
+        """
+        # Delay to avoid RTIO clashes with previous phase: set
+        # fields writes into past
+        delay(5e-6)
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            0.0,
+            self.bias_x_for_pumping.get(),
+            self.bias_y_for_pumping.get(),
+            self.bias_z_for_pumping.get(),
+        )
+
+
+class OpticalPumpingWithFieldSettingDipoleTrapMixin(OpticalPumpingWithFieldSettingBase):
     """
     Mixin for optical pumping in a dipole trap
 
@@ -74,9 +113,12 @@ class OpticalPumpingDipoleTrapMixin(OpticalPumpingBase):
 
     @kernel
     def dipole_trap_optical_pumping_hook(self):
+        self.set_fields_for_optical_pumping()
         self.spin_polarize()
 
 
+# TODO: Refactor DroppedPumpedLatticeMixin to use Base classes above
+# Note: fields aren't set in this Mixin, so it only works with FieldBoostMixin
 class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     """
     Loads atoms into a lattice, pumps them into a stretched state then drops
@@ -103,7 +145,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             "delay_before_spinpol_pulse",
             FloatParam,
             "Time in lattice before the spin polarization pulse",
-            default=constants.TIME_IN_LATTICE_BEFORE_SPIN_POL,
+            default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
             unit="ms",
         )
         self.delay_before_spinpol_pulse: FloatParamHandle
@@ -121,7 +163,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             "delay_after_spinpol_pulse",
             FloatParam,
             "Time in lattice after the spin polarization pulse",
-            default=constants.TIME_IN_LATTICE_AFTER_SPIN_POL,
+            default=constants.DELAY_AFTER_OPTICAL_PUMPING,
             unit="ms",
         )
         self.delay_after_spinpol_pulse: FloatParamHandle

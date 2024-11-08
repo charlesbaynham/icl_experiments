@@ -19,7 +19,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTDoubleMolassesMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTMolassesPlusFieldRampMixin,
+    XODTDoubleMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,7 @@ class MeasureDoubleDipoleTrapFrag(
 
 
 class MeasureDoubleDipoleTrapWithFieldRampFrag(
-    XODTMolassesPlusFieldRampMixin, MeasureDoubleDipoleTrapFrag
+    XODTDoubleMolassesPlusFieldRampMixin, MeasureDoubleDipoleTrapFrag
 ):
     pass
 
