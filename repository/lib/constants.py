@@ -778,9 +778,9 @@ WAND_SETPOINTS_87 = {
 
 # Spin polarisation settings
 
-TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
+DELAY_BEFORE_OPTICAL_PUMPING = 5e-3
 DURATION_OF_SPIN_POL = 20e-3
-TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3
+DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # %% Dipole trap settings
 
@@ -957,6 +957,8 @@ else:
         a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
     ]
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
+
+OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
