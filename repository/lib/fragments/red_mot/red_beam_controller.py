@@ -17,6 +17,8 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 from pyaion.fragments.ad9910_ramper import AD9910Ramper
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
@@ -24,12 +26,6 @@ from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
 import repository.lib.constants as constants
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
-)
-from pyaion.fragments.default_beam_setter import (
-    SetBeamsToDefaults,
-)
-from pyaion.fragments.default_beam_setter import (
-    make_set_beams_to_default,
 )
 from repository.lib.fragments.pyaion_overrides.suservo_override import (
     LibSetSUServoStatic,
@@ -194,7 +190,7 @@ class RedBeamController(Fragment):
         self.setattr_param(
             "spinpol_aom_static_frequency",
             FloatParam,
-            "Spin pol AOm nominal static frequency",
+            "Spin pol AOM nominal static frequency",
             unit="MHz",
             default=constants.URUKULED_BEAMS["red_spinpol"].frequency,
         )
@@ -224,7 +220,7 @@ class RedBeamController(Fragment):
             "ramp_type",
             IntParam,
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
-            default=2,
+            default=1,
         )
         self.setattr_param(
             "spinpol_ramp_frequency",
@@ -238,14 +234,14 @@ class RedBeamController(Fragment):
             FloatParam,
             "Detuning of 689 spinpol AOM from nominal frequency at lowest point of ramp",
             unit="MHz",
-            default=0.0,
+            default=constants.RED_SPINPOL_RAMP_LOWER_LIMIT,
         )
         self.setattr_param(
             "spinpol_ramp_upper_detuning",
             FloatParam,
             "Detuning of 689 spinpol AOM from nominal frequency at highest point of ramp",
             unit="MHz",
-            default=constants.RED_SPINPOL_RAMP_LIMIT,
+            default=constants.RED_SPINPOL_RAMP_UPPER_LIMIT,
         )
         self.setattr_param(
             "spinpol_ramp_type",

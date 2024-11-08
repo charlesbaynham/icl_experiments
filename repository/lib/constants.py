@@ -57,7 +57,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "red_spinpol",
-        frequency=366.6e6,
+        frequency=366.5e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
@@ -99,7 +99,8 @@ RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
 
-RED_SPINPOL_RAMP_LIMIT = 4e6
+RED_SPINPOL_RAMP_UPPER_LIMIT = 1.5e6
+RED_SPINPOL_RAMP_LOWER_LIMIT = -1.5e6
 "Ramp extent for the spin polarising beam (n.b. will be double by the double-pass AOM)"
 
 RED_SPINPOL_AOM_RAMP_FREQUENCY = 30e3
