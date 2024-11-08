@@ -47,8 +47,8 @@ class ClockSpecFromXXODTFrag(
         super().host_setup()
 
         # TODO: Make this not a horrible hack
-        logger.warning("Setting EMCCD gain to 30. BEWARE!!!")
-        self.andor_camera_control.cam.set_EMCCD_gain(30)
+        logger.warning("Setting EMCCD gain to 0. BEWARE!!!")
+        self.andor_camera_control.cam.set_EMCCD_gain(0)
 
     @kernel
     def before_start_hook(self):
