@@ -99,6 +99,12 @@ RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
 
+RED_SPINPOL_RAMP_LIMIT = 4e6
+"Ramp extent for the spin polarising beam (n.b. will be double by the double-pass AOM)"
+
+RED_SPINPOL_AOM_RAMP_FREQUENCY = 30e3
+"Default ramp frequency for the spin polarising beam"
+
 # Lattice ramp-down configuration
 # TODO: Choose real lattice ramp parameters
 LATTICE_HIGH_SETPOINT_MULTIPLE = 1.0
@@ -519,6 +525,14 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
+    ),
+    SUServoedBeam(
+        "blue_plug_beam",
+        165e6,
+        20,
+        "suservo_aom_doublepass_461_plug",
+        setpoint=0.8,
+        servo_enabled=True,
     ),
     SUServoedBeam(
         "blue_plug_beam",

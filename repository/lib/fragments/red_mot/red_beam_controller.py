@@ -17,9 +17,6 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy import int64
 from pyaion.fragments.ad9910_ramper import AD9910Ramper
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
@@ -27,6 +24,15 @@ from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
 import repository.lib.constants as constants
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
+)
+from pyaion.fragments.default_beam_setter import (
+    SetBeamsToDefaults,
+)
+from pyaion.fragments.default_beam_setter import (
+    make_set_beams_to_default,
+)
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
 )
 
 logger = logging.getLogger(__name__)
@@ -105,6 +111,14 @@ class RedBeamController(Fragment):
             "urukul9910_aom_doublepass_689_red_injection",
         )
         self.injection_aom_ramper: AD9910Ramper
+
+        # Fast ramping of the AD9910 controlling the spinpol aom
+        self.setattr_fragment(
+            "spinpol_aom_ramper",
+            AD9910Ramper,
+            constants.URUKULED_BEAMS["red_spinpol"].urukul_device,
+        )
+        self.spinpol_aom_ramper: AD9910Ramper
 
         # Init of the injection AOM without glitching it if it's already on
         self.setattr_fragment(
@@ -213,6 +227,33 @@ class RedBeamController(Fragment):
             default=2,
         )
         self.setattr_param(
+            "spinpol_ramp_frequency",
+            FloatParam,
+            "689 spinpol AOM ramp frequency",
+            unit="kHz",
+            default=constants.RED_SPINPOL_AOM_RAMP_FREQUENCY,
+        )
+        self.setattr_param(
+            "spinpol_ramp_lower_detuning",
+            FloatParam,
+            "Detuning of 689 spinpol AOM from nominal frequency at lowest point of ramp",
+            unit="MHz",
+            default=0.0,
+        )
+        self.setattr_param(
+            "spinpol_ramp_upper_detuning",
+            FloatParam,
+            "Detuning of 689 spinpol AOM from nominal frequency at highest point of ramp",
+            unit="MHz",
+            default=constants.RED_SPINPOL_RAMP_LIMIT,
+        )
+        self.setattr_param(
+            "spinpol_ramp_type",
+            IntParam,
+            "689 spinpol AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
+            default=0,
+        )
+        self.setattr_param(
             "use_sigmaplus_spinpol",
             BoolParam,
             "Which spinpol beam? True = sigmaplus, False = sigmaminus",
@@ -224,6 +265,10 @@ class RedBeamController(Fragment):
         self.ramp_lower_detuning: FloatParamHandle
         self.ramp_upper_detuning: FloatParamHandle
         self.ramp_type: IntParamHandle
+        self.spinpol_ramp_frequency: FloatParamHandle
+        self.spinpol_ramp_lower_detuning: FloatParamHandle
+        self.spinpol_ramp_upper_detuning: FloatParamHandle
+        self.spinpol_ramp_type: IntParamHandle
         self.use_sigmaplus_spinpol: BoolParamHandle
 
         # %% Kernel parameters
@@ -231,6 +276,7 @@ class RedBeamController(Fragment):
         # Initialised here so that it's available across kernels, but calculated
         # in device_setup in case it's varied in a scan
         self.ramp_rate = 0.0
+        self.spinpol_ramp_rate = 0.0
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
         self.kernel_invariants.add("debug_mode")
@@ -242,6 +288,7 @@ class RedBeamController(Fragment):
     def host_setup(self):
         super().host_setup()
         assert self.ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
+        assert self.spinpol_ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
 
         if self.use_sigmaplus_spinpol.get():
             self.spinpol_toggler = self.sigmaplus_toggler
@@ -278,6 +325,25 @@ class RedBeamController(Fragment):
         if self.debug_mode:
             logger.info(
                 "Calculated required ramp_rate = %s kHz/s", self.ramp_rate * 1e-3
+            )
+
+        # Precalculate the spinpol ramp rate required to get the requested modulation frequency
+        self.spinpol_ramp_rate = abs(
+            (
+                self.spinpol_ramp_lower_detuning.get()
+                - self.spinpol_ramp_upper_detuning.get()
+            )
+            * self.spinpol_ramp_frequency.get()
+        )
+
+        if self.spinpol_ramp_type.get() == 0:
+            # Triangle waves will need to ramp twice as quickly
+            self.ramp_rate *= 2
+
+        if self.debug_mode:
+            logger.info(
+                "Calculated required ramp_rate = %s kHz/s",
+                self.spinpol_ramp_rate * 1e-3,
             )
 
         self.core.break_realtime()
@@ -348,6 +414,35 @@ class RedBeamController(Fragment):
             self.injection_aom.set(self.injection_aom_static_frequency.get())
         else:
             self.injection_aom.set(freq)
+
+    @kernel
+    def start_ramping_spinpol(self):
+        """
+        Start modulation of the spinpol DDS as configured
+
+        Advances the timeline by the duration of SPI writes
+        """
+
+        self.spinpol_aom_ramper.start_ramp(
+            self.spinpol_ramp_rate,
+            self.spinpol_aom_static_frequency.get()
+            + self.spinpol_ramp_lower_detuning.get(),
+            self.spinpol_aom_static_frequency.get()
+            + self.spinpol_ramp_upper_detuning.get(),
+            self.spinpol_ramp_type.get(),
+        )
+
+    @kernel
+    def stop_ramping_spinpol(self, freq=0.0):
+        """
+        Stop modulation of the spinpol DDS and return to static (or specified) frequency
+        """
+        self.spinpol_aom_ramper.stop_ramp()
+
+        if freq == 0.0:
+            self.spinpol_aom.set(self.spinpol_aom_static_frequency.get())
+        else:
+            self.spinpol_aom.set(freq)
 
     @kernel
     def set_mot_detuning(self, detuning: TFloat):
