@@ -77,7 +77,7 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
                 f"bias_{c}_for_pumping",
                 FloatParam,
                 default=constants.OPTICAL_PUMPING_BIAS_FIELD[idx],
-                description=f"Boost to {c} coil current",
+                description=f"Bias field for optical pumping {c}",
                 unit="A",
             )
         self.bias_x_for_pumping: FloatParamHandle
