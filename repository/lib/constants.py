@@ -57,7 +57,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "red_spinpol",
-        frequency=366.6e6,
+        frequency=366.5e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
@@ -98,6 +98,13 @@ URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
+
+RED_SPINPOL_RAMP_UPPER_LIMIT = 1.5e6
+RED_SPINPOL_RAMP_LOWER_LIMIT = -1.5e6
+"Ramp extent for the spin polarising beam (n.b. will be double by the double-pass AOM)"
+
+RED_SPINPOL_AOM_RAMP_FREQUENCY = 30e3
+"Default ramp frequency for the spin polarising beam"
 
 # Lattice ramp-down configuration
 # TODO: Choose real lattice ramp parameters
@@ -519,6 +526,14 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
+    ),
+    SUServoedBeam(
+        "blue_plug_beam",
+        165e6,
+        20,
+        "suservo_aom_doublepass_461_plug",
+        setpoint=0.8,
+        servo_enabled=True,
     ),
     SUServoedBeam(
         "blue_plug_beam",
@@ -958,9 +973,9 @@ else:
     ]
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 
-OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
-XODT_FINAL_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.2, 0.0, 0.0])]
+XODT_FINAL_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
