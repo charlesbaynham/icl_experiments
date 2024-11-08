@@ -520,7 +520,9 @@ class AndorCameraControl(Fragment):
         """
 
         if len(means) != self.num_rois or len(sums) != self.num_rois:
-            raise ValueError("sums and means must be arrays with length num_rois")
+            raise ValueError(
+                f"sums and means must be arrays with length num_rois = {self.num_rois}. got {len(sums)} and {len(means)}"
+            )
 
         # Get data
         data = [0] * self.num_rois
