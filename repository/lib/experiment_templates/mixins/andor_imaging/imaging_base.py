@@ -202,11 +202,11 @@ class AndorImagingBase(RedMOTWithExperiment):
                 persist=False,
                 archive=False,
             )
-
+        images_array = np.array(images)
         # Update the main monitor
-        self.update_andor_monitor_hook(images)
+        self.update_andor_monitor_hook(images_array)
         # Do any other processing
-        self.process_andor_image_hook(images)
+        self.process_andor_image_hook(images_array)
 
     @host_only
     def get_andor_images(self):
@@ -251,7 +251,6 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @kernel
     def get_grabber_data(self):
-
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
         means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
