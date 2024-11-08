@@ -180,10 +180,10 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         etc. is completed, and should handle imaging with the Andor camera.
         """
         self.do_first_series()
-        now_mu()
+        t_post_mu = now_mu()
         self.post_first_series()  # call rpc to get images, start next acquisition
-        # at_mu(t_post_mu)
-        # delay(self.delay_before_bg_img.get())
+        at_mu(t_post_mu)
+        delay(self.delay_before_bg_img.get())
         self.pre_second_series()
         self.do_second_series()
         self.post_second_series()  # call rpc to get images
