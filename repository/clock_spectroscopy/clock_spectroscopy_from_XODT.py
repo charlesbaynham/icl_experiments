@@ -30,8 +30,8 @@ class ClockSpecFromXXODTFrag(
     DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
-    DipoleTrapWithExperiment,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperiment,
 ):
     """
     Clock spectroscopy from dropped XXODT
