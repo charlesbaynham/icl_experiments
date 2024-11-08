@@ -96,7 +96,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
         forward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_andor_images,
+            num_images=self.num_grabber_rois,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
@@ -105,10 +105,10 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
         backward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_andor_images,
+            num_images=self.num_grabber_rois,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
-        return forward_rois + backward_rois + forward_rois + backward_rois
+        return forward_rois + backward_rois
