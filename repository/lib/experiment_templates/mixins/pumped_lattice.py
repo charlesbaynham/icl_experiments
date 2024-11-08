@@ -14,6 +14,69 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 logger = logging.getLogger(__name__)
 
 
+class OpticalPumpingBase(RedMOTWithExperiment):
+    """
+    Defines a spin_polarize() method for use in optical pumping Mixins
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_before_spinpol_pulse",
+            FloatParam,
+            "Time in lattice before the spin polarization pulse",
+            default=constants.TIME_IN_LATTICE_BEFORE_SPIN_POL,
+            unit="ms",
+        )
+        self.delay_before_spinpol_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "duration_spinpol_pulse",
+            FloatParam,
+            "Duration of the spin polarizing pulse",
+            default=constants.DURATION_OF_SPIN_POL,
+            unit="ms",
+        )
+        self.duration_spinpol_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "delay_after_spinpol_pulse",
+            FloatParam,
+            "Time in lattice after the spin polarization pulse",
+            default=constants.TIME_IN_LATTICE_AFTER_SPIN_POL,
+            unit="ms",
+        )
+        self.delay_after_spinpol_pulse: FloatParamHandle
+
+    @kernel
+    def spin_polarize(self):
+        """
+        Spin polarize the atoms trapped in the lattice by pulsing the selected
+        beam after allowing the atoms to equlibriate in the lattice for a time,
+        then hold them afterwards for some time.
+        """
+        delay(self.delay_before_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
+        delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
+        delay(self.delay_after_spinpol_pulse.get())
+
+
+class OpticalPumpingDipoleTrapMixin(OpticalPumpingBase):
+    """
+    Mixin for optical pumping in a dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~dipole_trap_optical_pumping_hook`
+    """
+
+    @kernel
+    def dipole_trap_optical_pumping_hook(self):
+        self.spin_polarize()
+
+
 class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     """
     Loads atoms into a lattice, pumps them into a stretched state then drops
