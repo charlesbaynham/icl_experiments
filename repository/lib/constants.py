@@ -670,13 +670,13 @@ class MirnySettings:
 
 # These frequencies were chosen empirically based on the atoms
 _default_461 = (
-    650504059e6
+    650_504_059e6
     # 2024-11-05
     + 10e6
 )
-_default_707 = 423913478e6
-_default_679 = 441332627e6
-_default_698 = 429228387.3e6  # Measured empirically
+_default_707 = 423_913_478e6
+_default_679 = 441_332_627e6
+_default_698 = 429_228_387.3e6  # Measured empirically
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
