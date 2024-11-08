@@ -19,7 +19,7 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTDoubleMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class ClockSpecFromXXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
-    XODTDoubleMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
     DipoleTrapWithExperiment,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
