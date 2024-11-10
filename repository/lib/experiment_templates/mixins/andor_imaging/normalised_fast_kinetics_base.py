@@ -95,7 +95,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             "delay_between_imaging_pulses",
             FloatParam,
             "Time between the start of each fluorescence pulse",
-            default=1e-3,
+            default=2e-3,
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle
