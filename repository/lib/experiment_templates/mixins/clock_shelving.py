@@ -111,7 +111,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             enable_iir=True,
         )
 
@@ -129,7 +129,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
         delay(self.clock_delivery_preempt_time_shelving.get())
