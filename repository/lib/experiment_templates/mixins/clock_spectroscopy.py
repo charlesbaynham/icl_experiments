@@ -100,7 +100,7 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             enable_iir=True,
         )
 
