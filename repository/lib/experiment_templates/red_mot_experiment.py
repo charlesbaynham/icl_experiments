@@ -187,6 +187,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.clock_delivery_beam_suservo.set_iir_params(
             ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
         )
+        self.core.break_realtime()
+        delay(1e-3)
 
         self.DMA_initialization_hook()
 
