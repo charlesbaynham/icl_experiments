@@ -18,8 +18,11 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTDoubleMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,7 +33,8 @@ class DifferentialClockInterferometryFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
-    XODTDoubleMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
     """
