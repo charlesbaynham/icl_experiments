@@ -68,6 +68,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
     def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
+        delay(-self.clock_delivery_preempt_time.get())
         # Set frequency on the suservo, phase on the clock switch
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
@@ -78,6 +79,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
+        delay(self.clock_delivery_preempt_time.get())
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.phase_constant,
