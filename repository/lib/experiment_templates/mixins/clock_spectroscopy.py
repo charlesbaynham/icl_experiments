@@ -56,6 +56,15 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
         )
         self.spectroscopy_clock_delivery_setpoint: FloatParamHandle
 
+        self.setattr_param(
+            "clock_delivery_preempt_time",
+            FloatParam,
+            "Preempt time before spectroscopy pulse",
+            default=80e-6,
+            unit="us",
+        )
+        self.clock_delivery_preempt_time: FloatParamHandle
+
         self.setattr_fragment(
             "clock_delivery_setter",
             LibSetSUServoStatic,
@@ -131,6 +140,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
     @kernel
     def do_rabi_spectroscopy(self):
+        delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.spectroscopy_pulse_aom_detuning.get(),
@@ -140,6 +150,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
+        delay(self.clock_delivery_preempt_time.get())
 
         self.clock_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
