@@ -1,9 +1,11 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -122,6 +124,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
+        _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
         self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
@@ -132,7 +135,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
-        delay(self.clock_delivery_preempt_time_shelving.get())
+        at_mu(_t_start)
 
         delay_mu(int64(self.core.ref_multiplier))
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
