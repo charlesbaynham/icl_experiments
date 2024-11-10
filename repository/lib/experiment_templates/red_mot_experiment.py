@@ -54,7 +54,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
-from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.constants import SUSERVOED_BEAMS
@@ -183,12 +182,12 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        # Boost the clock delivery SUServo's gain
-        self.clock_delivery_beam_suservo.set_iir_params(
-            ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
-        )
-        self.core.break_realtime()
-        delay(1e-3)
+        # # Boost the clock delivery SUServo's gain
+        # self.clock_delivery_beam_suservo.set_iir_params(
+        #     ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
+        # )
+        # self.core.break_realtime()
+        # delay(1e-3)
 
         self.DMA_initialization_hook()
 
