@@ -66,13 +66,13 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.shelving_pulse_clearout_duration: FloatParamHandle
 
         self.setattr_param(
-            "clock_delivery_preempt_time",
+            "clock_delivery_preempt_time_shelving",
             FloatParam,
             "Preempt time before shelving pulse",
             default=80e-6,
             unit="us",
         )
-        self.clock_delivery_preempt_time: FloatParamHandle
+        self.clock_delivery_preempt_time_shelving: FloatParamHandle
 
         self.setattr_param(
             "shelving_clock_delivery_setpoint",
@@ -122,7 +122,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
-        delay(-self.clock_delivery_preempt_time.get())
+        delay(-self.clock_delivery_preempt_time_shelving.get())
         self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.shelving_pulse_aom_detuning.get(),
@@ -132,7 +132,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             enable_iir=True,
         )
-        delay(self.clock_delivery_preempt_time.get())
+        delay(self.clock_delivery_preempt_time_shelving.get())
 
         delay_mu(int64(self.core.ref_multiplier))
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
