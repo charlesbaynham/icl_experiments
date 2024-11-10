@@ -140,6 +140,15 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         )
         self.spectroscopy_pulse_time: FloatParamHandle
 
+        self.setattr_param(
+            "delay_after_spectroscopy",
+            FloatParam,
+            "Delay after spectroscopy before imaging",
+            default=0e-6,
+            unit="us",
+        )
+        self.delay_after_spectroscopy: FloatParamHandle
+
     @kernel
     def do_rabi_spectroscopy(self):
         _t_start = now_mu()
@@ -158,6 +167,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         self.clock_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
         self.clock_dds.sw.off()
+        delay(self.delay_after_spectroscopy.get())
 
 
 class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
