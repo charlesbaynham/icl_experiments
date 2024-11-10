@@ -104,6 +104,6 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
 
 
 ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
-ClockSpecFromXXODT = make_fragment_scan_exp(
+ClockSpecFromXXODTWithShelving = make_fragment_scan_exp(
     ClockSpecFromXXODTWithShelvingAndClearoutFrag
 )
