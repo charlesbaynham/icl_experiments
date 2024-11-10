@@ -351,7 +351,7 @@ DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
 DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000.0
 "$k_I$ constant for the fluorescence beam's SUServo loop"
 
-DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -300000.0
+DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
 "$k_I$ constant for the clock delivery beam's SUServo loop"
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
