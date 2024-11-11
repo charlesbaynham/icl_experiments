@@ -198,9 +198,7 @@ class RelockerChannelFrag(ExpFragment):
         return read_voltages
 
     def push_voltages_to_applet(self, read_voltages):
-        set_voltages = np.linspace(
-            self.v_min.get(), self.v_max.get(), self.n_steps.get()
-        )
+        set_voltages = self.get_scan_voltages()
         err = np.zeros_like(read_voltages)
         self.set_dataset(
             f"{self.relocker_name}_{self.channel}_read_voltages",
@@ -230,6 +228,12 @@ class RelockerChannelFrag(ExpFragment):
     def set_dac_voltage(self, v):
         self.relocker.set_dac_ch(self.channel, v)
 
+    def get_auto_relock_stats(self):
+        return self.relocker.get_auto_relock_stats(self.channel)
+
+    def get_scan_voltages(self):
+        return self.relocker.get_scan_voltages(self.channel)
+
     def run_once(self):
         if self.write_settings.get():
             self.set_scan_settings()
@@ -239,6 +243,7 @@ class RelockerChannelFrag(ExpFragment):
         read_voltages = self.get_read_voltages()
         self.push_voltages_to_applet(read_voltages)
         logger.info(self.get_result())
+        logger.info(self.get_auto_relock_stats())
 
 
 class RelockerFrag(ExpFragment):
