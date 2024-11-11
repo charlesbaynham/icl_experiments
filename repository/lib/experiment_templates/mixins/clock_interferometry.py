@@ -229,16 +229,22 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
 
         # Read out the current in-loop suservo control signal to avoid bumps
         # when we switch profile. This consumes all the slack
-        settled_y_mu = self.clock_delivery_suservo.get_y_mu(
-            profile=self.clock_delivery_setter.suservo_profile
-        )
+        # FIXME
+        # settled_y_mu = self.clock_delivery_suservo.get_y_mu(
+        #     profile=self.clock_delivery_setter.suservo_profile
+        # )
 
         # Write this value into the other two profiles. We must add some slack first
         delay(constants.SUSERVO_READOUT_SLACK)
         for i in range(1, 3):
-            self.clock_delivery_suservo.set_y_mu(
+            # FIXME
+            # self.clock_delivery_suservo.set_y_mu(
+            #     profile=i,
+            #     y=settled_y_mu,
+            # )
+            self.clock_delivery_suservo.set_y(
                 profile=i,
-                y=settled_y_mu,
+                y=0.0,
             )
 
         # Switching profiles should now be bumpless. Start with profile 0 for no
