@@ -65,8 +65,8 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     def host_setup(self):
         em_gain = self.andor_camera_control.cam.get_EMCCD_gain()
+        self.andor_camera_control.cam.set_EMCCD_gain(0)
         if em_gain != 0:
-            em_gain = self.andor_camera_control.cam.set_EMCCD_gain(0)
             raise ValueError(
                 "EM gain should be 0 for absorption imaging. Setting to 0."
             )
