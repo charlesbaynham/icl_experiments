@@ -183,6 +183,7 @@ class RelockerChannelFrag(ExpFragment):
 
         self.controller_name = defaults.associated_controller
         self.controller: CTL200 = self.get_device(self.controller_name)
+
         return super().host_setup()
 
     def set_scan_settings(self):
@@ -260,9 +261,19 @@ class RelockerChannelFrag(ExpFragment):
             archive=False,
         )
 
-        self.set_dataset("set_currents", scan_currents, broadcast=True, archive=False)
-        self.set_dataset("err", err, broadcast=True, archive=False)
-        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x set_currents --fit read_voltages --error err"
+        self.set_dataset(
+            "{self.relocker_name}_{self.channel}_set_currents",
+            scan_currents,
+            broadcast=True,
+            archive=False,
+        )
+        self.set_dataset(
+            "err",
+            err,
+            broadcast=True,
+            archive=False,
+        )
+        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x {self.relocker_name}_{self.channel}_set_currents --fit read_voltages --error err"
         self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
         logger.info("window_start: %s", window_start)
         logger.info("window_end: %s", window_end)
