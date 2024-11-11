@@ -3,6 +3,8 @@ from typing import List
 from typing import Optional
 
 import numpy as np
+from artiq.master.scheduler import Scheduler
+from artiq_influx_generic import InfluxController
 from ndscan.experiment import BoolParam
 from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
@@ -30,6 +32,12 @@ class RelockerChannelFrag(ExpFragment):
         If relocker_name is provided then this fragment use it.
         Otherwise, it will expose it as an ARTIQ argument (note, not an ndscan parameter) instead.
         """
+
+        self.setattr_device("influx_logger")
+        self.influx_logger: InfluxController
+
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
 
         self.setattr_device("ccb")
         if channel_name:
@@ -234,6 +242,37 @@ class RelockerChannelFrag(ExpFragment):
     def get_scan_voltages(self):
         return self.relocker.get_scan_voltages(self.channel)
 
+    def log_results(self):
+        # Log action
+        results = self.get_result()
+        scan_voltages = self.get_scan_voltages()
+        logger.info(results)
+
+        i_start = results[0]
+        i_end = results[1]
+        i_lock = results[2]
+
+        window_start = scan_voltages[i_start]
+        window_end = scan_voltages[i_end]
+        lock_point = scan_voltages[i_lock]
+        logger.info("window_start: %s", window_start)
+        logger.info("window_end: %s", window_end)
+        logger.info("lock_point: %s", lock_point)
+        # self.influx_logger.write(
+        #     tags={
+        #         "type": self.__class__.__name__,
+        #         "controller": self.relocker_name,
+        #         "channel": self.channel,
+        #         "rid": self.scheduler.rid,
+        #     },
+        #     fields={
+        #         "i_lock": lock_point,
+        #         "i_start": window_start,
+        #         "i_end": window_end,
+        #         "i_window_size": window_end - window_start,
+        #     },
+        # )
+
     def run_once(self):
         if self.write_settings.get():
             self.set_scan_settings()
@@ -242,8 +281,7 @@ class RelockerChannelFrag(ExpFragment):
             self.relock()
         read_voltages = self.get_read_voltages()
         self.push_voltages_to_applet(read_voltages)
-        logger.info(self.get_result())
-        logger.info(self.get_auto_relock_stats())
+        self.log_results()
 
 
 class RelockerFrag(ExpFragment):

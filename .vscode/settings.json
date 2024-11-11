@@ -7,9 +7,13 @@
     "cSpell.words": [
         "andor",
         "artiq",
+        "IJDs",
+        "Koheron",
         "Narrowband",
         "ndscan",
         "pretrigger",
+        "relocker",
+        "relocking",
         "ROIs"
     ],
     "editor.codeLens": true,

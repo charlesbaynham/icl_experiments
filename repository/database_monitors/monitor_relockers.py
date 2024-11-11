@@ -15,12 +15,13 @@ class _MonitorRelocker(Calibration):
     set to an entry in the device_db.
     """
 
-    controller_name: str = None
+    board_name: str = None
+    channel: int = None
 
     def __init__(self, *args, **kwargs):
-        if self.controller_name is None:
+        if self.controller_name is None or self.channel is None:
             raise NotImplementedError(
-                "You must subclass this interface class and set cls.controller_name"
+                "You must subclass this interface class and set cls.board_name and cls.channel"
             )
 
         super().__init__(*args, **kwargs)
@@ -35,34 +36,15 @@ class _MonitorRelocker(Calibration):
         try:
             self.controller.ping()
 
-            out["temperature_actual"] = (
-                self.controller.get_temperature_actual() - 273.15
-            )
-            out["temperature_setpoint"] = (
-                self.controller.get_temperature_setpoint() - 273.15
-            )
+            result = self.board.get_result(self.channel)
+            auto_stats = self.board.get_auto_stats(self.channel)
+            self.board.get_scan_voltages(self.channel)
+            auto_relocking = self.board.get_auto(self.channel)
 
-            out["resistance_actual"] = self.controller.get_resistance_actual()
-            out["resistance_setpoint"] = self.controller.get_resistance_setpoint()
-
-            out["current"] = 1e-3 * self.controller.get_current_mA()
-            out["voltage"] = self.controller.get_voltage()
-
-            laser_is_on = self.controller.status()
-            if not laser_is_on:
-                out["status"] = "OFF"
-                out["current"] = 0.0
-            elif (
-                abs(out["temperature_actual"] - out["temperature_setpoint"])
-                > AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD
-            ):
-                out["status"] = "SETTLING"
-            else:
-                out["status"] = "ON"
-
-            result = (
-                CalibrationResult.OK if out["status"] else CalibrationResult.BAD_DATA
-            )
+            out["number_autos"] = auto_stats[0]
+            out["number_autos_succeeded"] = auto_stats[1]
+            out["status"] = "AUTO ON" if auto_relocking else "AUTO OFF"
+            result = CalibrationResult.OK
 
         except AttributeError:
             # The connection to the controller failed
@@ -71,7 +53,7 @@ class _MonitorRelocker(Calibration):
 
         return result, {
             "tags": {
-                "device": self.controller_name,
+                "device": self.board_name,
                 "channel": self.channel,
                 "parent": _MonitorRelocker.__name__,
             },
