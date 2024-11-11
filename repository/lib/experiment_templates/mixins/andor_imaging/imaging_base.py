@@ -46,7 +46,8 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     num_andor_images = 1
     "How many images will the Andor driver read out"
-
+    num_images_per_series = 1
+    "How many images will the Andor driver read out in each series"
     num_grabber_rois = 1
     "How many ROIs in each image for the Grabber"
     num_grabber_readouts = 1
@@ -65,6 +66,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants.add("num_andor_images")
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
+
+        # sometimes we have multiple acquisitions and need to store the images
+        self.image_store = []
 
     def hook_setup_andor(self):
         """
@@ -187,68 +191,34 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
-        images = self.get_andor_images()
+        # Get new images and add them to any images we got earlier
+        images = self.image_store + self.get_andor_images()
+        self.image_store = []
+        images_array = np.array(images)
+        # Update detailed images
+        for i, image in enumerate(images_array):
+            dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
+            self.set_dataset(
+                dataset_name,
+                image,
+                broadcast=True,
+                persist=False,
+                archive=False,
+            )
 
-        # Update the monitor
-        if self.use_andor_driver.get():
-            # Update detailed images
-            for i, image in enumerate(images):
-                dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
-                self.set_dataset(
-                    dataset_name,
-                    image,
-                    broadcast=True,
-                    persist=False,
-                    archive=False,
-                )
-
-            # Update the main monitor
-            self.update_andor_monitor_hook(images)
+        # Update the main monitor
+        self.update_andor_monitor_hook(images_array)
+        # Do any other processing
+        self.process_andor_image_hook(images_array)
 
     @host_only
     def get_andor_images(self):
-        images = []
-
         # Readout and store the andor images
         imgs_array = self.andor_camera_control.readout_all_new_images(
-            num_images=self.num_andor_images
+            num_images=self.num_images_per_series
         )
 
-        for (
-            andor_sum_slice_x,
-            andor_sum_slice_y,
-            andor_image,
-            img_array,
-        ) in zip(
-            self.andor_sum_slice_xs,
-            self.andor_sum_slice_ys,
-            self.andor_images,
-            imgs_array,
-        ):
-            if self.use_andor_driver.get():
-                sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
-
-                # Write them to the result channels
-                andor_sum_slice_x.push(sum_slice_x)
-                andor_sum_slice_y.push(sum_slice_y)
-
-                # Save them to pass to the monitor
-                images.append(img_array)
-
-                # Save raw data if requested
-                if self.andor_camera_control.save_raw_andor_image.get():
-                    andor_image.push(img_array)
-                else:
-                    andor_image.push([])
-            else:
-                # We must always push something to ResultChannels, so push something empty
-                andor_sum_slice_x.push([])
-                andor_sum_slice_y.push([])
-                andor_image.push([])
-
-                images.append([])
-
-        return images
+        return imgs_array.tolist()
 
     @host_only
     @staticmethod
@@ -258,7 +228,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         return sum_slice_x, sum_slice_y
 
     @host_only
-    def update_andor_monitor_hook(self, images: List[np.ndarray]):
+    def update_andor_monitor_hook(self, images):
         """
         Update the andor monitor with an appropriate image
 
@@ -274,12 +244,16 @@ class AndorImagingBase(RedMOTWithExperiment):
         )
 
     @kernel
-    def save_grabber_data_hook(self):
+    def save_andor_data_hook(self):
         """
         Consume all slack and save the photos
         """
-        self._call_camera_rpc()
+        if self.use_andor_driver.get():
+            self._call_camera_rpc()
+        self.get_grabber_data()
 
+    @kernel
+    def get_grabber_data(self):
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
         means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
@@ -307,12 +281,51 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
 
-        self.process_andor_data_hook(sums, means)
+        self.process_grabber_data_hook(sums, means)
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         """
-        Process the Andor data
+        Process the Grabber data
 
         This is a hook that can be overridden by subclasses to e.g. do background subtraction using the andor datasets
         """
+
+    @rpc(flags={"async"})
+    def process_andor_image_hook(self, imgs_array):
+        """
+        Hook to process the Andor image.
+        This method is intended to be overridden by subclasses to implement custom
+        processing of the Andor images after they have been read out. The default
+        implementation does nothing.
+        """
+        for (
+            andor_sum_slice_x,
+            andor_sum_slice_y,
+            andor_image,
+            img_array,
+        ) in zip(
+            self.andor_sum_slice_xs,
+            self.andor_sum_slice_ys,
+            self.andor_images,
+            imgs_array,
+        ):
+            if self.use_andor_driver.get():
+                sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
+
+                # Write them to the result channels
+                andor_sum_slice_x.push(sum_slice_x)
+                andor_sum_slice_y.push(sum_slice_y)
+
+                # Save them to pass to the monitor
+
+                # Save raw data if requested
+                if self.andor_camera_control.save_raw_andor_image.get():
+                    andor_image.push(img_array)
+                else:
+                    andor_image.push([])
+            else:
+                # We must always push something to ResultChannels, so push something empty
+                andor_sum_slice_x.push([])
+                andor_sum_slice_y.push([])
+                andor_image.push([])

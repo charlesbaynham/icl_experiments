@@ -9,6 +9,9 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
+from repository.lib.experiment_templates.mixins.clock_shelving import (
+    ClockShelvingAndClearoutDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
@@ -16,10 +19,10 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
     FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
-    OpticalPumpingDipoleTrapMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,9 +32,9 @@ class ClockSpecFromXXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
-    XODTMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
-    OpticalPumpingDipoleTrapMixin,
 ):
     """
     Clock spectroscopy from dropped XXODT
@@ -46,9 +49,48 @@ class ClockSpecFromXXODTFrag(
     def host_setup(self):
         super().host_setup()
 
+        em_gain = 30
         # TODO: Make this not a horrible hack
-        logger.warning("Setting EMCCD gain to 30. BEWARE!!!")
-        self.andor_camera_control.cam.set_EMCCD_gain(30)
+        logger.warning("Setting EMCCD gain to %f. BEWARE!!!", em_gain)
+        self.andor_camera_control.cam.set_EMCCD_gain(em_gain)
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
+
+    def host_cleanup(self):
+        logger.warning("EM gain turned off again")
+        self.andor_camera_control.cam.set_EMCCD_gain(0)
+        return super().host_cleanup()
+
+
+class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
+    ClockRabiSpectroscopyDipoleTrapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    DoubleTrapImagingNormalised,
+    FLIRBlueMOTMeasurementMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Clock spectroscopy from dropped XXODT with shelving and clearout
+
+    Load into an XXODT, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
+    """
+
+    def host_setup(self):
+        super().host_setup()
+
+        em_gain = 30
+        # TODO: Make this not a horrible hack
+        logger.warning("Setting EMCCD gain to %f. BEWARE!!!", em_gain)
+        self.andor_camera_control.cam.set_EMCCD_gain(em_gain)
 
     @kernel
     def before_start_hook(self):
@@ -62,3 +104,6 @@ class ClockSpecFromXXODTFrag(
 
 
 ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
+ClockSpecFromXXODTWithShelving = make_fragment_scan_exp(
+    ClockSpecFromXXODTWithShelvingAndClearoutFrag
+)

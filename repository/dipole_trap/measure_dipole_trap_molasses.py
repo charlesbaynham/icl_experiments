@@ -15,9 +15,11 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolassesMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTMolassesPlusFieldRampMixin,
+    XODTDoubleMolassesMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTDoubleMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ EXPOSE_MOLASSES_2_PARAMS = True
 class _MeasureDipoleTrapBase(
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
-    XODTMolassesMixin,
+    XODTDoubleMolassesMixin,
 ):
     """
     Load a dipole trap, do 689 nm molasses, hold, and take BG subtracted image
@@ -73,7 +75,7 @@ class MeasureDoubleDipoleTrapFrag(
 
 
 class MeasureDoubleDipoleTrapWithFieldRampFrag(
-    XODTMolassesPlusFieldRampMixin, MeasureDoubleDipoleTrapFrag
+    XODTDoubleMolassesPlusFieldRampMixin, MeasureDoubleDipoleTrapFrag
 ):
     pass
 

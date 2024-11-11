@@ -134,7 +134,7 @@ class AbsorptionRedMOTFrag(AndorImagingBase, RedMOTWithExperiment):
         return images
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         self.absorption.push(sums[1] - sums[0])
 
 

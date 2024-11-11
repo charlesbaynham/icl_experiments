@@ -34,7 +34,7 @@ class BGCorrectedAndorImage(AndorImagingBase):
     """
 
     num_andor_images = 2
-
+    num_images_per_series = 2
     num_grabber_readouts = 2
     num_grabber_rois = 1
 
@@ -97,5 +97,5 @@ class BGCorrectedAndorImage(AndorImagingBase):
         )
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])

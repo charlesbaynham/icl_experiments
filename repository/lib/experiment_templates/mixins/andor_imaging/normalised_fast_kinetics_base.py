@@ -1,9 +1,12 @@
 import logging
 
+import numpy as np
 from artiq.experiment import at_mu
 from artiq.experiment import delay
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -15,6 +18,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
+
+ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
+ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
 def calculate_grabber_rois(
@@ -52,15 +58,15 @@ def calculate_grabber_rois(
     ]
 
 
-class TripleImageFastKineticsBase(AndorImagingBase):
+class NormalisedFastKineticsBase(AndorImagingBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
 
-    This mixin base uses the Andor camera to take three images and create
-    ResultChannels for normalised state readout, assuming that the first image
-    is ground-state atoms, the second one is excited state and the third is
-    background (i.e. no atoms at all).
+    This mixin base uses the Andor camera to two fast kinetics series with two images each and create
+    ResultChannels for normalised state readout. The first series contains atoms that starts in (i)
+    the ground state, and (ii) the excited state. The second series reproduces the conditions of the first,
+    with a long delay to clear out atoms.
 
     Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
     and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
@@ -75,9 +81,10 @@ class TripleImageFastKineticsBase(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 3
-    num_grabber_readouts = 1
-    num_grabber_rois = 3
+    num_andor_images = 4
+    num_grabber_readouts = 2
+    num_grabber_rois = 2
+    num_images_per_series = 2
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
 
@@ -87,8 +94,8 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         self.setattr_param(
             "delay_between_imaging_pulses",
             FloatParam,
-            "Total time between the starts of the three fluorescence pulses",
-            default=3e-3,
+            "Time between the start of each fluorescence pulse",
+            default=2e-3,
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle
@@ -105,7 +112,29 @@ class TripleImageFastKineticsBase(AndorImagingBase):
             self.delay_between_imaging_pulses,
         )
 
+        self.setattr_param(
+            "delay_before_bg_img",
+            FloatParam,
+            "Delay before bg image series",
+            default=400e-3,
+            unit="ms",
+        )
+        self.delay_before_bg_img: FloatParamHandle
+
         self.fast_kinetics_setup_results()
+
+    def host_setup(self):
+        super().host_setup()
+        self.ccb.issue(
+            "create_applet",
+            "Ground bg corrected",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET}",
+        )
+        self.ccb.issue(
+            "create_applet",
+            "Excited bg corrected",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET}",
+        )
 
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction", FloatChannel)
@@ -127,7 +156,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
             fast_kinetics_height_default=self.fast_kinetics_height_default,
             fast_kinetics_offset_default=self.fast_kinetics_offset_default,
             add_pre_trigger_delay=True,
-            fast_kinetics_num_shots=3,
+            fast_kinetics_num_shots=self.num_images_per_series,
         )
         self.andor_camera_control: AndorCameraControl
 
@@ -137,7 +166,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_grabber_rois,
+            num_images=self.num_images_per_series,
             x0=constants.ANDOR_ROI_X0,
             y0=constants.ANDOR_ROI_Y0,
             x1=constants.ANDOR_ROI_X1,
@@ -150,7 +179,17 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
+        self.do_first_series()
+        t_post_mu = now_mu()
+        self.post_first_series()  # call rpc to get images, start next acquisition
+        at_mu(t_post_mu)
+        delay(self.delay_before_bg_img.get())
+        self.pre_second_series()
+        self.do_second_series()
+        self.post_second_series()  # call rpc to get images
 
+    @kernel
+    def do_first_series(self):
         # Image ground state atoms
         t_start_mu = now_mu()
         self.do_first_pulse()
@@ -160,10 +199,33 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         delay(self.delay_between_imaging_pulses.get())
         self.do_second_pulse()
 
-        # Take background measurement
-        at_mu(t_start_mu)
-        delay(2 * self.delay_between_imaging_pulses.get())
-        self.do_third_pulse()
+    @kernel
+    def post_first_series(self):
+        """
+        eg turn off beams, start acquisition
+        """
+        self.post_first_series_rpc()
+
+    @rpc
+    def post_first_series_rpc(self):
+        self.image_store += self.get_andor_images()
+        self.andor_camera_control.start_acquisition()
+
+    @kernel
+    def pre_second_series(self):
+        """
+        eg turn on beams for some time
+        must not advance the timeline
+        """
+
+    @kernel
+    def do_second_series(self):
+        # second verse, same as the first
+        self.do_first_series()
+
+    @kernel
+    def post_second_series(self):
+        pass
 
     @kernel
     def do_first_pulse(self):
@@ -173,25 +235,41 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         self.do_pulse()
 
     @kernel
+    def do_second_pulse(self):
+        self.do_just_a_fluorescence_pulse()
+
+    @kernel
     def do_just_a_fluorescence_pulse(self):
         # Just a fluorescence pulse - the camera has already been triggered and handles its own timings
         self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     @kernel
-    def do_second_pulse(self):
-        self.do_just_a_fluorescence_pulse()
-
-    @kernel
-    def do_third_pulse(self):
-        self.do_just_a_fluorescence_pulse()
-
-    @kernel
     def process_grabber_data_hook(self, sums, means):
-        atom_number = sums[0] + sums[1] - 2 * sums[2]
+        atom_number = sums[0] + sums[1] - sums[2] - sums[3]
 
         if atom_number == 0:
             self.excitation_fraction.push(0.0)
         else:
-            self.excitation_fraction.push((sums[1] - sums[2]) / atom_number)
+            self.excitation_fraction.push((sums[1] - sums[3]) / atom_number)
 
         self.atom_number.push(atom_number)
+
+    @host_only
+    def process_andor_image_hook(self, images: np.array):
+        super().process_andor_image_hook(images)
+        ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
+        excited_bg_corrected = images[1].astype(int) - images[3].astype(int)
+        self.set_dataset(
+            ANDOR_FK_G_BG_CORR_DATASET,
+            ground_bg_corrected,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )
+        self.set_dataset(
+            ANDOR_FK_E_BG_CORR_DATASET,
+            excited_bg_corrected,
+            broadcast=True,
+            persist=False,
+            archive=False,
+        )

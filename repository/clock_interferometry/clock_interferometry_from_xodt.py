@@ -18,8 +18,11 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,7 +33,8 @@ class DifferentialClockInterferometryFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     FLIRBlueMOTMeasurementMixin,
-    XODTMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -41,8 +45,9 @@ class DifferentialClockInterferometryFrag(
         super().host_setup()
 
         # TODO: Make this not a horrible hack
-        logger.warning("Setting EMCCD gain to 30. BEWARE!!!")
-        self.andor_camera_control.cam.set_EMCCD_gain(30)
+        em_gain = 30
+        logger.warning("Setting EMCCD gain to %f. BEWARE!!!", em_gain)
+        self.andor_camera_control.cam.set_EMCCD_gain(em_gain)
 
     @kernel
     def before_start_hook(self):
