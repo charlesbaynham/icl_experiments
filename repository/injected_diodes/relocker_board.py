@@ -236,7 +236,7 @@ class RelockerChannelFrag(ExpFragment):
     def get_scan_currents(self, scan_voltages):
         current_gain = self.controller.get_mod_gain()
         current_act = self.controller.get_current_mA()
-        return [v / 2 * current_gain + current_act for v in scan_voltages]
+        return np.array([v / 2 * current_gain + current_act for v in scan_voltages])
 
     def log_results(self):
         # Log action
@@ -273,7 +273,7 @@ class RelockerChannelFrag(ExpFragment):
             broadcast=True,
             archive=False,
         )
-        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x {self.relocker_name}_{self.channel}_set_currents --fit read_voltages --error err"
+        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x {self.relocker_name}_{self.channel}_set_currents --fit {self.relocker_name}_{self.channel}_read_voltages --error err"
         self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
         logger.info("window_start: %s", window_start)
         logger.info("window_end: %s", window_end)
