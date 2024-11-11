@@ -121,6 +121,82 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         self.clock_dds.sw.off()
 
 
+class ClockInterferometryWithSUServo(ClockInterferometryBase):
+    """
+    Implements clock interferometry with the delivery SUServo instead of the
+    clock switch AOM
+
+    Kernel hooks:
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_first_pulse`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.clock_delivery_suservo = self.clock_delivery_setter.suservo_channel
+        self.kernel_invariants.add("clock_suservo_channel")
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook
+        self.before_start_hook_clockspec()
+        self.before_start_hook_clockinterferometry()
+
+    @kernel
+    def before_start_hook_clockinterferometry(self):
+        # before_start_hook_clockspec has already set up the SUServo delivery
+        # AOM with the right settings, but we'll overwrite all these except the
+        # attenuator. Here, we make SUServo profiles manually with different
+        # phases.
+
+        offset = self.clock_delivery_setter.setpoint_to_offset(
+            self.spectroscopy_clock_delivery_setpoint.get()
+        )
+
+        self.clock_delivery_suservo.set_dds(
+            profile=0,
+            frequency=CLOCK_BEAM_DELIVERY_INFO.frequency
+            + self.spectroscopy_pulse_aom_detuning.get(),
+            offset=offset,
+            phase=self.phase_constant,
+        )
+        self.clock_delivery_suservo.set_dds(
+            profile=1,
+            frequency=CLOCK_BEAM_DELIVERY_INFO.frequency
+            + self.spectroscopy_pulse_aom_detuning.get(),
+            offset=offset,
+            phase=self.phase_constant + 1.0 * self.phase_step.get(),
+        )
+        self.clock_delivery_suservo.set_dds(
+            profile=2,
+            frequency=CLOCK_BEAM_DELIVERY_INFO.frequency
+            + self.spectroscopy_pulse_aom_detuning.get(),
+            offset=offset,
+            phase=self.phase_constant + 4.0 * self.phase_step.get(),
+        )
+
+        # Configure default initial amplitudes and IIR settings for each
+        # profile
+        for i in range(3):
+            self.clock_delivery_suservo.set_y(
+                profile=i,
+                y=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
+            )
+            self.clock_delivery_suservo.set_iir(
+                profile=i,
+                adc=self.clock_delivery_setter.sampler_channel,
+                kp=0.0,
+                ki=-10000.0,
+                gain_limit=0.0,
+                delay=0.0,
+            )
+
+        # Start on profile 0 with the AOM on
+        self.clock_delivery_suservo.set(en_out=1, en_iir=1, profile=0)
+
+
 class ClockInterferometryRedMOTMixin(ClockInterferometryBase):
     """
     Implements clock interferometry after the red MOT
