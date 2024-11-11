@@ -267,20 +267,20 @@ class RelockerChannelFrag(ExpFragment):
         logger.info("window_start: %s", window_start)
         logger.info("window_end: %s", window_end)
         logger.info("lock_point: %s", lock_point)
-        self.influx_logger.write(
-            tags={
-                "type": self.__class__.__name__,
-                "controller": self.relocker_name,
-                "channel": self.channel,
-                "rid": self.scheduler.rid,
-            },
-            fields={
-                "i_lock": lock_point,
-                "i_start": window_start,
-                "i_end": window_end,
-                "i_window_size": window_end - window_start,
-            },
-        )
+        # self.influx_logger.write(
+        #     tags={
+        #         "type": self.__class__.__name__,
+        #         "controller": self.relocker_name,
+        #         "channel": self.channel,
+        #         "rid": self.scheduler.rid,
+        #     },
+        #     fields={
+        #         "i_lock": lock_point,
+        #         "i_start": window_start,
+        #         "i_end": window_end,
+        #         "i_window_size": window_end - window_start,
+        #     },
+        # )
 
     def run_once(self):
         if self.write_settings.get():
