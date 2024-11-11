@@ -192,7 +192,7 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
                 adc=self.clock_delivery_setter.sampler_channel,
                 kp=0.0,
                 ki=-10000.0,
-                gain_limit=0.0,
+                g=0.0,
                 delay=0.0,
             )
 
@@ -219,7 +219,9 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
 
         # Read out the current in-loop suservo control signal to avoid bumps
         # when we switch profile. This consumes all the slack
-        settled_y_mu = self.clock_delivery_suservo.get_y_mu()
+        settled_y_mu = self.clock_delivery_suservo.get_y_mu(
+            profile=self.clock_delivery_setter.suservo_profile
+        )
 
         # Write this value into all the profiles. We must add some slack first
         delay(1e-6)
