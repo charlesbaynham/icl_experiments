@@ -3,6 +3,9 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging_base import (
+    AbsorptionImagingMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
 )
@@ -58,8 +61,19 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
     """
 
 
+class MeasureNarrowbandMOTAbsFrag(
+    AbsorptionImagingMixin,
+    _MeasureNarrowbandMOTFrag,
+):
+    """
+    Do absorption imaging with a narrowband MOT
+    """
+
+
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
 
 MeasureNarrowbandRedMOTBGCorrected = make_fragment_scan_exp(
     MeasureNarrowbandMOTBGCorrectedFrag
 )
+
+MeasureNarrowbandMOTAbs = make_fragment_scan_exp(MeasureNarrowbandMOTAbsFrag)

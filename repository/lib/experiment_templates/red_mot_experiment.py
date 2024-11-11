@@ -54,10 +54,15 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
+from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
+from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
@@ -117,13 +122,20 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
 
+        self.setattr_fragment(
+            "clock_delivery_beam_suservo",
+            LibSetSUServoStatic,
+            SUSERVOED_BEAMS["clock_delivery"].suservo_device,
+        )
+        self.clock_delivery_beam_suservo: LibSetSUServoStatic
+
         # %% Params
 
         # Expansion time - can be negative
         self.setattr_param(
             "expansion_time",
             FloatParam,
-            "Time to expand MOT for before imaging",
+            "Time to wait before experiment",
             default=0.0,
             unit="us",
         )
@@ -171,11 +183,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        self.DMA_initialization_hook()
+        self.core.break_realtime()
 
-        # Probably pointless delay TODO: Check whether deleting this delay broke things: All dmas have to be called at the same time, so a delay here would mean child classes would have to copy/paste this device_setup code instead of calling super().device_setup and appending extra dmas
-        # self.core.break_realtime()
-        # delay(1e-3)
+        # Boost the clock delivery SUServo's gain
+        self.clock_delivery_beam_suservo.set_iir_params(
+            ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
+        )
+        self.core.break_realtime()
+
+        self.DMA_initialization_hook()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -251,7 +267,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.save_flir_data_hook()
 
         # This one for the Andor
-        self.save_grabber_data_hook()
+        self.save_andor_data_hook()
 
     # %% Hooks / overridable methods
     #
@@ -293,7 +309,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         pass
 
     @kernel
-    def save_grabber_data_hook(self):
+    def save_andor_data_hook(self):
         """
         Hook to save data from the Andor camera
 

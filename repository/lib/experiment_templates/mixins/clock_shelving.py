@@ -1,13 +1,14 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -17,6 +18,9 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -64,6 +68,15 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.shelving_pulse_clearout_duration: FloatParamHandle
 
         self.setattr_param(
+            "clock_delivery_preempt_time_shelving",
+            FloatParam,
+            "Preempt time before shelving pulse",
+            default=80e-6,
+            unit="us",
+        )
+        self.clock_delivery_preempt_time_shelving: FloatParamHandle
+
+        self.setattr_param(
             "shelving_clock_delivery_setpoint",
             FloatParam,
             "Setpoint for clock delivery AOM during shelving",
@@ -100,7 +113,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             enable_iir=True,
         )
 
@@ -111,6 +124,8 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
+        _t_start = now_mu()
+        delay(-self.clock_delivery_preempt_time_shelving.get())
         self.shelving_clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.shelving_pulse_aom_detuning.get(),
@@ -120,6 +135,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
+        at_mu(_t_start)
 
         delay_mu(int64(self.core.ref_multiplier))
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)

@@ -1,0 +1,224 @@
+import logging
+
+import numpy as np
+from artiq.experiment import delay
+from artiq.experiment import host_only
+from artiq.experiment import kernel
+from ndscan.experiment import FloatChannel
+from ndscan.experiment import OpaqueChannel
+from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+
+from repository.lib import constants
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    AndorImagingBase,
+)
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+
+logger = logging.getLogger(__name__)
+
+DATASET_OD_KEY = "abs_od_img"
+
+
+class AbsorptionImagingBase(AndorImagingBase):
+    """
+    Image three times: once with light and atoms, once with light and no atoms, and once with neither.
+    Then calculate the atom number and return an optical density image.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    * :meth:`~save_andor_data_hook`
+    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~save_andor_data_hook`
+    """
+
+    num_andor_images = 3
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_between_absorption_pulses",
+            FloatParam,
+            "Delay after absorption pulse before second",
+            default=30e-3,
+            unit="ms",
+        )
+        self.delay_between_absorption_pulses: FloatParamHandle
+
+        self.setattr_param(
+            "delay_before_bg_pulse",
+            FloatParam,
+            description="Delay before background pulse",
+            min=0,
+            unit="ms",
+            default=constants.ANDOR_CAMERA_BACKGROUND_DELAY,
+        )
+        self.delay_before_bg_pulse: FloatParamHandle
+
+        self.override_param("use_andor_driver", True)
+
+    def host_setup(self):
+        em_gain = self.andor_camera_control.cam.get_EMCCD_gain()
+        self.andor_camera_control.cam.set_EMCCD_gain(0)
+        if em_gain != 0:
+            raise ValueError(
+                "EM gain should be 0 for absorption imaging. Setting to 0."
+            )
+
+        self.ccb.issue(
+            "create_applet",
+            "Optical Density Image",
+            f"${{artiq_applet}}image {DATASET_OD_KEY}",
+        )
+
+        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+
+        logger.warning(
+            "Please ensure that the Andor is in Kinetics mode (not Fast Kinetics) with NO EM GAIN!"
+            " And that exposure is set to at least %f us",
+            1e6 * andor_exposure,
+        )
+        return super().host_setup()
+
+    def hook_setup_andor(self):
+        self.setattr_fragment("andor_camera_control", AndorCameraControl)
+        self.andor_camera_control: AndorCameraControl
+
+        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
+        self.use_andor_driver: BoolParamHandle
+
+        self.hook_setup_andor_results()
+
+    def hook_setup_andor_results(self):
+        # self.setattr_result("atoms_img", OpaqueChannel)
+        # self.atoms_img: OpaqueChannel
+        # self.setattr_result("light_img", OpaqueChannel)
+        # self.light_img: OpaqueChannel
+        # self.setattr_result("bg_img", OpaqueChannel)
+        # self.bg_img: OpaqueChannel
+        self.setattr_result("od_img", OpaqueChannel)
+        self.od_img: OpaqueChannel
+
+        self.setattr_result("atom_number", FloatChannel)
+        self.atom_number: FloatChannel
+
+    @kernel
+    def start_of_red_broadband_hook(self):
+        # The Andor camera shutter needs ~120ms to open, so start this at the
+        # beginning of the red stages. If the total red mot sequence takes less
+        # time than this then we'll have problems
+        self.andor_camera_control.set_shutter(True)
+
+    @kernel
+    def do_imaging_hook_andor(self):
+        """
+        Hook for the imaging sequence. This hook runs after the spectroscopy
+        etc. is completed, and should handle imaging with the Andor camera.
+        """
+        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+
+        # Image with atoms
+        self.do_pulse(andor_exposure)
+
+        # Wait for atoms to disappear
+        delay(self.delay_between_absorption_pulses.get())
+
+        # Image without atoms
+        self.do_pulse(andor_exposure)
+
+        # Trigger the third time without any light
+        delay(self.delay_before_bg_pulse.get())
+        self._do_pulse_no_light(andor_exposure)
+
+    @kernel
+    def _do_pulse_no_light(self, andor_exposure):
+        delay(-0.5 * andor_exposure)
+        self.andor_camera_control.trigger(
+            exposure=andor_exposure,
+            control_shutter=False,
+        )
+        delay(0.5 * andor_exposure)
+
+    @host_only
+    def process_andor_image_hook(self, images):
+        atoms_img = images[0]
+        light_img = images[1]
+        bg_img = images[2]
+
+        N_atoms, od_img, n_invalid = self.calc_atom_number(atoms_img, light_img, bg_img)
+
+        image_size = np.prod(np.shape(od_img))
+        if n_invalid > image_size / 1000:
+            logger.warning(f"{n_invalid} invalid pixels. Too many!")
+        else:
+            logger.info(f"{n_invalid} invalid pixels. Probably fine.")
+
+        self.atom_number.push(N_atoms)
+
+        if self.andor_camera_control.save_raw_andor_image.get():
+            # self.atoms_img.push(atoms_img)
+            # self.light_img.push(light_img)
+            # self.bg_img.push(bg_img)
+            self.od_img.push(od_img)
+        else:
+            # self.atoms_img.push([])
+            # self.light_img.push([])
+            # self.bg_img.push([])
+            self.od_img.push([])
+
+    @host_only
+    @staticmethod
+    def calc_atom_number(
+        atoms_img: np.ndarray, light_img: np.ndarray, bg_img: np.ndarray
+    ):
+        # TODO: should this go in an analysis script collection?
+        """
+        Subtract background and take quotient of images with and without atoms
+        Scale by pixel size and absorption cross-section to get atom number.
+        Uses numpy MaskedArrays to deal with invalid pixels
+
+        Returns: Atom number, optical density image, number of invalid pixels
+        """
+
+        A_pixel = constants.ANDOR_CAMERA_FACTS["A_pixel"]
+        lam = constants.SR_FACTS["WAVELENGTHS"]["461_88"]
+        sigma_0 = 3 * lam**2 / (2 * np.pi)
+
+        atoms_img = atoms_img.astype(float)
+        light_img = light_img.astype(float)
+        bg_img = bg_img.astype(float)
+        atoms_no_bg = atoms_img - bg_img
+        light_no_bg = light_img - bg_img
+
+        light_no_bg_ma = np.ma.masked_where(
+            light_no_bg == 0, light_no_bg
+        )  # avoid divide by zero
+        quotient = atoms_no_bg / light_no_bg_ma
+        quotient = np.ma.filled(
+            quotient, 1
+        )  # fill with 1s - no contribution to atom number
+        quotient_ma = np.ma.masked_less_equal(quotient, 0.0)  # avoid invalid log error
+        n_invalid = np.sum(quotient_ma.mask)  # get number of invalid pixels
+        quotient_fixed = np.ma.filled(
+            quotient_ma, 1
+        )  # fill with 1s - no contribution to atom number
+
+        OD = -np.log(quotient_fixed)
+        OD_slice = OD
+
+        N = np.sum(OD_slice) * A_pixel / sigma_0
+
+        return N, OD, n_invalid
+
+    @kernel
+    def save_andor_data_hook(self):
+        """
+        Consume all slack and save the photos
+        """
+        self._call_camera_rpc()

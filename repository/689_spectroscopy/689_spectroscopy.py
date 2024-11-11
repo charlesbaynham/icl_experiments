@@ -7,7 +7,6 @@ from artiq.experiment import sequential
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
@@ -17,10 +16,16 @@ from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
 from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    DroppedPumpedLatticeMixin,
+)
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +124,64 @@ class SpectroscopyWithKinetics_UpBeam(
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
+class SpectroscopySingleImage_UpBeam(
+    FieldBoostMixin,
+    TripleImageRedMOTFastKineticsMixin,
+    DroppedPumpedLatticeMixin,
+    SpectroscopyParamsMixin,
+    ConstantBeamsMixin,
+    RedMOTWithExperiment,
+):
+    """
+    689nm spectroscopy UP - single image
+
+    689nm spectroscopy using the red up beam
+    """
+
+    def build_fragment(self):
+        # We assume that the up beam has already been configured by the MOT
+        # sequence, but that we must control the amplitude
+        self.setattr_fragment(
+            "up_beam_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
+        )
+        self.up_beam_suservo: LibSetSUServoStatic
+
+        super().build_fragment()
+
+    @kernel
+    def pre_expansion_hook(self):
+        # Disable servoing, turn off the switch, configure the amplitude and
+        # open the shutter in preparation for a quick pulse
+        with parallel:
+            self.red_mot.red_beam_controller.set_mot_detuning(
+                self.spectroscopy_pulse_aom_detuning.get()
+            )
+            with sequential:
+                self.up_beam_suservo.set_channel_state(
+                    rf_switch_state=False, enable_iir=False
+                )
+                self.up_beam_suservo.suservo_channel.set_y(
+                    profile=self.up_beam_suservo.suservo_profile,
+                    y=self.spectroscopy_pulse_aom_amplitude.get(),
+                )
+
+    @kernel
+    def do_experiment_after_red_mot_hook(self):
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(self.spectroscopy_pulse_time.get())
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_lattice()
+        self.post_sequence_cleanup_hook_andor()
+
+
 # SpectroscopyWithKineticsMOTExp = make_fragment_scan_exp(
 #     SpectroscopyWithKinetics_MOTBeam
 # )
 SpectroscopyWithKineticyUpExp = make_fragment_scan_exp(SpectroscopyWithKinetics_UpBeam)
+SpectroscopySingleImageUpBeam = make_fragment_scan_exp(SpectroscopySingleImage_UpBeam)

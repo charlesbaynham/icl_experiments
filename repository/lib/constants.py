@@ -27,10 +27,16 @@ DELAY_BETWEEN_RTIO_EVENTS = 4e-9
 
 SR_FACTS = {
     "FREQUENCIES": {
-        "689_88": 434829121311e3,  # 10.1103/PhysRevLett.91.243002
+        "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
-    }
+    },
+    "WAVELENGTHS": {"461_88": 460.86e9},
 }
+
+ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}
+ANDOR_CAMERA_FACTS["A_pixel"] = (
+    ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
+) ** 2
 
 
 USE_SR87 = True
@@ -57,7 +63,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "red_spinpol",
-        frequency=366.6e6,
+        frequency=366.5e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
@@ -98,6 +104,13 @@ URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
+
+RED_SPINPOL_RAMP_UPPER_LIMIT = 1.5e6
+RED_SPINPOL_RAMP_LOWER_LIMIT = -1.5e6
+"Ramp extent for the spin polarising beam (n.b. will be double by the double-pass AOM)"
+
+RED_SPINPOL_AOM_RAMP_FREQUENCY = 30e3
+"Default ramp frequency for the spin polarising beam"
 
 # Lattice ramp-down configuration
 # TODO: Choose real lattice ramp parameters
@@ -341,8 +354,11 @@ DEFAULT_IMAGING_PULSE = 50e-6
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
 "Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
 
-DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000
-"$k_I$ constant for the flourescence beam's SUServo loop"
+DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000.0
+"$k_I$ constant for the fluorescence beam's SUServo loop"
+
+DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
+"$k_I$ constant for the clock delivery beam's SUServo loop"
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
@@ -604,7 +620,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=1.8,
+        setpoint=3.8,
     ),
     SUServoedBeam(
         "lattice_input_1379",
@@ -655,13 +671,13 @@ class MirnySettings:
 
 # These frequencies were chosen empirically based on the atoms
 _default_461 = (
-    650504059e6
+    650_504_059e6
     # 2024-11-05
     + 10e6
 )
-_default_707 = 423913478e6
-_default_679 = 441332627e6
-_default_698 = 429228387.3e6  # Measured empirically
+_default_707 = 423_913_478e6
+_default_679 = 441_332_627e6
+_default_698 = 429_228_387.3e6  # Measured empirically
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
@@ -778,9 +794,9 @@ WAND_SETPOINTS_87 = {
 
 # Spin polarisation settings
 
-TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
-DURATION_OF_SPIN_POL = 20e-3
-TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3
+DELAY_BEFORE_OPTICAL_PUMPING = 20e-3
+DURATION_OF_SPIN_POL = 40e-3
+DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # %% Dipole trap settings
 
@@ -958,7 +974,12 @@ else:
     ]
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 
+OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
+
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
-XODT_FINAL_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.2, 0.0, 0.0])]
+XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
+XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
+    a + b for a, b in zip(FIELD_COMP, [-1.12, 0.0, 0.0])
+]

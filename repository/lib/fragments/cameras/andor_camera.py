@@ -329,7 +329,15 @@ class AndorCameraControl(Fragment):
         self.cam.set_roi(**roi)
 
     @rpc(flags={"async"})
-    def _start_acquisition(self):
+    def start_acquisition_async(self):
+        self.cam.start_acquisition()
+
+    @rpc
+    def start_acquisition(self):
+        self.cam.start_acquisition()
+
+    @rpc(flags={"async"})
+    def setup_fast_kinetics_mode(self):
         exposure_time = (
             self.fast_kinetics_time_between_shots.get() - self.fast_kinetics_shift_time
         )
@@ -347,8 +355,6 @@ class AndorCameraControl(Fragment):
             offset=self.fast_kinetics_offset.get(),
         )
 
-        self.cam.start_acquisition()
-
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
@@ -361,7 +367,8 @@ class AndorCameraControl(Fragment):
         # If in fast kinetics mode we cannot acquire continuously, so trigger a
         # new acquisition each cycle
         if self.fast_kinetics_mode:
-            self._start_acquisition()
+            self.setup_fast_kinetics_mode()
+            self.start_acquisition_async()
 
         self.core.break_realtime()
 
