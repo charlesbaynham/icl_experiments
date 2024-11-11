@@ -54,15 +54,14 @@ class EMGain(AndorImagingBase):
 
         # Define a "Setter" fragment which just calls "_set_camera_em_gain" every device_setup
         class Setter(Fragment):
-            def build_fragment(self):
-                pass
+            def build_fragment(self, func_to_call):
+                self.func_to_call = func_to_call
 
             @kernel
-            def device_setup(_self):
-                self._set_gain_if_changed()  # Note that this call is for the outer "self", not the inner "_self"
-                _self.device_setup_subfragments()
+            def device_setup(self):
+                self.func_to_call()
 
-        self.setattr_fragment("setter", Setter)
+        self.setattr_fragment("setter", Setter, func_to_call=self._set_gain_if_changed)
 
     def host_setup(self):
         super().host_setup()
