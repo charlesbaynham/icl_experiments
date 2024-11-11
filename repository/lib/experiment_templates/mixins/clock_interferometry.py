@@ -137,7 +137,7 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
         super().host_setup()
 
         self.clock_delivery_suservo = self.clock_delivery_setter.suservo_channel
-        self.kernel_invariants.add("clock_suservo_channel")
+        self.kernel_invariants.add("clock_delivery_suservo")
 
         self.suservo_core: SUServo = self.clock_delivery_suservo.servo
         self.kernel_invariants.add("suservo_core")
