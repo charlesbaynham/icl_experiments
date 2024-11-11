@@ -65,7 +65,7 @@ class EMGain(AndorImagingBase):
 
     def host_setup(self):
         super().host_setup()
-        self.previous_em_gain = -1
+        self.previous_em_gain = -1.0
 
     @kernel
     def _set_gain_if_changed(self):
