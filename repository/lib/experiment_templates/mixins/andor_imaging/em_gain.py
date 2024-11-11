@@ -1,5 +1,8 @@
 import logging
 
+import sipyco
+import sipyco.packed_exceptions
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import rpc
 from ndscan.experiment import Fragment
@@ -74,16 +77,33 @@ class EMGain(AndorImagingBase):
             self._set_camera_em_gain()
             self.previous_em_gain = new_gain
 
+    @host_only
+    def _set_gain_guarded(self, gain):
+        """
+        Set EM gain, stopping and restarting the acquisition if necessary
+        """
+        try:
+            self.andor_camera_control.cam.set_EMCCD_gain(gain)
+        except sipyco.packed_exceptions.GenericRemoteException as e:
+            if "DRV_ACQUIRING" in e.args[0]:
+                # The camera was acquiring already. Stop, set and restart
+                self.andor_camera_control.cam.stop_acquisition()
+                self.andor_camera_control.cam.set_EMCCD_gain(gain)
+                self.andor_camera_control.cam.start_acquisition()
+            else:
+                # Different error
+                raise e
+
     @rpc
     def _set_camera_em_gain(self):
         if self.em_gain_enabled.get():
             logger.warning("Setting EMCCD gain to %f. BEWARE!!!", self.em_gain.get())
-            self.andor_camera_control.cam.set_EMCCD_gain(self.em_gain.get())
+            self._set_gain_guarded(self.em_gain.get())
         else:
             logger.warning("EM gain is disabled - not setting")
-            self.andor_camera_control.cam.set_EMCCD_gain(0)
+            self._set_gain_guarded(0)
 
     def host_cleanup(self):
+        self._set_gain_guarded(0)
         logger.warning("EM gain turned off again")
-        self.andor_camera_control.cam.set_EMCCD_gain(0)
         return super().host_cleanup()
