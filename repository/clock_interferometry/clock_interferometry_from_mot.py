@@ -3,17 +3,14 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
-    TripleImageRedMOTFastKineticsMixin,
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
+    NormalisedRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryWithSUServoMixin,
-)
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -24,9 +21,9 @@ logger = logging.getLogger(__name__)
 
 class MOTClockInterferometryNormalizedExp(
     ClockInterferometryRedMOTMixin,
-    ClockShelvingAndClearoutRedMOTMixin,
+    # ClockShelvingAndClearoutRedMOTMixin, c
     FLIRBlueMOTMeasurementMixin,
-    TripleImageRedMOTFastKineticsMixin,
+    NormalisedRedMOTFastKineticsMixin,
 ):
     """
     Clock interferometry from red MOT with clock shelving and fast kinetics
@@ -34,16 +31,16 @@ class MOTClockInterferometryNormalizedExp(
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockshelving()
+        # self.before_start_hook_clockshelving() # FIXME
         self.before_start_hook_clockspec()
 
 
 class MOTClockInterferometrySUServoExp(
     ClockInterferometryRedMOTMixin,
     ClockInterferometryWithSUServoMixin,
-    ClockShelvingAndClearoutRedMOTMixin,
+    # ClockShelvingAndClearoutRedMOTMixin,  # FIXME
     FLIRBlueMOTMeasurementMixin,
-    TripleImageRedMOTFastKineticsMixin,
+    NormalisedRedMOTFastKineticsMixin,
 ):
     """
     Clock interferometry from red MOT using SUServo
