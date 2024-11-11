@@ -262,7 +262,7 @@ class RelockerChannelFrag(ExpFragment):
         )
 
         self.set_dataset(
-            "{self.relocker_name}_{self.channel}_set_currents",
+            f"{self.relocker_name}_{self.channel}_set_currents",
             scan_currents,
             broadcast=True,
             archive=False,
