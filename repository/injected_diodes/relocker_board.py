@@ -288,8 +288,6 @@ class RelockerChannelFrag(ExpFragment):
             self.set_lock_settings()
         if self.relock_enabled.get():
             self.relock()
-        read_voltages = self.get_read_voltages()
-        self.push_voltages_to_applet(read_voltages)
         self.log_results()
 
 
