@@ -5,6 +5,7 @@ from typing import Optional
 import numpy as np
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
+from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import BoolParam
 from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
@@ -179,6 +180,9 @@ class RelockerChannelFrag(ExpFragment):
         self.channel = defaults.channel
         self.relocker_name = defaults.board_name
         self.relocker: RelockerDriver = self.get_device(self.relocker_name)
+
+        self.controller_name = defaults.associated_controller
+        self.controller: CTL200 = self.get_device(self.controller_name)
         return super().host_setup()
 
     def set_scan_settings(self):
@@ -205,20 +209,6 @@ class RelockerChannelFrag(ExpFragment):
         self.voltages.push(read_voltages)
         return read_voltages
 
-    def push_voltages_to_applet(self, read_voltages):
-        set_voltages = self.get_scan_voltages()
-        err = np.zeros_like(read_voltages)
-        self.set_dataset(
-            f"{self.relocker_name}_{self.channel}_read_voltages",
-            np.array(read_voltages),
-            broadcast=True,
-            archive=False,
-        )
-        self.set_dataset("set_voltages", set_voltages, broadcast=True, archive=False)
-        self.set_dataset("err", err, broadcast=True, archive=False)
-        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x set_voltages --fit read_voltages --error err"
-        self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
-
     def get_result(self):
         result = self.relocker.get_result(self.channel)
         self.result.push(result)
@@ -242,19 +232,38 @@ class RelockerChannelFrag(ExpFragment):
     def get_scan_voltages(self):
         return self.relocker.get_scan_voltages(self.channel)
 
+    def get_scan_currents(self, scan_voltages):
+        current_gain = self.controller.get_mod_gain()
+        current_act = self.controller.get_current_mA()
+        return [v / 2 * current_gain + current_act for v in scan_voltages]
+
     def log_results(self):
         # Log action
         results = self.get_result()
-        scan_voltages = self.get_scan_voltages()
+        scan_currents = self.get_scan_currents(self.get_scan_voltages())
+        read_voltages = self.get_read_voltages()
         logger.info(results)
 
         i_start = int(results[0])
         i_end = int(results[1])
         i_lock = int(results[2])
 
-        window_start = scan_voltages[i_start]
-        window_end = scan_voltages[i_end]
-        lock_point = scan_voltages[i_lock]
+        window_start = scan_currents[i_start]
+        window_end = scan_currents[i_end]
+        lock_point = scan_currents[i_lock]
+
+        err = np.zeros_like(read_voltages)
+        self.set_dataset(
+            f"{self.relocker_name}_{self.channel}_read_voltages",
+            np.array(read_voltages),
+            broadcast=True,
+            archive=False,
+        )
+
+        self.set_dataset("set_currents", scan_currents, broadcast=True, archive=False)
+        self.set_dataset("err", err, broadcast=True, archive=False)
+        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x set_voltages --fit read_voltages --error err"
+        self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
         logger.info("window_start: %s", window_start)
         logger.info("window_end: %s", window_end)
         logger.info("lock_point: %s", lock_point)
