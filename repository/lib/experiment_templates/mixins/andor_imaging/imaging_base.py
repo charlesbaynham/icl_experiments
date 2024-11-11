@@ -296,8 +296,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         Hook to process the Andor image.
         This method is intended to be overridden by subclasses to implement custom
-        processing of the Andor images after they have been read out. The default
-        implementation does nothing.
+        processing of the Andor images after they have been read out.
         """
         for (
             andor_sum_slice_x,

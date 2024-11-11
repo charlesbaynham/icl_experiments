@@ -4,8 +4,6 @@ import numpy as np
 from artiq.experiment import delay
 from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import BoolParamHandle
@@ -13,20 +11,19 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    AndorImagingBase,
+)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
-DATASET_ATOMS_KEY = "abs_atoms_img"
-DATASET_LIGHT_KEY = "abs_light_img"
-DATASET_BG_KEY = "abs_bg_img"
 DATASET_OD_KEY = "abs_od_img"
 
 
-class AbsorptionImagingMixin(RedMOTWithExperiment):
+class AbsorptionImagingBase(AndorImagingBase):
     """
-    Image three times: once with light and atoms, once with light and no atoms, and once with neiher.
+    Image three times: once with light and atoms, once with light and no atoms, and once with neither.
     Then calculate the atom number and return an optical density image.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
@@ -40,10 +37,10 @@ class AbsorptionImagingMixin(RedMOTWithExperiment):
     * :meth:`~save_andor_data_hook`
     """
 
+    num_andor_images = 3
+
     def build_fragment(self):
         super().build_fragment()
-
-        self.setattr_device("ccb")
 
         self.setattr_param(
             "delay_between_absorption_pulses",
@@ -64,31 +61,24 @@ class AbsorptionImagingMixin(RedMOTWithExperiment):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
-    def host_setup(self):
-        # Leaving these here for convenience of debugging but shoulnd't be needed regularly
-        self.ccb.issue(
-            "create_applet",
-            f"atoms_img",
-            f"${{artiq_applet}}image {DATASET_ATOMS_KEY}",
-        )
+        self.override_param("use_andor_driver", True)
 
-        self.ccb.issue(
-            "create_applet",
-            f"light_img",
-            f"${{artiq_applet}}image {DATASET_LIGHT_KEY}",
-        )
-        self.ccb.issue(
-            "create_applet",
-            f"bg_img",
-            f"${{artiq_applet}}image {DATASET_BG_KEY}",
-        )
+    def host_setup(self):
+        em_gain = self.andor_camera_control.cam.get_EMCCD_gain()
+        if em_gain != 0:
+            em_gain = self.andor_camera_control.cam.set_EMCCD_gain(0)
+            raise ValueError(
+                "EM gain should be 0 for absorption imaging. Setting to 0."
+            )
 
         self.ccb.issue(
             "create_applet",
             "Optical Density Image",
             f"${{artiq_applet}}image {DATASET_OD_KEY}",
         )
+
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+
         logger.warning(
             "Please ensure that the Andor is in Kinetics mode (not Fast Kinetics) with NO EM GAIN!"
             " And that exposure is set to at least %f us",
@@ -103,12 +93,15 @@ class AbsorptionImagingMixin(RedMOTWithExperiment):
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
 
-        self.setattr_result("atoms_img", OpaqueChannel)
-        self.atoms_img: OpaqueChannel
-        self.setattr_result("light_img", OpaqueChannel)
-        self.light_img: OpaqueChannel
-        self.setattr_result("bg_img", OpaqueChannel)
-        self.bg_img: OpaqueChannel
+        self.hook_setup_andor_results()
+
+    def hook_setup_andor_results(self):
+        # self.setattr_result("atoms_img", OpaqueChannel)
+        # self.atoms_img: OpaqueChannel
+        # self.setattr_result("light_img", OpaqueChannel)
+        # self.light_img: OpaqueChannel
+        # self.setattr_result("bg_img", OpaqueChannel)
+        # self.bg_img: OpaqueChannel
         self.setattr_result("od_img", OpaqueChannel)
         self.od_img: OpaqueChannel
 
@@ -152,67 +145,32 @@ class AbsorptionImagingMixin(RedMOTWithExperiment):
         )
         delay(0.5 * andor_exposure)
 
-    @rpc(flags={"async"})
-    def _call_camera_rpc(self):
-        if self.use_andor_driver.get():
-            # do stuff including writing to resultchannel
-            atoms_img = self.andor_camera_control.readout_image(timeout=1)
-            light_img = self.andor_camera_control.readout_image(timeout=1)
-            bg_img = self.andor_camera_control.readout_image(timeout=1)
+    @host_only
+    def process_andor_image_hook(self, images):
+        atoms_img = images[0]
+        light_img = images[1]
+        bg_img = images[2]
 
-            N_atoms, od_img, n_invalid = self.calc_atom_number(
-                atoms_img, light_img, bg_img
-            )
+        N_atoms, od_img, n_invalid = self.calc_atom_number(atoms_img, light_img, bg_img)
 
-            image_size = np.prod(np.shape(od_img))
-            if n_invalid > image_size / 1000:
-                logger.warning(f"{n_invalid} invalid pixels. Too many!")
-            else:
-                logger.info(f"{n_invalid} invalid pixels. Probably fine.")
+        image_size = np.prod(np.shape(od_img))
+        if n_invalid > image_size / 1000:
+            logger.warning(f"{n_invalid} invalid pixels. Too many!")
+        else:
+            logger.info(f"{n_invalid} invalid pixels. Probably fine.")
 
-            # Leaving these here for convenience of debugging but shoulnd't be needed regularly
-            self.set_dataset(
-                DATASET_ATOMS_KEY,
-                np.int32(atoms_img),
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
-            self.set_dataset(
-                DATASET_LIGHT_KEY,
-                light_img,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
-            self.set_dataset(
-                DATASET_BG_KEY,
-                bg_img,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
+        self.atom_number.push(N_atoms)
 
-            self.set_dataset(
-                DATASET_OD_KEY,
-                od_img,
-                broadcast=True,
-                persist=False,
-                archive=False,
-            )
-
-            self.atom_number.push(N_atoms)
-
-            if self.andor_camera_control.save_raw_andor_image.get():
-                self.atoms_img.push(atoms_img)
-                self.light_img.push(light_img)
-                self.bg_img.push(bg_img)
-                self.od_img.push(od_img)
-            else:
-                self.atoms_img.push([])
-                self.light_img.push([])
-                self.bg_img.push([])
-                self.od_img.push([])
+        if self.andor_camera_control.save_raw_andor_image.get():
+            # self.atoms_img.push(atoms_img)
+            # self.light_img.push(light_img)
+            # self.bg_img.push(bg_img)
+            self.od_img.push(od_img)
+        else:
+            # self.atoms_img.push([])
+            # self.light_img.push([])
+            # self.bg_img.push([])
+            self.od_img.push([])
 
     @host_only
     @staticmethod
@@ -260,18 +218,7 @@ class AbsorptionImagingMixin(RedMOTWithExperiment):
 
     @kernel
     def save_andor_data_hook(self):
-        "Consume all slack and save the photos"
-        self.core.wait_until_mu(now_mu())
-
+        """
+        Consume all slack and save the photos
+        """
         self._call_camera_rpc()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-
-    @kernel
-    def post_sequence_cleanup_hook_andor(self):
-        # Ensure shutter is closed, though it should be anyway
-        self.core.break_realtime()
-        self.andor_camera_control.set_shutter(False)

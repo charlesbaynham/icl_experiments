@@ -26,15 +26,6 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 logger = logging.getLogger(__name__)
 
 
-class MeasureNarrowbandMOTAbsFrag(
-    AbsorptionImagingMixin,
-    _MeasureNarrowbandMOTFrag,
-):
-    """
-    Do absorption imaging with a narrowband MOT
-    """
-
-
 class _MeasureNarrowbandMOTFrag(ConstantBeamsMixin, RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
@@ -67,6 +58,15 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
 ):
     """
     Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
+    """
+
+
+class MeasureNarrowbandMOTAbsFrag(
+    AbsorptionImagingMixin,
+    _MeasureNarrowbandMOTFrag,
+):
+    """
+    Do absorption imaging with a narrowband MOT
     """
 
 
