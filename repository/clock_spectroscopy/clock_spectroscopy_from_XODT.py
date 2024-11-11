@@ -9,6 +9,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
@@ -31,6 +32,7 @@ logger = logging.getLogger(__name__)
 class ClockSpecFromXXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     DoubleTrapImagingNormalised,
+    EMGain,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -46,29 +48,17 @@ class ClockSpecFromXXODTFrag(
     once more for background.
     """
 
-    def host_setup(self):
-        super().host_setup()
-
-        em_gain = 30
-        # TODO: Make this not a horrible hack
-        logger.warning("Setting EMCCD gain to %f. BEWARE!!!", em_gain)
-        self.andor_camera_control.cam.set_EMCCD_gain(em_gain)
-
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
         self.before_start_hook_xodt_molasses()
-
-    def host_cleanup(self):
-        logger.warning("EM gain turned off again")
-        self.andor_camera_control.cam.set_EMCCD_gain(0)
-        return super().host_cleanup()
 
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
+    EMGain,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -84,23 +74,10 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     once more for background.
     """
 
-    def host_setup(self):
-        super().host_setup()
-
-        em_gain = 30
-        # TODO: Make this not a horrible hack
-        logger.warning("Setting EMCCD gain to %f. BEWARE!!!", em_gain)
-        self.andor_camera_control.cam.set_EMCCD_gain(em_gain)
-
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
         self.before_start_hook_xodt_molasses()
-
-    def host_cleanup(self):
-        logger.warning("EM gain turned off again")
-        self.andor_camera_control.cam.set_EMCCD_gain(0)
-        return super().host_cleanup()
 
 
 ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
