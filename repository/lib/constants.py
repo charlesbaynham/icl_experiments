@@ -363,7 +363,7 @@ DEFAULT_CLOCK_DELIVERY_SETTLING_DURATION = 100e-6
 DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
 "$k_I$ constant for the clock delivery beam's SUServo loop"
 
-SUSERVO_READOUT_SLACK = 10e6
+SUSERVO_READOUT_SLACK = 10e-6
 "Slack required to read out a SUServo y value"
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
