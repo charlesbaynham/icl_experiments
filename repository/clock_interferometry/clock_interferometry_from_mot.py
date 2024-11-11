@@ -25,6 +25,7 @@ class MOTClockInterferometryNormalizedExp(
     # ClockShelvingAndClearoutRedMOTMixin, # FIXME
     FLIRBlueMOTMeasurementMixin,
     NormalisedRedMOTFastKineticsMixin,
+    EMGain,
 ):
     """
     Clock interferometry from red MOT with clock shelving and fast kinetics

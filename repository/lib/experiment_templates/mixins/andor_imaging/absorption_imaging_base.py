@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 import numpy as np
 from artiq.experiment import delay
@@ -9,6 +10,7 @@ from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -38,6 +40,7 @@ class AbsorptionImagingBase(AndorImagingBase):
     """
 
     num_andor_images = 3
+    num_absorption_rois = 1
 
     def build_fragment(self):
         super().build_fragment()
@@ -61,6 +64,44 @@ class AbsorptionImagingBase(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+        default_abs_rois = self.get_default_abs_rois()
+
+        for i, (x0, y0, x1, y1) in enumerate(default_abs_rois):
+
+            self.setattr_param(
+                f"abs_roi_{i}_x0",
+                IntParam,
+                f"Abs ROI {i} x0",
+                default=x0,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"abs_roi_{i}_x1",
+                IntParam,
+                f"Abs ROI {i} x1",
+                default=x1,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"abs_roi_{i}_y0",
+                IntParam,
+                f"Abs ROI {i} y0",
+                default=y0,
+                min=0,
+                max=1024,
+            )
+            self.setattr_param(
+                f"abs_roi_{i}_y1",
+                IntParam,
+                f"Abs ROI {i} y1",
+                default=y1,
+                min=0,
+                max=1024,
+            )
+
+        # force use of andor driver to ensure em gain can be set to 0
         self.override_param("use_andor_driver", True)
 
     def host_setup(self):
@@ -105,8 +146,10 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.setattr_result("od_img", OpaqueChannel)
         self.od_img: OpaqueChannel
 
-        self.setattr_result("atom_number", FloatChannel)
-        self.atom_number: FloatChannel
+        self.atom_numbers: List[FloatChannel] = []
+        for i in range(self.num_absorption_rois):
+            atom_number = self.setattr_result(f"atom_number_{i}", FloatChannel)
+            self.atom_numbers.append(atom_number)
 
     @kernel
     def start_of_red_broadband_hook(self):
@@ -151,15 +194,13 @@ class AbsorptionImagingBase(AndorImagingBase):
         light_img = images[1]
         bg_img = images[2]
 
-        N_atoms, od_img, n_invalid = self.calc_atom_number(atoms_img, light_img, bg_img)
+        _, od_img, n_invalid = self.calc_atom_number(atoms_img, light_img, bg_img)
 
         image_size = np.prod(np.shape(od_img))
         if n_invalid > image_size / 1000:
             logger.warning(f"{n_invalid} invalid pixels. Too many!")
         else:
             logger.info(f"{n_invalid} invalid pixels. Probably fine.")
-
-        self.atom_number.push(N_atoms)
 
         if self.andor_camera_control.save_raw_andor_image.get():
             # self.atoms_img.push(atoms_img)
@@ -173,9 +214,8 @@ class AbsorptionImagingBase(AndorImagingBase):
             self.od_img.push([])
 
     @host_only
-    @staticmethod
     def calc_atom_number(
-        atoms_img: np.ndarray, light_img: np.ndarray, bg_img: np.ndarray
+        self, atoms_img: np.ndarray, light_img: np.ndarray, bg_img: np.ndarray
     ):
         # TODO: should this go in an analysis script collection?
         """
@@ -210,9 +250,16 @@ class AbsorptionImagingBase(AndorImagingBase):
         )  # fill with 1s - no contribution to atom number
 
         OD = -np.log(quotient_fixed)
-        OD_slice = OD
 
-        N = np.sum(OD_slice) * A_pixel / sigma_0
+        for i in range(self.num_absorption_rois):
+            x0 = self.getattr_param(f"abs_roi_{i}_x0").get()
+            x1 = self.getattr_param(f"abs_roi_{i}_x1").get()
+            y0 = self.getattr_param(f"abs_roi_{i}_y0").get()
+            y1 = self.getattr_param(f"abs_roi_{i}_y1").get()
+            OD_slice = OD[y0:y1, x0:x1]
+
+            N = np.sum(OD_slice) * A_pixel / sigma_0
+            self.atom_numbers[i].push(N)
 
         return N, OD, n_invalid
 
@@ -222,3 +269,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         Consume all slack and save the photos
         """
         self._call_camera_rpc()
+
+    @host_only
+    def get_default_abs_rois(self):
+        return [[0, 0, 512, 512]]
