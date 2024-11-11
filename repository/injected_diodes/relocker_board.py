@@ -243,7 +243,9 @@ class RelockerChannelFrag(ExpFragment):
     def log_results(self):
         # Log action
         results = self.get_result()
-        scan_currents = self.get_scan_currents(self.get_scan_voltages()[::-1])
+        scan_voltages = self.get_scan_voltages()[::-1]
+        scan_currents = self.get_scan_currents(scan_voltages)
+
         read_voltages = self.get_read_voltages()
         logger.info(results)
 
@@ -270,12 +272,18 @@ class RelockerChannelFrag(ExpFragment):
             archive=False,
         )
         self.set_dataset(
+            f"{self.relocker_name}_{self.channel}_set_voltages",
+            scan_currents,
+            broadcast=True,
+            archive=False,
+        )
+        self.set_dataset(
             "err",
             err,
             broadcast=True,
             archive=False,
         )
-        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x {self.relocker_name}_{self.channel}_set_currents --fit {self.relocker_name}_{self.channel}_read_voltages --error err"
+        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x {self.relocker_name}_{self.channel}_set_voltages --fit {self.relocker_name}_{self.channel}_read_voltages --error err"
         self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
         logger.info("window_start: %s", window_start)
         logger.info("window_end: %s", window_end)
