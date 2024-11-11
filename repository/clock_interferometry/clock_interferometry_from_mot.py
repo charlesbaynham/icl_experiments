@@ -9,9 +9,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryRedMOTMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutRedMOTMixin,
-)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -21,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class MOTClockInterferometryNormalizedExp(
     ClockInterferometryRedMOTMixin,
-    ClockShelvingAndClearoutRedMOTMixin,
+    # ClockShelvingAndClearoutRedMOTMixin,  # FIXME
     FLIRBlueMOTMeasurementMixin,
     NormalisedRedMOTFastKineticsMixin,
 ):
@@ -31,7 +28,7 @@ class MOTClockInterferometryNormalizedExp(
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockshelving()
+        # self.before_start_hook_clockshelving() # FIXME
         self.before_start_hook_clockspec()
 
 
