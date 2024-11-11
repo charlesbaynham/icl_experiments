@@ -244,8 +244,8 @@ class RelockerChannelFrag(ExpFragment):
         read_voltages = self.get_read_voltages()[::-1]
         logger.info(results)
 
-        i_start = int(results[0])
-        i_end = int(results[1])
+        i_start = int(results[1])
+        i_end = int(results[0])
         i_lock = int(results[2])
 
         window_start = scan_currents[i_start]
