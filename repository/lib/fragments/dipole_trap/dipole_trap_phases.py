@@ -116,5 +116,5 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     )
 
     # Chamber 2 bias coils in amps
-    general_setter_default_starts = constants.XODT_2ND_MOLASSES_BIAS_FIELD_END
-    general_setter_default_ends = constants.XODT_FINAL_BIAS_FIELD
+    general_setter_default_starts = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
+    general_setter_default_ends = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END

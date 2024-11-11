@@ -1,11 +1,12 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
+from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -15,6 +16,9 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -54,6 +58,15 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
         )
         self.spectroscopy_clock_delivery_setpoint: FloatParamHandle
 
+        self.setattr_param(
+            "clock_delivery_preempt_time",
+            FloatParam,
+            "Preempt time before spectroscopy pulse",
+            default=80e-6,
+            unit="us",
+        )
+        self.clock_delivery_preempt_time: FloatParamHandle
+
         self.setattr_fragment(
             "clock_delivery_setter",
             LibSetSUServoStatic,
@@ -89,7 +102,7 @@ class ClockSpectroscopyBase(RedMOTWithExperiment):
             amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             enable_iir=True,
         )
 
@@ -127,8 +140,19 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         )
         self.spectroscopy_pulse_time: FloatParamHandle
 
+        self.setattr_param(
+            "delay_after_spectroscopy",
+            FloatParam,
+            "Delay after spectroscopy before imaging",
+            default=0e-6,
+            unit="us",
+        )
+        self.delay_after_spectroscopy: FloatParamHandle
+
     @kernel
     def do_rabi_spectroscopy(self):
+        _t_start = now_mu()
+        delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.spectroscopy_pulse_aom_detuning.get(),
@@ -138,10 +162,12 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
+        at_mu(_t_start)
 
         self.clock_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
         self.clock_dds.sw.off()
+        delay(self.delay_after_spectroscopy.get())
 
 
 class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):

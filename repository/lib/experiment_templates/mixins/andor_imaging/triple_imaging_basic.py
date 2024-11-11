@@ -110,7 +110,7 @@ class TripleImageBasicMixin(AndorImagingBase):
         )
 
     @kernel
-    def process_andor_data_hook(self, sums, means):
+    def process_grabber_data_hook(self, sums, means):
         bg = sums[0] + sums[1] - 2 * sums[2]
 
         if bg == 0:
