@@ -27,10 +27,16 @@ DELAY_BETWEEN_RTIO_EVENTS = 4e-9
 
 SR_FACTS = {
     "FREQUENCIES": {
-        "689_88": 434829121311e3,  # 10.1103/PhysRevLett.91.243002
+        "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
-    }
+    },
+    "WAVELENGTHS": {"461_88": 460.86e9},
 }
+
+ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}
+ANDOR_CAMERA_FACTS["A_pixel"] = (
+    ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
+) ** 2
 
 
 USE_SR87 = True
