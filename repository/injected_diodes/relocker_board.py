@@ -235,7 +235,9 @@ class RelockerChannelFrag(ExpFragment):
 
     def get_scan_currents(self, scan_voltages):
         current_gain = self.controller.get_mod_gain()
+        logger.info("current gain: %s", current_gain)
         current_act = self.controller.get_current_mA()
+        logger.info("current act: %s", current_act)
         return np.array([v / 2 * current_gain + current_act for v in scan_voltages])
 
     def log_results(self):
