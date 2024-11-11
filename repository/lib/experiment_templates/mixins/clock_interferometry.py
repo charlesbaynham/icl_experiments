@@ -234,7 +234,7 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
         )
 
         # Write this value into the other two profiles. We must add some slack first
-        delay(10e-6)
+        delay(constants.SUSERVO_READOUT_SLACK)
         for i in range(1, 3):
             self.clock_delivery_suservo.set_y_mu(
                 profile=i,

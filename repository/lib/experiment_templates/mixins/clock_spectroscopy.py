@@ -153,7 +153,6 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     def do_rabi_spectroscopy(self):
         _t_start = now_mu()
         delay(-self.clock_delivery_settling_duration.get())
-        # FIXME WIP
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
             + self.spectroscopy_pulse_aom_detuning.get(),
