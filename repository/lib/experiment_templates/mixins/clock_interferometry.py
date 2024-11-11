@@ -133,8 +133,8 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
     * :meth:`~do_first_pulse`
     """
 
-    def build_fragment(self):
-        super().build_fragment()
+    def host_setup(self):
+        super().host_setup()
 
         self.clock_delivery_suservo = self.clock_delivery_setter.suservo_channel
         self.kernel_invariants.add("clock_suservo_channel")
