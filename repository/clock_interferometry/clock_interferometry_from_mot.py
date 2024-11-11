@@ -9,6 +9,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fas
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryRedMOTMixin,
 )
+from repository.lib.experiment_templates.mixins.clock_interferometry import (
+    ClockInterferometryWithSUServoMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutRedMOTMixin,
 )
@@ -35,6 +38,27 @@ class MOTClockInterferometryNormalizedExp(
         self.before_start_hook_clockspec()
 
 
+class MOTClockInterferometrySUServoExp(
+    ClockInterferometryRedMOTMixin,
+    ClockInterferometryWithSUServoMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
+    FLIRBlueMOTMeasurementMixin,
+    TripleImageRedMOTFastKineticsMixin,
+):
+    """
+    Clock interferometry from red MOT using SUServo
+
+    Use the SUServo for phase-steps instead of the clock switch
+    """
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockinterferometry()
+        self.before_start_hook_clockshelving()
+        self.before_start_hook_clockspec()
+
+
 MOTClockInterferometryNormalized = make_fragment_scan_exp(
     MOTClockInterferometryNormalizedExp
 )
+MOTClockInterferometrySUServo = make_fragment_scan_exp(MOTClockInterferometrySUServoExp)
