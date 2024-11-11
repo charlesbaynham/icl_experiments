@@ -110,7 +110,7 @@ class FluorescencePulseBase(Fragment):
             "delivery_settling_duration",
             FloatParam,
             "Duration of the settling time for the imaging delivery AOM",
-            default=constants.DEFAULT_DELIVERY_SETTLING_DURATION,
+            default=constants.DEFAULT_IMAGING_DELIVERY_SETTLING_DURATION,
             unit="us",
             min=0,
         )

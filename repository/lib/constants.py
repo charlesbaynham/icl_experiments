@@ -351,11 +351,14 @@ RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
 DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
-DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
-"Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
+DEFAULT_IMAGING_DELIVERY_SETTLING_DURATION = 100e-6
+"Default duration of the delay between turning on the imaging delivery AOM and turning on the fluorescence probe."
 
 DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000.0
 "$k_I$ constant for the fluorescence beam's SUServo loop"
+
+DEFAULT_CLOCK_DELIVERY_SETTLING_DURATION = 100e-6
+"Default duration of the delay between turning on the clock delivery AOM and turning on the clock pulse."
 
 DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
 "$k_I$ constant for the clock delivery beam's SUServo loop"

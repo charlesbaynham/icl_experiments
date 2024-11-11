@@ -69,7 +69,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
     def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
-        delay(-self.clock_delivery_preempt_time.get())
+        delay(-self.clock_delivery_settling_duration.get())
         # Set frequency on the suservo, phase on the clock switch
         self.clock_delivery_setter.set_suservo(
             freq=CLOCK_BEAM_DELIVERY_INFO.frequency
@@ -80,7 +80,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
-        delay(self.clock_delivery_preempt_time.get())
+        delay(self.clock_delivery_settling_duration.get())
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.phase_constant,
@@ -213,11 +213,19 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
         """
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
-        # Ensure the clock switch AOM is at its nominal frequency and phase
+        # Travel backwards in time by self.clock_delivery_preempt_time
+        delay(-self.clock_delivery_settling_duration.get())
+
+        # Ensure the clock switch AOM is at its nominal frequency and phase and is off
+        self.clock_dds.sw.off()
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
             phase=0.0,
         )
+
+        # Turn on the clock delivery AOM to its first profile and allow it to settle
+        self.clock_delivery_suservo.set(en_out=1, en_iir=1, profile=0)
+        delay(self.clock_delivery_settling_duration.get())
 
         # Read out the current in-loop suservo control signal to avoid bumps
         # when we switch profile. This consumes all the slack
@@ -225,22 +233,16 @@ class ClockInterferometryWithSUServoMixin(ClockInterferometryBase):
             profile=self.clock_delivery_setter.suservo_profile
         )
 
-        # Write this value into all the profiles. We must add some slack first
-        delay(1e-6)
-
-        self.suservo_core.set_config(enable=0)
-        for i in range(3):
+        # Write this value into the other two profiles. We must add some slack first
+        delay(10e-6)
+        for i in range(1, 3):
             self.clock_delivery_suservo.set_y_mu(
                 profile=i,
                 y=settled_y_mu,
             )
-        self.suservo_core.set_config(enable=1)
 
-        # Switching profiles should now be bumpless.
-
-        # Start with profile 0 for no phase shift
-        self.clock_delivery_suservo.set(en_out=1, en_iir=1, profile=0)
-        delay(2 * 1.2e-6)  # Add 2x servo cycles for the changes to filter through
+        # Switching profiles should now be bumpless. Start with profile 0 for no
+        # phase shift - we're already on it so get straight to pulses.
 
         # PI/2 PULSE
         self.clock_dds.sw.on()
