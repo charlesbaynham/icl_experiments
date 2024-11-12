@@ -17,14 +17,10 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
-from pyaion.fragments.default_beam_setter import (
-    SetBeamsToDefaults,
-)
-from pyaion.fragments.default_beam_setter import (
-    make_set_beams_to_default,
-)
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
@@ -64,10 +60,10 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
         self.turn_on_beam_with_default_settings: bool
 
         self.setattr_argument(
-            "disable_servoing",
-            BooleanValue(True),
+            "enable_servoing",
+            BooleanValue(False),
         )
-        self.disable_servoing: bool
+        self.enable_servoing: bool
 
         # %% devices
 
@@ -75,7 +71,7 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
             self.beam_info_name or beam_info_names[0]
         ]
 
-        if self.disable_servoing:
+        if not self.enable_servoing:
             self.beam_info.servo_enabled = False
 
         self.suservo_channel_device: SUServoChannel = self.get_device(
@@ -156,10 +152,10 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         self.turn_on_beams_with_default_settings: bool
 
         self.setattr_argument(
-            "disable_servoing",
-            BooleanValue(True),
+            "enable_servoing",
+            BooleanValue(False),
         )
-        self.disable_servoing: bool
+        self.enable_servoing: bool
 
         self.setattr_argument(
             "subtract_setpoint",
@@ -182,7 +178,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             constants.URUKULED_BEAMS["blue_imaging_switch"],
         ]
 
-        if self.disable_servoing:
+        if not self.enable_servoing:
             for info in self.suservo_beam_infos:
                 info.servo_enabled = False
 
