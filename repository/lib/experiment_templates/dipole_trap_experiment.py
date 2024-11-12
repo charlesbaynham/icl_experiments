@@ -80,6 +80,8 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
     """
 
+    making_dipole_traps = True
+
     def build_fragment(self):
         super().build_fragment()
         self.dipole_trap_build_fragment_customizations()

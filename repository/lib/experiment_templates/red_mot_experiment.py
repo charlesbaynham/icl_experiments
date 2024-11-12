@@ -107,9 +107,17 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
     """
 
+    # This flag will be set to True by DipoleTrapWithExperiment, so Mixins can
+    # detect whether they should use the red_mot_... hooks or the dipole_trap
+    # equivalents
+    making_dipole_traps = False
+
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("making_dipole_traps")
 
         # %% Fragments
 
