@@ -14,7 +14,7 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     EMGain,
     FLIRBlueMOTMeasurementMixin,

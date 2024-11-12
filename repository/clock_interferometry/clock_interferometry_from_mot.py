@@ -11,7 +11,7 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class MOTClockInterferometryNormalizedExp(
     ClockInterferometryRedMOTMixin,
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
     NormalisedRedMOTFastKineticsMixin,
     EMGain,

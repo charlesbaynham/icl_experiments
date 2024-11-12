@@ -12,7 +12,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fas
     TripleImageRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
@@ -53,7 +53,7 @@ class MOTClockSpectroscopyNormalizedExp(
 
 class MOTPumpedClockSpectroscopyNormalizedExp(
     ClockRabiSpectroscopyRedMotMixin,
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
     TripleImageRedMOTFastKineticsMixin,
 ):

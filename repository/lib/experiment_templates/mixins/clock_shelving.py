@@ -14,6 +14,9 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.pyaion_overrides.suservo_override import (
     LibSetSUServoStatic,
@@ -24,13 +27,9 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockShelvingAndClearoutMixin(RedMOTWithExperiment):
+class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     """
-    Uses a clock pulse to state-prepare atoms, then blast away the ground state
-    before spectroscopy
-
-    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
-    details.
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
@@ -153,18 +152,38 @@ class ClockShelvingAndClearoutMixin(RedMOTWithExperiment):
             ignore_final_shutters=True,
         )
 
+
+class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    """
+
     @kernel
     def post_narrowband_hook(self):
         self.post_narrowband_hook_default()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.clock_shelving()
 
-        if self.making_dipole_traps:
-            delay_mu(int64(self.core.ref_multiplier))
-            self.clock_shelving()
+
+class ClockShelvingAndClearoutDipoleTrapMixin(
+    ClockShelvingAndClearoutBase, DipoleTrapWithExperiment
+):
+    """
+    Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_dipole_trap_hook`
+    """
 
     @kernel
     def post_dipole_trap_hook(self):
         self.post_dipole_trap_hook_default()
-
-        if self.making_dipole_traps:
-            delay_mu(int64(self.core.ref_multiplier))
-            self.clock_shelving()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.clock_shelving()

@@ -11,7 +11,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -56,7 +56,7 @@ class ClockSpecFromXXODTFrag(
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    ClockShelvingAndClearoutMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
