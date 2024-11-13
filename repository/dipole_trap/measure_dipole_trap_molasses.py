@@ -77,7 +77,7 @@ class DoubleXODTFrag(
             default=0.01e-3,
             unit="ms",
         )
-        self.stark_689_push_time: FloatParamHandle
+        self.stark_689_destroy_atoms_in_XODT_duration: FloatParamHandle
 
     @kernel
     def DMA_initialization_hook(self):
@@ -95,7 +95,7 @@ class DoubleXODTFrag(
     @kernel
     def dipole_trap_evaporation_hook(self):
         self.stark_689_dds.sw.on()
-        delay(self.stark_689_push_time.get())
+        delay(self.stark_689_destroy_atoms_in_XODT_duration.get())
         self.stark_689_dds.sw.off()
 
     @kernel
