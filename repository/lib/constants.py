@@ -95,7 +95,7 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         "stark_shifter_689",
         frequency=100e6,
-        attenuation=3.0,
+        attenuation=9.0,
         urukul_device="urukul9912_aom_singlepass_689_stark_shifter",
     ),
 ]
