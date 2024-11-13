@@ -94,6 +94,8 @@ class DoubleXODTFrag(
 
     @kernel
     def dipole_trap_evaporation_hook(self):
+        # Turns off red MOT beams - helpful!
+        self.dipole_trap_evaporation_hook_default()
         self.stark_689_dds.sw.on()
         delay(self.stark_689_destroy_atoms_in_XODT_duration.get())
         self.stark_689_dds.sw.off()
