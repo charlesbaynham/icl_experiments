@@ -93,6 +93,10 @@ class DoubleXODTFrag(
         delay(self.stark_689_push_time.get())
         self.stark_689_dds.sw.off()
 
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
 
 class _MeasureDipoleTrapBase(
     FLIRMeasurementMixin,
