@@ -3,10 +3,12 @@ import logging
 from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import at_mu
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -102,7 +104,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
         t_end_pi_by_2_mu = now_mu()
-
+        delay_mu(int64(self.core.ref_multiplier))
         self.stark_689_dds.sw.on()
 
         # Phase step
@@ -116,7 +118,9 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
             t_end_pi_by_2_mu
             + self.core.seconds_to_mu(self.delay_between_interferometry_pulses.get())
         )
+        delay_mu(-int64(self.core.ref_multiplier))
         self.stark_689_dds.sw.off()
+        delay_mu(int64(self.core.ref_multiplier))
 
         self.clock_dds.sw.on()
         delay(t_pi_pulse)
