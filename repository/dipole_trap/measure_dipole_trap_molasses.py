@@ -48,7 +48,7 @@ class DoubleXODTFrag(
     DoubleTrapImagingBGSubtracted,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesMixin,
-    EMGain,  # FIXME: Remove EM Gain since we usually don't need it#
+    EMGain,
 ):
     """
     Measure a double XODT
