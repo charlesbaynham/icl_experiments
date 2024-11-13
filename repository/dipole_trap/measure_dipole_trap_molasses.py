@@ -16,6 +16,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -47,6 +48,7 @@ class DoubleXODTFrag(
     DoubleTrapImagingBGSubtracted,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesMixin,
+    EMGain,  # FIXME: Remove EM Gain since we usually don't need it#
 ):
     """
     Measure a double XODT
