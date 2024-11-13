@@ -114,3 +114,52 @@ which we don't currently need. So let's optimize for the problems we have today,
 not the ones we might have later.
 
 **Choosing method A.**
+
+## Reflashing gateware
+
+For Option A I need new gateware. This build failed :(
+
+See <https://gitlab.com/aion-physics/code/artiq/bitstreams/aion_gateware/-/merge_requests/48>
+
+This is on the same version of ARTIQ as we're currently using. Simply swapping
+from an AD9912 to an AD9910 is a problem. Dang!
+
+I had already encountered timing errors when I was building the new version of
+ARTIQ which I tracked down to having non-adjacent EEM cables for the red
+SUServo. This is a common bugbear for Vivado ARTIQ builds, so I suspect the
+problem now is the same, i.e. the non-adjacent AD9910 ports. Why that's a
+problem for the AD9910 and not the AD9912 I don't know: I thought that the
+gateware was the same...
+
+I've triggered a rebuild in
+<https://gitlab.com/aion-physics/code/artiq/bitstreams/aion_gateware/-/merge_requests/48/diffs?commit_id=347c10dfc3f1d73a92bc2a88c22847e9b1f37aed>
+which tries swapping around all the master cables to keep the ordering sequential.
+I suspect it'll work.
+
+If it does work, I'll need to rebuild anyway. Our system is currently running on
+a branch from `main` (annoyingly `aion-gateware` has a differently named primary
+branch to all the other repositories) which
+
+a) adds a TTL board to the red crate (needed for 689 wavemeter toggling)
+b) Disables event spreading for DRTIO crates. This was needed for our generic ramps, but is no longer needed in the new version of ARTIQ
+
+I don't want to maintain a forked version of ARTIQ if I don't have to, so I'd
+like to delete my modifications to the DRTIO gateware and use the upstead
+version instead. However that requires me to update ARTIQ, completing the work
+in
+<https://gitlab.com/aion-physics/code/artiq/bitstreams/aion_gateware/-/merge_requests/47/>.
+
+That's fine, this was blocked by timing issues but I now know how to resolve
+them: I need to reorder cables in the red crate for the same reasons as
+discussed above.
+
+So actions:
+
+1. Trigger a gateware build with the latest version of ARTIQ + the new red TTL
+   board + a swapped-in AD9910 instead of AD9912.
+2. Hope it works!
+3. Swap around EEM cables in both the red and master crates to match the new descriptions.
+4. Update icl_experiments to the latest ARTIQ (probably via PyAION, since ours
+   was the only system that was not building, probably because we're the only
+   ones who regularly mess around with our EEM cables and therefore have weird
+   ordering).
