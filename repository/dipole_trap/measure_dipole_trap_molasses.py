@@ -80,6 +80,11 @@ class DoubleXODTFrag(
         self.stark_689_push_time: FloatParamHandle
 
     @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
     def before_start_hook(self):
         self.before_start_hook_xodt_molasses()
         self.stark_689_dds.set_att(STARK_689_BEAM_INFO.attenuation)
