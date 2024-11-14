@@ -107,13 +107,14 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         delay_mu(int64(self.core.ref_multiplier))
         self.stark_689_dds.sw.on()
 
-        logger.info(now_mu())
+        start = now_mu()
         # Phase step
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.phase_constant + 1.0 * self.phase_step.get(),
         )
-        logger.info(now_mu())
+        end = now_mu()
+        logger.debug("Phase step took %d mu", self.core.mu_to_seconds(end - start))
 
         # PI PULSE
         at_mu(
