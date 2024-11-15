@@ -234,7 +234,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
                 self.red_mot.broadband_red_phase.do_phase()
             # And turn off the blue beams, a little after the red MOT starts
             with sequential:
-                delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
+                # FIXME
+                # delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
                 self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
 
         self.end_of_broadband_mot_hook()
