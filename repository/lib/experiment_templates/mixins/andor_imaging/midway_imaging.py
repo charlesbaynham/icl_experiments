@@ -98,7 +98,7 @@ class MidSequenceAndorImage(AndorImagingBase):
     def start_of_red_broadband_hook(self):
         self.start_of_red_broadband_hook_imaging_base()
         delay_mu(int64(self.core.ref_multiplier))
-        # self.start_of_red_broadband_hook_midway_imaging()  # FIXME
+        self.start_of_red_broadband_hook_midway_imaging()
 
     @kernel
     def start_of_red_broadband_hook_midway_imaging(self):
