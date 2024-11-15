@@ -45,7 +45,7 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
+from artiq.experiment import delay_mu, sequential
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
@@ -220,13 +220,18 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
+
+        # Ramp down the blue MOT
         self.blue_3d_mot.do_blue_transfer_mot()
-        delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
-        self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
-        # Note: this is a simple way to delay, but will probably fill an extra lane (greater risk of underflow)
-        delay(-self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
-        self.red_mot.prepare_for_broadband_phase()
-        self.red_mot.broadband_red_phase.do_phase()
+
+        # Keep the blue light on for a short time while turning on the red beams
+        with parallel:
+            self.red_mot.prepare_for_broadband_phase()
+            self.red_mot.broadband_red_phase.do_phase()
+            with sequential:
+                delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
+                self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
+
         delay(-self.red_broadband_time.get())
         self.start_of_red_broadband_hook()
         delay(+self.red_broadband_time.get())
