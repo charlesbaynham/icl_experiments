@@ -238,9 +238,16 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
         start_mu = now_mu()
 
+        # FIXME
+        t_slack_a = self.core.get_rtio_counter_mu() - now_mu()
+        t_slack_suservos_a = [int64(0)] * (len(self.beam_infos) - 1)
+
         for i in range(1, len(self.beam_infos)):
             suservo = self.beam_suservos[i]
             shutter = self.beam_shutters[i]
+
+            # FIXME
+            t_slack_suservos_a[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
 
             suservo.set(
                 en_out=0,
@@ -251,6 +258,10 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             if not ignore_shutters:
                 shutter.off()
                 delay_mu(int64(self.core.ref_multiplier))
+
+        logger.critical("t_slack_a: %s", t_slack_a)
+        logger.critical("t_slack_suservos_a: %s", t_slack_suservos_a)
+        self.core.break_realtime()  # FIXME!!!!!
 
         if not ignore_shutters:
             for i in range(1, len(self.beam_infos)):
