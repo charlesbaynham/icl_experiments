@@ -102,7 +102,6 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         self.core: Core
 
         self.setattr_device("led0")
-        self.setattr_device("led1")
 
         self.beam_suservos: List[SUServoChannel] = []
         self.beam_shutters: List[TTLOut] = []
