@@ -110,6 +110,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_device("core")
         self.core: Core
 
+        self.setattr_device("led0")
+        self.setattr_device("led1")
+
         # %% Fragments
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
@@ -231,6 +234,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
                 self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
             # and start the red MOT
             with sequential:
+                self.consume_one_lane()
                 self.red_mot.prepare_for_broadband_phase()
                 self.start_of_red_broadband_hook()
                 self.red_mot.broadband_red_phase.do_phase()
@@ -297,6 +301,24 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         By default, do nothing.
         """
+
+    @kernel
+    def consume_one_lane(self):
+        """
+        Force the SED to move to the next lane.
+
+        This is useful because most of our code very carefully avoids using
+        extra lanes, but sometimes it's useful. Event spreading is another
+        option: if this were enabled, we would automatically move to a new lane
+        when the RTIO queue filled up. That's not enabled for us however, since
+        it stops you going back in time after emitting lots of events, something
+        that we do occasionally.
+
+        So, this function exists to deterministically consume exactly one lane.
+        Don't look too carefully at how it does it...
+        """
+        self.led0.on()
+        self.led1.on()
 
     @kernel
     def do_imaging_hook(self):
