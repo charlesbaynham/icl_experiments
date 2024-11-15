@@ -241,6 +241,8 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         # FIXME
         t_slack_a = self.core.get_rtio_counter_mu() - now_mu()
         t_slack_suservos_a = [int64(0)] * (len(self.beam_infos) - 1)
+        t_slack_suservos_b = [int64(0)] * (len(self.beam_infos) - 1)
+        t_slack_suservos_c = [int64(0)] * (len(self.beam_infos) - 1)
 
         for i in range(1, len(self.beam_infos)):
             suservo = self.beam_suservos[i]
@@ -256,12 +258,21 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             )
             delay_mu(int64(self.core.ref_multiplier))  # FIXME broken now??
             # delay(4e-9)  # FIXME tracked it down to here!!!! What the hell
+
+            # FIXME
+            t_slack_suservos_b[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
+
             if not ignore_shutters:
                 shutter.off()
                 delay_mu(int64(self.core.ref_multiplier))
 
+            # FIXME
+            t_slack_suservos_c[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
+
         logger.critical("t_slack_a: %s", t_slack_a)
         logger.critical("t_slack_suservos_a: %s", t_slack_suservos_a)
+        logger.critical("t_slack_suservos_b: %s", t_slack_suservos_b)
+        logger.critical("t_slack_suservos_c: %s", t_slack_suservos_c)
         self.core.break_realtime()  # FIXME!!!!!
 
         if not ignore_shutters:
