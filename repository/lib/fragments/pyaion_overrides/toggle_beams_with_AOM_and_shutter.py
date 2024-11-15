@@ -101,6 +101,9 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         self.setattr_device("core")
         self.core: Core
 
+        self.setattr_device("led0")
+        self.setattr_device("led1")
+
         self.beam_suservos: List[SUServoChannel] = []
         self.beam_shutters: List[TTLOut] = []
 
@@ -257,7 +260,13 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                 profile=suservo.channel,
             )
             delay_mu(int64(self.core.ref_multiplier))  # FIXME broken now??
-            # delay(4e-9)  # FIXME tracked it down to here!!!! What the hell
+
+            # delay_mu(int64(self.core.ref_multiplier))
+            # FIXME
+            self.led0.off()
+            delay_mu(-int64(self.core.ref_multiplier))
+            self.led0.on()
+            delay_mu(int64(self.core.ref_multiplier))
 
             # FIXME
             t_slack_suservos_b[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
