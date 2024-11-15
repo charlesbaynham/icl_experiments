@@ -266,7 +266,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             self.led0.on()
             delay_mu(-int64(self.core.ref_multiplier))
             self.led1.on()
-            delay_mu(int64(self.core.ref_multiplier))
+            # delay_mu(int64(self.core.ref_multiplier))
 
             # FIXME
             t_slack_suservos_b[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
