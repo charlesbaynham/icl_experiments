@@ -3121,8 +3121,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "daisy-chain-ramps"
-resolved_reference = "92f260dc087146e3e7a8b0b2608202354b20a898"
+reference = "HEAD"
+resolved_reference = "3157819754ce8cf0c08c5bbeaa352d692ecaa819"
 
 [[package]]
 name = "pycairo"
@@ -5069,4 +5069,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "27b04f778203ef459259f5f0151e19b7cd16f3c2e8504417d22567a4dee18fdc"
+content-hash = "f0b3e64420ac870ab67c5b32e236b3a23b1c653c1a0fe8508de84478c386f094"

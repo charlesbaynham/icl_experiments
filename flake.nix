@@ -1,6 +1,5 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=daisy-chain-ramps";
-  # TODO: go back to master branch once https://gitlab.com/aion-physics/code/artiq/pyaion/-/merge_requests/55 is merged
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq. This is currently hard because we're getting
