@@ -102,6 +102,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         self.core: Core
 
         self.setattr_device("led0")
+        self.setattr_device("led1")
 
         self.beam_suservos: List[SUServoChannel] = []
         self.beam_shutters: List[TTLOut] = []
@@ -262,9 +263,9 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
             # delay_mu(int64(self.core.ref_multiplier))
             # FIXME
-            self.led0.off()
-            delay_mu(-int64(self.core.ref_multiplier))
             self.led0.on()
+            delay_mu(-int64(self.core.ref_multiplier))
+            self.led1.on()
             delay_mu(int64(self.core.ref_multiplier))
 
             # FIXME
