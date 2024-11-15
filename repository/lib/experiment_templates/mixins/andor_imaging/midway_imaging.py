@@ -126,13 +126,14 @@ class MidSequenceAndorImage(AndorImagingBase):
         take the bg pulse now, otherwise wait until that time.
         """
 
-        t_bg_pulse_start_mu = self.t_imaging_done_mu + self.core.seconds_to_mu(
-            self.delay_before_bg_pulse.get()
-        )
+        delay(self.delay_before_bg_pulse.get())
 
         # Delay the bg image if necessary
-        if now_mu() < t_bg_pulse_start_mu:
-            at_mu(t_bg_pulse_start_mu)
+        t_earliest_bg_pulse_start_mu = self.t_imaging_done_mu + self.core.seconds_to_mu(
+            self.delay_before_bg_pulse.get()
+        )
+        if now_mu() < t_earliest_bg_pulse_start_mu:
+            at_mu(t_earliest_bg_pulse_start_mu)
 
         # Take the background image. The foreground image should have already happened
         self.do_pulse()
