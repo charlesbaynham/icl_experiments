@@ -226,20 +226,24 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Keep the blue light on for a short time while turning on the red beams
         with parallel:
-            self.red_mot.prepare_for_broadband_phase()
-            self.red_mot.broadband_red_phase.do_phase()
+            # Start the red MOT
+            with sequential:
+                self.start_of_red_broadband_hook()
+                self.red_mot.prepare_for_broadband_phase()
+                self.red_mot.broadband_red_phase.do_phase()
+            # And turn off the blue beams, a little after the red MOT starts
             with sequential:
                 delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
                 self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
 
-        delay(-self.red_broadband_time.get())
-        self.start_of_red_broadband_hook()
-        delay(+self.red_broadband_time.get())
         self.end_of_broadband_mot_hook()
+
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
+
         self.red_mot.do_narrowband_red_mot()
+
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
@@ -373,10 +377,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         Executed as the broadband MOT stage starts.
 
-        This hook is called after the broadband MOT phase has already been
-        queued into the RTIO, so write here will consume new lanes.
-
-        TODO: Move this hook so that new lanes aren't needed
+        This hook is just before the broadband MOT starts. It should take
+        negligible duration (i.e. just a few coarse RTIO cycles) otherwise
+        assumptions about the broadband MOT duration will be wrong
         """
 
     @kernel
