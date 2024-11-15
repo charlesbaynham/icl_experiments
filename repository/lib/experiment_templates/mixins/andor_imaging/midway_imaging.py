@@ -1,3 +1,14 @@
+from artiq.coredevice.core import Core
+from artiq.experiment import at_mu
+from artiq.experiment import delay
+from artiq.experiment import delay_mu, sequential
+from artiq.experiment import kernel
+from artiq.experiment import now_mu
+from artiq.experiment import parallel
+from ndscan.experiment import ExpFragment
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 import logging
 
 import numpy as np
@@ -44,6 +55,7 @@ class MidSequenceAndorImage(AndorImagingBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
+    * :meth:`~start_of_red_broadband_hook`
     * :meth:`~process_andor_data_hook`
     * :meth:`~update_andor_monitor_hook`
     """
@@ -64,7 +76,7 @@ class MidSequenceAndorImage(AndorImagingBase):
             unit="ms",
             default=100e-3,
         )
-        self.delay_before_bg_pulse: FloatPajramHandle
+        self.delay_before_imaging: FloatParamHandle
 
         self.setattr_param(
             "delay_before_bg_pulse",
@@ -78,6 +90,8 @@ class MidSequenceAndorImage(AndorImagingBase):
 
         self.bg_imaging_make_result_channel()
 
+        self.t_imaging_done_mu = int64(0)
+
     def bg_imaging_make_result_channel(self):
         # AndorImagingBase makes sum and mean ResultChannels automatically, but
         # we create another one for the bg-corrected data
@@ -85,16 +99,46 @@ class MidSequenceAndorImage(AndorImagingBase):
         self.andor_mean_bg_corrected: FloatChannel
 
     @kernel
+    def start_of_red_broadband_hook(self):
+        self.start_of_red_broadband_hook_imaging_base()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.start_of_red_broadband_hook_midway_imaging()
+
+    @kernel
+    def start_of_red_broadband_hook_midway_imaging(self):
+        """
+        Schedule an image to be taken midway through the sequence, then reset
+        the timeline to leave it unaltered. This will certainly consume a
+        lane
+        """
+        t_start_mu = now_mu()
+        delay(self.delay_before_imaging.get())
+        self.do_pulse()
+
+        # Record the time at which imaging was completed so that we can ensure the background pulse is afterwards
+        self.t_imaging_done_mu = now_mu()
+
+        # Reset the timeline
+        at_mu(t_start_mu)
+
+    @kernel
     def do_imaging_hook_andor(self):
         """
-        Hook for the imaging sequence. This hook runs after the spectroscopy
-        etc. is completed, and should handle imaging with the Andor camera.
+        Take the background image
+
+        If the imaging pulse happened at least delay_before_bg_pulse ago then
+        take the bg pulse now, otherwise wait until that time.
         """
 
-        # FIXME: Ensure this is after the imaging pulse
+        t_bg_pulse_start_mu = self.t_imaging_done_mu + self.core.seconds_to_mu(
+            self.delay_before_bg_pulse.get()
+        )
+
+        # Delay the bg image if necessary
+        if now_mu() < t_bg_pulse_start_mu:
+            at_mu(t_bg_pulse_start_mu)
 
         # Take the background image. The foreground image should have already happened
-        delay(self.delay_before_bg_pulse.get())
         self.do_pulse()
 
     @host_only
