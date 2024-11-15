@@ -5,6 +5,7 @@ Version from pyaion daisy-chain-ramps, modified to use delay_mu(int64(self.core.
 import logging
 from typing import List
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
@@ -15,7 +16,6 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
-from numpy import int64
 from pyaion.lib.utils import get_local_devices
 from pyaion.models import SUServoedBeam
 
@@ -101,9 +101,6 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_device("led0")
-        self.setattr_device("led1")
-
         self.beam_suservos: List[SUServoChannel] = []
         self.beam_shutters: List[TTLOut] = []
 
@@ -144,6 +141,14 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             "longest_beam_delay",
         }
 
+    def host_setup(self):
+        # This is one coarse cycle time, the minimum time delay if you want to
+        # avoid using an extra RTIO lane
+        self.t_rtio_cycle_mu = np.int64(self.core.ref_multiplier)
+        self.kernel_invariants.add("t_rtio_cycle_mu")
+
+        return super().host_setup()
+
     @kernel
     def turn_beams_on(self, ignore_shutters=False):
         """
@@ -156,17 +161,19 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         Start with the shutters with the longest delay to avoid switching
         backwards and forwards in time.
 
-        This method does not advance the cursor. However, it will reverse time
-        to write shutter opening into the past. You should therefore make sure
-        that there is at least "shutter_delay_time" slack, ideally with no
-        queued RTIO events to prevent using a new RTIO lane.
+        This method advances the timeline cursor by a few RTIO events ~ 100ns
 
         If ignore_shutters == True, only the AOMs are used. The user is
         responsible for making sure that the shutters are arranged such that
         this results in something interesting happening.
-        """
 
-        start_mu = now_mu()
+        Event queueing behaviour:
+
+        * t < 0: If ignore_shutters == False and there are shutterable AOMs in
+        the suservo list, this method will write shutter opening events in the
+        past by "shutter_delay_time" seconds.
+        * t > 0: No events are written in the future.
+        """
 
         if not ignore_shutters:
             for i in range(len(self.beam_infos) - 1, 0, -1):
@@ -181,9 +188,9 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                     en_iir=0,
                     profile=suservo.channel,
                 )
-                delay_mu(int64(self.core.ref_multiplier))
+                delay_mu(self.t_rtio_cycle_mu)
                 shutter.on()
-                delay_mu(int64(self.core.ref_multiplier))
+                delay_mu(self.t_rtio_cycle_mu)
 
                 delay(beam_info.shutter_delay)
 
@@ -217,11 +224,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                 profile=suservo.channel,
             )
 
-            delay_mu(int64(self.core.ref_multiplier))
-
-        # Cancel out the accumulated tiny delays so that we do not affect the
-        # cursor position
-        at_mu(start_mu)
+            delay_mu(self.t_rtio_cycle_mu)
 
     @kernel
     def turn_beams_off(self, ignore_shutters=False):
@@ -231,15 +234,19 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         This method will turn off the beam at the cursor and then close the
         shutter and turn the AOM back on to stop it cooling down.
 
-        This method will not advance the cursor BUT will write shutter closing
-        events into the future by "shutter_delay_time" seconds.
+        This method advances the timeline cursor by a few RTIO events ~ 100ns
 
         If ignore_shutters == True, only the AOMs are used. The user is
         responsible for making sure that the shutters are arranged such that
         this results in something interesting happening.
-        """
 
-        start_mu = now_mu()
+        Event queueing behaviour:
+
+        * t < 0: No events are written in the past.
+        * t > 0: If ignore_shutters == False and there are shutterable AOMs in
+        the suservo list, this method will write shutter closing
+        events into the future by "shutter_delay_time" seconds.
+        """
 
         for i in range(1, len(self.beam_infos)):
             suservo = self.beam_suservos[i]
@@ -251,9 +258,14 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                 profile=suservo.channel,
             )
 
+            # TODO: Not having the below delay DOES cause this method to consume
+            # an extra lane, but fixing this caused overflow bugs in our code so
+            # I'm removing it here in case others have the same problem.
+            # delay_mu(self.t_rtio_cycle_mu)
+
             if not ignore_shutters:
                 shutter.off()
-                delay_mu(int64(self.core.ref_multiplier))
+                delay_mu(self.t_rtio_cycle_mu)
 
         if not ignore_shutters:
             for i in range(1, len(self.beam_infos)):
@@ -270,13 +282,9 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                     profile=suservo.channel,
                 )
 
-                delay_mu(int64(self.core.ref_multiplier))
+                delay_mu(self.t_rtio_cycle_mu)
 
                 delay(-beam_info.shutter_delay)
-
-        # Cancel out the accumulated tiny delays so that we do not affect the
-        # cursor position
-        at_mu(start_mu)
 
     @portable
     def get_longest_shutter_delay(self):
