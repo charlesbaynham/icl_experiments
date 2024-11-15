@@ -5,9 +5,9 @@ import numpy as np
 from artiq.experiment import delay
 from artiq.experiment import host_only
 from artiq.experiment import kernel
+from artiq.language import parallel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -41,6 +41,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     num_andor_images = 3
     num_absorption_rois = 1
+    num_images_per_series = 3
 
     def build_fragment(self):
         super().build_fragment()
@@ -67,7 +68,6 @@ class AbsorptionImagingBase(AndorImagingBase):
         default_abs_rois = self.get_default_abs_rois()
 
         for i, (x0, y0, x1, y1) in enumerate(default_abs_rois):
-
             self.setattr_param(
                 f"abs_roi_{i}_x0",
                 IntParam,
@@ -90,7 +90,7 @@ class AbsorptionImagingBase(AndorImagingBase):
                 f"Abs ROI {i} y0",
                 default=y0,
                 min=0,
-                max=1024,
+                max=512,
             )
             self.setattr_param(
                 f"abs_roi_{i}_y1",
@@ -98,24 +98,29 @@ class AbsorptionImagingBase(AndorImagingBase):
                 f"Abs ROI {i} y1",
                 default=y1,
                 min=0,
-                max=1024,
+                max=512,
             )
 
         # force use of andor driver to ensure em gain can be set to 0
         self.override_param("use_andor_driver", True)
+        self.setattr_param_rebind("pre_trigger_delay", self.andor_camera_control)
+        self.override_param("pre_trigger_delay", 50e-6)
 
     def host_setup(self):
-        em_gain = self.andor_camera_control.cam.get_EMCCD_gain()
+        super().host_setup()
+        self.andor_camera_control.cam.stop_acquisition()
+        em_gain = self.andor_camera_control.cam.get_EMCCD_gain()[0]
         self.andor_camera_control.cam.set_EMCCD_gain(0)
         if em_gain != 0:
             raise ValueError(
                 "EM gain should be 0 for absorption imaging. Setting to 0."
             )
+        self.andor_camera_control.cam.start_acquisition()  # HACK base and andor cam frag should be changed so acq is only started once.
 
         self.ccb.issue(
             "create_applet",
             "Optical Density Image",
-            f"${{artiq_applet}}image {DATASET_OD_KEY}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY}",
         )
 
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
@@ -125,14 +130,10 @@ class AbsorptionImagingBase(AndorImagingBase):
             " And that exposure is set to at least %f us",
             1e6 * andor_exposure,
         )
-        return super().host_setup()
 
     def hook_setup_andor(self):
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
-
-        self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
-        self.use_andor_driver: BoolParamHandle
 
         self.hook_setup_andor_results()
 
@@ -164,29 +165,32 @@ class AbsorptionImagingBase(AndorImagingBase):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
         # Image with atoms
-        self.do_pulse(andor_exposure)
+        self.do_pulse()
 
         # Wait for atoms to disappear
         delay(self.delay_between_absorption_pulses.get())
 
         # Image without atoms
-        self.do_pulse(andor_exposure)
+        self.do_pulse()
 
         # Trigger the third time without any light
         delay(self.delay_before_bg_pulse.get())
-        self._do_pulse_no_light(andor_exposure)
+        self.do_pulse(with_light=False)
 
     @kernel
-    def _do_pulse_no_light(self, andor_exposure):
-        delay(-0.5 * andor_exposure)
-        self.andor_camera_control.trigger(
-            exposure=andor_exposure,
-            control_shutter=False,
-        )
-        delay(0.5 * andor_exposure)
+    def do_pulse(self, with_light=True):
+        """
+        We want the exposure time to be twice the pulse duration
+        """
+        exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
+        with parallel:
+            self.andor_camera_control.trigger(
+                exposure=exposure,
+                control_shutter=False,
+            )
+            if with_light:
+                self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     @host_only
     def process_andor_image_hook(self, images):
@@ -194,7 +198,22 @@ class AbsorptionImagingBase(AndorImagingBase):
         light_img = images[1]
         bg_img = images[2]
 
-        _, od_img, n_invalid = self.calc_atom_number(atoms_img, light_img, bg_img)
+        Ns, od_slices, od_img, n_invalid = self.calc_atom_number(
+            atoms_img, light_img, bg_img
+        )
+        self.set_dataset(
+            DATASET_OD_KEY, od_img, broadcast=True, persist=False, archive=False
+        )
+
+        for i in range(self.num_absorption_rois):
+            self.atom_numbers[i].push(Ns[i])
+            self.set_dataset(
+                DATASET_OD_KEY + f"slice_{i}",
+                od_slices[i],
+                broadcast=True,
+                persist=False,
+                archive=False,
+            )
 
         image_size = np.prod(np.shape(od_img))
         if n_invalid > image_size / 1000:
@@ -251,17 +270,23 @@ class AbsorptionImagingBase(AndorImagingBase):
 
         OD = -np.log(quotient_fixed)
 
+        Ns = []
+        OD_slices = []
+
         for i in range(self.num_absorption_rois):
-            x0 = self.getattr_param(f"abs_roi_{i}_x0").get()
-            x1 = self.getattr_param(f"abs_roi_{i}_x1").get()
-            y0 = self.getattr_param(f"abs_roi_{i}_y0").get()
-            y1 = self.getattr_param(f"abs_roi_{i}_y1").get()
-            OD_slice = OD[y0:y1, x0:x1]
+            param_prefix = f"abs_roi_{i}_"
+            x0 = getattr(self, param_prefix + "x0").get()
+            x1 = getattr(self, param_prefix + "x1").get()
+            y0 = getattr(self, param_prefix + "y0").get()
+            y1 = getattr(self, param_prefix + "y1").get()
+            OD_slice = OD[x0:x1, -y1:-y0]
 
             N = np.sum(OD_slice) * A_pixel / sigma_0
-            self.atom_numbers[i].push(N)
 
-        return N, OD, n_invalid
+            Ns.append(N)
+            OD_slices.append(OD_slice)
+
+        return Ns, OD_slices, OD, n_invalid
 
     @kernel
     def save_andor_data_hook(self):

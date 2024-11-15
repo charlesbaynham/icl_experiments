@@ -30,7 +30,7 @@ SR_FACTS = {
         "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
     },
-    "WAVELENGTHS": {"461_88": 460.86e9},
+    "WAVELENGTHS": {"461_88": 460.86e-9},
 }
 
 ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}

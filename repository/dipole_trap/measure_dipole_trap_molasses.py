@@ -10,6 +10,9 @@ from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
+from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
+    AbsorptionDoubleDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingBGSubtracted,
 )
@@ -108,6 +111,33 @@ class DoubleXODTFrag(
         pass
 
 
+class DoubleXODTAbsFrag(
+    AbsorptionDoubleDipoleTrapMixin,
+    XODTSingleMolassesMixin,
+):
+    """
+    Measure a double XODT with aborption imaging
+
+    Load a red MOT, then implement a single "molasses" stage which is
+    actually another MOT with a field bias to move it to the bottom trap
+
+    In the "evaporation" stage, the 689 nm Stark beam is pulsed on to destroy atoms
+    (for alignment of the beam onto the XODT). Note: this will only work the
+    0th order of the 689 delivery AOM is coupled to the chamber - otherwise the
+    beam will be ~ 100 MHz from resonance. The default 689 pulse time is 0.01us
+    to allow unadulterated imaging of the atoms in the XXODT as default.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
+
 class _MeasureDipoleTrapBase(
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
@@ -167,6 +197,7 @@ class NormalizedDoubleDipoleTrapFrag(
 
 
 MeasureXXODT = make_fragment_scan_exp(DoubleXODTFrag)
+MeasureXXODTAbs = make_fragment_scan_exp(DoubleXODTAbsFrag)
 # Experiments using the XODTDoubleMolassesMixin. If we don't use these in a while, we should just delete them
 # MeasureDoubleDipoleTrap = make_fragment_scan_exp(MeasureDoubleDipoleTrapFrag)
 # MeasureDoubleDipoleTrapWithFieldRamp = make_fragment_scan_exp(
