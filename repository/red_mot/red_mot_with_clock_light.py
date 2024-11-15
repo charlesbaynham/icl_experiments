@@ -1,13 +1,10 @@
 import logging
 
 from artiq.coredevice.ttl import TTLOut
-
 from artiq.experiment import delay_mu
-from numpy import int64
-
-
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from numpy import int64
 
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,

@@ -1,23 +1,16 @@
-from artiq.coredevice.core import Core
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import delay_mu, sequential
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import parallel
-from ndscan.experiment import ExpFragment
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 import logging
 
 import numpy as np
+from artiq.experiment import at_mu
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import host_only
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (

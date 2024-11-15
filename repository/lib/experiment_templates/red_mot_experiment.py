@@ -45,10 +45,11 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import delay_mu, sequential
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
+from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
