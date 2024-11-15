@@ -233,8 +233,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
                 self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
             # and start the red MOT
             with sequential:
-                self.start_of_red_broadband_hook()
                 self.red_mot.prepare_for_broadband_phase()
+                self.start_of_red_broadband_hook()
                 self.red_mot.broadband_red_phase.do_phase()
 
         self.end_of_broadband_mot_hook()
