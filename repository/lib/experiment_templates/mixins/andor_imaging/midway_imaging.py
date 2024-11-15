@@ -146,7 +146,6 @@ class MidSequenceAndorImage(AndorImagingBase):
         By default, AndorImagingBase would show the first image. We show the
         bg-corrected data instead.
         """
-        # FIXME
         img_array = images[0]
         bg_img_array = images[1]
         corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
