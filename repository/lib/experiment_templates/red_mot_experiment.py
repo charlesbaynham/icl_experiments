@@ -231,7 +231,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             # Turn off the blue beams, a little after the red MOT starts
             with sequential:
                 delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
-                self.consume_one_lane()
                 self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
             # and start the red MOT
             with sequential:
@@ -301,26 +300,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         By default, do nothing.
         """
-
-    @kernel
-    def consume_one_lane(self):
-        """
-        Force the SED to move to the next lane.
-
-        This is useful because most of our code very carefully avoids using
-        extra lanes, but sometimes it's useful. Event spreading is another
-        option: if this were enabled, we would automatically move to a new lane
-        when the RTIO queue filled up. That's not enabled for us however, since
-        it stops you going back in time after emitting lots of events, something
-        that we do occasionally.
-
-        So, this function exists to deterministically consume exactly one lane.
-        Don't look too carefully at how it does it...
-        """
-        delay_mu(int64(self.core.ref_multiplier))
-        self.led0.on()
-        delay_mu(-int64(self.core.ref_multiplier))
-        self.led1.on()
 
     @kernel
     def do_imaging_hook(self):

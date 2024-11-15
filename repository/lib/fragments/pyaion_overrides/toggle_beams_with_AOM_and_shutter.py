@@ -241,41 +241,19 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
 
         start_mu = now_mu()
 
-        # # FIXME
-        # t_slack_a = self.core.get_rtio_counter_mu() - now_mu()
-        # t_slack_suservos_a = [int64(0)] * (len(self.beam_infos) - 1)
-        # t_slack_suservos_b = [int64(0)] * (len(self.beam_infos) - 1)
-        # t_slack_suservos_c = [int64(0)] * (len(self.beam_infos) - 1)
-
         for i in range(1, len(self.beam_infos)):
             suservo = self.beam_suservos[i]
             shutter = self.beam_shutters[i]
-
-            # # FIXME
-            # t_slack_suservos_a[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
 
             suservo.set(
                 en_out=0,
                 en_iir=0,
                 profile=suservo.channel,
             )
-            # delay_mu(int64(self.core.ref_multiplier))  # FIXME broken now??
-
-            # # FIXME
-            # t_slack_suservos_b[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
 
             if not ignore_shutters:
                 shutter.off()
                 delay_mu(int64(self.core.ref_multiplier))
-
-            # # FIXME
-            # t_slack_suservos_c[i - 1] = self.core.get_rtio_counter_mu() - now_mu()
-
-        # logger.critical("t_slack_a: %s", t_slack_a)
-        # logger.critical("t_slack_suservos_a: %s", t_slack_suservos_a)
-        # logger.critical("t_slack_suservos_b: %s", t_slack_suservos_b)
-        # logger.critical("t_slack_suservos_c: %s", t_slack_suservos_c)
-        # self.core.break_realtime()  # FIXME!!!!!
 
         if not ignore_shutters:
             for i in range(1, len(self.beam_infos)):
