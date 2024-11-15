@@ -45,12 +45,8 @@ class ClockSpecMidwayImagingFrag(
 
     @kernel
     def before_start_hook(self):
-        # self.before_start_hook_clockshelving()
+        self.before_start_hook_clockshelving()
         self.before_start_hook_xodt_molasses()
-
-    # @kernel
-    # def do_experiment_after_red_mot_hook(self):
-    #     pass  # FIXME
 
     @kernel
     def start_of_red_broadband_hook(self):
