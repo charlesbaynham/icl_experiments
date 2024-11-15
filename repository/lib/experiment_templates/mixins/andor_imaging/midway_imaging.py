@@ -81,6 +81,9 @@ class MidSequenceAndorImage(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+        # Meaningless without an experiment:
+        self.override_param("delay_after_experiment", 0)
+
         self.bg_imaging_make_result_channel()
 
         self.t_imaging_done_mu = int64(0)
