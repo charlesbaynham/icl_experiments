@@ -254,7 +254,8 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                 en_iir=0,
                 profile=suservo.channel,
             )
-            delay(4e-9)  # FIXME tracked it down to here!!!! What the hell
+            delay_mu(int64(self.core.ref_multiplier))  # FIXME broken now??
+            # delay(4e-9)  # FIXME tracked it down to here!!!! What the hell
             if not ignore_shutters:
                 shutter.off()
                 delay_mu(int64(self.core.ref_multiplier))
