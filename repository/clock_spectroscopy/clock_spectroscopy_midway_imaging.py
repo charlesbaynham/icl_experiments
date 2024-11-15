@@ -3,10 +3,12 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.midway_imaging import (
     MidSequenceAndorImage,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 # from repository.lib.experiment_templates.mixins.clock_shelving import (
 #     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -14,12 +16,9 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 # from repository.lib.experiment_templates.mixins.pumped_lattice import (
 #     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 # )
-# from repository.lib.experiment_templates.mixins.XODT_molasses import (
-#     XODTSingleMolassesPlusFieldRampMixin,
-# )
-# from repository.lib.experiment_templates.dipole_trap_experiment import (
-#     DipoleTrapWithExperiment,
-# )
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesPlusFieldRampMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +26,11 @@ logger = logging.getLogger(__name__)
 class ClockSpecMidwayImagingFrag(
     MidSequenceAndorImage,
     # EMGain,
-    # XODTSingleMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
     # OpticalPumpingWithFieldSettingDipoleTrapMixin,  # FIXME
     # ClockShelvingAndClearoutDipoleTrapMixin,
-    # DipoleTrapWithExperiment,
-    RedMOTWithExperiment,
+    DipoleTrapWithExperiment,
+    # RedMOTWithExperiment,
 ):
     """
     Midway imaging of clock sequence
@@ -47,13 +46,12 @@ class ClockSpecMidwayImagingFrag(
 
     @kernel
     def before_start_hook(self):
-        pass
         # self.before_start_hook_clockshelving()
-        # self.before_start_hook_xodt_molasses()
+        self.before_start_hook_xodt_molasses()
 
-    @kernel
-    def do_experiment_after_red_mot_hook(self):
-        pass  # FIXME
+    # @kernel
+    # def do_experiment_after_red_mot_hook(self):
+    #     pass  # FIXME
 
     @kernel
     def start_of_red_broadband_hook(self):
