@@ -1,5 +1,5 @@
 """
-Version from pyaion daisy-chain-ramps
+Version from pyaion daisy-chain-ramps, modified to use delay_mu(int64(self.core.ref_multiplier))
 """
 
 import logging
@@ -10,14 +10,14 @@ from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import at_mu
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
+from numpy import int64
 from pyaion.lib.utils import get_local_devices
 from pyaion.models import SUServoedBeam
-
-DELAY_BETWEEN_RTIO_EVENTS = 4e-9
 
 logger = logging.getLogger(__name__)
 
@@ -178,9 +178,9 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                     en_iir=0,
                     profile=suservo.channel,
                 )
-                delay(DELAY_BETWEEN_RTIO_EVENTS)
+                delay_mu(int64(self.core.ref_multiplier))
                 shutter.on()
-                delay(DELAY_BETWEEN_RTIO_EVENTS)
+                delay_mu(int64(self.core.ref_multiplier))
 
                 delay(beam_info.shutter_delay)
 
@@ -214,7 +214,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                 profile=suservo.channel,
             )
 
-            delay(DELAY_BETWEEN_RTIO_EVENTS)
+            delay_mu(int64(self.core.ref_multiplier))
 
         # Cancel out the accumulated tiny delays so that we do not affect the
         # cursor position
@@ -247,10 +247,10 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                 en_iir=0,
                 profile=suservo.channel,
             )
-            delay(DELAY_BETWEEN_RTIO_EVENTS)
+            delay_mu(int64(self.core.ref_multiplier))
             if not ignore_shutters:
                 shutter.off()
-                delay(DELAY_BETWEEN_RTIO_EVENTS)
+                delay_mu(int64(self.core.ref_multiplier))
 
         if not ignore_shutters:
             for i in range(1, len(self.beam_infos)):
@@ -267,7 +267,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                     profile=suservo.channel,
                 )
 
-                delay(DELAY_BETWEEN_RTIO_EVENTS)
+                delay_mu(int64(self.core.ref_multiplier))
 
                 delay(-beam_info.shutter_delay)
 
