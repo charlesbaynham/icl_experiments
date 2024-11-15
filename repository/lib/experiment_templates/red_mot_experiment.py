@@ -217,9 +217,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.before_start_hook()
 
-        self.core.break_realtime()  # FIXME
-        self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()  # FIXME
-
         self.core.break_realtime()
 
         self.blue_3d_mot.load_mot(clearout=True)
