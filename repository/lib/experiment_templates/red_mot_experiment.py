@@ -317,7 +317,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         So, this function exists to deterministically consume exactly one lane.
         Don't look too carefully at how it does it...
         """
+        delay_mu(int64(self.core.ref_multiplier))
         self.led0.on()
+        delay_mu(-int64(self.core.ref_multiplier))
         self.led1.on()
 
     @kernel
