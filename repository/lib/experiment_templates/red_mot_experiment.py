@@ -227,16 +227,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Keep the blue light on for a short time while turning on the red beams
         with parallel:
-            # Start the red MOT
+            # Turn off the blue beams, a little after the red MOT starts
+            with sequential:
+                delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
+                self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
+            # and start the red MOT
             with sequential:
                 self.start_of_red_broadband_hook()
                 self.red_mot.prepare_for_broadband_phase()
                 self.red_mot.broadband_red_phase.do_phase()
-            # And turn off the blue beams, a little after the red MOT starts
-            # with sequential:
-            # FIXME
-            # delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
-            # self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
 
         self.end_of_broadband_mot_hook()
 
