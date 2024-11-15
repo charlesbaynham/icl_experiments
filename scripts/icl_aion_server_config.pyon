@@ -54,8 +54,8 @@
             "channel": 5,
             "display_colour": "blue",
             "exposure": [
-                15,
-                10
+                100,
+                100
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,

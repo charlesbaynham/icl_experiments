@@ -1,12 +1,17 @@
 import logging
 
+from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import at_mu
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
+from pyaion.fragments.urukul_init import make_urukul_init
 from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -18,6 +23,8 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
+
+STARK_689_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["stark_shifter_689"]
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +71,13 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         # Allow negative phases up to -10
         self.phase_constant = 10.0
 
+        self.stark_689_dds: AD9912 = self.get_device(STARK_689_BEAM_INFO.urukul_device)
+
+        # Ensure clock dds urukul is initiated
+        self.stark_689_initiator = self.setattr_fragment(
+            "stark_689_initiator", make_urukul_init([STARK_689_BEAM_INFO.urukul_device])
+        )
+
     @kernel
     def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
@@ -90,6 +104,8 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
         t_end_pi_by_2_mu = now_mu()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.stark_689_dds.sw.on()
 
         # Phase step
         self.clock_dds.set(
@@ -102,6 +118,10 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
             t_end_pi_by_2_mu
             + self.core.seconds_to_mu(self.delay_between_interferometry_pulses.get())
         )
+        delay_mu(-int64(self.core.ref_multiplier))
+        self.stark_689_dds.sw.off()
+        delay_mu(int64(self.core.ref_multiplier))
+
         self.clock_dds.sw.on()
         delay(t_pi_pulse)
         self.clock_dds.sw.off()
@@ -121,6 +141,18 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         self.clock_dds.sw.on()
         delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+        self.before_start_hook_689_stark_setter()
+
+    @kernel
+    def before_start_hook_689_stark_setter(self):
+        self.stark_689_dds.set_att(STARK_689_BEAM_INFO.attenuation)
+        self.stark_689_dds.set(frequency=STARK_689_BEAM_INFO.frequency)
+        self.stark_689_dds.sw.off()
+        self.stark_689_dds.cfg_sw(False)
 
 
 class ClockInterferometryRedMOTMixin(ClockInterferometryBase):
