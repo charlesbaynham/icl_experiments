@@ -13,6 +13,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMG
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.clock_interferometry_with_noise import (
+    ClockInterferometryWithNoiseDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
@@ -51,6 +54,33 @@ class DifferentialClockInterferometryFrag(
         self.before_start_hook_clockshelving()
 
 
+class DifferentialClockInterferometryWithNoiseFrag(
+    ClockInterferometryWithNoiseDipoleTrapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    DoubleTrapImagingNormalised,
+    EMGain,
+    FLIRBlueMOTMeasurementMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Clock interferometry from a double XODT with added noise
+    """
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+        self.before_start_hook_689_stark_setter()
+        self.before_start_hook_xodt_molasses()
+        self.before_start_hook_clockshelving()
+
+
 DifferentialClockInterferometry = make_fragment_scan_exp(
     DifferentialClockInterferometryFrag
+)
+
+
+DifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
+    DifferentialClockInterferometryWithNoiseFrag
 )
