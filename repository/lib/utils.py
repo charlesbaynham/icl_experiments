@@ -1,6 +1,7 @@
 import numpy as np
 from artiq.experiment import HasEnvironment
 from artiq.experiment import portable
+from numpy import int64
 
 
 class SimpleRandom(HasEnvironment):
@@ -24,9 +25,9 @@ class SimpleRandom(HasEnvironment):
 
     def build(self, seed):
         # Constants for the Linear Congruential Generator (LCG)
-        self.a = 1664525  # Multiplier
-        self.c = 1013904223  # Increment
-        self.m = 2**32  # Modulus (2^32 for 32-bit)
+        self.a = int64(1664525)  # Multiplier
+        self.c = int64(1013904223)  # Increment
+        self.m = int64(2) ** 64  # Modulus (2^64 for 64-bit)
         self.state = seed  # Initial state (seed)
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
