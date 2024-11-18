@@ -88,6 +88,9 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
                 # Make a random noise generator
                 self.rng = GaussianRandom(self, seed=self.random_seed.get())
 
+                self.random_phase_one = 0.0
+                self.random_phase_two = 0.0
+
                 super().host_setup()
 
             @kernel
