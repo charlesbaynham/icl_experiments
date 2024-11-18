@@ -39,7 +39,7 @@ class SimpleRandom(HasEnvironment):
     def next(self):
         # Linear Congruential Generator formula
         self.state = (self.a * self.state + self.c) % self.m
-        return self.state / self.m  # Return a float in the range [0, 1)
+        return float(self.state) / float(self.m)  # Return a float in the range [0, 1)
 
 
 class GaussianRandom(HasEnvironment):
