@@ -36,7 +36,7 @@ class SimpleRandom(HasEnvironment):
         self.kernel_invariants.add("m")
 
     @portable(flags={"fast-math"})
-    def next(self):
+    def next(self) -> float:
         # Linear Congruential Generator formula
         self.state = (self.a * self.state + self.c) % self.m
         return float(self.state) / float(self.m)  # Return a float in the range [0, 1)
@@ -51,7 +51,7 @@ class GaussianRandom(HasEnvironment):
         self.rng = SimpleRandom(self, seed)
 
     @portable(flags={"fast-math"})
-    def next(self):
+    def next(self) -> float:
         # Box-Muller transform
         u1 = self.rng.next()
         u2 = self.rng.next()
