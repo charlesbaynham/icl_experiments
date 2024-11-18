@@ -15,7 +15,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
-from repository.lib.utils import SimpleRandom
+from repository.lib.utils import GaussianRandom
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -40,38 +40,6 @@ class ClockInterferometryWithNoise(ClockInterferometryBase):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_param(
-            "phase_step_one_variance",
-            FloatParam,
-            description="Variance of phase step 1 in turns",
-            default=0.0,
-        )
-        self.phase_step_one_variance: FloatParamHandle
-
-        self.setattr_param(
-            "phase_step_one_mean",
-            FloatParam,
-            description="Mean of phase step 1 in turns",
-            default=0.0,
-        )
-        self.phase_step_one_mean: FloatParamHandle
-
-        self.setattr_param(
-            "phase_step_two_variance",
-            FloatParam,
-            description="Variance of phase step 2 in turns",
-            default=0.0,
-        )
-        self.phase_step_two_variance: FloatParamHandle
-
-        self.setattr_param(
-            "phase_step_two_mean",
-            FloatParam,
-            description="Mean of phase step 2 in turns",
-            default=0.0,
-        )
-        self.phase_step_two_mean: FloatParamHandle
-
         class GaussianNoisePhase(Fragment):
             """
             Using a random noise generator over the 0,1 interval, draw two
@@ -90,9 +58,41 @@ class ClockInterferometryWithNoise(ClockInterferometryBase):
                 )
                 self.random_seed: IntParamHandle
 
+                self.setattr_param(
+                    "phase_step_one_std",
+                    FloatParam,
+                    description="Std. dev. of phase step 1 in turns",
+                    default=0.0,
+                )
+                self.phase_step_one_std: FloatParamHandle
+
+                self.setattr_param(
+                    "phase_step_one_mean",
+                    FloatParam,
+                    description="Mean of phase step 1 in turns",
+                    default=0.0,
+                )
+                self.phase_step_one_mean: FloatParamHandle
+
+                self.setattr_param(
+                    "phase_step_two_std",
+                    FloatParam,
+                    description="Std. dev. of phase step 2 in turns",
+                    default=0.0,
+                )
+                self.phase_step_two_std: FloatParamHandle
+
+                self.setattr_param(
+                    "phase_step_two_mean",
+                    FloatParam,
+                    description="Mean of phase step 2 in turns",
+                    default=0.0,
+                )
+                self.phase_step_two_mean: FloatParamHandle
+
             def host_setup(self):
                 # Make a random noise generator
-                self.rng = SimpleRandom(self, seed=self.random_seed.get())
+                self.rng = GaussianRandom(self, seed=self.random_seed.get())
 
                 super().host_setup()
 
@@ -100,7 +100,18 @@ class ClockInterferometryWithNoise(ClockInterferometryBase):
             def device_setup(self):
                 self.device_setup_subfragments()
 
-                self.random_phase = self.rng()
+                self.random_phase_one = (
+                    self.phase_step_one_std.get() * self.rng()
+                    + self.phase_step_one_mean.get()
+                )
+                self.random_phase_two = (
+                    self.phase_step_two_std.get() * self.rng()
+                    + self.phase_step_two_mean.get()
+                )
+
+            @kernel
+            def get_random_phases(self) -> tuple[float, float]:
+                return self.random_phase_one, self.random_phase_two
 
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
