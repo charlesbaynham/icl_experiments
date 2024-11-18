@@ -1,8 +1,13 @@
 import logging
 
 from artiq.experiment import kernel
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import (
+    FloatParamHandle,
+    IntParamHandle,
+    IntParam,
+)
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -10,6 +15,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
+from repository.lib.utils import SimpleRandom
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -65,6 +71,36 @@ class ClockInterferometryWithNoise(ClockInterferometryBase):
             default=0.0,
         )
         self.phase_step_two_mean: FloatParamHandle
+
+        class GaussianNoisePhase(Fragment):
+            """
+            Using a random noise generator over the 0,1 interval, draw two
+            samples from two Gaussians with the given mean and variance
+
+            This is implemented as a Fragment so we can use device_setup (which
+            we can't do from a mixin).
+            """
+
+            def build_fragment(self):
+                self.setattr_param(
+                    "random_seed",
+                    IntParam,
+                    description="Seed for pseudo-random number generator",
+                    default=12345,
+                )
+                self.random_seed: IntParamHandle
+
+            def host_setup(self):
+                # Make a random noise generator
+                self.rng = SimpleRandom(self, seed=self.random_seed.get())
+
+                super().host_setup()
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+
+                self.random_phase = self.rng()
 
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:

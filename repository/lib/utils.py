@@ -1,5 +1,6 @@
 from artiq.experiment import HasEnvironment
 from artiq.experiment import portable
+import numpy as np
 
 
 class SimpleRandom(HasEnvironment):
@@ -33,3 +34,20 @@ class SimpleRandom(HasEnvironment):
         # Linear Congruential Generator formula
         self.state = (self.a * self.state + self.c) % self.m
         return self.state / self.m  # Return a float in the range [0, 1)
+
+
+class GaussianRandom(HasEnvironment):
+    """
+    A Gaussian random noise generator
+    """
+
+    def build(self, seed):
+        self.rng = SimpleRandom(self, seed)
+
+    @portable(flags={"fast-math"})
+    def next(self):
+        # Box-Muller transform
+        u1 = self.rng.next()
+        u2 = self.rng.next()
+        z0 = (-2 * np.log(u1)) ** 0.5 * np.cos(2 * np.pi * u2)
+        return z0
