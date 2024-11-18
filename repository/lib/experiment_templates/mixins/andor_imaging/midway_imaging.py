@@ -81,6 +81,16 @@ class MidSequenceAndorImage(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+        self.setattr_param(
+            "repumping_time",
+            FloatParam,
+            description="Time to repump atoms before imaging",
+            min=0.0,
+            unit="ms",
+            default=0.0,
+        )
+        self.repumping_time: FloatParamHandle
+
         # Meaningless without an experiment:
         self.override_param("delay_after_experiment", 0)
 
@@ -108,6 +118,12 @@ class MidSequenceAndorImage(AndorImagingBase):
         lane
         """
         t_start_mu = now_mu()
+
+        delay(-self.repumping_time.get())
+        self.blue_3d_mot.turn_on_repumpers()
+        delay(self.repumping_time.get())
+        self.blue_3d_mot.turn_off_repumpers()
+
         delay(self.delay_before_imaging.get())
         self.do_pulse()
 
