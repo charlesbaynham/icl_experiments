@@ -142,7 +142,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         t_end_pi_mu = now_mu()
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
-            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
 
         # PI/2 PULSE
