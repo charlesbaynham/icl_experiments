@@ -175,9 +175,11 @@ class MeasureBlueMOTBGCorrectedFrag(_MeasureBlueMOTFrag):
 
         self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
 
-        delay(10e-3)
+        delay(100e-3)
 
         self.bg_corrected_measurement.trigger_background()
+
+        delay(10e-3)
 
         self.core.wait_until_mu(now_mu())
 
