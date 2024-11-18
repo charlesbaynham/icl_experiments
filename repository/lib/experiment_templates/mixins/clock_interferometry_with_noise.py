@@ -98,11 +98,11 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
                 self.device_setup_subfragments()
 
                 self.random_phase_one = (
-                    self.phase_step_one_std.get() * self.rng()
+                    self.phase_step_one_std.get() * self.rng.next()
                     + self.phase_step_one_mean.get()
                 )
                 self.random_phase_two = (
-                    self.phase_step_two_std.get() * self.rng()
+                    self.phase_step_two_std.get() * self.rng.next()
                     + self.phase_step_two_mean.get()
                 )
 
