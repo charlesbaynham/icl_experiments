@@ -1,7 +1,10 @@
-from artiq.experiment import *
-from repository.lib.utils import SimpleRandom, GaussianRandom
-import matplotlib.pyplot as plt
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+from artiq.experiment import *
+
+from repository.lib.utils import GaussianRandom
+from repository.lib.utils import SimpleRandom
 
 
 class RandomNumbersUniform(EnvExperiment):

@@ -1,6 +1,6 @@
+import numpy as np
 from artiq.experiment import HasEnvironment
 from artiq.experiment import portable
-import numpy as np
 
 
 class SimpleRandom(HasEnvironment):

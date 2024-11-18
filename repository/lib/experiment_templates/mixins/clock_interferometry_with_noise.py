@@ -3,24 +3,18 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
-from ndscan.experiment.parameters import (
-    FloatParamHandle,
-    IntParamHandle,
-    IntParam,
-)
-from pyaion.models import SUServoedBeam
-from pyaion.models import UrukuledBeam
 
-from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
 from repository.lib.utils import GaussianRandom
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
-)
-
 
 logger = logging.getLogger(__name__)
 
