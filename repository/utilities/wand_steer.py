@@ -16,7 +16,8 @@ class WANDSteerFrag(ExpFragment):
         self.set_default_scheduling(pipeline_name="wand")
 
         self.setattr_argument(
-            "laser", EnumerationValue(["461", "689", "707", "679", "698"])
+            "laser",
+            EnumerationValue(["461", "689", "707", "679", "698"], default="461"),
         )
         self.laser: str
 
