@@ -44,6 +44,7 @@ import logging
 
 from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -112,13 +113,19 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
+        self.t_start_molasses = now_mu()
         self.dipole_trap_molasses_hook()
+        self.t_optical_pumping = now_mu()
         self.dipole_trap_optical_pumping_hook()
+        self.t_evaporation = now_mu()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
+        self.t_post_hold_time = now_mu()
         self.post_dipole_trap_hook()
         delay(self.dipole_pre_experiment_delay.get())
+        self.t_start_post_dipole_trap_experiment = now_mu()
         self.do_experiment_after_dipole_trap_hook()
+        self.t_end_post_dipole_trap_experiment = now_mu()
 
     @kernel
     def dipole_trap_molasses_hook(self):

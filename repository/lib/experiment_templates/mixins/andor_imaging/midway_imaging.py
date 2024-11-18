@@ -182,3 +182,26 @@ class MidSequenceAndorImage(AndorImagingBase):
     @kernel
     def process_grabber_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])
+
+    @host_only
+    def process_andor_image_hook(self, imgs_array):
+        ### doing this here because we're doing stuff on the host anyway
+        t_end_of_blue_mot = self.core.seconds_to_mu(
+            self.t_end_of_blue_mot - self.t_start
+        )
+        t_start_of_broadband_mot = self.core.seconds_to_mu(
+            self.t_start_of_broadband_mot - self.t_start
+        )
+        t_start_of_narrowband_mot = self.core.seconds_to_mu(
+            self.t_start_of_narrowband_mot - self.t_start
+        )
+        t_end_of_narrowband_mot = self.core.seconds_to_mu(
+            self.t_end_of_narrowband_mot - self.t_start
+        )
+        t_start_experiment = self.core.seconds_to_mu(
+            self.t_start_experiment - self.t_start
+        )
+        self.core.seconds_to_mu(self.t_end_experiment - self.t_start)
+        self.core.seconds_to_mu(self.t_start_imaging - self.t_start)
+        t_start
+        super().process_andor_image_hook(imgs_array)

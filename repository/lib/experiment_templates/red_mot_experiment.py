@@ -220,8 +220,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.core.break_realtime()
 
+        self.t_start = now_mu()
         self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
+        self.t_end_of_blue_mot = now_mu()
 
         # Ramp down the blue MOT
         self.blue_3d_mot.do_blue_transfer_mot()
@@ -236,16 +238,17 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             with sequential:
                 self.red_mot.prepare_for_broadband_phase()
                 self.start_of_red_broadband_hook()
+                self.t_start_of_broadband_mot = now_mu()
                 self.red_mot.broadband_red_phase.do_phase()
 
         self.end_of_broadband_mot_hook()
-
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
 
+        self.t_start_of_narrowband_mot = now_mu()
         self.red_mot.do_narrowband_red_mot()
-
+        self.t_end_of_narrowband_mot = now_mu()
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
@@ -263,9 +266,12 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Do the spectroscopy / interfereometry / whatever sequence. This method
         # must be defined by child classes
+        self.t_start_experiment = now_mu()
         self.do_experiment_after_red_mot_hook()
+        self.t_end_experiment = now_mu()
 
         delay(self.delay_after_experiment.get())
+        self.t_start_imaging = now_mu()
         self.do_imaging_hook()
         self.post_sequence_cleanup_hook()
 
