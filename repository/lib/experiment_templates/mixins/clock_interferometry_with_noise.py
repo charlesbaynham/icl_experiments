@@ -3,6 +3,7 @@ import logging
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.result_channels import FloatChannel
 from ndscan.experiment.parameters import (
     FloatParamHandle,
     IntParamHandle,
@@ -16,16 +17,15 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
 from repository.lib.utils import GaussianRandom
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 
-CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
-CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
-
-STARK_689_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["stark_shifter_689"]
 
 logger = logging.getLogger(__name__)
 
 
-class ClockInterferometryWithNoise(ClockInterferometryBase):
+class _ClockInterferometryWithNoise(ClockInterferometryBase):
     """
     Customizes ClockInterferometryBase for pi/2 - pi - pi/2 clock interferometry
     with noise added as a random phase step between pulses 1/2 and 2/3
@@ -113,14 +113,47 @@ class ClockInterferometryWithNoise(ClockInterferometryBase):
             def get_random_phases(self) -> tuple[float, float]:
                 return self.random_phase_one, self.random_phase_two
 
+        self.setattr_fragment("phase_rng", GaussianNoisePhase)
+        self.phase_rng: GaussianNoisePhase
+
+        # Make output channels to record the phases we generate for convenience
+        # (we could regenerate them from the seed but this is easier)
+        self.setattr_result("random_phase_one", FloatChannel)
+        self.random_phase_one: FloatChannel
+
+        self.setattr_result("random_phase_two", FloatChannel)
+        self.random_phase_two: FloatChannel
+
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
-        return self.phase_constant  # FIXME
+        return self.phase_constant  # Unchanged from base
 
     @kernel
     def calculate_phase_for_pi_pulse(self) -> float:
-        return self.phase_constant + 1.0 * self.phase_step.get()  # FIXME
+        random_phase_one = self.phase_rng.get_random_phases()[0]
+        self.random_phase_one.push(random_phase_one)
+        return self.phase_constant + 1.0 * self.phase_step.get() + random_phase_one
 
     @kernel
     def calculate_phase_for_second_pi_by_2_pulse(self) -> float:
-        return self.phase_constant + 4.0 * self.phase_step.get()  # FIXME
+        random_phase_two = self.phase_rng.get_random_phases()[1]
+        self.random_phase_two.push(random_phase_two)
+        return self.phase_constant + 4.0 * self.phase_step.get() + random_phase_two
+
+
+class ClockInterferometryWithNoiseDipoleTrapMixin(
+    _ClockInterferometryWithNoise, DipoleTrapWithExperiment
+):
+    """
+    Implements clock interferometry after the dipole trap with added noisy phase steps between pulses
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_dipole_trap_hook`
+    * :meth:`~do_first_pulse`
+    """
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        self.do_clock_interferometry()

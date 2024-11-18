@@ -29,6 +29,11 @@ class SimpleRandom(HasEnvironment):
         self.m = 2**32  # Modulus (2^32 for 32-bit)
         self.state = seed  # Initial state (seed)
 
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("a")
+        self.kernel_invariants.add("c")
+        self.kernel_invariants.add("m")
+
     @portable(flags={"fast-math"})
     def next(self):
         # Linear Congruential Generator formula
