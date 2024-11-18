@@ -79,6 +79,18 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         )
 
     @kernel
+    def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
+        return self.phase_constant
+
+    @kernel
+    def calculate_phase_for_pi_pulse(self) -> float:
+        return self.phase_constant + 1.0 * self.phase_step.get()
+
+    @kernel
+    def calculate_phase_for_second_pi_by_2_pulse(self) -> float:
+        return self.phase_constant + 4.0 * self.phase_step.get()
+
+    @kernel
     def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
@@ -96,7 +108,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         delay(self.clock_delivery_preempt_time.get())
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
-            phase=self.phase_constant,
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
 
         # PI/2 PULSE
@@ -110,7 +122,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         # Phase step
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
-            phase=self.phase_constant + 1.0 * self.phase_step.get(),
+            phase=self.calculate_phase_for_pi_pulse(),
         )
 
         # PI PULSE
@@ -130,7 +142,7 @@ class ClockInterferometryBase(ClockSpectroscopyBase):
         t_end_pi_mu = now_mu()
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
-            phase=self.phase_constant + 4.0 * self.phase_step.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
 
         # PI/2 PULSE
