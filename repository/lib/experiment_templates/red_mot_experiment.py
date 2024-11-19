@@ -50,6 +50,8 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from ndscan.experiment import ExpFragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -144,13 +146,22 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # %% Rebound params
 
         self.setattr_param_rebind("injection_aom_static_frequency", self.red_mot)
+
         self.setattr_param_rebind(
-            "red_broadband_time",
-            self.red_mot.broadband_red_phase,
-            "duration",
-            description="Broadband phase duration",
+            "blue_loading_time",
+            self.blue_3d_mot,
+            "loading_time",
+            description="Blue MOT loading time",
         )
-        self.red_broadband_time: FloatParamHandle
+        self.blue_loading_time: FloatParamHandle
+
+        self.setattr_param(
+            "magnetic_trap_loading_bool",
+            BoolParam,
+            "Load via magnetic trap instead of blue MOT",
+            default=False,
+        )
+        self.magnetic_trap_loading_bool: BoolParamHandle
 
         self.setattr_fragment(
             "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
@@ -217,8 +228,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.before_start_hook()
 
         self.core.break_realtime()
-
-        self.blue_3d_mot.load_mot(clearout=True)
+        if self.magnetic_trap_loading_bool.get():
+            self.blue_3d_mot.load_magnetic_trap()
+        else:
+            self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
         self.blue_3d_mot.do_blue_transfer_mot()
         delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
@@ -227,9 +240,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         delay(-self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.red_mot.prepare_for_broadband_phase()
         self.red_mot.broadband_red_phase.do_phase()
-        delay(-self.red_broadband_time.get())
+        delay(-self.red_mot.broadband_red_phase.duration.get())
         self.start_of_red_broadband_hook()
-        delay(+self.red_broadband_time.get())
+        delay(+self.red_mot.broadband_red_phase.duration.get())
         self.end_of_broadband_mot_hook()
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))

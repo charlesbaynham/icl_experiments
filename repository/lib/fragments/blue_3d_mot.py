@@ -411,6 +411,19 @@ class Blue3DMOTFrag(Fragment):
         delay(self.loading_time.get())
 
     @kernel
+    def load_magnetic_trap(self, repump_at_end=True):
+        """
+        Load the magnetic trap, then optionally repump at the end
+        """
+
+        self.enable_mot_fields()
+        self.turn_on_3d_and_2d_beams()
+        self.turn_off_repumpers()
+        delay(self.loading_time.get())
+        if repump_at_end:
+            self.turn_on_repumpers()
+
+    @kernel
     def do_blue_transfer_mot(self):
         """
         Perform the blue transfer mot phase
