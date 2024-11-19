@@ -122,6 +122,8 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
 
             # Turn on the MOT beams and the repumpers (but not the push beam)
             self.mot_controller.turn_on_3d_beams()
+        else:
+            self.mot_controller.turn_off_push_beam()
         delay(20e-9)
         self.mot_controller.turn_on_repumpers()
         delay(self.mot_recapture_time.get())
