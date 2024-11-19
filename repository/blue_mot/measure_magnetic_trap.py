@@ -1,7 +1,6 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
@@ -11,6 +10,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib.experiment_templates.red_mot_experiment import (
+    SetEOMSidebandsExceptCavity,
+)
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.dual_camera_measurer import BGCorrectedMeasurement
 
@@ -30,10 +32,12 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         )
         self.camera_interface: BGCorrectedMeasurement
 
-        # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
-        # TODO: The repumpers are now controlled by ARTIQ so update this
-        self.repumper_707_shutter: TTLOut = self.get_device("ttl_shutter_repump_707")
-        self.repumper_679_shutter: TTLOut = self.get_device("ttl_shutter_repump_679")
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
+
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
 
         self.setattr_param_rebind(
             "mot_loading_time",
@@ -96,6 +100,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+        self.mirny_eom_sidebands.set_sidebands()
         delay(20e-3)
 
         # Repump atoms from the previous sequence
