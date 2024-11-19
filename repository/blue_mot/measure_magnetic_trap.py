@@ -35,14 +35,11 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.repumper_707_shutter: TTLOut = self.get_device("ttl_shutter_repump_707")
         self.repumper_679_shutter: TTLOut = self.get_device("ttl_shutter_repump_679")
 
-        self.setattr_param(
+        self.setattr_param_rebind(
             "mot_loading_time",
-            FloatParam,
+            self.mot_controller,
+            "loading_time",
             description="Time to wait for the 3D MOT to load",
-            default=100e-3,
-            min=0,
-            unit="ms",
-            step=1,
         )
         self.mot_loading_time: FloatParamHandle
 
