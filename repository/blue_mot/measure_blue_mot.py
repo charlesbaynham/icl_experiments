@@ -52,6 +52,16 @@ class _MeasureBlueMOTFrag(ExpFragment):
         )
         self.clearout: BoolParamHandle
 
+        self.setattr_param(
+            "mot_hold_time",
+            FloatParam,
+            "Time to hold the MOT after loading",
+            default=0,
+            min=0,
+            unit="us",
+        )
+        self.mot_hold_time: FloatParamHandle
+
         self.first_run = True
 
     @kernel
@@ -171,6 +181,8 @@ class MeasureBlueMOTBGCorrectedFrag(_MeasureBlueMOTFrag):
     def _take_data(self, loading_time):
         delay(loading_time)
 
+        self.mot_controller.turn_off_push_beam()
+        delay(self.mot_hold_time.get() * 1e-6)
         self.bg_corrected_measurement.trigger_signal()
 
         self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
