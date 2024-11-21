@@ -132,14 +132,6 @@ class _DualCameraBase(Fragment):
         if self.num_images is None:
             raise TypeError("num_images is not set - it must be set by the subclass")
 
-        # Prepare cameras to be triggered for num_images acquisitions.
-        self.mot_measurer_camera_horizontal.ready_for_trigger(
-            self.exposure_horiz.get() * 1e6, num_images=self.num_images
-        )
-        self.mot_measurer_camera_vertical.ready_for_trigger(
-            self.exposure_vert.get() * 1e6, num_images=self.num_images
-        )
-
         logger.info("does this happen once per scan or once per point?")
 
         # Launch monitors
@@ -173,7 +165,14 @@ class _DualCameraBase(Fragment):
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
-
+        # Prepare cameras to be triggered for num_images acquisitions.
+        self.mot_measurer_camera_horizontal.ready_for_trigger(
+            self.exposure_horiz.get() * 1e6, num_images=self.num_images
+        )
+        self.mot_measurer_camera_vertical.ready_for_trigger(
+            self.exposure_vert.get() * 1e6, num_images=self.num_images
+        )
+        logger.info("device setup: does this happen once per scan or once per point?")
         # Clear the camera buffer in case we quit a previous sequence midway
         self.clear()
 
