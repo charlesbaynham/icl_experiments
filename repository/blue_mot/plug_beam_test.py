@@ -100,6 +100,11 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         )
         self.plug_aom_frequency: FloatParamHandle
 
+        self.attenuation = constants.SUSERVOED_BEAMS["blue_plug_beam"].attenuation
+        self.initial_amplitude = constants.SUSERVOED_BEAMS[
+            "blue_plug_beam"
+        ].initial_amplitude
+
     @kernel
     def run_once(self) -> None:
         # Turn on the plug beam and set its amplitude, setpoint and frequency
@@ -108,8 +113,8 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         # Override its frequency. We must also set its setpoint again
         self.blue_aom.set_suservo(
             freq=self.plug_aom_frequency.get(),
-            amplitude=constants.SUSERVOED_BEAMS["blue_plug_beam"].initial_amplitude,
-            attenuation=constants.SUSERVOED_BEAMS["blue_plug_beam"].attenuation,
+            amplitude=self.initial_amplitude,
+            attenuation=self.attenuation,
             rf_switch_state=True,
             setpoint_v=self.plug_beam_setpoint.get(),
         )
