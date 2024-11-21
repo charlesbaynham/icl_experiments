@@ -228,7 +228,20 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         self.setattr_fragment("fluorescence_pulse", ImagingFluorescencePulse)
         self.fluorescence_pulse: ImagingFluorescencePulse
 
+        self.setattr_param(
+            "use_fluorescence_pulse",
+            BoolParam,
+            description="Use fluorescence pulse",
+            default=True,
+        )
+        self.use_fluorescence_pulse: BoolParamHandle
+
         super().build_fragment()
+
+    def host_setup(self):
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("use_fluorescence_pulse")
+        return super().host_setup()  #
 
     @kernel
     def _take_data(self, loading_time):
@@ -238,7 +251,10 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
 
         with parallel:
             self.dual_cameras.trigger()
-            self.fluorescence_pulse.do_imaging_pulse()
+            if self.use_fluorescence_pulse.get():
+                self.fluorescence_pulse.do_imaging_pulse()
+            else:
+                delay(self.exposure.get())
 
         self.core.wait_until_mu(now_mu())
 
