@@ -239,11 +239,11 @@ class CameraFrag(Fragment):
         time. In software trigger mode, it calls an RPC.
         """
         if self.hardware_trigger:
-            if self.debug_enabled:
-                logger.info(
-                    "Triggering hardware measurement with exposure = %.1fus",
-                    1e6 * self.exposure,
-                )
+            # if self.debug_enabled:
+            logger.info(
+                "Triggering hardware measurement with exposure = %.1fus",
+                1e6 * self.exposure,
+            )
             self._hardware_trigger()  # TODO: This won't compile in software triggering mode - see e.g. red shelving @ 6e62e2
         else:
             if self.debug_enabled:
