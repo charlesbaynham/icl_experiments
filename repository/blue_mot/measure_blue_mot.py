@@ -4,7 +4,6 @@ from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
-from artiq.experiment import parallel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -243,22 +242,34 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         self.kernel_invariants.add("use_fluorescence_pulse")
         return super().host_setup()  #
 
-    @kernel
-    def _take_data(self, loading_time):
-        delay(loading_time)
-        self.mot_controller.turn_off_3d_and_2d_beams()
-        delay(self.expansion_time.get())
+        # @kernel
+        # def _take_data(self, loading_time):
+        #     delay(loading_time)
+        #     t = now_mu()
+        #     self.mot_controller.turn_off_3d_and_2d_beams()
+        #     at_mu(t)
+        #     delay(self.expansion_time.get())
 
-        with parallel:
+        #     with parallel:
+        #         self.dual_cameras.trigger()
+        #         if self.use_fluorescence_pulse.get():
+        #             self.fluorescence_pulse.do_imaging_pulse()
+        #         else:
+        #             delay(self.exposure.get())
+
+        #     self.core.wait_until_mu(now_mu())
+
+        #     self.dual_cameras.save_data()
+
+        @kernel
+        def _take_data(self, loading_time):
+            delay(loading_time)
+
             self.dual_cameras.trigger()
-            if self.use_fluorescence_pulse.get():
-                self.fluorescence_pulse.do_imaging_pulse()
-            else:
-                delay(self.exposure.get())
 
-        self.core.wait_until_mu(now_mu())
+            self.core.wait_until_mu(now_mu())
 
-        self.dual_cameras.save_data()
+            self.dual_cameras.save_data()
 
 
 MeasureBlueMOTWithCamera = make_fragment_scan_exp(MeasureBlueMOTWithCameraFrag)
