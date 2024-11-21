@@ -238,6 +238,9 @@ class RelockerChannelFrag(ExpFragment):
             self.relock()
         read_voltages = self.get_read_voltages()
         self.push_voltages_to_applet(read_voltages)
+        logger.info(self.channel_name)
+        logger.info(self.channel)
+        logger.info(self.relocker_name)
         logger.info(self.get_result())
 
 
