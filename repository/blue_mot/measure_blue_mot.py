@@ -265,6 +265,8 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
     def _take_data(self, loading_time):
         delay(loading_time)
 
+        self.mot_controller.turn_off_3d_and_2d_beams()
+
         self.dual_cameras.trigger()
 
         self.core.wait_until_mu(now_mu())
