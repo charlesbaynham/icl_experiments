@@ -1,36 +1,25 @@
 import logging
 
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
+class OpticalPumpingBase(RedMOTWithExperiment):
     """
-    Loads atoms into a lattice, pumps them into a stretched state then drops
-    them by quickly ramping down the lattice intensity
-
-    This mixin load atoms into a lattice at the end of the narrowband red MOT,
-    pumping them using the spin polarisation beam then dropping them by ramping
-    down the lattice intensity. The "expansion time" begins from the end of the
-    ramp down.
-
-    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
-    details.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_hook`
+    Defines a spin_polarize() method for use in optical pumping Mixins
     """
 
     def build_fragment(self):
@@ -40,7 +29,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             "delay_before_spinpol_pulse",
             FloatParam,
             "Time in lattice before the spin polarization pulse",
-            default=constants.TIME_IN_LATTICE_BEFORE_SPIN_POL,
+            default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
             unit="ms",
         )
         self.delay_before_spinpol_pulse: FloatParamHandle
@@ -58,7 +47,128 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
             "delay_after_spinpol_pulse",
             FloatParam,
             "Time in lattice after the spin polarization pulse",
-            default=constants.TIME_IN_LATTICE_AFTER_SPIN_POL,
+            default=constants.DELAY_AFTER_OPTICAL_PUMPING,
+            unit="ms",
+        )
+        self.delay_after_spinpol_pulse: FloatParamHandle
+
+    @kernel
+    def spin_polarize(self):
+        """
+        Spin polarize the atoms trapped in the lattice by pulsing the selected
+        beam after allowing the atoms to equlibriate in the lattice for a time,
+        then hold them afterwards for some time.
+        """
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        delay(self.delay_before_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
+        delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
+        delay(self.delay_after_spinpol_pulse.get())
+
+
+class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
+    """
+    Exposes spin_polarize() and set_fields_for_optical_pumping() methods
+    for use in optical pumping Mixins
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        for idx, c in enumerate("xyz"):
+            self.setattr_param(
+                f"bias_{c}_for_pumping",
+                FloatParam,
+                default=constants.OPTICAL_PUMPING_BIAS_FIELD[idx],
+                description=f"Bias field for optical pumping {c}",
+                unit="A",
+            )
+        self.bias_x_for_pumping: FloatParamHandle
+        self.bias_y_for_pumping: FloatParamHandle
+        self.bias_z_for_pumping: FloatParamHandle
+
+    @kernel
+    def set_fields_for_optical_pumping(self):
+        """
+        Set the bias fields for optical pumping
+
+        Advances the timeline by 5 us to avoid RTIO clashes with previous phase
+        """
+        # Delay to avoid RTIO clashes with previous phase: set
+        # fields writes into past
+        delay(5e-6)
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            0.0,
+            self.bias_x_for_pumping.get(),
+            self.bias_y_for_pumping.get(),
+            self.bias_z_for_pumping.get(),
+        )
+
+
+class OpticalPumpingWithFieldSettingDipoleTrapMixin(OpticalPumpingWithFieldSettingBase):
+    """
+    Mixin for optical pumping in a dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~dipole_trap_optical_pumping_hook`
+    """
+
+    @kernel
+    def dipole_trap_optical_pumping_hook(self):
+        self.set_fields_for_optical_pumping()
+        self.spin_polarize()
+
+
+# TODO: Refactor DroppedPumpedLatticeMixin to use Base classes above
+# Note: fields aren't set in this Mixin, so it only works with FieldBoostMixin
+class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
+    """
+    Loads atoms into a lattice, pumps them into a stretched state then drops
+    them by quickly ramping down the lattice intensity
+
+    This mixin load atoms into a lattice at the end of the narrowband red MOT,
+    pumping them using the spin polarisation beam then dropping them by ramping
+    down the lattice intensity. The "expansion time" begins from the end of the
+    ramp down.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~post_sequence_cleanup_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_before_spinpol_pulse",
+            FloatParam,
+            "Time in lattice before the spin polarization pulse",
+            default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
+            unit="ms",
+        )
+        self.delay_before_spinpol_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "duration_spinpol_pulse",
+            FloatParam,
+            "Duration of the spin polarizing pulse",
+            default=constants.DURATION_OF_SPIN_POL,
+            unit="ms",
+        )
+        self.duration_spinpol_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "delay_after_spinpol_pulse",
+            FloatParam,
+            "Time in lattice after the spin polarization pulse",
+            default=constants.DELAY_AFTER_OPTICAL_PUMPING,
             unit="ms",
         )
         self.delay_after_spinpol_pulse: FloatParamHandle
@@ -131,8 +241,12 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         then hold them afterwards for some time.
         """
         delay(self.delay_before_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.start_ramping_spinpol()
+        delay_mu(8)
         self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
         delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.stop_ramping_spinpol()
+        delay_mu(8)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
@@ -150,6 +264,9 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
     @kernel
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_lattice()
 
+    @kernel
+    def post_sequence_cleanup_hook_lattice(self):
         # After the sequence completes, put the lattice back to its high setpoint
         self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())

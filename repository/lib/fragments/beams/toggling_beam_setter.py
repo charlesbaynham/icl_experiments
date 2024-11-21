@@ -4,17 +4,23 @@ from typing import Type
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import at_mu
+from artiq.experiment import delay
 from artiq.experiment import kernel
+from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
+from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.dummy_devices import DummySUServoFrag
 from repository.lib.dummy_devices import DummyTTL
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -146,10 +152,28 @@ class ToggleListOfBeams(Fragment):
 
     @kernel
     def turn_on_beams(self, ignore_shutters=False):
+        """
+        Turns on all urukul and suservo beams in the ToggleListOfBeams instance
+
+        Does not advance the timeline.
+
+        Event timings:
+
+        * t < 0: Opens suservo shutters if present at t ~ -20 to -5 ms
+        * t ~ 0: Turns on all urukuls and suservos sequentially at t ~ 0 to 100 ns
+        """
+
+        _start_mu = now_mu()
+
         # Turn on the shuttered suservo beams
         self.shuttered_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
+        delay(
+            3
+            * DELAY_BETWEEN_RTIO_EVENTS
+            * len(self.shuttered_beams_setter.beam_suservos)
+        )
 
-        # And the unshuttered suservo beams
+        # Turn on the unshuttered suservo beams
         for i in range(len(self.suservo_frags)):
             beam_info = self.suservos_without_shutters[i]
             suservo_frag = self.suservo_frags[i]
@@ -157,20 +181,47 @@ class ToggleListOfBeams(Fragment):
             suservo_frag.set_channel_state(
                 rf_switch_state=True, enable_iir=beam_info.servo_enabled
             )
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
 
         # And the urukuls
         for ttl in self.urukul_ttls:
             ttl.on()
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
+
+        # Reset the timeline
+        at_mu(_start_mu)
 
     @kernel
     def turn_off_beams(self, ignore_shutters=False):
+        """
+        Turns off all urukul and suservo beams in the ToggleListOfBeams instance
+
+        Does not advance the timeline.
+
+        Event timings:
+
+        * t < 0: Opens suservo shutters if present at t ~ -20 to -5 ms
+        * t ~ 0: Turns on all urukuls and suservos sequentially at t ~ 0 to 100 ns
+        """
+        _start_mu = now_mu()
+
         # Turn off the shuttered suservo beams
         self.shuttered_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
+        delay(
+            3
+            * DELAY_BETWEEN_RTIO_EVENTS
+            * len(self.shuttered_beams_setter.beam_suservos)
+        )
 
         # And the unshuttered suservo beams
         for suservo_frag in self.suservo_frags:
             suservo_frag.set_channel_state(rf_switch_state=False, enable_iir=False)
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
 
         # And the urukuls
         for ttl in self.urukul_ttls:
             ttl.off()
+            delay(DELAY_BETWEEN_RTIO_EVENTS)
+
+        # Reset the timeline
+        at_mu(_start_mu)

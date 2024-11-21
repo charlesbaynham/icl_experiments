@@ -23,15 +23,23 @@ from typing import Optional
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
+DELAY_BETWEEN_RTIO_EVENTS = 4e-9
+
 SR_FACTS = {
     "FREQUENCIES": {
-        "689_88": 434829121311e3,  # 10.1103/PhysRevLett.91.243002
+        "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
-    }
+    },
+    "WAVELENGTHS": {"461_88": 460.86e-9},
 }
 
+ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}
+ANDOR_CAMERA_FACTS["A_pixel"] = (
+    ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
+) ** 2
 
-USE_SR87 = False
+
+USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
 USE_LATTICE_MODE = False
@@ -55,7 +63,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "red_spinpol",
-        frequency=366.6e6,
+        frequency=366.5e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_spinpol",
@@ -84,6 +92,12 @@ URUKULED_BEAMS = [
         attenuation=3.0,
         urukul_device="urukul_aom_1064_switch",
     ),
+    UrukuledBeam(
+        "stark_shifter_689",
+        frequency=100e6,
+        attenuation=9.0,
+        urukul_device="urukul9912_aom_singlepass_689_stark_shifter",
+    ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
@@ -96,6 +110,13 @@ URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
 
+
+RED_SPINPOL_RAMP_UPPER_LIMIT = 1.5e6
+RED_SPINPOL_RAMP_LOWER_LIMIT = -1.5e6
+"Ramp extent for the spin polarising beam (n.b. will be double by the double-pass AOM)"
+
+RED_SPINPOL_AOM_RAMP_FREQUENCY = 30e3
+"Default ramp frequency for the spin polarising beam"
 
 # Lattice ramp-down configuration
 # TODO: Choose real lattice ramp parameters
@@ -122,8 +143,8 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         8600,
-        360e-3,
-        350e-3,
+        362e-3,
+        352e-3,
         3e-3,
         associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
     ),
@@ -135,7 +156,7 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD3_controller": IJDSettings(8850, 360e-3, 350e-3, 3e-3),
     "red_IJD1_controller": IJDSettings(
-        9460, 191.0e-3, 188.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
+        9460, 174.0e-3, 169.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
     ),
 }
 "Injected diode default settings"
@@ -269,9 +290,11 @@ B_FIELD_CH1_AXIAL = 0.0  # A
 
 # TODO: Include FIELD_COMP as an offset to the other default fields below.
 # Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
-FIELD_COMP_X = 0.3
-FIELD_COMP_Y = -0.005
-FIELD_COMP_Z = -0.75
+# Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
+# than previous calibration based on Zeeman spectroscopy
+FIELD_COMP_X = 0.31
+FIELD_COMP_Y = -0.009
+FIELD_COMP_Z = -0.69
 FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
 
 if USE_SR87:
@@ -335,10 +358,13 @@ DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
-"Default duration of the delay between turning on the delivery AOM and turning on the fluoresence probe."
+"Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
 
-DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000
-"$k_I$ constant for the flourescence beam's SUServo loop"
+DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000.0
+"$k_I$ constant for the fluorescence beam's SUServo loop"
+
+DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
+"$k_I$ constant for the clock delivery beam's SUServo loop"
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
@@ -349,11 +375,17 @@ ANDOR_CAMERA_TRIGGER_ENABLE_TIME = 1e-6
 ANDOR_CAMERA_BACKGROUND_DELAY = 60e-3
 "Delay before background image when using the Andor for background-corrected images"
 
-# The Andor camera has a sensor size of 512x512. These are only true for EM gain
-# mode! It's different in conventional gain mode
-x, y, width, height = 205, 290, 100, 100
+# The Andor camera has a sensor size of 512x512. These are only ROI definitions will
+# only work in EM gain mode! The conventional gain readout has different X indices
+# x, y, width, height = 215, 216, 100, 100
 
 if USE_LATTICE_MODE:
+    x, y, width, height = (
+        215,
+        216,
+        100,
+        100,
+    )  # TODO: this needs to be done properly for lattice mode to match the below
     ANDOR_ROI_X0 = 50
     ANDOR_ROI_X1 = 300
     ANDOR_ROI_Y0 = 280
@@ -361,20 +393,70 @@ if USE_LATTICE_MODE:
 
 else:
     if USE_SR87:
-        ANDOR_ROI_X0 = 150
-        ANDOR_ROI_X1 = 350
-        ANDOR_ROI_Y0 = 285
-        ANDOR_ROI_Y1 = 331
+        x, y, width, height = 215, 273, 100, 100
+
     else:
-        ANDOR_ROI_X0 = x - width / 2
-        ANDOR_ROI_X1 = x + width / 2
-        ANDOR_ROI_Y0 = y - height / 2
-        ANDOR_ROI_Y1 = y + height / 2
+        x, y, width, height = 215, 216, 100, 100
+
+    ANDOR_ROI_X0 = x - width / 2
+    ANDOR_ROI_X1 = x + width / 2
+    ANDOR_ROI_Y0 = y - height / 2
+    ANDOR_ROI_Y1 = y + height / 2
+
+ANDOR_ROI_DIPOLE_HEIGHT = 20
+ANDOR_ROI_DIPOLE_WIDTH = 20
+
+ANDOR_DIPOLE_TRAP_FORWARD_X = 193
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 300
+
+ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
+ANDOR_DIPOLE_TRAP_BACKWARD_Y = 355
+
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
+    ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1 = round(
+    ANDOR_DIPOLE_TRAP_FORWARD_X + ANDOR_ROI_DIPOLE_WIDTH / 2
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0 = round(
+    ANDOR_DIPOLE_TRAP_FORWARD_Y - ANDOR_ROI_DIPOLE_HEIGHT / 2
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1 = round(
+    ANDOR_DIPOLE_TRAP_FORWARD_Y + ANDOR_ROI_DIPOLE_HEIGHT / 2
+)
+
+ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0 = round(
+    ANDOR_DIPOLE_TRAP_BACKWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
+)
+ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1 = round(
+    ANDOR_DIPOLE_TRAP_BACKWARD_X + ANDOR_ROI_DIPOLE_WIDTH / 2
+)
+ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0 = round(
+    ANDOR_DIPOLE_TRAP_BACKWARD_Y - ANDOR_ROI_DIPOLE_HEIGHT / 2
+)
+ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1 = round(
+    ANDOR_DIPOLE_TRAP_BACKWARD_Y + ANDOR_ROI_DIPOLE_HEIGHT / 2
+)
 
 ANDOR_SENSOR_HEIGHT = 512
 ANDOR_SENSOR_WIDTH = 512
-ANDOR_FAST_KINETICS_HEIGHT = 170
 
+ANDOR_FAST_KINETICS_HEIGHT = height
+ANDOR_FAST_KINETICS_OFFSET = round(y - height / 2)  # ANDOR_ROI_Y0
+
+ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP = height
+ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP = round(ANDOR_DIPOLE_TRAP_FORWARD_Y - height / 2)
+
+SLACK_FOR_GRAVITY = 20
+ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = (
+    2 * ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
+    + abs(ANDOR_DIPOLE_TRAP_FORWARD_Y - ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+)
+ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = (
+    min(ANDOR_DIPOLE_TRAP_FORWARD_Y, ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+    - ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP / 2
+    - SLACK_FOR_GRAVITY
+)
 
 # %% 689 spectroscopy defaults
 
@@ -544,7 +626,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=1.8,  # 270 mW in AOM 0th order with no diffraction
+        setpoint=3.8,
     ),
     SUServoedBeam(
         "lattice_input_1379",
@@ -594,10 +676,16 @@ class MirnySettings:
 
 
 # These frequencies were chosen empirically based on the atoms
-_default_461 = 650504059e6
-_default_707 = 423913478e6
-_default_679 = 441332627e6
-_default_698 = 429228387.3e6  # Measured empirically
+_default_461 = (
+    650_504_059e6
+    # 2024-11-05
+    + 10e6
+    # 2024-11-18
+    - 10e6
+)
+_default_707 = 423_913_478e6
+_default_679 = 441_332_627e6
+_default_698 = 429_228_387.3e6  # Measured empirically
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
@@ -613,27 +701,10 @@ _default_689 = (
 )
 
 
-MIRNY_SETTINGS_88 = [
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_689",
-        frequency=580.7e6 - 2 * 0.56e6,
-        attenuation=3.0,
-    ),
-    MirnySettings(
-        device_name="mirny_eom_707_sideband_A", frequency=100e6, rf_switch=False
-    ),
-    MirnySettings(
-        device_name="mirny_eom_707_sideband_B", frequency=100e6, rf_switch=False
-    ),
-    MirnySettings(
-        device_name="mirny_eom_689_sideband", frequency=100e6, rf_switch=False
-    ),
-]
-
 MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_cavity_offset_689",
-        frequency=_isotope_shift_689 - MIRNY_SETTINGS_88[0].frequency,
+        frequency=661.82e6,
         attenuation=5.0,
     ),
     MirnySettings(
@@ -645,7 +716,41 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
     ),
+    MirnySettings(
+        device_name="mirny_eom_cavity_offset_698",
+        frequency=673.87e6,
+        attenuation=0.0,
+    ),
 ]
+
+MIRNY_SETTINGS_88 = [
+    MirnySettings(
+        device_name="mirny_eom_cavity_offset_689",
+        frequency=_isotope_shift_689 - MIRNY_SETTINGS_87[0].frequency,
+        attenuation=3.0,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_A",
+        frequency=MIRNY_SETTINGS_87[1].frequency,
+        rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_707_sideband_B",
+        frequency=MIRNY_SETTINGS_87[2].frequency,
+        rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_689_sideband",
+        frequency=MIRNY_SETTINGS_87[3].frequency,
+        rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_cavity_offset_698",
+        frequency=MIRNY_SETTINGS_87[4].frequency,
+        attenuation=0.0,
+    ),
+]
+
 
 assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
@@ -697,9 +802,9 @@ WAND_SETPOINTS_87 = {
 
 # Spin polarisation settings
 
-TIME_IN_LATTICE_BEFORE_SPIN_POL = 5e-3
-DURATION_OF_SPIN_POL = 20e-3
-TIME_IN_LATTICE_AFTER_SPIN_POL = 0e-3
+DELAY_BEFORE_OPTICAL_PUMPING = 20e-3
+DURATION_OF_SPIN_POL = 40e-3
+DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # %% Dipole trap settings
 
@@ -784,11 +889,9 @@ else:
 
 ### DIPOLE TRAP DEFAULT PARAMETERS ###
 
-# Delay between end of red MOT and start of molasses
-DELAY_BEFORE_MOLASSES = 10e-3
-DELAY_BETWEEN_MOLASSES = 10e-3
+# Unused in Sr88 so only one setting needed
+XODT_2ND_MOLASSES_689_STIR_DETUNING = 900e3
 
-XODT_MOLASSES_DURATION = 100e-3
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
 # "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -796,31 +899,95 @@ XODT_MOLASSES_DURATION = 100e-3
 # "suservo_aom_singlepass_689_up",
 # "suservo_aom_1064_delivery",
 # "suservo_aom_down_813"
-XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
-XODT_MOLASSES_689_DETUNING_START = [
-    0e3,
-]
-XODT_MOLASSES_689_DETUNING_END = [
-    0e3,
-]
-# Chamber 2 bias coils in amps. Order: X,Y,Z
-XODT_MOLASSES_BIAS_FIELD_START = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
-XODT_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]
+# # Chamber 2 bias coils in amps. Order: X,Y,Z
+if USE_SR87:
+    RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 10.0
+    RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
+    RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 8.0
+    BIAS_DURING_MOTS_FOR_MOLASSES = [
+        a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.53])
+    ]
 
-XODT_2ND_MOLASSES_DURATION = 100e-3
-XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-# Urukul: "urukul9910_aom_doublepass_689_red_injection"
-XODT_2ND_MOLASSES_689_DETUNING_START = [
-    0e3,
+    DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
+    XODT_MOLASSES_DURATION = 17e-3
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
+    XODT_MOLASSES_689_DETUNING_START = [
+        0e3,
+    ]
+    XODT_MOLASSES_689_DETUNING_END = [
+        0e3,
+    ]
+    XODT_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.13])
+    ]
+    XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
+    XODT_MOLASSES_MOT_CURRENT = 10.0
+
+    DELAY_BETWEEN_MOLASSES = 50e-3
+    XODT_2ND_MOLASSES_DURATION = 50e-3
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
+    XODT_2ND_MOLASSES_689_DETUNING_START = [
+        450e3,
+    ]
+    XODT_2ND_MOLASSES_689_DETUNING_END = [
+        550e3,
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, -0.33])
+    ]
+    XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
+else:
+    DELAY_BEFORE_MOLASSES = 0.01e-3
+    RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 6.0
+    RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 6.0
+    RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
+
+    XODT_MOLASSES_DURATION = 80e-3
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
+    XODT_MOLASSES_689_DETUNING_START = [
+        100e3,
+    ]
+    XODT_MOLASSES_689_DETUNING_END = [
+        135e3,
+    ]
+    XODT_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.148, 0.024, -0.58])
+    ]
+    XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
+    BIAS_DURING_MOTS_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
+    XODT_MOLASSES_MOT_CURRENT = 6.0
+
+    DELAY_BETWEEN_MOLASSES = 0.01e-3
+    XODT_2ND_MOLASSES_DURATION = 0.01e-3
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+    XODT_2ND_MOLASSES_689_DETUNING_START = [
+        0e3,
+    ]
+    XODT_2ND_MOLASSES_689_DETUNING_END = [
+        0e3,
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
+    ]
+    XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
+
+OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
+
+XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
+# SUServo order: [1064 delivery, down 813]
+XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
+XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
+XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
+    a + b for a, b in zip(FIELD_COMP, [-1.12, 0.0, 0.0])
 ]
-XODT_2ND_MOLASSES_689_DETUNING_END = [
-    0e3,
-]
-# Chamber 2 bias coils in amps. Order: X,Y,Z
-XODT_2ND_MOLASSES_BIAS_FIELD_START = [
-    a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-]
-XODT_2ND_MOLASSES_BIAS_FIELD_END = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])]

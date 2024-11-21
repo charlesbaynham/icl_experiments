@@ -1,7 +1,6 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
@@ -11,6 +10,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib.experiment_templates.red_mot_experiment import (
+    SetEOMSidebandsExceptCavity,
+)
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.dual_camera_measurer import BGCorrectedMeasurement
 
@@ -30,19 +32,18 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         )
         self.camera_interface: BGCorrectedMeasurement
 
-        # The repumpers are not yet driven by ARTIQ, but we do have access to their shutters
-        # TODO: The repumpers are now controlled by ARTIQ so update this
-        self.repumper_707_shutter: TTLOut = self.get_device("ttl_shutter_repump_707")
-        self.repumper_679_shutter: TTLOut = self.get_device("ttl_shutter_repump_679")
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
 
-        self.setattr_param(
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
+
+        self.setattr_param_rebind(
             "mot_loading_time",
-            FloatParam,
+            self.mot_controller,
+            "loading_time",
             description="Time to wait for the 3D MOT to load",
-            default=100e-3,
-            min=0,
-            unit="ms",
-            step=1,
         )
         self.mot_loading_time: FloatParamHandle
 
@@ -50,7 +51,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
             "dark_time",
             FloatParam,
             description="Time to wait in the dark for the magnetic trap",
-            default=100e-3,
+            default=0,
             min=0,
             unit="ms",
             step=1,
@@ -58,7 +59,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         self.dark_time: FloatParamHandle
 
         self.setattr_param(
-            "repump_shutter_time",
+            "mot_recapture_time",
             FloatParam,
             description="Time to wait after repumping before imaging",
             default=10e-3,
@@ -66,7 +67,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
             unit="ms",
             step=1,
         )
-        self.repump_shutter_time: FloatParamHandle
+        self.mot_recapture_time: FloatParamHandle
 
         # Ensure that both cameras are on for the same length of time as the blue
         # fluorescence is pulsed
@@ -99,12 +100,10 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+        self.mirny_eom_sidebands.set_sidebands()
         delay(20e-3)
 
-        # Turn on the 2D/3D beams & AOMs,
-        # but block the important ones, leaving the repumpers on
-        self.mot_controller.enable_mot_defaults(light_enabled=False)
-        delay(20e-9)
+        # Repump atoms from the previous sequence
         self.mot_controller.turn_on_repumpers()
 
         delay(
@@ -112,25 +111,22 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         )  # Wait to allow atoms to disperse if there were any hanging around
 
         # Load MOT without repumpers
-        self.repumper_707_shutter.off()
-        self.repumper_679_shutter.off()
-        delay(20e-3)  # Surely enough for the SRS shutters to close
-        self.mot_controller.turn_on_3d_and_2d_beams()
+        self.mot_controller.load_magnetic_trap(repump_at_end=False)
 
-        # Wait for the MOT to load
-        delay(self.mot_loading_time.get())
+        if self.dark_time.get() > 0:
+            # Turn off the push and MOT beams
+            self.mot_controller.turn_off_3d_and_2d_beams()
 
-        # Turn off the push and MOT beams
-        self.mot_controller.turn_off_3d_and_2d_beams()
+            # Wait for some time while the atoms sit in their magnetic trap
+            delay(self.dark_time.get())
 
-        # Wait for some time while the atoms sit in their magnetic trap
-        delay(self.dark_time.get())
-
-        # Turn on the MOT beams and the repumpers (but not the push beam)
-        self.mot_controller.turn_on_3d_beams()
+            # Turn on the MOT beams and the repumpers (but not the push beam)
+            self.mot_controller.turn_on_3d_beams()
+        else:
+            self.mot_controller.turn_off_push_beam()
         delay(20e-9)
         self.mot_controller.turn_on_repumpers()
-        delay(self.repump_shutter_time.get())
+        delay(self.mot_recapture_time.get())
 
         # Take a photo
         self.camera_interface.trigger_signal()

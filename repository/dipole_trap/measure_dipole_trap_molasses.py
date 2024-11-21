@@ -1,10 +1,27 @@
 import logging
 
+from artiq.coredevice.ad9912 import AD9912
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.urukul_init import make_urukul_init
+from pyaion.models import UrukuledBeam
 
-from repository.lib.experiment_templates.mixins.bg_corrected_andor_image import (
-    BGCorrectedAndorImage,
+from repository.lib import constants
+from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
+    AbsorptionDoubleDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingBGSubtracted,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingNormalised,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
@@ -12,23 +29,119 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.mixins.single_andor_image import (
-    SingleAndorImage,
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTDoubleMolassesMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import XODTMolassesMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTDoubleMolassesPlusFieldRampMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesMixin,
+)
 
 logger = logging.getLogger(__name__)
 
-EXPOSE_MOLASSES_1_PARAMS = True
+EXPOSE_MOLASSES_1_PARAMS = False
 EXPOSE_MOLASSES_2_PARAMS = True
 
+STARK_689_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["stark_shifter_689"]
 
-class MeasureDipoleTrapFrag(
-    BGCorrectedAndorImage,
+
+class DoubleXODTFrag(
+    DoubleTrapImagingBGSubtracted,
+    FLIRBlueMOTMeasurementMixin,
+    XODTSingleMolassesMixin,
+    EMGain,
+):
+    """
+    Measure a double XODT
+
+    Load a red MOT, then implement a single "molasses" stage which is
+    actually another MOT with a field bias to move it to the bottom trap
+
+    In the "evaporation" stage, the 689 nm Stark beam is pulsed on to destroy atoms
+    (for alignment of the beam onto the XODT). Note: this will only work the
+    0th order of the 689 delivery AOM is coupled to the chamber - otherwise the
+    beam will be ~ 100 MHz from resonance. The default 689 pulse time is 0.01us
+    to allow unadulterated imaging of the atoms in the XXODT as default.
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.stark_689_dds: AD9912 = self.get_device(STARK_689_BEAM_INFO.urukul_device)
+
+        # Ensure clock dds urukul is initiated
+        self.stark_689_initiator = self.setattr_fragment(
+            "stark_689_initiator", make_urukul_init([STARK_689_BEAM_INFO.urukul_device])
+        )
+
+        self.setattr_param(
+            "stark_689_destroy_atoms_in_XODT_duration",
+            FloatParam,
+            "Time allowed to destroy atoms in XODT using 689 Stark beam",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.stark_689_destroy_atoms_in_XODT_duration: FloatParamHandle
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_xodt_molasses()
+        self.stark_689_dds.set_att(STARK_689_BEAM_INFO.attenuation)
+        self.stark_689_dds.set(frequency=STARK_689_BEAM_INFO.frequency)
+        self.stark_689_dds.sw.off()
+        self.stark_689_dds.cfg_sw(False)
+
+    @kernel
+    def dipole_trap_evaporation_hook(self):
+        # Turns off red MOT beams - helpful!
+        self.dipole_trap_evaporation_hook_default()
+        self.stark_689_dds.sw.on()
+        delay(self.stark_689_destroy_atoms_in_XODT_duration.get())
+        self.stark_689_dds.sw.off()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
+
+class DoubleXODTAbsFrag(
+    AbsorptionDoubleDipoleTrapMixin,
+    XODTSingleMolassesMixin,
+):
+    """
+    Measure a double XODT with aborption imaging
+
+    Load a red MOT, then implement a single "molasses" stage which is
+    actually another MOT with a field bias to move it to the bottom trap
+
+    In the "evaporation" stage, the 689 nm Stark beam is pulsed on to destroy atoms
+    (for alignment of the beam onto the XODT). Note: this will only work the
+    0th order of the 689 delivery AOM is coupled to the chamber - otherwise the
+    beam will be ~ 100 MHz from resonance. The default 689 pulse time is 0.01us
+    to allow unadulterated imaging of the atoms in the XXODT as default.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
+
+class _MeasureDipoleTrapBase(
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
-    SingleAndorImage,
-    XODTMolassesMixin,
+    XODTDoubleMolassesMixin,
 ):
     """
     Load a dipole trap, do 689 nm molasses, hold, and take BG subtracted image
@@ -37,50 +150,19 @@ class MeasureDipoleTrapFrag(
     def build_fragment(self):
         super().build_fragment()
 
-        # Remove unused parameters
-        self.override_param("spectroscopy_field_gradient", 0)
-
-        # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind("chamber_2_bias_x", self.blue_3d_mot)
-        self.setattr_param_rebind("chamber_2_bias_y", self.blue_3d_mot)
-        self.setattr_param_rebind("chamber_2_bias_z", self.blue_3d_mot)
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_start",
-        )
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_end",
-        )
-
-        self.setattr_param_rebind(
-            "roi_0_x0",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_x1",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y0",
-            self.andor_camera_control,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y1",
-            self.andor_camera_control,
-        )
-
         # Expose the molasses ramp parameters if desired
         if EXPOSE_MOLASSES_1_PARAMS:
-            names = [_ for _ in self.molasses_xodt_1._free_params.keys()]
+            names = [
+                n
+                for n in self.molasses_xodt_1._free_params.keys()
+                if "suservo" not in n
+            ]
             for name in names:
                 self.setattr_param_rebind(
                     f"molasses_1_{name}", self.molasses_xodt_1, original_name=name
                 )
         if EXPOSE_MOLASSES_2_PARAMS:
-            names = [_ for _ in self.molasses_xodt_2._free_params.keys()]
+            names = [n for n in self.molasses_xodt_2._free_params.keys()]
             for name in names:
                 self.setattr_param_rebind(
                     f"molasses_2_{name}", self.molasses_xodt_2, original_name=name
@@ -93,8 +175,32 @@ class MeasureDipoleTrapFrag(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        # Release the atoms for time of flight measurement
-        self.dipole_beam_controller.turn_off_dipole_beams()
+        pass
 
 
-MeasureDipoleTrap = make_fragment_scan_exp(MeasureDipoleTrapFrag)
+class MeasureDoubleDipoleTrapFrag(
+    DoubleTrapImagingBGSubtracted, _MeasureDipoleTrapBase
+):
+    pass
+
+
+class MeasureDoubleDipoleTrapWithFieldRampFrag(
+    XODTDoubleMolassesPlusFieldRampMixin, MeasureDoubleDipoleTrapFrag
+):
+    pass
+
+
+class NormalizedDoubleDipoleTrapFrag(
+    DoubleTrapImagingNormalised, _MeasureDipoleTrapBase
+):
+    pass
+
+
+MeasureXXODT = make_fragment_scan_exp(DoubleXODTFrag)
+MeasureXXODTAbs = make_fragment_scan_exp(DoubleXODTAbsFrag)
+# Experiments using the XODTDoubleMolassesMixin. If we don't use these in a while, we should just delete them
+# MeasureDoubleDipoleTrap = make_fragment_scan_exp(MeasureDoubleDipoleTrapFrag)
+# MeasureDoubleDipoleTrapWithFieldRamp = make_fragment_scan_exp(
+#     MeasureDoubleDipoleTrapWithFieldRampFrag
+# )
+# NormalizedDoubleDipoleTrap = make_fragment_scan_exp(NormalizedDoubleDipoleTrapFrag)

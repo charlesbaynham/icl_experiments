@@ -60,10 +60,10 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
         self.turn_on_beam_with_default_settings: bool
 
         self.setattr_argument(
-            "disable_servoing",
-            BooleanValue(True),
+            "enable_servoing",
+            BooleanValue(False),
         )
-        self.disable_servoing: bool
+        self.enable_servoing: bool
 
         # %% devices
 
@@ -71,7 +71,7 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
             self.beam_info_name or beam_info_names[0]
         ]
 
-        if self.disable_servoing:
+        if not self.enable_servoing:
             self.beam_info.servo_enabled = False
 
         self.suservo_channel_device: SUServoChannel = self.get_device(
@@ -152,10 +152,10 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         self.turn_on_beams_with_default_settings: bool
 
         self.setattr_argument(
-            "disable_servoing",
-            BooleanValue(True),
+            "enable_servoing",
+            BooleanValue(False),
         )
-        self.disable_servoing: bool
+        self.enable_servoing: bool
 
         self.setattr_argument(
             "subtract_setpoint",
@@ -173,9 +173,12 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         from copy import deepcopy
 
         self.suservo_beam_infos = deepcopy(list(constants.SUSERVOED_BEAMS.values()))
-        self.urukul_beam_infos = [constants.URUKULED_BEAMS["red_spinpol"]]
+        self.urukul_beam_infos = [
+            constants.URUKULED_BEAMS["red_spinpol"],
+            constants.URUKULED_BEAMS["blue_imaging_switch"],
+        ]
 
-        if self.disable_servoing:
+        if not self.enable_servoing:
             for info in self.suservo_beam_infos:
                 info.servo_enabled = False
 

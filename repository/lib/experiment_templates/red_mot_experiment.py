@@ -50,14 +50,21 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from ndscan.experiment import ExpFragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
+from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
+from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
@@ -117,13 +124,20 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
 
+        self.setattr_fragment(
+            "clock_delivery_beam_suservo",
+            LibSetSUServoStatic,
+            SUSERVOED_BEAMS["clock_delivery"].suservo_device,
+        )
+        self.clock_delivery_beam_suservo: LibSetSUServoStatic
+
         # %% Params
 
         # Expansion time - can be negative
         self.setattr_param(
             "expansion_time",
             FloatParam,
-            "Time to expand MOT for before imaging",
+            "Time to wait before experiment",
             default=0.0,
             unit="us",
         )
@@ -132,13 +146,22 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # %% Rebound params
 
         self.setattr_param_rebind("injection_aom_static_frequency", self.red_mot)
+
         self.setattr_param_rebind(
-            "red_broadband_time",
-            self.red_mot.broadband_red_phase,
-            "duration",
-            description="Broadband phase duration",
+            "blue_loading_time",
+            self.blue_3d_mot,
+            "loading_time",
+            description="Blue MOT loading time",
         )
-        self.red_broadband_time: FloatParamHandle
+        self.blue_loading_time: FloatParamHandle
+
+        self.setattr_param(
+            "magnetic_trap_loading_bool",
+            BoolParam,
+            "Load via magnetic trap instead of blue MOT",
+            default=False,
+        )
+        self.magnetic_trap_loading_bool: BoolParamHandle
 
         self.setattr_fragment(
             "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
@@ -171,11 +194,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        self.DMA_initialization_hook()
+        self.core.break_realtime()
 
-        # Probably pointless delay TODO: Check whether deleting this delay broke things: All dmas have to be called at the same time, so a delay here would mean child classes would have to copy/paste this device_setup code instead of calling super().device_setup and appending extra dmas
-        # self.core.break_realtime()
-        # delay(1e-3)
+        # Boost the clock delivery SUServo's gain
+        self.clock_delivery_beam_suservo.set_iir_params(
+            ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
+        )
+        self.core.break_realtime()
+
+        self.DMA_initialization_hook()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -201,8 +228,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.before_start_hook()
 
         self.core.break_realtime()
-
-        self.blue_3d_mot.load_mot(clearout=True)
+        if self.magnetic_trap_loading_bool.get():
+            self.blue_3d_mot.load_magnetic_trap()
+        else:
+            self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
         self.blue_3d_mot.do_blue_transfer_mot()
         delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
@@ -211,9 +240,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         delay(-self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.red_mot.prepare_for_broadband_phase()
         self.red_mot.broadband_red_phase.do_phase()
-        delay(-self.red_broadband_time.get())
+        delay(-self.red_mot.broadband_red_phase.duration.get())
         self.start_of_red_broadband_hook()
-        delay(+self.red_broadband_time.get())
+        delay(+self.red_mot.broadband_red_phase.duration.get())
         self.end_of_broadband_mot_hook()
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
@@ -239,9 +268,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.do_experiment_after_red_mot_hook()
 
         delay(self.delay_after_experiment.get())
-
         self.do_imaging_hook()
-
         self.post_sequence_cleanup_hook()
 
         self.core.wait_until_mu(now_mu())
@@ -254,19 +281,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # This one for the Andor
         self.save_andor_data_hook()
-
-    @kernel
-    def do_pulse(self, andor_exposure):
-        """
-        Default implementation of a fluorescence pulse, available for use by
-        mixins in :meth:`~do_imaging_hook` (but not used by default).
-        """
-        with parallel:
-            self.andor_camera_control.trigger(
-                exposure=andor_exposure,
-                control_shutter=False,
-            )
-            self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
     # %% Hooks / overridable methods
     #
@@ -384,10 +398,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         By default, just turn off the red light
         """
-        self.default_post_narrowband_hook()
+        self.post_narrowband_hook_default()
 
     @kernel
-    def default_post_narrowband_hook(self):
+    def post_narrowband_hook_default(self):
+        """
+        Turns off the red MOT beams. This advances the timeline by one
+        self.core.ref_multiplier, but includes several events in the future:
+        Simultaneous commands will populate new lanes.
+        """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel

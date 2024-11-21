@@ -36,6 +36,7 @@ aliases = {
     "suservo_aom_singlepass_689_up": "suservo2_ch5",
     "suservo_aom_singlepass_689_red_mot_sigmaplus": "suservo2_ch6",
     "suservo_aom_singlepass_689_red_mot_sigmaminus": "suservo2_ch7",
+    "urukul9912_aom_singlepass_689_stark_shifter": "urukul2_ch0",
     # 1064
     "suservo_aom_1064_delivery": "suservo0_ch3",
     "urukul_aom_1064_switch": "urukul2_ch1",
@@ -75,6 +76,7 @@ aliases = {
     "TTL_blue_ijds": "ttl12",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch1",
+    "mirny_eom_cavity_offset_698": "mirny0_ch0",
     "mirny_eom_cavity_offset_689": "mirny1_ch0",
     "mirny_eom_707_sideband_A": "mirny1_ch1",
     "mirny_eom_707_sideband_B": "mirny1_ch2",

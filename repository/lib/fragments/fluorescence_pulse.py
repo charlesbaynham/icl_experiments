@@ -14,7 +14,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -22,6 +21,9 @@ import repository.lib.constants as constants
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
+)
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
 )
 
 logger = logging.getLogger(__name__)
@@ -164,9 +166,7 @@ class FluorescencePulseBase(Fragment):
         delay_mu(
             int64(self.core.ref_multiplier)
         )  # minimum delay to avoid use of extra lane (1 coarse rtio cycle)
-        self.delivery_beam_toggler.turn_off_beams(
-            ignore_shutters=ignore_initial_shutters
-        )
+        self.delivery_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
 
 
 class ImagingFluorescencePulse(FluorescencePulseBase):
@@ -183,8 +183,6 @@ class MOTBeamFluorescencePulse(FluorescencePulseBase):
     """
 
     suservo_beam_infos = [
-        constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
-        constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
         constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
     ]
 

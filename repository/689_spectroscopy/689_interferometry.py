@@ -9,21 +9,25 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
+from repository.lib.fragments.pyaion_overrides.suservo_override import (
+    LibSetSUServoStatic,
+)
 
 logger = logging.getLogger(__name__)
 
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
+    TripleImageDipoleTrapFastKineticsMixin,
+)
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
-from repository.lib.experiment_templates.mixins.triple_imaging_kinetics import (
-    TripleImageFastKineticsMixin,
-)
 
 
-class _InterferometryCommon(TripleImageFastKineticsMixin, SpectroscopyParamsMixin):
+class _InterferometryCommon(
+    TripleImageDipoleTrapFastKineticsMixin, SpectroscopyParamsMixin
+):
     def build_fragment(self):
         # TODO: Fix this, as 689 sepctroscopy has been fixed
         class _UpBeamSetter(SetBeamsToDefaults):

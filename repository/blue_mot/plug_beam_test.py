@@ -1,7 +1,11 @@
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
+from artiq.experiment import kernel
 from artiq.experiment import now_mu
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import delay
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
@@ -49,7 +53,7 @@ class ScanPlugBeamParamsFrag(ExpFragment):
             "delay_between_points",
             FloatParam,
             "Delay between measurements",
-            default=0,
+            default=20e-3,
             min=0,
             unit="s",
         )
@@ -108,6 +112,8 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         self.core.wait_until_mu(now_mu())
 
         self.dual_cameras.save_data()
+
+        self.blue_mot.turn_off_all_beams()
 
         delay(self.delay_between_points.get())
 

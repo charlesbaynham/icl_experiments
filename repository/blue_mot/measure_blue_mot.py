@@ -14,6 +14,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from repository.lib.fragments.cameras.dual_camera_measurer import BGCorrectedMeasurement
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
 
@@ -50,6 +51,16 @@ class _MeasureBlueMOTFrag(ExpFragment):
             default="True",
         )
         self.clearout: BoolParamHandle
+
+        self.setattr_param(
+            "mot_hold_time",
+            FloatParam,
+            "Time to hold the MOT after loading",
+            default=0,
+            min=0,
+            unit="ms",
+        )
+        self.mot_hold_time: FloatParamHandle
 
         self.first_run = True
 
@@ -134,6 +145,59 @@ class MeasureBlueMOTWithCameraFrag(_MeasureBlueMOTFrag):
         self.dual_cameras.save_data()
 
 
+class MeasureBlueMOTBGCorrectedFrag(_MeasureBlueMOTFrag):
+    def build_fragment(self):
+        self.setattr_fragment(
+            "bg_corrected_measurement", BGCorrectedMeasurement, hardware_trigger=True
+        )
+        self.bg_corrected_measurement: BGCorrectedMeasurement
+
+        self.setattr_param_rebind(
+            "exposure",
+            self.bg_corrected_measurement,
+            "exposure_horiz",
+            description="Camera exposures",
+        )
+        self.exposure: FloatParamHandle
+
+        self.bg_corrected_measurement.bind_param("exposure_vert", self.exposure)
+
+        super().build_fragment()
+
+    def get_default_analyses(self):
+        super_analysis = super().get_default_analyses()
+
+        return super_analysis + [
+            OnlineFit(
+                "exponential_decay",
+                data={
+                    "x": self.mot_loading_time,
+                    "y": self.bg_corrected_measurement.image_vertical_mean,
+                },
+            )
+        ]
+
+    @kernel
+    def _take_data(self, loading_time):
+        delay(loading_time)
+
+        self.mot_controller.turn_off_push_beam()
+        delay(self.mot_hold_time.get())
+        self.bg_corrected_measurement.trigger_signal()
+
+        self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
+
+        delay(400e-3)
+
+        self.bg_corrected_measurement.trigger_background()
+
+        delay(10e-3)
+
+        self.core.wait_until_mu(now_mu())
+
+        self.bg_corrected_measurement.save_data()
+
+
 class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
     def build_fragment(self):
         self.setattr_fragment(
@@ -183,3 +247,4 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
 
 MeasureBlueMOTWithCamera = make_fragment_scan_exp(MeasureBlueMOTWithCameraFrag)
 MeasureBlueMOTWithExpansion = make_fragment_scan_exp(MeasureBlueMOTWithExpansionFrag)
+MeasureBlueMOTBGCorrected = make_fragment_scan_exp(MeasureBlueMOTBGCorrectedFrag)

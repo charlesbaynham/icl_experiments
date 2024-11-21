@@ -47,6 +47,14 @@ class SetEOMSidebandsFrag(Fragment):
             if a.device_name != b.device_name:
                 raise TypeError("The mirny settings must appear in the same order")
 
+        self.index_of_stir_beam = 0
+        for i, settings in enumerate(self.mirny_settings_87):
+            if settings.device_name == "mirny_eom_689_sideband":
+                self.index_of_stir_beam = i
+
+        if self.index_of_stir_beam is None:
+            raise ValueError("The stir beam must be in the list of mirny settings")
+
         self.setattr_device("core")
         self.core: Core
 
@@ -85,6 +93,7 @@ class SetEOMSidebandsFrag(Fragment):
 
             self.kernel_invariants = getattr(self, "kernel_invariants", set()) | {
                 "debug_mode",
+                "index_of_stir_beam",
                 "init_mirnys",
                 "mirny_settings",
                 "mirnys",
@@ -132,6 +141,10 @@ class SetEOMSidebandsFrag(Fragment):
                 mirny_channel.init()
 
     @kernel
+    def get_stir_beam_frequency(self) -> float:
+        self.frequency_handles
+
+    @kernel
     def set_sidebands(self):
         for i in range(len(self.mirny_channels)):
             mirny_channel = self.mirny_channels[i]
@@ -163,6 +176,21 @@ class SetEOMSidebandsFrag(Fragment):
             mirny_channel.set_frequency(frequency)
             mirny_channel.set_att(attenuation)
             mirny_channel.sw.set_o(mirny_settings.rf_switch)
+
+    @kernel
+    def set_689_stir_sideband_detuning(self, detuning: float):
+        """
+        Set the 689 stir sideband detuning
+
+        Advances the timeline by the duration of SPI writes
+        """
+        nominal_frequency = self.frequency_handles[self.index_of_stir_beam].get()
+        if nominal_frequency < 0:
+            nominal_frequency = self.mirny_settings[self.index_of_stir_beam].frequency
+
+        self.mirny_channels[self.index_of_stir_beam].set_frequency(
+            nominal_frequency + detuning
+        )
 
 
 class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
