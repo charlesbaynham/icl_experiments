@@ -20,6 +20,7 @@ PlugBeamSetter = make_set_beams_to_default(
     ],
     urukul_beam_infos=[],
     name="PlugBeamSetter",
+    use_automatic_setup=True,
 )
 
 
