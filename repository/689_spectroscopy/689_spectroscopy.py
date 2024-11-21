@@ -7,6 +7,7 @@ from artiq.experiment import sequential
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
@@ -23,9 +24,6 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.pyaion_overrides.suservo_override import (
-    LibSetSUServoStatic,
-)
 
 logger = logging.getLogger(__name__)
 
