@@ -6,12 +6,18 @@ from ndscan.experiment import delay
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
+
+# Import from pyaion overrides directly. This shouldn't be required, but is for some reason
+from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
+    SetBeamsToDefaults,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
+    make_set_beams_to_default,
+)
 
 PlugBeamSetter = make_set_beams_to_default(
     suservo_beam_infos=[
