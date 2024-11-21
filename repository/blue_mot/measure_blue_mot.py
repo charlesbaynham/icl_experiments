@@ -235,6 +235,16 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         )
         self.use_fluorescence_pulse: BoolParamHandle
 
+        self.setattr_param(
+            "camera_pre_delay",
+            FloatParam,
+            description="Camera pre-delay",
+            default=0,
+            min=0,
+            unit="us",
+        )
+        self.camera_pre_delay: FloatParamHandle
+
         super().build_fragment()
 
     def host_setup(self):
@@ -266,6 +276,7 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         delay(loading_time)
 
         self.mot_controller.turn_off_3d_and_2d_beams()
+        delay(-self.camera_pre_delay.get())
 
         self.dual_cameras.trigger()
 
