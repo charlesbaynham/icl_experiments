@@ -154,6 +154,7 @@ class SetBeamsToDefaults(Fragment):
             setpoint_handle: FloatParamHandle
             shutter_present: bool
             initial_amplitude_handle: FloatParamHandle
+            frequency_handle: FloatParamHandle
 
         self.suservo_setters_and_info: List[SUServoSettings] = []
 
@@ -187,12 +188,22 @@ class SetBeamsToDefaults(Fragment):
                 default=beam_info.initial_amplitude,
             )
 
+            frequency_handle = self.setattr_param(
+                f"frequency_{beam_info.name}",
+                FloatParam,
+                f"SUServo frequency for {beam_info.name}",
+                min=0,
+                unit="MHz",
+                default=beam_info.frequency,
+            )
+
             self.suservo_setters_and_info.append(
                 SUServoSettings(
                     setter=setter,
                     setpoint_handle=setpoint_handle,
                     shutter_present=bool(beam_info.shutter_device),
                     initial_amplitude_handle=amplitude_handle,
+                    frequency_handle=frequency_handle,
                 )
             )
 
@@ -342,6 +353,7 @@ class SetBeamsToDefaults(Fragment):
                     setpoint_handle=self.dummy_float_handle,
                     shutter_present=False,
                     initial_amplitude_handle=self.dummy_float_handle,
+                    frequency_handle=self.dummy_float_handle,
                 )
             ]
             self.default_suservo_beam_infos = [
@@ -402,7 +414,8 @@ class SetBeamsToDefaults(Fragment):
         self.device_setup_subfragments()
 
         # Retrieve the values of all the generated parameters for SUServo
-        # setpoints for this run of the scan
+        # setpoints for this run of the scan. This is used only by
+        # :meth:`get_suservo_setpoint_by_index`
         for i in range(len(self.suservo_setters_and_info)):
             setpoint_handle = self.suservo_setters_and_info[i].setpoint_handle
             self.suservo_setpoints[i] = setpoint_handle.get()
@@ -452,6 +465,7 @@ class SetBeamsToDefaults(Fragment):
             settings = self.suservo_setters_and_info[i]
             beam_info = self.default_suservo_beam_infos[i]
             setpoint = settings.setpoint_handle.get()
+            frequency = settings.frequency_handle.get()
             initial_amplitude = settings.initial_amplitude_handle.get()
 
             rf_switch_state = light_enabled or (
@@ -460,17 +474,18 @@ class SetBeamsToDefaults(Fragment):
 
             if self.debug_mode:
                 logger.info(
-                    "Enabling suservo (%s)\n- beam_info %s\n- setpoint %s\n- rf_switch_state %s\n- initial_amplitude %.3f",
+                    "Enabling suservo (%s)\n- beam_info %s\n- setpoint %s\n- frequency %s\n- rf_switch_state %s\n- initial_amplitude %.3f",
                     settings.setter,
                     beam_info,
                     setpoint,
+                    frequency,
                     rf_switch_state,
                     initial_amplitude,
                 )
                 self.core.break_realtime()
 
             settings.setter.set_suservo(
-                float(beam_info.frequency),
+                frequency,
                 initial_amplitude,
                 float(beam_info.attenuation),
                 rf_switch_state=rf_switch_state,
