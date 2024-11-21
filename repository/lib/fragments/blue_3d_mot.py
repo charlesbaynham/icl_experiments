@@ -23,6 +23,7 @@ from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndMOTField,
 )
+from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsExceptCavity
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,13 @@ class Blue3DMOTFrag(Fragment):
     def build_fragment(self, manual_init=False):
         self.setattr_device("core")
         self.core: Core
+
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
+
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
 
         self.setattr_fragment("reset_all_beams", ResetAllICLBeams)
 
@@ -291,6 +299,8 @@ class Blue3DMOTFrag(Fragment):
         # Turn on all the AOMs but close all the shutters
         delay(200e-6)  # We need some slack - create it deterministically
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
+
+        self.mirny_eom_sidebands.set_sidebands()
 
     @kernel
     def enable_mot_fields(self):
