@@ -608,7 +608,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_repump_707",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=0.75,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "repump_679",
