@@ -4,7 +4,6 @@ from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
-from artiq.experiment import parallel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -201,20 +200,20 @@ class MeasureBlueMOTBGCorrectedFrag(_MeasureBlueMOTFrag):
 class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
     def build_fragment(self):
         self.setattr_fragment(
-            "dual_cameras", DualCameraMeasurement, hardware_trigger=True
+            "bg_corrected_measurement", BGCorrectedMeasurement, hardware_trigger=True
         )
-        self.dual_cameras: DualCameraMeasurement
+        self.bg_corrected_measurement: BGCorrectedMeasurement
 
         self.setattr_param_rebind(
             "exposure",
-            self.dual_cameras,
+            self.bg_corrected_measurement,
             "exposure_horiz",
             description="Camera exposures",
         )
         self.exposure: FloatParamHandle
 
         # TODO: This rebinding appears not to work
-        self.dual_cameras.bind_param("exposure_vert", self.exposure)
+        self.bg_corrected_measurement.bind_param("exposure_vert", self.exposure)
 
         self.setattr_param(
             "expansion_time",
@@ -236,6 +235,16 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         )
         self.use_fluorescence_pulse: BoolParamHandle
 
+        self.setattr_param(
+            "camera_pre_delay",
+            FloatParam,
+            description="Camera pre-delay",
+            default=1300,
+            min=0,
+            unit="us",
+        )
+        self.camera_pre_delay: FloatParamHandle
+
         super().build_fragment()
 
     def host_setup(self):
@@ -248,17 +257,39 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         delay(loading_time)
         self.mot_controller.turn_off_3d_and_2d_beams()
         delay(self.expansion_time.get())
-
+        delay(-self.camera_pre_delay.get())
         with parallel:
-            self.dual_cameras.trigger()
+            self.bg_corrected_measurement.trigger_signal()
             if self.use_fluorescence_pulse.get():
                 self.fluorescence_pulse.do_imaging_pulse()
             else:
                 delay(self.exposure.get())
+        delay(self.camera_pre_delay.get())
+
+        self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
+
+        delay(400e-3)
+
+        self.bg_corrected_measurement.trigger_background()
+
+        delay(10e-3)
 
         self.core.wait_until_mu(now_mu())
 
-        self.dual_cameras.save_data()
+        self.bg_corrected_measurement.save_data()
+
+    # @kernel
+    # def _take_data(self, loading_time):
+    #     delay(loading_time)
+
+    #     self.mot_controller.turn_off_3d_and_2d_beams()
+    #     delay(-self.camera_pre_delay.get())
+
+    #     self.dual_cameras.trigger()
+
+    #     self.core.wait_until_mu(now_mu())
+
+    #     self.dual_cameras.save_data()
 
 
 MeasureBlueMOTWithCamera = make_fragment_scan_exp(MeasureBlueMOTWithCameraFrag)
