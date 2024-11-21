@@ -270,18 +270,18 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
 
         self.dual_cameras.save_data()
 
-    @kernel
-    def _take_data(self, loading_time):
-        delay(loading_time)
+    # @kernel
+    # def _take_data(self, loading_time):
+    #     delay(loading_time)
 
-        self.mot_controller.turn_off_3d_and_2d_beams()
-        delay(-self.camera_pre_delay.get())
+    #     self.mot_controller.turn_off_3d_and_2d_beams()
+    #     delay(-self.camera_pre_delay.get())
 
-        self.dual_cameras.trigger()
+    #     self.dual_cameras.trigger()
 
-        self.core.wait_until_mu(now_mu())
+    #     self.core.wait_until_mu(now_mu())
 
-        self.dual_cameras.save_data()
+    #     self.dual_cameras.save_data()
 
 
 MeasureBlueMOTWithCamera = make_fragment_scan_exp(MeasureBlueMOTWithCameraFrag)
