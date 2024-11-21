@@ -212,7 +212,6 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         )
         self.exposure: FloatParamHandle
 
-        # TODO: This rebinding appears not to work
         self.bg_corrected_measurement.bind_param("exposure_vert", self.exposure)
 
         self.setattr_param(
