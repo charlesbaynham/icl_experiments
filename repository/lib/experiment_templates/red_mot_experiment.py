@@ -58,12 +58,24 @@ from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
+from repository.lib.constants import MIRNY_SETTINGS_87
+from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
+from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
+
+
+class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
+    mirny_settings_87 = [
+        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
+    ]
+    mirny_settings_88 = [
+        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
+    ]
 
 
 class RedMOTWithExperiment(ExpFragment, abc.ABC):
@@ -149,7 +161,12 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         )
         self.magnetic_trap_loading_bool: BoolParamHandle
 
-        self.setattr_param_rebind("sr87", self.blue_3d_mot)
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsFrag
+
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
 
         self.setattr_param(
             "delay_after_experiment",
@@ -204,6 +221,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+        self.mirny_eom_sidebands.set_sidebands()
 
         self.before_start_hook()
 

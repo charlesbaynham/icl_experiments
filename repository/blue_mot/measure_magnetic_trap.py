@@ -10,6 +10,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib.experiment_templates.red_mot_experiment import (
+    SetEOMSidebandsExceptCavity,
+)
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.dual_camera_measurer import BGCorrectedMeasurement
 
@@ -29,7 +32,12 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
         )
         self.camera_interface: BGCorrectedMeasurement
 
-        self.setattr_param_rebind("sr87", self.mot_controller)
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
+
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
 
         self.setattr_param_rebind(
             "mot_loading_time",
@@ -92,6 +100,7 @@ class MeasureMagneticTrapWithCameraFrag(ExpFragment):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+        self.mirny_eom_sidebands.set_sidebands()
         delay(20e-3)
 
         # Repump atoms from the previous sequence

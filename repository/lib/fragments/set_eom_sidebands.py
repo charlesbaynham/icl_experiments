@@ -201,12 +201,3 @@ class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
     def run_once(self):
         self.core.break_realtime()
         self.set_sidebands()
-
-
-class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
-    mirny_settings_87 = [
-        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
-    ]
-    mirny_settings_88 = [
-        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
-    ]
