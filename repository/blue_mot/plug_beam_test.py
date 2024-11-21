@@ -101,6 +101,7 @@ class ScanPlugBeamParamsFrag(ExpFragment):
     def run_once(self) -> None:
         self.plug_beam_default_setter.turn_on_all()
 
+        self.blue_aom.set(1, 0, self.blue_aom.servo_channel)
         self.blue_aom.set_dds(
             self.blue_aom.servo_channel, self.plug_aom_frequency.get(), offset=0.0
         )
