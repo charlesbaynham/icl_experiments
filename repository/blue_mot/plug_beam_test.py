@@ -1,5 +1,4 @@
 from artiq.coredevice.core import Core
-from artiq.coredevice.suservo import Channel
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
@@ -9,6 +8,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
@@ -31,10 +31,12 @@ class ScanPlugBeamParamsFrag(ExpFragment):
 
         self.get_device("suservo_aom_doublepass_461_plug")
 
-        self.blue_aom = self.get_device(
-            constants.SUSERVOED_BEAMS["blue_plug_beam"].suservo_device
+        self.blue_aom = self.setattr_fragment(
+            "blue_aom",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_plug_beam"].suservo_device,
         )
-        self.blue_aom: Channel
+        self.blue_aom: LibSetSUServoStatic
 
         self.setattr_fragment("blue_mot", Blue3DMOTFrag)
         self.blue_mot: Blue3DMOTFrag
@@ -100,14 +102,19 @@ class ScanPlugBeamParamsFrag(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
+        # Turn on the plug beam and set its amplitude, setpoint and frequency
         self.plug_beam_default_setter.turn_on_all()
 
-        # self.blue_aom.set(1, 0, self.blue_aom.servo_channel)
-        # self.blue_aom.set_dds(
-        #     self.blue_aom.servo_channel, self.plug_aom_frequency.get(), offset=0.0
-        # )
+        # Override its frequency. We must also set its setpoint again
+        self.blue_aom.set_suservo(
+            freq=self.plug_aom_frequency.get(),
+            amplitude=constants.SUSERVOED_BEAMS["blue_plug_beam"].initial_amplitude,
+            attenuation=constants.SUSERVOED_BEAMS["blue_plug_beam"].attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.plug_beam_setpoint.get(),
+        )
 
-        # self.blue_mot.load_mot()  # This turns on MOT coils, "clears out" for 100ms, then turns on MOT beams, and waits for loading time
+        self.blue_mot.load_mot()  # This turns on MOT coils, "clears out" for 100ms, then turns on MOT beams, and waits for loading time
 
         delay(500e-3)
 
@@ -119,7 +126,7 @@ class ScanPlugBeamParamsFrag(ExpFragment):
 
         self.core.break_realtime()
 
-        # self.blue_mot.turn_off_all_beams()
+        self.blue_mot.turn_off_all_beams()
 
         delay(self.delay_between_points.get())
 
