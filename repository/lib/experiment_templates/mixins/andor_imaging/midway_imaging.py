@@ -185,23 +185,38 @@ class MidSequenceAndorImage(AndorImagingBase):
 
     @host_only
     def process_andor_image_hook(self, imgs_array):
-        ### doing this here because we're doing stuff on the host anyway
+        self.timestamp_logging()
+        super().process_andor_image_hook(imgs_array)
+
+    @host_only
+    def timestamp_logging(self):
         t_end_of_blue_mot = self.core.seconds_to_mu(
             self.t_end_of_blue_mot - self.t_start
         )
+        logger.info("t_end_of_blue_mot: %.6f", t_end_of_blue_mot)
+
         t_start_of_broadband_mot = self.core.seconds_to_mu(
             self.t_start_of_broadband_mot - self.t_start
         )
+        logger.info("t_start_of_broadband_mot: %.6f", t_start_of_broadband_mot)
+
         t_start_of_narrowband_mot = self.core.seconds_to_mu(
             self.t_start_of_narrowband_mot - self.t_start
         )
+        logger.info("t_start_of_narrowband_mot: %.6f", t_start_of_narrowband_mot)
+
         t_end_of_narrowband_mot = self.core.seconds_to_mu(
             self.t_end_of_narrowband_mot - self.t_start
         )
+        logger.info("t_start_of_narrowband_mot: %.6f", t_end_of_narrowband_mot)
+
         t_start_experiment = self.core.seconds_to_mu(
             self.t_start_experiment - self.t_start
         )
-        self.core.seconds_to_mu(self.t_end_experiment - self.t_start)
-        self.core.seconds_to_mu(self.t_start_imaging - self.t_start)
-        t_start
-        super().process_andor_image_hook(imgs_array)
+        logger.info("t_start_experiment: %.6f", t_start_experiment)
+
+        t_end_experiment = self.core.seconds_to_mu(self.t_end_experiment - self.t_start)
+        logger.info("t_end_experiment: %.6f", t_end_experiment)
+
+        t_start_imaging = self.core.seconds_to_mu(self.t_start_imaging - self.t_start)
+        logger.info("t_start_imaging: %.6f", t_start_imaging)
