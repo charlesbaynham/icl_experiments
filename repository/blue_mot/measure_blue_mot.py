@@ -260,8 +260,8 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         with parallel:
             self.bg_corrected_measurement.trigger_signal()
             if self.use_fluorescence_pulse.get():
-                self.fluorescence_pulse.do_imaging_pulse(duration=self.exposure.get())
-                # self.fluorescence_pulse.do_imaging_pulse(duration=50e-6)
+                # self.fluorescence_pulse.do_imaging_pulse(duration=self.exposure.get())
+                self.fluorescence_pulse.do_imaging_pulse(duration=50e-6)
             else:
                 delay(self.exposure.get())
         delay(self.camera_pre_delay.get())
