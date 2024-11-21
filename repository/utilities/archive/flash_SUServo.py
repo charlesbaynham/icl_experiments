@@ -11,11 +11,8 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.lib.utils import get_local_devices
-
-from repository.lib.fragments.pyaion_overrides.suservo_override import (
-    LibSetSUServoStatic,
-)
 
 logger = logging.getLogger(__name__)
 
