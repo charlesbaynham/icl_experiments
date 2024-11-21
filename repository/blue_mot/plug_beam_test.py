@@ -3,7 +3,6 @@ from artiq.coredevice.suservo import Channel
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
-from ndscan.experiment import at_mu
 from ndscan.experiment import delay
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -114,8 +113,7 @@ class ScanPlugBeamParamsFrag(ExpFragment):
 
         self.dual_cameras.save_data()
 
-        t_rightnow_mu = self.core.get_rtio_counter_mu() + self.core.seconds_to_mu(1e-3)
-        at_mu(t_rightnow_mu)
+        self.core.break_realtime()
 
         self.blue_mot.turn_off_all_beams()
 
