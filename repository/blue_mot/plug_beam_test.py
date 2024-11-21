@@ -115,7 +115,7 @@ class ScanPlugBeamParamsFrag(ExpFragment):
 
         self.core.break_realtime()
 
-        self.blue_mot.turn_off_all_beams()
+        # self.blue_mot.turn_off_all_beams()
 
         delay(self.delay_between_points.get())
 
