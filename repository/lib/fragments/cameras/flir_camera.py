@@ -252,10 +252,10 @@ class CameraFrag(Fragment):
 
     @kernel
     def _hardware_trigger(self):
-        f"""
+        """
         Trigger the camera using a TTL pulse
 
-        Note: this adds {FLIR_CAMERA_TRIGGER_PREEMPT_TIME*1e6}us of pre-empt
+        Note: this adds a constant `FLIR_CAMERA_TRIGGER_PREEMPT_TIME` of pre-empt
         time to the exposure. If you are imaging a steady-state MOT instead of a
         fluorescence pulse, this will result in a increased signal.
 
