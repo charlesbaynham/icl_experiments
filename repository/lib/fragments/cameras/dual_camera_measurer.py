@@ -140,8 +140,6 @@ class _DualCameraBase(Fragment):
             self.exposure_vert.get() * 1e6, num_images=self.num_images
         )
 
-        logger.info("does this happen once per scan or once per point?")
-
         # Launch monitors
         # Always launch these even if we're not saving raw data - we'll write zeros if not
         self.set_dataset(
