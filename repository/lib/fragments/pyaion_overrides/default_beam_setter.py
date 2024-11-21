@@ -26,6 +26,8 @@ from pyaion.utilities.dummy_devices import *
 
 logger = logging.getLogger(__name__)
 
+logger.critical("I got imported")
+
 
 def make_set_beams_to_default(
     suservo_beam_infos: List[SUServoedBeam] = [],
@@ -56,6 +58,8 @@ def make_set_beams_to_default(
     TODO: Idea: I could speed up compilation times by sharing the same class
     definitions where possible, though this might be hard to detect.
     """
+
+    logger.critical("I got run")
 
     class SetBeamsToDefaultsCustomised(SetBeamsToDefaults):
         default_suservo_beam_infos = suservo_beam_infos
@@ -187,6 +191,8 @@ class SetBeamsToDefaults(Fragment):
                 max=1,
                 default=beam_info.initial_amplitude,
             )
+
+            logger.critical(f"I got paramed for {beam_info.name}")
 
             frequency_handle = self.setattr_param(
                 f"frequency_{beam_info.name}",
