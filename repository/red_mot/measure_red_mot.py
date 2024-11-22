@@ -63,9 +63,6 @@ class MeasureNarrowbandMOTNoAndorFrag(
 
     keep_andor_shutter_closed = True
 
-    def build_fragment(self):
-        super().build_fragment()
-
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
     BGCorrectedAndorImage,
