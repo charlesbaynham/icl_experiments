@@ -61,11 +61,10 @@ class MeasureNarrowbandMOTNoAndorFrag(
     Make a narrowband MOT, image with the FLIR and leave lattice light on
     """
 
+    keep_andor_shutter_closed = True
+
     def build_fragment(self):
         super().build_fragment()
-
-        # we need the andor shutter mixin to to the imaging, but we don't want to open the shutter
-        self.override_param("keep_andor_shutter_closed", True)
 
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
