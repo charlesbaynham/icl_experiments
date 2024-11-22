@@ -268,6 +268,7 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         delay(loading_time)
         if self.image_with_mot_beams.get():
             self.mot_controller.turn_off_all_beams_except_radial()
+            delay(200e-9)
             self.mot_controller.turn_off_radial_beams(ignore_shutters=True)
         else:
             self.mot_controller.turn_off_all_beams()
