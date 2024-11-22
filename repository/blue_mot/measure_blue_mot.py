@@ -295,7 +295,7 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
     @kernel
     def device_cleanup(self):
         self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
-        super().device_cleanup()
+        self.device_cleanup_subfragments()
 
     # @kernel
     # def _take_data(self, loading_time):
