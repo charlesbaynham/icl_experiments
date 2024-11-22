@@ -210,7 +210,10 @@ class RelockerChannelFrag(ExpFragment):
         )
         self.set_dataset("set_voltages", set_voltages, broadcast=True, archive=False)
         self.set_dataset("err", err, broadcast=True, archive=False)
-        cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x set_voltages --fit read_voltages --error err"
+        cmd = (
+            f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages "
+            f"--x set_voltages --fit read_voltages --error err"
+        )
         self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
 
     def get_result(self):
