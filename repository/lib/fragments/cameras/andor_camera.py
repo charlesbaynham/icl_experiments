@@ -52,7 +52,7 @@ class AndorCameraControl(Fragment):
         fast kinetics mode will be used.
     """
 
-    keep_andor_shutter_closed = False
+    keep_andor_shutter_closed = False  # HACK this is ugly
 
     def build_fragment(
         self,
