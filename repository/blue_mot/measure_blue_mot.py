@@ -250,7 +250,7 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
             "camera_pre_delay",
             FloatParam,
             description="Camera pre-delay",
-            default=1300,
+            default=0.0,
             min=0,
             unit="us",
         )
