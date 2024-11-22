@@ -12,6 +12,7 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib import constants
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.constants import MirnySettings
@@ -62,7 +63,7 @@ class SetEOMSidebandsFrag(Fragment):
             "sr87",
             BoolParam,
             "True = sr87, false = sr88",
-            default=False,
+            default=constants.USE_SR87,  # TODO: make sure this gets set properly
         )
         self.sr87: BoolParamHandle
 
