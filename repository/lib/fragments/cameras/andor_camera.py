@@ -184,6 +184,14 @@ class AndorCameraControl(Fragment):
             max=512,
         )
 
+        self.setattr_param(
+            "keep_andor_shutter_closed",
+            BoolParam,
+            default=False,
+            description="Keep the Andor shutter closed",
+        )
+        self.keep_andor_shutter_closed: BoolParamHandle
+
         self.fast_kinetics_mode = fast_kinetics_num_shots > 1
 
         if self.fast_kinetics_mode:
@@ -240,6 +248,7 @@ class AndorCameraControl(Fragment):
         self.kernel_invariants.add("num_rois")
         self.kernel_invariants.add("ttl_trigger")
         self.kernel_invariants.add("ttl_shutter")
+        self.kernel_invariants.add("keep_andor_shutter_closed")
 
     @rpc
     def calculate_roi_config(self) -> TArray(TInt32, 2):
@@ -278,7 +287,8 @@ class AndorCameraControl(Fragment):
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
-            self.cam.set_shutter_open()
+            if not self.keep_andor_shutter_closed.get():
+                self.cam.set_shutter_open()
 
             if self.fast_kinetics_mode:
                 logger.info("Setting up fast kinetics mode")
