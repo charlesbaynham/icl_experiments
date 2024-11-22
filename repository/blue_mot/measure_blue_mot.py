@@ -298,13 +298,13 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
 
         self.bg_corrected_measurement.save_data()
 
-    @kernel
-    def device_cleanup(self):
-        delay(1e-3)
-        self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
-        delay(400e-3)
+    # @kernel
+    # def device_cleanup(self):
+    #     delay(400e-3)
+    #     self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
+    #     delay(400e-3)
 
-        self.device_cleanup_subfragments()
+    #     self.device_cleanup_subfragments()
 
     # @kernel
     # def _take_data(self, loading_time):
