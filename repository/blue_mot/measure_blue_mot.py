@@ -266,13 +266,19 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
     @kernel
     def _take_data(self, loading_time):
         delay(loading_time)
-        self.mot_controller.turn_off_3d_and_2d_beams()
+        if self.image_with_mot_beams.get():
+            self.mot_controller.turn_off_all_beams_except_radial()
+            self.mot_controller.turn_off_radial_beams(ignore_shutters=True)
+        else:
+            self.mot_controller.turn_off_all_beams()
         delay(self.expansion_time.get())
         delay(-self.camera_pre_delay.get())
         with parallel:
             self.bg_corrected_measurement.trigger_signal()
             if self.image_with_mot_beams.get():
-                self.mot_beam_imaging.do_imaging_pulse(duration=self.exposure.get())
+                self.mot_beam_imaging.do_imaging_pulse(
+                    ignore_initial_shutters=True, duration=self.exposure.get()
+                )
             elif self.use_fluorescence_pulse.get():
                 self.fluorescence_pulse.do_imaging_pulse(duration=self.exposure.get())
                 # self.fluorescence_pulse.do_imaging_pulse(duration=50e-6)

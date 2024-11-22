@@ -164,6 +164,30 @@ class Blue3DMOTFrag(Fragment):
         self.mot_3d_beams_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
+            "mot_all_beams_except_radial_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
+                constants.SUSERVOED_BEAMS["repump_679"],
+                constants.SUSERVOED_BEAMS["repump_707"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
+                constants.SUSERVOED_BEAMS["blue_push_beam"],
+            ],
+        )
+        self.mot_all_beams_except_radial_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
+            "radial_beam_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
+            ],
+        )
+        self.radial_beam_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
             "repump_beam_setter",
             ControlBeamsWithoutCoolingAOM,
             beam_infos=[
@@ -384,6 +408,26 @@ class Blue3DMOTFrag(Fragment):
     @kernel
     def turn_off_repumpers(self):
         return self.repump_beam_setter.turn_beams_off()
+
+    @kernel
+    def turn_on_all_beams_except_radial(self, ignore_shutters=False):
+        return self.mot_all_beams_except_radial_setter.turn_beams_on(
+            ignore_shutters=ignore_shutters
+        )
+
+    @kernel
+    def turn_off_all_beams_except_radial(self, ignore_shutters=False):
+        return self.mot_all_beams_except_radial_setter.turn_beams_off(
+            ignore_shutters=ignore_shutters
+        )
+
+    @kernel
+    def turn_on_radial_beams(self, ignore_shutters=False):
+        return self.radial_beam_setter.turn_beams_on(ignore_shutters=ignore_shutters)
+
+    @kernel
+    def turn_off_radial_beams(self, ignore_shutters=False):
+        return self.radial_beam_setter.turn_beams_off(ignore_shutters=ignore_shutters)
 
     @kernel
     def clear_ch2(self):
