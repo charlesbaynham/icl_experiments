@@ -263,6 +263,7 @@ class AndorCameraControl(Fragment):
         return rois
 
     def host_setup(self):
+        self.fast_kinetics_shift_time = 0.0  # to prevent compilation errors
         # If the andor is in fast kinetics mode and the height of pixels to emit
         # is > 512, it will emit two frames onto Grabber instead of one. The
         # first will be "nonsense" (probably with some digital information that
