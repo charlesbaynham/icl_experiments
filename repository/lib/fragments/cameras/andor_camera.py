@@ -52,6 +52,8 @@ class AndorCameraControl(Fragment):
         fast kinetics mode will be used.
     """
 
+    keep_andor_shutter_closed = False  # HACK this is ugly
+
     def build_fragment(
         self,
         roi_defaults=[
@@ -263,6 +265,7 @@ class AndorCameraControl(Fragment):
         return rois
 
     def host_setup(self):
+        self.fast_kinetics_shift_time = 0.0  # to prevent compilation errors
         # If the andor is in fast kinetics mode and the height of pixels to emit
         # is > 512, it will emit two frames onto Grabber instead of one. The
         # first will be "nonsense" (probably with some digital information that
@@ -277,7 +280,8 @@ class AndorCameraControl(Fragment):
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
             self.set_roi()
-            self.cam.set_shutter_open()
+            if not self.keep_andor_shutter_closed:
+                self.cam.set_shutter_open()
 
             if self.fast_kinetics_mode:
                 logger.info("Setting up fast kinetics mode")
@@ -291,7 +295,7 @@ class AndorCameraControl(Fragment):
                 # to the "exposure time" specified in Fast Kinetics mode.
 
                 self.fast_kinetics_shift_time = (
-                    self.fast_kinetics_height.get() * self.cam.get_vsspeed() * 1e-6
+                    self.fast_kinetics_height.get() * self.cam.vsspeed * 1e-6
                 )
                 logger.info(
                     "fast_kinetics_shift_time = %.2f us",
