@@ -14,7 +14,7 @@ from repository.lib.fragments.ramping_phase_bound import (
 
 class RedRampingMixin:
     """
-    Subclass the GeneralRampingPhase specifically for red MOTs. I.e.:
+    Mixin for use with a GeneralRampingPhase specifically for red MOTs. I.e.:
 
     * Specify the 689 double-passed AOM as an Urukul to ramp
     * Control the 4 red beams
