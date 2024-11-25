@@ -55,6 +55,7 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import MIRNY_SETTINGS_87
@@ -62,9 +63,6 @@ from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
-from repository.lib.fragments.pyaion_overrides.suservo_override import (
-    LibSetSUServoStatic,
-)
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
