@@ -16,6 +16,7 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.cameras.dual_camera_measurer import BGCorrectedMeasurement
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 from repository.lib.fragments.fluorescence_pulse import ImagingFluorescencePulse
+from repository.lib.fragments.fluorescence_pulse import MOTBeamFluorescencePulse
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +213,6 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         )
         self.exposure: FloatParamHandle
 
-        # TODO: This rebinding appears not to work
         self.bg_corrected_measurement.bind_param("exposure_vert", self.exposure)
 
         self.setattr_param(
@@ -227,6 +227,9 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         self.setattr_fragment("fluorescence_pulse", ImagingFluorescencePulse)
         self.fluorescence_pulse: ImagingFluorescencePulse
 
+        self.setattr_fragment("mot_beam_imaging", MOTBeamFluorescencePulse)
+        self.mot_beam_imaging: MOTBeamFluorescencePulse
+
         self.setattr_param(
             "use_fluorescence_pulse",
             BoolParam,
@@ -236,10 +239,18 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         self.use_fluorescence_pulse: BoolParamHandle
 
         self.setattr_param(
+            "image_with_mot_beams",
+            BoolParam,
+            description="Image with MOT beams",
+            default=False,
+        )
+        self.image_with_mot_beams: BoolParamHandle
+
+        self.setattr_param(
             "camera_pre_delay",
             FloatParam,
             description="Camera pre-delay",
-            default=1300,
+            default=0.0,
             min=0,
             unit="us",
         )
@@ -255,13 +266,23 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
     @kernel
     def _take_data(self, loading_time):
         delay(loading_time)
-        self.mot_controller.turn_off_3d_and_2d_beams()
+        if self.image_with_mot_beams.get():
+            self.mot_controller.turn_off_all_beams_except_radial(ignore_shutters=False)
+            delay(200e-9)
+            self.mot_controller.turn_off_radial_beams(ignore_shutters=True)
+        else:
+            self.mot_controller.turn_off_all_beams()
         delay(self.expansion_time.get())
         delay(-self.camera_pre_delay.get())
         with parallel:
             self.bg_corrected_measurement.trigger_signal()
-            if self.use_fluorescence_pulse.get():
-                self.fluorescence_pulse.do_imaging_pulse()
+            if self.image_with_mot_beams.get():
+                self.mot_beam_imaging.do_imaging_pulse(
+                    ignore_initial_shutters=True, duration=self.exposure.get()
+                )
+            elif self.use_fluorescence_pulse.get():
+                self.fluorescence_pulse.do_imaging_pulse(duration=self.exposure.get())
+                # self.fluorescence_pulse.do_imaging_pulse(duration=50e-6)
             else:
                 delay(self.exposure.get())
         delay(self.camera_pre_delay.get())
@@ -277,6 +298,14 @@ class MeasureBlueMOTWithExpansionFrag(_MeasureBlueMOTFrag):
         self.core.wait_until_mu(now_mu())
 
         self.bg_corrected_measurement.save_data()
+
+    # @kernel
+    # def device_cleanup(self):
+    #     delay(400e-3)
+    #     self.mot_controller.chamber_2_field_setter.set_mot_gradient(0.0)
+    #     delay(400e-3)
+
+    #     self.device_cleanup_subfragments()
 
     # @kernel
     # def _take_data(self, loading_time):

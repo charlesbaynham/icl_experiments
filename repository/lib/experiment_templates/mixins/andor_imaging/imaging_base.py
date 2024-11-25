@@ -53,6 +53,8 @@ class AndorImagingBase(RedMOTWithExperiment):
     num_grabber_readouts = 1
     "How many images will the Grabber read out"
 
+    keep_andor_shutter_closed = False
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -90,6 +92,9 @@ class AndorImagingBase(RedMOTWithExperiment):
             * self.num_grabber_rois,
         )
         self.andor_camera_control: AndorCameraControl
+        self.andor_camera_control.keep_andor_shutter_closed = (
+            self.keep_andor_shutter_closed
+        )
 
         self.hook_setup_andor_results()
 
