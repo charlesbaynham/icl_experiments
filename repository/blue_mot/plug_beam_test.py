@@ -104,7 +104,7 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         self.plug_beam_default_setter.blue_plug_beam.set_suservo(
             freq=self.plug_aom_frequency.get(),
             amplitude=1.0,
-            attenuation=constants.SUSERVOED_BEAMS["blue_plug_beam"].attenuation,
+            attenuation=20,
             rf_switch_state=True,
             setpoint_v=self.plug_beam_setpoint.get(),
             enable_iir=True,
