@@ -21,6 +21,14 @@ from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
+
+# Import from pyaion overrides directly. This shouldn't be required, but is for some reason
+from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
+    SetBeamsToDefaults,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
+    make_set_beams_to_default,
+)
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
@@ -258,16 +266,19 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
+        self.core.break_realtime()
+
         if self.first_run:
-            self.core.break_realtime()
             delay(10 * ms)
             self.ttl_shutter_red_axial_mot.on()
             self.ttl_shutter_red_axial_spin_pol.off()
 
-            if self.turn_on_beams_with_default_settings:
-                self.beam_default_setter.turn_on_all(light_enabled=True)
-
             self.first_run = False
+
+        if self.turn_on_beams_with_default_settings:
+            self.core.break_realtime()
+            delay(1 * ms)
+            self.beam_default_setter.turn_on_all(light_enabled=True)
 
     @kernel
     def run_once(self):
