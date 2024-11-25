@@ -279,6 +279,9 @@ class AndorCameraControl(Fragment):
 
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
+            if self.cam.get_status() == 20072:
+                logger.warning("Andor still acquiring, stopping acquisition")
+                self.cam.stop_acquisition()
             self.set_roi()
             if not self.keep_andor_shutter_closed:
                 self.cam.set_shutter_open()
