@@ -51,6 +51,19 @@ class MeasureNarrowbandMOTFrag(
     """
 
 
+class MeasureNarrowbandMOTNoAndorFrag(
+    FLIRMeasurementMixin,
+    SingleAndorImage,
+    ExponentialDecayMixin,
+    _MeasureNarrowbandMOTFrag,
+):
+    """
+    Make a narrowband MOT, image with the FLIR and leave lattice light on
+    """
+
+    keep_andor_shutter_closed = True
+
+
 class MeasureNarrowbandMOTBGCorrectedFrag(
     BGCorrectedAndorImage,
     FLIRMeasurementMixin,
@@ -78,3 +91,5 @@ MeasureNarrowbandRedMOTBGCorrected = make_fragment_scan_exp(
 )
 
 MeasureNarrowbandMOTAbs = make_fragment_scan_exp(MeasureNarrowbandMOTAbsFrag)
+
+MeasureNarrowbandRedMOTNoAndor = make_fragment_scan_exp(MeasureNarrowbandMOTNoAndorFrag)

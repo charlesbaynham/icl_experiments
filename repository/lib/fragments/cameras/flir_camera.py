@@ -124,7 +124,7 @@ class CameraFrag(Fragment):
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
             "debug_enabled",
-            "exposure",
+            # "exposure",
         }
 
     def host_setup(self):
