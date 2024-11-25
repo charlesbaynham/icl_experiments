@@ -1,8 +1,5 @@
 import logging
-from typing import *
 
-from artiq.experiment import TFloat
-from artiq.experiment import TList
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
@@ -41,7 +38,7 @@ class GeneralRampingPhaseWithBinding(GeneralRampingPhase):
 
     @host_only
     def bind_suservo_setpoint_params_to_default_beam_setter(
-        self, beam_setter: SetBeamsToDefaults | List[SetBeamsToDefaults]
+        self, beam_setter: SetBeamsToDefaults | list[SetBeamsToDefaults]
     ):
         """
         Use the GeneralRampingPhase's :meth:`~.bind_suservo_setpoint_params`
@@ -139,7 +136,7 @@ class GeneralRampingPhaseWithBindingAndMOTField(GeneralRampingPhaseWithBinding):
         return super().build_fragment(**kwargs)
 
     @kernel
-    def general_setter(self, vals: TList(TFloat)):
+    def general_setter(self, vals: list[float]):
         self.chamber_2_field_setter.set_mot_gradient(vals[0])
 
 
@@ -163,7 +160,7 @@ class GeneralRampingPhaseWithBindingAndBiasField(GeneralRampingPhaseWithBinding)
         return super().build_fragment(**kwargs)
 
     @kernel
-    def general_setter(self, vals: TList(TFloat)):
+    def general_setter(self, vals: list[float]):
         self.chamber_2_field_setter.set_bias_fields(vals[0], vals[1], vals[2])
 
 
@@ -195,5 +192,5 @@ class GeneralRampingPhaseWithBindingAndMOTAndBiasField(GeneralRampingPhaseWithBi
         return super().build_fragment(**kwargs)
 
     @kernel
-    def general_setter(self, vals: TList(TFloat)):
+    def general_setter(self, vals: list[float]):
         self.chamber_2_field_setter.set_all_fields(vals[0], vals[1], vals[2], vals[3])

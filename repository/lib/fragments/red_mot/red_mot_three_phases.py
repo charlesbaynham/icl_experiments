@@ -2,7 +2,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import TFloat
+from artiq.compiler.builtins import TFloat
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
