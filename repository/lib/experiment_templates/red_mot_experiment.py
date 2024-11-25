@@ -233,7 +233,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
         self.red_mot.turn_on_pre_mot_pumping()
         delay(self.pre_mot_pumping_duration.get())
-        self.red_mot.prepare_for_broadband_phase()
+        self.red_mot.red_beam_controller.start_ramping_red_broadband_mot()
         self.red_mot.broadband_red_phase.do_phase()
         delay(-self.red_mot.broadband_red_phase.duration.get())
         self.start_of_red_broadband_hook()
