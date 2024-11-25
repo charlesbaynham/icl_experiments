@@ -2,6 +2,8 @@ from artiq.coredevice.core import Core
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatChannel
+from ndscan.experiment import ResultChannel
 from ndscan.experiment import delay
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -18,6 +20,7 @@ from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
 from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
     make_set_beams_to_default,
 )
+from repository.lib.fragments.read_adc import ReadSUServoADC
 
 PlugBeamSetter = make_set_beams_to_default(
     suservo_beam_infos=[
@@ -73,6 +76,16 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         )
         self.plug_beam_frequency: FloatParamHandle
 
+        self.setattr_result("photodiode_voltage", FloatChannel)
+        self.photodiode_voltage: ResultChannel
+
+        self.setattr_fragment(
+            "adc_reader",
+            ReadSUServoADC,
+            self.get_device("suservo_aom_doublepass_461_plug"),
+        )
+        self.adc_reader: ReadSUServoADC
+
     @kernel
     def run_once(self) -> None:
         # Turn on the plug beam and set its amplitude, setpoint and frequency
@@ -89,7 +102,9 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         self.dual_cameras.save_data()
 
         self.core.break_realtime()
-
+        photodiode_voltage = self.adc_reader.read_adc()
+        self.photodiode_voltage.push(photodiode_voltage)
+        self.core.break_realtime()
         self.blue_mot.turn_off_all_beams()
 
         delay(self.delay_between_points.get())
