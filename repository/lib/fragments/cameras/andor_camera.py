@@ -295,7 +295,7 @@ class AndorCameraControl(Fragment):
                 # to the "exposure time" specified in Fast Kinetics mode.
 
                 self.fast_kinetics_shift_time = (
-                    self.fast_kinetics_height.get() * self.cam.get_vsspeed() * 1e-6
+                    self.fast_kinetics_height.get() * self.cam.vsspeed * 1e-6
                 )
                 logger.info(
                     "fast_kinetics_shift_time = %.2f us",
