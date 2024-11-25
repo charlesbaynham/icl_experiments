@@ -4,6 +4,7 @@ from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
+from artiq.language import parallel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
