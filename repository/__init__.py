@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 # Use this list to override pyaion modules with local ones.
 # by passing the name of the pyaion module you want to override. It will be
 # replaced by the module of the same name in "lib.fragments.pyaion_overrides"
-pyaion_override_list = []
+pyaion_override_list = ["pyaion.fragments.default_beam_setter"]
 
 
 for override_name in pyaion_override_list:
