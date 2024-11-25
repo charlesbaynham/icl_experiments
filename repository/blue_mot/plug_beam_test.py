@@ -102,7 +102,7 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         self.plug_beam_default_setter.turn_on_all()
 
         self.blue_aom.set_dds(
-            self.blue_aom.servo_channel, self.plug_aom_frequency.get(), offset=0.0
+            self.blue_aom.servo_channel, self.plug_aom_frequency.get(), offset=-1.0
         )
 
         self.blue_mot.load_mot()  # This turns on MOT coils, "clears out" for 100ms, then turns on MOT beams, and waits for loading time
