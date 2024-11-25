@@ -349,14 +349,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
 
     @kernel
-    def end_of_broadband_mot_hook(self):
-        """
-        Executed immediately after the broadband MOT stage ends, before the
-        broadband ramping is disabled. No timeline correction is performed, so
-        changes here will delay the narrowband red MOT.
-        """
-
-    @kernel
     def start_of_red_broadband_hook(self):
         """
         Executed as the broadband MOT stage starts.
@@ -365,6 +357,14 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         queued into the RTIO, so write here will consume new lanes.
 
         TODO: Move this hook so that new lanes aren't needed
+        """
+
+    @kernel
+    def end_of_broadband_mot_hook(self):
+        """
+        Executed immediately after the broadband MOT stage ends, before the
+        broadband ramping is disabled. No timeline correction is performed, so
+        changes here will delay the narrowband red MOT.
         """
 
     @kernel
