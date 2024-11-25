@@ -190,6 +190,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.clock_delivery_beam_suservo.set_iir_params(
             ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
         )
+
+        self.red_mot.red_beam_controller.init()
+
         self.core.break_realtime()
 
         self.DMA_initialization_hook()
@@ -225,7 +228,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.blue_3d_mot.do_blue_transfer_mot()
         self.red_mot.chamber_2_field_setter.set_mot_gradient(
             self.red_mot.broadband_red_phase.general_setter_default_starts[0]
-        ) # TODO: If pumping works, fetch the handle rather than the default mot current
+        )  # TODO: If pumping works, fetch the handle rather than the default mot current
         delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
         self.red_mot.turn_on_pre_mot_pumping()
