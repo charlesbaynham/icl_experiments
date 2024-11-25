@@ -344,12 +344,12 @@ BLUE_LOADING_TIME = 500e-3
 "Default blue MOT loading time"
 
 
-RED_BROADBAND_RAMP_LIMIT = 4e6
-"Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
-
-RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
-"Default ramp frequency for the broadband red MOT"
-
+RED_BROADBAND_MOT_RAMP_UPPER_LIMIT = 4e6
+RED_BROADBAND_MOT_RAMP_LOWER_LIMIT = 0
+RED_BROADBAND_MOT_RAMP_FREQUENCY = 30e3
+RED_PRE_MOT_PUMPING_RAMP_UPPER_LIMIT = 3e6
+RED_PRE_MOT_PUMPING_RAMP_LOWER_LIMIT = -3e6
+RED_PRE_MOT_PUMPING_RAMP_FREQUENCY = 30e3
 
 RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
 "Default final hold time in last stage of the red mot"

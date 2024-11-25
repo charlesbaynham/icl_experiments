@@ -12,6 +12,7 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
@@ -41,11 +42,11 @@ class RedMOTThreePhaseFrag(Fragment):
         self.chamber_2_field_setter: SetMagneticFieldsQuick
 
         self.setattr_param_rebind(
-            "ramp_lower_detuning",
+            "broadband_mot_ramp_lower_detuning",
             self.red_beam_controller,
         )
         self.setattr_param_rebind(
-            "ramp_upper_detuning",
+            "broadband_mot_ramp_upper_detuning",
             self.red_beam_controller,
         )
         self.setattr_param_rebind(
@@ -141,9 +142,27 @@ class RedMOTThreePhaseFrag(Fragment):
         left pointing at the moment that the beams turn on.
         """
 
-        self.red_beam_controller.start_ramping_red()
-        delay_mu(8)
+        self.red_beam_controller.start_ramping_red_broadband_mot()
+        delay_mu(int64(self.core.ref_multiplier))
         self.red_beam_controller.turn_on_mot_beams()
+        delay_mu(int64(self.core.ref_multiplier))
+
+    @kernel
+    def turn_on_pre_mot_pumping(self):
+        """
+        Start sweeping red IJD and turn on the beams in preparation for the
+        broadband phase
+
+        Does not turn off blue beams - you should do this elsewhere.
+
+        Advances the timeline by the duration of SPI writes. The timeline is
+        left pointing at the moment that the beams turn on.
+        """
+
+        self.red_beam_controller.start_ramping_red_pre_mot_pumping()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.red_beam_controller.turn_on_mot_beams()
+        delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def terminate_broadband_mot(self):

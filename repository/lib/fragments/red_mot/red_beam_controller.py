@@ -149,10 +149,6 @@ class RedBeamController(Fragment):
         # now - we'll populate it in device_setup() so that we can scan over it
         self.suservo_nominal_amplitudes = [0.0] * len(RED_SUSERVO_INFOS)
 
-        # Commented out since the cavity EOM is currently driven by a Rigol
-        # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
-        # self.laser_stab_system: LaserStabilisationSystem
-
         # %% DEVICES
 
         self.injection_aom: AD9910 = self.get_device(
@@ -193,27 +189,48 @@ class RedBeamController(Fragment):
             FloatParam,
             "689 injection AOM ramp frequency",
             unit="kHz",
-            default=constants.RED_INJECTION_AOM_RAMP_FREQUENCY,
+            default=constants.RED_BROADBAND_MOT_RAMP_FREQUENCY,
         )
         self.setattr_param(
-            "ramp_lower_detuning",
+            "broadband_mot_ramp_lower_detuning",
             FloatParam,
-            "Detuning of 689 injection AOM from nominal frequency at lowest point of ramp",
+            "Broadband MOT upper-limit detuning of 689 injection AOM from nominal",
             unit="MHz",
-            default=0.0,
+            default=constants.RED_BROADBAND_MOT_RAMP_LOWER_LIMIT,
         )
         self.setattr_param(
-            "ramp_upper_detuning",
+            "broadband_mot_ramp_upper_detuning",
             FloatParam,
-            "Detuning of 689 injection AOM from nominal frequency at highest point of ramp",
+            "Broadband MOT upper-limit Detuning of 689 injection AOM from nominal",
             unit="MHz",
-            default=constants.RED_BROADBAND_RAMP_LIMIT,
+            default=constants.RED_BROADBAND_MOT_RAMP_UPPER_LIMIT,
         )
         self.setattr_param(
             "ramp_type",
             IntParam,
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
             default=2,
+        )
+        self.setattr_param(
+            "pre_mot_pumping_ramp_frequency",
+            FloatParam,
+            "Pre-MOT pumping 689 injection AOM ramp frequency",
+            unit="kHz",
+            default=constants.RED_PRE_MOT_PUMPING_RAMP_FREQUENCY,
+        )
+        self.setattr_param(
+            "pre_mot_pumping_ramp_lower_detuning",
+            FloatParam,
+            "Pre-MOT pumping lower-limit detuning of 689 injection AOM from nominal",
+            unit="MHz",
+            default=constants.RED_PRE_MOT_PUMPING_RAMP_LOWER_LIMIT,
+        )
+        self.setattr_param(
+            "pre_mot_pumping_ramp_upper_detuning",
+            FloatParam,
+            "Pre-MOT pumping upper-limit detuning of 689 injection AOM from nominal",
+            unit="MHz",
+            default=constants.RED_PRE_MOT_PUMPING_RAMP_UPPER_LIMIT,
         )
         self.setattr_param(
             "spinpol_ramp_frequency",
@@ -223,14 +240,14 @@ class RedBeamController(Fragment):
             default=constants.RED_SPINPOL_AOM_RAMP_FREQUENCY,
         )
         self.setattr_param(
-            "spinpol_ramp_lower_detuning",
+            "spinpol_broadband_mot_ramp_lower_detuning",
             FloatParam,
             "Detuning of 689 spinpol AOM from nominal frequency at lowest point of ramp",
             unit="MHz",
             default=constants.RED_SPINPOL_RAMP_LOWER_LIMIT,
         )
         self.setattr_param(
-            "spinpol_ramp_upper_detuning",
+            "spinpol_broadband_mot_ramp_upper_detuning",
             FloatParam,
             "Detuning of 689 spinpol AOM from nominal frequency at highest point of ramp",
             unit="MHz",
@@ -251,14 +268,17 @@ class RedBeamController(Fragment):
         self.spinpol_aom_static_frequency: FloatParamHandle
         self.injection_aom_static_frequency: FloatParamHandle
         self.ramp_frequency: FloatParamHandle
-        self.ramp_lower_detuning: FloatParamHandle
-        self.ramp_upper_detuning: FloatParamHandle
+        self.broadband_mot_ramp_lower_detuning: FloatParamHandle
+        self.broadband_mot_ramp_upper_detuning: FloatParamHandle
         self.ramp_type: IntParamHandle
         self.spinpol_ramp_frequency: FloatParamHandle
-        self.spinpol_ramp_lower_detuning: FloatParamHandle
-        self.spinpol_ramp_upper_detuning: FloatParamHandle
+        self.spinpol_broadband_mot_ramp_lower_detuning: FloatParamHandle
+        self.spinpol_broadband_mot_ramp_upper_detuning: FloatParamHandle
         self.spinpol_ramp_type: IntParamHandle
         self.use_sigmaplus_spinpol: BoolParamHandle
+        self.pre_mot_pumping_ramp_frequency: FloatParamHandle
+        self.pre_mot_pumping_ramp_lower_detuning: FloatParamHandle
+        self.pre_mot_pumping_ramp_upper_detuning: FloatParamHandle
 
         # %% Kernel parameters
 
@@ -266,6 +286,7 @@ class RedBeamController(Fragment):
         # in device_setup in case it's varied in a scan
         self.ramp_rate = 0.0
         self.spinpol_ramp_rate = 0.0
+        self.pre_mot_pumping_ramp_rate = 0.0
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
         self.kernel_invariants.add("debug_mode")
@@ -303,7 +324,7 @@ class RedBeamController(Fragment):
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = abs(
-            (self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get())
+            (self.broadband_mot_ramp_lower_detuning.get() - self.broadband_mot_ramp_upper_detuning.get())
             * self.ramp_frequency.get()
         )
 
@@ -319,8 +340,8 @@ class RedBeamController(Fragment):
         # Precalculate the spinpol ramp rate required to get the requested modulation frequency
         self.spinpol_ramp_rate = abs(
             (
-                self.spinpol_ramp_lower_detuning.get()
-                - self.spinpol_ramp_upper_detuning.get()
+                self.spinpol_broadband_mot_ramp_lower_detuning.get()
+                - self.spinpol_broadband_mot_ramp_upper_detuning.get()
             )
             * self.spinpol_ramp_frequency.get()
         )
@@ -334,6 +355,14 @@ class RedBeamController(Fragment):
                 "Calculated required ramp_rate = %s kHz/s",
                 self.spinpol_ramp_rate * 1e-3,
             )
+        
+        self.pre_mot_pumping_ramp_rate = abs(
+            (
+                self.pre_mot_pumping_ramp_lower_detuning.get()
+                - self.pre_mot_pumping_ramp_upper_detuning.get()
+            )
+            * self.pre_mot_pumping_ramp_frequency.get()
+        )
 
         self.core.break_realtime()
 
@@ -378,7 +407,7 @@ class RedBeamController(Fragment):
         self.all_mot_beams_setter.turn_beams_off(ignore_shutters)
 
     @kernel
-    def start_ramping_red(self):
+    def start_ramping_red_broadband_mot(self):
         """
         Start modulation of the 689 DDS as configured
 
@@ -387,9 +416,24 @@ class RedBeamController(Fragment):
 
         self.injection_aom_ramper.start_ramp(
             self.ramp_rate,
-            self.injection_aom_static_frequency.get() + self.ramp_lower_detuning.get(),
-            self.injection_aom_static_frequency.get() + self.ramp_upper_detuning.get(),
+            self.injection_aom_static_frequency.get() + self.broadband_mot_ramp_lower_detuning.get(),
+            self.injection_aom_static_frequency.get() + self.broadband_mot_ramp_upper_detuning.get(),
             self.ramp_type.get(),
+        )
+    
+    @kernel
+    def start_ramping_red_pre_mot_pumping(self):
+        """
+        Start modulation of the 689 DDS as configured for pre-mot pumping
+
+        Advances the timeline by the duration of SPI writes
+        """
+
+        self.injection_aom_ramper.start_ramp(
+            self.pre_mot_pumping_ramp_rate,
+            self.injection_aom_static_frequency.get() + self.pre_mot_pumping_ramp_lower_detuning.get(),
+            self.injection_aom_static_frequency.get() + self.pre_mot_pumping_ramp_upper_detuning.get(),
+            2,
         )
 
     @kernel
@@ -415,9 +459,9 @@ class RedBeamController(Fragment):
         self.spinpol_aom_ramper.start_ramp(
             self.spinpol_ramp_rate,
             self.spinpol_aom_static_frequency.get()
-            + self.spinpol_ramp_lower_detuning.get(),
+            + self.spinpol_broadband_mot_ramp_lower_detuning.get(),
             self.spinpol_aom_static_frequency.get()
-            + self.spinpol_ramp_upper_detuning.get(),
+            + self.spinpol_broadband_mot_ramp_upper_detuning.get(),
             self.spinpol_ramp_type.get(),
         )
 

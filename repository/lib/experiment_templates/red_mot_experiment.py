@@ -161,6 +161,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.delay_after_experiment: FloatParamHandle
 
         self.setattr_param(
+            "pre_mot_pumping_duration",
+            FloatParam,
+            "Duration of pre-MOT pumping",
+            default=200e-6,
+            unit="us",
+        )
+        self.pre_mot_pumping_duration: FloatParamHandle
+
+        self.setattr_param(
             "spectroscopy_field_gradient",
             FloatParam,
             "MOT coil current during spectroscopy",
@@ -214,10 +223,13 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
         self.blue_3d_mot.do_blue_transfer_mot()
+        self.red_mot.chamber_2_field_setter.set_mot_gradient(
+            self.red_mot.broadband_red_phase.general_setter_default_starts[0]
+        ) # TODO: If pumping works, fetch the handle rather than the default mot current
         delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
-        # Note: this is a simple way to delay, but will probably fill an extra lane (greater risk of underflow)
-        delay(-self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
+        self.red_mot.turn_on_pre_mot_pumping()
+        delay(self.pre_mot_pumping_duration.get())
         self.red_mot.prepare_for_broadband_phase()
         self.red_mot.broadband_red_phase.do_phase()
         delay(-self.red_mot.broadband_red_phase.duration.get())
