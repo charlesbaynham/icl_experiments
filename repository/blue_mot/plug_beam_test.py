@@ -70,21 +70,21 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         # )
         # self.plug_aom_attenuation: FloatParamHandle
 
-        self.setattr_param_rebind(
-            "plug_beam_setpoint",
-            self.plug_beam_default_setter,
-            "setpoint_blue_plug_beam",
-            description="Setpoint",
-        )
-        self.plug_beam_setpoint: FloatParamHandle
+        # self.setattr_param_rebind(
+        #     "plug_beam_setpoint",
+        #     self.plug_beam_default_setter,
+        #     "setpoint_blue_plug_beam",
+        #     description="Setpoint",
+        # )
+        # self.plug_beam_setpoint: FloatParamHandle
 
-        self.setattr_param_rebind(
-            "plug_beam_frequency",
-            self.plug_beam_default_setter,
-            "frequency_blue_plug_beam",
-            description="Frequency",
-        )
-        self.plug_beam_frequency: FloatParamHandle
+        # self.setattr_param_rebind(
+        #     "plug_beam_frequency",
+        #     self.plug_beam_default_setter,
+        #     "frequency_blue_plug_beam",
+        #     description="Frequency",
+        # )
+        # self.plug_beam_frequency: FloatParamHandle
 
         # self.setattr_param(
         #     "plug_aom_frequency",
