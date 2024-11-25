@@ -1,8 +1,8 @@
 import logging
 
+from artiq.compiler.builtins import TFloat
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.compiler.builtins import TFloat
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -196,28 +196,6 @@ class RedMOTThreePhaseFrag(Fragment):
 
         if self.disable_679_during_narrowband.get():
             self.ttl_shutter_repump_679.off()
-
-    @kernel
-    def set_narrowband_fields_hook(self):
-        """
-        Hook for setting magnetic fields after the broadband for use in the narrowband MOT. This
-        fires at the same cursor position as the pre_expansion_hook, and runs
-        after it.
-
-        Any changes to the cursor made by this function will be respected, i.e.
-        the rest of the sequence CAN be delayed by this hook
-        """
-        self.set_narrowband_fields_default()
-
-    def set_narrowband_fields_default(self):
-        """
-        Set the magnetic fields for the narrowband MOT to the default values
-        """
-        bias_x = self.bias_x_narrowband.get()
-        bias_y = self.bias_y_narrowband.get()
-        bias_z = self.bias_z_narrowband.get()
-        self.chamber_2_field_setter.set_bias_fields(bias_x, bias_y, bias_z)
-        delay((1.5e-6 + 808e-9) * 3)
 
     @kernel
     def do_narrowband_red_mot(self):
