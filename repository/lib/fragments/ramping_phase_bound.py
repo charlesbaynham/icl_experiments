@@ -196,5 +196,4 @@ class GeneralRampingPhaseWithBindingAndMOTAndBiasField(GeneralRampingPhaseWithBi
 
     @kernel
     def general_setter(self, vals: TList(TFloat)):
-        self.chamber_2_field_setter.set_mot_gradient(vals[0])
-        self.chamber_2_field_setter.set_bias_fields(vals[1], vals[2], vals[3])
+        self.chamber_2_field_setter.set_all_fields(vals[0], vals[1], vals[2], vals[3])

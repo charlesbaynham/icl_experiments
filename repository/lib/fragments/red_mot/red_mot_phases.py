@@ -12,47 +12,44 @@ from repository.lib.fragments.ramping_phase_bound import (
 )
 
 
-def red_ramping_phase_factory(general_phase_class):
+class RedRampingMixin:
     """
-    Factory function to create a red MOT phase with the given general phase class
+    Subclass the GeneralRampingPhase specifically for red MOTs. I.e.:
+
+    * Specify the 689 double-passed AOM as an Urukul to ramp
+    * Control the 4 red beams
+    * Add control of the B fields in chamber 2
     """
 
-    class RedRampingPhase(general_phase_class):
-        """
-        Subclass the GeneralRampingPhase specifically for red MOTs. I.e.:
+    urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
+    default_urukul_amplitudes_start = [1.0]
+    default_urukul_amplitudes_end = [1.0]
+    suservos = [
+        "suservo_aom_singlepass_689_red_mot_sigmaplus",
+        "suservo_aom_singlepass_689_red_mot_sigmaminus",
+        "suservo_aom_singlepass_689_red_mot_diagonal",
+        "suservo_aom_singlepass_689_up",
+    ]
 
-        * Specify the 689 double-passed AOM as an Urukul to ramp
-        * Control the 4 red beams
-        * Add control of the B fields in chamber 2
-        """
-
-        urukuls = ["urukul9910_aom_doublepass_689_red_injection"]
-        default_urukul_amplitudes_start = [1.0]
-        default_urukul_amplitudes_end = [1.0]
-        suservos = [
-            "suservo_aom_singlepass_689_red_mot_sigmaplus",
-            "suservo_aom_singlepass_689_red_mot_sigmaminus",
-            "suservo_aom_singlepass_689_red_mot_diagonal",
-            "suservo_aom_singlepass_689_up",
-        ]
-
-        # These must be overridden / rebound by consumer fragments otherwise not
-        # much will happen. This is done so that all the phases can share the same
-        # detuning / nominal setpoints. Use
-        # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-        default_urukul_nominal_frequencies = [0.0]
-        default_suservo_nominal_setpoints = [0.0] * 4
-
-    return RedRampingPhase
+    # These must be overridden / rebound by consumer fragments otherwise not
+    # much will happen. This is done so that all the phases can share the same
+    # detuning / nominal setpoints. Use
+    # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
+    default_urukul_nominal_frequencies = [0.0]
+    default_suservo_nominal_setpoints = [0.0] * 4
 
 
-RedRampingPhaseWithFieldsAndSUServoBindings = red_ramping_phase_factory(
-    GeneralRampingPhaseWithBindingAndMOTField
-)
+class RedRampingPhaseWithFieldsAndSUServoBindings(
+    RedRampingMixin, GeneralRampingPhaseWithBindingAndMOTField
+):
+    pass
 
-RedRampingPhaseWithFieldsAndSUServoBindingsAndBiasField = red_ramping_phase_factory(
-    GeneralRampingPhaseWithBindingAndMOTAndBiasField
-)
+
+class RedRampingPhaseWithAllFieldsAndSUServoBindings(
+    RedRampingMixin,
+    GeneralRampingPhaseWithBindingAndMOTAndBiasField,
+):
+    pass
 
 
 class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
@@ -85,9 +82,7 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     general_setter_default_ends = constants.RED_BROADBAND_MOT_CURRENT_END
 
 
-class BroadbandRedPhaseWithBiasRamp(
-    RedRampingPhaseWithFieldsAndSUServoBindingsAndBiasField
-):
+class BroadbandRedPhaseWithBiasRamp(RedRampingPhaseWithAllFieldsAndSUServoBindings):
     """
     As BroadbandRedPhase but also ramps the bias fields in chamber 2
     """
