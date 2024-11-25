@@ -70,41 +70,39 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     general_setter_default_starts = constants.RED_BROADBAND_MOT_CURRENT_START
     general_setter_default_ends = constants.RED_BROADBAND_MOT_CURRENT_END
 
-    class BroadbandRedPhaseWithBiasRamp(
-        GeneralRampingPhaseWithBindingAndMOTAndBiasField
-    ):
-        """
-        As BroadbandRedPhase but also ramps the bias fields in chamber 2
-        """
 
-        duration_default = constants.RED_BROADBAND_DURATION
-        time_step_default = constants.RED_BROADBAND_TIMESTEP
+class BroadbandRedPhaseWithBiasRamp(GeneralRampingPhaseWithBindingAndMOTAndBiasField):
+    """
+    As BroadbandRedPhase but also ramps the bias fields in chamber 2
+    """
 
-        # For the broadband stage we don't want control over the Urukul since the
-        # frequency is controlled by the fast ramp rate. The parameters controlling
-        # that ramp rate are not currently rampable - we could add this if required
-        # but it's getting conceptually complicated
-        urukuls = []
-        default_urukul_amplitudes_start = []
-        default_urukul_amplitudes_end = []
-        default_urukul_detunings_start = []
-        default_urukul_detunings_end = []
-        default_urukul_nominal_frequencies = []
+    duration_default = constants.RED_BROADBAND_DURATION
+    time_step_default = constants.RED_BROADBAND_TIMESTEP
 
-        default_suservo_setpoint_multiples_start = (
-            constants.RED_BROADBAND_SUSERVO_MULTIPLES_START
-        )
-        default_suservo_setpoint_multiples_end = (
-            constants.RED_BROADBAND_SUSERVO_MULTIPLES_END
-        )
-        general_setter_default_starts = (
-            constants.RED_BROADBAND_MOT_CURRENT_START
-            + constants.RED_BROADBAND_BIAS_FIELD_START
-        )
-        general_setter_default_ends = (
-            constants.RED_BROADBAND_MOT_CURRENT_END
-            + constants.RED_BROADBAND_BIAS_FIELD_END
-        )
+    # For the broadband stage we don't want control over the Urukul since the
+    # frequency is controlled by the fast ramp rate. The parameters controlling
+    # that ramp rate are not currently rampable - we could add this if required
+    # but it's getting conceptually complicated
+    urukuls = []
+    default_urukul_amplitudes_start = []
+    default_urukul_amplitudes_end = []
+    default_urukul_detunings_start = []
+    default_urukul_detunings_end = []
+    default_urukul_nominal_frequencies = []
+
+    default_suservo_setpoint_multiples_start = (
+        constants.RED_BROADBAND_SUSERVO_MULTIPLES_START
+    )
+    default_suservo_setpoint_multiples_end = (
+        constants.RED_BROADBAND_SUSERVO_MULTIPLES_END
+    )
+    general_setter_default_starts = (
+        constants.RED_BROADBAND_MOT_CURRENT_START
+        + constants.RED_BROADBAND_BIAS_FIELD_START
+    )
+    general_setter_default_ends = (
+        constants.RED_BROADBAND_MOT_CURRENT_END + constants.RED_BROADBAND_BIAS_FIELD_END
+    )
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):

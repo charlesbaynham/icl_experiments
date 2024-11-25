@@ -16,7 +16,9 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.red_mot.red_beam_controller import RedBeamController
-from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
+from repository.lib.fragments.red_mot.red_mot_phases import (
+    BroadbandRedPhaseWithBiasRamp,
+)
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
 
@@ -108,9 +110,9 @@ class RedMOTThreePhaseFrag(Fragment):
 
         self.setattr_fragment(
             "broadband_red_phase",
-            BroadbandRedPhase,
+            BroadbandRedPhaseWithBiasRamp,
         )
-        self.broadband_red_phase: BroadbandRedPhase
+        self.broadband_red_phase: BroadbandRedPhaseWithBiasRamp
 
         self.setattr_fragment(
             "narrow_red_capture_phase",
