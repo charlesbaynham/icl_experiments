@@ -70,13 +70,13 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         # )
         # self.plug_aom_attenuation: FloatParamHandle
 
-        # self.setattr_param_rebind(
-        #     "plug_beam_setpoint",
-        #     self.plug_beam_default_setter,
-        #     "setpoint_blue_plug_beam",
-        #     description="Setpoint",
-        # )
-        # self.plug_beam_setpoint: FloatParamHandle
+        self.setattr_param_rebind(
+            "plug_beam_setpoint",
+            self.plug_beam_default_setter,
+            "setpoint_blue_plug_beam",
+            description="Setpoint",
+        )
+        self.plug_beam_setpoint: FloatParamHandle
 
         # self.setattr_param_rebind(
         #     "plug_beam_frequency",
@@ -86,24 +86,29 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         # )
         # self.plug_beam_frequency: FloatParamHandle
 
-        # self.setattr_param(
-        #     "plug_aom_frequency",
-        #     FloatParam,
-        #     description="Frequency of plug beam AOM",
-        #     default=165e6,
-        #     unit="MHz",
-        #     min=0,
-        #     #    max=185e6,
-        # )
-        # self.plug_aom_frequency: FloatParamHandle
+        self.setattr_param(
+            "plug_aom_frequency",
+            FloatParam,
+            description="Frequency of plug beam AOM",
+            default=165e6,
+            unit="MHz",
+            min=0,
+            #    max=185e6,
+        )
+        self.plug_aom_frequency: FloatParamHandle
 
     @kernel
     def run_once(self) -> None:
         self.plug_beam_default_setter.turn_on_all()
 
-        # self.blue_aom.set_dds(
-        #     self.blue_aom.servo_channel, self.plug_aom_frequency.get(), offset=-1.0
-        # )
+        self.plug_beam_default_setter.blue_plug_beam.set_suservo(
+            freq=self.plug_aom_frequency.get(),
+            amplitude=1.0,
+            attenuation=constants.SUSERVOED_BEAMS["blue_plug_beam"].attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.plug_beam_setpoint.get(),
+            enable_iir=True,
+        )
 
         self.blue_mot.load_mot()  # This turns on MOT coils, "clears out" for 100ms, then turns on MOT beams, and waits for loading time
 
