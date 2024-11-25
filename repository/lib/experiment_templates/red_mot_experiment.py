@@ -190,8 +190,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.clock_delivery_beam_suservo.set_iir_params(
             ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
         )
-
-        self.red_mot.red_beam_controller.init()
+        # TODO: It pumping works, do this better (probably refactor to make suservo nominal multiples 1 in the BB MOT and use default setter)
+        self.red_mot.red_beam_controller.set_mot_suservo_amplitudes(2.2, 2.2, 2.5, 0.5)
 
         self.core.break_realtime()
 
