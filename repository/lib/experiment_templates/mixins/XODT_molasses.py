@@ -128,6 +128,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
     @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
     def DMA_initialization_hook_xodt_molasses(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
@@ -156,13 +161,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
                 4
             ],
-        )
-
-    @kernel
-    def DMA_initialization_hook(self):
-        raise NotImplementedError(
-            "All the DMA handle calculations must be combined into one \
-                DMA_initialization_hook() method after Mixins are combined"
         )
 
     @kernel
@@ -283,6 +281,11 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.daisy_chain_with_previous_phase(
             self.molasses_xodt_1, suservos=suservos_XODT
         )
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def DMA_initialization_hook_xodt_molasses(self):
