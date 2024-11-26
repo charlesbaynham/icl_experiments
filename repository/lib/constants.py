@@ -667,7 +667,7 @@ SUSERVOED_BEAMS = [
         # the AOM too much. Achieves ~0.44V which is more than we need unless we move to very short pulses:
         attenuation=12.0,
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
-        servo_enabled=True,
+        servo_enabled=False,
         setpoint=0.122,  # Match initial differential interferometry setting
     ),
 ]
