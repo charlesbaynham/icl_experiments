@@ -23,6 +23,7 @@ from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndMOTField,
 )
+from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsExceptCavity
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,13 @@ class Blue3DMOTFrag(Fragment):
     def build_fragment(self, manual_init=False):
         self.setattr_device("core")
         self.core: Core
+
+        self.setattr_fragment(
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        )
+        self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
+
+        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
 
         self.setattr_fragment("reset_all_beams", ResetAllICLBeams)
 
@@ -154,6 +162,30 @@ class Blue3DMOTFrag(Fragment):
             ],
         )
         self.mot_3d_beams_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
+            "mot_all_beams_except_radial_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
+                constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
+                constants.SUSERVOED_BEAMS["repump_679"],
+                constants.SUSERVOED_BEAMS["repump_707"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
+                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
+                constants.SUSERVOED_BEAMS["blue_push_beam"],
+            ],
+        )
+        self.mot_all_beams_except_radial_setter: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_fragment(
+            "radial_beam_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
+            ],
+        )
+        self.radial_beam_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_fragment(
             "repump_beam_setter",
@@ -292,6 +324,8 @@ class Blue3DMOTFrag(Fragment):
         delay(200e-6)  # We need some slack - create it deterministically
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
 
+        self.mirny_eom_sidebands.set_sidebands()
+
     @kernel
     def enable_mot_fields(self):
         """
@@ -376,6 +410,26 @@ class Blue3DMOTFrag(Fragment):
         return self.repump_beam_setter.turn_beams_off()
 
     @kernel
+    def turn_on_all_beams_except_radial(self, ignore_shutters=False):
+        return self.mot_all_beams_except_radial_setter.turn_beams_on(
+            ignore_shutters=ignore_shutters
+        )
+
+    @kernel
+    def turn_off_all_beams_except_radial(self, ignore_shutters=False):
+        return self.mot_all_beams_except_radial_setter.turn_beams_off(
+            ignore_shutters=ignore_shutters
+        )
+
+    @kernel
+    def turn_on_radial_beams(self, ignore_shutters=False):
+        return self.radial_beam_setter.turn_beams_on(ignore_shutters=ignore_shutters)
+
+    @kernel
+    def turn_off_radial_beams(self, ignore_shutters=False):
+        return self.radial_beam_setter.turn_beams_off(ignore_shutters=ignore_shutters)
+
+    @kernel
     def clear_ch2(self):
         """
         Clear out atoms from chamber 2
@@ -409,6 +463,19 @@ class Blue3DMOTFrag(Fragment):
 
         self.turn_on_all_beams()
         delay(self.loading_time.get())
+
+    @kernel
+    def load_magnetic_trap(self, repump_at_end=True):
+        """
+        Load the magnetic trap, then optionally repump at the end
+        """
+
+        self.enable_mot_fields()
+        self.turn_on_3d_and_2d_beams()
+        self.turn_off_repumpers()
+        delay(self.loading_time.get())
+        if repump_at_end:
+            self.turn_on_repumpers()
 
     @kernel
     def do_blue_transfer_mot(self):

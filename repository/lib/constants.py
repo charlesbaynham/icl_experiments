@@ -30,7 +30,7 @@ SR_FACTS = {
         "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
     },
-    "WAVELENGTHS": {"461_88": 460.86e9},
+    "WAVELENGTHS": {"461_88": 460.86e-9},
 }
 
 ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}
@@ -91,6 +91,12 @@ URUKULED_BEAMS = [
         frequency=110e6,
         attenuation=3.0,
         urukul_device="urukul_aom_1064_switch",
+    ),
+    UrukuledBeam(
+        "stark_shifter_689",
+        frequency=100e6,
+        attenuation=9.0,
+        urukul_device="urukul9912_aom_singlepass_689_stark_shifter",
     ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
@@ -602,7 +608,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_repump_707",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=0.75,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "repump_679",
@@ -674,6 +680,8 @@ _default_461 = (
     650_504_059e6
     # 2024-11-05
     + 10e6
+    # 2024-11-18
+    - 10e6
 )
 _default_707 = 423_913_478e6
 _default_679 = 441_332_627e6

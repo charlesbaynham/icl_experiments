@@ -17,12 +17,16 @@ from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
-from pyaion.fragments.default_beam_setter import (
+
+# Import from pyaion overrides directly. This shouldn't be required, but is for some reason
+from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
     SetBeamsToDefaults,
 )
-from pyaion.fragments.default_beam_setter import (
+from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
     make_set_beams_to_default,
 )
 from repository.lib.fragments.read_adc import ReadSUServoADC
@@ -64,10 +68,10 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
         self.turn_on_beam_with_default_settings: bool
 
         self.setattr_argument(
-            "disable_servoing",
-            BooleanValue(True),
+            "enable_servoing",
+            BooleanValue(False),
         )
-        self.disable_servoing: bool
+        self.enable_servoing: bool
 
         # %% devices
 
@@ -75,7 +79,7 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
             self.beam_info_name or beam_info_names[0]
         ]
 
-        if self.disable_servoing:
+        if not self.enable_servoing:
             self.beam_info.servo_enabled = False
 
         self.suservo_channel_device: SUServoChannel = self.get_device(
@@ -156,10 +160,10 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         self.turn_on_beams_with_default_settings: bool
 
         self.setattr_argument(
-            "disable_servoing",
-            BooleanValue(True),
+            "enable_servoing",
+            BooleanValue(False),
         )
-        self.disable_servoing: bool
+        self.enable_servoing: bool
 
         self.setattr_argument(
             "subtract_setpoint",
@@ -182,7 +186,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             constants.URUKULED_BEAMS["blue_imaging_switch"],
         ]
 
-        if self.disable_servoing:
+        if not self.enable_servoing:
             for info in self.suservo_beam_infos:
                 info.servo_enabled = False
 
@@ -262,16 +266,19 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
+        self.core.break_realtime()
+
         if self.first_run:
-            self.core.break_realtime()
             delay(10 * ms)
             self.ttl_shutter_red_axial_mot.on()
             self.ttl_shutter_red_axial_spin_pol.off()
 
-            if self.turn_on_beams_with_default_settings:
-                self.beam_default_setter.turn_on_all(light_enabled=True)
-
             self.first_run = False
+
+        if self.turn_on_beams_with_default_settings:
+            self.core.break_realtime()
+            delay(1 * ms)
+            self.beam_default_setter.turn_on_all(light_enabled=True)
 
     @kernel
     def run_once(self):

@@ -14,6 +14,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -21,9 +22,6 @@ import repository.lib.constants as constants
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
-)
-from repository.lib.fragments.pyaion_overrides.suservo_override import (
-    LibSetSUServoStatic,
 )
 
 logger = logging.getLogger(__name__)
@@ -264,7 +262,7 @@ class ToggleableFluorescencePulse(Fragment):
         else:
             self.imaging_beam.device_cleanup()
 
-        self.device_setup_subfragments()
+        self.device_cleanup_subfragments()
 
     @kernel
     def do_imaging_pulse(

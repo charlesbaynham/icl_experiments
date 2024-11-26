@@ -160,17 +160,19 @@ class _DualCameraBase(Fragment):
         self.ccb.issue(
             "create_applet",
             "Dual-camera horizontal image",
-            f"${{artiq_applet}}image {DATASET_KEY_H}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_KEY_H}",
         )
         self.ccb.issue(
             "create_applet",
             "Dual-camera vertical image",
-            f"${{artiq_applet}}image {DATASET_KEY_V}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_KEY_V}",
         )
 
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
+        self.mot_measurer_camera_horizontal.exposure = self.exposure_horiz.get()
+        self.mot_measurer_camera_vertical.exposure = self.exposure_vert.get()
 
         # Clear the camera buffer in case we quit a previous sequence midway
         self.clear()

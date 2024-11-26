@@ -51,32 +51,20 @@ from artiq.experiment import now_mu
 from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import ExpFragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
-from repository.lib.constants import MIRNY_SETTINGS_87
-from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
-from repository.lib.fragments.pyaion_overrides.suservo_override import (
-    LibSetSUServoStatic,
-)
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
-from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsFrag
 
 logger = logging.getLogger(__name__)
-
-
-class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
-    mirny_settings_87 = [
-        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
-    ]
-    mirny_settings_88 = [
-        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
-    ]
 
 
 class RedMOTWithExperiment(ExpFragment, abc.ABC):
@@ -145,20 +133,24 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # %% Rebound params
 
         self.setattr_param_rebind("injection_aom_static_frequency", self.red_mot)
+
         self.setattr_param_rebind(
-            "red_broadband_time",
-            self.red_mot.broadband_red_phase,
-            "duration",
-            description="Broadband phase duration",
+            "blue_loading_time",
+            self.blue_3d_mot,
+            "loading_time",
+            description="Blue MOT loading time",
         )
-        self.red_broadband_time: FloatParamHandle
+        self.blue_loading_time: FloatParamHandle
 
-        self.setattr_fragment(
-            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+        self.setattr_param(
+            "magnetic_trap_loading_bool",
+            BoolParam,
+            "Load via magnetic trap instead of blue MOT",
+            default=False,
         )
-        self.mirny_eom_sidebands: SetEOMSidebandsFrag
+        self.magnetic_trap_loading_bool: BoolParamHandle
 
-        self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
+        self.setattr_param_rebind("sr87", self.blue_3d_mot)
 
         self.setattr_param(
             "delay_after_experiment",
@@ -213,13 +205,14 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     @kernel
     def run_once(self):
         self.core.break_realtime()
-        self.mirny_eom_sidebands.set_sidebands()
 
         self.before_start_hook()
 
         self.core.break_realtime()
-
-        self.blue_3d_mot.load_mot(clearout=True)
+        if self.magnetic_trap_loading_bool.get():
+            self.blue_3d_mot.load_magnetic_trap()
+        else:
+            self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
 
         # Ramp down the blue MOT
