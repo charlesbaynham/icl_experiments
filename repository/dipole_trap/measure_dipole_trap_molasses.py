@@ -119,13 +119,7 @@ class DoubleXODTAbsFrag(
     Measure a double XODT with aborption imaging
 
     Load a red MOT, then implement a single "molasses" stage which is
-    actually another MOT with a field bias to move it to the bottom trap
-
-    In the "evaporation" stage, the 689 nm Stark beam is pulsed on to destroy atoms
-    (for alignment of the beam onto the XODT). Note: this will only work the
-    0th order of the 689 delivery AOM is coupled to the chamber - otherwise the
-    beam will be ~ 100 MHz from resonance. The default 689 pulse time is 0.01us
-    to allow unadulterated imaging of the atoms in the XXODT as default.
+    actually another MOT with a field bias to move it to the bottom trap.
     """
 
     @kernel
