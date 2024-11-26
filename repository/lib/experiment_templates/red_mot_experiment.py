@@ -227,7 +227,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
-        # self.set_narrowband_fields_hook()
+        self.set_narrowband_fields_hook()
         self.red_mot.do_narrowband_red_mot()
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
@@ -380,6 +380,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         self.set_narrowband_fields_default()
 
+    @kernel
     def set_narrowband_fields_default(self):
         """
         Set the magnetic fields for the narrowband MOT to the default values
@@ -388,7 +389,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         bias_y = self.red_mot.bias_y_narrowband.get()
         bias_z = self.red_mot.bias_z_narrowband.get()
         self.red_mot.chamber_2_field_setter.set_bias_fields(bias_x, bias_y, bias_z)
-        delay((1.5e-6 + 808e-9) * 3)
+        delay(1.5e-6 + (808e-9 * 3))
 
     @kernel
     def post_narrowband_hook(self):
