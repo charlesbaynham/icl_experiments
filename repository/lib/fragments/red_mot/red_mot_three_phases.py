@@ -42,39 +42,6 @@ class RedMOTThreePhaseFrag(Fragment):
         )
         self.chamber_2_field_setter: SetMagneticFieldsQuick
 
-        self.setattr_param(
-            "bias_x_narrowband",
-            FloatParam,
-            "Bias field x narrowband MOT",
-            default=constants.RED_NARROWBAND_BIAS_FIELD_X,
-            unit="A",
-            min=-5,
-            max=5,
-        )
-        self.bias_x_narrowband: FloatParamHandle
-
-        self.setattr_param(
-            "bias_y_narrowband",
-            FloatParam,
-            "Bias field y narrowband MOT",
-            default=constants.RED_NARROWBAND_BIAS_FIELD_Y,
-            unit="A",
-            min=-5,
-            max=5,
-        )
-        self.bias_y_narrowband: FloatParamHandle
-
-        self.setattr_param(
-            "bias_z_narrowband",
-            FloatParam,
-            "Bias field z narrowband MOT",
-            default=constants.RED_NARROWBAND_BIAS_FIELD_Z,
-            unit="A",
-            min=-5,
-            max=5,
-        )
-        self.bias_z_narrowband: FloatParamHandle
-
         self.setattr_param_rebind(
             "ramp_lower_detuning",
             self.red_beam_controller,

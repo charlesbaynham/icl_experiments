@@ -5,10 +5,14 @@ This module currently breaks the rule about only storing physics-determined
 numbers in `constants.py`.
 """
 
+from ndscan.experiment.parameters import FloatParamHandle
+
 import repository.lib.constants as constants
 from repository.lib.fragments.ramping_phase_bound import (
-    GeneralRampingPhaseWithBindingAndMOTField,
     GeneralRampingPhaseWithBindingAndMOTAndBiasField,
+)
+from repository.lib.fragments.ramping_phase_bound import (
+    GeneralRampingPhaseWithBindingAndMOTField,
 )
 
 
@@ -114,6 +118,14 @@ class BroadbandRedPhaseWithBiasRamp(RedRampingPhaseWithAllFieldsAndSUServoBindin
     general_setter_default_ends = (
         constants.RED_BROADBAND_MOT_CURRENT_END + constants.RED_BROADBAND_BIAS_FIELD_END
     )
+
+    bias_field_x_start: FloatParamHandle
+    bias_field_y_start: FloatParamHandle
+    bias_field_z_start: FloatParamHandle
+
+    bias_field_x_end: FloatParamHandle
+    bias_field_y_end: FloatParamHandle
+    bias_field_z_end: FloatParamHandle
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):

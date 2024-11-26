@@ -169,6 +169,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_x_start", self.blue_3d_mot.chamber_2_bias_x
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_y_start", self.blue_3d_mot.chamber_2_bias_y
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_z_start", self.blue_3d_mot.chamber_2_bias_z
+        )
+
         self.hook_setup_andor()
 
     @kernel
@@ -227,7 +237,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
-        # self.set_narrowband_fields_hook()
+        self.set_narrowband_fields_hook()
         self.red_mot.do_narrowband_red_mot()
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
@@ -385,9 +395,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         Set the magnetic fields for the narrowband MOT to the default values
         """
-        bias_x = self.red_mot.bias_x_narrowband.get()
-        bias_y = self.red_mot.bias_y_narrowband.get()
-        bias_z = self.red_mot.bias_z_narrowband.get()
+        bias_x = self.red_mot.broadband_red_phase.bias_field_x_end.get()
+        bias_y = self.red_mot.broadband_red_phase.bias_field_y_end.get()
+        bias_z = self.red_mot.broadband_red_phase.bias_field_z_end.get()
         self.red_mot.chamber_2_field_setter.set_bias_fields(bias_x, bias_y, bias_z)
         delay(1.5e-6 + (808e-9 * 3))
 
