@@ -5,6 +5,7 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -128,6 +129,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
     @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
     def DMA_initialization_hook_xodt_molasses(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
@@ -147,8 +153,9 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         set setpoints to same as the start of the xodt molasses ramp.
         """
 
+        self.core.break_realtime()
         self.dipole_beam_controller.XODT_setter.turn_on_all()
-        delay_mu(8)
+        delay_mu(int64(self.core.ref_multiplier))
         self.dipole_beam_controller.set_dipole_suservo_setpoints(
             setpoint_down_813=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
                 5
@@ -156,13 +163,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
                 4
             ],
-        )
-
-    @kernel
-    def DMA_initialization_hook(self):
-        raise NotImplementedError(
-            "All the DMA handle calculations must be combined into one \
-                DMA_initialization_hook() method after Mixins are combined"
         )
 
     @kernel
@@ -283,6 +283,11 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.daisy_chain_with_previous_phase(
             self.molasses_xodt_1, suservos=suservos_XODT
         )
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def DMA_initialization_hook_xodt_molasses(self):

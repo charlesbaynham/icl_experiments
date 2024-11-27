@@ -93,10 +93,10 @@ URUKULED_BEAMS = [
         urukul_device="urukul_aom_1064_switch",
     ),
     UrukuledBeam(
-        "stark_shifter_689",
+        "stark_shifter_689_switch",
         frequency=100e6,
         attenuation=9.0,
-        urukul_device="urukul9912_aom_singlepass_689_stark_shifter",
+        urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
     ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
@@ -660,6 +660,24 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=4.7,
     ),
+    SUServoedBeam(
+        "stark_shifter_689_delivery",
+        frequency=80e6,
+        # Not maximum diffraction efficiency, but chosen so that we can't heat
+        # the AOM too much. Achieves ~0.44V which is more than we need unless we move to very short pulses:
+        attenuation=12.0,
+        suservo_device="suservo_aom_singlepass_689_stark_shifter",
+        servo_enabled=True,
+        setpoint=0.122,  # Match initial differential interferometry setting
+    ),
+    SUServoedBeam(
+        "down_689",
+        frequency=100e6,
+        attenuation=12.0,
+        suservo_device="suservo_aom_singlepass_689_down_beam",
+        servo_enabled=True,
+        setpoint=0.4,
+    ),
 ]
 
 # Convert to dict for ease of use
@@ -948,14 +966,14 @@ else:
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 6.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
-    XODT_MOLASSES_DURATION = 80e-3
+    XODT_MOLASSES_DURATION = 120e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
         100e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        135e3,
+        120e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = [
         a + b for a, b in zip(FIELD_COMP, [0.148, 0.024, -0.58])
