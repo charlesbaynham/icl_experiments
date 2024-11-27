@@ -17,8 +17,8 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
     DoubleTrapImagingBGSubtracted,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
-from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
-    FLIRBlueMOTMeasurementMixin,
+from repository.lib.experiment_templates.mixins.flir_measurement import (
+    FLIRMeasurementMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class DownBeamAlignmentFrag(
     DoubleTrapImagingBGSubtracted,
-    FLIRBlueMOTMeasurementMixin,
+    FLIRMeasurementMixin,
     XODTSingleMolassesMixin,
     EMGain,
     DipoleTrapWithExperiment,
