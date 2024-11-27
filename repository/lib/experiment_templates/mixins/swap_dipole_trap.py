@@ -1,0 +1,185 @@
+import logging
+
+from artiq.experiment import delay
+from artiq.experiment import delay_mu
+from artiq.experiment import kernel
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
+    ControlBeamsWithoutCoolingAOM,
+)
+
+from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
+
+logger = logging.getLogger(__name__)
+
+SWAP_BEAMS_INFO = {
+    "red_up": constants.SUSERVOED_BEAMS["red_up"],
+    "down_689": constants.SUSERVOED_BEAMS["down_689"],
+}
+
+
+class DipoleSWAPMixin(DipoleTrapWithExperiment):
+    """
+    Mixin for implementing SWAP in the dipole trap.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~post_dipole_trap_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+        ### Fragments ###
+
+        # Setup the default DDS settings for the 689 down delivery AOM
+        self.setattr_fragment(
+            "set_default_down_689_delivery",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["down_689"]],
+                name="down_689_default_setter",
+                use_automatic_setup=True,
+            ),
+        )
+
+        self.set_default_down_689_delivery: SetBeamsToDefaults
+
+        self.setattr_fragment(
+            "down_689_setter",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_689_down_beam",
+        )
+        self.down_689_setter: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "up_689_setter",
+            LibSetSUServoStatic,
+            "suservo_aom_singlepass_689_up",
+        )
+        self.up_689_setter: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "up_swap_beam_toggler",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[constants.SUSERVOED_BEAMS["red_up"]],
+        )
+        self.up_swap_beam_toggler: ControlBeamsWithoutCoolingAOM
+
+        ### Parameters ###
+
+        self.setattr_param(
+            "swap_pulse_duration",
+            FloatParam,
+            "Duration of dipole trap swap pulse",
+            default=100e-6,
+            unit="us",
+        )
+        self.swap_pulse_duration: FloatParamHandle
+
+        self.setattr_param(
+            "ramp_frequency_dipole_swap",
+            FloatParam,
+            "689 injection AOM ramp frequency for dipole trap SWAP",
+            unit="kHz",
+            default=constants.RED_INJECTION_AOM_RAMP_FREQUENCY,
+        )
+        self.ramp_frequency_dipole_swap: FloatParamHandle
+
+        self.setattr_param(
+            "ramp_lower_detuning",
+            FloatParam,
+            "689 ramp upper-limit detuning from nominal frequency for dipole trap SWAP",
+            unit="MHz",
+            default=0.0,
+        )
+        self.ramp_lower_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "ramp_upper_detuning",
+            FloatParam,
+            "68 ramp upper-limit detuning from nominal frequency for dipole trap SWAP",
+            unit="MHz",
+            default=constants.RED_BROADBAND_RAMP_LIMIT,
+        )
+        self.ramp_upper_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "swap_setpoint_up",
+            FloatParam,
+            "Setpoint of the 689 up beam during dipole trap SWAP",
+            default=0.0,
+            unit="V",
+        )
+        self.swap_setpoint_up: FloatParamHandle
+
+        self.setattr_param(
+            "swap_setpoint_down",
+            FloatParam,
+            "Setpoint of the 689 down beam during dipole trap SWAP",
+            default=0.0,
+            unit="V",
+        )
+        self.swap_setpoint_down: FloatParamHandle
+
+        # To be calculated in device_setup
+        self.ramp_rate_dipole_swap = 0.0
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        # Turn the Stark shift delivery AOM on and the switch AOM off
+        self.core.break_realtime()
+
+        # Precalculate the ramp rate required to get the requested modulation frequency
+        self.ramp_rate_dipole_swap = abs(
+            (self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get())
+            * self.ramp_frequency_dipole_swap.get()
+        )
+
+    @kernel
+    def start_ramping_red_for_dipole_swap(self):
+        """
+        Start modulation of the 689 DDS as configured
+
+        Advances the timeline by the duration of SPI writes
+        """
+
+        self.red_mot.red_beam_controller.injection_aom_ramper.start_ramp(
+            self.ramp_rate_dipole_swap,
+            self.red_mot.injection_aom_static_frequency.get()
+            + self.ramp_lower_detuning.get(),
+            self.red_mot.injection_aom_static_frequency.get()
+            + self.ramp_upper_detuning.get(),
+            2,
+        )
+
+    @kernel
+    def do_dipole_swap_pulse(self):
+        """
+        Do a Stark shifting pulse for the duration specified by `stark_pulse_duration`.
+
+        Advances the timeline by `stark_pulse_duration`.
+        """
+        self.down_689_setter.set_setpoint(self.swap_setpoint_down.get())
+        delay_mu(int64(self.core.ref_multiplier))
+        self.up_689_setter.set_setpoint(self.swap_setpoint_up.get())
+        delay_mu(int64(self.core.ref_multiplier))
+        self.up_swap_beam_toggler.turn_beams_on()
+        self.down_689_setter.set_channel_state(rf_switch_state=True, enable_iir=True)
+        delay(self.swap_pulse_duration.get())
+        self.down_689_setter.set_channel_state(rf_switch_state=False, enable_iir=False)
+        self.up_swap_beam_toggler.turn_beams_off()
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        self.start_ramping_red_for_dipole_swap()
+        self.do_dipole_swap_pulse()
+        self.post_dipole_trap_hook_default()  # turns off the dipole trap beams
