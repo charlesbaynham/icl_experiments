@@ -113,6 +113,20 @@ class RedMOTThreePhaseFrag(Fragment):
             self.red_beam_controller.all_beam_default_setter
         )
 
+        for axis in ["x", "y", "z"]:
+            self.setattr_param(
+                f"narrowband_bias_{axis}",
+                FloatParam,
+                f"Bias current for narrowband MOT - {axis.upper()}",
+                default=getattr(constants, f"RED_NARROWBAND_BIAS_FIELD_{axis.upper()}"),
+                unit="A",
+                min=-5,
+                max=5,
+            )
+        self.narrowband_bias_x: FloatParamHandle
+        self.narrowband_bias_y: FloatParamHandle
+        self.narrowband_bias_z: FloatParamHandle
+
         self.setattr_param(
             "final_narrow_hold_time",
             FloatParam,

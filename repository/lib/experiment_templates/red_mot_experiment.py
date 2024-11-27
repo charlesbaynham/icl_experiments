@@ -395,9 +395,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         Set the magnetic fields for the narrowband MOT to the default values
         """
-        bias_x = self.red_mot.broadband_red_phase.bias_field_x_end.get()
-        bias_y = self.red_mot.broadband_red_phase.bias_field_y_end.get()
-        bias_z = self.red_mot.broadband_red_phase.bias_field_z_end.get()
+        bias_x = self.red_mot.narrowband_bias_x.get()
+        bias_y = self.red_mot.narrowband_bias_y.get()
+        bias_z = self.red_mot.narrowband_bias_z.get()
         self.red_mot.chamber_2_field_setter.set_bias_fields(bias_x, bias_y, bias_z)
         delay(1.5e-6 + (808e-9 * 3))
 
