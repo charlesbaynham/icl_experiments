@@ -35,15 +35,21 @@ class FieldBoostMixin(RedMOTWithExperiment):
         self.z_coil_boost: FloatParamHandle
 
     @kernel
-    def set_postnarrowband_fields_hook(self):
+    def field_boost(self):
         """
-        Override default setting to write compensation coils as well as the
-        gradient coil
+        Set fields to their "boosted" values
         """
-
         self.red_mot.chamber_2_field_setter.set_all_fields(
             self.spectroscopy_field_gradient.get(),
             self.blue_3d_mot.chamber_2_bias_x.get() + self.x_coil_boost.get(),
             self.blue_3d_mot.chamber_2_bias_y.get() + self.y_coil_boost.get(),
             self.blue_3d_mot.chamber_2_bias_z.get() + self.z_coil_boost.get(),
         )
+
+    @kernel
+    def set_postnarrowband_fields_hook(self):
+        """
+        Override default setting to write compensation coils as well as the
+        gradient coil
+        """
+        self.field_boost()

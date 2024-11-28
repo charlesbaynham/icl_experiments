@@ -33,7 +33,6 @@ class RedSpectroscopyFromXXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
-    FieldBoostMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):

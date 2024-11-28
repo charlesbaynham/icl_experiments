@@ -5,6 +5,7 @@ from artiq.experiment import kernel
 from artiq.experiment import parallel
 from ndscan.experiment import *
 from artiq.experiment import sequential
+from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from ndscan.experiment.parameters import BoolParamHandle
 from repository.lib import constants
@@ -15,11 +16,14 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
 
 logger = logging.getLogger(__name__)
 
 
-class _RedSpectroscopyBase(SpectroscopyParamsMixin, RedMOTWithExperiment):
+class _RedSpectroscopyBase(
+    SpectroscopyParamsMixin, FieldBoostMixin, RedMOTWithExperiment
+):
     """
     Sets up the 689 beam for spectroscopy
 
@@ -101,7 +105,36 @@ class _RedSpectroscopyBase(SpectroscopyParamsMixin, RedMOTWithExperiment):
         )
 
 
-class RedSpectroscopyDipoleTrap(_RedSpectroscopyBase, DipoleTrapWithExperiment):
+class RedSpectroscopyDipoleTrap(
+    _RedSpectroscopyBase, FieldBoostMixin, DipoleTrapWithExperiment
+):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "bias_field_settling_time",
+            FloatParam,
+            default=20e-3,
+            unit="ms",
+            description="Bias field settling time before experiment",
+        )
+        self.bias_field_settling_time: FloatParamHandle
+
+    @kernel
+    def set_postnarrowband_fields_hook(self):
+        # Prevent the FieldBoost field setting
+        self.set_fields_default()
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        # Set fields pre-experiment
+        self.field_boost()
+
+        delay(self.bias_field_settling_time.get())
+
+        # Turn off the trap
+        self.post_dipole_trap_hook_default()
+
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.do_red_spectroscopy()
