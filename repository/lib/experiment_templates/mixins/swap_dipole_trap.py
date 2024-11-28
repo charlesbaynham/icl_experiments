@@ -160,7 +160,7 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         """
         Do a Stark shifting pulse for the duration specified by `stark_pulse_duration`.
 
-        Advances the timeline by `stark_pulse_duration`.
+        Advances the timeline by `stark_pulse_duration` + some SPI writes.
         """
         if self.swap_pulse_duration.get() == 0.0:
             return
