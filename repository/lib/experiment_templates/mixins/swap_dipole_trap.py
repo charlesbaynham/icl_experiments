@@ -152,7 +152,7 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
             + self.ramp_lower_detuning.get(),
             self.red_mot.injection_aom_static_frequency.get()
             + self.ramp_upper_detuning.get(),
-            2,
+            wave_type=2,  # The red AOM is negatively double passed, so this is a ramp from more negative to more positive frequency
         )
 
     @kernel
