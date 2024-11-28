@@ -167,6 +167,16 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
 
         self.start_ramping_red_for_dipole_swap()
 
+        # Start the SWAP beams at zero power so we won't get a flash of bright light
+        self.down_689_setter.suservo_channel.set_y(
+            self.down_689_setter.suservo_profile, 0.0
+        )
+        delay_mu(int64(self.core.ref_multiplier))
+        self.up_689_setter.suservo_channel.set_y(
+            self.up_689_setter.suservo_profile, 0.0
+        )
+        delay_mu(int64(self.core.ref_multiplier))
+
         # Write setpoints for the SWAP beams
         # TODO: this currently overwrites the setpoints in beam_info. Get rid of one of them
         self.down_689_setter.set_setpoint(self.swap_setpoint_down.get())
