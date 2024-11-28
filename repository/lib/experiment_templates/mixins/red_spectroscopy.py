@@ -128,6 +128,7 @@ class RedSpectroscopyDipoleTrap(
     @kernel
     def post_dipole_trap_hook(self):
         # Set fields pre-experiment
+        delay(5e-6)
         self.field_boost()
 
         delay(self.bias_field_settling_time.get())

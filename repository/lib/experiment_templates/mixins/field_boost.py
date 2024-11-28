@@ -38,6 +38,10 @@ class FieldBoostMixin(RedMOTWithExperiment):
     def field_boost(self):
         """
         Set fields to their "boosted" values
+
+        This method does not advance the timeline but does require at least
+        1.5us + 808ns * len(currents) on a Kasli 1.x as SPI events are written
+        into the past.
         """
         self.red_mot.chamber_2_field_setter.set_all_fields(
             self.spectroscopy_field_gradient.get(),
