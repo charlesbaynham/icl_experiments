@@ -128,22 +128,6 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         )
         self.swap_setpoint_down: FloatParamHandle
 
-        # To be calculated in device_setup
-        self.ramp_rate_dipole_swap = 0.0
-
-    @kernel
-    def device_setup(self):
-        self.device_setup_subfragments()
-
-        # Turn the Stark shift delivery AOM on and the switch AOM off
-        self.core.break_realtime()
-
-        # Precalculate the ramp rate required to get the requested modulation frequency
-        self.ramp_rate_dipole_swap = abs(
-            (self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get())
-            * self.ramp_frequency_dipole_swap.get()
-        )
-
     @kernel
     def start_ramping_red_for_dipole_swap(self):
         """
@@ -152,8 +136,13 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         Advances the timeline by the duration of SPI writes
         """
 
+        ramp_rate_dipole_swap = abs(
+            (self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get())
+            * self.ramp_frequency_dipole_swap.get()
+        )
+
         self.red_mot.red_beam_controller.injection_aom_ramper.start_ramp(
-            self.ramp_rate_dipole_swap,
+            ramp_rate_dipole_swap,
             self.red_mot.injection_aom_static_frequency.get()
             + self.ramp_lower_detuning.get(),
             self.red_mot.injection_aom_static_frequency.get()
@@ -168,6 +157,10 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
 
         Advances the timeline by `stark_pulse_duration`.
         """
+        self.start_ramping_red_for_dipole_swap()
+
+        # Write setpoints for the SWAP beams
+        # TODO: this currently overwrites the setpoints in beam_info. Get rid of one of them
         self.down_689_setter.set_setpoint(self.swap_setpoint_down.get())
         delay_mu(int64(self.core.ref_multiplier))
         self.up_689_setter.set_setpoint(self.swap_setpoint_up.get())
@@ -180,6 +173,11 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
 
     @kernel
     def post_dipole_trap_hook(self):
-        self.start_ramping_red_for_dipole_swap()
+        """
+        At the end of the dipole trap, right before spectroscopy etc, do a SWAP
+        pulse before turning off the trap beams
+        """
         self.do_dipole_swap_pulse()
-        self.post_dipole_trap_hook_default()  # turns off the dipole trap beams
+
+        # Turns off the dipole trap beams
+        self.post_dipole_trap_hook_default()
