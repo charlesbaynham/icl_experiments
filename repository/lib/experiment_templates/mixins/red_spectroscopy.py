@@ -134,13 +134,11 @@ class RedSpectroscopyDipoleTrap(
     def set_postnarrowband_fields_hook(self):
         # Prevent the FieldBoost field setting
         self.set_fields_default()
-        print("I should not run")
 
     @kernel
     def post_dipole_trap_hook(self):
         # Set fields pre-experiment
-        delay(5e-6)
-        # self.field_boost()  FIXME
+        self.field_boost()
 
         delay(self.bias_field_settling_time.get())
 
