@@ -127,6 +127,15 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         )
         self.swap_setpoint_down: FloatParamHandle
 
+        self.setattr_param(
+            "hold_duration_after_swap",
+            FloatParam,
+            "Time to hold after the SWAP pulse",
+            default=10e-3,
+            unit="ms",
+        )
+        self.hold_duration_after_swap: FloatParamHandle
+
         # FIXME
         # For now, bind both setpoints together
         self.setattr_param_like("joint_swap_setpoint", self, "swap_setpoint_up")
@@ -196,6 +205,8 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         pulse before turning off the trap beams
         """
         self.do_dipole_swap_pulse()
+
+        delay(self.hold_duration_after_swap.get())
 
         # Turns off the dipole trap beams
         self.post_dipole_trap_hook_default()
