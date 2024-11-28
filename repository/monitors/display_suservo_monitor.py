@@ -21,14 +21,6 @@ from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
-
-# Import from pyaion overrides directly. This shouldn't be required, but is for some reason
-from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
-    SetBeamsToDefaults,
-)
-from repository.lib.fragments.pyaion_overrides.default_beam_setter import (
-    make_set_beams_to_default,
-)
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
