@@ -52,5 +52,9 @@ class RedSpectroscopyFromXXODTFrag(
         self.post_narrowband_hook_xodt_molasses()
         self.post_narrowband_hook_default()
 
+    @kernel
+    def set_postnarrowband_fields_hook(self):
+        self.set_postnarrowband_fields_hook_singlemollasses()
+
 
 RedSpectroscopyFromXXODT = make_fragment_scan_exp(RedSpectroscopyFromXXODTFrag)

@@ -177,6 +177,10 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def set_postnarrowband_fields_hook(self):
+        self.set_postnarrowband_fields_hook_singlemollasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook_singlemollasses(self):
         pass
 
     @kernel
