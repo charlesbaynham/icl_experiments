@@ -235,8 +235,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Do any other pre-expansion actions. By default, none
         t_light_off_mu = now_mu()
-        # TODO: To simplify, delete this pre_expansion_hook() and move its functionality to 689_spectroscopy - the one place it's used
+
         self.pre_expansion_hook()
+
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
