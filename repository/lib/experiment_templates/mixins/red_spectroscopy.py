@@ -53,6 +53,13 @@ class _RedSpectroscopyBase(SpectroscopyParamsMixin, RedMOTWithExperiment):
         )
         self.use_up_beam: BoolParamHandle
 
+        self.setattr_param_rebind(
+            "fluorescence_pulse_duration",
+            self.fluorescence_pulse,
+            "fluorescence_pulse_duration",
+            default=constants.FLUORESCENCE_PULSE_DURATION_689,
+        )
+
     def host_setup(self):
         super().host_setup()
 
