@@ -73,7 +73,7 @@ class _RedSpectroscopyBase(
             self.spectroscopy_beam_suservo = self.down_beam_suservo
 
     @kernel
-    def post_narrowband_hook_red_spectroscopy(self):
+    def prepare_red_beam(self):
         # Disable servoing, turn off the switch, configure the amplitude and
         # open the shutter in preparation for a quick pulse
         with parallel:
@@ -88,11 +88,6 @@ class _RedSpectroscopyBase(
                     profile=self.spectroscopy_beam_suservo.suservo_profile,
                     y=self.spectroscopy_pulse_aom_amplitude.get(),
                 )
-
-    @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_default()
-        self.post_narrowband_hook_red_spectroscopy()
 
     @kernel
     def do_red_spectroscopy(self):
@@ -139,6 +134,8 @@ class RedSpectroscopyDipoleTrap(
     def post_dipole_trap_hook(self):
         # Set fields pre-experiment
         self.field_boost()
+
+        self.prepare_red_beam()
 
         delay(self.bias_field_settling_time.get())
 

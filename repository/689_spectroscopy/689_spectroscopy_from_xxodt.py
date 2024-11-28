@@ -47,12 +47,6 @@ class RedSpectroscopyFromXXODTFrag(
     """
 
     @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_red_spectroscopy()
-        self.post_narrowband_hook_xodt_molasses()
-        self.post_narrowband_hook_default()
-
-    @kernel
     def set_postnarrowband_fields_hook(self):
         self.set_postnarrowband_fields_hook_singlemollasses()
 
