@@ -48,7 +48,6 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
                 use_automatic_setup=True,
             ),
         )
-
         self.set_default_down_689_delivery: SetBeamsToDefaults
 
         self.setattr_fragment(
