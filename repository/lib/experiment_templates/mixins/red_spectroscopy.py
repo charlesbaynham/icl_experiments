@@ -17,12 +17,18 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
+from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class _RedSpectroscopyBase(
-    SpectroscopyParamsMixin, FieldBoostMixin, RedMOTWithExperiment
+    SpectroscopyParamsMixin,
+    ExponentialDecayMixin,
+    FieldBoostMixin,
+    RedMOTWithExperiment,
 ):
     """
     Sets up the 689 beam for spectroscopy

@@ -14,6 +14,9 @@ class ExponentialDecayMixin(RedMOTWithExperiment):
             "andor_sum",
             "image_horizontal_mean",
             "image_vertical_mean",
+            "excitation_fraction",
+            "excitation_fraction_forward",
+            "excitation_fraction_backward",
         ]
 
         # Filter by whether they exist or not for this fragment
