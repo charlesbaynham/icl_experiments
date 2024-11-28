@@ -157,6 +157,9 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
 
         Advances the timeline by `stark_pulse_duration`.
         """
+        if self.swap_pulse_duration.get() == 0.0:
+            return
+
         self.start_ramping_red_for_dipole_swap()
 
         # Write setpoints for the SWAP beams
