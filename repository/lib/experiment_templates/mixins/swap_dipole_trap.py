@@ -177,23 +177,25 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         self.start_ramping_red_for_dipole_swap()
 
         # Start the SWAP beams at zero power so we won't get a flash of bright light
+        # FIXME: Naughty place to hardcode amplitudes - should be param and/or default constant
         self.down_689_setter.suservo_channel.set_y(
-            self.down_689_setter.suservo_profile, 0.0
+            self.down_689_setter.suservo_profile, 1.0
         )
         delay_mu(int64(self.core.ref_multiplier))
         self.up_689_setter.suservo_channel.set_y(
-            self.up_689_setter.suservo_profile, 0.0
+            self.up_689_setter.suservo_profile, 0.075
         )
         delay_mu(int64(self.core.ref_multiplier))
 
         # Write setpoints for the SWAP beams
         # TODO: this currently overwrites the setpoints in beam_info. Get rid of one of them
-        self.down_689_setter.set_setpoint(self.swap_setpoint_down.get())
-        delay_mu(int64(self.core.ref_multiplier))
-        self.up_689_setter.set_setpoint(self.swap_setpoint_up.get())
-        delay_mu(int64(self.core.ref_multiplier))
+        # TODO: Probably we would rather use the setpoints than just set amplitude (though not for sure)
+        # self.down_689_setter.set_setpoint(self.swap_setpoint_down.get())
+        # delay_mu(int64(self.core.ref_multiplier))
+        # self.up_689_setter.set_setpoint(self.swap_setpoint_up.get())
+        # delay_mu(int64(self.core.ref_multiplier))
         self.up_swap_beam_toggler.turn_beams_on()
-        self.down_689_setter.set_channel_state(rf_switch_state=True, enable_iir=True)
+        self.down_689_setter.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.swap_pulse_duration.get())
         self.down_689_setter.set_channel_state(rf_switch_state=False, enable_iir=False)
         self.up_swap_beam_toggler.turn_beams_off()
