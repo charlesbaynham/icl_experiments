@@ -127,6 +127,12 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         )
         self.swap_setpoint_down: FloatParamHandle
 
+        # FIXME
+        # For now, bind both setpoints together
+        self.setattr_param_like("joint_swap_setpoint", self, "swap_setpoint_up")
+        self.bind_param("swap_setpoint_up", self.joint_swap_setpoint)
+        self.bind_param("swap_setpoint_down", self.joint_swap_setpoint)
+
     @kernel
     def start_ramping_red_for_dipole_swap(self):
         """
