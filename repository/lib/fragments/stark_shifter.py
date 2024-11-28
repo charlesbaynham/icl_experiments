@@ -40,6 +40,7 @@ class StarkShifter(Fragment):
                 ],
                 name="StarkDeliverySetter",
                 use_automatic_setup=False,
+                use_automatic_turnon=False,
             ),
         )
         self.setattr_fragment(
@@ -50,6 +51,7 @@ class StarkShifter(Fragment):
                 ],
                 name="StarkSwitchSetter",
                 use_automatic_setup=False,
+                use_automatic_turnon=False,
             ),
         )
 

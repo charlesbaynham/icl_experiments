@@ -44,6 +44,7 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
                     constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"]
                 ],
                 use_automatic_setup=True,
+                use_automatic_turnon=True,
             ),
         )
         self.constant_dipole_traps_setter: SetBeamsToDefaults
