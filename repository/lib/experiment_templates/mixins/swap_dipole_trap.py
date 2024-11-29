@@ -179,11 +179,11 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         # Start the SWAP beams at zero power so we won't get a flash of bright light
         # FIXME: Naughty place to hardcode amplitudes - should be param and/or default constant
         self.down_689_setter.suservo_channel.set_y(
-            self.down_689_setter.suservo_profile, 0.05
+            self.down_689_setter.suservo_profile, 0.33
         )
         delay_mu(int64(self.core.ref_multiplier))
         self.up_689_setter.suservo_channel.set_y(
-            self.up_689_setter.suservo_profile, 0.008
+            self.up_689_setter.suservo_profile, 0.03
         )
         delay_mu(int64(self.core.ref_multiplier))
 
