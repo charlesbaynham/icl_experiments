@@ -869,7 +869,7 @@ else:
     RED_BROADBAND_MOT_CURRENT_END = [9.0]
     RED_BROADBAND_DURATION = 100e-3
 
-
+# Narrowband field to load top dipole trap at 10 A MOT current
 (
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
