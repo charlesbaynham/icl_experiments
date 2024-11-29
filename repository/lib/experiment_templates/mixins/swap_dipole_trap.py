@@ -192,7 +192,7 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
             self.up_689_setter.suservo_profile, 0.01 * self.swap_setpoint_down.get()
         )
         delay_mu(int64(self.core.ref_multiplier))
-        #
+        # Long delay for up beam shutter to open
         delay(20e-3)
 
         # Write setpoints for the SWAP beams
@@ -205,7 +205,6 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
 
         self.up_689_setter.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay_mu(int64(self.core.ref_multiplier))
-        # self.up_swap_beam_toggler.turn_beams_on()
         self.down_689_setter.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.swap_pulse_duration.get())
         self.down_689_setter.set_channel_state(rf_switch_state=False, enable_iir=False)
