@@ -94,8 +94,10 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "stark_shifter_689_switch",
+        "stark_shifter_689_switch",
         frequency=100e6,
         attenuation=9.0,
+        urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
         urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
     ),
 ]
@@ -868,6 +870,22 @@ else:
     RED_BROADBAND_MOT_CURRENT_START = [9.0]
     RED_BROADBAND_MOT_CURRENT_END = [9.0]
     RED_BROADBAND_DURATION = 100e-3
+
+
+RED_NARROWBAND_BIAS_FIELD_X = B_FIELD_BIAS_X
+RED_NARROWBAND_BIAS_FIELD_Y = B_FIELD_BIAS_Y
+RED_NARROWBAND_BIAS_FIELD_Z = B_FIELD_BIAS_Z
+
+RED_BROADBAND_BIAS_FIELD_START = [
+    B_FIELD_BIAS_MOT_X,
+    B_FIELD_BIAS_MOT_Y,
+    B_FIELD_BIAS_MOT_Z,
+]
+RED_BROADBAND_BIAS_FIELD_END = [
+    RED_NARROWBAND_BIAS_FIELD_X,
+    RED_NARROWBAND_BIAS_FIELD_Y,
+    RED_NARROWBAND_BIAS_FIELD_Z,
+]
 
 # Capture Phase (i.e. 1st narrowband red MOT)
 RED_CAPTURE_DURATION = 10e-6

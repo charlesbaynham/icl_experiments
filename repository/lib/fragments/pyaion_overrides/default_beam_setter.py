@@ -8,10 +8,12 @@ from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD as UrukulCPLD
-from artiq.experiment import delay_mu
+from artiq.experiment import RTIOUnderflow
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
+from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
@@ -130,6 +132,8 @@ class SetBeamsToDefaults(Fragment):
         # automatic_setup and automatic_turnon are class variables, but add them to kernel invariants anyway
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("automatic_setup")
+
+        self.extra_delay = 0.0
         self.kernel_invariants.add("automatic_turnon")
 
         if self.automatic_turnon and not self.automatic_setup:
@@ -434,8 +438,20 @@ class SetBeamsToDefaults(Fragment):
 
         # If configured to setup the AOMs automatically, do so now
         if self.automatic_setup:
-            self.core.break_realtime()
-            self.turn_on_all(light_enabled=self.automatic_turnon)
+            while True:
+                try:
+                    self.core.break_realtime()
+                    delay(self.extra_delay)
+                    self.turn_on_all(light_enabled=self.automatic_turnon)
+                    break
+                except RTIOUnderflow:
+                    self.extra_delay += 1e-3
+                    logger.warning(
+                        "extra_delay increased to %s", self.extra_delay
+                    )  # FIXME for debugging
+                    if self.extra_delay > 10e-3:
+                        logger.critical("RTIOUnderflow in SetBeamsToDefaults")
+                        raise
 
     @portable
     def get_max_shutter_delay(self):
@@ -461,10 +477,13 @@ class SetBeamsToDefaults(Fragment):
             logger.info(
                 "SetBeamsToDefault.turn_on_all(light_enabled=%s)", light_enabled
             )
-
+        # self.core.break_realtime()  # FIXME
         self._turn_on_suservos(light_enabled=light_enabled)
+        # self.core.break_realtime()  # FIXME
         self._turn_on_ad9910s(light_enabled=light_enabled)
+        # self.core.break_realtime()  # FIXME
         self._turn_on_ad9912s(light_enabled=light_enabled)
+        # self.core.break_realtime()  # FIXME
         self._set_rf_switches(light_enabled=light_enabled)
 
     @kernel

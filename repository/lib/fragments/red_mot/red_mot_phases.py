@@ -5,17 +5,20 @@ This module currently breaks the rule about only storing physics-determined
 numbers in `constants.py`.
 """
 
+from ndscan.experiment.parameters import FloatParamHandle
+
 import repository.lib.constants as constants
+from repository.lib.fragments.ramping_phase_bound import (
+    GeneralRampingPhaseWithBindingAndMOTAndBiasField,
+)
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndMOTField,
 )
 
 
-class RedRampingPhaseWithFieldsAndSUServoBindings(
-    GeneralRampingPhaseWithBindingAndMOTField
-):
+class RedRampingMixin:
     """
-    Subclass the GeneralRampingPhase specifically for red MOTs. I.e.:
+    Mixin for use with a GeneralRampingPhase specifically for red MOTs. I.e.:
 
     * Specify the 689 double-passed AOM as an Urukul to ramp
     * Control the 4 red beams
@@ -38,6 +41,19 @@ class RedRampingPhaseWithFieldsAndSUServoBindings(
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
     default_suservo_nominal_setpoints = [0.0] * 4
+
+
+class RedRampingPhaseWithFieldsAndSUServoBindings(
+    RedRampingMixin, GeneralRampingPhaseWithBindingAndMOTField
+):
+    pass
+
+
+class RedRampingPhaseWithAllFieldsAndSUServoBindings(
+    RedRampingMixin,
+    GeneralRampingPhaseWithBindingAndMOTAndBiasField,
+):
+    pass
 
 
 class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
@@ -68,6 +84,48 @@ class BroadbandRedPhase(RedRampingPhaseWithFieldsAndSUServoBindings):
     )
     general_setter_default_starts = constants.RED_BROADBAND_MOT_CURRENT_START
     general_setter_default_ends = constants.RED_BROADBAND_MOT_CURRENT_END
+
+
+class BroadbandRedPhaseWithBiasRamp(RedRampingPhaseWithAllFieldsAndSUServoBindings):
+    """
+    As BroadbandRedPhase but also ramps the bias fields in chamber 2
+    """
+
+    duration_default = constants.RED_BROADBAND_DURATION
+    time_step_default = constants.RED_BROADBAND_TIMESTEP
+
+    # For the broadband stage we don't want control over the Urukul since the
+    # frequency is controlled by the fast ramp rate. The parameters controlling
+    # that ramp rate are not currently rampable - we could add this if required
+    # but it's getting conceptually complicated
+    urukuls = []
+    default_urukul_amplitudes_start = []
+    default_urukul_amplitudes_end = []
+    default_urukul_detunings_start = []
+    default_urukul_detunings_end = []
+    default_urukul_nominal_frequencies = []
+
+    default_suservo_setpoint_multiples_start = (
+        constants.RED_BROADBAND_SUSERVO_MULTIPLES_START
+    )
+    default_suservo_setpoint_multiples_end = (
+        constants.RED_BROADBAND_SUSERVO_MULTIPLES_END
+    )
+    general_setter_default_starts = (
+        constants.RED_BROADBAND_MOT_CURRENT_START
+        + constants.RED_BROADBAND_BIAS_FIELD_START
+    )
+    general_setter_default_ends = (
+        constants.RED_BROADBAND_MOT_CURRENT_END + constants.RED_BROADBAND_BIAS_FIELD_END
+    )
+
+    bias_field_x_start: FloatParamHandle
+    bias_field_y_start: FloatParamHandle
+    bias_field_z_start: FloatParamHandle
+
+    bias_field_x_end: FloatParamHandle
+    bias_field_y_end: FloatParamHandle
+    bias_field_z_end: FloatParamHandle
 
 
 class NarrowRedCapturePhase(RedRampingPhaseWithFieldsAndSUServoBindings):

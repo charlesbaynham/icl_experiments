@@ -169,6 +169,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_x_start", self.blue_3d_mot.chamber_2_bias_x
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_y_start", self.blue_3d_mot.chamber_2_bias_y
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_z_start", self.blue_3d_mot.chamber_2_bias_z
+        )
+
         self.hook_setup_andor()
 
     @kernel
@@ -227,6 +237,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
+        self.set_narrowband_fields_hook()
         self.red_mot.do_narrowband_red_mot()
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
@@ -350,14 +361,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
 
     @kernel
-    def end_of_broadband_mot_hook(self):
-        """
-        Executed immediately after the broadband MOT stage ends, before the
-        broadband ramping is disabled. No timeline correction is performed, so
-        changes here will delay the narrowband red MOT.
-        """
-
-    @kernel
     def start_of_red_broadband_hook(self):
         """
         Executed as the broadband MOT stage starts.
@@ -367,6 +370,37 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         TODO: Move this hook so that new lanes aren't needed
         """
+
+    @kernel
+    def end_of_broadband_mot_hook(self):
+        """
+        Executed immediately after the broadband MOT stage ends, before the
+        broadband ramping is disabled. No timeline correction is performed, so
+        changes here will delay the narrowband red MOT.
+        """
+
+    @kernel
+    def set_narrowband_fields_hook(self):
+        """
+        Hook for setting magnetic fields after the broadband for use in the narrowband MOT. This
+        fires at the same cursor position as the pre_expansion_hook, and runs
+        after it.
+
+        Any changes to the cursor made by this function will be respected, i.e.
+        the rest of the sequence CAN be delayed by this hook
+        """
+        self.set_narrowband_fields_default()
+
+    @kernel
+    def set_narrowband_fields_default(self):
+        """
+        Set the magnetic fields for the narrowband MOT to the default values
+        """
+        bias_x = self.red_mot.narrowband_bias_x.get()
+        bias_y = self.red_mot.narrowband_bias_y.get()
+        bias_z = self.red_mot.narrowband_bias_z.get()
+        self.red_mot.chamber_2_field_setter.set_bias_fields(bias_x, bias_y, bias_z)
+        delay(1.5e-6 + (808e-9 * 3))
 
     @kernel
     def post_narrowband_hook(self):

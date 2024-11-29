@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.coredevice.ad9912 import AD9912
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
@@ -15,6 +16,7 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
+from pyaion.models import UrukuledBeam
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
@@ -46,6 +48,7 @@ BlueBeamSetter = make_set_beams_to_default(
     name="BlueBeamSetter",
 )
 
+BLUE_DOUBLEPASS_INJECTION_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["blue_doublepass_injection"]
 
 class BlueRampingPhaseWithFields(GeneralRampingPhaseWithBindingAndMOTField):
     """
@@ -96,6 +99,10 @@ class Blue3DMOTFrag(Fragment):
         self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
 
         self.setattr_fragment("reset_all_beams", ResetAllICLBeams)
+
+        self.doublepass_injection_aom: AD9912 = self.get_device(
+            BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.urukul_device
+            )
 
         self.setattr_fragment("all_beam_default_setter", BlueBeamSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
@@ -282,6 +289,16 @@ class Blue3DMOTFrag(Fragment):
         self.clearout_time: FloatParamHandle
 
         self.setattr_param(
+            "blue_doublepass_injection_detuning",
+            FloatParam,
+            "Detuning of blue doublepass injection AOM from nominal",
+            default=0,
+            unit="MHz",
+            min=0,
+        )
+        self.blue_doublepass_injection_detuning: FloatParamHandle
+
+        self.setattr_param(
             "loading_time",
             FloatParam,
             "Time to load atoms for",
@@ -323,6 +340,10 @@ class Blue3DMOTFrag(Fragment):
         # Turn on all the AOMs but close all the shutters
         delay(200e-6)  # We need some slack - create it deterministically
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
+
+        frequency_blue_doublepass = BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.frequency + self.blue_doublepass_injection_detuning.get()
+        self.doublepass_injection_aom.set(frequency=frequency_blue_doublepass)
+        delay_mu(int64(self.core.ref_multiplier))
 
         self.mirny_eom_sidebands.set_sidebands()
 
