@@ -3,6 +3,7 @@ import logging
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
+from artiq.coredevice.ttl import TTLOut
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -70,6 +71,9 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
             beam_infos=[constants.SUSERVOED_BEAMS["red_up"]],
         )
         self.up_swap_beam_toggler: ControlBeamsWithoutCoolingAOM
+
+        self.setattr_device("ttl_shutter_red_up")
+        self.ttl_shutter_red_up: TTLOut
 
         ### Parameters ###
 
@@ -176,16 +180,20 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
 
         self.start_ramping_red_for_dipole_swap()
 
+        self.ttl_shutter_red_up.on()
+        delay_mu(int64(self.core.ref_multiplier))
         # Start the SWAP beams at zero power so we won't get a flash of bright light
         # FIXME: Naughty place to hardcode amplitudes - should be param and/or default constant
         self.down_689_setter.suservo_channel.set_y(
-            self.down_689_setter.suservo_profile, 0.33
+            self.down_689_setter.suservo_profile, 0.13 * self.swap_setpoint_down.get()
         )
         delay_mu(int64(self.core.ref_multiplier))
         self.up_689_setter.suservo_channel.set_y(
-            self.up_689_setter.suservo_profile, 0.03
+            self.up_689_setter.suservo_profile, 0.01 * self.swap_setpoint_down.get()
         )
         delay_mu(int64(self.core.ref_multiplier))
+        #
+        delay(20e-3)
 
         # Write setpoints for the SWAP beams
         # TODO: this currently overwrites the setpoints in beam_info. Get rid of one of them
@@ -194,7 +202,10 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         # delay_mu(int64(self.core.ref_multiplier))
         # self.up_689_setter.set_setpoint(self.swap_setpoint_up.get())
         # delay_mu(int64(self.core.ref_multiplier))
-        self.up_swap_beam_toggler.turn_beams_on()
+
+        self.up_689_setter.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay_mu(int64(self.core.ref_multiplier))
+        # self.up_swap_beam_toggler.turn_beams_on()
         self.down_689_setter.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.swap_pulse_duration.get())
         self.down_689_setter.set_channel_state(rf_switch_state=False, enable_iir=False)
