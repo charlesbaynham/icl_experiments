@@ -308,30 +308,20 @@ else:
     B_FIELD_BIAS_LATTICE_Y = -0.02  # A
     B_FIELD_BIAS_LATTICE_Z = -1.01  # A
 
-# Default fields in chamber 2 for nulling field
-B_FIELD_BIAS_MOT_X = 0.3  # A
-B_FIELD_BIAS_MOT_Y = -0.014  # A
-
+# Default fields in chamber 2 for optimising transfer into broadband red MOT
+B_FIELD_BIAS_BLUE_MOT_X = 0.3  # A
+B_FIELD_BIAS_BLUE_MOT_Y = -0.014  # A
 if USE_SR87:
-    B_FIELD_BIAS_MOT_Z = (
+    B_FIELD_BIAS_BLUE_MOT_Z = (
         -0.8
     )  # Sr87 prefers a bit of a bias field in the MOT. We should investigate
 else:
-    B_FIELD_BIAS_MOT_Z = -0.8
-
-
-# Legacy naming.
-B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
-    B_FIELD_BIAS_MOT_X,
-    B_FIELD_BIAS_MOT_Y,
-    B_FIELD_BIAS_MOT_Z,
-)
-
+    B_FIELD_BIAS_BLUE_MOT_Z = -0.8
 
 # Use the lattice bias fields if the bodgy USE_LATTICE variable is set
 # TODO: Get rid of this once we're shifting lattices
 if USE_LATTICE_MODE:
-    B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
+    B_FIELD_BIAS_BLUE_MOT_X, B_FIELD_BIAS_BLUE_MOT_Y, B_FIELD_BIAS_BLUE_MOT_Z = (
         B_FIELD_BIAS_LATTICE_X,
         B_FIELD_BIAS_LATTICE_Y,
         B_FIELD_BIAS_LATTICE_Z,
@@ -877,9 +867,9 @@ else:
 ) = [a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.53])]
 
 RED_BROADBAND_BIAS_FIELD_START = [
-    B_FIELD_BIAS_MOT_X,
-    B_FIELD_BIAS_MOT_Y,
-    B_FIELD_BIAS_MOT_Z,
+    B_FIELD_BIAS_BLUE_MOT_X,
+    B_FIELD_BIAS_BLUE_MOT_Y,
+    B_FIELD_BIAS_BLUE_MOT_Z,
 ]
 RED_BROADBAND_BIAS_FIELD_END = [
     RED_NARROWBAND_BIAS_FIELD_X,

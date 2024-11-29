@@ -48,7 +48,10 @@ BlueBeamSetter = make_set_beams_to_default(
     name="BlueBeamSetter",
 )
 
-BLUE_DOUBLEPASS_INJECTION_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["blue_doublepass_injection"]
+BLUE_DOUBLEPASS_INJECTION_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS[
+    "blue_doublepass_injection"
+]
+
 
 class BlueRampingPhaseWithFields(GeneralRampingPhaseWithBindingAndMOTField):
     """
@@ -102,7 +105,7 @@ class Blue3DMOTFrag(Fragment):
 
         self.doublepass_injection_aom: AD9912 = self.get_device(
             BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.urukul_device
-            )
+        )
 
         self.setattr_fragment("all_beam_default_setter", BlueBeamSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
@@ -240,7 +243,7 @@ class Blue3DMOTFrag(Fragment):
             "chamber_2_bias_x",
             FloatParam,
             "Bias current for chamber 2 - X",
-            default=constants.B_FIELD_BIAS_X,
+            default=constants.B_FIELD_BIAS_BLUE_MOT_X,
             unit="A",
             min=-5,
             max=5,
@@ -249,7 +252,7 @@ class Blue3DMOTFrag(Fragment):
             "chamber_2_bias_y",
             FloatParam,
             "Bias current for chamber 2 - Y",
-            default=constants.B_FIELD_BIAS_Y,
+            default=constants.B_FIELD_BIAS_BLUE_MOT_Y,
             unit="A",
             min=-5,
             max=5,
@@ -258,7 +261,7 @@ class Blue3DMOTFrag(Fragment):
             "chamber_2_bias_z",
             FloatParam,
             "Bias current for chamber 2 - Z",
-            default=constants.B_FIELD_BIAS_Z,
+            default=constants.B_FIELD_BIAS_BLUE_MOT_Z,
             unit="A",
             min=-5,
             max=5,
@@ -341,7 +344,10 @@ class Blue3DMOTFrag(Fragment):
         delay(200e-6)  # We need some slack - create it deterministically
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
 
-        frequency_blue_doublepass = BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.frequency + self.blue_doublepass_injection_detuning.get()
+        frequency_blue_doublepass = (
+            BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.frequency
+            + self.blue_doublepass_injection_detuning.get()
+        )
         self.doublepass_injection_aom.set(frequency=frequency_blue_doublepass)
         delay_mu(int64(self.core.ref_multiplier))
 
