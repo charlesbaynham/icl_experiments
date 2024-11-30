@@ -309,14 +309,9 @@ else:
     B_FIELD_BIAS_LATTICE_Z = -1.01  # A
 
 # Default fields in chamber 2 for optimising transfer into broadband red MOT
-B_FIELD_BIAS_BLUE_MOT_X = 0.3  # A
-B_FIELD_BIAS_BLUE_MOT_Y = -0.014  # A
-if USE_SR87:
-    B_FIELD_BIAS_BLUE_MOT_Z = (
-        -0.8
-    )  # Sr87 prefers a bit of a bias field in the MOT. We should investigate
-else:
-    B_FIELD_BIAS_BLUE_MOT_Z = -0.8
+B_FIELD_BIAS_BLUE_MOT_X = FIELD_COMP_X
+B_FIELD_BIAS_BLUE_MOT_Y = FIELD_COMP_Y
+B_FIELD_BIAS_BLUE_MOT_Z = -1.4  # A - optimized for 87Sr bb MOT atom number 29/11/2024
 
 # Use the lattice bias fields if the bodgy USE_LATTICE variable is set
 # TODO: Get rid of this once we're shifting lattices
@@ -844,13 +839,13 @@ BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_END = [0.05, 0.05, 0.05]
 
 # Broadband phase
 RED_BROADBAND_TIMESTEP = (
-    20e-3  # TODO: fix this by changing the ordering of the camera shutter queueing
+    10e-3  # TODO: fix this by changing the ordering of the camera shutter queueing
 )
 if USE_SR87:
     RED_BROADBAND_SUSERVO_MULTIPLES_START = [2.2, 2.2, 2.5, 0.5]
     RED_BROADBAND_SUSERVO_MULTIPLES_END = [2.2, 2.2, 2.5, 0.5]
-    RED_BROADBAND_MOT_CURRENT_START = [6.0]
-    RED_BROADBAND_MOT_CURRENT_END = [6.0]
+    RED_BROADBAND_MOT_CURRENT_START = [3.0]
+    RED_BROADBAND_MOT_CURRENT_END = [10.0]
     RED_BROADBAND_DURATION = 120e-3
 else:
     RED_BROADBAND_SUSERVO_MULTIPLES_START = [2.2, 2.2, 2.5, 0.0]
