@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class ClockSpecFromXXODTFrag(
-    DipoleSWAPMixin,
+    # DipoleSWAPMixin,
     ClockRabiSpectroscopyDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     EMGain,
