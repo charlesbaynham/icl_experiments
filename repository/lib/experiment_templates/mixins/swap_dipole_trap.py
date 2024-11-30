@@ -107,9 +107,9 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         self.setattr_param(
             "ramp_upper_detuning",
             FloatParam,
-            "68 ramp upper-limit detuning from nominal frequency for dipole trap SWAP",
+            "689 ramp upper-limit detuning from nominal frequency for dipole trap SWAP",
             unit="MHz",
-            default=constants.RED_BROADBAND_RAMP_LIMIT,
+            default=constants.RED_BROADBAND_RAMP_UPPER_LIMIT,
         )
         self.ramp_upper_detuning: FloatParamHandle
 

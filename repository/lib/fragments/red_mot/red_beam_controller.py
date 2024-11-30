@@ -200,14 +200,14 @@ class RedBeamController(Fragment):
             FloatParam,
             "Detuning of 689 injection AOM from nominal frequency at lowest point of ramp",
             unit="MHz",
-            default=0.0,
+            default=constants.RED_BROADBAND_RAMP_LOWER_LIMIT,
         )
         self.setattr_param(
             "ramp_upper_detuning",
             FloatParam,
             "Detuning of 689 injection AOM from nominal frequency at highest point of ramp",
             unit="MHz",
-            default=constants.RED_BROADBAND_RAMP_LIMIT,
+            default=constants.RED_BROADBAND_RAMP_UPPER_LIMIT,
         )
         self.setattr_param(
             "ramp_type",
@@ -297,9 +297,9 @@ class RedBeamController(Fragment):
 
         # Look up the SUServo setpoints from the beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[
-                i
-            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            self.suservo_nominal_amplitudes[i] = (
+                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            )
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = abs(

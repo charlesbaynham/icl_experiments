@@ -794,11 +794,11 @@ B_FIELD_GRADIENT = 90.0  # A
 BLUE_LOADING_TIME = 500e-3
 "Default blue MOT loading time"
 
-
-RED_BROADBAND_RAMP_LIMIT = 4e6
+RED_BROADBAND_RAMP_LOWER_LIMIT = -0.1e6
+RED_BROADBAND_RAMP_UPPER_LIMIT = 3e6 if USE_SR87 else 4e6
 "Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
 
-RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
+RED_INJECTION_AOM_RAMP_FREQUENCY = 20e3 if USE_SR87 else 30e3
 "Default ramp frequency for the broadband red MOT"
 
 
