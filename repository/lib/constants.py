@@ -933,7 +933,7 @@ if USE_SR87:
     ]
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 17e-3
+    XODT_MOLASSES_DURATION = 12e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
@@ -1011,9 +1011,9 @@ XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
-# XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
-#     a + b for a, b in zip(FIELD_COMP, [-1.12, 0.0, 0.0])
-# ]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
-    a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
+    a + b for a, b in zip(FIELD_COMP, [-1.12, 0.0, 0.0])
 ]
+# XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
+#     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
+# ]
