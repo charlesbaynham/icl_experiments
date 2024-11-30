@@ -311,7 +311,9 @@ else:
 # Default fields in chamber 2 for optimising transfer into broadband red MOT
 B_FIELD_BIAS_BLUE_MOT_X = FIELD_COMP_X
 B_FIELD_BIAS_BLUE_MOT_Y = FIELD_COMP_Y
-B_FIELD_BIAS_BLUE_MOT_Z = -1.4  # A - optimized for 87Sr bb MOT atom number 29/11/2024
+B_FIELD_BIAS_BLUE_MOT_Z = (
+    FIELD_COMP_Y - 1.1
+)  # A - optimized for 87Sr bb MOT atom number 29/11/2024
 
 # Use the lattice bias fields if the bodgy USE_LATTICE variable is set
 # TODO: Get rid of this once we're shifting lattices
