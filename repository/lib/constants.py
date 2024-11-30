@@ -285,62 +285,6 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
 
-# Default field in chamber 1
-B_FIELD_CH1_AXIAL = 0.0  # A
-
-# TODO: Include FIELD_COMP as an offset to the other default fields below.
-# Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
-# Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
-# than previous calibration based on Zeeman spectroscopy
-FIELD_COMP_X = 0.31
-FIELD_COMP_Y = -0.009
-FIELD_COMP_Z = -0.69
-FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
-
-if USE_SR87:
-    # With 6A gradient
-    B_FIELD_BIAS_LATTICE_X = 1.1  # A
-    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
-    B_FIELD_BIAS_LATTICE_Z = -1.4  # A
-else:
-    # With 1A gradient
-    B_FIELD_BIAS_LATTICE_X = 0.5  # A
-    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
-    B_FIELD_BIAS_LATTICE_Z = -1.01  # A
-
-# Default fields in chamber 2 for optimising transfer into broadband red MOT
-B_FIELD_BIAS_BLUE_MOT_X = FIELD_COMP_X
-B_FIELD_BIAS_BLUE_MOT_Y = FIELD_COMP_Y
-B_FIELD_BIAS_BLUE_MOT_Z = (
-    FIELD_COMP_Y - 1.1
-)  # A - optimized for 87Sr bb MOT atom number 29/11/2024
-
-# Use the lattice bias fields if the bodgy USE_LATTICE variable is set
-# TODO: Get rid of this once we're shifting lattices
-if USE_LATTICE_MODE:
-    B_FIELD_BIAS_BLUE_MOT_X, B_FIELD_BIAS_BLUE_MOT_Y, B_FIELD_BIAS_BLUE_MOT_Z = (
-        B_FIELD_BIAS_LATTICE_X,
-        B_FIELD_BIAS_LATTICE_Y,
-        B_FIELD_BIAS_LATTICE_Z,
-    )
-
-B_FIELD_GRADIENT = 90.0  # A
-
-
-BLUE_LOADING_TIME = 500e-3
-"Default blue MOT loading time"
-
-
-RED_BROADBAND_RAMP_LIMIT = 4e6
-"Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
-
-RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
-"Default ramp frequency for the broadband red MOT"
-
-
-RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
-"Default final hold time in last stage of the red mot"
-
 DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
@@ -804,6 +748,62 @@ WAND_SETPOINTS_87 = {
     "698": (_default_698, False),
     "Sirah": (_default_698, False),
 }
+
+# Default field in chamber 1
+B_FIELD_CH1_AXIAL = 0.0  # A
+
+# TODO: Include FIELD_COMP as an offset to the other default fields below.
+# Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
+# Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
+# than previous calibration based on Zeeman spectroscopy
+FIELD_COMP_X = 0.31
+FIELD_COMP_Y = -0.009
+FIELD_COMP_Z = -0.69
+FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
+
+if USE_SR87:
+    # With 6A gradient
+    B_FIELD_BIAS_LATTICE_X = 1.1  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.4  # A
+else:
+    # With 1A gradient
+    B_FIELD_BIAS_LATTICE_X = 0.5  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.01  # A
+
+# Default fields in chamber 2 for optimising transfer into broadband red MOT
+B_FIELD_BIAS_BLUE_MOT_X = FIELD_COMP_X
+B_FIELD_BIAS_BLUE_MOT_Y = FIELD_COMP_Y
+B_FIELD_BIAS_BLUE_MOT_Z = (
+    FIELD_COMP_Y - 1.1
+)  # A - optimized for 87Sr bb MOT atom number 29/11/2024
+
+# Use the lattice bias fields if the bodgy USE_LATTICE variable is set
+# TODO: Get rid of this once we're shifting lattices
+if USE_LATTICE_MODE:
+    B_FIELD_BIAS_BLUE_MOT_X, B_FIELD_BIAS_BLUE_MOT_Y, B_FIELD_BIAS_BLUE_MOT_Z = (
+        B_FIELD_BIAS_LATTICE_X,
+        B_FIELD_BIAS_LATTICE_Y,
+        B_FIELD_BIAS_LATTICE_Z,
+    )
+
+B_FIELD_GRADIENT = 90.0  # A
+
+
+BLUE_LOADING_TIME = 500e-3
+"Default blue MOT loading time"
+
+
+RED_BROADBAND_RAMP_LIMIT = 4e6
+"Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
+
+RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
+"Default ramp frequency for the broadband red MOT"
+
+
+RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
+"Default final hold time in last stage of the red mot"
 
 # Spin polarisation settings
 
