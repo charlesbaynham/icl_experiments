@@ -59,6 +59,12 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             original_name="chamber_2_mot_current_end",
             default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
         )
+        for idx, axis in enumerate(["x", "y", "z"]):
+            self.setattr_param_rebind(
+                f"narrowband_bias_{axis}",
+                self.red_mot,
+                default=constants.BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES[idx],
+            )
         self.setattr_param_rebind(
             "red_narrowband_mot_689_up_start",
             self.red_mot.narrow_red_compression_phase,
