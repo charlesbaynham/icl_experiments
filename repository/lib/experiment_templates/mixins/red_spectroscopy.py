@@ -49,7 +49,7 @@ class _RedSpectroscopyBase(
     def build_fragment(self):
         super().build_fragment()
 
-        self.suservo_setters: dict[str, LibSetSUServoStatic] = []
+        self.suservo_setters: dict[str, LibSetSUServoStatic] = {}
 
         for beam_name in POSSIBLE_BEAMS:
             f = self.setattr_fragment(
