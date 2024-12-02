@@ -7,7 +7,7 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import FloatParamHandle, IntParam, IntParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
@@ -58,6 +58,15 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         # FIXME
         logger.warning('"Which spinpol beam? setting is being ignored"')
 
+        # FIXME
+        self.setattr_param(
+            "num_spinpol_flips",
+            IntParam,
+            description="Number of spin polarisation flips",
+            default=1,
+        )
+        self.num_spinpol_flips: IntParamHandle
+
     @kernel
     def spin_polarize(self):
         """
@@ -76,6 +85,10 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         self.red_mot.red_beam_controller.ttl_shutter_red_axial_spin_pol.on()
         delay(constants.SRS_SHUTTER_DELAY)
 
+        half_flip_period = self.duration_spinpol_pulse.get() / (
+            2 * self.num_spinpol_flips.get()
+        )
+
         self.red_mot.red_beam_controller.sigmaplus_setpoint_setter.set_setpoint(
             self.red_mot.red_beam_controller.spinpol_setpoint
         )
@@ -83,21 +96,22 @@ class OpticalPumpingBase(RedMOTWithExperiment):
             self.red_mot.red_beam_controller.spinpol_setpoint
         )
 
-        self.red_mot.red_beam_controller.sigmaplus_toggler.turn_beams_on(
-            ignore_shutters=False
-        )
+        for _ in range(self.num_spinpol_flips.get()):
+            self.red_mot.red_beam_controller.sigmaplus_toggler.turn_beams_on(
+                ignore_shutters=False
+            )
 
-        delay(self.duration_spinpol_pulse.get())
-        self.red_mot.red_beam_controller.sigmaplus_toggler.turn_beams_off(
-            ignore_shutters=True
-        )
-        self.red_mot.red_beam_controller.sigmaminus_toggler.turn_beams_on(
-            ignore_shutters=True
-        )
-        delay(self.duration_spinpol_pulse.get())
-        self.red_mot.red_beam_controller.sigmaminus_toggler.turn_beams_off(
-            ignore_shutters=False
-        )
+            delay(half_flip_period)
+            self.red_mot.red_beam_controller.sigmaplus_toggler.turn_beams_off(
+                ignore_shutters=True
+            )
+            self.red_mot.red_beam_controller.sigmaminus_toggler.turn_beams_on(
+                ignore_shutters=True
+            )
+            delay(half_flip_period)
+            self.red_mot.red_beam_controller.sigmaminus_toggler.turn_beams_off(
+                ignore_shutters=False
+            )
 
         #### FIXME ENDS HERE ####
         # self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
