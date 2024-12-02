@@ -1,7 +1,7 @@
 import logging
 
-from artiq.coredevice.core import Core
 from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu

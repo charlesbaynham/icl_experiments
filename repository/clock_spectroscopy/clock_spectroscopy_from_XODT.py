@@ -22,7 +22,6 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )

@@ -3,23 +3,24 @@ import logging
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import parallel
-from ndscan.experiment import *
 from artiq.experiment import sequential
+from ndscan.experiment import *
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from ndscan.experiment.parameters import BoolParamHandle
+
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
+)
+from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
+from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
 )
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
-from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
-    ExponentialDecayMixin,
-)
 
 logger = logging.getLogger(__name__)
 

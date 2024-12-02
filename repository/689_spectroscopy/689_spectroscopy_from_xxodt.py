@@ -1,4 +1,3 @@
-from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
 import logging
 
 from artiq.experiment import kernel
