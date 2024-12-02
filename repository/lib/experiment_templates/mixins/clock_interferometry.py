@@ -52,7 +52,7 @@ class ClockInterferometryBase(
             "spectroscopy_pulse_time",
             FloatParam,
             "Length of spectroscopy pulse",
-            default=50e-6,
+            default=constants.CLOCK_PI_TIME,
             unit="us",
         )
         self.spectroscopy_pulse_time: FloatParamHandle
