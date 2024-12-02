@@ -55,6 +55,9 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         )
         self.delay_after_spinpol_pulse: FloatParamHandle
 
+        # FIXME
+        logger.warning('"Which spinpol beam? setting is being ignored"')
+
     @kernel
     def spin_polarize(self):
         """
@@ -65,10 +68,44 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         self.red_mot.red_beam_controller.start_ramping_spinpol()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         delay(self.delay_before_spinpol_pulse.get())
-        self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
+
+        #### FIXME STARTS HERE ####
+        # Hack in alternating spin pol pulses starts here
+        # Ensure shutter is open
+        delay(-constants.SRS_SHUTTER_DELAY)
+        self.red_mot.red_beam_controller.ttl_shutter_red_axial_spin_pol.on()
+        delay(constants.SRS_SHUTTER_DELAY)
+
+        self.red_mot.red_beam_controller.sigmaplus_setpoint_setter.set_setpoint(
+            self.red_mot.red_beam_controller.spinpol_setpoint
+        )
+        self.red_mot.red_beam_controller.sigmaminus_setpoint_setter.set_setpoint(
+            self.red_mot.red_beam_controller.spinpol_setpoint
+        )
+
+        self.red_mot.red_beam_controller.sigmaplus_toggler.turn_beams_on(
+            ignore_shutters=False
+        )
+
         delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.sigmaplus_toggler.turn_beams_off(
+            ignore_shutters=True
+        )
+        self.red_mot.red_beam_controller.sigmaminus_toggler.turn_beams_on(
+            ignore_shutters=True
+        )
+        delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.sigmaminus_toggler.turn_beams_off(
+            ignore_shutters=False
+        )
+
+        #### FIXME ENDS HERE ####
+        # self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
+        # delay(self.duration_spinpol_pulse.get())
+
         self.red_mot.red_beam_controller.stop_ramping_spinpol()
-        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
+        # FIXME
+        # self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
 
