@@ -17,7 +17,11 @@ logger = logging.getLogger(__name__)
 
 class OpticalPumpingBase(RedMOTWithExperiment):
     """
-    Defines a spin_polarize() method for use in optical pumping Mixins
+    Defines :meth:`~spin_polarize` and :meth:`~.set_fields_for_optical_pumping`
+    methods for use in optical pumping Mixins
+
+    Although implemented as a mixin, this is a Fragment at heart and may be
+    redefined as one later.
     """
 
     def build_fragment(self):
@@ -50,6 +54,18 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         )
         self.delay_after_spinpol_pulse: FloatParamHandle
 
+        for idx, c in enumerate("xyz"):
+            self.setattr_param(
+                f"bias_{c}_for_pumping",
+                FloatParam,
+                default=constants.OPTICAL_PUMPING_BIAS_FIELD[idx],
+                description=f"Bias field for optical pumping {c}",
+                unit="A",
+            )
+        self.bias_x_for_pumping: FloatParamHandle
+        self.bias_y_for_pumping: FloatParamHandle
+        self.bias_z_for_pumping: FloatParamHandle
+
     @kernel
     def spin_polarize(self):
         """
@@ -63,28 +79,6 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         delay(self.duration_spinpol_pulse.get())
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
-
-
-class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
-    """
-    Exposes spin_polarize() and set_fields_for_optical_pumping() methods
-    for use in optical pumping Mixins
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        for idx, c in enumerate("xyz"):
-            self.setattr_param(
-                f"bias_{c}_for_pumping",
-                FloatParam,
-                default=constants.OPTICAL_PUMPING_BIAS_FIELD[idx],
-                description=f"Bias field for optical pumping {c}",
-                unit="A",
-            )
-        self.bias_x_for_pumping: FloatParamHandle
-        self.bias_y_for_pumping: FloatParamHandle
-        self.bias_z_for_pumping: FloatParamHandle
 
     @kernel
     def set_fields_for_optical_pumping(self):
@@ -104,7 +98,7 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         )
 
 
-class OpticalPumpingWithFieldSettingDipoleTrapMixin(OpticalPumpingWithFieldSettingBase):
+class OpticalPumpingWithFieldSettingDipoleTrapMixin(OpticalPumpingBase):
     """
     Mixin for optical pumping in a dipole trap
 
