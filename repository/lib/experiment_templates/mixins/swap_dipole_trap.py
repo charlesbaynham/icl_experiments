@@ -140,8 +140,10 @@ class DipoleSWAPMixin(DipoleTrapWithExperiment):
         )
         self.hold_duration_after_swap: FloatParamHandle
 
-        # FIXME
         # For now, bind both setpoints together
+        # TODO: balance these beams and
+        # allow ramping independently / together based on Rabi frequency
+        # measurements in 2024-11-29 labbook entry
         self.setattr_param_like("joint_swap_setpoint", self, "swap_setpoint_up")
         self.bind_param("swap_setpoint_up", self.joint_swap_setpoint)
         self.bind_param("swap_setpoint_down", self.joint_swap_setpoint)

@@ -446,9 +446,6 @@ class SetBeamsToDefaults(Fragment):
                     break
                 except RTIOUnderflow:
                     self.extra_delay += 1e-3
-                    logger.warning(
-                        "extra_delay increased to %s", self.extra_delay
-                    )  # FIXME for debugging
                     if self.extra_delay > 10e-3:
                         logger.critical("RTIOUnderflow in SetBeamsToDefaults")
                         raise
@@ -477,13 +474,9 @@ class SetBeamsToDefaults(Fragment):
             logger.info(
                 "SetBeamsToDefault.turn_on_all(light_enabled=%s)", light_enabled
             )
-        # self.core.break_realtime()  # FIXME
         self._turn_on_suservos(light_enabled=light_enabled)
-        # self.core.break_realtime()  # FIXME
         self._turn_on_ad9910s(light_enabled=light_enabled)
-        # self.core.break_realtime()  # FIXME
         self._turn_on_ad9912s(light_enabled=light_enabled)
-        # self.core.break_realtime()  # FIXME
         self._set_rf_switches(light_enabled=light_enabled)
 
     @kernel
