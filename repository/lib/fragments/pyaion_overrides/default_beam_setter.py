@@ -8,10 +8,12 @@ from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.urukul import CPLD as UrukulCPLD
-from artiq.experiment import delay_mu
+from artiq.experiment import RTIOUnderflow
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import portable
+from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.master.worker_db import DummyDevice
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
@@ -32,6 +34,7 @@ def make_set_beams_to_default(
     urukul_beam_infos: List[UrukuledBeam] = [],
     name="",
     use_automatic_setup=False,
+    use_automatic_turnon=False,
 ) -> Type["SetBeamsToDefaults"]:
     """
     Return a SetBeamsToDefaults Fragment class with the given beams set
@@ -40,9 +43,9 @@ def make_set_beams_to_default(
     configured. This is required because ARTIQ needs all instances of a given
     class to have the exact same attributes, and ndscan assumes that all
     `setattr_fragment` calls in a Fragment's `build_fragment` will have the same
-    order, number and type-signatures. That's not true for this `Fragment`: we'll
-    be setting up variable numbers of `LibSetSUServoStatic` subfragments, so need
-    a subclass for each instance.
+    order, number and type-signatures. That's not true for this `Fragment`:
+    we'll be setting up variable numbers of `LibSetSUServoStatic` subfragments,
+    so need a subclass for each instance.
 
     You can provide a `name` if you wish, which will result in nicer annotations
     for your ndscan parameters in the GUI.
@@ -50,6 +53,9 @@ def make_set_beams_to_default(
     If `use_automatic_setup==True`, setup the AOM defaults in `device_setup`
     automatically. The beams will still be left off, but the frequency, gains,
     setpoints etc. will be configured.
+
+    If `use_automatic_turnon==True`, turn the beams on automatically in
+    `device_setup`. This requires `use_automatic_setup==True`.
 
     See the docs for :class:`~SetBeamsToDefaults` for more information.
 
@@ -61,6 +67,7 @@ def make_set_beams_to_default(
         default_suservo_beam_infos = suservo_beam_infos
         default_urukul_beam_infos = urukul_beam_infos
         automatic_setup = use_automatic_setup
+        automatic_turnon = use_automatic_turnon
 
     if not name:
         name = "SetBeamsToDefaults"
@@ -116,14 +123,23 @@ class SetBeamsToDefaults(Fragment):
     default_suservo_beam_infos: List[SUServoedBeam] = None  # type: ignore
     default_urukul_beam_infos: List[UrukuledBeam] = None  # type: ignore
     automatic_setup = False
+    automatic_turnon = False
 
     def build_fragment(self):
         self.default_suservo_beam_infos = self.default_suservo_beam_infos or []
         self.default_urukul_beam_infos = self.default_urukul_beam_infos or []
 
-        # automatic_setup is a class variable, but add it to kernel invariants anyway
+        # automatic_setup and automatic_turnon are class variables, but add them to kernel invariants anyway
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("automatic_setup")
+
+        self.extra_delay = 0.0
+        self.kernel_invariants.add("automatic_turnon")
+
+        if self.automatic_turnon and not self.automatic_setup:
+            raise ValueError(
+                "automatic_turnon requires automatic_setup to be True as well"
+            )
 
         if (
             self.default_suservo_beam_infos is []
@@ -422,8 +438,17 @@ class SetBeamsToDefaults(Fragment):
 
         # If configured to setup the AOMs automatically, do so now
         if self.automatic_setup:
-            self.core.break_realtime()
-            self.turn_on_all()
+            while True:
+                try:
+                    self.core.break_realtime()
+                    delay(self.extra_delay)
+                    self.turn_on_all(light_enabled=self.automatic_turnon)
+                    break
+                except RTIOUnderflow:
+                    self.extra_delay += 1e-3
+                    if self.extra_delay > 10e-3:
+                        logger.critical("RTIOUnderflow in SetBeamsToDefaults")
+                        raise
 
     @portable
     def get_max_shutter_delay(self):
@@ -449,7 +474,6 @@ class SetBeamsToDefaults(Fragment):
             logger.info(
                 "SetBeamsToDefault.turn_on_all(light_enabled=%s)", light_enabled
             )
-
         self._turn_on_suservos(light_enabled=light_enabled)
         self._turn_on_ad9910s(light_enabled=light_enabled)
         self._turn_on_ad9912s(light_enabled=light_enabled)
