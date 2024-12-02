@@ -100,9 +100,10 @@ class OpticalPumpingBase(RedMOTWithExperiment):
             half_flip_period = self.duration_spinpol_pulse.get() / (
                 2 * self.num_spinpol_flips.get()
             )
+
             for _ in range(self.num_spinpol_flips.get()):
                 self.red_mot.red_beam_controller.sigmaplus_toggler.turn_beams_on(
-                    ignore_shutters=False
+                    ignore_shutters=True
                 )
 
                 delay(half_flip_period)
@@ -114,7 +115,7 @@ class OpticalPumpingBase(RedMOTWithExperiment):
                 )
                 delay(half_flip_period)
                 self.red_mot.red_beam_controller.sigmaminus_toggler.turn_beams_off(
-                    ignore_shutters=False
+                    ignore_shutters=True
                 )
 
         #### FIXME ENDS HERE ####
