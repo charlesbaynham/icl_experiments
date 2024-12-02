@@ -215,6 +215,8 @@ class RedBeamController(Fragment):
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
             default=2,
         )
+
+        # TODO: These should not be in the beam controller - they're not used for every experiment that uses this object
         self.setattr_param(
             "spinpol_ramp_frequency",
             FloatParam,
