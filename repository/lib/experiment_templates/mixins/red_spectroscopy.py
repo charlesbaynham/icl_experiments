@@ -21,15 +21,17 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
 
-POSSIBLE_BEAMS = [
-    "red_mot_sigmaminus",
-    "red_mot_sigmaplus",
-    "red_up",
-    "down_689",
-]
+
+@unique
+class SpectroscopyBeam(Enum):
+    sigmaminus = "red_mot_sigmaminus"
+    sigmaplus = "red_mot_sigmaplus"
+    up = "red_up"
+    down = "down_689"
 
 
 class _RedSpectroscopyBase(
@@ -51,18 +53,18 @@ class _RedSpectroscopyBase(
 
         self.suservo_setters: dict[str, LibSetSUServoStatic] = {}
 
-        for beam_name in POSSIBLE_BEAMS:
+        for beam_enum in SpectroscopyBeam:
             f = self.setattr_fragment(
-                f"{beam_name}_suservo",
+                f"{beam_enum.value}_suservo",
                 LibSetSUServoStatic,
-                constants.SUSERVOED_BEAMS[beam_name].suservo_device,
+                constants.SUSERVOED_BEAMS[beam_enum.value].suservo_device,
             )
-            self.suservo_setters[beam_name] = f
+            self.suservo_setters[beam_enum] = f
 
         self.setattr_param(
             "spectroscopy_beam",
             EnumParam,
-            default="red_up",
+            default=SpectroscopyBeam.up,
             description="Spectroscopy beam",
         )
         self.spectroscopy_beam: ParamHandle
