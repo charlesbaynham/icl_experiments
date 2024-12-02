@@ -5,7 +5,7 @@ from artiq.experiment import kernel
 from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import *
-from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import BoolParamHandle, EnumParam, ParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
@@ -21,8 +21,17 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
+
+
+@unique
+class SpectroscopyBeam(Enum):
+    sigmaminus = "red_mot_sigmaminus"
+    sigmaplus = "red_mot_sigmaplus"
+    up = "red_up"
+    down = "down_689"
 
 
 class _RedSpectroscopyBase(
@@ -42,27 +51,23 @@ class _RedSpectroscopyBase(
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "up_beam_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
-        )
-        self.up_beam_suservo: LibSetSUServoStatic
+        self.suservo_setters: dict[str, LibSetSUServoStatic] = {}
 
-        self.setattr_fragment(
-            "down_beam_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["down_689"].suservo_device,
-        )
-        self.down_beam_suservo: LibSetSUServoStatic
+        for beam_enum in SpectroscopyBeam:
+            f = self.setattr_fragment(
+                f"{beam_enum.value}_suservo",
+                LibSetSUServoStatic,
+                constants.SUSERVOED_BEAMS[beam_enum.value].suservo_device,
+            )
+            self.suservo_setters[beam_enum] = f
 
         self.setattr_param(
-            "use_up_beam",
-            BoolParam,
-            default=True,
-            description="True = up, False = down",
+            "spectroscopy_beam",
+            EnumParam,
+            default=SpectroscopyBeam.up,
+            description="Spectroscopy beam",
         )
-        self.use_up_beam: BoolParamHandle
+        self.spectroscopy_beam: ParamHandle
 
         self.setattr_param_rebind(
             "fluorescence_pulse_duration",
@@ -74,10 +79,9 @@ class _RedSpectroscopyBase(
     def host_setup(self):
         super().host_setup()
 
-        if self.use_up_beam.get():
-            self.spectroscopy_beam_suservo = self.up_beam_suservo
-        else:
-            self.spectroscopy_beam_suservo = self.down_beam_suservo
+        self.spectroscopy_beam_suservo = self.suservo_setters[
+            self.spectroscopy_beam.get()
+        ]
 
     @kernel
     def prepare_red_beam(self):
