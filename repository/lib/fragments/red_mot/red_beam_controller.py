@@ -248,7 +248,7 @@ class RedBeamController(Fragment):
             "use_sigmaplus_spinpol",
             BoolParam,
             "Which spinpol beam? True = sigmaplus, False = sigmaminus",
-            default=False,
+            default=True,
         )
         self.spinpol_aom_static_frequency: FloatParamHandle
         self.injection_aom_static_frequency: FloatParamHandle
