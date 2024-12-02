@@ -603,7 +603,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "down_689",
-        frequency=100e6,
+        frequency=80e6,  # TODO: Change back to 100 MHz before trying SWAP again
         attenuation=12.0,
         suservo_device="suservo_aom_singlepass_689_down_beam",
         servo_enabled=True,
