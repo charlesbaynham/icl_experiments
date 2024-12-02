@@ -599,6 +599,7 @@ SUSERVOED_BEAMS = [
         attenuation=12.0,
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
+        initial_amplitude=0.3,
         setpoint=0.122,  # Match initial differential interferometry setting
     ),
     SUServoedBeam(
@@ -607,6 +608,7 @@ SUSERVOED_BEAMS = [
         attenuation=12.0,
         suservo_device="suservo_aom_singlepass_689_down_beam",
         servo_enabled=True,
+        initial_amplitude=0.3,
         setpoint=0.4,
     ),
 ]
