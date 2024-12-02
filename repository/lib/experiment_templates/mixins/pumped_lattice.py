@@ -1,6 +1,9 @@
+from numpy import int64
 import logging
 
+
 from artiq.experiment import delay
+from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
@@ -52,6 +55,13 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         )
         self.delay_after_spinpol_pulse: FloatParamHandle
 
+        self.setattr_device("ttl_shutter_red_mot_diagonal")
+        self.setattr_device("ttl_shutter_red_sigmaplus")
+        self.setattr_device("ttl_shutter_red_sigmaminus")
+        self.ttl_shutter_red_mot_diagonal: TTLOut
+        self.ttl_shutter_red_sigmaplus: TTLOut
+        self.ttl_shutter_red_sigmaminus: TTLOut
+
     @kernel
     def spin_polarize(self):
         """
@@ -59,6 +69,14 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         beam after allowing the atoms to equlibriate in the lattice for a time,
         then hold them afterwards for some time.
         """
+        # FIXME Hack the shutters off
+        if self.red_mot.red_beam_controller.use_sigmaplus_spinpol.get():
+            self.ttl_shutter_red_sigmaminus.off()
+        else:
+            self.ttl_shutter_red_sigmaplus.off()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.ttl_shutter_red_mot_diagonal.off()
+
         self.red_mot.red_beam_controller.start_ramping_spinpol()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         delay(self.delay_before_spinpol_pulse.get())
