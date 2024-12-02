@@ -200,14 +200,14 @@ class RedBeamController(Fragment):
             FloatParam,
             "Detuning of 689 injection AOM from nominal frequency at lowest point of ramp",
             unit="MHz",
-            default=0.0,
+            default=constants.RED_BROADBAND_RAMP_LOWER_LIMIT,
         )
         self.setattr_param(
             "ramp_upper_detuning",
             FloatParam,
             "Detuning of 689 injection AOM from nominal frequency at highest point of ramp",
             unit="MHz",
-            default=constants.RED_BROADBAND_RAMP_LIMIT,
+            default=constants.RED_BROADBAND_RAMP_UPPER_LIMIT,
         )
         self.setattr_param(
             "ramp_type",
@@ -215,6 +215,8 @@ class RedBeamController(Fragment):
             "689 injection AOM ramp type (0=triangle,1=positive-saw,2=negative-saw)",
             default=2,
         )
+
+        # TODO: These should not be in the beam controller - they're not used for every experiment that uses this object
         self.setattr_param(
             "spinpol_ramp_frequency",
             FloatParam,

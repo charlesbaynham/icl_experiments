@@ -39,11 +39,15 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
                     constants.SUSERVOED_BEAMS["down_813"],
                     constants.SUSERVOED_BEAMS["up_813"],
                     constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
+                    constants.SUSERVOED_BEAMS["clock_delivery"],
+                    constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"],
                 ],
                 urukul_beam_infos=[
-                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"]
+                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
+                    constants.URUKULED_BEAMS["clock_up"],
                 ],
                 use_automatic_setup=True,
+                use_automatic_turnon=True,
             ),
         )
         self.constant_dipole_traps_setter: SetBeamsToDefaults

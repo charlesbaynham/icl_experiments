@@ -1,8 +1,5 @@
 import logging
-from typing import *
 
-from artiq.experiment import TFloat
-from artiq.experiment import TList
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
@@ -41,7 +38,7 @@ class GeneralRampingPhaseWithBinding(GeneralRampingPhase):
 
     @host_only
     def bind_suservo_setpoint_params_to_default_beam_setter(
-        self, beam_setter: SetBeamsToDefaults | List[SetBeamsToDefaults]
+        self, beam_setter: SetBeamsToDefaults | list[SetBeamsToDefaults]
     ):
         """
         Use the GeneralRampingPhase's :meth:`~.bind_suservo_setpoint_params`
@@ -139,7 +136,7 @@ class GeneralRampingPhaseWithBindingAndMOTField(GeneralRampingPhaseWithBinding):
         return super().build_fragment(**kwargs)
 
     @kernel
-    def general_setter(self, vals: TList(TFloat)):
+    def general_setter(self, vals: list[float]):
         self.chamber_2_field_setter.set_mot_gradient(vals[0])
 
 
@@ -163,5 +160,37 @@ class GeneralRampingPhaseWithBindingAndBiasField(GeneralRampingPhaseWithBinding)
         return super().build_fragment(**kwargs)
 
     @kernel
-    def general_setter(self, vals: TList(TFloat)):
+    def general_setter(self, vals: list[float]):
         self.chamber_2_field_setter.set_bias_fields(vals[0], vals[1], vals[2])
+
+
+class GeneralRampingPhaseWithBindingAndMOTAndBiasField(GeneralRampingPhaseWithBinding):
+    """
+    Template fragment for a phase of the experiment using a ramp with bound SUServo setpoints,
+    a ramping MOT field gradient, and a ramping bias magnetic field in x, y, z.
+
+    See the docs for :class:`~GeneralRampingPhaseWithBinding` for more information.
+    """
+
+    general_setter_names = [
+        "chamber_2_mot_current",
+        "bias_field_x",
+        "bias_field_y",
+        "bias_field_z",
+    ]
+    general_setter_param_options = [{"min": 0, "max": 150, "unit": "A"}] + [
+        {"min": -10, "max": 10, "unit": "A"}
+    ] * 3
+
+    def build_fragment(self, **kwargs):
+        self.setattr_fragment(
+            "chamber_2_field_setter",
+            SetMagneticFieldsQuick,
+        )
+        self.chamber_2_field_setter: SetMagneticFieldsQuick
+
+        return super().build_fragment(**kwargs)
+
+    @kernel
+    def general_setter(self, vals: list[float]):
+        self.chamber_2_field_setter.set_all_fields(vals[0], vals[1], vals[2], vals[3])
