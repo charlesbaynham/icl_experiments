@@ -299,9 +299,9 @@ class RedBeamController(Fragment):
 
         # Look up the SUServo setpoints from the beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[
-                i
-            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            self.suservo_nominal_amplitudes[i] = (
+                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            )
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = abs(
@@ -522,7 +522,7 @@ class RedBeamController(Fragment):
     @kernel
     def turn_off_spin_pol(self, ignore_shutters=False):
         # Turn off the spin pol beam and reset the setpoint back to normal
-        self.ttl_shutter_red_axial_mot.off()
+        self.ttl_shutter_red_axial_spin_pol.off()
         delay_mu(int64(self.core.ref_multiplier))
         self.spinpol_setter.set_setpoint(self.spinpol_reset_setpoint_handle.get())
         delay_mu(int64(self.core.ref_multiplier))
