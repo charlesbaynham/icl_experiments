@@ -600,7 +600,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=0.122,  # Match initial differential interferometry setting
+        setpoint=0.28,  # Photodiode is now set to 30dB (changed 2024-12-02 from 20dB)
     ),
     SUServoedBeam(
         "down_689",
