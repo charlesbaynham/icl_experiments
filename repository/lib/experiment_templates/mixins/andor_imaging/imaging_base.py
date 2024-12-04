@@ -198,6 +198,11 @@ class AndorImagingBase(RedMOTWithExperiment):
     def _call_camera_rpc(self):
         # Get new images and add them to any images we got earlier
         images = self.image_store + self.get_andor_images()
+        # FIXME: Recovering atom number bug. Plan:
+        # 1. Always save images to the image_store, even if there's only one
+        # 2. Check the length of the image store against expectations on final readout. Throw an error if it's wrong (maybe an RTIOUnderflowError to cause ndscan to catch it).
+        # 3. Consider if there's a good way to ensure that the Grabber's input queue is empty after reading out the expected number of images
+
         self.image_store = []
         images_array = np.array(images)
         # Update detailed images
