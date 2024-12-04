@@ -81,6 +81,8 @@ class ClockInterferometryBase(
 
         # Allow negative phases up to -10
         self.phase_constant = 10.0
+        self.clock_dds_frequency_pi_pulse = 0.0
+        self.clock_dds_frequency_final_pi_by_2_pulse = 0.0
 
     @kernel
     def device_setup(self):
