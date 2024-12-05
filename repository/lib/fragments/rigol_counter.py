@@ -5,10 +5,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+GATE_TIMES = {
+    "1 ms": "1",
+    "10 ms": "2",
+    "100 ms": "3",
+    "1 s": "4",
+    "10 s": "5",
+}
+
 
 class RigolCounterFrag(Fragment):
     def build_fragment(self, rigol_ip=None):
         self.rigol_ip = rigol_ip or "rigol-dg4162-b.lan"
+        self.gate_time_index = GATE_TIMES["10 s"]
 
     def host_setup(self):
         self.instr = self.get_interface_lan(self.rigol_ip)
@@ -37,8 +46,10 @@ class RigolCounterFrag(Fragment):
 
     def setup_measurement(self):
         """
-        set gate time to 10 s and reset the counter
+        set gate time and reset the counter
         """
-        self.instr.write(":COUN:GATE USER5")  # 10 s gate time
+        self.instr.write(
+            ":COUN:GATE USER" + GATE_TIMES[self.gate_time_index]
+        )  # 10 s gate time
         self.instr.write(":COUN:STAT OFF")  # reset the counter
         self.instr.write(":COUN:STAT ON")
