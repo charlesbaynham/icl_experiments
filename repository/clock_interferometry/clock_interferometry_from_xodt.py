@@ -43,8 +43,8 @@ class DifferentialClockInterferometryFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
     RigolCounterMixin,
+    DipoleTrapWithExperiment,
 ):
     """
     Clock interferometry from a double XODT
@@ -65,6 +65,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    RigolCounterMixin,
     DipoleTrapWithExperiment,
 ):
     """

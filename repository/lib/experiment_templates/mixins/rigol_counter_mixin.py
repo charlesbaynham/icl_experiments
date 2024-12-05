@@ -15,17 +15,17 @@ logger = logging.getLogger(__name__)
 class RigolCounterMixin(RedMOTWithExperiment):
 
     def build_fragment(self):
-
         self.setattr_fragment(
             "rigol",
             RigolCounterFrag,
         )
         self.rigol: RigolCounterFrag
+        self.setattr_result("frequency", FloatChannel, display_hints={"priority": -1})
+        self.frequency: FloatChannel
+        super().build_fragment()
 
     def host_setup(self):
         super().host_setup()
-        self.setattr_result("frequency", FloatChannel, display_hints={"priority": -1})
-        self.frequency: FloatChannel
 
     @kernel
     def check_counter_hook(self):
@@ -34,11 +34,11 @@ class RigolCounterMixin(RedMOTWithExperiment):
     @rpc
     def check_counter_rpc(self):
         frequency = self.rigol.get_frequency()
-        if abs(frequency - CLOCK_LASER_BEATNOTE_FREQUENCY) > 30e-3:
+        if abs(frequency - CLOCK_LASER_BEATNOTE_FREQUENCY) > 200e-3:
             logger.warning(
                 "Frequency %.2f is too far from expected %.2f",
                 frequency,
                 CLOCK_LASER_BEATNOTE_FREQUENCY,
             )
 
-        self.frequency.push(frequency)
+        self.frequency.push(CLOCK_LASER_BEATNOTE_FREQUENCY - frequency)
