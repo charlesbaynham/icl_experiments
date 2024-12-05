@@ -31,6 +31,9 @@ class RigolCounterFrag(Fragment):
         frequency, *_ = query_result.split(",")
         return frequency
 
+    def get_frequency(self):
+        return float(self.get_frequency_str())
+
     def setup_measurement(self):
         """
         set gate time to 10 s and reset the counter
