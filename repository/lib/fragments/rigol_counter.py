@@ -17,7 +17,7 @@ GATE_TIMES = {
 class RigolCounterFrag(Fragment):
     def build_fragment(self, rigol_ip=None):
         self.rigol_ip = rigol_ip or "rigol-dg4162-b.lan"
-        self.gate_time_index = GATE_TIMES["10 s"]
+        self.gate_time_index = "10 s"
 
     def host_setup(self):
         self.instr = self.get_interface_lan(self.rigol_ip)
