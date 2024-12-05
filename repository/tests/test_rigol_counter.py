@@ -36,6 +36,7 @@ class TestRigolCounterFrag(ExpFragment):
 
     def host_setup(self):
         self.rigol.gate_time_index = self.gate_time
+        super().host_setup()
 
     def run_once(self):
         for _ in range(self.n_measurements.get()):
