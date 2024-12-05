@@ -22,6 +22,7 @@ class RigolCounterFrag(Fragment):
     def host_setup(self):
         self.instr = self.get_interface_lan(self.rigol_ip)
         self.setup_measurement()
+        super().host_setup()
 
     def get_interface_lan(self, rigol_ip):
         instr = vxi11.Instrument(rigol_ip)
