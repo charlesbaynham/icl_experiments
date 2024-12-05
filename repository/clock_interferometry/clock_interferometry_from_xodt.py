@@ -28,6 +28,9 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
+from repository.lib.experiment_templates.mixins.rigol_counter_mixin import (
+    RigolCounterMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +44,7 @@ class DifferentialClockInterferometryFrag(
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
+    RigolCounterMixin,
 ):
     """
     Clock interferometry from a double XODT

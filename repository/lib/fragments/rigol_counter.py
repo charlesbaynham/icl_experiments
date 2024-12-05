@@ -1,6 +1,7 @@
 from ndscan.experiment import Fragment
 import vxi11
 import logging
+from artiq.language import host_only
 
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ class RigolCounterFrag(Fragment):
         self.setup_measurement()
         super().host_setup()
 
+    @host_only
     def get_interface_lan(self, rigol_ip):
         instr = vxi11.Instrument(rigol_ip)
 
@@ -36,15 +38,18 @@ class RigolCounterFrag(Fragment):
 
         return QueryAndWrite()
 
+    @host_only
     def get_frequency_str(self):
         query_result = self.instr.query(":COUN:MEAS?")
         frequency, *_ = query_result.split(",")
         return frequency
 
+    @host_only
     def get_frequency(self):
         """frequency in Hz as float"""
         return float(self.get_frequency_str())
 
+    @host_only
     def setup_measurement(self):
         """
         set gate time and reset the counter
