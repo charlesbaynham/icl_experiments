@@ -26,7 +26,7 @@ class TestRigolCounterFrag(ExpFragment):
         self.n_measurements: IntParamHandle
 
     def run_once(self):
-        for _ in self.n_measurements.get():
+        for _ in range(self.n_measurements.get()):
             frequency = self.rigol.get_frequency_str()
             logger.info("Frequency: %s", frequency)
             sleep(self.wait_time.get())
