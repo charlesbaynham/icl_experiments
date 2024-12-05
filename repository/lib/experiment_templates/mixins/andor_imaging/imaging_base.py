@@ -5,8 +5,9 @@ from typing import List
 import numpy as np
 from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import parallel
 from artiq.experiment import rpc
+from artiq.language import parallel
+
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
@@ -15,6 +16,7 @@ from ndscan.experiment.parameters import BoolParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from artiq.coredevice.exceptions import RTIOUnderflowError
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +70,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants.add("num_andor_images")
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
-
-        # sometimes we have multiple acquisitions and need to store the images
-        self.image_store = []
 
     def hook_setup_andor(self):
         """
@@ -197,14 +196,17 @@ class AndorImagingBase(RedMOTWithExperiment):
     @rpc(flags={"async"})
     def _call_camera_rpc(self):
         # Get new images and add them to any images we got earlier
-        images = self.image_store + self.get_andor_images()
+        self.image_store += self.get_andor_images()
+        if len(self.image_store) != self.num_andor_images:
+            # raising as underflow error because we believe this happens due to timing jitter and we want ndscan to try again
+            raise RTIOUnderflowError(
+                f"Expected {self.num_andor_images} images but only got {len(self.image_store)}"
+            )
         # FIXME: Recovering atom number bug. Plan:
         # 1. Always save images to the image_store, even if there's only one
         # 2. Check the length of the image store against expectations on final readout. Throw an error if it's wrong (maybe an RTIOUnderflowError to cause ndscan to catch it).
         # 3. Consider if there's a good way to ensure that the Grabber's input queue is empty after reading out the expected number of images
-
-        self.image_store = []
-        images_array = np.array(images)
+        images_array = np.array(self.image_store)
         # Update detailed images
         for i, image in enumerate(images_array):
             dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
