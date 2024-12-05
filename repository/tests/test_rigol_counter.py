@@ -21,7 +21,7 @@ class TestRigolCounterFrag(ExpFragment):
 
         self.setattr_argument(
             "gate_time",
-            EnumerationValue(GATE_TIMES.keys(), default="10 s"),
+            EnumerationValue(list(GATE_TIMES.keys()), default="10 s"),
             "Gate time",
         )
         self.gate_time: str
