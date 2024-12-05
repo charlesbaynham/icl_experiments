@@ -1,4 +1,4 @@
-from lib.fragments.rigol_counter import RigolCounterFrag
+from repository.lib.fragments.rigol_counter import RigolCounterFrag
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
