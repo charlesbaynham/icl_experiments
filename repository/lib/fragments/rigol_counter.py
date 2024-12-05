@@ -32,6 +32,7 @@ class RigolCounterFrag(Fragment):
         return frequency
 
     def get_frequency(self):
+        """frequency in Hz as float"""
         return float(self.get_frequency_str())
 
     def setup_measurement(self):
