@@ -38,6 +38,7 @@ ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
 
+GRAVITY_DOPPLER_PER_SEC_CLOCK = 429.229e12 * 9.81 / 3e8
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
