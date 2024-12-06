@@ -13,11 +13,11 @@ from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.fragment import TransitoryError
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from artiq.coredevice.exceptions import RTIOUnderflow
 from ndscan.experiment import Fragment
 from artiq.coredevice.grabber import Grabber, GrabberTimeoutException
 from artiq.coredevice.core import Core
@@ -242,13 +242,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.image_store += self.get_andor_images()
         if len(self.image_store) != self.num_andor_images:
             # raising as underflow error because we believe this happens due to timing jitter and we want ndscan to try again
-            raise RTIOUnderflow(
+            raise TransitoryError(
                 f"Expected {self.num_andor_images} images but only got {len(self.image_store)}"
             )
-        # FIXME: Recovering atom number bug. Plan:
-        # 1. Always save images to the image_store, even if there's only one
-        # 2. Check the length of the image store against expectations on final readout. Throw an error if it's wrong (maybe an RTIOUnderflowError to cause ndscan to catch it).
-        # 3. Consider if there's a good way to ensure that the Grabber's input queue is empty after reading out the expected number of images
         images_array = np.array(self.image_store)
         # Update detailed images
         for i, image in enumerate(images_array):
