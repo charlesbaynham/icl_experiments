@@ -17,7 +17,7 @@ from ndscan.experiment.parameters import BoolParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from artiq.coredevice.exceptions import RTIOUnderflowError
+from artiq.coredevice.exceptions import RTIOUnderflow
 from ndscan.experiment import Fragment
 from artiq.coredevice.grabber import Grabber, GrabberTimeoutException
 from artiq.coredevice.core import Core
@@ -244,7 +244,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.image_store += self.get_andor_images()
         if len(self.image_store) != self.num_andor_images:
             # raising as underflow error because we believe this happens due to timing jitter and we want ndscan to try again
-            raise RTIOUnderflowError(
+            raise RTIOUnderflow(
                 f"Expected {self.num_andor_images} images but only got {len(self.image_store)}"
             )
         # FIXME: Recovering atom number bug. Plan:
