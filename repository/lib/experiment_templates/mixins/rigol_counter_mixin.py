@@ -25,6 +25,8 @@ class RigolCounterMixin(RedMOTWithExperiment):
         )
         self.rigol_counter_frequency: FloatChannel
 
+        super().build_fragment()
+
     def host_setup(self):
         super().host_setup()
 
