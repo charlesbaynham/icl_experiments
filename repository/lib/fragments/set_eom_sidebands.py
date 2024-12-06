@@ -12,6 +12,7 @@ from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
+from repository.lib import constants
 from repository.lib.constants import MIRNY_SETTINGS_87
 from repository.lib.constants import MIRNY_SETTINGS_88
 from repository.lib.constants import MirnySettings
@@ -62,7 +63,7 @@ class SetEOMSidebandsFrag(Fragment):
             "sr87",
             BoolParam,
             "True = sr87, false = sr88",
-            default=False,
+            default=constants.USE_SR87,  # TODO: make sure this gets set properly
         )
         self.sr87: BoolParamHandle
 
@@ -201,3 +202,12 @@ class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
     def run_once(self):
         self.core.break_realtime()
         self.set_sidebands()
+
+
+class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
+    mirny_settings_87 = [
+        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
+    ]
+    mirny_settings_88 = [
+        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
+    ]

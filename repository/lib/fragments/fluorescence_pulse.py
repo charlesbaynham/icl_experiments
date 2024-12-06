@@ -264,7 +264,7 @@ class ToggleableFluorescencePulse(Fragment):
         else:
             self.imaging_beam.device_cleanup()
 
-        self.device_setup_subfragments()
+        self.device_cleanup_subfragments()
 
     @kernel
     def do_imaging_pulse(

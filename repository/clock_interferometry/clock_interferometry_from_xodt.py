@@ -9,8 +9,12 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_interferometry_with_noise import (
+    ClockInterferometryWithNoiseDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -32,6 +36,7 @@ class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
+    EMGain,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -41,13 +46,26 @@ class DifferentialClockInterferometryFrag(
     Clock interferometry from a double XODT
     """
 
-    def host_setup(self):
-        super().host_setup()
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
+        self.before_start_hook_clockshelving()
 
-        # TODO: Make this not a horrible hack
-        em_gain = 30
-        logger.warning("Setting EMCCD gain to %f. BEWARE!!!", em_gain)
-        self.andor_camera_control.cam.set_EMCCD_gain(em_gain)
+
+class DifferentialClockInterferometryWithNoiseFrag(
+    ClockInterferometryWithNoiseDipoleTrapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    DoubleTrapImagingNormalised,
+    EMGain,
+    FLIRBlueMOTMeasurementMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Clock interferometry from a double XODT with added noise
+    """
 
     @kernel
     def before_start_hook(self):
@@ -55,12 +73,12 @@ class DifferentialClockInterferometryFrag(
         self.before_start_hook_xodt_molasses()
         self.before_start_hook_clockshelving()
 
-    def host_cleanup(self):
-        logger.warning("EM gain turned off again")
-        self.andor_camera_control.cam.set_EMCCD_gain(0)
-        return super().host_cleanup()
-
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
     DifferentialClockInterferometryFrag
+)
+
+
+DifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
+    DifferentialClockInterferometryWithNoiseFrag
 )

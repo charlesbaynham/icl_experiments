@@ -53,6 +53,8 @@ class AndorImagingBase(RedMOTWithExperiment):
     num_grabber_readouts = 1
     "How many images will the Grabber read out"
 
+    keep_andor_shutter_closed = False
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -90,6 +92,9 @@ class AndorImagingBase(RedMOTWithExperiment):
             * self.num_grabber_rois,
         )
         self.andor_camera_control: AndorCameraControl
+        self.andor_camera_control.keep_andor_shutter_closed = (
+            self.keep_andor_shutter_closed
+        )
 
         self.hook_setup_andor_results()
 
@@ -296,8 +301,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         Hook to process the Andor image.
         This method is intended to be overridden by subclasses to implement custom
-        processing of the Andor images after they have been read out. The default
-        implementation does nothing.
+        processing of the Andor images after they have been read out.
         """
         for (
             andor_sum_slice_x,

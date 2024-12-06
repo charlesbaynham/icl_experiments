@@ -1,3 +1,6 @@
+from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
+)
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
@@ -26,7 +29,7 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockSpectroscopyBase(RedMOTWithExperiment):
+class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
     """
     Sets up the clock beam for clock spectroscopy (including clock shelving or interferometry)
 
@@ -144,7 +147,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
             "delay_after_spectroscopy",
             FloatParam,
             "Delay after spectroscopy before imaging",
-            default=0e-6,
+            default=100e-6,
             unit="us",
         )
         self.delay_after_spectroscopy: FloatParamHandle

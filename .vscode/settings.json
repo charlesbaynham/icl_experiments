@@ -12,9 +12,10 @@
         "Narrowband",
         "ndscan",
         "pretrigger",
-        "relocker",
-        "relocking",
-        "ROIs"
+        "repump",
+        "ROIs",
+        "XODT",
+        "XXODT"
     ],
     "editor.codeLens": true,
     "todo-tree.regex.regex": "\\b($TAGS)\\b",
