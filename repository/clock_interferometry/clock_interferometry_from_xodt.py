@@ -29,6 +29,10 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
 
+from repository.lib.experiment_templates.mixins.check_for_relocks import (
+    CheckForRelocksMixin,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +44,7 @@ class DifferentialClockInterferometryFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    CheckForRelocksMixin,
     DipoleTrapWithExperiment,
 ):
     """

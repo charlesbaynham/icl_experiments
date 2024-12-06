@@ -26,13 +26,15 @@ logger = logging.getLogger(__name__)
 class RelockerChannelFrag(ExpFragment):
     """Single relocker board channel"""
 
-    def build_fragment(self, channel_name: Optional[str] = None):
+    def build_fragment(self, channel_name: Optional[str] = None, standalone=True):
         """
         Build this fragment
 
         If relocker_name is provided then this fragment use it.
         Otherwise, it will expose it as an ARTIQ argument (note, not an ndscan parameter) instead.
         """
+
+        self.standalone = standalone
 
         self.setattr_device("influx_logger")
         self.influx_logger: InfluxController
@@ -181,8 +183,11 @@ class RelockerChannelFrag(ExpFragment):
         self.relocker_name = defaults.board_name
         self.relocker: RelockerDriver = self.get_device(self.relocker_name)
 
-        self.controller_name = defaults.associated_controller
-        self.controller: CTL200 = self.get_device(self.controller_name)
+        if self.standalone:
+            self.controller_name = defaults.associated_controller
+            self.controller: CTL200 = self.get_device(self.controller_name)
+        else:
+            self.controller = None
 
         return super().host_setup()
 
