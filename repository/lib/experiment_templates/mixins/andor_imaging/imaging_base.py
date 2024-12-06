@@ -6,6 +6,7 @@ import numpy as np
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import rpc
+from artiq.language.core import delay
 from artiq.language import parallel
 
 from artiq.master.worker_impl import CCB
@@ -17,6 +18,10 @@ from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from artiq.coredevice.exceptions import RTIOUnderflowError
+from ndscan.experiment import Fragment
+from artiq.coredevice.grabber import Grabber, GrabberTimeoutException
+from artiq.coredevice.core import Core
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +68,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_device("ccb")
         self.ccb: CCB
 
+        self.setattr_device("grabber")
+        self.grabber: Grabber
+
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
 
@@ -70,6 +78,43 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants.add("num_andor_images")
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
+
+        class ImagingDeviceSetup(Fragment):
+            """
+            define a device_setup to clear out the grabber and empty the image store at the start of the shot
+            """
+
+            def build_fragment(self, num_grabber_rois):
+                super().build_fragment()
+
+                self.setattr_device("grabber")
+                self.grabber: Grabber
+
+                self.setattr_device("core")
+                self.core: Core
+
+                self.num_grabber_rois = num_grabber_rois
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+                self.image_store = []
+
+                grabber_clearout = [0] * self.num_grabber_rois
+
+                while True:
+                    try:
+                        self.grabber.input_mu(
+                            grabber_clearout,
+                            timeout_mu=self.core.get_rtio_counter_mu()
+                            + self.core.ref_multiplier * 10,
+                        )
+                        logger.info("Found a leftover grabber image")
+                        delay(1e-3)
+                    except GrabberTimeoutException:
+                        break
+
+        self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
 
     def hook_setup_andor(self):
         """
