@@ -275,7 +275,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.save_andor_data_hook()
 
         # Check the rigol counter
-        self.check_counter_hook()
+        self.host_functions_after_experiment_hook()
 
     # %% Hooks / overridable methods
     #
@@ -464,16 +464,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         raise NotImplementedError
 
     @kernel
-    def check_counter_hook(self):
+    def host_functions_after_experiment_hook(self):
         """
         Hook for checking the Rigol counter after the experiment. Default implementation does nothing.
-        """
-        self.check_counter_hook_default()
-
-    @kernel
-    def check_counter_hook_default(self):
-        """
-        Default implementation of the check_counter_hook
         """
         pass
 

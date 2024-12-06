@@ -6,7 +6,7 @@ from artiq.language import host_only
 
 logger = logging.getLogger(__name__)
 
-GATE_TIMES = {
+GATE_TIMES_TO_IDX = {
     "1 ms": "1",
     "10 ms": "2",
     "100 ms": "3",
@@ -55,7 +55,7 @@ class RigolCounterFrag(Fragment):
         set gate time and reset the counter
         """
         self.instr.write(
-            ":COUN:GATE USER" + GATE_TIMES[self.gate_time_index]
+            ":COUN:GATE USER" + GATE_TIMES_TO_IDX[self.gate_time_index]
         )  # 10 s gate time
         self.instr.write(":COUN:STAT OFF")  # reset the counter
         self.instr.write(":COUN:STAT ON")

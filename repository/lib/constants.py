@@ -1029,4 +1029,4 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
 #     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
 # ]
 
-CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6
+CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.

@@ -1,4 +1,4 @@
-from repository.lib.fragments.rigol_counter import RigolCounterFrag, GATE_TIMES
+from repository.lib.fragments.rigol_counter import RigolCounterFrag, GATE_TIMES_TO_IDX
 
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.parameters import FloatParam
@@ -21,7 +21,7 @@ class TestRigolCounterFrag(ExpFragment):
 
         self.setattr_argument(
             "gate_time",
-            EnumerationValue(list(GATE_TIMES.keys()), default="10 s"),
+            EnumerationValue(list(GATE_TIMES_TO_IDX.keys()), default="10 s"),
             "Gate time",
         )
         self.gate_time: str

@@ -97,6 +97,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             @kernel
             def device_setup(self):
                 self.device_setup_subfragments()
+                self.core.break_realtime()
 
                 grabber_clearout = [0] * self.num_grabber_rois
 
@@ -107,7 +108,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                             timeout_mu=self.core.get_rtio_counter_mu()
                             + self.core.ref_multiplier * 10,
                         )
-                        logger.info("Found a leftover grabber image")
+                        logger.error("Found a leftover grabber image")
                         delay(1e-3)
                     except GrabberTimeoutException:
                         break
