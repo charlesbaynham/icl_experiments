@@ -68,8 +68,8 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_device("ccb")
         self.ccb: CCB
 
-        self.setattr_device("grabber")
-        self.grabber: Grabber
+        self.setattr_device("grabber0")
+        self.grabber0: Grabber
 
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
@@ -85,10 +85,9 @@ class AndorImagingBase(RedMOTWithExperiment):
             """
 
             def build_fragment(self, num_grabber_rois):
-                super().build_fragment()
 
-                self.setattr_device("grabber")
-                self.grabber: Grabber
+                self.setattr_device("grabber0")
+                self.grabber0: Grabber
 
                 self.setattr_device("core")
                 self.core: Core
@@ -98,13 +97,12 @@ class AndorImagingBase(RedMOTWithExperiment):
             @kernel
             def device_setup(self):
                 self.device_setup_subfragments()
-                self.image_store = []
 
                 grabber_clearout = [0] * self.num_grabber_rois
 
                 while True:
                     try:
-                        self.grabber.input_mu(
+                        self.grabber0.input_mu(
                             grabber_clearout,
                             timeout_mu=self.core.get_rtio_counter_mu()
                             + self.core.ref_multiplier * 10,
@@ -193,7 +191,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                     f"Andor image {i}",
                     f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name}",
                 )
-
+        self.image_store = []
         super().host_setup()
 
     @kernel
@@ -267,6 +265,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.update_andor_monitor_hook(images_array)
         # Do any other processing
         self.process_andor_image_hook(images_array)
+        self.image_store = []
 
     @host_only
     def get_andor_images(self):
