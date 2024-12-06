@@ -20,8 +20,10 @@ class RigolCounterMixin(RedMOTWithExperiment):
             RigolCounterFrag,
         )
         self.rigol: RigolCounterFrag
-        self.setattr_result("frequency", FloatChannel, display_hints={"priority": -1})
-        self.frequency: FloatChannel
+        self.setattr_result(
+            "rigol_counter_frequency", FloatChannel, display_hints={"priority": -1}
+        )
+        self.rigol_counter_frequency: FloatChannel
         super().build_fragment()
 
     def host_setup(self):
@@ -41,4 +43,4 @@ class RigolCounterMixin(RedMOTWithExperiment):
                 CLOCK_LASER_BEATNOTE_FREQUENCY,
             )
 
-        self.frequency.push(CLOCK_LASER_BEATNOTE_FREQUENCY - frequency)
+        self.rigol_counter_frequency.push(CLOCK_LASER_BEATNOTE_FREQUENCY - frequency)
