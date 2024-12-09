@@ -15,7 +15,6 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
             "red_relocker",
             RelockerChannelFrag,
             channel_name="red_IJD1_relocker",
-            standalone=False,
         )
         self.red_relocker: RelockerChannelFrag
 
