@@ -353,10 +353,7 @@ class RelockerFrag(ExpFragment):
                     relocker_frag.set_scan_settings()
                     relocker_frag.set_lock_settings()
                 relocker_frag.relock()
-                read_voltages = relocker_frag.get_read_voltages()
-                relocker_frag.push_voltages_to_applet(read_voltages)
-                result = relocker_frag.get_result()
-                logger.info(result)
+                relocker_frag.log_results()
 
 
 class RelockerAutoFrag(ExpFragment):
