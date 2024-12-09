@@ -169,8 +169,11 @@ class RelockerChannelFrag(ExpFragment):
         self.auto_relock: BoolParamHandle
 
         # And define a results channel as output
-        self.setattr_result("voltages", OpaqueChannel)
-        self.voltages: OpaqueChannel
+        self.setattr_result("read_voltages", OpaqueChannel)
+        self.read_voltages: OpaqueChannel
+
+        self.setattr_result("set_voltages", OpaqueChannel)
+        self.set_voltages: OpaqueChannel
 
         self.setattr_result("result", OpaqueChannel)
         self.result: OpaqueChannel
@@ -207,7 +210,7 @@ class RelockerChannelFrag(ExpFragment):
 
     def get_read_voltages(self):
         read_voltages = self.relocker.get_read_voltages(self.channel)
-        self.voltages.push(read_voltages)
+        self.read_voltages.push(read_voltages)
         return read_voltages
 
     def get_result(self):
@@ -231,7 +234,9 @@ class RelockerChannelFrag(ExpFragment):
         return self.relocker.get_auto_relock_stats(self.channel)
 
     def get_scan_voltages(self):
-        return self.relocker.get_scan_voltages(self.channel)
+        set_voltages = self.relocker.get_scan_voltages(self.channel)
+        self.set_voltages.push(set_voltages)
+        return set_voltages
 
     def get_scan_currents(self, scan_voltages):
         current_gain = self.controller.get_mod_gain()
@@ -273,7 +278,7 @@ class RelockerChannelFrag(ExpFragment):
         )
         self.set_dataset(
             f"{self.relocker_name}_{self.channel}_set_voltages",
-            scan_currents,
+            scan_voltages,
             broadcast=True,
             archive=False,
         )
