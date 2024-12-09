@@ -32,6 +32,10 @@ from repository.lib.experiment_templates.mixins.rigol_counter_mixin import (
     RigolCounterMixin,
 )
 
+from repository.lib.experiment_templates.mixins.check_for_relocks import (
+    CheckForRelocksMixin,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,6 +48,7 @@ class DifferentialClockInterferometryFrag(
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     RigolCounterMixin,
+    CheckForRelocksMixin,
     DipoleTrapWithExperiment,
 ):
     """
