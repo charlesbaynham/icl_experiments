@@ -34,7 +34,7 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
     def check_for_relocks_rpc(self):
         num_relocks = self.red_relocker.get_auto_relock_stats()[0]
         if num_relocks:
-            self.logger.warning(
+            logger.warning(
                 "Red IJD relocker relocked %d times during the experiment", num_relocks
             )
         self.num_relocks.push(num_relocks)
