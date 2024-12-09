@@ -3,7 +3,7 @@ from repository.injected_diodes.relocker_board import RelockerChannelFrag
 from artiq.language.core import kernel, rpc
 from ndscan.experiment.result_channels import IntChannel
 
-import logger
+import logging
 
 logger = logging.getLogger(__name__)
 
