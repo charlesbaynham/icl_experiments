@@ -29,10 +29,7 @@ class RigolCounterMixin(RedMOTWithExperiment):
 
     def host_setup(self):
         super().host_setup()
-
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        self.check_counter_rpc()
+        self.post_experiment_functions.append(self.check_counter_rpc)
 
     @rpc
     def check_counter_rpc(self):
