@@ -25,17 +25,15 @@ class KernelSpeedTest(EnvExperiment):
 
     @kernel
     def run(self):
-        self.numbers_a = [0.0] * self.n
-        self.numbers_b = [0.0] * self.n
-        self.output = [0.0] * self.n
+        output = [0.0] * self.n
 
-        self.numbers_a = self.get_random_numbers()
-        self.numbers_b = self.get_random_numbers()
+        numbers_a = self.get_random_numbers()
+        numbers_b = self.get_random_numbers()
 
         # Do a non-trivial calculation on the code
         t_start_mu = self.core.get_rtio_counter_mu()
         for i in range(self.n):
-            self.output[i] = self.numbers_a[i] * self.numbers_b[i]
+            output[i] = numbers_a[i] * numbers_b[i]
 
         t_end_mu = self.core.get_rtio_counter_mu()
 
@@ -45,4 +43,4 @@ class KernelSpeedTest(EnvExperiment):
             self.n,
         )
 
-        self.debug("Random numbers: %s", self.output)
+        logger.debug("Random numbers: %s", output)
