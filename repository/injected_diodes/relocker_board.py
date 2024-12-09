@@ -278,7 +278,7 @@ class RelockerChannelFrag(ExpFragment):
         )
         self.set_dataset(
             f"{self.relocker_name}_{self.channel}_set_voltages",
-            scan_voltages,
+            np.array(scan_voltages),
             broadcast=True,
             archive=False,
         )
