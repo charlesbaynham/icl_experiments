@@ -20,8 +20,8 @@ class KernelSpeedTest(EnvExperiment):
         )
 
     @rpc
-    def get_random_numbers(self) -> np.ndarray:
-        return np.random.rand(self.n)
+    def get_random_numbers(self) -> list[float]:
+        return np.random.rand(self.n).tolist()
 
     @kernel
     def run(self):
