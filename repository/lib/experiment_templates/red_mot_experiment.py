@@ -181,8 +181,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.hook_setup_andor()
 
-        self.post_experiment_functions = []
-
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
@@ -470,8 +468,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
         """
-        for func in self.post_experiment_functions:
-            func()
 
 
 # %%

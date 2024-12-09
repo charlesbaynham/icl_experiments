@@ -35,15 +35,6 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
             )
             self.num_relock_channels.append(result_channel)
 
-        # self.setattr_fragment(
-        #     "red_relocker",
-        #     RelockerChannelFrag,
-        #     channel_name="red_IJD1_relocker",
-        # )
-        # self.red_relocker: RelockerChannelFrag
-
-        # self.setattr_result("num_relocks", IntChannel, display_hints={"priority": -1})
-        # self.num_relocks: IntChannel
         super().build_fragment()
 
     def host_setup(self):
@@ -51,11 +42,10 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
         # reset the relocker stats at the start of the scan
         for relocker in self.relockers:
             relocker.get_auto_relock_stats()
-        self.post_experiment_functions.append(self.check_for_relocks_rpc)
 
-    # @kernel
-    # def host_functions_after_experiment_hook(self):
-    #     self.check_for_relocks_rpc()
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        self.check_for_relocks_rpc()
 
     @rpc
     def check_for_relocks_rpc(self):
@@ -68,10 +58,3 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
                     num_relocks,
                 )
             self.num_relock_channels[i].push(num_relocks)
-
-        # num_relocks = self.red_relocker.get_auto_relock_stats()[0]
-        # if num_relocks:
-        #     logger.warning(
-        #         "Red IJD relocker relocked %d times during the experiment", num_relocks
-        #     )
-        # self.num_relocks.push(num_relocks)
