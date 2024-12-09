@@ -61,7 +61,7 @@ class DifferentialClockInterferometryFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    CheckRigolandRelockerMixin,
+    CheckForRelocksMixin,
     DipoleTrapWithExperiment,
 ):
     """

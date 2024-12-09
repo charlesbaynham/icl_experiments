@@ -37,11 +37,11 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
 
         super().build_fragment()
 
-    # def host_setup(self):
-    #     super().host_setup()
-    #     # reset the relocker stats at the start of the scan
-    #     for relocker in self.relockers:
-    #         relocker.get_auto_relock_stats()
+    def host_setup(self):
+        super().host_setup()
+        # reset the relocker stats at the start of the scan
+        for relocker in self.relockers:
+            relocker.get_auto_relock_stats()
 
     @kernel
     def host_functions_after_experiment_hook(self):
