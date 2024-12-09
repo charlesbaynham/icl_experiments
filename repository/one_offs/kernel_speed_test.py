@@ -21,14 +21,16 @@ class KernelSpeedTest(EnvExperiment):
 
     @rpc
     def get_random_numbers(self) -> np.ndarray:
-        return np.random.randint(0, self.n)
+        return np.random.rand(self.n)
 
     @kernel
     def run(self):
+        self.numbers_a = [0.0] * self.n
+        self.numbers_b = [0.0] * self.n
+        self.output = [0.0] * self.n
+
         self.numbers_a = self.get_random_numbers()
         self.numbers_b = self.get_random_numbers()
-
-        self.output = [0.0] * self.n
 
         # Do a non-trivial calculation on the code
         t_start_mu = self.core.get_rtio_counter_mu()
