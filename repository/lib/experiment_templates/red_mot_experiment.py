@@ -274,7 +274,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # This one for the Andor
         self.save_andor_data_hook()
 
-        # Check the rigol counter
+        # Do extra functions at end of experiment
         self.host_functions_after_experiment_hook()
 
     # %% Hooks / overridable methods
@@ -466,9 +466,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     @kernel
     def host_functions_after_experiment_hook(self):
         """
-        Hook for checking the Rigol counter after the experiment. Default implementation does nothing.
+        Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
         """
-        pass
 
 
 # %%
