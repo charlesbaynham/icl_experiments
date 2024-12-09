@@ -39,6 +39,14 @@ from repository.lib.experiment_templates.mixins.check_for_relocks import (
 logger = logging.getLogger(__name__)
 
 
+class CheckRigolandRelockerMixin(RigolCounterMixin, CheckForRelocksMixin):
+
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        self.check_for_relocks_rpc()
+        self.check_counter_rpc()
+
+
 class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -47,8 +55,7 @@ class DifferentialClockInterferometryFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    RigolCounterMixin,
-    CheckForRelocksMixin,
+    CheckRigolandRelockerMixin,
     DipoleTrapWithExperiment,
 ):
     """
