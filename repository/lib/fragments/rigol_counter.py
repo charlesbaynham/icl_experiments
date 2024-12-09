@@ -1,7 +1,8 @@
-from ndscan.experiment import Fragment
-import vxi11
+from ndscan.experiment import Fragment, FloatChannel
 import logging
-from artiq.language import host_only
+import vxi11
+from artiq.language import host_only, rpc
+from repository.lib.constants import CLOCK_LASER_BEATNOTE_FREQUENCY
 
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,10 @@ class RigolCounterFrag(Fragment):
     def build_fragment(self, rigol_ip=None):
         self.rigol_ip = rigol_ip or "rigol-dg4162-b.lan"
         self.gate_time_index = "10 s"
+        self.setattr_result(
+            "rigol_counter_frequency", FloatChannel, display_hints={"priority": -1}
+        )
+        self.rigol_counter_frequency: FloatChannel
 
     def host_setup(self):
         self.instr = self.get_interface_lan(self.rigol_ip)
@@ -59,3 +64,15 @@ class RigolCounterFrag(Fragment):
         )  # 10 s gate time
         self.instr.write(":COUN:STAT OFF")  # reset the counter
         self.instr.write(":COUN:STAT ON")
+
+    @rpc
+    def check_counter_rpc(self):
+        frequency = self.rigol.get_frequency()
+        if abs(frequency - CLOCK_LASER_BEATNOTE_FREQUENCY) > 200e-3:
+            logger.warning(
+                "Frequency %.2f is too far from expected %.2f",
+                frequency,
+                CLOCK_LASER_BEATNOTE_FREQUENCY,
+            )
+
+        self.rigol_counter_frequency.push(CLOCK_LASER_BEATNOTE_FREQUENCY - frequency)
