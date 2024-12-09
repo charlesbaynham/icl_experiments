@@ -1,9 +1,12 @@
-from ndscan.experiment import Fragment, FloatChannel
 import logging
-import vxi11
-from artiq.language import host_only, rpc
-from repository.lib.constants import CLOCK_LASER_BEATNOTE_FREQUENCY
 
+import vxi11
+from artiq.language import host_only
+from artiq.language import rpc
+from ndscan.experiment import FloatChannel
+from ndscan.experiment import Fragment
+
+from repository.lib.constants import CLOCK_LASER_BEATNOTE_FREQUENCY
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +70,7 @@ class RigolCounterFrag(Fragment):
 
     @rpc
     def check_counter_rpc(self):
-        frequency = self.rigol.get_frequency()
+        frequency = self.get_frequency()
         if abs(frequency - CLOCK_LASER_BEATNOTE_FREQUENCY) > 200e-3:
             logger.warning(
                 "Frequency %.2f is too far from expected %.2f",
