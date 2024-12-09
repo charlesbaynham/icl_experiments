@@ -47,7 +47,7 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
     def host_functions_after_experiment_hook(self):
         self.check_for_relocks_rpc()
 
-    @rpc
+    @rpc(flags={"async"})
     def check_for_relocks_rpc(self):
         for i, relocker in enumerate(self.relockers):
             num_relocks = relocker.get_auto_relock_stats()[0]

@@ -48,11 +48,8 @@ class CheckRigolandRelockerMixin(CheckForRelocksMixin):
 
     @kernel
     def host_functions_after_experiment_hook(self):
-        self.core.break_realtime()
         self.check_for_relocks_rpc()
-        self.core.break_realtime()
         self.rigol.check_counter_rpc()
-        self.core.break_realtime()
 
 
 class DifferentialClockInterferometryFrag(
