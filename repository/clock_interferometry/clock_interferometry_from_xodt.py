@@ -28,8 +28,8 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
-from repository.lib.experiment_templates.mixins.rigol_counter_mixin import (
-    RigolCounterMixin,
+from repository.lib.fragments.rigol_counter import (
+    RigolCounterFrag,
 )
 
 from repository.lib.experiment_templates.mixins.check_for_relocks import (
@@ -39,12 +39,17 @@ from repository.lib.experiment_templates.mixins.check_for_relocks import (
 logger = logging.getLogger(__name__)
 
 
-class CheckRigolandRelockerMixin(RigolCounterMixin, CheckForRelocksMixin):
+class CheckRigolandRelockerMixin(CheckForRelocksMixin):
+
+    def build_fragment(self):
+        self.setattr_fragment("rigol", RigolCounterFrag)
+        self.rigol: RigolCounterFrag
+        super().build_fragment()
 
     @kernel
     def host_functions_after_experiment_hook(self):
         self.check_for_relocks_rpc()
-        self.check_counter_rpc()
+        self.rigol.check_counter_rpc()
 
 
 class DifferentialClockInterferometryFrag(
@@ -77,7 +82,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    RigolCounterMixin,
+    CheckRigolandRelockerMixin,
     DipoleTrapWithExperiment,
 ):
     """
