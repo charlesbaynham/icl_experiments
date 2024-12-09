@@ -26,9 +26,15 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
         self.num_relocks: IntChannel
         super().build_fragment()
 
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        self.check_for_relocks_rpc()
+    def host_setup(self):
+        super().host_setup()
+        # reset the relocker stats at the start of the scan
+        self.red_relocker.get_auto_relock_stats()
+        self.post_experiment_functions.append(self.check_for_relocks_rpc)
+
+    # @kernel
+    # def host_functions_after_experiment_hook(self):
+    #     self.check_for_relocks_rpc()
 
     @rpc
     def check_for_relocks_rpc(self):

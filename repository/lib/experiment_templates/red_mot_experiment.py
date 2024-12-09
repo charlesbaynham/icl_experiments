@@ -181,6 +181,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.hook_setup_andor()
 
+        self.post_experiment_functions = []
+
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
@@ -468,7 +470,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         Hook for checking the Rigol counter after the experiment. Default implementation does nothing.
         """
-        pass
+        for func in self.post_experiment_functions:
+            func()
 
 
 # %%
