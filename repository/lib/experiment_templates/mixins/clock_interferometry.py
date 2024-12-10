@@ -61,7 +61,7 @@ class ClockInterferometryBase(
             "delay_between_interferometry_pulses",
             FloatParam,
             "Delay between interferometry pulses",
-            default=10e-6,
+            default=100e-6,
             unit="us",
         )
         self.delay_between_interferometry_pulses: FloatParamHandle
