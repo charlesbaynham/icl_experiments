@@ -8,6 +8,7 @@ from artiq.experiment import kernel
 from artiq.experiment import rpc
 from artiq.language.core import delay
 from artiq.language import parallel
+from sipyco.packed_exceptions import GenericRemoteException
 
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
@@ -17,7 +18,9 @@ from ndscan.experiment.fragment import TransitoryError
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.andor_camera import (
+    AndorCameraControl,
+)
 from ndscan.experiment import Fragment
 from artiq.coredevice.grabber import Grabber, GrabberTimeoutException
 from artiq.coredevice.core import Core
@@ -237,14 +240,25 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.core.break_realtime()
         self.andor_camera_control.set_shutter(False)
 
-    @rpc(flags={"async"})
+    @rpc  # this isn't async any more because the ndscan "try again" doesn't work with async rpcs
     def _call_camera_rpc(self):
+        logger.info("Calling camera rpc")
         # Get new images and add them to any images we got earlier
-        self.image_store += self.get_andor_images()
-        if len(self.image_store) != self.num_andor_images:
-            # raising as underflow error because we believe this happens due to timing jitter and we want ndscan to try again
+        try:
+            self.image_store += self.get_andor_images()
+        except GenericRemoteException as e:
+            logger.error("Andor camera error: %s", e)
+            # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
+            raise TransitoryError(f"Andor camera error: {e}")
+        n_stored_images = len(self.image_store)
+        if n_stored_images != self.num_andor_images:
+            # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
+            self.image_store = []
+            logger.error(
+                "Expected %d images but got %d", self.num_andor_images, n_stored_images
+            )
             raise TransitoryError(
-                f"Expected {self.num_andor_images} images but only got {len(self.image_store)}"
+                f"Expected {self.num_andor_images} images but got {n_stored_images}"
             )
         images_array = np.array(self.image_store)
         # Update detailed images
