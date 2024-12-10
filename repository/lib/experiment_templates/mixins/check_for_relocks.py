@@ -3,6 +3,7 @@ from repository.injected_diodes.relocker_board import RelockerChannelFrag
 from artiq.language.core import kernel, rpc
 from ndscan.experiment.result_channels import IntChannel
 from repository.lib.constants import IJD_RELOCKER_DEFAULTS
+from relocker_driver.driver import RelockerDriver
 from typing import List
 
 import logging
@@ -17,15 +18,12 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
 
     def build_fragment(self):
 
-        self.relockers: List[RelockerChannelFrag] = []
+        self.relockers: List[RelockerDriver] = []
         self.num_relock_channels: List[IntChannel] = []
+        self.channel_names = IJD_RELOCKER_DEFAULTS.keys()
 
-        for channel_name in IJD_RELOCKER_DEFAULTS.keys():
-            relocker = self.setattr_fragment(
-                channel_name,
-                RelockerChannelFrag,
-                channel_name=channel_name,
-            )
+        for channel_name in self.channel_names:
+            relocker: RelockerDriver = self.get_device(self.relocker_name)
             self.relockers.append(relocker)
 
             result_channel = self.setattr_result(
@@ -50,11 +48,13 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
     @rpc(flags={"async"})
     def check_for_relocks_rpc(self):
         for i, relocker in enumerate(self.relockers):
-            num_relocks = relocker.get_auto_relock_stats()[0]
+            channel_name = self.channel_names[i]
+            channel = IJD_RELOCKER_DEFAULTS[channel_name]["channel"]
+            num_relocks = relocker.get_auto_relock_stats(channel)[0]
             if num_relocks:
                 logger.warning(
                     "%s relocker relocked %d times during the experiment",
-                    relocker.channel_name,
+                    channel_name,
                     num_relocks,
                 )
             self.num_relock_channels[i].push(num_relocks)
