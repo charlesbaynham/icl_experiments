@@ -242,7 +242,6 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @rpc  # this isn't async any more because the ndscan "try again" doesn't work with async rpcs
     def _call_camera_rpc(self):
-        logger.info("Calling camera rpc")
         # Get new images and add them to any images we got earlier
         try:
             self.image_store += self.get_andor_images()
