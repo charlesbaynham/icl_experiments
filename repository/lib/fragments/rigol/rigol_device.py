@@ -12,13 +12,13 @@ GATE_TIMES_TO_IDX = {
 
 
 class RigolCounter:
-    def __init__(self, rigol_ip=None, gate_time="10 s"):
+    def __init__(self, device_mgr, rigol_ip=None, gate_time="10 s"):
         rigol_ip = rigol_ip or "rigol-dg4162-b.lan"
         self.gate_time_index = GATE_TIMES_TO_IDX[gate_time]
-        self.instr = vxi11.Instrument(rigol_ip)
+        self.instr = self.get_interface_lan(rigol_ip)
 
     def get_frequency_str(self):
-        query_result = self.instr.ask(":COUN:MEAS?")
+        query_result = self.instr.query(":COUN:MEAS?")
         frequency, *_ = query_result.split(",")
         return frequency
 
