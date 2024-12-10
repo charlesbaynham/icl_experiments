@@ -48,7 +48,7 @@ class CheckRigolandRelockerMixin(CheckForRelocksMixin):
 
     @kernel
     def host_functions_after_experiment_hook(self):
-        self.check_for_relocks_rpc()
+        self.relock_checker.check_and_log_relocks()
         self.rigol.check_counter_rpc()
 
 
