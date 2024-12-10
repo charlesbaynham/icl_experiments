@@ -1,5 +1,4 @@
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.injected_diodes.relocker_board import RelockerChannelFrag
 from artiq.language.core import kernel, rpc
 from ndscan.experiment.result_channels import IntChannel
 from repository.lib.constants import IJD_RELOCKER_DEFAULTS
@@ -40,8 +39,10 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
     def host_setup(self):
         super().host_setup()
         # reset the relocker stats at the start of the scan
-        for relocker in self.relockers:
-            relocker.get_auto_relock_stats()
+        for i, channel_name in enumerate(self.channel_names):
+            channel = IJD_RELOCKER_DEFAULTS[channel_name]["channel"]
+            relocker = self.relockers[i]
+            relocker.get_auto_relock_stats(channel)[0]
 
     @kernel
     def host_functions_after_experiment_hook(self):
