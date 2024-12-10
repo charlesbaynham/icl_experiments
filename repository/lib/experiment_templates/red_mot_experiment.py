@@ -96,6 +96,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
     """
 
+    image_store: list[list] = []  # for putting e.g. Andor images in
+
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core

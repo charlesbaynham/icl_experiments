@@ -208,6 +208,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     @rpc
     def post_first_series_rpc(self):
+        self.image_store = []  # clear the image store
         self.image_store += self.get_andor_images()
         self.andor_camera_control.start_acquisition()
 
