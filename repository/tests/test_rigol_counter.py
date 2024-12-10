@@ -1,21 +1,22 @@
-from repository.lib.fragments.rigol_counter import RigolCounterFrag, GATE_TIMES_TO_IDX
+import logging
+from time import sleep
 
+from artiq.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from ndscan.experiment.entry_point import make_fragment_scan_exp
-from artiq.experiment import EnumerationValue
-import logging
-from time import sleep
+
+from repository.lib.fragments.rigol_counter import GATE_TIMES_TO_IDX
+from repository.lib.fragments.rigol_counter import RigolCounterFrag
 
 logger = logging.getLogger(__name__)
 
 
 class TestRigolCounterFrag(ExpFragment):
     def build_fragment(self):
-
         self.setattr_fragment("rigol", RigolCounterFrag)
         self.rigol: RigolCounterFrag
 
