@@ -23,7 +23,9 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
         self.channel_names = IJD_RELOCKER_DEFAULTS.keys()
 
         for channel_name in self.channel_names:
-            relocker: RelockerDriver = self.get_device(self.relocker_name)
+            defaults = IJD_RELOCKER_DEFAULTS[channel_name]
+            board_name = defaults["board_name"]
+            relocker: RelockerDriver = self.get_device(board_name)
             self.relockers.append(relocker)
 
             result_channel = self.setattr_result(
@@ -47,9 +49,9 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
 
     @rpc(flags={"async"})
     def check_for_relocks_rpc(self):
-        for i, relocker in enumerate(self.relockers):
-            channel_name = self.channel_names[i]
+        for i, channel_name in enumerate(self.channel_names):
             channel = IJD_RELOCKER_DEFAULTS[channel_name]["channel"]
+            relocker = self.relockers[i]
             num_relocks = relocker.get_auto_relock_stats(channel)[0]
             if num_relocks:
                 logger.warning(
