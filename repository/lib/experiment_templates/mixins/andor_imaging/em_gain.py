@@ -82,6 +82,10 @@ class EMGain(AndorImagingBase):
         """
         Set EM gain, stopping and restarting the acquisition if necessary
         """
+        if not hasattr(self.andor_camera_control, "cam"):
+            logger.info("Camera not controlled by ARTIQ - not setting EM gain")
+            return
+
         try:
             self.andor_camera_control.cam.set_EMCCD_gain(gain)
         except sipyco.packed_exceptions.GenericRemoteException as e:

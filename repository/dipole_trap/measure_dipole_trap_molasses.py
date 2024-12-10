@@ -1,15 +1,8 @@
 import logging
 
-from artiq.coredevice.ad9912 import AD9912
-from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.urukul_init import make_urukul_init
-from pyaion.models import UrukuledBeam
 
-from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
     AbsorptionDoubleDipoleTrapMixin,
 )
@@ -38,13 +31,12 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
 )
+from repository.lib.fragments.stark_shifter import StarkShifter
 
 logger = logging.getLogger(__name__)
 
 EXPOSE_MOLASSES_1_PARAMS = False
 EXPOSE_MOLASSES_2_PARAMS = True
-
-STARK_689_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["stark_shifter_689"]
 
 
 class DoubleXODTFrag(
@@ -69,42 +61,23 @@ class DoubleXODTFrag(
     def build_fragment(self):
         super().build_fragment()
 
-        self.stark_689_dds: AD9912 = self.get_device(STARK_689_BEAM_INFO.urukul_device)
+        self.setattr_fragment("stark_shifter", StarkShifter)
+        self.stark_shifter: StarkShifter
 
-        # Ensure clock dds urukul is initiated
-        self.stark_689_initiator = self.setattr_fragment(
-            "stark_689_initiator", make_urukul_init([STARK_689_BEAM_INFO.urukul_device])
-        )
-
-        self.setattr_param(
+        # Keep old naming for backwards compatibility
+        self.setattr_param_rebind(
             "stark_689_destroy_atoms_in_XODT_duration",
-            FloatParam,
-            "Time allowed to destroy atoms in XODT using 689 Stark beam",
-            default=0.01e-3,
-            unit="ms",
+            self.stark_shifter,
+            "stark_pulse_duration",
         )
-        self.stark_689_destroy_atoms_in_XODT_duration: FloatParamHandle
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_xodt_molasses()
-
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_xodt_molasses()
-        self.stark_689_dds.set_att(STARK_689_BEAM_INFO.attenuation)
-        self.stark_689_dds.set(frequency=STARK_689_BEAM_INFO.frequency)
-        self.stark_689_dds.sw.off()
-        self.stark_689_dds.cfg_sw(False)
 
     @kernel
     def dipole_trap_evaporation_hook(self):
         # Turns off red MOT beams - helpful!
         self.dipole_trap_evaporation_hook_default()
-        self.stark_689_dds.sw.on()
-        delay(self.stark_689_destroy_atoms_in_XODT_duration.get())
-        self.stark_689_dds.sw.off()
+
+        # Blast the atoms with the stark pulse during the evap stage
+        self.stark_shifter.do_stark_pulse()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -119,13 +92,7 @@ class DoubleXODTAbsFrag(
     Measure a double XODT with aborption imaging
 
     Load a red MOT, then implement a single "molasses" stage which is
-    actually another MOT with a field bias to move it to the bottom trap
-
-    In the "evaporation" stage, the 689 nm Stark beam is pulsed on to destroy atoms
-    (for alignment of the beam onto the XODT). Note: this will only work the
-    0th order of the 689 delivery AOM is coupled to the chamber - otherwise the
-    beam will be ~ 100 MHz from resonance. The default 689 pulse time is 0.01us
-    to allow unadulterated imaging of the atoms in the XXODT as default.
+    actually another MOT with a field bias to move it to the bottom trap.
     """
 
     @kernel
