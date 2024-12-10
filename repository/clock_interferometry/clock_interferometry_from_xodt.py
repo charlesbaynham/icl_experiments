@@ -60,7 +60,7 @@ class DifferentialClockInterferometryFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    # CheckRigolandRelockerMixin,
+    CheckRigolandRelockerMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -82,7 +82,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    # CheckRigolandRelockerMixin,
+    CheckRigolandRelockerMixin,
     DipoleTrapWithExperiment,
 ):
     """
