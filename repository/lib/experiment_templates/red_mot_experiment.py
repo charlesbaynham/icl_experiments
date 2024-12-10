@@ -197,8 +197,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.DMA_initialization_hook()
 
-        self.image_store = []
-
     @kernel
     def DMA_initialization_hook(self):
         """
