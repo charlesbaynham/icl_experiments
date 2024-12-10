@@ -242,10 +242,12 @@ class AndorImagingBase(RedMOTWithExperiment):
     def _call_camera_rpc(self):
         # Get new images and add them to any images we got earlier
         self.image_store += self.get_andor_images()
-        if len(self.image_store) != self.num_andor_images:
+        n_stored_images = len(self.image_store)
+        if n_stored_images != self.num_andor_images:
             # raising as underflow error because we believe this happens due to timing jitter and we want ndscan to try again
+            self.image_store = []
             raise RTIOUnderflow(
-                f"Expected {self.num_andor_images} images but only got {len(self.image_store)}"
+                f"Expected {self.num_andor_images} images but only got {n_stored_images}"
             )
         images_array = np.array(self.image_store)
         # Update detailed images
