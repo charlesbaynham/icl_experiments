@@ -1,6 +1,3 @@
-from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
-    ExponentialDecayMixin,
-)
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
@@ -18,6 +15,9 @@ from pyaion.models import UrukuledBeam
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
+)
+from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 

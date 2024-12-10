@@ -1,12 +1,15 @@
 import logging
+from enum import Enum
+from enum import unique
 
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import parallel
 from artiq.experiment import sequential
 from ndscan.experiment import *
-from ndscan.experiment.parameters import BoolParamHandle, EnumParam, ParamHandle
+from ndscan.experiment.parameters import EnumParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import ParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
@@ -21,7 +24,6 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
 
