@@ -8,6 +8,7 @@ from artiq.experiment import kernel
 from artiq.experiment import rpc
 from artiq.language.core import delay
 from artiq.language import parallel
+from artiq.coredevice.exceptions import RTIOUnderflow
 
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
@@ -243,7 +244,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.image_store += self.get_andor_images()
         if len(self.image_store) != self.num_andor_images:
             # raising as underflow error because we believe this happens due to timing jitter and we want ndscan to try again
-            raise TransitoryError(
+            raise RTIOUnderflow(
                 f"Expected {self.num_andor_images} images but only got {len(self.image_store)}"
             )
         images_array = np.array(self.image_store)
