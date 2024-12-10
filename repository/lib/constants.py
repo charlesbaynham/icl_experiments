@@ -38,6 +38,7 @@ ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
 
+GRAVITY_DOPPLER_PER_SEC_CLOCK = 429.229e12 * 9.81 / 3e8
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
@@ -338,10 +339,12 @@ ANDOR_ROI_DIPOLE_HEIGHT = 20
 ANDOR_ROI_DIPOLE_WIDTH = 16
 
 ANDOR_DIPOLE_TRAP_FORWARD_X = 184
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 300
+# ~3 pixels below the center of the dipole trap to include falling atoms
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 297
 
 ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
-ANDOR_DIPOLE_TRAP_BACKWARD_Y = 355
+# ~3 pixels below the center of the dipole trap to include falling atoms
+ANDOR_DIPOLE_TRAP_BACKWARD_Y = 348
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2

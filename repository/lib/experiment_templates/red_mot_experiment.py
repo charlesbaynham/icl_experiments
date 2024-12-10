@@ -274,6 +274,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # This one for the Andor
         self.save_andor_data_hook()
 
+        # Do extra functions at end of experiment
+        self.host_functions_after_experiment_hook()
+
     # %% Hooks / overridable methods
     #
     # The remaining methods in this class are designed to be overridden by
@@ -459,6 +462,12 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         completed.
         """
         raise NotImplementedError
+
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        """
+        Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
+        """
 
 
 # %%
