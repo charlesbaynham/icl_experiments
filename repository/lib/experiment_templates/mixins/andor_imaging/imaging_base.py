@@ -3,18 +3,23 @@ import logging
 from typing import List
 
 import numpy as np
+from artiq.coredevice.core import Core
+from artiq.coredevice.grabber import Grabber
+from artiq.coredevice.grabber import GrabberTimeoutException
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.experiment import rpc
+from artiq.language import parallel
 from artiq.language.core import delay
 from artiq.language import parallel
 from sipyco.packed_exceptions import GenericRemoteException
 
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
+from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.fragment import TransitoryError
+from ndscan.experiment.parameters import BoolParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
@@ -88,7 +93,6 @@ class AndorImagingBase(RedMOTWithExperiment):
             """
 
             def build_fragment(self, num_grabber_rois):
-
                 self.setattr_device("grabber0")
                 self.grabber0: Grabber
 
