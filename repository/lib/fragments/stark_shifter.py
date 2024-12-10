@@ -40,6 +40,7 @@ class StarkShifter(Fragment):
                 ],
                 name="StarkDeliverySetter",
                 use_automatic_setup=False,
+                use_automatic_turnon=False,
             ),
         )
         self.setattr_fragment(
@@ -50,19 +51,12 @@ class StarkShifter(Fragment):
                 ],
                 name="StarkSwitchSetter",
                 use_automatic_setup=False,
+                use_automatic_turnon=False,
             ),
         )
 
         self.set_defaults_delivery: SetBeamsToDefaults
         self.set_defaults_switch: SetBeamsToDefaults
-
-        ### Devices ###
-
-        # Get direct control of the Stark switching AOM's switch
-        self.stark_689_dds_rf_switch: TTLOut = self.get_device(
-            constants.URUKULED_BEAMS["stark_shifter_689_switch"].urukul_device
-        ).sw
-        self.kernel_invariants.add("stark_689_dds_rf_switch")
 
         ### Parameters ###
 
@@ -74,6 +68,17 @@ class StarkShifter(Fragment):
             unit="us",
         )
         self.stark_pulse_duration: FloatParamHandle
+
+    def host_setup(self):
+        ### Devices ###
+
+        # Get direct control of the Stark switching AOM's switch
+        self.stark_689_dds_rf_switch: TTLOut = self.get_device(
+            constants.URUKULED_BEAMS["stark_shifter_689_switch"].urukul_device
+        ).sw
+        self.kernel_invariants.add("stark_689_dds_rf_switch")
+
+        return super().host_setup()
 
     @kernel
     def device_setup(self):

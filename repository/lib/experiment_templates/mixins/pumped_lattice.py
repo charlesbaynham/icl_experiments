@@ -57,10 +57,12 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         beam after allowing the atoms to equlibriate in the lattice for a time,
         then hold them afterwards for some time.
         """
+        self.red_mot.red_beam_controller.start_ramping_spinpol()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         delay(self.delay_before_spinpol_pulse.get())
         self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
         delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.stop_ramping_spinpol()
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
