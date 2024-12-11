@@ -186,6 +186,9 @@ class RelockerChannelFrag(ExpFragment):
 
         self.controller_name = defaults.associated_controller
         self.controller: CTL200 = self.get_device(self.controller_name)
+        logger.info("channel_name: %s", self.channel_name)
+        logger.info("channel: %s", self.channel)
+        logger.info("relocker_name: %s", self.relocker_name)
 
         return super().host_setup()
 
@@ -309,8 +312,11 @@ class RelockerChannelFrag(ExpFragment):
         # )
 
     def run_once(self):
+        logger.info("channel_name: %s", self.channel_name)
+        logger.info("channel: %s", self.channel)
+        logger.info("relocker_name: %s", self.relocker_name)
         for _ in range(10):
-            rtn = self.relocker.instr.query("")
+            rtn = self.relocker.blank_line()
             logger.info(rtn)
         if self.write_settings.get():
             self.set_scan_settings()
