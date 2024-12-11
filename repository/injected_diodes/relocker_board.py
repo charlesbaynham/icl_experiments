@@ -183,6 +183,7 @@ class RelockerChannelFrag(ExpFragment):
         self.channel = defaults.channel
         self.relocker_name = defaults.board_name
         self.relocker: RelockerDriver = self.get_device(self.relocker_name)
+        self.relocker._register_query("blank_line", "")
 
         self.controller_name = defaults.associated_controller
         self.controller: CTL200 = self.get_device(self.controller_name)
@@ -316,7 +317,7 @@ class RelockerChannelFrag(ExpFragment):
         logger.info("channel: %s", self.channel)
         logger.info("relocker_name: %s", self.relocker_name)
         for _ in range(10):
-            rtn = self.relocker.session_factory().query("")
+            rtn = self.relocker.blank_line()
             logger.info(rtn)
         if self.write_settings.get():
             self.set_scan_settings()
