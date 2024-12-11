@@ -310,8 +310,7 @@ class RelockerChannelFrag(ExpFragment):
 
     def run_once(self):
         for _ in range(10):
-            line = self.relocker.instr.ser.realine()
-            rtn = line.decode()
+            rtn = self.relocker.instr.query("")
             logger.info(rtn)
         if self.write_settings.get():
             self.set_scan_settings()
