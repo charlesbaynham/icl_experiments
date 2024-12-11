@@ -213,28 +213,6 @@ class RelockerChannelFrag(ExpFragment):
         self.read_voltages.push(read_voltages)
         return read_voltages
 
-<<<<<<< HEAD
-    def push_voltages_to_applet(self, read_voltages):
-        set_voltages = np.linspace(
-            self.v_min.get(), self.v_max.get(), self.n_steps.get()
-        )
-        err = np.zeros_like(read_voltages)
-        self.set_dataset(
-            f"{self.relocker_name}_{self.channel}_read_voltages",
-            np.array(read_voltages),
-            broadcast=True,
-            archive=False,
-        )
-        self.set_dataset("set_voltages", set_voltages, broadcast=True, archive=False)
-        self.set_dataset("err", err, broadcast=True, archive=False)
-        cmd = (
-            f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages "
-            f"--x set_voltages --fit read_voltages --error err"
-        )
-        self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
-
-=======
->>>>>>> master
     def get_result(self):
         result = self.relocker.get_result(self.channel)
         self.result.push(result)
@@ -331,21 +309,16 @@ class RelockerChannelFrag(ExpFragment):
         # )
 
     def run_once(self):
+        for _ in range(10):
+            line = self.relocker.instr.ser.realine()
+            rtn = line.decode()
+            logger.info(rtn)
         if self.write_settings.get():
             self.set_scan_settings()
             self.set_lock_settings()
         if self.relock_enabled.get():
             self.relock()
-<<<<<<< HEAD
-        read_voltages = self.get_read_voltages()
-        self.push_voltages_to_applet(read_voltages)
-        logger.info(self.channel_name)
-        logger.info(self.channel)
-        logger.info(self.relocker_name)
-        logger.info(self.get_result())
-=======
         self.log_results()
->>>>>>> master
 
 
 class RelockerFrag(ExpFragment):
@@ -384,17 +357,7 @@ class RelockerFrag(ExpFragment):
                     relocker_frag.set_scan_settings()
                     relocker_frag.set_lock_settings()
                 relocker_frag.relock()
-<<<<<<< HEAD
-                read_voltages = relocker_frag.get_read_voltages()
-                relocker_frag.push_voltages_to_applet(read_voltages)
-                result = relocker_frag.get_result()
-                logger.info(result)
-                logger.info(relocker_frag.channel_name)
-                logger.info(relocker_frag.channel)
-                logger.info(relocker_frag.relocker_name)
-=======
                 relocker_frag.log_results()
->>>>>>> master
 
 
 class RelockerAutoFrag(ExpFragment):
