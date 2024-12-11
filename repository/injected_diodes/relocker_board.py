@@ -183,7 +183,6 @@ class RelockerChannelFrag(ExpFragment):
         self.channel = defaults.channel
         self.relocker_name = defaults.board_name
         self.relocker: RelockerDriver = self.get_device(self.relocker_name)
-        self.relocker._register_query("blank_line", "")
 
         self.controller_name = defaults.associated_controller
         self.controller: CTL200 = self.get_device(self.controller_name)
