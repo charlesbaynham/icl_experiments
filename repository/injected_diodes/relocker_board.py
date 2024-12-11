@@ -316,7 +316,7 @@ class RelockerChannelFrag(ExpFragment):
         logger.info("channel: %s", self.channel)
         logger.info("relocker_name: %s", self.relocker_name)
         for _ in range(10):
-            rtn = self.relocker.instr.query("")
+            rtn = self.relocker.session_factory().query("")
             logger.info(rtn)
         if self.write_settings.get():
             self.set_scan_settings()
