@@ -69,7 +69,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             "clock_delivery_preempt_time_shelving",
             FloatParam,
             "Preempt time before shelving pulse",
-            default=80e-6,
+            default=130e-6,
             unit="us",
         )
         self.clock_delivery_preempt_time_shelving: FloatParamHandle
