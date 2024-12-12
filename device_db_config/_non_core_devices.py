@@ -146,6 +146,17 @@ def get_non_core_devices(simulation_mode=False):
                 "loglevel": logging.WARNING,
             },
         },
+        "rigol_counter": {
+            "type": "local",
+            "module": "repository.lib.fragments.rigol.rigol_device",
+            "class": "RigolCounter",
+            "arguments": {
+                "rigol_ip": "rigol-dg4162-b.lan",
+                "gate_time": "10 s",
+            },
+            "mockmodule": "repository.lib.fragments.rigol.rigol_device",
+            "mockclass": "MockRigolCounter",
+        },
         "andor_camera": {
             "type": "controller",
             "host": "labpc1.lan",

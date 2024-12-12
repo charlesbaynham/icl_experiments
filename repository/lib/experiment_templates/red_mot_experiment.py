@@ -62,6 +62,7 @@ from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
+from repository.lib.fragments.timestamp_synchronizer import Timestamper
 
 logger = logging.getLogger(__name__)
 
@@ -95,11 +96,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
     """
 
+    image_store: list[list] = []  # for putting e.g. Andor images in
+
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
         # %% Fragments
+
+        self.setattr_fragment("timestamper", Timestamper, automatic_timestamp=False)
+        self.timestamper: Timestamper
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
@@ -218,11 +224,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.before_start_hook()
 
         self.core.break_realtime()
+
+        self.timestamper.mark_timestamp()
+
         if self.magnetic_trap_loading_bool.get():
             self.blue_3d_mot.load_magnetic_trap()
         else:
             self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
+
         self.blue_3d_mot.do_blue_transfer_mot()
         delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
         self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
