@@ -59,7 +59,11 @@ class Timestamper(Fragment):
             "ntp_repeats", IntParam, "Number of NTP repeats", default=10
         )
 
-        self.timestamp_utc = self.setattr_result("timestamp_utc", FloatChannel)
+        self.timestamp_utc = self.setattr_result(
+            "timestamp_utc",
+            FloatChannel,
+            display_hints={"priority": -1},
+        )
 
         # Offset between ARTIQ seconds and UTC seconds. Calibrated using basic
         # version of the NTP protocol on the first shot
