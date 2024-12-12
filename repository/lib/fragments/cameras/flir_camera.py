@@ -173,7 +173,8 @@ class CameraFrag(Fragment):
         return super().host_setup()
 
     def host_cleanup(self):
-        self.cam.shutdown()
+        if hasattr(self, "cam"):
+            self.cam.shutdown()
 
         super().host_cleanup()
 
