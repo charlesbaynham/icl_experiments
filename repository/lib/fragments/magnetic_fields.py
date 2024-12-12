@@ -153,7 +153,3 @@ class SetMagneticFieldsSlow(Fragment):
     @rpc
     def set_ch1_axial(self, current: TFloat):
         self.chamber_1_axial_coil_driver.set_current(current)
-
-    def host_cleanup(self):
-        self.chamber_1_axial_coil_driver.close()
-        return super().host_cleanup()
