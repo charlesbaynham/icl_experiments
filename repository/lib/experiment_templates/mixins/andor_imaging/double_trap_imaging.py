@@ -130,10 +130,6 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
     * :meth:`~do_imaging_hook_andor`
     """
 
-    # num_andor_images = 3
-    # num_grabber_readouts = 1
-    # num_grabber_rois = 6
-
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
         self.setattr_result("atom_number_forward", FloatChannel)
@@ -145,43 +141,6 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
         self.atom_number_forward: FloatChannel
         self.excitation_fraction_backward: FloatChannel
         self.atom_number_backward: FloatChannel
-
-    # def hook_setup_andor(self):
-    #     """
-    #     Setup the Andor camera to use 6x ROIs
-
-    #     We're using fast kinetics mode. The first three ROIs are for the forward
-    #     trap, the last three are for the backwards trap.
-    #     """
-
-    #     roi_defaults = calculate_grabber_rois(
-    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-    #         num_images=3,
-    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
-    #     ) + calculate_grabber_rois(
-    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-    #         num_images=3,
-    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
-    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
-    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
-    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
-    #     )
-
-    #     self.setattr_fragment(
-    #         "andor_camera_control",
-    #         AndorCameraControl,
-    #         roi_defaults=roi_defaults,
-    #         add_pre_trigger_delay=True,
-    #         fast_kinetics_num_shots=3,
-    #     )
-    #     self.andor_camera_control: AndorCameraControl
-
-    #     self.hook_setup_andor_results()
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
