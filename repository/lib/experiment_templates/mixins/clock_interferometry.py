@@ -61,7 +61,7 @@ class ClockInterferometryBase(
             "delay_between_interferometry_pulses",
             FloatParam,
             "Delay between interferometry pulses",
-            default=100e-6,
+            default=constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES,
             unit="us",
         )
         self.delay_between_interferometry_pulses: FloatParamHandle
@@ -83,27 +83,6 @@ class ClockInterferometryBase(
         self.phase_constant = 10.0
         self.clock_dds_frequency_pi_pulse = 0.0
         self.clock_dds_frequency_final_pi_by_2_pulse = 0.0
-
-    @kernel
-    def device_setup(self):
-        self.device_setup_subfragments()
-
-        self.clock_dds_frequency_pi_pulse = (
-            CLOCK_BEAM_INFO.frequency
-            + constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
-            * (
-                self.delay_between_interferometry_pulses.get()
-                + self.spectroscopy_pulse_time.get() / 2
-            )
-        )
-        self.clock_dds_frequency_final_pi_by_2_pulse = (
-            self.clock_dds_frequency_pi_pulse
-            + constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
-            * (
-                self.delay_between_interferometry_pulses.get()
-                + self.spectroscopy_pulse_time.get()
-            )
-        )
 
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
@@ -150,7 +129,7 @@ class ClockInterferometryBase(
 
         # Phase step
         self.clock_dds.set(
-            frequency=self.clock_dds_frequency_pi_pulse,
+            frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.calculate_phase_for_pi_pulse(),
         )
 
@@ -167,7 +146,7 @@ class ClockInterferometryBase(
         # Phase step
         t_end_pi_mu = now_mu()
         self.clock_dds.set(
-            frequency=self.clock_dds_frequency_final_pi_by_2_pulse,
+            frequency=CLOCK_BEAM_INFO.frequency,
             phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
 

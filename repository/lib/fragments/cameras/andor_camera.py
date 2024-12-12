@@ -321,7 +321,11 @@ class AndorCameraControl(Fragment):
         super().host_setup()
 
     def host_cleanup(self):
-        if self.use_andor_driver.get():
+        # The second statement in the if clause is here because if something
+        # fails in host_setup of another fragment, it's possible for
+        # host_cleanup to be called despite host_setup not having been called
+        # yet:
+        if self.use_andor_driver.get() and hasattr(self, "cam"):
             self.cam.stop_acquisition()
             self.cam.set_shutter_closed()
         super().host_cleanup()

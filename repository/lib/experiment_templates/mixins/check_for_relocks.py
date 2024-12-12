@@ -24,7 +24,7 @@ class CheckForRelocksFrag(Fragment):
 
         self.relockers: List[RelockerDriver] = []
         self.num_relock_channels: List[IntChannel] = []
-        self.channel_names = IJD_RELOCKER_DEFAULTS.keys()
+        self.channel_names = list(IJD_RELOCKER_DEFAULTS.keys())
 
         for channel_name in self.channel_names:
             defaults = IJD_RELOCKER_DEFAULTS[channel_name]

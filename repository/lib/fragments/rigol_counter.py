@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class RigolCounterFrag(Fragment):
-    def build_fragment(self, rigol_ip=None):
+    def build_fragment(self):
         self.rigol_counter: RigolCounter = self.get_device("rigol_counter")
         self.rigol_counter_frequency = self.setattr_result(
             "rigol_counter_frequency",
@@ -29,7 +29,7 @@ class RigolCounterFrag(Fragment):
     def check_counter_rpc(self):
         frequency = self.rigol_counter.get_frequency()
         if abs(frequency - CLOCK_LASER_BEATNOTE_FREQUENCY) > 200e-3:
-            logger.warning(
+            logger.debug(
                 "Frequency %.2f is too far from expected %.2f",
                 frequency,
                 CLOCK_LASER_BEATNOTE_FREQUENCY,

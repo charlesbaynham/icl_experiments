@@ -10,6 +10,9 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
@@ -106,7 +109,9 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         )
 
 
-class OpticalPumpingWithFieldSettingDipoleTrapMixin(OpticalPumpingWithFieldSettingBase):
+class OpticalPumpingWithFieldSettingDipoleTrapMixin(
+    OpticalPumpingWithFieldSettingBase, DipoleTrapWithExperiment
+):
     """
     Mixin for optical pumping in a dipole trap
 
