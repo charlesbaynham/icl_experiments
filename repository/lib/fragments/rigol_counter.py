@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class RigolCounterFrag(Fragment):
-    def build_fragment(self, rigol_ip=None):
+    def build_fragment(self):
         self.rigol_counter: RigolCounter = self.get_device("rigol_counter")
         self.rigol_counter_frequency = self.setattr_result(
             "rigol_counter_frequency",
