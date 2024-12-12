@@ -1,6 +1,6 @@
 import logging
 
-from artiq.experiment import kernel
+from artiq.experiment import kernel, host_only
 from ndscan.experiment import FloatChannel
 
 from repository.lib import constants
@@ -141,6 +141,23 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
         self.atom_number_forward: FloatChannel
         self.excitation_fraction_backward: FloatChannel
         self.atom_number_backward: FloatChannel
+
+    def host_setup(self):
+        super().host_setup()
+
+        self.launch_ellipse_applet()
+
+    @host_only
+    def launch_ellipse_applet(self):
+        # Reconstruct the ndscan dataset path
+        # This is a bit fragile, and ought to be based on NDScan functions
+        self.setattr_device("scheduler")
+        self.setattr_device("ccb")
+        dataset_path_x = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_forward"
+        dataset_path_y = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_backward"
+
+        cmd = f"${{artiq_applet}}plot_xy {dataset_path_y} --x {dataset_path_x}"
+        self.ccb.issue("create_applet", "Excitation Lissajous plot", cmd)
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
