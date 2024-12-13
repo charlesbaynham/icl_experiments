@@ -335,16 +335,16 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT = 20
+ANDOR_ROI_DIPOLE_HEIGHT = 40
 ANDOR_ROI_DIPOLE_WIDTH = 16
-
-ANDOR_DIPOLE_TRAP_FORWARD_X = 184
-# ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 297
 
 ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
 # ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_BACKWARD_Y = 348
+ANDOR_DIPOLE_TRAP_BACKWARD_Y = 345
+
+ANDOR_DIPOLE_TRAP_FORWARD_X = 184
+# ~3 pixels below the center of the dipole trap to include falling atoms
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 293
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
