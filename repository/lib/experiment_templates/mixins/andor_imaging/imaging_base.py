@@ -11,7 +11,6 @@ from artiq.experiment import kernel
 from artiq.experiment import rpc
 from artiq.language import parallel
 from artiq.language.core import delay
-from artiq.language import parallel
 from sipyco.packed_exceptions import GenericRemoteException
 
 from artiq.master.worker_impl import CCB
@@ -26,9 +25,6 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 from repository.lib.fragments.cameras.andor_camera import (
     AndorCameraControl,
 )
-from ndscan.experiment import Fragment
-from artiq.coredevice.grabber import Grabber, GrabberTimeoutException
-from artiq.coredevice.core import Core
 
 
 logger = logging.getLogger(__name__)
