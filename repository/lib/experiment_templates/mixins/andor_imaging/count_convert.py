@@ -26,7 +26,7 @@ class CountConvert(EMGain):
     @kernel
     def _set_gain_and_count_convert(self):
         self._set_gain_if_changed()
-        if self.andor_camera_control.count_convert_mode.get():
+        if self.count_convert_mode.get():
             self._set_count_convert()
 
     @rpc
@@ -35,7 +35,7 @@ class CountConvert(EMGain):
             self.andor_camera_control.cam.set_count_convert_mode(2)
         except GenericRemoteException as e:
             if "DRV_ACQUIRING" in e.args[0]:
-                self.andor_camera_control.cam.stop_acquisitio()
+                self.andor_camera_control.cam.stop_acquisition()
                 self.andor_camera_control.cam.set_count_convert_mode(2)
                 self.andor_camera_control.cam.start_acquisition()
             else:
