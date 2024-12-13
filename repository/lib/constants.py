@@ -672,7 +672,7 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_cavity_offset_698",
-        frequency=673.64e6,  # Lower Mirny freq --> higher laser freq
+        frequency=673.59e6,  # Lower Mirny freq --> higher laser freq
         attenuation=0.0,
     ),
 ]
