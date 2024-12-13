@@ -65,6 +65,7 @@ class EMGain(AndorImagingBase):
                 self.func_to_call()
 
         self.setattr_fragment("setter", Setter, func_to_call=self._set_gain_if_changed)
+        self.setter: Setter
 
     def host_setup(self):
         super().host_setup()
