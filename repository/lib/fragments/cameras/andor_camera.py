@@ -227,14 +227,6 @@ class AndorCameraControl(Fragment):
         self.fast_kinetics_time_between_shots: FloatParamHandle
         self.fast_kinetics_offset: IntParamHandle
 
-        self.setattr_param(
-            "count_convert_mode",
-            BoolParam,
-            description="Count convert mode",
-            default=False,
-        )
-        self.count_convert_mode: BoolParamHandle
-
         # %% Kernel variables
 
         self.fast_kinetics_num_shots = fast_kinetics_num_shots
