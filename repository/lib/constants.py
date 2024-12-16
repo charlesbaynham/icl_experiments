@@ -335,16 +335,16 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT = 25
-ANDOR_ROI_DIPOLE_WIDTH = 25
+ANDOR_ROI_DIPOLE_HEIGHT = 20
+ANDOR_ROI_DIPOLE_WIDTH = 16
 
 ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
 # ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_BACKWARD_Y = 346
+ANDOR_DIPOLE_TRAP_BACKWARD_Y = 348
 
 ANDOR_DIPOLE_TRAP_FORWARD_X = 184
 # ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 295
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 294
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -672,7 +672,7 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_cavity_offset_698",
-        frequency=673.64e6,  # Lower Mirny freq --> higher laser freq
+        frequency=673.54e6,  # Lower Mirny freq --> higher laser freq
         attenuation=0.0,
     ),
 ]
