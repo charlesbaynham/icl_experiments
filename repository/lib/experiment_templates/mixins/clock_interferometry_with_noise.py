@@ -114,10 +114,17 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
         self.phase_rng: GaussianNoisePhase
 
         # Expose params here
-        self.setattr_param_rebind("phase_step_one_std", self.phase_rng)
-        self.setattr_param_rebind("phase_step_two_std", self.phase_rng)
         self.setattr_param_rebind("phase_step_one_mean", self.phase_rng)
         self.setattr_param_rebind("phase_step_two_mean", self.phase_rng)
+
+        # For now, bind the std. dev. of the phase steps together
+        self.setattr_param_like(
+            "phase_step_std", self.phase_rng, original_name="phase_step_one_std"
+        )
+        self.phase_rng.bind_param("phase_step_one_std", self.phase_step_std)
+        self.phase_rng.bind_param("phase_step_two_std", self.phase_step_std)
+        # self.setattr_param_rebind("phase_step_one_std", self.phase_rng)
+        # self.setattr_param_rebind("phase_step_two_std", self.phase_rng)
 
         # Make output channels to record the phases we generate for convenience
         # (we could regenerate them from the seed but this is easier)
