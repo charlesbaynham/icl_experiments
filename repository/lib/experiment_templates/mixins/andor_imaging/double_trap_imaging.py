@@ -1,6 +1,7 @@
 import logging
 
-from artiq.experiment import kernel, host_only
+from artiq.experiment import host_only
+from artiq.experiment import kernel
 from ndscan.experiment import FloatChannel
 
 from repository.lib import constants

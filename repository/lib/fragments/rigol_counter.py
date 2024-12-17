@@ -1,13 +1,12 @@
+import logging
+
 from artiq.language import host_only
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
 
-from repository.lib.fragments.rigol.rigol_device import GATE_TIMES_TO_IDX, RigolCounter
-
 from repository.lib.constants import CLOCK_LASER_BEATNOTE_FREQUENCY
-
-import logging
+from repository.lib.fragments.rigol.rigol_device import RigolCounter
 
 logger = logging.getLogger(__name__)
 

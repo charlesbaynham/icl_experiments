@@ -1,12 +1,15 @@
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from artiq.language.core import kernel, rpc, host_only
-from ndscan.experiment.result_channels import IntChannel
-from ndscan.experiment.fragment import Fragment
-from repository.lib.constants import IJD_RELOCKER_DEFAULTS
-from relocker_driver.driver import RelockerDriver
+import logging
 from typing import List
 
-import logging
+from artiq.language.core import host_only
+from artiq.language.core import kernel
+from artiq.language.core import rpc
+from ndscan.experiment.fragment import Fragment
+from ndscan.experiment.result_channels import IntChannel
+from relocker_driver.driver import RelockerDriver
+
+from repository.lib.constants import IJD_RELOCKER_DEFAULTS
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +20,6 @@ class CheckForRelocksFrag(Fragment):
     """
 
     def build_fragment(self, reset_at_start: bool = True):
-
         self.reset_at_start = reset_at_start
 
         self.relockers: List[RelockerDriver] = []
