@@ -157,7 +157,9 @@ class RelockIJDFrag(ExpFragment):
         self.beam_setter = self.setattr_fragment(
             "beam_setter",
             make_set_beams_to_default(
-                urukul_beam_infos=beam_infos, use_automatic_setup=True
+                urukul_beam_infos=beam_infos,
+                use_automatic_setup=True,
+                use_automatic_turnon=True,
             ),
         )
 
