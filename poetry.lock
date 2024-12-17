@@ -2348,6 +2348,39 @@ files = [
 ]
 
 [[package]]
+name = "pyaion"
+version = "1.3"
+description = "A package for AION users. This should be used to share code useful across the collaboration, both for ARTIQ experimental control and otherwise."
+optional = false
+python-versions = ">=3.10,<3.12"
+files = []
+develop = false
+
+[package.dependencies]
+aiohttp = "^3.9.3"
+artiq = {git = "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"}
+artiq-influx-generic = {git = "https://gitlab.com/charlesbaynham/artiq_influx_generic.git"}
+generic-scpi-driver = ">=1.3"
+microscope = {git = "https://github.com/m-labs/microscope.git"}
+migen = {git = "https://github.com/m-labs/migen.git"}
+misoc = {git = "https://github.com/m-labs/misoc.git"}
+ndscan = {git = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git", branch = "transitive-rebinding-qt5"}
+numpy = "^1.26.0"
+pydantic = "1.10.2"
+pyqt5 = "5.15.9"
+pyqt5-qt5 = "5.15.2"
+pyqt5-sip = "12.12.2"
+requests = "^2.31.0"
+sipyco = {git = "https://github.com/m-labs/sipyco.git"}
+toptica-lasersdk = "^3.1.1"
+
+[package.source]
+type = "git"
+url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
+reference = "HEAD"
+resolved_reference = "9d7591a35d92f8719746cf4774933014a3b2f2b7"
+
+[[package]]
 name = "pycairo"
 version = "1.25.1"
 description = "Python interface for cairo"
@@ -3844,4 +3877,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "ff7b2b304e5b3e1f8e7241074b821f4b064fb8ba9db5eeb90770fe74ae5cc52d"
+content-hash = "c358ecae1514bf14c23289df51a3504c53aac7bfc146e895fc84f0d8e1b20404"
