@@ -19,6 +19,7 @@ from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParamHandle
+from sipyco.packed_exceptions import GenericRemoteException
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment

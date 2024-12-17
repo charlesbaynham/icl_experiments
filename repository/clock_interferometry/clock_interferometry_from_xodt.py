@@ -33,19 +33,12 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
-from repository.lib.fragments.rigol_counter import (
-    RigolCounterFrag,
-)
-
-from repository.lib.experiment_templates.mixins.check_for_relocks import (
-    CheckForRelocksMixin,
-)
+from repository.lib.fragments.rigol_counter import RigolCounterFrag
 
 logger = logging.getLogger(__name__)
 
 
 class CheckRigolandRelockerMixin(CheckForRelocksMixin):
-
     def build_fragment(self):
         self.setattr_fragment("rigol", RigolCounterFrag)
         self.rigol: RigolCounterFrag
