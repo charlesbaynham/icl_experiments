@@ -291,7 +291,7 @@ class AndorCameraControl(Fragment):
                 logger.warning("Andor still acquiring, stopping acquisition")
                 self.cam.stop_acquisition()
             self.set_roi()
-            self.cam.set_baseline_clamp_mode(self.baseline_clamp_mode.get())
+            self.cam.set_baseline_clamp(self.baseline_clamp_mode.get())
             if not self.keep_andor_shutter_closed:
                 self.cam.set_shutter_open()
 
