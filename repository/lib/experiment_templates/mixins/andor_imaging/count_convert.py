@@ -1,0 +1,46 @@
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from ndscan.experiment.parameters import BoolParam, BoolParamHandle
+from artiq.language import kernel, rpc
+from sipyco.packed_exceptions import GenericRemoteException
+
+
+class CountConvert(EMGain):
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "count_convert_mode",
+            BoolParam,
+            description="Enable count convert mode",
+            default=True,
+        )
+        self.count_convert_mode: BoolParamHandle
+
+        self.setter.func_to_call = self._set_gain_and_count_convert
+
+    def host_setup(self):
+        super().host_setup()
+        self.andor_camera_control.cam.set_count_convert_wavelength(461.0)
+
+    @kernel
+    def _set_gain_and_count_convert(self):
+        self._set_gain_if_changed()
+        if self.count_convert_mode.get():
+            self._set_count_convert()
+
+    @rpc
+    def _set_count_convert(self):
+        try:
+            self.andor_camera_control.cam.set_count_convert_mode(2)
+        except GenericRemoteException as e:
+            if "DRV_ACQUIRING" in e.args[0]:
+                self.andor_camera_control.cam.stop_acquisition()
+                self.andor_camera_control.cam.set_count_convert_mode(2)
+                self.andor_camera_control.cam.start_acquisition()
+            else:
+                raise e
+
+    def host_cleanup(self):
+        super().host_cleanup()
+        self.andor_camera_control.cam.set_count_convert_mode(0)

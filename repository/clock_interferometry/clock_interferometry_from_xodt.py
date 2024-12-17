@@ -6,10 +6,12 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.count_convert import (
+    CountConvert,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.check_for_relocks import (
     CheckForRelocksMixin,
 )
@@ -52,7 +54,7 @@ class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
-    EMGain,
+    CountConvert,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -74,7 +76,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     ClockInterferometryWithNoiseDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
-    EMGain,
+    CountConvert,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
