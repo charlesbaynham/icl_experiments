@@ -12,9 +12,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.count_convert impo
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
-
-# from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
-
+from repository.lib.experiment_templates.mixins.check_for_relocks import (
+    CheckForRelocksMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
