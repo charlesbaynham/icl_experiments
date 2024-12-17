@@ -612,7 +612,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_down_beam",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=0.4,
+        setpoint=0.28,
     ),
 ]
 
