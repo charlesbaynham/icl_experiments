@@ -6,6 +6,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
+    AbsorptionDoubleDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
@@ -24,10 +27,6 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
-)
-
-from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
-    AbsorptionDoubleDipoleTrapMixin,
 )
 
 logger = logging.getLogger(__name__)

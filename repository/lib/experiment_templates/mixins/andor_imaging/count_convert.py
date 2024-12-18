@@ -1,7 +1,10 @@
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
-from ndscan.experiment.parameters import BoolParam, BoolParamHandle
-from artiq.language import kernel, rpc
+from artiq.language import kernel
+from artiq.language import rpc
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from sipyco.packed_exceptions import GenericRemoteException
+
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 
 
 class CountConvert(EMGain):

@@ -6,6 +6,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
+    AbsorptionDoubleDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.count_convert import (
     CountConvert,
 )
@@ -34,10 +37,6 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
 from repository.lib.fragments.rigol_counter import RigolCounterFrag
-
-from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
-    AbsorptionDoubleDipoleTrapMixin,
-)
 
 logger = logging.getLogger(__name__)
 

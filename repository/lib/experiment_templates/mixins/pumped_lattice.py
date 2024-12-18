@@ -217,6 +217,9 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     @kernel
     def device_setup(self) -> None:
+        # TODO: This won't work, it overrides the device_setup in
+        # red_mot_experiment, clashing with all the other mixins
+        raise RuntimeError
         self.core.break_realtime()
         self.lattice_setter.turn_on_all()
 

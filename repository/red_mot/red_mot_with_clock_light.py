@@ -1,8 +1,10 @@
 import logging
 
 from artiq.coredevice.ttl import TTLOut
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from numpy import int64
 
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
@@ -46,6 +48,8 @@ class RedMOTWithClockLight(
     @kernel
     def start_of_red_broadband_hook(self):
         self.start_of_red_broadband_hook_imaging_base()
+
+        delay_mu(int64(self.core.ref_multiplier))
 
         # Turn off the 679 here so that we can shelve into the clock state
         self.ttl_shutter_repump_679.off()

@@ -11,8 +11,6 @@ from artiq.experiment import kernel
 from artiq.experiment import rpc
 from artiq.language import parallel
 from artiq.language.core import delay
-from sipyco.packed_exceptions import GenericRemoteException
-
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
@@ -23,10 +21,7 @@ from sipyco.packed_exceptions import GenericRemoteException
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.cameras.andor_camera import (
-    AndorCameraControl,
-)
-
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
