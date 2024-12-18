@@ -298,7 +298,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # Do extra functions at end of experiment  # FIXME remove
         self.host_functions_after_experiment_hook()
 
-        self.after_data_saved_checkpoint()  # FIXME write this
+        # self.after_data_saved_checkpoint()  # FIXME write this
 
     # %% Hooks / overridable methods
     #
