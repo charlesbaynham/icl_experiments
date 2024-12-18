@@ -21,13 +21,28 @@ class CheckpointFragment(Fragment):
     Later, if this proves useful, we can make this more general.
     """
 
-    checkpoint_method_names = ["test_checkpoint"]  # FIXME
+    checkpoint_method_names = [
+        "end_of_blue_3d_mot_loading_hook",  # FIXME rename all "hooks" to "checkpoints" where appropriate
+        "start_of_red_broadband_hook",
+        "end_of_broadband_mot_hook",
+        "post_narrowband_hook",
+        "pre_expansion_hook",
+        "post_sequence_cleanup_hook",
+        "after_data_saved_checkpoint",
+    ]
+
+    # %% Begin type annotations
 
     # Default implementations of checkpoints. These could be dynamically
-    # generated easily, but we write them out so that type checkers can see them
+    # generated easily, but we write them out manually so that type checkers can
+    # see them
     @portable
-    def test_checkpoint(self):
-        self.test_checkpoint_subfragments()
+    def end_of_blue_3d_mot_loading_hook(self):
+        self.end_of_blue_3d_mot_loading_hook_subfragments()
+
+    @portable
+    def start_of_red_broadband_hook(self):
+        self.start_of_red_broadband_hook_subfragments()
 
     # Stubs for "*_subfragments" methods for checkpoints. These are overwritten
     # in build_fragment so the following code never gets run: it's just here for
@@ -36,8 +51,10 @@ class CheckpointFragment(Fragment):
     # don't call these methods and just implement their functionality in your
     # checkpoint directly.
     @portable
-    def test_checkpoint_subfragments(self):
+    def end_of_blue_3d_mot_loading_hook_subfragments(self):
         pass
+
+    # %% End type annotations
 
     @portable
     def _noop(self):

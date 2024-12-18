@@ -290,13 +290,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # ANDOR, and since ARTIQ doesn't support inheritance properly, it's
         # easier to have two methods.
         # This one is intended for the FLIR cameras:
-        self.save_flir_data_hook()
+        self.save_flir_data_hook()  # FIXME combine with andor hook using checkpoint
 
         # This one for the Andor
         self.save_andor_data_hook()
 
-        # Do extra functions at end of experiment
+        # Do extra functions at end of experiment  # FIXME remove
         self.host_functions_after_experiment_hook()
+
+        self.after_data_saved_checkpoint()  # FIXME write this
 
     # %% Hooks / overridable methods
     #
