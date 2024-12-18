@@ -177,7 +177,7 @@ class CheckpointFragment(Fragment):
             implementation_kernel = (
                 kernel_from_string(["self"], code[:-1], portable)
                 if code
-                else self._noop
+                else self.__class__._noop
             )
             implementation_kernel_name = f"{checkpoint_name}_subfragments"
 
