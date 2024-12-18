@@ -1,5 +1,6 @@
-from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 from ndscan.experiment import *
+
+from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 
 
 class DoInPostNarrowbandA(CheckpointFragment):
@@ -37,6 +38,16 @@ class TestCheckpointsDefaultFrag(CheckpointFragment, ExpFragment):
         self.setattr_fragment("subA", DoInPostNarrowbandA)
         self.setattr_fragment("subC", DoInPostNarrowbandC)
 
+    @kernel
+    def run_once(self):
+        self.end_of_blue_3d_mot_loading_hook()
+        self.start_of_red_broadband_hook()
+        self.end_of_broadband_mot_hook()
+        self.post_narrowband_hook()
+        self.pre_expansion_hook()
+        self.post_sequence_cleanup_hook()
+        self.after_data_saved_checkpoint()
+
 
 class TestCheckpointsOverriddenFrag(CheckpointFragment, ExpFragment):
     def build_fragment(self):
@@ -46,6 +57,16 @@ class TestCheckpointsOverriddenFrag(CheckpointFragment, ExpFragment):
     def post_narrowband_hook(self):
         self.post_narrowband_hook_subfragments()
         print("Hello from post_narrowband_hook, I am TestCheckpointsOverridden")
+
+    @kernel
+    def run_once(self):
+        self.end_of_blue_3d_mot_loading_hook()
+        self.start_of_red_broadband_hook()
+        self.end_of_broadband_mot_hook()
+        self.post_narrowband_hook()
+        self.pre_expansion_hook()
+        self.post_sequence_cleanup_hook()
+        self.after_data_saved_checkpoint()
 
 
 TestCheckpointsDefault = make_fragment_scan_exp(TestCheckpointsDefaultFrag)
