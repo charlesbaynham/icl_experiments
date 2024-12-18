@@ -128,10 +128,14 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
 
         # Make output channels to record the phases we generate for convenience
         # (we could regenerate them from the seed but this is easier)
-        self.setattr_result("random_phase_one", FloatChannel)
+        self.setattr_result(
+            "random_phase_one", FloatChannel, display_hints={"priority": -1}
+        )
         self.random_phase_one: FloatChannel
 
-        self.setattr_result("random_phase_two", FloatChannel)
+        self.setattr_result(
+            "random_phase_two", FloatChannel, display_hints={"priority": -1}
+        )
         self.random_phase_two: FloatChannel
 
     @kernel
