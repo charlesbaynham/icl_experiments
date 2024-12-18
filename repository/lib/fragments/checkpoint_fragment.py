@@ -23,7 +23,7 @@ class CheckpointFragment(Fragment):
 
     checkpoint_method_names = [
         "end_of_blue_3d_mot_loading_hook",  # FIXME rename all "hooks" to "checkpoints" where appropriate
-        # "start_of_red_broadband_hook",  FIXME put back
+        "start_of_red_broadband_hook",  # FIXME put back
         # "end_of_broadband_mot_hook",
         # "post_narrowband_hook",
         # "pre_expansion_hook",
@@ -77,7 +77,7 @@ class CheckpointFragment(Fragment):
 
     @portable
     def start_of_red_broadband_hook_subfragments(self):
-        pass
+        self._start_of_red_broadband_hook_impl(self)
 
     @portable
     def end_of_broadband_mot_hook_subfragments(self):
@@ -101,10 +101,6 @@ class CheckpointFragment(Fragment):
 
     # %% End type annotations
 
-    @portable
-    def _noop(self):
-        pass
-
     @classmethod
     def _checkpoint_is_trivial(cls, frag, checkpoint_name: str):
         """
@@ -113,7 +109,8 @@ class CheckpointFragment(Fragment):
         There are two ways that this checkpoint could be not used:
 
         a) The (sub)fragment is a CheckpointFragment but which has not
-           implemented this checkpoint. The method will therefore be a _noop.
+           implemented this checkpoint. The method will therefore exist but do
+           nothing.
         b) The sub(fragment) is a plain Fragment and has no concept of this
            Checkpoint. The method will not exist.
 
@@ -124,10 +121,9 @@ class CheckpointFragment(Fragment):
         that it can be called passing Fragments as well as CheckpointFragments.
         """
         assert not frag._building
-        we_have_trivial_checkpoint = (
-            not hasattr(frag, checkpoint_name)
-            or getattr(frag, checkpoint_name).__func__ is cls._noop
-        )
+        we_have_trivial_checkpoint = not hasattr(frag, checkpoint_name) or getattr(
+            frag, checkpoint_name
+        ).__func__ is getattr(CheckpointFragment, checkpoint_name)
 
         children_have_trivial_checkpoints = all(
             [cls._checkpoint_is_trivial(f, checkpoint_name) for f in frag._subfragments]
@@ -174,10 +170,12 @@ class CheckpointFragment(Fragment):
                     continue
                 code += f"self.{s._fragment_path[-1]}.{checkpoint_name}()\n"
 
+            code += "pass\n"  # FIXME
+
             implementation_kernel = (
                 kernel_from_string(["self"], code[:-1], portable)
-                if code
-                else self.__class__._noop
+                # if code
+                # else self.__class__._noop
             )
             implementation_kernel_name = f"{checkpoint_name}_subfragments"
 
