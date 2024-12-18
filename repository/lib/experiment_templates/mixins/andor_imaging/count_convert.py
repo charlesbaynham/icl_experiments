@@ -8,7 +8,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMG
 
 
 class CountConvert(EMGain):
-
     def build_fragment(self):
         super().build_fragment()
 
