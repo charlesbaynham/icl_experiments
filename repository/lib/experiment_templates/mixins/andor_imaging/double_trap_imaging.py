@@ -1,5 +1,6 @@
 import logging
 
+from artiq.experiment import host_only
 from artiq.experiment import kernel
 from ndscan.experiment import FloatChannel
 
@@ -130,10 +131,6 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
     * :meth:`~do_imaging_hook_andor`
     """
 
-    # num_andor_images = 3
-    # num_grabber_readouts = 1
-    # num_grabber_rois = 6
-
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
         self.setattr_result("atom_number_forward", FloatChannel)
@@ -146,42 +143,22 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
         self.excitation_fraction_backward: FloatChannel
         self.atom_number_backward: FloatChannel
 
-    # def hook_setup_andor(self):
-    #     """
-    #     Setup the Andor camera to use 6x ROIs
+    def host_setup(self):
+        super().host_setup()
 
-    #     We're using fast kinetics mode. The first three ROIs are for the forward
-    #     trap, the last three are for the backwards trap.
-    #     """
+        self.launch_ellipse_applet()
 
-    #     roi_defaults = calculate_grabber_rois(
-    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-    #         num_images=3,
-    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
-    #     ) + calculate_grabber_rois(
-    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-    #         num_images=3,
-    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
-    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
-    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
-    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
-    #     )
+    @host_only
+    def launch_ellipse_applet(self):
+        # Reconstruct the ndscan dataset path
+        # This is a bit fragile, and ought to be based on NDScan functions
+        self.setattr_device("scheduler")
+        self.setattr_device("ccb")
+        dataset_path_x = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_forward"
+        dataset_path_y = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_backward"
 
-    #     self.setattr_fragment(
-    #         "andor_camera_control",
-    #         AndorCameraControl,
-    #         roi_defaults=roi_defaults,
-    #         add_pre_trigger_delay=True,
-    #         fast_kinetics_num_shots=3,
-    #     )
-    #     self.andor_camera_control: AndorCameraControl
-
-    #     self.hook_setup_andor_results()
+        cmd = f"${{artiq_applet}}plot_xy {dataset_path_y} --x {dataset_path_x}"
+        self.ccb.issue("create_applet", "Excitation Lissajous plot", cmd)
 
     @kernel
     def process_grabber_data_hook(self, sums, means):

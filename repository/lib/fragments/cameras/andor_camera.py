@@ -52,6 +52,8 @@ class AndorCameraControl(Fragment):
         fast kinetics mode will be used.
     """
 
+    keep_andor_shutter_closed = False  # HACK this is ugly
+
     def build_fragment(
         self,
         roi_defaults=[
@@ -263,6 +265,7 @@ class AndorCameraControl(Fragment):
         return rois
 
     def host_setup(self):
+        self.fast_kinetics_shift_time = 0.0  # to prevent compilation errors
         # If the andor is in fast kinetics mode and the height of pixels to emit
         # is > 512, it will emit two frames onto Grabber instead of one. The
         # first will be "nonsense" (probably with some digital information that
@@ -276,8 +279,12 @@ class AndorCameraControl(Fragment):
 
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
+            if self.cam.get_status() == 20072:
+                logger.warning("Andor still acquiring, stopping acquisition")
+                self.cam.stop_acquisition()
             self.set_roi()
-            self.cam.set_shutter_open()
+            if not self.keep_andor_shutter_closed:
+                self.cam.set_shutter_open()
 
             if self.fast_kinetics_mode:
                 logger.info("Setting up fast kinetics mode")
@@ -314,7 +321,11 @@ class AndorCameraControl(Fragment):
         super().host_setup()
 
     def host_cleanup(self):
-        if self.use_andor_driver.get():
+        # The second statement in the if clause is here because if something
+        # fails in host_setup of another fragment, it's possible for
+        # host_cleanup to be called despite host_setup not having been called
+        # yet:
+        if self.use_andor_driver.get() and hasattr(self, "cam"):
             self.cam.stop_acquisition()
             self.cam.set_shutter_closed()
         super().host_cleanup()

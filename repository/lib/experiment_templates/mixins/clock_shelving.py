@@ -42,7 +42,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             "shelving_pulse_time",
             FloatParam,
             "Length of clock shelving pulse",
-            default=50e-6,
+            default=constants.CLOCK_SHELVING_PULSE_TIME,
             unit="us",
         )
         self.shelving_pulse_time: FloatParamHandle
@@ -60,7 +60,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             "shelving_pulse_clearout_duration",
             FloatParam,
             "Duration of 461 clearout pulse after shelving",
-            default=500e-6,
+            default=constants.SHELVING_PULSE_CLEAROUT_DURATION,
             unit="us",
         )
         self.shelving_pulse_clearout_duration: FloatParamHandle
@@ -69,7 +69,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             "clock_delivery_preempt_time_shelving",
             FloatParam,
             "Preempt time before shelving pulse",
-            default=80e-6,
+            default=constants.CLOCK_DELIVERY_PREEMPT_TIME,
             unit="us",
         )
         self.clock_delivery_preempt_time_shelving: FloatParamHandle
@@ -78,7 +78,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             "shelving_clock_delivery_setpoint",
             FloatParam,
             "Setpoint for clock delivery AOM during shelving",
-            default=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            default=constants.CLOCK_SHELVING_PULSE_SETPOINT,
             min=0.0,
             unit="V",
         )

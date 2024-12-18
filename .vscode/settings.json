@@ -10,7 +10,10 @@
         "Narrowband",
         "ndscan",
         "pretrigger",
-        "ROIs"
+        "repump",
+        "ROIs",
+        "XODT",
+        "XXODT"
     ],
     "editor.codeLens": true,
     "todo-tree.regex.regex": "\\b($TAGS)\\b",

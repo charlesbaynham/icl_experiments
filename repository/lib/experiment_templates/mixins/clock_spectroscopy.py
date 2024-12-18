@@ -16,6 +16,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
+    ExponentialDecayMixin,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -24,7 +27,7 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockSpectroscopyBase(RedMOTWithExperiment):
+class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
     """
     Sets up the clock beam for clock spectroscopy (including clock shelving or interferometry)
 

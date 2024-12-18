@@ -30,6 +30,7 @@
               aravis = [ "setuptools" ];
               pygobject = [ "setuptools" ];
               pyft232 = [ "setuptools" ];
+              python-vxi11 = [ "setuptools" ];
               tenma-power-supply = [ "poetry-core" ];
               toptica-wrapper = [ "poetry-core" ];
               wand = [ "poetry-core" ];
