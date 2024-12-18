@@ -8,9 +8,16 @@ class TestCheckpointExpFragBase(CheckpointFragment, ExpFragment):
         pass
 
     def run_once(self):
-        # Run all the checkpoints in order
-        # FIXME more
-        self.test_checkpoint()
+        # Run all the checkpoints in order for this test. Note that run_once is
+        # not a kernel method here, so this will run on the host as all the
+        # hooks are @portable
+        self.end_of_blue_3d_mot_loading_hook()
+        self.start_of_red_broadband_hook()
+        self.end_of_broadband_mot_hook()
+        self.post_narrowband_hook()
+        self.pre_expansion_hook()
+        self.post_sequence_cleanup_hook()
+        self.after_data_saved_checkpoint()
 
 
 def test_can_run_with_default_implementations(fragment_precompiler):
@@ -25,11 +32,11 @@ def test_default_implementations_call_subfragments(fragment_precompiler):
         def build_fragment(self):
             pass
 
-        def test_checkpoint(self):
+        def post_narrowband_hook(self):
             nonlocal sentinel
             sentinel = True
 
-            self.test_checkpoint_subfragments()
+            self.post_narrowband_hook_subfragments()
 
     class TestCheckpointExpFrag(TestCheckpointExpFragBase):
         def build_fragment(self):
@@ -52,21 +59,21 @@ def test_default_implementations_call_subfragments_squared(fragment_precompiler)
         def build_fragment(self):
             pass
 
-        def test_checkpoint(self):
+        def post_narrowband_hook(self):
             nonlocal sentinel_1
             sentinel_1 = True
 
-            self.test_checkpoint_subfragments()
+            self.post_narrowband_hook_subfragments()
 
     class Bottom2(CheckpointFragment):
         def build_fragment(self):
             pass
 
-        def test_checkpoint(self):
+        def post_narrowband_hook(self):
             nonlocal sentinel_2
             sentinel_2 = True
 
-            self.test_checkpoint_subfragments()
+            self.post_narrowband_hook_subfragments()
 
     class Middle(CheckpointFragment):
         def build_fragment(self):

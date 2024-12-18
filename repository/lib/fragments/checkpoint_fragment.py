@@ -44,14 +44,59 @@ class CheckpointFragment(Fragment):
     def start_of_red_broadband_hook(self):
         self.start_of_red_broadband_hook_subfragments()
 
+    @portable
+    def end_of_broadband_mot_hook(self):
+        self.end_of_broadband_mot_hook_subfragments()
+
+    @portable
+    def post_narrowband_hook(self):
+        self.post_narrowband_hook_subfragments()
+
+    @portable
+    def pre_expansion_hook(self):
+        self.pre_expansion_hook_subfragments()
+
+    @portable
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_subfragments()
+
+    @portable
+    def after_data_saved_checkpoint(self):
+        self.after_data_saved_checkpoint_subfragments()
+
     # Stubs for "*_subfragments" methods for checkpoints. These are overwritten
     # in build_fragment so the following code never gets run: it's just here for
     # type annotations. Do not override these in children classes! It won't
     # work, they'll just be rewritten anyway. If you want to override something,
     # don't call these methods and just implement their functionality in your
     # checkpoint directly.
+
     @portable
     def end_of_blue_3d_mot_loading_hook_subfragments(self):
+        pass
+
+    @portable
+    def start_of_red_broadband_hook_subfragments(self):
+        pass
+
+    @portable
+    def end_of_broadband_mot_hook_subfragments(self):
+        pass
+
+    @portable
+    def post_narrowband_hook_subfragments(self):
+        pass
+
+    @portable
+    def pre_expansion_hook_subfragments(self):
+        pass
+
+    @portable
+    def post_sequence_cleanup_hook_subfragments(self):
+        pass
+
+    @portable
+    def after_data_saved_checkpoint_subfragments(self):
         pass
 
     # %% End type annotations
