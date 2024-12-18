@@ -53,7 +53,7 @@ class CheckpointFragment(Fragment):
         assert not frag._building
         we_have_trivial_checkpoint = not hasattr(frag, checkpoint_name) or getattr(
             frag, checkpoint_name
-        ).__func__ is getattr(CheckpointFragment, checkpoint_name)
+        ).__func__ is getattr(cls, checkpoint_name)
 
         children_have_trivial_checkpoints = all(
             [cls._checkpoint_is_trivial(f, checkpoint_name) for f in frag._subfragments]
@@ -99,7 +99,7 @@ class CheckpointFragment(Fragment):
             for s in self._subfragments:
                 if s in self._detached_subfragments:
                     continue
-                if CheckpointFragment._checkpoint_is_trivial(
+                if self.__class__._checkpoint_is_trivial(
                     s, checkpoint_name=checkpoint_name
                 ):
                     continue

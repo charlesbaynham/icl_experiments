@@ -1,9 +1,9 @@
 from ndscan.experiment import *
 
-from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
+from repository.lib.fragments.checkpoint_fragment import RedMOTExperimentCheckpoints
 
 
-class DoInPostNarrowbandA(CheckpointFragment):
+class DoInPostNarrowbandA(RedMOTExperimentCheckpoints):
     def build_fragment(self):
         pass
 
@@ -13,7 +13,7 @@ class DoInPostNarrowbandA(CheckpointFragment):
         print("Hello from post_narrowband_hook, I am fragment A")
 
 
-class DoInPostNarrowbandB(CheckpointFragment):
+class DoInPostNarrowbandB(RedMOTExperimentCheckpoints):
     def build_fragment(self):
         pass
 
@@ -23,7 +23,7 @@ class DoInPostNarrowbandB(CheckpointFragment):
         print("Hello from post_narrowband_hook, I am fragment B")
 
 
-class DoInPostNarrowbandC(CheckpointFragment):
+class DoInPostNarrowbandC(RedMOTExperimentCheckpoints):
     def build_fragment(self):
         self.setattr_fragment("sub", DoInPostNarrowbandB)
 
@@ -33,7 +33,7 @@ class DoInPostNarrowbandC(CheckpointFragment):
         print("Hello from post_narrowband_hook, I am fragment C")
 
 
-class _CallAllHooksBase(CheckpointFragment, ExpFragment):
+class _CallAllHooksBase(RedMOTExperimentCheckpoints, ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
 
