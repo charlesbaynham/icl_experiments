@@ -23,12 +23,12 @@ class CheckpointFragment(Fragment):
 
     checkpoint_method_names = [
         "end_of_blue_3d_mot_loading_hook",  # FIXME rename all "hooks" to "checkpoints" where appropriate
-        "start_of_red_broadband_hook",
-        "end_of_broadband_mot_hook",
-        "post_narrowband_hook",
-        "pre_expansion_hook",
-        "post_sequence_cleanup_hook",
-        "after_data_saved_checkpoint",
+        # "start_of_red_broadband_hook",  FIXME put back
+        # "end_of_broadband_mot_hook",
+        # "post_narrowband_hook",
+        # "pre_expansion_hook",
+        # "post_sequence_cleanup_hook",
+        # "after_data_saved_checkpoint",
     ]
 
     # %% Begin type annotations

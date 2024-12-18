@@ -62,6 +62,14 @@ class TestCheckpointsDefaultFrag(_CallAllHooksBase):
         self.setattr_fragment("subA", DoInPostNarrowbandA)
         self.setattr_fragment("subC", DoInPostNarrowbandC)
 
+        self.subA: DoInPostNarrowbandA
+        self.subC: DoInPostNarrowbandC
+
+    @kernel
+    def end_of_blue_3d_mot_loading_hook(self):
+        self.subA.end_of_blue_3d_mot_loading_hook()
+        # self.subC.end_of_blue_3d_mot_loading_hook()  # FIXME test broken
+
 
 class TestCheckpointsOverriddenFrag(_CallAllHooksBase):
     def build_fragment(self):
