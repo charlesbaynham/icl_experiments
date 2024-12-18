@@ -73,7 +73,7 @@ class CheckpointFragment(Fragment):
 
     @portable
     def end_of_blue_3d_mot_loading_hook_subfragments(self):
-        pass
+        self._end_of_blue_3d_mot_loading_hook_impl(self)  # FIXME
 
     @portable
     def start_of_red_broadband_hook_subfragments(self):
@@ -186,8 +186,12 @@ class CheckpointFragment(Fragment):
             # https://docs.python.org/3/howto/descriptor.html#functions-and-methods
             # for an interesting look at how python treats class methods vs.
             # functions)
-            setattr(
-                self,
-                implementation_kernel_name,
-                implementation_kernel.__get__(self),
-            )
+            # setattr(
+            #     self,
+            #     implementation_kernel_name,
+            #     implementation_kernel.__get__(self),
+            # )
+
+            # FIXME
+            # Try the ndscan way
+            setattr(self, f"_{checkpoint_name}_impl", implementation_kernel)
