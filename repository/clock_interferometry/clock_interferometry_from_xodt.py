@@ -6,10 +6,15 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
+    AbsorptionDoubleDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.count_convert import (
+    CountConvert,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.check_for_relocks import (
     CheckForRelocksMixin,
 )
@@ -52,7 +57,7 @@ class DifferentialClockInterferometryFrag(
     ClockInterferometryDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
-    EMGain,
+    CountConvert,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -74,7 +79,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     ClockInterferometryWithNoiseDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
-    EMGain,
+    CountConvert,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -92,6 +97,27 @@ class DifferentialClockInterferometryWithNoiseFrag(
         self.before_start_hook_clockshelving()
 
 
+class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
+    ClockInterferometryWithNoiseDipoleTrapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    AbsorptionDoubleDipoleTrapMixin,
+    FLIRBlueMOTMeasurementMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    CheckRigolandRelockerMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Absorption imaging clock interferometry from a double XODT with added noise
+    """
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
+        self.before_start_hook_clockshelving()
+
+
 DifferentialClockInterferometry = make_fragment_scan_exp(
     DifferentialClockInterferometryFrag
 )
@@ -99,4 +125,8 @@ DifferentialClockInterferometry = make_fragment_scan_exp(
 
 DifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
     DifferentialClockInterferometryWithNoiseFrag
+)
+
+AbsImagingDifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
+    AbsImagingDifferentialClockInterferometryWithNoiseFrag
 )

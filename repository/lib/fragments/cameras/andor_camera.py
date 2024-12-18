@@ -154,6 +154,14 @@ class AndorCameraControl(Fragment):
         self.save_raw_andor_image: BoolParamHandle
 
         self.setattr_param(
+            "baseline_clamp_mode",
+            BoolParam,
+            default=True,
+            description="Baseline clamp mode",
+        )
+        self.baseline_clamp_mode: BoolParamHandle
+
+        self.setattr_param(
             "cam_roi_x0",
             IntParam,
             "Camera ROI x0",
@@ -283,6 +291,7 @@ class AndorCameraControl(Fragment):
                 logger.warning("Andor still acquiring, stopping acquisition")
                 self.cam.stop_acquisition()
             self.set_roi()
+            self.cam.set_baseline_clamp(self.baseline_clamp_mode.get())
             if not self.keep_andor_shutter_closed:
                 self.cam.set_shutter_open()
 
