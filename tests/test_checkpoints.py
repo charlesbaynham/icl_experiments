@@ -38,4 +38,6 @@ def test_default_implementations_call_subfragments(fragment_precompiler):
             self.subfrag: SubfragWithCheckpoint
 
     frag = fragment_precompiler(TestCheckpointExpFrag)
+    assert not herald
     result = run_fragment_once(frag)
+    assert herald

@@ -118,5 +118,13 @@ class CheckpointFragment(Fragment):
             )
             implementation_kernel_name = f"{checkpoint_name}_subfragments"
 
-            # Overwrite the "*_subfragment" stub defined above with this implementation
-            setattr(self, implementation_kernel_name, implementation_kernel)
+            # Overwrite the "*_subfragment" stub defined above with this
+            # implementation, binding it to the instance (see
+            # https://docs.python.org/3/howto/descriptor.html#functions-and-methods
+            # for an interesting look at how python treats class methods vs.
+            # functions)
+            setattr(
+                self,
+                implementation_kernel_name,
+                implementation_kernel.__get__(self, self.__class__),
+            )
