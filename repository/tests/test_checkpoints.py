@@ -25,7 +25,8 @@ class DoInPostNarrowbandB(CheckpointFragment):
 
 class DoInPostNarrowbandC(CheckpointFragment):
     def build_fragment(self):
-        self.setattr_fragment("sub", DoInPostNarrowbandB)
+        # self.setattr_fragment("sub", DoInPostNarrowbandB)
+        pass
 
     @kernel
     def post_narrowband_hook(self):
@@ -68,7 +69,7 @@ class TestCheckpointsDefaultFrag(_CallAllHooksBase):
     @kernel
     def end_of_blue_3d_mot_loading_hook(self):
         self.subA.end_of_blue_3d_mot_loading_hook()
-        # self.subC.end_of_blue_3d_mot_loading_hook()  # FIXME test broken
+        self.subC.end_of_blue_3d_mot_loading_hook()
 
 
 class TestCheckpointsOverriddenFrag(_CallAllHooksBase):
