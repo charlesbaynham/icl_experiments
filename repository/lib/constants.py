@@ -338,13 +338,13 @@ else:
 ANDOR_ROI_DIPOLE_HEIGHT = 20
 ANDOR_ROI_DIPOLE_WIDTH = 16
 
-ANDOR_DIPOLE_TRAP_FORWARD_X = 184
-# ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 297
-
 ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
 # ~3 pixels below the center of the dipole trap to include falling atoms
 ANDOR_DIPOLE_TRAP_BACKWARD_Y = 348
+
+ANDOR_DIPOLE_TRAP_FORWARD_X = 184
+# ~3 pixels below the center of the dipole trap to include falling atoms
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 294
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -612,7 +612,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_down_beam",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=0.4,
+        setpoint=0.28,
     ),
 ]
 
@@ -672,7 +672,7 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_cavity_offset_698",
-        frequency=673.64e6,  # Lower Mirny freq --> higher laser freq
+        frequency=673.54e6,  # Lower Mirny freq --> higher laser freq
         attenuation=0.0,
     ),
 ]

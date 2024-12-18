@@ -299,9 +299,9 @@ class RedBeamController(Fragment):
 
         # Look up the SUServo setpoints from the beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[
-                i
-            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            self.suservo_nominal_amplitudes[i] = (
+                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            )
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = abs(
@@ -371,6 +371,7 @@ class RedBeamController(Fragment):
         delay(-constants.SRS_SHUTTER_DELAY)
         self.ttl_shutter_red_axial_mot.on()
         delay(constants.SRS_SHUTTER_DELAY)
+        delay_mu(int64(self.core.ref_multiplier))
         self.all_mot_beams_setter.turn_beams_on(ignore_shutters)
 
     @kernel

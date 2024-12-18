@@ -1,6 +1,6 @@
-import vxi11
 from unittest.mock import MagicMock
 
+import vxi11
 
 GATE_TIMES_TO_IDX = {
     "1 ms": "1",
