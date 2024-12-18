@@ -186,8 +186,8 @@ class CheckpointFragment(Fragment):
             # https://docs.python.org/3/howto/descriptor.html#functions-and-methods
             # for an interesting look at how python treats class methods vs.
             # functions)
-            # setattr(
-            #     self,
-            #     implementation_kernel_name,
-            #     implementation_kernel.__get__(self, self.__class__),
-            # )  FIXME
+            setattr(
+                self,
+                implementation_kernel_name,
+                implementation_kernel.__get__(self),
+            )

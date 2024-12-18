@@ -25,8 +25,7 @@ class DoInPostNarrowbandB(CheckpointFragment):
 
 class DoInPostNarrowbandC(CheckpointFragment):
     def build_fragment(self):
-        # self.setattr_fragment("sub", DoInPostNarrowbandB)
-        pass
+        self.setattr_fragment("sub", DoInPostNarrowbandB)
 
     @kernel
     def post_narrowband_hook(self):
@@ -56,7 +55,15 @@ class TestCheckpointsSingleFrag(_CallAllHooksBase):
         self.setattr_fragment("subA", DoInPostNarrowbandA)
 
 
-class TestCheckpointsDefaultFrag(_CallAllHooksBase):
+class TestCheckpointsDoubleFrag(_CallAllHooksBase):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment("subA", DoInPostNarrowbandA)
+        self.setattr_fragment("subB", DoInPostNarrowbandB)
+
+
+class TestCheckpointsNestedFrag(_CallAllHooksBase):
     def build_fragment(self):
         super().build_fragment()
 
@@ -85,5 +92,6 @@ class TestCheckpointsOverriddenFrag(_CallAllHooksBase):
 
 
 TestCheckpointsSingle = make_fragment_scan_exp(TestCheckpointsSingleFrag)
-TestCheckpointsDefault = make_fragment_scan_exp(TestCheckpointsDefaultFrag)
+TestCheckpointsDouble = make_fragment_scan_exp(TestCheckpointsDoubleFrag)
+TestCheckpointsNested = make_fragment_scan_exp(TestCheckpointsNestedFrag)
 TestCheckpointsOverridden = make_fragment_scan_exp(TestCheckpointsOverriddenFrag)
