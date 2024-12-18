@@ -35,6 +35,8 @@ class DoInPostNarrowbandC(CheckpointFragment):
 
 class TestCheckpointsDefaultFrag(CheckpointFragment, ExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+
         self.setattr_fragment("subA", DoInPostNarrowbandA)
         self.setattr_fragment("subC", DoInPostNarrowbandC)
 
@@ -51,6 +53,8 @@ class TestCheckpointsDefaultFrag(CheckpointFragment, ExpFragment):
 
 class TestCheckpointsOverriddenFrag(CheckpointFragment, ExpFragment):
     def build_fragment(self):
+        self.setattr_device("core")
+
         self.setattr_fragment("subA", DoInPostNarrowbandA)
         self.setattr_fragment("subC", DoInPostNarrowbandC)
 
