@@ -116,7 +116,7 @@ def fragment_precompiler(fragment_factory):
             raise TypeError("Kernel run_once but no core device")
 
         if not hasattr(exp_built, "core"):
-            return  # This Fragment has no kernel code
+            return exp_built
 
         exp_built.host_setup()
         exp_built.precompile()

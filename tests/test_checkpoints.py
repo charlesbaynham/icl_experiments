@@ -13,7 +13,8 @@ class TestCheckpointExpFragBase(CheckpointFragment, ExpFragment):
 
 
 def test_can_run_with_default_implementations(fragment_precompiler):
-    run_fragment_once(TestCheckpointExpFragBase)
+    frag = fragment_precompiler(TestCheckpointExpFragBase)
+    result = run_fragment_once(frag)
 
 
 def test_default_implementations_call_subfragments(fragment_precompiler):
@@ -36,4 +37,5 @@ def test_default_implementations_call_subfragments(fragment_precompiler):
             self.setattr_fragment("subfrag", SubfragWithCheckpoint)
             self.subfrag: SubfragWithCheckpoint
 
-    result = run_fragment_once(TestCheckpointExpFrag)
+    frag = fragment_precompiler(TestCheckpointExpFrag)
+    result = run_fragment_once(frag)
