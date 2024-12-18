@@ -18,15 +18,15 @@ def test_can_run_with_default_implementations(fragment_precompiler):
 
 
 def test_default_implementations_call_subfragments(fragment_precompiler):
-    herald = False
+    sentinel = False
 
     class SubfragWithCheckpoint(CheckpointFragment):
         def build_fragment(self):
             pass
 
         def test_checkpoint(self):
-            nonlocal herald
-            herald = True
+            nonlocal sentinel
+            sentinel = True
 
             self.test_checkpoint_subfragments()
 
@@ -38,27 +38,39 @@ def test_default_implementations_call_subfragments(fragment_precompiler):
             self.subfrag: SubfragWithCheckpoint
 
     frag = fragment_precompiler(TestCheckpointExpFrag)
-    assert not herald
+    assert not sentinel
     run_fragment_once(frag)
-    assert herald
+    assert sentinel
 
 
 def test_default_implementations_call_subfragments_squared(fragment_precompiler):
-    herald = False
+    sentinel_1 = False
+    sentinel_2 = False
 
-    class Bottom(CheckpointFragment):
+    class Bottom1(CheckpointFragment):
         def build_fragment(self):
             pass
 
         def test_checkpoint(self):
-            nonlocal herald
-            herald = True
+            nonlocal sentinel_1
+            sentinel_1 = True
+
+            self.test_checkpoint_subfragments()
+
+    class Bottom2(CheckpointFragment):
+        def build_fragment(self):
+            pass
+
+        def test_checkpoint(self):
+            nonlocal sentinel_2
+            sentinel_2 = True
 
             self.test_checkpoint_subfragments()
 
     class Middle(CheckpointFragment):
         def build_fragment(self):
-            self.setattr_fragment("subfrag", Bottom)
+            self.setattr_fragment("subfrag1", Bottom1)
+            self.setattr_fragment("subfrag2", Bottom2)
 
     class Top(TestCheckpointExpFragBase):
         def build_fragment(self):
@@ -67,6 +79,8 @@ def test_default_implementations_call_subfragments_squared(fragment_precompiler)
             self.setattr_fragment("subfrag", Middle)
 
     frag = fragment_precompiler(Top)
-    assert not herald
+    assert not sentinel_1
+    assert not sentinel_2
     run_fragment_once(frag)
-    assert herald
+    assert sentinel_1
+    assert sentinel_2
