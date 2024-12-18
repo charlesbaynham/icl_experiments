@@ -12,11 +12,6 @@ class DoInPostNarrowbandA(CheckpointFragment):
         self.post_narrowband_hook_subfragments()
         print("Hello from post_narrowband_hook, I am fragment A")
 
-    @kernel
-    def end_of_blue_3d_mot_loading_hook_subfragments(self):
-        # FIXME HACK
-        pass
-
 
 class DoInPostNarrowbandB(CheckpointFragment):
     def build_fragment(self):

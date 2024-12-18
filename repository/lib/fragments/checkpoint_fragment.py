@@ -23,12 +23,12 @@ class CheckpointFragment(Fragment):
 
     checkpoint_method_names = [
         "end_of_blue_3d_mot_loading_hook",  # FIXME rename all "hooks" to "checkpoints" where appropriate
-        "start_of_red_broadband_hook",  # FIXME put back
-        # "end_of_broadband_mot_hook",
-        # "post_narrowband_hook",
-        # "pre_expansion_hook",
-        # "post_sequence_cleanup_hook",
-        # "after_data_saved_checkpoint",
+        "start_of_red_broadband_hook",
+        "end_of_broadband_mot_hook",
+        "post_narrowband_hook",
+        "pre_expansion_hook",
+        "post_sequence_cleanup_hook",
+        "after_data_saved_checkpoint",
     ]
 
     # %% Begin type annotations
@@ -73,11 +73,11 @@ class CheckpointFragment(Fragment):
 
     @portable
     def end_of_blue_3d_mot_loading_hook_subfragments(self):
-        self._end_of_blue_3d_mot_loading_hook_impl(self)  # FIXME
+        pass
 
     @portable
     def start_of_red_broadband_hook_subfragments(self):
-        self._start_of_red_broadband_hook_impl(self)
+        pass
 
     @portable
     def end_of_broadband_mot_hook_subfragments(self):
@@ -170,13 +170,9 @@ class CheckpointFragment(Fragment):
                     continue
                 code += f"self.{s._fragment_path[-1]}.{checkpoint_name}()\n"
 
-            code += "pass\n"  # FIXME
+            code += "pass\n"
 
-            implementation_kernel = (
-                kernel_from_string(["self"], code[:-1], portable)
-                # if code
-                # else self.__class__._noop
-            )
+            implementation_kernel = kernel_from_string(["self"], code[:-1], portable)
             implementation_kernel_name = f"{checkpoint_name}_subfragments"
 
             # Overwrite the "*_subfragment" stub defined above with this
@@ -184,12 +180,8 @@ class CheckpointFragment(Fragment):
             # https://docs.python.org/3/howto/descriptor.html#functions-and-methods
             # for an interesting look at how python treats class methods vs.
             # functions)
-            # setattr(
-            #     self,
-            #     implementation_kernel_name,
-            #     implementation_kernel.__get__(self),
-            # )
-
-            # FIXME
-            # Try the ndscan way
-            setattr(self, f"_{checkpoint_name}_impl", implementation_kernel)
+            setattr(
+                self,
+                implementation_kernel_name,
+                implementation_kernel.__get__(self),
+            )
