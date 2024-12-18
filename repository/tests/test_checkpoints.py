@@ -33,12 +33,9 @@ class DoInPostNarrowbandC(CheckpointFragment):
         print("Hello from post_narrowband_hook, I am fragment C")
 
 
-class TestCheckpointsDefaultFrag(CheckpointFragment, ExpFragment):
+class _CallAllHooksBase(CheckpointFragment, ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
-
-        self.setattr_fragment("subA", DoInPostNarrowbandA)
-        self.setattr_fragment("subC", DoInPostNarrowbandC)
 
     @kernel
     def run_once(self):
@@ -51,9 +48,24 @@ class TestCheckpointsDefaultFrag(CheckpointFragment, ExpFragment):
         self.after_data_saved_checkpoint()
 
 
-class TestCheckpointsOverriddenFrag(CheckpointFragment, ExpFragment):
+class TestCheckpointsSingleFrag(_CallAllHooksBase):
     def build_fragment(self):
-        self.setattr_device("core")
+        super().build_fragment()
+
+        self.setattr_fragment("subA", DoInPostNarrowbandA)
+
+
+class TestCheckpointsDefaultFrag(_CallAllHooksBase):
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment("subA", DoInPostNarrowbandA)
+        self.setattr_fragment("subC", DoInPostNarrowbandC)
+
+
+class TestCheckpointsOverriddenFrag(_CallAllHooksBase):
+    def build_fragment(self):
+        super().build_fragment()
 
         self.setattr_fragment("subA", DoInPostNarrowbandA)
         self.setattr_fragment("subC", DoInPostNarrowbandC)
@@ -62,16 +74,7 @@ class TestCheckpointsOverriddenFrag(CheckpointFragment, ExpFragment):
         self.post_narrowband_hook_subfragments()
         print("Hello from post_narrowband_hook, I am TestCheckpointsOverridden")
 
-    @kernel
-    def run_once(self):
-        self.end_of_blue_3d_mot_loading_hook()
-        self.start_of_red_broadband_hook()
-        self.end_of_broadband_mot_hook()
-        self.post_narrowband_hook()
-        self.pre_expansion_hook()
-        self.post_sequence_cleanup_hook()
-        self.after_data_saved_checkpoint()
 
-
+TestCheckpointsSingle = make_fragment_scan_exp(TestCheckpointsSingleFrag)
 TestCheckpointsDefault = make_fragment_scan_exp(TestCheckpointsDefaultFrag)
 TestCheckpointsOverridden = make_fragment_scan_exp(TestCheckpointsOverriddenFrag)
