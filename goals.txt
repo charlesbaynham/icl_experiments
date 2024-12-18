@@ -5,9 +5,9 @@ goals for the checkout implementation:
 
 Checkpoints are generalisations of ndscan concepts like device_setup. They occur
 at a defined moment in the experiment, and can call arbitrary numbers of methods
-from child fragments. 
+from child fragments.
 
 
 Like device_setup, they have a default implementation that calls all the children's checkpoints in order.
 
-Like device_setup, this can be overridden if required. 
+Like device_setup, this can be overridden if required.

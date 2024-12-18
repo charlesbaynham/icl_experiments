@@ -1,5 +1,6 @@
-from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 from ndscan.experiment import *
+
+from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 
 
 class TestCheckpointExpFragBase(CheckpointFragment, ExpFragment):

@@ -1,8 +1,9 @@
-import textwrap
-from artiq.language import HasEnvironment, kernel, kernel_from_string, portable, rpc
 import logging
+import textwrap
+
+from artiq.language import kernel_from_string
+from artiq.language import portable
 from ndscan.experiment import Fragment
-from artiq.experiment import kernel
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ class CheckpointFragment(Fragment):
                         This is not an error since this method will be defined
                         dynamically, but means that type annotation and IDE type
                         hints will not work. Consider adding one to help people use
-                        your checkpoint.                    
+                        your checkpoint.
                         """
                     ).strip(),
                     checkpoint_name,
