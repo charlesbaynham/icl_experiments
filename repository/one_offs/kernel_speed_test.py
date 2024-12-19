@@ -2,8 +2,12 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
-from artiq.experiment import *
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatChannel
+from ndscan.experiment import IntParam
+from ndscan.experiment import kernel
+from ndscan.experiment import make_fragment_scan_exp
+from ndscan.experiment import rpc
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,10 @@
 from artiq.coredevice.core import Core
-from artiq.experiment import *
+from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
-from ndscan.experiment import *
+from ndscan.experiment import IntParam
+from ndscan.experiment import delay
+from ndscan.experiment import kernel
+from ndscan.experiment import now_mu
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import IntParamHandle
 

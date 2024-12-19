@@ -1,8 +1,9 @@
 import logging
-from typing import *
+from typing import List
 
 import toptica_wrapper
-from artiq.experiment import *
+from artiq.experiment import BooleanValue
+from artiq.experiment import EnvExperiment
 from toptica_wrapper.driver import TopticaDLCPro
 
 logger = logging.getLogger(__name__)
