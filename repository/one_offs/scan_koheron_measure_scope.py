@@ -1,11 +1,14 @@
 import time
 
 import numpy as np
-from artiq.experiment import *
 from koheron_ctl200_laser_driver import CTL200
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatParam
+from ndscan.experiment import OpaqueChannel
+from ndscan.experiment import ResultChannel
+from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
-from RsInstrument import *
+from RsInstrument import RsInstrument
 
 # See https://www.rohde-schwarz.com/webhelp/RTB_HTML_UserManual_en/Content/6f1f81df55074fde.htm
 SETUP_CMDS = """

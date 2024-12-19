@@ -1,8 +1,7 @@
-from typing import *
-
 import pytest
-from artiq.experiment import *
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
+from ndscan.experiment import kernel
 
 
 class ThingDoerBase(Fragment):

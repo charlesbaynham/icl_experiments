@@ -1,5 +1,4 @@
 import logging
-from typing import *
 
 from artiq.coredevice.ad9910 import _AD9910_REG_PROFILE0
 from artiq.coredevice.ad9910 import _PHASE_MODE_DEFAULT
@@ -7,10 +6,15 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9910 import DEFAULT_PROFILE
 from artiq.coredevice.ad9910 import PHASE_MODE_CONTINUOUS
 from artiq.coredevice.core import Core
-from artiq.experiment import *
+from artiq.experiment import EnumerationValue
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
+from artiq.experiment import TInt32
+from artiq.experiment import TInt64
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
+from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from numpy import int64
 from pyaion.lib.utils import get_local_devices

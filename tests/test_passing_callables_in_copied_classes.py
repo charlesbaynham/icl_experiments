@@ -1,5 +1,6 @@
-from artiq.experiment import *
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import HasEnvironment
+from ndscan.experiment import kernel
 
 
 class SayerBase(HasEnvironment):

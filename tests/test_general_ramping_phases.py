@@ -1,8 +1,10 @@
 import logging
-from typing import *
+from typing import Type
 
 from artiq.coredevice.core import Core
-from artiq.experiment import *
+from artiq.experiment import TFloat
+from artiq.experiment import TList
+from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import ExpFragment
