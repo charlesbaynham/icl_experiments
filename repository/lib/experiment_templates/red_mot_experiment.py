@@ -464,18 +464,15 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
         Any changes to the cursor made by this function will be respected, i.e.
         the rest of the sequence CAN be delayed by this hook
 
-        By default, just turn off the red light
-        """
-        self.post_narrowband_hook_default()
-
-    @kernel
-    def post_narrowband_hook_default(self):
-        """
-        Turns off the red MOT beams. This advances the timeline by one
-        self.core.ref_multiplier, but includes several events in the future:
-        Simultaneous commands will populate new lanes.
+        The base implementation turns off the beams THEN calls the subfragment's
+        implementations.
         """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+
+        # Usually we do this call first, but here we want to turn the beams off
+        # first in case later post_narrowband_hook implementations delay the
+        # timeline.
+        self.post_narrowband_hook_subfragments()
 
     @kernel
     def set_postnarrowband_fields_hook(self):
