@@ -58,8 +58,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
-from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
-from repository.lib.constants import SUSERVOED_BEAMS
+from repository.lib import constants
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
@@ -212,7 +211,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         self.setattr_fragment(
             "clock_delivery_beam_suservo",
             LibSetSUServoStatic,
-            SUSERVOED_BEAMS["clock_delivery"].suservo_device,
+            constants.SUSERVOED_BEAMS["clock_delivery"].suservo_device,
         )
         self.clock_delivery_beam_suservo: LibSetSUServoStatic
 
@@ -288,7 +287,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
 
         # Boost the clock delivery SUServo's gain
         self.clock_delivery_beam_suservo.set_iir_params(
-            ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
+            ki=constants.DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
         )
         self.core.break_realtime()
 
