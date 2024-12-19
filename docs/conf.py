@@ -57,6 +57,7 @@ autodoc_mock_imports = [
     "artiq_influx_generic",
     "tenma_power_supply",
     "relocker_driver",
+    "repository.lib.constants",
 ]
 
 # -- General configuration ---------------------------------------------
