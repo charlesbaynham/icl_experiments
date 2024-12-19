@@ -64,11 +64,12 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
+from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithExperiment(ExpFragment, abc.ABC):
+class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -77,6 +78,95 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     Note that this is not a Fragment to be added as a subfragment, but an
     ExpFragment designed to be used as a top-level experiment but subclassed to
     control its features.
+
+    There are two ways of customising the behaviour of this ExpFragment: Hooks
+    and Checkpoints. Both Hooks and Checkpoints are executed at particular
+    moments in the sequence. For example, there is a "post narrowband"
+    Checkpoint which allow you to insert code to be executed just after the
+    narrowband MOT is completed. There is also a :meth:`do_imaging_hook` which
+    is responsible for imaging the atoms (if desired).
+
+    The distinction is in their use and purpose:
+
+    Checkpoints
+    -----------
+
+    * Checkpoints are moments in the code at which Subfragments can *add* code
+      to be run.
+    * `device_setup` is an example of a Checkpoint, but we also have access to
+      more.
+    * Checkpoints are for moments in a sequence where multiple things might need
+      to happen. Ideally the order should be unimportant. If order does matter,
+      you can ensure the execution order you want by manually defining the
+      top-level checkpoint.
+    * To run code in a Checkpoint, define a Subfragment which implements that
+      Checkpoint's method and add it to the top-level experiment using
+      `self.setattr_fragment`.
+
+    Hooks
+    -----
+
+    * *Hooks* are moments in the code at which Mixins can *replace* code to be
+      run.
+    * Hooks are intended for performing an action such as "imaging the atoms" or
+      "doing an interferometry sequence"
+    * It usually does not make sense to do multiple things in a hook.
+    * To run code in a Hook, override the hook in a new Mixin class and then add
+      this class to your top-level experiment.
+
+    Mixins
+    ------
+
+    Mixins also deserve a mention here - a mixin is an object-orientated concept
+    where a subclass is intended to be added to another class, altering its
+    behaviour. E.g. you might have::
+
+    ```
+        class Animal():
+            def speak(self):
+                print("???")
+
+        class BarkingMixin(Animal):
+            def speak(self):
+                print("Woof!")
+
+        class TailWaggingMixin(Animal):
+            def wag_tail(self):
+                print("\\")
+                print("/")
+                print("\\")
+                print("/")
+                print("\\")
+                print("/")
+    ```
+
+
+    `Animal` is a normal class, `BarkingMixin` and `TailWaggingMixin` are mixins. Too construct a dog, I might do::
+
+    ```
+        class Dog(BarkingMixin, TailWaggingMixin, Animal):
+            pass
+
+        d = Dog()
+        d.speak()
+        d.wag_tail()
+    ```
+
+    Note that `BarkingMixin` **modified** the behaviour of the `speak()` method
+    whereas `TailWaggingMixin` added new functionality.
+
+    In our code, we use Mixins to implement both Checkpoint and Hooks. For Hooks, we override methods
+    like `Animal.speak` or `RedMOTWithExperiment.do_imaging_hook`. For Checkpoints, we use our mixin to **extend**
+    the top-level :meth:`~build_fragment`, adding our new CheckpointFragment. Like so::
+
+    ```
+    class MyMixin(RedMOTWithExperiment):
+        '''
+        This Mixin prints the time at the end_of_blue_3d_mot checkpoint
+        '''
+    ```
+
+
 
     This ExpFragment cannot be used as is - you should subclass it and implement
     methods in your child class. You must implement these:
