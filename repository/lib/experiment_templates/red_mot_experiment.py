@@ -346,7 +346,7 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
 
         delay(self.expansion_time.get())
 
-        # Do the spectroscopy / interfereometry / whatever sequence. This method
+        # Do the spectroscopy / interferometry / whatever sequence. This method
         # must be defined by child classes
         self.do_experiment_after_red_mot_hook()
 
@@ -376,7 +376,8 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
     # Those marked with `abc.abstractmethod` are compulsory - python will not
     # allow you to construct children classes until those methods are
     # implemented
-
+    #
+    # Note that "Checkpoints" also exist: see RedMOTCheckpoints for more information.
     def hook_setup_andor(self):
         """
         Setup the Andor camera
