@@ -41,16 +41,12 @@ from repository.lib.fragments.rigol_counter import RigolCounterFrag
 logger = logging.getLogger(__name__)
 
 
-class CheckRigolandRelockerMixin(CheckForRelocksMixin):
+class CheckRigolMixin(DipoleTrapWithExperiment):
     def build_fragment(self):
-        self.setattr_fragment("rigol", RigolCounterFrag)
-        self.rigol: RigolCounterFrag
         super().build_fragment()
 
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        self.relock_checker.check_and_log_relocks()
-        self.rigol.check_counter_rpc()
+        self.setattr_fragment("rigol", RigolCounterFrag)
+        self.rigol: RigolCounterFrag
 
 
 class DifferentialClockInterferometryFrag(
@@ -61,7 +57,8 @@ class DifferentialClockInterferometryFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    CheckRigolandRelockerMixin,
+    CheckRigolMixin,
+    CheckForRelocksMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -83,7 +80,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    CheckRigolandRelockerMixin,
+    CheckRigolMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -104,7 +101,7 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    CheckRigolandRelockerMixin,
+    CheckRigolMixin,
     DipoleTrapWithExperiment,
 ):
     """

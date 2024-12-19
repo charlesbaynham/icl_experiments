@@ -4,17 +4,17 @@ from typing import List
 from artiq.language.core import host_only
 from artiq.language.core import kernel
 from artiq.language.core import rpc
-from ndscan.experiment.fragment import Fragment
 from ndscan.experiment.result_channels import IntChannel
 from relocker_driver.driver import RelockerDriver
 
-from repository.lib.constants import IJD_RELOCKER_DEFAULTS
+from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 logger = logging.getLogger(__name__)
 
 
-class CheckForRelocksFrag(Fragment):
+class CheckForRelocksFrag(RedMOTCheckpoints):
     """
     This fragment checks for relocks on the IJD relockers after the experiment.
     """
@@ -24,10 +24,10 @@ class CheckForRelocksFrag(Fragment):
 
         self.relockers: List[RelockerDriver] = []
         self.num_relock_channels: List[IntChannel] = []
-        self.channel_names = list(IJD_RELOCKER_DEFAULTS.keys())
+        self.channel_names = list(constants.IJD_RELOCKER_DEFAULTS.keys())
 
         for channel_name in self.channel_names:
-            defaults = IJD_RELOCKER_DEFAULTS[channel_name]
+            defaults = constants.IJD_RELOCKER_DEFAULTS[channel_name]
             board_name = defaults.board_name
             relocker: RelockerDriver = self.get_device(board_name)
             self.relockers.append(relocker)
@@ -49,7 +49,7 @@ class CheckForRelocksFrag(Fragment):
     def check_for_relocks(self):
         n_relocks = []
         for i, channel_name in enumerate(self.channel_names):
-            defaults = IJD_RELOCKER_DEFAULTS[channel_name]
+            defaults = constants.IJD_RELOCKER_DEFAULTS[channel_name]
             channel = defaults.channel
             relocker = self.relockers[i]
             n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
@@ -67,6 +67,12 @@ class CheckForRelocksFrag(Fragment):
                 )
             self.num_relock_channels[i].push(n)
 
+    @kernel
+    def after_data_saved_checkpoint(self):
+        self.after_data_saved_checkpoint_subfragments()
+
+        self.check_and_log_relocks()
+
 
 class CheckForRelocksMixin(RedMOTWithExperiment):
     """
@@ -74,10 +80,6 @@ class CheckForRelocksMixin(RedMOTWithExperiment):
     """
 
     def build_fragment(self):
-        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
-        self.relock_checker: CheckForRelocksFrag
         super().build_fragment()
 
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        self.relock_checker.check_and_log_relocks()
+        self.setattr_fragment("relock_checker", CheckForRelocksFrag)

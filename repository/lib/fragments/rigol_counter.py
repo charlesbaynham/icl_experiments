@@ -1,17 +1,18 @@
 import logging
 
 from artiq.language import host_only
+from artiq.language import kernel
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
-from ndscan.experiment import Fragment
 
 from repository.lib.constants import CLOCK_LASER_BEATNOTE_FREQUENCY
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.rigol.rigol_device import RigolCounter
 
 logger = logging.getLogger(__name__)
 
 
-class RigolCounterFrag(Fragment):
+class RigolCounterFrag(RedMOTCheckpoints):
     def build_fragment(self):
         self.rigol_counter: RigolCounter = self.get_device("rigol_counter")
         self.rigol_counter_frequency = self.setattr_result(
@@ -22,8 +23,9 @@ class RigolCounterFrag(Fragment):
 
     @host_only
     def host_setup(self):
-        self.rigol_counter.setup_measurement()
         super().host_setup()
+
+        self.rigol_counter.setup_measurement()
 
     @rpc
     def check_counter_rpc(self):
@@ -36,3 +38,9 @@ class RigolCounterFrag(Fragment):
             )
 
         self.rigol_counter_frequency.push(CLOCK_LASER_BEATNOTE_FREQUENCY - frequency)
+
+    @kernel
+    def after_data_saved_checkpoint(self):
+        self.after_data_saved_checkpoint_subfragments()
+
+        self.check_counter_rpc()

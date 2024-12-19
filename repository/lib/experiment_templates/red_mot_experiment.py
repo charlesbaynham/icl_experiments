@@ -32,7 +32,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
@@ -40,7 +40,7 @@ from repository.lib.fragments.timestamp_synchronizer import Timestamper
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
+class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -267,6 +267,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         self.core.break_realtime()
 
         # Boost the clock delivery SUServo's gain
+        # TODO: This should not be here
         self.clock_delivery_beam_suservo.set_iir_params(
             ki=constants.DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
         )
@@ -281,23 +282,23 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.DMA_initialization_hook_default()
-
-    @kernel
-    def DMA_initialization_hook_default(self):
         self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()
         self.red_mot.broadband_red_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_capture_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_compression_phase.precalculate_dma_handle()
 
+        self.DMA_initialization_hook_subfragments()
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
 
-        self.before_start_hook()
+        self.before_start_hook()  # FIXME: remove all uses of this and convert to device_setup
 
         self.core.break_realtime()
 
+        # Mark the start of the blue MOT as the timestamp we record. This could
+        # be changed to e.g. the start of the clock pulse in future.
         self.timestamper.mark_timestamp()
 
         if self.magnetic_trap_loading_bool.get():
@@ -364,10 +365,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         # This one for the Andor
         self.save_andor_data_hook()
 
-        # Do extra functions at end of experiment  # FIXME remove
-        self.host_functions_after_experiment_hook()
-
-        # self.after_data_saved_checkpoint()  # FIXME write this
+        self.after_data_saved_checkpoint()
 
     # %% Hooks / overridable methods
     #
@@ -425,53 +423,13 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
 
     @kernel
     def post_sequence_cleanup_hook(self):
-        """
-        Run after each sequence is completed
-        """
-        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_subfragments()
 
-    @kernel
-    def post_sequence_cleanup_hook_base(self):
-        self.core.break_realtime()
+        # Reset the MOT beams to allow AOMs to settle before the next shot
         self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
         self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
             light_enabled=False
         )
-
-    @kernel
-    def before_start_hook(self):
-        """
-        Hook for core actions before the start of the atomics sequence.
-
-        Feel free to use break_realtime - it will be called again before the MOT
-        is loaded.
-        """
-
-    @kernel
-    def end_of_blue_3d_mot_loading_hook(self):
-        """
-        Executed when the loading blue MOT ends, as the ramping blue MOT phase begins.
-
-        This will clash with the blue ramping phase: only add events here if you include a negative delay
-        """
-
-    @kernel
-    def start_of_red_broadband_hook(self):
-        """
-        Executed as the broadband MOT stage starts.
-
-        This hook is just before the broadband MOT starts. It should take
-        negligible duration (i.e. just a few coarse RTIO cycles) otherwise
-        assumptions about the broadband MOT duration will be wrong
-        """
-
-    @kernel
-    def end_of_broadband_mot_hook(self):
-        """
-        Executed immediately after the broadband MOT stage ends, before the
-        broadband ramping is disabled. No timeline correction is performed, so
-        changes here will delay the narrowband red MOT.
-        """
 
     @kernel
     def set_narrowband_fields_hook(self):
@@ -497,7 +455,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         delay(1.5e-6 + (808e-9 * 3))
 
     @kernel
-    def post_narrowband_hook(self):
+    def post_narrowband_hook(self):  # FIXME Deal with this. Might be annoying
         """
         Hook for core actions after the narrowband red mot is completed, before
         the light is turned off
@@ -519,15 +477,6 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel
-    def pre_expansion_hook(self):
-        """
-        Hook for core actions after the narrowband red mot is completed, after
-        the light is turned off and cloud expansion begins
-
-        Any changes to the cursor made by this hook will be ignored
-        """
-
-    @kernel
     def set_postnarrowband_fields_hook(self):
         """
         Hook for setting magnetic fields immediately after end of red MOT. This
@@ -537,10 +486,10 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         Any changes to the cursor made by this function will be respected, i.e.
         the rest of the sequence CAN be delayed by this hook
         """
-        self.set_fields_default()
+        self.set_postnarrowband_fields_hook_default()
 
     @kernel
-    def set_fields_default(self):
+    def set_postnarrowband_fields_hook_default(self):
         self.red_mot.chamber_2_field_setter.set_mot_gradient(
             self.spectroscopy_field_gradient.get()
         )
@@ -553,12 +502,6 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
         completed.
         """
         raise NotImplementedError
-
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        """
-        Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
-        """
 
 
 # %%

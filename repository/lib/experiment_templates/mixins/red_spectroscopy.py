@@ -141,7 +141,7 @@ class RedSpectroscopyDipoleTrap(
     @kernel
     def set_postnarrowband_fields_hook(self):
         # Prevent the FieldBoost field setting
-        self.set_fields_default()
+        self.set_postnarrowband_fields_hook_default()
 
     @kernel
     def post_dipole_trap_hook(self):
