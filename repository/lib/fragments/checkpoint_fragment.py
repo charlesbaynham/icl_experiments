@@ -26,7 +26,7 @@ class CheckpointFragment(Fragment):
       `self.<your-hook-name>_subfragments()`. This does nothing, but means that
       users will get autocompletion in their IDE.
 
-    See :class:`~RedMOTWithExperimentCheckpoints` for an example.
+    See :class:`~RedMOTCheckpoints` for an example.
     """
 
     checkpoint_method_names = None
@@ -122,7 +122,7 @@ class CheckpointFragment(Fragment):
             )
 
 
-class RedMOTWithExperimentCheckpoints(CheckpointFragment):
+class RedMOTCheckpoints(CheckpointFragment):
     """
     Checkpoints for the :class:`~RedMOTWithExperiment` experiment template
     """

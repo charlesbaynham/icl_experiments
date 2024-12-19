@@ -4,7 +4,7 @@ Unlike other modules, it *does not* provide a Fragment which you should use via
 `self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
 converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
 
-The :class:`~ExpFragment`s that this module defines cannot be used without some
+The :class:`~ExpFragment` s that this module defines cannot be used without some
 customization first. The :meth:`~build_fragment`, :meth:`~device_setup` and
 :meth:`~run_once` methods of these :class:`ExpFragment` s contain "hooks" -
 methods which can (or sometimes must) be implemented by child classes to alter
@@ -15,27 +15,7 @@ hooks in different ways.
 For example, see the documentation of :class:`~RedMOTWithExperiment` for the
 most basic implementation of hooks.
 
-Mixins
-------
 
-This structure of overriding methods allows the use of "mixins". These are
-classes which implement various pieces of functionality, which can be selected
-from when authoring an experiment.
-
-For example, you might author a mixin that adds imaging with the Andor camera
-and another which causes atoms to be trapped in a lattice at the end of the MOT.
-Your experiment might then inherit from both of these, to use both features at
-the same time::
-
-    from somewhere import AndorImagingMixin, LatticeTrappingMixin
-
-
-    class MyAndorImagedLatticeExperiment(
-        AndorImagingMixin,
-        LatticeTrappingMixin,
-        RedMOTWithExperiment
-    ):
-        pass
 
 """
 
@@ -120,7 +100,8 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
     where a subclass is intended to be added to another class, altering its
     behaviour. E.g. you might have::
 
-    ```
+    ..  code-block:: python
+
         class Animal():
             def speak(self):
                 print("???")
@@ -137,52 +118,60 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
                 print("/")
                 print("\\")
                 print("/")
-    ```
+
 
     `Animal` is a normal class, `BarkingMixin` and `TailWaggingMixin` are mixins. Too construct a dog, I might do::
 
-    ```
+    ..  code-block:: python
+
         class Dog(BarkingMixin, TailWaggingMixin, Animal):
             pass
 
         d = Dog()
         d.speak()
         d.wag_tail()
-    ```
+
 
     Note that `BarkingMixin` **modified** the behaviour of the `speak()` method
     whereas `TailWaggingMixin` added new functionality.
 
     In our code, we use Mixins to implement both Checkpoint and Hooks. For Hooks, we override methods
-    like `Animal.speak` or `RedMOTWithExperiment.do_imaging_hook`. For Checkpoints, we use our mixin to **extend**
-    the top-level :meth:`~build_fragment`, adding our new CheckpointFragment. Like so::
+    like `Animal.speak` or `RedMOTWithExperiment.do_imaging_hook`, like this::
 
-    ```
-    class MyMixin(RedMOTWithExperiment):
-        '''
-        This Mixin prints the time at the end_of_blue_3d_mot checkpoint
-        '''
-    ```
+    ..  code-block:: python
 
+        class AndorImagingMixin():
+            def do_imaging_hook(self):
+                # Do the imaging with the Andor camera
+                pass # write useful code here
 
 
-    This ExpFragment cannot be used as is - you should subclass it and implement
-    methods in your child class. You must implement these:
+        class MyAndorImagedLatticeExperiment(
+            AndorImagingMixin,
+            LatticeTrappingMixin,
+            RedMOTWithExperiment
+        ):
+            pass
 
-    * `do_experiment_after_red_mot_hook`
 
-    You probably want to implement:
+    Here, we wrote a `Mixin` which implemented a `Hook` called "do_imaging_hook".
+    This allowed us to easily add imaging to our `MyAndorImagedLatticeExperiment`,
+    which also selected different behaviour that was implemented by other mixins.
 
-    * `save_data_hook`
-    * `do_imaging_hook`
+    For Checkpoints, we use our mixin to **extend**
+    the top-level :meth:`~build_fragment`, adding our new CheckpointFragment. For
+    example, maybe we want to print out the time when a certain checkpoint is reached:
 
-    And you may wish to implement other `..._hook` methods.
+    .. literalinclude:: repository/lib/experiment_templates/mixins/time_printing.py
+       :language: python
 
     Example
     -------
 
     For a simple implementation see
     :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
+
+    For the Checkpoint example above, see :class:`~repository.lib.experiment_templates.mixins.time_printing.TimePrintingMixin`.
     """
 
     image_store: list[list] = []  # for putting e.g. Andor images in
