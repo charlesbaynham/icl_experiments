@@ -58,6 +58,7 @@ autodoc_mock_imports = [
     "tenma_power_supply",
     "relocker_driver",
     "repository.lib.constants",
+    "RsInstrument",
 ]
 
 # -- General configuration ---------------------------------------------

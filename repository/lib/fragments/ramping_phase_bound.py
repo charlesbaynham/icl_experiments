@@ -1,4 +1,5 @@
 import logging
+import typing as ty
 
 from artiq.experiment import host_only
 from artiq.experiment import kernel
@@ -38,7 +39,7 @@ class GeneralRampingPhaseWithBinding(GeneralRampingPhase):
 
     @host_only
     def bind_suservo_setpoint_params_to_default_beam_setter(
-        self, beam_setter: SetBeamsToDefaults | list[SetBeamsToDefaults]
+        self, beam_setter: ty.Union[SetBeamsToDefaults, list[SetBeamsToDefaults]]
     ):
         """
         Use the GeneralRampingPhase's :meth:`~.bind_suservo_setpoint_params`
