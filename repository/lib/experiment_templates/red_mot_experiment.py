@@ -161,9 +161,9 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
     -------
 
     For a simple implementation see
-    :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
+    :class:`~repository.clock_spectroscopy.clock_spectroscopy_from_XODT.ClockSpecFromXXODTFrag`.
 
-    For the Checkpoint example above, see :class:`~repository.lib.experiment_templates.mixins.time_printing.TimePrintingMixin`.
+    For the Checkpoint example above, see :class:`repository.lib.experiment_templates.mixins.time_printing.TimePrintingMixin`.
     """
 
     image_store: list[list] = []  # for putting e.g. Andor images in
