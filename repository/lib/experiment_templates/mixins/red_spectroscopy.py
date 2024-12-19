@@ -6,7 +6,7 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import parallel
 from artiq.experiment import sequential
-from ndscan.experiment import *
+from ndscan.experiment import FloatParam
 from ndscan.experiment.parameters import EnumParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import ParamHandle

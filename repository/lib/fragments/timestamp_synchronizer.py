@@ -3,7 +3,12 @@ import time
 
 from artiq.coredevice.core import Core
 from artiq.experiment import now_mu
-from ndscan.experiment import *
+from ndscan.experiment import FloatChannel
+from ndscan.experiment import Fragment
+from ndscan.experiment import IntParam
+from ndscan.experiment import kernel
+from ndscan.experiment import portable
+from ndscan.experiment import rpc
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,6 @@
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import kernel
+from ndscan.experiment import make_fragment_scan_exp
 
 from repository.lib.fragments.checkpoint_fragment import RedMOTWithExperimentCheckpoints
 

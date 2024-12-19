@@ -1,7 +1,8 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from artiq.experiment import *
+from artiq.experiment import EnvExperiment
+from artiq.experiment import portable
 
 from repository.lib.utils import GaussianRandom
 from repository.lib.utils import SimpleRandom

@@ -1,5 +1,7 @@
 from artiq.coredevice.ad9912 import AD9912
-from artiq.experiment import *
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
+from artiq.experiment import kernel
 
 
 class TurnOn1064Temporary(EnvExperiment):

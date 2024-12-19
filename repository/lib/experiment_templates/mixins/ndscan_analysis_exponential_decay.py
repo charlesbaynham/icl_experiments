@@ -1,4 +1,4 @@
-from ndscan.experiment import *
+from ndscan.experiment import OnlineFit
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 

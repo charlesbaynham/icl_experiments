@@ -1,5 +1,6 @@
 import logging
-from typing import *
+from typing import List
+from typing import Optional
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut

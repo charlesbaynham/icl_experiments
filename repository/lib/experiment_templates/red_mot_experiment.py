@@ -61,10 +61,10 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
-from repository.lib.fragments.checkpoint_fragment import CheckpointFragment
 
 logger = logging.getLogger(__name__)
 

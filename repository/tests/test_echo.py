@@ -1,4 +1,4 @@
-from artiq.experiment import *
+from artiq.experiment import EnvExperiment
 
 
 class TestEcho(EnvExperiment):

@@ -4,8 +4,10 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.grabber import OutOfSyncException
 from artiq.coredevice.rtio import rtio_input_timestamped_data
-from artiq.experiment import *
+from artiq.experiment import NumberValue
+from artiq.experiment import TInt64
 from artiq.experiment import delay
+from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.language import us
 from ndscan.experiment import ExpFragment

@@ -1,7 +1,9 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import now_mu
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import kernel
+from ndscan.experiment import make_fragment_scan_exp
 
 from repository.lib.fragments.red_mot import RedBeamController
 

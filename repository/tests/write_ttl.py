@@ -1,5 +1,7 @@
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import *
+from artiq.experiment import BooleanValue
+from artiq.experiment import EnvExperiment
+from artiq.experiment import kernel
 
 
 class WriteTTL(EnvExperiment):

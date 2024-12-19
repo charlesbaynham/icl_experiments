@@ -19,7 +19,12 @@ from repository.database_monitors.monitor_lab_temperature import (
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureSidearm,
 )
-from repository.database_monitors.monitor_topticas import *
+from repository.database_monitors.monitor_topticas import MonitorToptica461
+from repository.database_monitors.monitor_topticas import MonitorToptica679
+from repository.database_monitors.monitor_topticas import MonitorToptica689
+from repository.database_monitors.monitor_topticas import MonitorToptica698
+from repository.database_monitors.monitor_topticas import MonitorToptica707
+from repository.database_monitors.monitor_topticas import MonitorToptica1379
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
 
