@@ -140,7 +140,6 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
                 print("/")
     ```
 
-
     `Animal` is a normal class, `BarkingMixin` and `TailWaggingMixin` are mixins. Too construct a dog, I might do::
 
     ```

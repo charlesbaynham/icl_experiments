@@ -39,7 +39,25 @@ html_logo = "images/logo.svg"
 latex_logo = "images/logo.pdf"
 
 # TODO: Remove this sphinx mocks once the environment builds properly
-autodoc_mock_imports = ["artiq", "ndscan", "numpy", "qbutler", "pyaion", "wand", "oitg"]
+autodoc_mock_imports = [
+    "artiq",
+    "ndscan",
+    "numpy",
+    "qbutler",
+    "pyaion",
+    "wand",
+    "oitg",
+    "sipyco",
+    "andor_artiq_ndsp",
+    "pydantic",
+    "pandas",
+    "toptica_wrapper",
+    "retry",
+    "koheron_ctl200_laser_driver",
+    "artiq_influx_generic",
+    "tenma_power_supply",
+    "relocker_driver",
+]
 
 # -- General configuration ---------------------------------------------
 
