@@ -1,22 +1,14 @@
 """
 This package provides a template experiment, :class:`~RedMOTWithExperiment` .
 Unlike other modules, it *does not* provide a Fragment which you should use via
-`self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
-converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
+`self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which
+should be converted into an :class:`~EnvExperiment` using
+:meth:`~make_fragment_scan_exp`.
 
-The :class:`~ExpFragment` s that this module defines cannot be used without some
-customization first. The :meth:`~build_fragment`, :meth:`~device_setup` and
-:meth:`~run_once` methods of these :class:`ExpFragment` s contain "hooks" -
-methods which can (or sometimes must) be implemented by child classes to alter
-the functionality of these experiment. This allows you to reuse this code for
-multiple different experiments by implementing child classes which define these
-hooks in different ways.
-
-For example, see the documentation of :class:`~RedMOTWithExperiment` for the
-most basic implementation of hooks.
-
-
-
+:class:`~RedMOTWithExperiment` and its friends like
+:class:`~DipoleTrapWithExperiment` are the basis of most of our complex
+sequences. See the documentation for :class:`~RedMOTWithExperiment` for an
+explanation of how they work.
 """
 
 import abc
@@ -85,7 +77,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
     Hooks
     -----
 
-    * *Hooks* are moments in the code at which Mixins can *replace* code to be
+    * Hooks are moments in the code at which Mixins can *replace* code to be
       run.
     * Hooks are intended for performing an action such as "imaging the atoms" or
       "doing an interferometry sequence"
@@ -120,7 +112,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
                 print("/")
 
 
-    `Animal` is a normal class, `BarkingMixin` and `TailWaggingMixin` are mixins. Too construct a dog, I might do:
+    `Animal` is a normal class, `BarkingMixin` and `TailWaggingMixin` are mixins. To construct a dog, I might do:
 
     .. code-block:: python
 
@@ -154,7 +146,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
             pass
 
 
-    Here, we wrote a `Mixin` which implemented a `Hook` called "do_imaging_hook".
+    Here, we wrote a "Mixin" which implemented a "Hook" called "do_imaging_hook".
     This allowed us to easily add imaging to our `MyAndorImagedLatticeExperiment`,
     which also selected different behaviour that was implemented by other mixins.
 
@@ -162,7 +154,7 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
     the top-level :meth:`~build_fragment`, adding our new CheckpointFragment. For
     example, maybe we want to print out the time when a certain checkpoint is reached:
 
-    .. literalinclude:: repository/lib/experiment_templates/mixins/time_printing.py
+    .. literalinclude:: ../../../repository/lib/experiment_templates/mixins/time_printing.py
        :language: python
 
     Example
