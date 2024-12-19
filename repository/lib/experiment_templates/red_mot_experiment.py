@@ -98,9 +98,9 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
 
     Mixins also deserve a mention here - a mixin is an object-orientated concept
     where a subclass is intended to be added to another class, altering its
-    behaviour. E.g. you might have::
+    behaviour. E.g. you might have:
 
-    ..  code-block:: python
+    .. code-block:: python
 
         class Animal():
             def speak(self):
@@ -120,9 +120,9 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
                 print("/")
 
 
-    `Animal` is a normal class, `BarkingMixin` and `TailWaggingMixin` are mixins. Too construct a dog, I might do::
+    `Animal` is a normal class, `BarkingMixin` and `TailWaggingMixin` are mixins. Too construct a dog, I might do:
 
-    ..  code-block:: python
+    .. code-block:: python
 
         class Dog(BarkingMixin, TailWaggingMixin, Animal):
             pass
@@ -136,9 +136,9 @@ class RedMOTWithExperiment(CheckpointFragment, ExpFragment, abc.ABC):
     whereas `TailWaggingMixin` added new functionality.
 
     In our code, we use Mixins to implement both Checkpoint and Hooks. For Hooks, we override methods
-    like `Animal.speak` or `RedMOTWithExperiment.do_imaging_hook`, like this::
+    like `Animal.speak` or `RedMOTWithExperiment.do_imaging_hook`, like this:
 
-    ..  code-block:: python
+    .. code-block:: python
 
         class AndorImagingMixin():
             def do_imaging_hook(self):
