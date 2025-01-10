@@ -46,11 +46,15 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
 
-        class XODTSingleMolasses(RedMOTCheckpoints):
+        self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
+        self.molasses_xodt_1: MolassesInXODT
+
+        class XODTSingleMolassesFrag(RedMOTCheckpoints):
             def build_fragment(
                 self,
                 red_mot: RedMOTThreePhaseFrag,
                 dipole_beam_controller: DipoleBeamController,
+                molasses_xodt_1: MolassesInXODT,
             ):
                 self.kernel_invariants = getattr(self, "kernel_invariants", set())
 
@@ -60,11 +64,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
                 self.dipole_beam_controller = dipole_beam_controller
                 self.kernel_invariants.add("dipole_beam_controller")
 
+                self.molasses_xodt_1 = molasses_xodt_1
+                self.kernel_invariants.add("molasses_xodt_1")
+
                 self.setattr_device("core")
                 self.core: Core
-
-                self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
-                self.molasses_xodt_1: MolassesInXODT
 
                 # Expose the bias field for moving the MOT to the right place
                 self.setattr_param_rebind(
@@ -190,11 +194,12 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
         self.setattr_fragment(
             "xodt_single_molasses",
-            XODTSingleMolasses,
+            XODTSingleMolassesFrag,
             red_mot=self.red_mot,
             dipole_beam_controller=self.dipole_beam_controller,
+            molasses_xodt_1=self.molasses_xodt_1,
         )
-        self.xodt_single_molasses: XODTSingleMolasses
+        self.xodt_single_molasses: XODTSingleMolassesFrag
 
     @kernel
     def set_postnarrowband_fields_hook(self):
