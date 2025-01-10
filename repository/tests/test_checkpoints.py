@@ -10,9 +10,9 @@ class DoInPostNarrowbandA(RedMOTCheckpoints):
         pass
 
     @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_subfragments()
-        print("Hello from post_narrowband_hook, I am fragment A")
+    def post_narrowband_checkpoint(self):
+        self.post_narrowband_checkpoint_subfragments()
+        print("Hello from post_narrowband_checkpoint, I am fragment A")
 
 
 class DoInPostNarrowbandB(RedMOTCheckpoints):
@@ -20,9 +20,9 @@ class DoInPostNarrowbandB(RedMOTCheckpoints):
         pass
 
     @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_subfragments()
-        print("Hello from post_narrowband_hook, I am fragment B")
+    def post_narrowband_checkpoint(self):
+        self.post_narrowband_checkpoint_subfragments()
+        print("Hello from post_narrowband_checkpoint, I am fragment B")
 
 
 class DoInPostNarrowbandC(RedMOTCheckpoints):
@@ -30,9 +30,9 @@ class DoInPostNarrowbandC(RedMOTCheckpoints):
         self.setattr_fragment("sub", DoInPostNarrowbandB)
 
     @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_subfragments()
-        print("Hello from post_narrowband_hook, I am fragment C")
+    def post_narrowband_checkpoint(self):
+        self.post_narrowband_checkpoint_subfragments()
+        print("Hello from post_narrowband_checkpoint, I am fragment C")
 
 
 class _CallAllHooksBase(RedMOTCheckpoints, ExpFragment):
@@ -41,12 +41,12 @@ class _CallAllHooksBase(RedMOTCheckpoints, ExpFragment):
 
     @kernel
     def run_once(self):
-        self.end_of_blue_3d_mot_loading_hook()
-        self.start_of_red_broadband_hook()
-        self.end_of_broadband_mot_hook()
-        self.post_narrowband_hook()
-        self.pre_expansion_hook()
-        self.post_sequence_cleanup_hook()
+        self.end_of_blue_3d_mot_loading_checkpoint()
+        self.start_of_red_broadband_checkpoint()
+        self.end_of_broadband_mot_checkpoint()
+        self.post_narrowband_checkpoint()
+        self.pre_expansion_checkpoint()
+        self.post_sequence_cleanup_checkpoint()
         self.after_data_saved_checkpoint()
 
 
@@ -76,9 +76,9 @@ class TestCheckpointsNestedFrag(_CallAllHooksBase):
         self.subC: DoInPostNarrowbandC
 
     @kernel
-    def end_of_blue_3d_mot_loading_hook(self):
-        self.subA.end_of_blue_3d_mot_loading_hook()
-        self.subC.end_of_blue_3d_mot_loading_hook()
+    def end_of_blue_3d_mot_loading_checkpoint(self):
+        self.subA.end_of_blue_3d_mot_loading_checkpoint()
+        self.subC.end_of_blue_3d_mot_loading_checkpoint()
 
 
 class TestCheckpointsOverriddenFrag(_CallAllHooksBase):
@@ -88,9 +88,9 @@ class TestCheckpointsOverriddenFrag(_CallAllHooksBase):
         self.setattr_fragment("subA", DoInPostNarrowbandA)
         self.setattr_fragment("subC", DoInPostNarrowbandC)
 
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_subfragments()
-        print("Hello from post_narrowband_hook, I am TestCheckpointsOverridden")
+    def post_narrowband_checkpoint(self):
+        self.post_narrowband_checkpoint_subfragments()
+        print("Hello from post_narrowband_checkpoint, I am TestCheckpointsOverridden")
 
 
 TestCheckpointsSingle = make_fragment_scan_exp(TestCheckpointsSingleFrag)

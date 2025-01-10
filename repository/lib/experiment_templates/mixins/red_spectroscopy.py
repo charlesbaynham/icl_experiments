@@ -47,7 +47,7 @@ class _RedSpectroscopyBase(
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~post_narrowband_hook`
+    * :meth:`~post_narrowband_checkpoint`
     """
 
     def build_fragment(self):

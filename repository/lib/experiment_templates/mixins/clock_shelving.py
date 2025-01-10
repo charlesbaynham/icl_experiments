@@ -32,7 +32,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_hook`
+    * :meth:`~post_narrowband_checkpoint`
     """
 
     def build_fragment(self):
@@ -158,12 +158,12 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_hook`
+    * :meth:`~post_narrowband_checkpoint`
     """
 
     @kernel
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_default()
+    def post_narrowband_checkpoint(self):
+        self.post_narrowband_checkpoint_default()
         delay_mu(int64(self.core.ref_multiplier))
         self.clock_shelving()
 

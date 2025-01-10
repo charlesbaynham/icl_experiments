@@ -31,7 +31,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~post_narrowband_hook`
+    * :meth:`~post_narrowband_checkpoint`
     * :meth:`~dipole_trap_molasses_hook`
 
     We also override this hook to do nothing since this Mixin is now taking charge
@@ -140,8 +140,8 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
                 )
 
             @kernel
-            def DMA_initialization_hook(self):
-                self.DMA_initialization_hook_subfragments()
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
                 self.molasses_xodt_1.precalculate_dma_handle()
 
             @kernel
@@ -166,15 +166,15 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
                 )
 
             @kernel
-            def post_narrowband_hook(self):
+            def post_narrowband_checkpoint(self):
                 """
-                The default post_narrowband_hook turns off the beams.
+                The default post_narrowband_checkpoint turns off the beams.
 
                 Here, we also set coil currents and then wait for the configured
                 time before starting the molasses (which turns the beams back on
                 again)
                 """
-                self.post_narrowband_hook_subfragments()
+                self.post_narrowband_checkpoint_subfragments()
 
                 self.red_mot.chamber_2_field_setter.set_all_fields(
                     self.mot_coil_current_first_molasses.get(),
@@ -206,7 +206,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     ##% FIXME WIP from here on. This file is half converted, others have not
     # been started yet. This one is a good test for the process. I still need to
-    # figure out how I'm handling things like post_narrowband_hook which is used
+    # figure out how I'm handling things like post_narrowband_checkpoint which is used
     # as a kind of hybrid at the moment, in that we both queue thing up and also
     # override behaviour. Probably needs splitting into a hook and a checkpoint.
     #
@@ -251,14 +251,14 @@ class EvapAndFieldRampBase(DipoleTrapWithExperiment):
         self.bias_and_evap_ramp: XODTWithFieldRamp
 
     @kernel
-    def DMA_initialization_hook_evap_with_field_ramp(self):
+    def DMA_initialization_checkpoint_evap_with_field_ramp(self):
         self.bias_and_evap_ramp.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook(self):
+    def DMA_initialization_checkpoint(self):
         raise NotImplementedError(
             "All the DMA handle calculations must be combined into one \
-                DMA_initialization_hook() method after Mixins are combined"
+                DMA_initialization_checkpoint() method after Mixins are combined"
         )
 
     @kernel
@@ -287,9 +287,9 @@ class XODTSingleMolassesPlusFieldRampMixin(
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_hook`
+    * :meth:`~post_narrowband_checkpoint`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
 
@@ -306,7 +306,7 @@ class XODTSingleMolassesPlusFieldRampMixin(
         )
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_default()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()

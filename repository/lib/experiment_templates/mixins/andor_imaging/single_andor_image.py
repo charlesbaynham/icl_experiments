@@ -19,7 +19,7 @@ class SingleAndorImage(AndorImagingBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~start_of_red_broadband_hook` (from AndorImagingBase)
+    * :meth:`~start_of_red_broadband_checkpoint` (from AndorImagingBase)
     * :meth:`~save_grabber_data_hook` (from AndorImagingBase)
 
 

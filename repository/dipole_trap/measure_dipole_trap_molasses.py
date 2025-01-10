@@ -81,9 +81,9 @@ class DoubleXODTAbsFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_xodt_molasses()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_default()
+        self.DMA_initialization_checkpoint_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

@@ -128,13 +128,13 @@ class RedMOTCheckpoints(CheckpointFragment):
     """
 
     checkpoint_method_names = [
-        "DMA_initialization_hook",
-        "end_of_blue_3d_mot_loading_hook",  # FIXME rename all "hooks" to "checkpoints" where appropriate
-        "start_of_red_broadband_hook",
-        "end_of_broadband_mot_hook",
-        "post_narrowband_hook",
-        "pre_expansion_hook",
-        "post_sequence_cleanup_hook",
+        "DMA_initialization_checkpoint",
+        "end_of_blue_3d_mot_loading_checkpoint",
+        "start_of_red_broadband_checkpoint",
+        "end_of_broadband_mot_checkpoint",
+        "post_narrowband_checkpoint",
+        "pre_expansion_checkpoint",
+        "post_sequence_cleanup_checkpoint",
         "after_data_saved_checkpoint",
     ]
 
@@ -142,25 +142,25 @@ class RedMOTCheckpoints(CheckpointFragment):
     # generated easily, but we write them out manually so that type checkers can
     # see them and we can write some documentation.
     @portable
-    def DMA_initialization_hook(self):
+    def DMA_initialization_checkpoint(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.DMA_initialization_hook_subfragments()
+        self.DMA_initialization_checkpoint_subfragments()
 
     @portable
-    def end_of_blue_3d_mot_loading_hook(self):
+    def end_of_blue_3d_mot_loading_checkpoint(self):
         """
         Executed when the loading blue MOT ends, as the ramping blue MOT phase begins.
 
         This will clash with the blue ramping phase: only add events here if you include a negative delay
         """
-        self.end_of_blue_3d_mot_loading_hook_subfragments()
+        self.end_of_blue_3d_mot_loading_checkpoint_subfragments()
 
     @portable
-    def start_of_red_broadband_hook(self):
+    def start_of_red_broadband_checkpoint(self):
         """
         Executed as the broadband MOT stage starts.
 
@@ -168,33 +168,33 @@ class RedMOTCheckpoints(CheckpointFragment):
         negligible duration (i.e. just a few coarse RTIO cycles) otherwise
         assumptions about the broadband MOT duration will be wrong
         """
-        self.start_of_red_broadband_hook_subfragments()
+        self.start_of_red_broadband_checkpoint_subfragments()
 
     @portable
-    def end_of_broadband_mot_hook(self):
+    def end_of_broadband_mot_checkpoint(self):
         """
         Executed immediately after the broadband MOT stage ends, before the
         broadband ramping is disabled. No timeline correction is performed, so
         changes here will delay the narrowband red MOT.
         """
-        self.end_of_broadband_mot_hook_subfragments()
+        self.end_of_broadband_mot_checkpoint_subfragments()
 
     @portable
-    def post_narrowband_hook(self):
-        self.post_narrowband_hook_subfragments()
+    def post_narrowband_checkpoint(self):
+        self.post_narrowband_checkpoint_subfragments()
 
     @portable
-    def pre_expansion_hook(self):
+    def pre_expansion_checkpoint(self):
         """
         Hook for core actions after the narrowband red mot is completed, after
         the light is turned off and cloud expansion begins
 
         Any changes to the cursor made by this hook will be ignored
         """
-        self.pre_expansion_hook_subfragments()
+        self.pre_expansion_checkpoint_subfragments()
 
     @portable
-    def post_sequence_cleanup_hook(self):
+    def post_sequence_cleanup_checkpoint(self):
         """
         Called immediately after the imaging is completed while there is still
         some slack.
@@ -203,7 +203,7 @@ class RedMOTCheckpoints(CheckpointFragment):
         non-timing-critical things like readout should be in
         :meth:`~after_data_saved_checkpoint` instead.
         """
-        self.post_sequence_cleanup_hook_subfragments()
+        self.post_sequence_cleanup_checkpoint_subfragments()
 
     @portable
     def after_data_saved_checkpoint(self):
@@ -214,7 +214,7 @@ class RedMOTCheckpoints(CheckpointFragment):
         This is used mostly for saving data that was taken during the
         time-critical and can now be read out without affecting timings.
 
-        Contrast with :meth:`~post_sequence_cleanup_hook` which is called
+        Contrast with :meth:`~post_sequence_cleanup_checkpoint` which is called
         immediately after the imaging is completed while there is still some
         slack.
         """
@@ -228,31 +228,31 @@ class RedMOTCheckpoints(CheckpointFragment):
     # checkpoint directly.
 
     @portable
-    def DMA_initialization_hook_subfragments(self):
+    def DMA_initialization_checkpoint_subfragments(self):
         pass
 
     @portable
-    def end_of_blue_3d_mot_loading_hook_subfragments(self):
+    def end_of_blue_3d_mot_loading_checkpoint_subfragments(self):
         pass
 
     @portable
-    def start_of_red_broadband_hook_subfragments(self):
+    def start_of_red_broadband_checkpoint_subfragments(self):
         pass
 
     @portable
-    def end_of_broadband_mot_hook_subfragments(self):
+    def end_of_broadband_mot_checkpoint_subfragments(self):
         pass
 
     @portable
-    def post_narrowband_hook_subfragments(self):
+    def post_narrowband_checkpoint_subfragments(self):
         pass
 
     @portable
-    def pre_expansion_hook_subfragments(self):
+    def pre_expansion_checkpoint_subfragments(self):
         pass
 
     @portable
-    def post_sequence_cleanup_hook_subfragments(self):
+    def post_sequence_cleanup_checkpoint_subfragments(self):
         pass
 
     @portable

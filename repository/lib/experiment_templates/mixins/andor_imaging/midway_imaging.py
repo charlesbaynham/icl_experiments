@@ -48,7 +48,7 @@ class MidSequenceAndorImage(AndorImagingBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~start_of_red_broadband_hook`
+    * :meth:`~start_of_red_broadband_checkpoint`
     * :meth:`~process_andor_data_hook`
     * :meth:`~update_andor_monitor_hook`
     """
@@ -105,13 +105,13 @@ class MidSequenceAndorImage(AndorImagingBase):
         self.andor_mean_bg_corrected: FloatChannel
 
     @kernel
-    def start_of_red_broadband_hook(self):
-        self.start_of_red_broadband_hook_imaging_base()
+    def start_of_red_broadband_checkpoint(self):
+        self.start_of_red_broadband_checkpoint_imaging_base()
         delay_mu(int64(self.core.ref_multiplier))
-        self.start_of_red_broadband_hook_midway_imaging()
+        self.start_of_red_broadband_checkpoint_midway_imaging()
 
     @kernel
-    def start_of_red_broadband_hook_midway_imaging(self):
+    def start_of_red_broadband_checkpoint_midway_imaging(self):
         """
         Schedule an image to be taken midway through the sequence, then reset
         the timeline to leave it unaltered. This will certainly consume a

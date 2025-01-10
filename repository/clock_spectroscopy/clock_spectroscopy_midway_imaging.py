@@ -49,9 +49,9 @@ class ClockSpecMidwayImagingFrag(
         self.before_start_hook_xodt_molasses()
 
     @kernel
-    def start_of_red_broadband_hook(self):
-        self.start_of_red_broadband_hook_imaging_base()
-        self.start_of_red_broadband_hook_midway_imaging()
+    def start_of_red_broadband_checkpoint(self):
+        self.start_of_red_broadband_checkpoint_imaging_base()
+        self.start_of_red_broadband_checkpoint_midway_imaging()
 
 
 ClockSpecMidwayImaging = make_fragment_scan_exp(ClockSpecMidwayImagingFrag)

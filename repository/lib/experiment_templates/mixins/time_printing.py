@@ -7,7 +7,7 @@ from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 
 # Define a fragment which uses two Checkpoints:
-# `end_of_blue_3d_mot_loading_hook` and `after_data_saved_checkpoint`. The "_"
+# `end_of_blue_3d_mot_loading_checkpoint` and `after_data_saved_checkpoint`. The "_"
 # at the start of the name communicates that this is a private class and is not
 # intended to be used outside this module.
 class _TimePrintingFragment(RedMOTCheckpoints):
@@ -20,7 +20,7 @@ class _TimePrintingFragment(RedMOTCheckpoints):
         self.timestamp_mu = int64(0)
 
     @kernel
-    def end_of_blue_3d_mot_loading_hook(self):
+    def end_of_blue_3d_mot_loading_checkpoint(self):
         # Note that we don't print here: that would consume lots of
         # slack and probably break other mixins.
         self.timestamp_mu = self.core.get_rtio_counter_mu()
