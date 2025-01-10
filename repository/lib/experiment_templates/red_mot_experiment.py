@@ -293,10 +293,6 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
     def run_once(self):
         self.core.break_realtime()
 
-        self.before_start_hook()  # FIXME: remove all uses of this and convert to device_setup
-
-        self.core.break_realtime()
-
         # Mark the start of the blue MOT as the timestamp we record. This could
         # be changed to e.g. the start of the clock pulse in future.
         self.timestamper.mark_timestamp()
