@@ -163,7 +163,7 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
 
     @kernel
     def post_narrowband_checkpoint(self):
-        self.post_narrowband_checkpoint_default()
+        self.post_narrowband_checkpoint_default()  # FIXME
         delay_mu(int64(self.core.ref_multiplier))
         self.clock_shelving()
 
