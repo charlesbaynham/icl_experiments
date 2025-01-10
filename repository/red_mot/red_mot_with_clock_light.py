@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -35,13 +36,16 @@ class RedMOTWithClockLight(
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_device("ttl_shutter_repump_679")
-        self.ttl_shutter_repump_679: TTLOut
-
         self.override_param("delay_repumps_after_first_pulse", 0.0)
 
         class _RedMOTWithClockLightFrag(RedMOTCheckpoints):
             def build_fragment(self, clock_dds: AD9912):
+                self.setattr_device("core")
+                self.core: Core
+
+                self.setattr_device("ttl_shutter_repump_679")
+                self.ttl_shutter_repump_679: TTLOut
+
                 self.clock_dds = clock_dds
                 self.kernel_invariants.add("clock_dds")
 

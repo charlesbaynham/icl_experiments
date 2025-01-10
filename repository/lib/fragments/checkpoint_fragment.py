@@ -61,13 +61,13 @@ class CheckpointFragment(Fragment):
         return we_have_trivial_checkpoint and children_have_trivial_checkpoints
 
     def build(self, *args, **kwargs):
-        super().build(*args, **kwargs)
-
         # Make sure that kernel_invariants is defined. This isn't really related
         # to checkpoints, but I'm constantly annoyed that I have to do this
         # everywhere and Sebastian won't let me merge it into upstream ARTIQ, so
         # I'll just add it here.
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
+
+        super().build(*args, **kwargs)
 
         if self.checkpoint_method_names is None:
             raise TypeError(
