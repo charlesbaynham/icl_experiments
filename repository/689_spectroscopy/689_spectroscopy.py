@@ -90,12 +90,7 @@ class _Spectroscopy689Mixin(RedMOTWithExperiment):
                     rf_switch_state=False, enable_iir=False
                 )
 
-        self.setattr_fragment(
-            "spectroscopy_689",
-            Spectroscopy689,
-            red_mot=self.red_mot,
-            up_beam_suservo=self.up_beam_suservo,
-        )
+        self.setattr_fragment("spectroscopy_689", Spectroscopy689, red_mot=self.red_mot)
         self.spectroscopy_689: Spectroscopy689
 
         # Expose important params
