@@ -13,7 +13,6 @@ from artiq.language import parallel
 from artiq.language.core import delay
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
-from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParamHandle
@@ -22,6 +21,7 @@ from sipyco.packed_exceptions import GenericRemoteException
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +49,12 @@ class AndorImagingBase(RedMOTWithExperiment):
     * :meth:`~do_imaging_hook_andor`
     * :meth:`~start_of_red_broadband_checkpoint`
     * :meth:`~save_grabber_data_hook`
+
+    Host hooks created:
+
+    * :meth:`~update_andor_monitor_hook`
+    * :meth:`~process_grabber_data_hook`
+    * :meth:`~process_andor_image_hook`
     """
 
     num_andor_images = 1
@@ -79,17 +85,27 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
 
-        class ImagingDeviceSetup(Fragment):
+        class ImagingDeviceSetup(RedMOTCheckpoints):
             """
-            define a device_setup to clear out the grabber and empty the image store at the start of the shot
+            Checkpoint fragment for access to device_setup and checkpoints
+
+            Define a device_setup to clear out the grabber and empty the image
+            store at the start of the shot
             """
 
-            def build_fragment(self, num_grabber_rois):
+            def build_fragment(
+                self, num_grabber_rois, andor_camera_control: AndorCameraControl
+            ):
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+
                 self.setattr_device("grabber0")
                 self.grabber0: Grabber
 
                 self.setattr_device("core")
                 self.core: Core
+
+                self.andor_camera_control = andor_camera_control
+                self.kernel_invariants.add("andor_camera_control")
 
                 self.num_grabber_rois = num_grabber_rois
 
@@ -112,7 +128,29 @@ class AndorImagingBase(RedMOTWithExperiment):
                     except GrabberTimeoutException:
                         break
 
-        self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
+            @kernel
+            def start_of_red_broadband_checkpoint(self):
+                self.start_of_red_broadband_checkpoint_subfragments()
+
+                # The Andor camera shutter needs ~120ms to open, so start this at the
+                # beginning of the red stages. If the total red mot sequence takes less
+                # time than this then we'll have problems
+                self.andor_camera_control.set_shutter(True)
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+
+                # Ensure shutter is closed, though it should be anyway
+                self.core.break_realtime()
+                self.andor_camera_control.set_shutter(False)
+
+        self.setattr_fragment(
+            "imaging_setup",
+            ImagingDeviceSetup,
+            self.num_grabber_rois,
+            andor_camera_control=self.andor_camera_control,
+        )
 
     def hook_setup_andor(self):
         """
@@ -195,17 +233,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         super().host_setup()
 
     @kernel
-    def start_of_red_broadband_checkpoint(self):
-        self.start_of_red_broadband_checkpoint_imaging_base()
-
-    @kernel
-    def start_of_red_broadband_checkpoint_imaging_base(self):
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
-        self.andor_camera_control.set_shutter(True)
-
-    @kernel
     def do_pulse(self, with_light=True):
         """
         Default implementation of a fluorescence pulse, available for use by
@@ -224,17 +251,6 @@ class AndorImagingBase(RedMOTWithExperiment):
     @abc.abstractmethod
     def do_imaging_hook_andor(self):
         pass
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint_andor(self):
-        # Ensure shutter is closed, though it should be anyway
-        self.core.break_realtime()
-        self.andor_camera_control.set_shutter(False)
 
     @rpc  # this isn't async any more because the ndscan "try again" doesn't work with async rpcs
     def _call_camera_rpc(self):
@@ -312,10 +328,15 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         if self.use_andor_driver.get():
             self._call_camera_rpc()
-        self.get_grabber_data()
+        self._get_grabber_data()
 
     @kernel
-    def get_grabber_data(self):
+    def _get_grabber_data(self):
+        """
+        Read out all the data from the grabber. This shouldn't be overridden, we
+        always need to read all the data. Custom behaviour should be implemented
+        via the hooks
+        """
         # Arrays to hold all the ROIs
         sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
         means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
