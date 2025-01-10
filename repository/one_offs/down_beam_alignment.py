@@ -69,7 +69,7 @@ class DownBeamAlignmentFrag(
         self.down_beam_pulse_time: FloatParamHandle
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         self.core.break_realtime()
         delay(1e-3)
 

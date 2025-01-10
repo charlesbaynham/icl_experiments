@@ -61,7 +61,7 @@ class _InterferometryCommon(
         self.phase_step: FloatParamHandle
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         # Enable the Up beam with default settings, but turn off the AOM and open the shutter
         self.core.break_realtime()
         self.up_beam_default_setter.turn_on_all(light_enabled=True)
@@ -168,7 +168,7 @@ class UpBeamInterferometrySUServo(_InterferometryCommon):
         self.phase_constant = 10.0
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         # Enable the Up beam with default settings, but turn off the AOM and open the shutter
         self.core.break_realtime()
         self.up_beam_default_setter.turn_on_all(light_enabled=True)

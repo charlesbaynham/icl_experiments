@@ -99,7 +99,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         self.before_start_hook_clockshelving()
 
     @kernel

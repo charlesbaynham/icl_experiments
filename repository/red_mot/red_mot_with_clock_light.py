@@ -39,7 +39,7 @@ class RedMOTWithClockLight(
         self.override_param("delay_repumps_after_first_pulse", 0.0)
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         self.before_start_hook_clockspec()
 
         # Turn on the click light immediately and leave it throughout

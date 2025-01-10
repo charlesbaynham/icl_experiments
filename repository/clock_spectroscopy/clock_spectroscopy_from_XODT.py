@@ -52,7 +52,7 @@ class ClockSpecFromXXODTFrag(
     """
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         self.before_start_hook_clockspec()
 
 
@@ -77,7 +77,7 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     """
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         self.before_start_hook_clockspec()
 
 
@@ -101,7 +101,7 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     """
 
     @kernel
-    def before_start_hook(self):
+    def before_start_hook(self):  # FIXME remove this
         self.before_start_hook_clockspec()
 
 
