@@ -140,7 +140,7 @@ class SpectroscopyWithKinetics_UpBeam(
     RedMOTWithExperiment,
 ):
     """
-    689nm spectroscopy UP
+    689nm spectroscopy UP - fast kinetics
 
     Mixin for 689nm spectroscopy with fast kinetics imaging using the red up
     beam.
@@ -161,7 +161,12 @@ class SpectroscopySingleImage_UpBeam(
     """
     689nm spectroscopy UP - single image
 
-    689nm spectroscopy using the red up beam
+    Mixin for 689nm spectroscopy with a single image using the red up
+    beam.
+
+    Also leaves the lattice / dipole traps beams on constant, so these will be
+    enabled if the lasers are have been (manually) turned on before running this
+    experiment.
     """
 
 
