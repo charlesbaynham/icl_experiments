@@ -17,8 +17,6 @@ class SpectroscopyParamsMixin(Fragment):
     """
 
     def build_fragment(self):
-        super().build_fragment()
-
         self.setattr_param(
             "spectroscopy_pulse_time",
             FloatParam,
