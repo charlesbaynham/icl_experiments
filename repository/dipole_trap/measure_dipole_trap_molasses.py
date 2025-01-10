@@ -9,24 +9,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingBGSubtracted,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingNormalised,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.flir_measurement import (
-    FLIRMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
-    ExponentialDecayMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTDoubleMolassesMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTDoubleMolassesPlusFieldRampMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
@@ -105,69 +90,5 @@ class DoubleXODTAbsFrag(
         pass
 
 
-class _MeasureDipoleTrapBase(
-    FLIRMeasurementMixin,
-    ExponentialDecayMixin,
-    XODTDoubleMolassesMixin,
-):
-    """
-    Load a dipole trap, do 689 nm molasses, hold, and take BG subtracted image
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        # Expose the molasses ramp parameters if desired
-        if EXPOSE_MOLASSES_1_PARAMS:
-            names = [
-                n
-                for n in self.molasses_xodt_1._free_params.keys()
-                if "suservo" not in n
-            ]
-            for name in names:
-                self.setattr_param_rebind(
-                    f"molasses_1_{name}", self.molasses_xodt_1, original_name=name
-                )
-        if EXPOSE_MOLASSES_2_PARAMS:
-            names = [n for n in self.molasses_xodt_2._free_params.keys()]
-            for name in names:
-                self.setattr_param_rebind(
-                    f"molasses_2_{name}", self.molasses_xodt_2, original_name=name
-                )
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_xodt_molasses()
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
-
-class MeasureDoubleDipoleTrapFrag(
-    DoubleTrapImagingBGSubtracted, _MeasureDipoleTrapBase
-):
-    pass
-
-
-class MeasureDoubleDipoleTrapWithFieldRampFrag(
-    XODTDoubleMolassesPlusFieldRampMixin, MeasureDoubleDipoleTrapFrag
-):
-    pass
-
-
-class NormalizedDoubleDipoleTrapFrag(
-    DoubleTrapImagingNormalised, _MeasureDipoleTrapBase
-):
-    pass
-
-
 MeasureXXODT = make_fragment_scan_exp(DoubleXODTFrag)
 MeasureXXODTAbs = make_fragment_scan_exp(DoubleXODTAbsFrag)
-# Experiments using the XODTDoubleMolassesMixin. If we don't use these in a while, we should just delete them
-# MeasureDoubleDipoleTrap = make_fragment_scan_exp(MeasureDoubleDipoleTrapFrag)
-# MeasureDoubleDipoleTrapWithFieldRamp = make_fragment_scan_exp(
-#     MeasureDoubleDipoleTrapWithFieldRampFrag
-# )
-# NormalizedDoubleDipoleTrap = make_fragment_scan_exp(NormalizedDoubleDipoleTrapFrag)
