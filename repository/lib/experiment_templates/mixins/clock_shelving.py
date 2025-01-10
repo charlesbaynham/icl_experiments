@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
@@ -19,24 +20,25 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
+from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 logger = logging.getLogger(__name__)
 
 
-class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
+class _ClockShelvingAndClearoutFragBase(RedMOTCheckpoints):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_checkpoint`
     """
 
-    def build_fragment(self):
-        super().build_fragment()
+    def build_fragment(self, fluorescence_pulse: ToggleableFluorescencePulse):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.fluorescence_pulse = fluorescence_pulse
+        self.kernel_invariants.add("fluorescence_pulse")
 
         self.setattr_param(
             "shelving_pulse_time",
@@ -92,6 +94,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.shelving_clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.kernel_invariants.add("clock_dds")
 
         # Ensure clock dds urukul is initiated
         self.shelving_initiator = self.setattr_fragment(
@@ -99,11 +102,16 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
 
     @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockshelving()
+    def device_setup(self):
+        """
+        Set up the SUServo for the clock delivery DDS, turn it on and turn off
+        the clock switch DDS
 
-    @kernel
-    def before_start_hook_clockshelving(self):
+        This might get overridden by other clock-related fragments, so we will
+        do it again before using it.
+        """
+        self.device_setup_subfragments()
+
         self.core.break_realtime()
 
         self.shelving_clock_delivery_setter.set_suservo(
@@ -121,6 +129,11 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
     @kernel
     def clock_shelving(self):
+        """
+        Do a clock shelving pulse
+
+        To be called by child implementations of this class
+        """
         # Prepare the clock beam
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
@@ -151,37 +164,60 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
 
 
-class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
+class ClockShelvingAndClearoutRedMOTMixin(RedMOTWithExperiment):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
+    For red MOT experiments (not dipole trap experiments)
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_checkpoint`
+    * None
     """
 
-    @kernel
-    def post_narrowband_checkpoint(self):
-        self.post_narrowband_checkpoint_default()  # FIXME
-        delay_mu(int64(self.core.ref_multiplier))
-        self.clock_shelving()
+    def build_fragment(self):
+        class ClockShelvingAndClearout(_ClockShelvingAndClearoutFragBase):
+            @kernel
+            def post_narrowband_checkpoint(self):
+                self.post_narrowband_checkpoint_subfragments()
+
+                delay_mu(int64(self.core.ref_multiplier))
+                self.clock_shelving()
+
+        self.setattr_fragment(
+            "clock_shelving",
+            ClockShelvingAndClearout,
+            fluorescence_pulse=self.fluorescence_pulse,
+        )
 
 
-class ClockShelvingAndClearoutDipoleTrapMixin(
-    ClockShelvingAndClearoutBase, DipoleTrapWithExperiment
-):
+class ClockShelvingAndClearoutDipoleTrapMixin(DipoleTrapWithExperiment):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
+    For dipole trap experiments (not red MOT experiments)
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~before_start_hook`
-    * :meth:`~post_dipole_trap_hook`
+    * None
     """
 
-    @kernel
-    def post_dipole_trap_hook(self):
-        self.post_dipole_trap_hook_default()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.clock_shelving()
+    def build_fragment(self):
+        class ClockShelvingAndClearout(_ClockShelvingAndClearoutFragBase):
+            @kernel
+            def post_dipole_trap_hook(self):
+                self.post_dipole_trap_hook_default()
+                delay_mu(int64(self.core.ref_multiplier))
+                self.clock_shelving()
+
+        self.setattr_fragment(
+            "clock_shelving",
+            ClockShelvingAndClearout,
+            fluorescence_pulse=self.fluorescence_pulse,
+        )
