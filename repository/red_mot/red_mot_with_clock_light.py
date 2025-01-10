@@ -1,5 +1,6 @@
 import logging
 
+from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -16,6 +17,7 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
     FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 logger = logging.getLogger(__name__)
 
@@ -38,21 +40,32 @@ class RedMOTWithClockLight(
 
         self.override_param("delay_repumps_after_first_pulse", 0.0)
 
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
+        class _RedMOTWithClockLightFrag(RedMOTCheckpoints):
+            def build_fragment(self, clock_dds: AD9912):
+                self.clock_dds = clock_dds
+                self.kernel_invariants.add("clock_dds")
 
-        # Turn on the click light immediately and leave it throughout
-        self.clock_dds.cfg_sw(True)
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
 
-    @kernel
-    def start_of_red_broadband_checkpoint(self):
-        self.start_of_red_broadband_checkpoint_imaging_base()
+                # Turn on the clock light immediately and leave it throughout
+                self.clock_dds.cfg_sw(True)
 
-        delay_mu(int64(self.core.ref_multiplier))
+            @kernel
+            def start_of_red_broadband_checkpoint(self):
+                self.start_of_red_broadband_checkpoint_subfragments()
 
-        # Turn off the 679 here so that we can shelve into the clock state
-        self.ttl_shutter_repump_679.off()
+                delay_mu(int64(self.core.ref_multiplier))
+
+                # Turn off the 679 here so that we can shelve into the clock state
+                self.ttl_shutter_repump_679.off()
+
+        self.setattr_fragment(
+            "_RedMOTWithClockLightFrag",
+            _RedMOTWithClockLightFrag,
+            clock_dds=self.clock_dds,
+        )
 
     @kernel
     def do_experiment_after_red_mot_hook(self):

@@ -63,6 +63,12 @@ class CheckpointFragment(Fragment):
     def build(self, *args, **kwargs):
         super().build(*args, **kwargs)
 
+        # Make sure that kernel_invariants is defined. This isn't really related
+        # to checkpoints, but I'm constantly annoyed that I have to do this
+        # everywhere and Sebastian won't let me merge it into upstream ARTIQ, so
+        # I'll just add it here.
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+
         if self.checkpoint_method_names is None:
             raise TypeError(
                 f"You must define `checkpoint_method_names`. See the following docstring for this class:\n\n{CheckpointFragment.__doc__}"
