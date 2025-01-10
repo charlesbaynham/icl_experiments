@@ -179,6 +179,8 @@ class ClockShelvingAndClearoutRedMOTMixin(RedMOTWithExperiment):
     """
 
     def build_fragment(self):
+        super().build_fragment()
+
         class ClockShelvingAndClearout(_ClockShelvingAndClearoutFragBase):
             @kernel
             def post_narrowband_checkpoint(self):
@@ -209,6 +211,8 @@ class ClockShelvingAndClearoutDipoleTrapMixin(DipoleTrapWithExperiment):
     """
 
     def build_fragment(self):
+        super().build_fragment()
+
         class ClockShelvingAndClearout(_ClockShelvingAndClearoutFragBase):
             @kernel
             def post_dipole_trap_hook(self):
