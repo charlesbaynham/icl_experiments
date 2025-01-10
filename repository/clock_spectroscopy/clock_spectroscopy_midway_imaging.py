@@ -46,7 +46,6 @@ class ClockSpecMidwayImagingFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockshelving()
-        self.before_start_hook_xodt_molasses()
 
     @kernel
     def start_of_red_broadband_checkpoint(self):
