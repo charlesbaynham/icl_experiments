@@ -244,47 +244,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.xodt_single_molasses.molasses_xodt_1.do_phase()
 
 
-class EvapAndFieldRampBase(DipoleTrapWithExperiment):
-    """
-    Exposes the evaporation and field ramping phase for use in evaporation Mixins
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_fragment(
-            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
-        )
-        self.bias_and_evap_ramp: XODTWithFieldRamp
-
-    @kernel
-    def DMA_initialization_checkpoint_evap_with_field_ramp(self):
-        self.bias_and_evap_ramp.precalculate_dma_handle()
-
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        raise NotImplementedError(
-            "All the DMA handle calculations must be combined into one \
-                DMA_initialization_checkpoint() method after Mixins are combined"
-        )
-
-    @kernel
-    def dipole_trap_evaporation_hook_with_field_ramp(self):
-        """
-        Do the evap and field ramp
-        """
-        self.bias_and_evap_ramp.do_phase()
-
-    @kernel
-    def dipole_trap_evaporation_hook(self):
-        # Default hook turns off red beams - good!
-        self.dipole_trap_evaporation_hook_default()
-        self.dipole_trap_evaporation_hook_with_field_ramp()
-
-
-class XODTSingleMolassesPlusFieldRampMixin(
-    XODTSingleMolassesMixin, EvapAndFieldRampBase
-):
+class XODTSingleMolassesPlusFieldRampMixin(XODTSingleMolassesMixin):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, implements a
     ramping molasses, then a final evaporation and bias magnetic field ramp phase.
@@ -308,12 +268,38 @@ class XODTSingleMolassesPlusFieldRampMixin(
     def build_fragment(self):
         super().build_fragment()
 
+        self.setattr_fragment(
+            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
+        )
+        self.bias_and_evap_ramp: XODTWithFieldRamp
+
         self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
             self.molasses_xodt_1, suservos=suservos_XODT
         )
 
+        # Make a fragment to initialise DMA for the phase
+        # TODO: Consider converting all our phases to checkpoint frags so we can automatically initialise DMA
+        class _DMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, bias_and_evap_ramp):
+                self.bias_and_evap_ramp: XODTWithFieldRamp = bias_and_evap_ramp
+
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
+
+                self.bias_and_evap_ramp.precalculate_dma_handle()
+
+        self.setattr_fragment("_DMAFrag", _DMAFrag, self.bias_and_evap_ramp)
+
     @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_default()
-        self.DMA_initialization_checkpoint_xodt_molasses()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
+    def dipole_trap_evaporation_hook_with_field_ramp(self):
+        """
+        Do the evap and field ramp
+        """
+        self.bias_and_evap_ramp.do_phase()
+
+    @kernel
+    def dipole_trap_evaporation_hook(self):
+        # Default hook turns off red beams - good!
+        self.dipole_trap_evaporation_hook_default()
+        self.dipole_trap_evaporation_hook_with_field_ramp()
