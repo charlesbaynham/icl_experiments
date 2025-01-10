@@ -206,9 +206,10 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     ##% FIXME WIP from here on. This file is half converted, others have not
     # been started yet. This one is a good test for the process. I still need to
-    # figure out how I'm handling things like post_narrowband_checkpoint which is used
-    # as a kind of hybrid at the moment, in that we both queue thing up and also
-    # override behaviour. Probably needs splitting into a hook and a checkpoint.
+    # figure out how I'm handling things like post_narrowband_checkpoint which
+    # is used as a kind of hybrid at the moment, in that we both queue thing up
+    # and also override behaviour. Probably needs splitting into a hook and a
+    # checkpoint.
     #
     # Also, in implementing this I've found it a bit unnatural to split hooks
     # and checkpoints between levels. This make sense from a python perspective,
@@ -219,6 +220,12 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     # user to choose if the hook is defined twice. I could even add an
     # "override" flag / decorator / something to preempt a warning / error when
     # a hook is overridden.
+    #
+    # Update 10/1/2025 - no, postnaarrowband hook is already a checkpoint in
+    # functionality. I'm still undecided on whether hooks and checkpoints should
+    # be at the same level or not, but the first step is the same either way:
+    # implement checkpoints. If later I want to move hooks too, I can add that
+    # later.
 
     @kernel
     def dipole_trap_molasses_hook(self):
