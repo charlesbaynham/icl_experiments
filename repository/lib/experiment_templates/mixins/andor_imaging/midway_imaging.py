@@ -26,7 +26,7 @@ from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 logger = logging.getLogger(__name__)
 
 
-class MidSequenceAndorImageFrag(RedMOTCheckpoints):
+class _MidSequenceAndorImageFrag(RedMOTCheckpoints):
     def build_fragment(self, blue_3d_mot: Blue3DMOTFrag, do_pulse: Callable):
         self.blue_3d_mot = blue_3d_mot
         self.kernel_invariants.add("blue_3d_mot")
@@ -193,11 +193,11 @@ class MidSequenceAndorImageMixin(AndorImagingBase):
         # Initiate the subfragment that implements everything
         self.setattr_fragment(
             "mid_sequence_frag",
-            MidSequenceAndorImageFrag,
+            _MidSequenceAndorImageFrag,
             blue_3d_mot=self.blue_3d_mot,
             do_pulse=self.do_pulse,
         )
-        self.mid_sequence_frag: MidSequenceAndorImageFrag
+        self.mid_sequence_frag: _MidSequenceAndorImageFrag
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
