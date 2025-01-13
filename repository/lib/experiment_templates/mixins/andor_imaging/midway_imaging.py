@@ -19,47 +19,18 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 logger = logging.getLogger(__name__)
 
 
-class MidSequenceAndorImage(AndorImagingBase):
-    """
-    Image midway through the sequence, expressed as time since the start of the
-    broadband red MOT
+class MidSequenceAndorImageFrag(RedMOTCheckpoints):
+    def build_fragment(self, blue_3d_mot: Blue3DMOTFrag):
+        self.blue_3d_mot = blue_3d_mot
+        self.kernel_invariants.add("blue_3d_mot")
 
-    This mixin will override the usual "do_imaging_hook_andor" to do nothing,
-    and will instead pre-schedule imaging to occur midway through the sequence,
-    without turning any of the other beams off. This might mean that you get
-    lots of scatter! Particularly from the 1064, or if you image shortly after
-    the shelving clearout pulse, before the camera has had time to recover. If
-    you are using EM gain, be careful not to damage the sensor by setting a
-    large clearout blue pulse and then imaging during it.
-
-    This mixin will also take a background image at the end of the sequence.
-
-    TODO: Consider running the whole sequence twice, one with no atoms, so that
-    the background image can be in the same place as the real one. Slow
-    obviously, but we don't care.
-
-    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
-    details.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_imaging_hook_andor`
-    * :meth:`~start_of_red_broadband_checkpoint`
-    * :meth:`~process_andor_data_hook`
-    * :meth:`~update_andor_monitor_hook`
-    """
-
-    num_andor_images = 2
-    num_images_per_series = 2
-    num_grabber_readouts = 2
-    num_grabber_rois = 1
-
-    def build_fragment(self):
-        super().build_fragment()
+        self.setattr_device("core")
 
         self.setattr_param(
             "delay_before_imaging",
@@ -91,32 +62,19 @@ class MidSequenceAndorImage(AndorImagingBase):
         )
         self.repumping_time: FloatParamHandle
 
-        # Meaningless without an experiment:
-        self.override_param("delay_after_experiment", 0)
-
-        self.bg_imaging_make_result_channel()
-
         self.t_imaging_done_mu = int64(0)
-
-    def bg_imaging_make_result_channel(self):
-        # AndorImagingBase makes sum and mean ResultChannels automatically, but
-        # we create another one for the bg-corrected data
-        self.setattr_result("andor_mean_bg_corrected", FloatChannel)
-        self.andor_mean_bg_corrected: FloatChannel
 
     @kernel
     def start_of_red_broadband_checkpoint(self):
-        self.start_of_red_broadband_checkpoint_imaging_base()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.start_of_red_broadband_checkpoint_midway_imaging()
-
-    @kernel
-    def start_of_red_broadband_checkpoint_midway_imaging(self):
         """
         Schedule an image to be taken midway through the sequence, then reset
         the timeline to leave it unaltered. This will certainly consume a
         lane
         """
+        self.start_of_red_broadband_checkpoint_subfragments()
+
+        delay_mu(int64(self.core.ref_multiplier))
+
         t_start_mu = now_mu()
 
         delay(-self.repumping_time.get())
@@ -175,10 +133,78 @@ class MidSequenceAndorImage(AndorImagingBase):
         )
 
     @kernel
+    def process_grabber_data_hook(self, sums, means):
+        self.andor_mean_bg_corrected.push(means[0] - means[1])
+
+
+class MidSequenceAndorImageMixin(AndorImagingBase):
+    """
+    Image midway through the sequence, expressed as time since the start of the
+    broadband red MOT
+
+    This mixin will override the usual "do_imaging_hook_andor" to do nothing,
+    and will instead pre-schedule imaging to occur midway through the sequence,
+    without turning any of the other beams off. This might mean that you get
+    lots of scatter! Particularly from the 1064, or if you image shortly after
+    the shelving clearout pulse, before the camera has had time to recover. If
+    you are using EM gain, be careful not to damage the sensor by setting a
+    large clearout blue pulse and then imaging during it.
+
+    This mixin will also take a background image at the end of the sequence.
+
+    TODO: Consider running the whole sequence twice, one with no atoms, so that
+    the background image can be in the same place as the real one. Slow
+    obviously, but we don't care.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    * :meth:`~start_of_red_broadband_checkpoint`
+    * :meth:`~process_andor_data_hook`
+    * :meth:`~update_andor_monitor_hook`
+    """
+
+    num_andor_images = 2
+    num_images_per_series = 2
+    num_grabber_readouts = 2
+    num_grabber_rois = 1
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Meaningless without an experiment:
+        self.override_param("delay_after_experiment", 0)
+
+        # AndorImagingBase makes sum and mean ResultChannels automatically, but
+        # we create another one for the bg-corrected data
+        self.setattr_result("andor_mean_bg_corrected", FloatChannel)
+        self.andor_mean_bg_corrected: FloatChannel
+
+        # Initiate the subfragment that implements everything
+        self.setattr_fragment(
+            "mid_sequence_frag", MidSequenceAndorImageFrag, blue_3d_mot=self.blue_3d_mot
+        )
+        self.mid_sequence_frag: MidSequenceAndorImageFrag
+
+    @kernel
     def do_experiment_after_dipole_trap_hook(self):
         # No experiment needed, do nothing
         pass
 
+    # %% From here on, pass the appropriate hooks to the subfragment we're using
+    # to implement everything
+
+    @kernel
+    def do_imaging_hook_andor(self):
+        self.mid_sequence_frag.do_imaging_hook_andor()
+
     @kernel
     def process_grabber_data_hook(self, sums, means):
-        self.andor_mean_bg_corrected.push(means[0] - means[1])
+        self.mid_sequence_frag.process_grabber_data_hook(sums, means)
+
+    @host_only
+    def update_andor_monitor_hook(self, images):
+        self.mid_sequence_frag.update_andor_monitor_hook(images)

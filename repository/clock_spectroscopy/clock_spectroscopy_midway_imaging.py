@@ -7,7 +7,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.midway_imaging import (
-    MidSequenceAndorImage,
+    MidSequenceAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class ClockSpecMidwayImagingFrag(
-    MidSequenceAndorImage,
+    MidSequenceAndorImageMixin,
     EMGain,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,

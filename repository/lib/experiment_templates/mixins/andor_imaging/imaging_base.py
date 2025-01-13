@@ -47,7 +47,6 @@ class AndorImagingBase(RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~start_of_red_broadband_checkpoint`
     * :meth:`~save_grabber_data_hook`
 
     Host hooks created:
