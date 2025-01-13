@@ -1,4 +1,5 @@
 import logging
+from typing import Callable
 
 import numpy as np
 from artiq.experiment import at_mu
@@ -26,9 +27,19 @@ logger = logging.getLogger(__name__)
 
 
 class MidSequenceAndorImageFrag(RedMOTCheckpoints):
-    def build_fragment(self, blue_3d_mot: Blue3DMOTFrag):
+    def build_fragment(self, blue_3d_mot: Blue3DMOTFrag, do_pulse: Callable):
         self.blue_3d_mot = blue_3d_mot
         self.kernel_invariants.add("blue_3d_mot")
+
+        # This is an ugly thing. We want to use a subfragment to
+        # implement midway imaging since a) we get access to checkpoints and b)
+        # it keeps the parameter tree sane / encourages decoupled code. However,
+        # we need to call the "do_pulse" method from this fragment, but it's
+        # defined on the parent fragment. That's exactly the kind of coupling
+        # we're trying to discourage, however it's easiest here to just accept
+        # it. So, we hold our noses and keep a reference to the parent's
+        # "do_pulse" method so that it can be called from this subfragment.
+        self.do_pulse = do_pulse
 
         self.setattr_device("core")
 
@@ -185,7 +196,10 @@ class MidSequenceAndorImageMixin(AndorImagingBase):
 
         # Initiate the subfragment that implements everything
         self.setattr_fragment(
-            "mid_sequence_frag", MidSequenceAndorImageFrag, blue_3d_mot=self.blue_3d_mot
+            "mid_sequence_frag",
+            MidSequenceAndorImageFrag,
+            blue_3d_mot=self.blue_3d_mot,
+            do_pulse=self.do_pulse,
         )
         self.mid_sequence_frag: MidSequenceAndorImageFrag
 
