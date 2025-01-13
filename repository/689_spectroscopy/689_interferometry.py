@@ -18,13 +18,13 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fas
     TripleImageRedMOTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
-    SpectroscopyParamsMixin,
+    add_spectroscopy_params,
 )
 
 
-class _UpBeamInterferometryFrag(SpectroscopyParamsMixin, RedMOTCheckpoints):
+class _UpBeamInterferometryFrag(RedMOTCheckpoints):
     def build_fragment(self):
-        super().build_fragment()
+        add_spectroscopy_params(self)
 
         self.setattr_device("core")
 

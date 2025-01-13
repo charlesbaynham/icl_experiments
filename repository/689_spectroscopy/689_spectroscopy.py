@@ -21,7 +21,7 @@ from repository.lib.experiment_templates.mixins.constant_lattice import (
 )
 from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
-    SpectroscopyParamsMixin,
+    add_spectroscopy_params,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
@@ -39,12 +39,12 @@ class _Spectroscopy689Mixin(RedMOTWithExperiment):
         super().build_fragment()
 
         # Implement all spectroscopy in a checkpoint frag:
-        class Spectroscopy689(RedMOTCheckpoints, SpectroscopyParamsMixin):
+        class Spectroscopy689(RedMOTCheckpoints):
             def build_fragment(
                 self,
                 red_mot: RedMOTThreePhaseFrag,
             ):
-                super().build_fragment()
+                add_spectroscopy_params(self)
 
                 self.setattr_device("core")
                 self.core: Core

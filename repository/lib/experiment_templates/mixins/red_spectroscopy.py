@@ -21,7 +21,7 @@ from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_deca
     ExponentialDecayMixin,
 )
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
-    SpectroscopyParamsMixin,
+    add_spectroscopy_params,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
@@ -37,7 +37,6 @@ class SpectroscopyBeam(Enum):
 
 
 class _RedSpectroscopyBase(
-    SpectroscopyParamsMixin,
     ExponentialDecayMixin,
     FieldBoostMixin,
     RedMOTWithExperiment,
@@ -52,6 +51,8 @@ class _RedSpectroscopyBase(
 
     def build_fragment(self):
         super().build_fragment()
+
+        add_spectroscopy_params(self)
 
         self.suservo_setters: dict[str, LibSetSUServoStatic] = {}
 

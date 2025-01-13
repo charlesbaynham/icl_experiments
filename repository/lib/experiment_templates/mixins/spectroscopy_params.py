@@ -2,45 +2,36 @@ import logging
 
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 
 logger = logging.getLogger(__name__)
 
 
-class SpectroscopyParamsMixin(Fragment):
+def add_spectroscopy_params(frag: Fragment):
     """
-    Adds parameters for controlling a spectroscopy pulse
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * None
+    Adds parameters for controlling a spectroscopy pulse to a Fragment
     """
 
-    def build_fragment(self):
-        self.setattr_param(
-            "spectroscopy_pulse_time",
-            FloatParam,
-            "Length of spectroscopy pulse",
-            default=50e-6,
-            unit="us",
-        )
-        self.spectroscopy_pulse_time: FloatParamHandle
+    frag.spectroscopy_pulse_time = frag.setattr_param(
+        "spectroscopy_pulse_time",
+        FloatParam,
+        "Length of spectroscopy pulse",
+        default=50e-6,
+        unit="us",
+    )
 
-        self.setattr_param(
-            "spectroscopy_pulse_aom_detuning",
-            FloatParam,
-            "Frequency detuning of AOM during spectroscopy pulse",
-            default=0,
-            unit="kHz",
-        )
-        self.spectroscopy_pulse_aom_detuning: FloatParamHandle
+    frag.spectroscopy_pulse_aom_detuning = frag.setattr_param(
+        "spectroscopy_pulse_aom_detuning",
+        FloatParam,
+        "Frequency detuning of AOM during spectroscopy pulse",
+        default=0,
+        unit="kHz",
+    )
 
-        self.setattr_param(
-            "spectroscopy_pulse_aom_amplitude",
-            FloatParam,
-            "Amplitude of delivery AOM during spectroscopy pulse. SUServoing is disabled",
-            default=1.0,
-            min=0.0,
-            max=1.0,
-        )
-        self.spectroscopy_pulse_aom_amplitude: FloatParamHandle
+    frag.spectroscopy_pulse_aom_amplitude = frag.setattr_param(
+        "spectroscopy_pulse_aom_amplitude",
+        FloatParam,
+        "Amplitude of delivery AOM during spectroscopy pulse. SUServoing is disabled",
+        default=1.0,
+        min=0.0,
+        max=1.0,
+    )
