@@ -31,12 +31,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~post_narrowband_checkpoint`
     * :meth:`~dipole_trap_molasses_hook`
-
-    We also override this hook to do nothing since this Mixin is now taking charge
-    of field setting:
-
     * :meth:`~set_postnarrowband_fields_hook`
     """
 
@@ -236,15 +231,9 @@ class XODTSingleMolassesPlusFieldRampMixin(XODTSingleMolassesMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_checkpoint`
-    * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_checkpoint`
+    * :meth:`~set_postnarrowband_fields_hook`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
-
-    We override this to do nothing since this Mixin is now taking charge of field setting:
-
-    * :meth:`~set_postnarrowband_fields_hook`
     """
 
     def build_fragment(self):
