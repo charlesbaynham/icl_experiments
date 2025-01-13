@@ -143,10 +143,6 @@ class MidSequenceAndorImageFrag(RedMOTCheckpoints):
             archive=False,
         )
 
-    @kernel
-    def process_grabber_data_hook(self, sums, means):
-        self.andor_mean_bg_corrected.push(means[0] - means[1])
-
 
 class MidSequenceAndorImageMixin(AndorImagingBase):
     """
@@ -208,16 +204,16 @@ class MidSequenceAndorImageMixin(AndorImagingBase):
         # No experiment needed, do nothing
         pass
 
+    @kernel
+    def process_grabber_data_hook(self, sums, means):
+        self.andor_mean_bg_corrected.push(means[0] - means[1])
+
     # %% From here on, pass the appropriate hooks to the subfragment we're using
     # to implement everything
 
     @kernel
     def do_imaging_hook_andor(self):
         self.mid_sequence_frag.do_imaging_hook_andor()
-
-    @kernel
-    def process_grabber_data_hook(self, sums, means):
-        self.mid_sequence_frag.process_grabber_data_hook(sums, means)
 
     @host_only
     def update_andor_monitor_hook(self, images):
