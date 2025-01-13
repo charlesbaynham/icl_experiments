@@ -59,7 +59,7 @@ class DoubleXODTFrag(
     @kernel
     def dipole_trap_evaporation_hook(self):
         # Turns off red MOT beams - helpful!
-        self.dipole_trap_evaporation_hook_default()  # FIXME
+        self.dipole_trap_evaporation_hook_default()
 
         # Blast the atoms with the stark pulse during the evap stage
         self.stark_shifter.do_stark_pulse()

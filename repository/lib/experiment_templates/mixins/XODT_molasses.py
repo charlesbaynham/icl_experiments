@@ -203,8 +203,10 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def set_postnarrowband_fields_hook(self):
-        # Leave fields on after the narrowband MOT finishes: the molassess phase
-        # will alter them
+        self.set_postnarrowband_fields_hook_singlemollasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook_singlemollasses(self):
         pass
 
     @kernel
@@ -234,7 +236,9 @@ class XODTSingleMolassesPlusFieldRampMixin(XODTSingleMolassesMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_checkpoint`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
 
