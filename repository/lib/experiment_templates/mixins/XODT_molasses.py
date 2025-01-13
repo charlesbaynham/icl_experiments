@@ -203,34 +203,9 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def set_postnarrowband_fields_hook(self):
-        self.set_postnarrowband_fields_hook_singlemollasses()
-
-    @kernel
-    def set_postnarrowband_fields_hook_singlemollasses(self):
+        # Leave fields on after the narrowband MOT finishes: the molassess phase
+        # will alter them
         pass
-
-    ##% FIXME WIP from here on. This file is half converted, others have not
-    # been started yet. This one is a good test for the process. I still need to
-    # figure out how I'm handling things like post_narrowband_checkpoint which
-    # is used as a kind of hybrid at the moment, in that we both queue thing up
-    # and also override behaviour. Probably needs splitting into a hook and a
-    # checkpoint.
-    #
-    # Also, in implementing this I've found it a bit unnatural to split hooks
-    # and checkpoints between levels. This make sense from a python perspective,
-    # but it feels odd to do. I could consider implementing hooks as a special
-    # case of checkpoints where the code makes sure that only one is called
-    # instead of all. I could keep the current behaviour of using the last one
-    # that's defined, or I could add sanity checking to this, e.g. force the
-    # user to choose if the hook is defined twice. I could even add an
-    # "override" flag / decorator / something to preempt a warning / error when
-    # a hook is overridden.
-    #
-    # Update 10/1/2025 - no, postnaarrowband hook is already a checkpoint in
-    # functionality. I'm still undecided on whether hooks and checkpoints should
-    # be at the same level or not, but the first step is the same either way:
-    # implement checkpoints. If later I want to move hooks too, I can add that
-    # later.
 
     @kernel
     def dipole_trap_molasses_hook(self):
@@ -259,9 +234,7 @@ class XODTSingleMolassesPlusFieldRampMixin(XODTSingleMolassesMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~before_start_hook`
-    * :meth:`~post_narrowband_checkpoint`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
 

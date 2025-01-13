@@ -47,7 +47,7 @@ class RedSpectroscopyFromXXODTFrag(
 
     @kernel
     def set_postnarrowband_fields_hook(self):
-        self.set_postnarrowband_fields_hook_singlemollasses()
+        self.set_postnarrowband_fields_hook_singlemollasses()  # FIXME
 
 
 RedSpectroscopyFromXXODT = make_fragment_scan_exp(RedSpectroscopyFromXXODTFrag)

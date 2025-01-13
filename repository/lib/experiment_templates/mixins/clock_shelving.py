@@ -216,7 +216,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(DipoleTrapWithExperiment):
         class ClockShelvingAndClearout(_ClockShelvingAndClearoutFragBase):
             @kernel
             def post_dipole_trap_hook(self):
-                self.post_dipole_trap_hook_default()
+                self.post_dipole_trap_hook_default()  # FIXME
                 delay_mu(int64(self.core.ref_multiplier))
                 self.clock_shelving()
 
