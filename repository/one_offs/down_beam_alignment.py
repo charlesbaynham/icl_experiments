@@ -1,5 +1,6 @@
 import logging
 
+from artiq.coredevice.core import Core
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -23,23 +24,15 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 logger = logging.getLogger(__name__)
 
 
-class DownBeamAlignmentFrag(
-    DoubleTrapImagingBGSubtracted,
-    FLIRMeasurementMixin,
-    XODTSingleMolassesMixin,
-    EMGain,
-    DipoleTrapWithExperiment,
-):
-    """
-    Make a double XODT and blast it with the down beam before imaging
-    """
-
+class DownBeamAlignmentFrag(RedMOTCheckpoints):
     def build_fragment(self):
-        super().build_fragment()
+        self.setattr_device("core")
+        self.core: Core
 
         # Automatic setup of the down beam
         self.setattr_fragment(
@@ -69,18 +62,15 @@ class DownBeamAlignmentFrag(
         self.down_beam_pulse_time: FloatParamHandle
 
     @kernel
-    def before_start_hook(self):  # FIXME remove this
+    def device_setup(self):
+        self.device_setup_subfragments()
+
         self.core.break_realtime()
         delay(1e-3)
 
         # Configure the down beam but leave it off
         self.core.break_realtime()
         self.down_beam_setup.turn_on_all(light_enabled=False)
-
-    @kernel
-    def post_dipole_trap_hook(self):
-        # Override the default post-dipole trap hook to keep the dipole trap on
-        pass
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -91,4 +81,33 @@ class DownBeamAlignmentFrag(
             self.down_beam.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-DownBeamAlignment = make_fragment_scan_exp(DownBeamAlignmentFrag)
+class DownBeamAlignmentExp(
+    DoubleTrapImagingBGSubtracted,
+    FLIRMeasurementMixin,
+    XODTSingleMolassesMixin,
+    EMGain,
+    DipoleTrapWithExperiment,
+):
+    """
+    Make a double XODT and blast it with the down beam before imaging
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment("down_beam_alignment", DownBeamAlignmentFrag)
+        self.down_beam_alignment: DownBeamAlignmentFrag
+
+        self.setattr_param_rebind("down_beam_pulse_time", self.down_beam_alignment)
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        # Override the default post-dipole trap hook to keep the dipole trap on
+        pass
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        self.down_beam_alignment.do_experiment_after_dipole_trap_hook()
+
+
+DownBeamAlignment = make_fragment_scan_exp(DownBeamAlignmentExp)
