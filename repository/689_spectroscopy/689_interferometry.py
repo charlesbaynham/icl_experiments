@@ -22,8 +22,10 @@ from repository.lib.experiment_templates.mixins.spectroscopy_params import (
 )
 
 
-class _UpBeamInterferometryFrag(RedMOTCheckpoints):
+class _UpBeamInterferometryFrag(SpectroscopyParamsMixin, RedMOTCheckpoints):
     def build_fragment(self):
+        super().build_fragment()
+
         self.setattr_device("core")
 
         class _UpBeamSetter(SetBeamsToDefaults):
@@ -128,7 +130,7 @@ class _UpBeamInterferometryFrag(RedMOTCheckpoints):
 
 
 class UpBeamInterferometrySUServo(
-    TripleImageRedMOTFastKineticsMixin, SpectroscopyParamsMixin
+    TripleImageRedMOTFastKineticsMixin,
 ):
     """
     Up beam interferometry - delivery phase shift
@@ -145,6 +147,15 @@ class UpBeamInterferometrySUServo(
         self.setattr_param_rebind("phase_step", self.up_beam_interferometry)
         self.setattr_param_rebind(
             "delay_between_interferometry_pulses", self.up_beam_interferometry
+        )
+        self.setattr_param_rebind(
+            "spectroscopy_pulse_aom_amplitude", self.up_beam_interferometry
+        )
+        self.setattr_param_rebind(
+            "spectroscopy_pulse_aom_detuning", self.up_beam_interferometry
+        )
+        self.setattr_param_rebind(
+            "spectroscopy_pulse_time", self.up_beam_interferometry
         )
 
     # Override the experiment hook
