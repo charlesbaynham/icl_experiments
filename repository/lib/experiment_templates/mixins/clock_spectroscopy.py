@@ -92,7 +92,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.delay_repumps_after_first_pulse: FloatParamHandle
 
     @kernel
-    def before_start_hook_clockspec(self):
+    def before_start_hook_clockspec(self):  # FIXME this looks broken
         self.core.break_realtime()
 
         # Setup delivery AOM. This might get overwritten by other
@@ -112,10 +112,6 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
         self.clock_dds.sw.off()
         self.clock_dds.cfg_sw(False)
-
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
 
     @kernel
     def do_first_pulse(self):

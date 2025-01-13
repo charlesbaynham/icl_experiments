@@ -1,6 +1,5 @@
 import logging
 
-from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -51,10 +50,6 @@ class ClockSpecFromXXODTFrag(
     once more for background.
     """
 
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
-
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -76,10 +71,6 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     once more for background.
     """
 
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
-
 
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -100,16 +91,10 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     once more for background.
     """
 
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
-
 
 AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(
     AbsImagingFromXXODTWithShelvingAndClearoutFrag
 )
-
-
 ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
 ClockSpecFromXXODTWithShelving = make_fragment_scan_exp(
     ClockSpecFromXXODTWithShelvingAndClearoutFrag

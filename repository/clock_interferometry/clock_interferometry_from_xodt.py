@@ -1,6 +1,5 @@
 import logging
 
-from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -65,11 +64,6 @@ class DifferentialClockInterferometryFrag(
     Clock interferometry from a double XODT
     """
 
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
-
 
 class DifferentialClockInterferometryWithNoiseFrag(
     ClockInterferometryWithNoiseDipoleTrapMixin,
@@ -86,11 +80,6 @@ class DifferentialClockInterferometryWithNoiseFrag(
     Clock interferometry from a double XODT with added noise
     """
 
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
-
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     ClockInterferometryWithNoiseDipoleTrapMixin,
@@ -105,11 +94,6 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     """
     Absorption imaging clock interferometry from a double XODT with added noise
     """
-
-    @kernel
-    def before_start_hook(self):  # FIXME remove this
-        self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
 
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
