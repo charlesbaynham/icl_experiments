@@ -871,7 +871,7 @@ device_db["eeprom_urukul8"] = {
     "type": "local",
     "module": "artiq.coredevice.kasli_i2c",
     "class": "KasliEEPROM",
-    "arguments": {"port": "EEM4"},
+    "arguments": {"port": "EEM6"},
 }
 
 device_db["spi_urukul8"] = {
