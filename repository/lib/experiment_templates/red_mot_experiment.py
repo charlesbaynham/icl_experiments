@@ -328,7 +328,11 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
 
         # Could be merged with post_narrowband_checkpoint, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
+
         # Do the post-narrowband actions. By default, turn off the red MOT light
+        # in the hook after completing whatever checkpoint actions were defined
+        # by sub-fragments
+        self.post_narrowband_hook()
         self.post_narrowband_checkpoint()
 
         # Do any other pre-expansion actions. By default, none
@@ -452,7 +456,7 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
         delay(1.5e-6 + (808e-9 * 3))
 
     @kernel
-    def post_narrowband_checkpoint(self):  # FIXME Deal with this. Might be annoying
+    def post_narrowband_hook(self):  # FIXME Deal with this. Might be annoying
         """
         Hook for core actions after the narrowband red mot is completed, before
         the light is turned off
@@ -460,15 +464,20 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
         Any changes to the cursor made by this function will be respected, i.e.
         the rest of the sequence CAN be delayed by this hook
 
-        The base implementation turns off the beams THEN calls the subfragment's
-        implementations.
+        The base implementation turns off the beams.
+
+        Note that there is also a checkpoint which will usually be more useful.
+        See :meth:`~.post_narrowband_checkpoint`. The checkpoint is called just
+        after this hook.
+        """
+        self.post_narrowband_hook_default()
+
+    @kernel
+    def post_narrowband_hook_default(self):
+        """
+        Turn off the MOT light
         """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-
-        # Usually we do this call first, but here we want to turn the beams off
-        # first in case later post_narrowband_checkpoint implementations delay the
-        # timeline.
-        self.post_narrowband_checkpoint_subfragments()
 
     @kernel
     def set_postnarrowband_fields_hook(self):

@@ -187,6 +187,17 @@ class RedMOTCheckpoints(CheckpointFragment):
 
     @portable
     def post_narrowband_checkpoint(self):
+        """
+        Executed immediately after the red beams go off on the narrowband MOT.
+
+        No timeline correction is performed, so changes here will delay the
+        experiment / dipole trapping that occurs after the red MOT.
+
+        Note that the beams are turned off by the default implementation of
+        :meth:`~.post_narrowband_hook` which occurs immediately before this
+        checkpoint. If you want the beams to stay on, you can override this
+        hook.
+        """
         self.post_narrowband_checkpoint_subfragments()
 
     @portable

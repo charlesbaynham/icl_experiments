@@ -103,7 +103,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def dipole_trap_evaporation_hook(self):
         """
-        Hook for implementation of stages after the dipole trap evaporation stage. By default, do nothing.
+        Hook for implementation of stages after the dipole trap evaporation
+        stage. By default, turn off all the red beams to allow holding in dipole
+        trap before experiment.
         """
         self.dipole_trap_evaporation_hook_default()
 
