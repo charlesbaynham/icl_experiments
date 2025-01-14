@@ -194,7 +194,7 @@ class RedMOTCheckpoints(CheckpointFragment):
         experiment / dipole trapping that occurs after the red MOT.
 
         Note that the beams are turned off by the default implementation of
-        :meth:`~.post_narrowband_hook` which occurs immediately before this
+        :meth:`~post_narrowband_hook` which occurs immediately before this
         checkpoint. If you want the beams to stay on, you can override this
         hook.
         """

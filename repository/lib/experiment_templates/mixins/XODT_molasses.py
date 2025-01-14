@@ -167,7 +167,8 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             @kernel
             def post_narrowband_checkpoint(self):
                 """
-                The default post_narrowband_checkpoint turns off the beams.
+                The default post_narrowband_hook turns off the beams immediately
+                before this checkpoint.
 
                 Here, we also set coil currents and then wait for the configured
                 time before starting the molasses (which turns the beams back on
