@@ -16,6 +16,7 @@ from repository.database_monitors.monitor_lab_temperature import (
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureDencoOut,
 )
+from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureSidearm,
 )
@@ -70,6 +71,7 @@ MonitorMaster = make_monitor_controller(
         "temperature_sidearm": MonitorTemperatureSidearm,
         "temperature_denco_in": MonitorTemperatureDencoIn,
         "temperature_denco_out": MonitorTemperatureDencoOut,
+        "temperature_PCW": MonitorTemperaturePCW,
         "ion_pump": MonitorIonPump,
         "ion_pump_cham2": MonitorIonPumpDup,
         "heartbeat": MonitorHeartbeat,
