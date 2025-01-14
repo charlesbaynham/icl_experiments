@@ -14,7 +14,9 @@ class _MonitorLabTemperature(Calibration):
 
     monitor_url = None
     description = None
-    temperature_string_parser = float
+
+    def temperature_string_parser(self, temperature_string):
+        return float(temperature_string)
 
     def __init__(self, managers_or_parent, *args, **kwargs):
         if self.monitor_url is None or self.description is None:
@@ -54,23 +56,20 @@ class MonitorTemperatureDencoIn(_MonitorLabTemperature):
     description = "denco_in"
 
 
-def parse_status_xml(xml_str):
-    """
-    Parse the XML status string from the Inveo NANO-TC-SENSOR
-    """
-    import xml.etree.ElementTree as ET
-
-    root = ET.fromstring(xml_str)
-    temp_str = root.find("valFinal0").text
-    return float(temp_str)
-
-
 class _InveoNanoThermocoupleMonitor(_MonitorLabTemperature):
     """
     The Inveo NANO-TC-SENSOR has a slightly different interface, so subclass for it here
     """
 
-    temperature_string_parser = parse_status_xml
+    def temperature_string_parser(self, xml_string):
+        """
+        Parse the XML status string from the Inveo NANO-TC-SENSOR
+        """
+        import xml.etree.ElementTree as ET
+
+        root = ET.fromstring(xml_string)
+        temp_str = root.find("valFinal0").text
+        return float(temp_str)
 
 
 class MonitorTemperaturePCW(_InveoNanoThermocoupleMonitor):
