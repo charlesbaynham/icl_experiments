@@ -209,7 +209,7 @@ class _ClockInterferometryMixinBase(RedMOTWithExperiment):
 
 
 class ClockInterferometryRedMOTMixin(_ClockInterferometryMixinBase):
-    # FIXME: Merge these two and other similar instances by creating a "do_experiment_hook" which is called by "do_experiment_after_red_mot_hook"
+    # TODO: Merge these two and other similar instances by creating a "do_experiment_hook" which is called by "do_experiment_after_red_mot_hook"
     """
     Implements clock interferometry after the red MOT
 

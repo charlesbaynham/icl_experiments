@@ -63,13 +63,15 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
 
-    This mixin base uses the Andor camera to two fast kinetics series with two images each and create
-    ResultChannels for normalised state readout. The first series contains atoms that starts in (i)
-    the ground state, and (ii) the excited state. The second series reproduces the conditions of the first,
+    This mixin base uses the Andor camera to two fast kinetics series with two
+    images each and create ResultChannels for normalised state readout. The
+    first series contains atoms that starts in (i) the ground state, and (ii)
+    the excited state. The second series reproduces the conditions of the first,
     with a long delay to clear out atoms.
 
-    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
-    and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
+    Variant mixins based on this class are expected to reimplement
+    get_grabber_roi_defaults and/or fast_kinetics_default_height and
+    fast_kinetics_default_offset as needed.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -224,7 +226,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     @kernel
     def do_first_pulse(
         self,
-    ):  # FIXME: this should be done via checkpoints too. Add an "after first pulse" checkpoint
+    ):
         # Normal fluorescence pulse at now_mu() + camera trigger, pre-empted by
         # the time required to shift one Fast Kinetics region + a
         # pre_trigger_delay

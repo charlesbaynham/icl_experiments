@@ -169,7 +169,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
     @kernel
     def do_first_pulse(
         self,
-    ):  # FIXME: this should be done via checkpoints too. Add an "after first pulse" checkpoint
+    ):
         # Normal fluorescence pulse at now_mu() + camera trigger, pre-empted by
         # the time required to shift one Fast Kinetics region + a
         # pre_trigger_delay

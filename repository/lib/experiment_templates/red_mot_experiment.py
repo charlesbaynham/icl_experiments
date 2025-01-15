@@ -360,7 +360,7 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
         # ANDOR, and since ARTIQ doesn't support inheritance properly, it's
         # easier to have two methods.
         # This one is intended for the FLIR cameras:
-        self.save_flir_data_hook()  # FIXME combine with andor hook using checkpoint
+        self.save_flir_data_hook()  # TODO combine with andor hook using checkpoint
 
         # This one for the Andor
         self.save_andor_data_hook()
@@ -456,7 +456,7 @@ class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
         delay(1.5e-6 + (808e-9 * 3))
 
     @kernel
-    def post_narrowband_hook(self):  # FIXME Deal with this. Might be annoying
+    def post_narrowband_hook(self):
         """
         Hook for core actions after the narrowband red mot is completed, before
         the light is turned off
