@@ -83,6 +83,21 @@ class ClockInterferometryBaseFrag(
         self.clock_dds_frequency_pi_pulse = 0.0
         self.clock_dds_frequency_final_pi_by_2_pulse = 0.0
 
+    def get_important_params(self):
+        """
+        Get the most important parameters for this fragment
+
+        Intended to be used by :meth:`~get_always_shown_params` in the parent fragment.
+        """
+        return [
+            self.spectroscopy_pulse_time,
+            self.spectroscopy_pulse_aom_detuning,
+            self.spectroscopy_clock_delivery_setpoint,
+            self.delay_between_interferometry_pulses,
+            self.phase_step,
+            self.stark_shifter.stark_pulse_duration,
+        ]
+
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
         return self.phase_constant
@@ -182,23 +197,14 @@ class _ClockInterferometryMixinBase(RedMOTWithExperiment):
         )
         self.clock_interferometry_frag: ClockInterferometryBaseFrag
 
-        # %% Expose the most important parameters
+    def get_always_shown_params(self):
+        """
+        Expose the most important parameters from the clock interferometry
+        """
 
-        self.setattr_param_rebind(
-            "spectroscopy_pulse_time", self.clock_interferometry_frag
-        )
-        self.setattr_param_rebind(
-            "spectroscopy_pulse_aom_detuning", self.clock_interferometry_frag
-        )
-        self.setattr_param_rebind(
-            "spectroscopy_clock_delivery_setpoint", self.clock_interferometry_frag
-        )
-        self.setattr_param_rebind(
-            "delay_between_interferometry_pulses", self.clock_interferometry_frag
-        )
-        self.setattr_param_rebind("phase_step", self.clock_interferometry_frag)
-        self.setattr_param_rebind(
-            "stark_pulse_duration", self.clock_interferometry_frag.stark_shifter
+        return (
+            super().get_always_shown_params()
+            + self.clock_interferometry_frag.get_important_params()
         )
 
 

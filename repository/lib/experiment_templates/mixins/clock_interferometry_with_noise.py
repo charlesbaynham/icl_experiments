@@ -19,21 +19,14 @@ from repository.lib.utils import GaussianRandom
 logger = logging.getLogger(__name__)
 
 
-class _ClockInterferometryWithNoise(
-    ClockInterferometryBaseFrag
-):  # FIXME: checkpointise
+class _ClockInterferometryWithNoiseFrag(ClockInterferometryBaseFrag):
     """
     Customizes ClockInterferometryBase for pi/2 - pi - pi/2 clock interferometry
     with noise added as a random phase step between pulses 1/2 and 2/3
-
-    Kernel hooks used (not including wherever the interferometry is done - needs
-    customization):
-
-    * :meth:`~before_start_hook`  # FIXME
     """
 
-    def build_fragment(self):
-        super().build_fragment()
+    def build_fragment(self, blue_3d_mot):
+        super().build_fragment(blue_3d_mot=blue_3d_mot)
 
         class GaussianNoisePhase(Fragment):
             """
@@ -137,7 +130,8 @@ class _ClockInterferometryWithNoise(
 
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
-        return self.phase_constant  # Unchanged from base
+        # Unchanged from base but overridden here anyway to keep things explicit:
+        return self.phase_constant
 
     @kernel
     def calculate_phase_for_pi_pulse(self) -> float:
@@ -152,9 +146,7 @@ class _ClockInterferometryWithNoise(
         return self.phase_constant + 4.0 * self.phase_step.get() + random_phase_two
 
 
-class ClockInterferometryWithNoiseDipoleTrapMixin(
-    _ClockInterferometryWithNoise, DipoleTrapWithExperiment
-):
+class ClockInterferometryWithNoiseDipoleTrapMixin(DipoleTrapWithExperiment):
     """
     Implements clock interferometry after the dipole trap with added noisy phase steps between pulses
 
@@ -163,6 +155,16 @@ class ClockInterferometryWithNoiseDipoleTrapMixin(
     * :meth:`~do_experiment_after_dipole_trap_hook`
     """
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "clock_interferometry_with_noise",
+            _ClockInterferometryWithNoiseFrag,
+            blue_3d_mot=self.blue_3d_mot,
+        )
+        self.clock_interferometry_with_noise: _ClockInterferometryWithNoiseFrag
+
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.do_clock_interferometry()
+        self.clock_interferometry_with_noise.do_clock_interferometry()
