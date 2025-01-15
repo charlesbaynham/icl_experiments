@@ -119,8 +119,8 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
     Image two traps with three pulses of light, imaging the ground, excited and
     background.
 
-    Reumping is not handled here, but you can override e.g.
-    :meth:`~do_first_pulse` to add it if required. See e.g.
+    Reumping is not handled here, but you can e.g. add to the checkpoint
+    :meth:`~after_first_imaging_pulse_checkpoint` if required. See e.g.
     :class:`~ClockRabiSpectroscopyRedMotMixin`.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for

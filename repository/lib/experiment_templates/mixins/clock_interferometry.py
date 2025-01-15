@@ -15,7 +15,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyBase,
+    ClockSpectroscopyBaseFrag,
 )
 from repository.lib.fragments.stark_shifter import StarkShifter
 
@@ -27,14 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 class ClockInterferometryBase(
-    ClockSpectroscopyBase,
+    ClockSpectroscopyBaseFrag,
 ):
     """
     Customizes ClockSpectroscopyBase for pi/2 - pi - pi/2 clock interferometry
 
     Kernel hooks used (not including wherever the interferometry is done - needs customization):
 
-    * :meth:`~before_start_hook`
     * :meth:`~do_first_pulse`
 
     Kernel hooks provided:

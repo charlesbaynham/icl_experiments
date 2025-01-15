@@ -12,7 +12,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image
     SingleAndorImage,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyBase,
+    ClockSpectroscopyBaseFrag,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class RedMOTWithClockLight(
     SingleAndorImage,
     FLIRBlueMOTMeasurementMixin,
-    ClockSpectroscopyBase,
+    ClockSpectroscopyBaseFrag,
     RedMOTWithExperiment,
 ):
     """

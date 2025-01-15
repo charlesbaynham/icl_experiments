@@ -154,6 +154,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         # Image ground state atoms
         t_start_mu = now_mu()
         self.do_first_pulse()
+        self.after_first_imaging_pulse_checkpoint()
 
         # Image excited state atoms
         at_mu(t_start_mu)
@@ -166,7 +167,9 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         self.do_third_pulse()
 
     @kernel
-    def do_first_pulse(self):
+    def do_first_pulse(
+        self,
+    ):  # FIXME: this should be done via checkpoints too. Add an "after first pulse" checkpoint
         # Normal fluorescence pulse at now_mu() + camera trigger, pre-empted by
         # the time required to shift one Fast Kinetics region + a
         # pre_trigger_delay

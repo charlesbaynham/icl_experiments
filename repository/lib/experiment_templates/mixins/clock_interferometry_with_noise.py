@@ -27,8 +27,7 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
     Kernel hooks used (not including wherever the interferometry is done - needs
     customization):
 
-    * :meth:`~before_start_hook`
-    * :meth:`~do_first_pulse`
+    * :meth:`~before_start_hook`  # FIXME
     """
 
     def build_fragment(self):
@@ -159,9 +158,7 @@ class ClockInterferometryWithNoiseDipoleTrapMixin(
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~before_start_hook`
     * :meth:`~do_experiment_after_dipole_trap_hook`
-    * :meth:`~do_first_pulse`
     """
 
     @kernel

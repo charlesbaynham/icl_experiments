@@ -140,6 +140,7 @@ class RedMOTCheckpoints(CheckpointFragment):
         "end_of_broadband_mot_checkpoint",
         "post_narrowband_checkpoint",
         "pre_expansion_checkpoint",
+        "after_first_imaging_pulse_checkpoint",
         "post_sequence_cleanup_checkpoint",
         "after_data_saved_checkpoint",
     ]
@@ -211,6 +212,20 @@ class RedMOTCheckpoints(CheckpointFragment):
         self.pre_expansion_checkpoint_subfragments()
 
     @portable
+    def after_first_imaging_pulse_checkpoint(self):
+        """
+        Checkpoint for core actions after the first fluorescence imaging pulse
+
+        Unlike the other checkpoints, this is not called by RedMOTExperiment
+        directly but by the Andor imaging mixins instead. Also, it's only called
+        by sequences that have more than one image, so code in this checkpoint
+        will not run if there is only one image taken.
+
+        Any changes to the cursor made by this hook will be ignored
+        """
+        self.after_first_imaging_pulse_checkpoint_subfragments()
+
+    @portable
     def post_sequence_cleanup_checkpoint(self):
         """
         Called immediately after the imaging is completed while there is still
@@ -266,6 +281,10 @@ class RedMOTCheckpoints(CheckpointFragment):
 
     @portable
     def pre_expansion_checkpoint_subfragments(self):
+        pass
+
+    @portable
+    def after_first_imaging_pulse_checkpoint_subfragments(self):
         pass
 
     @portable
