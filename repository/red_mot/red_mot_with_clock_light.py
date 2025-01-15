@@ -1,7 +1,5 @@
 import logging
 
-from artiq.coredevice.ad9912 import AD9912
-from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -18,7 +16,7 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
     FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
+from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +24,6 @@ logger = logging.getLogger(__name__)
 class RedMOTWithClockLight(
     SingleAndorImage,
     FLIRBlueMOTMeasurementMixin,
-    ClockSpectroscopyBaseFrag,
     RedMOTWithExperiment,
 ):
     """
@@ -36,25 +33,15 @@ class RedMOTWithClockLight(
     def build_fragment(self):
         super().build_fragment()
 
-        self.override_param("delay_repumps_after_first_pulse", 0.0)
-
-        class _RedMOTWithClockLightFrag(RedMOTCheckpoints):
-            def build_fragment(self, clock_dds: AD9912):
-                self.setattr_device("core")
-                self.core: Core
+        class _RedMOTWithClockLightFrag(ClockSpectroscopyBaseFrag):
+            def build_fragment(self, blue_3d_mot: Blue3DMOTFrag):
+                super().build_fragment(blue_3d_mot=blue_3d_mot)
 
                 self.setattr_device("ttl_shutter_repump_679")
                 self.ttl_shutter_repump_679: TTLOut
 
-                self.clock_dds = clock_dds
-                self.kernel_invariants.add("clock_dds")
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-
-                # Turn on the clock light immediately and leave it throughout
-                self.clock_dds.cfg_sw(True)
+                self.override_param("delay_repumps_after_first_pulse", 0.0)
+                self.override_param("clock_delivery_preempt_time", 0.0)
 
             @kernel
             def start_of_red_broadband_checkpoint(self):
@@ -65,10 +52,13 @@ class RedMOTWithClockLight(
                 # Turn off the 679 here so that we can shelve into the clock state
                 self.ttl_shutter_repump_679.off()
 
+                # Turn on the clock light and leave it on for the rest of the sequence
+                self.clock_dds.cfg_sw(True)
+
         self.setattr_fragment(
             "_RedMOTWithClockLightFrag",
             _RedMOTWithClockLightFrag,
-            clock_dds=self.clock_dds,
+            blue_3d_mot=self.blue_3d_mot,
         )
 
     @kernel
