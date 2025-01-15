@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
@@ -32,6 +33,9 @@ class ClockSpectroscopyBaseFrag(RedMOTCheckpoints):
     """
 
     def build_fragment(self, blue_3d_mot: Blue3DMOTFrag):
+        self.setattr_device("core")
+        self.core: Core
+
         self.blue_3d_mot = blue_3d_mot
         self.kernel_invariants.add("blue_3d_mot")
 

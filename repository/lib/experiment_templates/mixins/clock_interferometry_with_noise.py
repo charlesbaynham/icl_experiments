@@ -12,14 +12,16 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
-    ClockInterferometryBase,
+    ClockInterferometryBaseFrag,
 )
 from repository.lib.utils import GaussianRandom
 
 logger = logging.getLogger(__name__)
 
 
-class _ClockInterferometryWithNoise(ClockInterferometryBase):
+class _ClockInterferometryWithNoise(
+    ClockInterferometryBaseFrag
+):  # FIXME: checkpointise
     """
     Customizes ClockInterferometryBase for pi/2 - pi - pi/2 clock interferometry
     with noise added as a random phase step between pulses 1/2 and 2/3

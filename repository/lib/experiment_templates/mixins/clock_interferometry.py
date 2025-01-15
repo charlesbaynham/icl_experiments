@@ -17,6 +17,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBaseFrag,
 )
+from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.stark_shifter import StarkShifter
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
@@ -26,17 +27,15 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 
-class ClockInterferometryBase(
+class ClockInterferometryBaseFrag(
     ClockSpectroscopyBaseFrag,
 ):
     """
     Customizes ClockSpectroscopyBase for pi/2 - pi - pi/2 clock interferometry
 
-    Kernel hooks used (not including wherever the interferometry is done - needs customization):
+    This is a (checkpoint) fragment, not a mixin.
 
-    * :meth:`~do_first_pulse`
-
-    Kernel hooks provided:
+    Hooks provided:
 
     * :meth:`~calculate_phase_for_first_pi_by_2_pulse`
     * :meth:`~calculate_phase_for_pi_pulse`
@@ -44,8 +43,8 @@ class ClockInterferometryBase(
     * :meth:`~do_clock_interferometry`
     """
 
-    def build_fragment(self):
-        super().build_fragment()
+    def build_fragment(self, blue_3d_mot: Blue3DMOTFrag):
+        super().build_fragment(blue_3d_mot=blue_3d_mot)
 
         self.setattr_param(
             "spectroscopy_pulse_time",
@@ -159,35 +158,75 @@ class ClockInterferometryBase(
         self.clock_dds.sw.off()
 
 
-class ClockInterferometryRedMOTMixin(ClockInterferometryBase):
+class _ClockInterferometryMixinBase(ClockSpectroscopyBaseFrag):
+    """
+    Base mixin for clock interferometry, providing
+    :meth:`~do_clock_interferometry`
+
+    Uses a customized ClockInterferometryBaseFrag as a subfragment, exposing the
+    most important parameters.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+        * None
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "clock_interferometry_frag",
+            ClockInterferometryBaseFrag,
+            blue_3d_mot=self.blue_3d_mot,
+        )
+        self.clock_interferometry_frag: ClockInterferometryBaseFrag
+
+        # %% Expose the most important parameters
+
+        self.setattr_param_rebind(
+            "spectroscopy_pulse_time", self.clock_interferometry_frag
+        )
+        self.setattr_param_rebind(
+            "spectroscopy_pulse_aom_detuning", self.clock_interferometry_frag
+        )
+        self.setattr_param_rebind(
+            "spectroscopy_clock_delivery_setpoint", self.clock_interferometry_frag
+        )
+        self.setattr_param_rebind(
+            "delay_between_interferometry_pulses", self.clock_interferometry_frag
+        )
+        self.setattr_param_rebind("phase_step", self.clock_interferometry_frag)
+        self.setattr_param_rebind(
+            "stark_pulse_duration", self.clock_interferometry_frag.stark_shifter
+        )
+
+
+class ClockInterferometryRedMOTMixin(_ClockInterferometryMixinBase):
+    # FIXME: Merge these two and other similar instances by creating a "do_experiment_hook" which is called by "do_experiment_after_red_mot_hook"
     """
     Implements clock interferometry after the red MOT
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~before_start_hook`
     * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
     """
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
-        self.do_clock_interferometry()
+        self.clock_interferometry_frag.do_clock_interferometry()
 
 
 class ClockInterferometryDipoleTrapMixin(
-    ClockInterferometryBase, DipoleTrapWithExperiment
+    _ClockInterferometryMixinBase, DipoleTrapWithExperiment
 ):
     """
     Implements clock interferometry after the dipole trap
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~before_start_hook`
     * :meth:`~do_experiment_after_dipole_trap_hook`
-    * :meth:`~do_first_pulse`
     """
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.do_clock_interferometry()
+        self.clock_interferometry_frag.do_clock_interferometry()
