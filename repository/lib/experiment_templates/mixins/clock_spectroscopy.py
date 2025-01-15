@@ -140,8 +140,8 @@ class _ClockRabiSpectroscopyMixinBase(RedMOTWithExperiment):
         super().build_fragment()
 
         class ClockRabiSpectroscopyFrag(ClockSpectroscopyBaseFrag):
-            def build_fragment(self):
-                super().build_fragment()
+            def build_fragment(self, blue_3d_mot: Blue3DMOTFrag):
+                super().build_fragment(blue_3d_mot=blue_3d_mot)
 
                 self.setattr_param(
                     "spectroscopy_pulse_time",
