@@ -184,7 +184,6 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.post_first_series()  # call rpc to get images, start next acquisition
         at_mu(t_post_mu)
         delay(self.delay_before_bg_img.get())
-        self.pre_second_series()
         self.do_second_series()
         self.post_second_series()  # call rpc to get images
 
@@ -211,13 +210,6 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.image_store = []  # clear the image store
         self.image_store += self.get_andor_images()
         self.andor_camera_control.start_acquisition()
-
-    @kernel
-    def pre_second_series(self):
-        """
-        eg turn on beams for some time
-        must not advance the timeline
-        """
 
     @kernel
     def do_second_series(self):
