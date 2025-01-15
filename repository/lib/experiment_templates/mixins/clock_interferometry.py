@@ -17,6 +17,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBaseFrag,
 )
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.stark_shifter import StarkShifter
 
@@ -158,7 +159,7 @@ class ClockInterferometryBaseFrag(
         self.clock_dds.sw.off()
 
 
-class _ClockInterferometryMixinBase(ClockSpectroscopyBaseFrag):
+class _ClockInterferometryMixinBase(RedMOTWithExperiment):
     """
     Base mixin for clock interferometry, providing
     :meth:`~do_clock_interferometry`
