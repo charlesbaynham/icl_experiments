@@ -17,6 +17,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
@@ -123,7 +124,7 @@ class ClockSpectroscopyBaseFrag(RedMOTCheckpoints):
         self.blue_3d_mot.turn_on_repumpers()
 
 
-class _ClockRabiSpectroscopyMixinBase(ClockSpectroscopyBaseFrag):
+class _ClockRabiSpectroscopyMixinBase(RedMOTWithExperiment):
     """
     Base mixin for Rabi clock spectroscopy, providing
     :meth:`~do_rabi_spectroscopy`
@@ -136,6 +137,8 @@ class _ClockRabiSpectroscopyMixinBase(ClockSpectroscopyBaseFrag):
     """
 
     def build_fragment(self):
+        super().build_fragment()
+
         class ClockRabiSpectroscopyFrag(ClockSpectroscopyBaseFrag):
             def build_fragment(self):
                 super().build_fragment()
