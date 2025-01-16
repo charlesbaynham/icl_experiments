@@ -13,7 +13,7 @@ supplied to the DDS
 
 The selection of the specific DDS signal control parameters that serve as the
 destination for the RAM samples is also programmable through eight independent
-RAM profile registers. Select a par- ticular profile using the three external
+RAM profile registers. Select a particular profile using the three external
 profile pins (PROFILE[2:0]). A change in the state of the profile pins with the
 next rising edge on SYNC_CLK activates the selected RAM profile. In RAM
 modulation mode, the ability to generate a time depen- dent amplitude, phase, or
@@ -60,12 +60,17 @@ operations. Loading or retrieving the contents of the RAM requires a three-step
 process.
     1. Program the RAM Profile 0 through RAM Profile 7 control
     registers with the start and end addresses that are to define the boundaries
-    of each independent waveform. 2. Drive the appropriate logic levels on the
-    profile pins to select the desired RAM profile 3. Write to (or read from)
+    of each independent waveform.
+    2. Drive the appropriate logic levels on the
+    profile pins to select the desired RAM profile
+    3. Write to (or read from)
     the RAM ( Address 0x16) the appropriate number of RAM words as specified by
     the selected RAM profile control register (see the Serial Programming
-    section for details). Figure 41 is a block diagram showing the functional
-    components used for RAM data load/retrieve operation.
+    section for details).
+
+Figure 41 is a block diagram showing the functional
+components used for RAM data load/retrieve operation.
+
 During RAM load/retrieve operations, the state machine controls an up/down
 counter to step through the required RAM loca- tions. The counter synchronizes
 with the serial I/O port so that the serial/parallel conversion of the 32-bit
@@ -199,6 +204,7 @@ import logging
 import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9910 import DEFAULT_PROFILE
+from artiq.coredevice.ad9910 import RAM_DEST_POWASF
 from artiq.coredevice.ad9910 import RAM_MODE_RAMPUP
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CPLD
@@ -266,6 +272,22 @@ class AD9910RAMTest(EnvExperiment):
         self.read_and_print_ram()
 
     @kernel
+    def playback(self, ram_destination=RAM_DEST_POWASF):
+        """
+        Playback the sequence recorded in RAM
+
+        This will play back the preconfigured RAM sequence by:
+
+        * enabling RAM mode for this DDS
+        * setting PROFILE for *all* DDSs to profile 1
+        * triggering IO_UPDATE
+
+        Args:
+            ram_destination (_type_, optional): _description_. Defaults to RAM_DEST_POWASF.
+        """
+        self.dds.set_cfr1(ram_enable=1, ram_destination=ram_destination)
+
+    @kernel
     def write_ram(self, data: list[np.int32], mode=RAM_MODE_RAMPUP):
         """
         Write a list of 32-bit integers into the AD9910's RAM
@@ -282,6 +304,9 @@ class AD9910RAMTest(EnvExperiment):
         Args:
             data (list[np.int32]): List of 32-bit data words to store.
         """
+
+        # FIXME: this is broken now, despite working earlier.
+
         # Configure RAM mode for this DDS. We'll use profile 0 for writing, but
         # it could be reconfigured later after the data has been stored.
         self.dds.set_profile_ram(
@@ -298,6 +323,11 @@ class AD9910RAMTest(EnvExperiment):
     def read_and_print_ram(self):
         self.core.break_realtime()
         read_data = [np.int32(0x00)] * self.n_steps
+
+        self.cpld.set_profile(RAM_PROFILE)
         self.dds.read_ram(read_data)
 
-        logger.info("RAM contents: %s", read_data)
+        self.core.break_realtime()
+        self.cpld.set_profile(DEFAULT_PROFILE)
+
+        logger.warning("RAM contents: %s", read_data)
