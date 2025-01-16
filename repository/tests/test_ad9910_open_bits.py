@@ -9,6 +9,8 @@ from artiq.experiment import kernel
 
 logger = logging.getLogger(__name__)
 
+OPEN_BITS_OFFSET = 25
+
 
 class AD9910CFR2Writer(EnvExperiment):
     def build(self):
@@ -34,8 +36,6 @@ class AD9910CFR2Writer(EnvExperiment):
         cfr2 = self.read_reg()
 
         # Write into the "open" bits
-        OPEN_BITS_OFFSET = 25
-
         data = 0b10101010
 
         cfr2_modified = cfr2 & ~(0xFF << OPEN_BITS_OFFSET)
@@ -51,7 +51,8 @@ class AD9910CFR2Writer(EnvExperiment):
     @kernel
     def read_reg(self):
         cfr2 = self.dds.read32(_AD9910_REG_CFR2)
+        open_bits = (cfr2 >> OPEN_BITS_OFFSET) & 0xFF
 
-        logger.info("CFR2 = 0x%08x", cfr2)
+        logger.info("CFR2 = 0x%08x, open_bits = 0x%02x", cfr2, open_bits)
 
         return cfr2
