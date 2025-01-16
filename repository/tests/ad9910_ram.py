@@ -232,7 +232,7 @@ class AD9910RAMTest(EnvExperiment):
 
         self.n_steps = 10
 
-        self.ram_data = np.uint32(list(range(self.n_steps)))
+        self.ram_data = np.int32(list(range(self.n_steps))).tolist()
 
         # self.phase_start = 0.0
         # self.phase_end = 0.0
@@ -250,7 +250,7 @@ class AD9910RAMTest(EnvExperiment):
 
         # Configure RAM mode - this will affect all four DDSs on the Urukul
         self.dds.set_profile_ram(
-            start=0x00, end=self.n_steps, mode=RAM_MODE_RAMPUP, profile=RAM_PROFILE
+            start=0x00, end=self.n_steps - 1, mode=RAM_MODE_RAMPUP, profile=RAM_PROFILE
         )
         self.cpld.set_profile(RAM_PROFILE)
 
@@ -270,7 +270,7 @@ class AD9910RAMTest(EnvExperiment):
     @kernel
     def read_and_print_ram(self):
         self.core.break_realtime()
-        read_data = [np.uint32(0x00)] * self.n_steps
+        read_data = [np.int32(0x00)] * self.n_steps
         self.dds.read_ram(read_data)
 
         logger.info("RAM contents: %s", read_data)
