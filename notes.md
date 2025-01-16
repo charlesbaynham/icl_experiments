@@ -163,3 +163,14 @@ So actions:
    was the only system that was not building, probably because we're the only
    ones who regularly mess around with our EEM cables and therefore have weird
    ordering).
+
+
+# 2025-01-15 Picking this back up
+
+It's been a while. The status now is:
+
+1. The ARTIQ hardware in the lab has been changed to reorder the devices in the red crate, ready for the update
+2. The master crate still has an AD9912
+3. The latest ARTIQ version failed when I flashed it to the master crate for unknown reasons.
+
+I'm debugging the build failure, but I can also make progress on the modulation code for the AD9910 which I'll swap at some point.
