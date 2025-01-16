@@ -197,7 +197,9 @@ of these registers depends on the RAM_ENABLE bit in CFR1.
 import logging
 
 import numpy as np
-from artiq.coredevice.ad9910 import AD9910, RAM_MODE_RAMPUP
+from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ad9910 import DEFAULT_PROFILE
+from artiq.coredevice.ad9910 import RAM_MODE_RAMPUP
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CPLD
 from artiq.experiment import EnumerationValue
@@ -250,12 +252,6 @@ class AD9910RAMTest(EnvExperiment):
         delay(1e-3)
         self.dds.init(blind=False)
 
-        # Configure RAM mode - this will affect all four DDSs on the Urukul
-        self.dds.set_profile_ram(
-            start=0x00, end=self.n_steps - 1, mode=RAM_MODE_RAMPUP, profile=RAM_PROFILE
-        )
-        self.cpld.set_profile(RAM_PROFILE)
-
         # Note that I'm not setting CFR1 to enable RAM mode, so these settings
         # don't affect the DDS output yet, they're just read in and out as a test.
 
@@ -264,10 +260,39 @@ class AD9910RAMTest(EnvExperiment):
         # Write to RAM
         logger.info("Writing %s", self.ram_data)
         self.core.break_realtime()
-        self.dds.write_ram(self.ram_data)
+        self.write_ram(self.ram_data)
 
         # Read it back
         self.read_and_print_ram()
+
+    @kernel
+    def write_ram(self, data: list[np.int32], mode=RAM_MODE_RAMPUP):
+        """
+        Write a list of 32-bit integers into the AD9910's RAM
+
+        To do this, this function will alter the PROFILE pins for all four
+        AD9910s on this Urukul, but put them back afterwards to ARTIQ's default
+        setting.
+
+        The data will be stored starting at address 0 and must be a maximum of
+        1024 words long.
+
+        Interpretation is left to the user to define elsewhere.
+
+        Args:
+            data (list[np.int32]): List of 32-bit data words to store.
+        """
+        # Configure RAM mode for this DDS. We'll use profile 0 for writing, but
+        # it could be reconfigured later after the data has been stored.
+        self.dds.set_profile_ram(
+            start=0x00, end=len(data) - 1, mode=mode, profile=RAM_PROFILE
+        )
+        # Set the PROFILE pins to select the profile zero as a write target.
+        # This affects all four DDSs but has no effect unless we pulse
+        # IO_UPDATE.
+        self.cpld.set_profile(RAM_PROFILE)
+        self.dds.write_ram(self.ram_data)
+        self.cpld.set_profile(DEFAULT_PROFILE)
 
     @kernel
     def read_and_print_ram(self):
