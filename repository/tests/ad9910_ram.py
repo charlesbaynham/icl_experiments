@@ -219,7 +219,7 @@ class AD9910RAMTest(EnvExperiment):
         ad9910_devices = get_local_devices(self, AD9910)
 
         self.setattr_argument(
-            "dds_name", EnumerationValue(ad9910_devices, default=ad9910_devices[0])
+            "dds_name", EnumerationValue(ad9910_devices, default="urukul8_ch2")
         )
 
         self.dds: AD9910 = self.get_device(self.dds_name)
@@ -245,6 +245,7 @@ class AD9910RAMTest(EnvExperiment):
     @kernel
     def run(self):
         self.core.reset()
+        delay(1e-3)
         self.dds.init(blind=False)
 
         # Configure RAM mode - this will affect all four DDSs on the Urukul
@@ -258,9 +259,9 @@ class AD9910RAMTest(EnvExperiment):
 
         self.read_and_print_ram()
 
-        self.core.break_realtime()
-
         # Write to RAM
+        logger.info("Writing %s", self.ram_data)
+        self.core.break_realtime()
         self.dds.write_ram(self.ram_data)
 
         # Read it back
@@ -268,6 +269,7 @@ class AD9910RAMTest(EnvExperiment):
 
     @kernel
     def read_and_print_ram(self):
+        self.core.break_realtime()
         read_data = [np.int32(0x00)] * self.n_steps
         self.dds.read_ram(read_data)
 
