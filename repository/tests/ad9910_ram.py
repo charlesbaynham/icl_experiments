@@ -232,7 +232,9 @@ class AD9910RAMTest(EnvExperiment):
 
         self.n_steps = 10
 
-        self.ram_data = np.int32(list(range(self.n_steps))).tolist()
+        self.ram_data = np.random.randint(
+            0, 2**31 - 1, size=self.n_steps, dtype=np.int32
+        ).tolist()
 
         # self.phase_start = 0.0
         # self.phase_end = 0.0
