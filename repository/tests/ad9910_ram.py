@@ -197,6 +197,24 @@ control bits are detailed in Table 13.
 | 011                   | Continuous bidirectional ramp    |
 | 100                   | Continuous recirculate           |
 
+
+CFAB Notes
+==========
+
+Based on the above, I think I need to two these things:
+
+0. Set RAM_ENABLE = 0 in CFR1.
+1. Set the PROFILE pins to select a RAM profile. This will affect ALL DDSs on the Urukul, but won't do anything unless I pulse IO_UPDATE.
+2. Write my RAM profile settings into the appropriate RAM profile control register. ARTIQ uses profile "7" by default, so let's use profile 0.
+3. Step 2 specified how many 32-bit words I need to generate. Do so.
+4. Write all these words into address "0x16" which will write them into the RAM, starting at the offset specified in the RAM profile control register.
+
+When I want to playback the RAM, I need to:
+
+1. Set RAM_ENABLE = 1 in CFR1.
+2. Pulse IO_UPDATE to start the RAM playback. If I want, I can mask this using
+   NU_MASK to only affect the DDS I want to affect. I probably want to do this.
+
 """
 
 import logging
