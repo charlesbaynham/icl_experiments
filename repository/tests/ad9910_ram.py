@@ -197,7 +197,7 @@ of these registers depends on the RAM_ENABLE bit in CFR1.
 import logging
 
 import numpy as np
-from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ad9910 import AD9910, RAM_MODE_RAMPUP
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CPLD
 from artiq.experiment import EnumerationValue
@@ -207,6 +207,8 @@ from artiq.experiment import kernel
 from pyaion.lib.utils import get_local_devices
 
 logger = logging.getLogger(__name__)
+
+RAM_PROFILE = 0
 
 
 class AD9910RAMTest(EnvExperiment):
@@ -223,39 +225,48 @@ class AD9910RAMTest(EnvExperiment):
 
     def prepare(self):
         # Hard-code parameters for now
-        self.att = 30
-        self.freq = 30e6
+        # self.att = 30
+        # self.freq = 30e6
 
-        self.n_steps = 100
+        self.n_steps = 10
 
-        self.phase_start = 0.0
-        self.phase_end = 0.0
-        self.phases = np.linspace(self.phase_start, self.phase_end, self.n_steps)
+        self.ram_data = list(range(self.n_steps))
 
-        self.amp_start = 0.0
-        self.amp_end = 1.0
-        self.amps = np.linspace(self.amp_start, self.amp_end, self.n_steps)
+        # self.phase_start = 0.0
+        # self.phase_end = 0.0
+        # self.phases = np.linspace(self.phase_start, self.phase_end, self.n_steps)
+
+        # self.amp_start = 0.0
+        # self.amp_end = 1.0
+        # self.amps = np.linspace(self.amp_start, self.amp_end, self.n_steps)
 
     @kernel
     def run(self):
         self.core.reset()
         self.dds.init(blind=False)
 
-        logger.warning(
-            "Setting attenuator to %.1f dB - this will affect all four channels",
-            self.att,
+        # Configure RAM mode - this will affect all four DDSs on the Urukul
+        self.dds.set_profile_ram(
+            start=0x00, end=self.n_steps, mode=RAM_MODE_RAMPUP, profile=RAM_PROFILE
         )
+        self.cpld.set_profile(RAM_PROFILE)
 
-        logger.info(
-            "%s - setting f=%.6f, att = %.1f dB, amp = %.2f, rf_sw=%s",
-            self.dds_name,
-            self.freq,
-            self.att,
-            1.0,
-            True,
-        )
+        # Note that I'm not setting CFR1 to enable RAM mode, so these settings
+        # don't affect the DDS output yet, they're just read in and out as a test.
+
+        self.read_and_print_ram()
 
         self.core.break_realtime()
-        delay(10e-3)
 
-        self.dds.measure_io_update_alignment
+        # Write to RAM
+        self.dds.write_ram(self.ram_data)
+
+        # Read it back
+        self.read_and_print_ram()
+
+    @kernel
+    def read_and_print_ram(self):
+        read_data = [np.int32(0x00)] * self.n_steps
+        self.dds.read_ram(read_data)
+
+        logger.info(f"RAM contents: {read_data}")
