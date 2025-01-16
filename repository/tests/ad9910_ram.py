@@ -218,7 +218,9 @@ class AD9910RAMTest(EnvExperiment):
 
         ad9910_devices = get_local_devices(self, AD9910)
 
-        self.setattr_argument("dds_name", EnumerationValue(ad9910_devices))
+        self.setattr_argument(
+            "dds_name", EnumerationValue(ad9910_devices, default=ad9910_devices[0])
+        )
 
         self.dds: AD9910 = self.get_device(self.dds_name)
         self.cpld: CPLD = self.dds.cpld
@@ -269,4 +271,4 @@ class AD9910RAMTest(EnvExperiment):
         read_data = [np.int32(0x00)] * self.n_steps
         self.dds.read_ram(read_data)
 
-        logger.info(f"RAM contents: {read_data}")
+        logger.info("RAM contents: %s", read_data)
