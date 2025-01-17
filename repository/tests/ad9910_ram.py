@@ -243,6 +243,7 @@ class AD9910RAMTest(EnvExperiment):
         self.ram_data = np.random.randint(
             0, 2**31 - 1, size=self.n_steps, dtype=np.int32
         ).tolist()
+        self.ram_data = np.linspace(0, 2**30, self.n_steps, dtype=np.int32).tolist()
 
         # self.phase_start = 0.0
         # self.phase_end = 0.0
@@ -304,9 +305,6 @@ class AD9910RAMTest(EnvExperiment):
         Args:
             data (list[np.int32]): List of 32-bit data words to store.
         """
-
-        # FIXME: this is broken now, despite working earlier.
-
         # Configure RAM mode for this DDS. We'll use profile 0 for writing, but
         # it could be reconfigured later after the data has been stored.
         self.dds.set_profile_ram(
@@ -320,11 +318,16 @@ class AD9910RAMTest(EnvExperiment):
         self.cpld.set_profile(DEFAULT_PROFILE)
 
     @kernel
-    def read_and_print_ram(self):
-        self.core.break_realtime()
+    def read_and_print_ram(self, mode=RAM_MODE_RAMPUP):
         read_data = [np.int32(0x00)] * self.n_steps
 
+        self.core.break_realtime()
+
+        self.dds.set_profile_ram(
+            start=0x00, end=len(read_data) - 1, mode=mode, profile=RAM_PROFILE
+        )
         self.cpld.set_profile(RAM_PROFILE)
+
         self.dds.read_ram(read_data)
 
         self.core.break_realtime()
