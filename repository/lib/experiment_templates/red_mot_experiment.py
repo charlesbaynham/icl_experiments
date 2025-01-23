@@ -189,6 +189,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             "bias_field_z_start", self.blue_3d_mot.chamber_2_bias_z
         )
 
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_x_end", self.red_mot.narrowband_bias_x
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_y_end", self.red_mot.narrowband_bias_y
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_z_end", self.red_mot.narrowband_bias_z
+        )
+
         self.hook_setup_andor()
 
     @kernel
