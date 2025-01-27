@@ -160,12 +160,12 @@ class _DualCameraBase(Fragment):
         self.ccb.issue(
             "create_applet",
             "Dual-camera horizontal image",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_KEY_H}",
+            f"${{artiq_applet}}image {DATASET_KEY_H}",
         )
         self.ccb.issue(
             "create_applet",
             "Dual-camera vertical image",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_KEY_V}",
+            f"${{artiq_applet}}image {DATASET_KEY_V}",
         )
 
     @kernel
