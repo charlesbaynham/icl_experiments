@@ -97,6 +97,10 @@ class CameraFrag(Fragment):
         super().__init__(*args, **kwargs)
 
     def build_fragment(self, hardware_trigger=False):
+
+        camera_block_check = self.get_dataset("camera_block_check")
+        if camera_block_check != "fluor":
+            raise RuntimeError("WARNING: IS THE BEAM BLOCK IN PLACE?")
         super().build_fragment()
 
         for feature, value in self.default_features.items():
@@ -130,9 +134,6 @@ class CameraFrag(Fragment):
         }
 
     def host_setup(self):
-        camera_block_check = self.get_dataset("camera_block_check")
-        if camera_block_check != "fluor":
-            raise RuntimeError("WARNING: IS THE BEAM BLOCK IN PLACE?")
         self.save_raw = self.save_raw_images.get()
 
         # Open the monitoring applet

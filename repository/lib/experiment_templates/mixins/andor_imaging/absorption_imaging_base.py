@@ -45,6 +45,9 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     def build_fragment(self):
 
+        camera_block_check = self.get_dataset("camera_block_check")
+        if camera_block_check != "abs":
+            raise RuntimeError("Did you leave the beam block in?")
         super().build_fragment()
 
         super().build_fragment()
@@ -109,11 +112,6 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.override_param("pre_trigger_delay", 50e-6)
 
     def host_setup(self):
-
-        camera_block_check = self.get_dataset("camera_block_check")
-        if camera_block_check != "abs":
-            raise RuntimeError("Did you leave the beam block in?")
-
         super().host_setup()
         self.andor_camera_control.cam.stop_acquisition()
         em_gain = self.andor_camera_control.cam.get_EMCCD_gain()[0]
