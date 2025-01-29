@@ -110,7 +110,7 @@ class AbsorptionImagingBase(AndorImagingBase):
     def host_setup(self):
 
         camera_block_check = self.get_dataset("camera_block_check")
-        if camera_block_check != "block is not in":
+        if camera_block_check != "abs":
             raise RuntimeError("Did you leave the beam block in?")
 
         super().host_setup()

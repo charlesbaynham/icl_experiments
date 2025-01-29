@@ -179,8 +179,8 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     def host_setup(self):
 
-        camera_block_check = self.get_dataset("camera_block_check", default="pass")
-        if camera_block_check not in ("block is in", "pass"):
+        camera_block_check = self.get_dataset("camera_block_check")
+        if camera_block_check != "fluor":
             raise RuntimeError("WARNING: IS THE BEAM BLOCK IN PLACE?")
         if self.use_andor_driver.get():
             self.ccb.issue(
