@@ -97,7 +97,6 @@ class CameraFrag(Fragment):
         super().__init__(*args, **kwargs)
 
     def build_fragment(self, hardware_trigger=False):
-        super().build_fragment()
 
         for feature, value in self.default_features.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
