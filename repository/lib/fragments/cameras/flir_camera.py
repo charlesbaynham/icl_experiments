@@ -129,8 +129,8 @@ class CameraFrag(Fragment):
         }
 
     def host_setup(self):
-        camera_block_check = self.get_dataset("camera_block_check")
-        if camera_block_check != "fluor":
+        camera_block_check = self.get_dataset("camera_block_check", default="pass")
+        if camera_block_check not in ("block is in", "pass"):
             raise RuntimeError("WARNING: IS THE BEAM BLOCK IN PLACE?")
         self.save_raw = self.save_raw_images.get()
 
