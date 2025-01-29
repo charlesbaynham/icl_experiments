@@ -44,8 +44,13 @@ class AbsorptionImagingBase(AndorImagingBase):
     num_images_per_series = 3
 
     def build_fragment(self):
+
+        camera_block_check = self.get_dataset("camera_block_check")
+        if camera_block_check != "abs":
+            raise RuntimeError("Did you leave the beam block in?")
         super().build_fragment()
 
+        super().build_fragment()
         self.setattr_param(
             "delay_between_absorption_pulses",
             FloatParam,

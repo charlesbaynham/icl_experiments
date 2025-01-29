@@ -97,6 +97,12 @@ class CameraFrag(Fragment):
         super().__init__(*args, **kwargs)
 
     def build_fragment(self, hardware_trigger=False):
+
+        camera_block_check = self.get_dataset("camera_block_check")
+        if camera_block_check != "fluor":
+            raise RuntimeError("WARNING: IS THE BEAM BLOCK IN PLACE?")
+        super().build_fragment()
+
         for feature, value in self.default_features.items():
             self.setattr_param(feature, FloatParam, feature, default=value)
 
