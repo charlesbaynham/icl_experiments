@@ -24,7 +24,6 @@ class FLIRMeasurementMixin(RedMOTWithExperiment):
     """
 
     def build_fragment(self):
-        super().build_fragment()
 
         self.setattr_fragment(
             "camera_interface", DualCameraMeasurement, hardware_trigger=True
