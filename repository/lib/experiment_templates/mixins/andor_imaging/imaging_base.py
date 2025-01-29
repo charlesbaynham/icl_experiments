@@ -63,10 +63,6 @@ class AndorImagingBase(RedMOTWithExperiment):
     keep_andor_shutter_closed = False
 
     def build_fragment(self):
-
-        camera_block_check = self.get_dataset("camera_block_check")
-        if camera_block_check != "fluor":
-            raise RuntimeError("WARNING: IS THE BEAM BLOCK IN PLACE?")
         super().build_fragment()
 
         self.setattr_device("ccb")
