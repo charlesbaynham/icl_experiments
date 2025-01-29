@@ -47,7 +47,6 @@ class AbsorptionImagingBase(AndorImagingBase):
 
         super().build_fragment()
 
-        super().build_fragment()
         self.setattr_param(
             "delay_between_absorption_pulses",
             FloatParam,
