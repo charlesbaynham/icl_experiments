@@ -24,7 +24,7 @@ class FLIRMeasurementMixin(RedMOTWithExperiment):
     """
 
     def build_fragment(self):
-        super().build_fragment()  # this is the one alice removed but shouldn't have
+        super().build_fragment()
 
         self.setattr_fragment(
             "camera_interface", DualCameraMeasurement, hardware_trigger=True
