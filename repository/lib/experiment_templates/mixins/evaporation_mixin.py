@@ -21,9 +21,9 @@ class EvaporationMixin(DipoleTrapWithExperiment):
         )
         self.linear_evap_ramp: XODTWithLinearRamp
 
-        # self.linear_evap_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
-        #    [self.dipole_beam_controller.all_beam_default_setter]
-        # )
+        self.linear_evap_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
+            [self.dipole_beam_controller.all_beam_default_setter]
+        )
 
         # self.linear_evap_ramp.daisy_chain_with_previous_phase(self.narrow_red_compression_phase, suservos= suservos_XODT)
         self.linear_evap_ramp.default_suservo_setpoint_multiples_start = (
