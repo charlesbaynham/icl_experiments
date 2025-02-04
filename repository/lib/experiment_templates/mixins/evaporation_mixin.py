@@ -34,7 +34,15 @@ class EvaporationMixin(DipoleTrapWithExperiment):
         )
 
     @kernel
+    def DMA_initialization_hook_linear_evap(self):
+        self.linear_evap_ramp.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_linear_evap()
+
+    @kernel
     def dipole_trap_evaporation_hook(self):
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
+        self.dipole_trap_evaporation_hook_default()
         self.linear_evap_ramp.do_phase()
