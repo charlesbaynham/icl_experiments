@@ -6,9 +6,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 import repository.lib.constants as constants
 
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
-    XODTWithLinearRamp
-)
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
@@ -27,15 +25,16 @@ class EvaporationMixin(DipoleTrapWithExperiment):
             [self.dipole_beam_controller.all_beam_default_setter]
         )
 
-        #self.linear_evap_ramp.daisy_chain_with_previous_phase(self.narrow_red_compression_phase, suservos= suservos_XODT)
+        # self.linear_evap_ramp.daisy_chain_with_previous_phase(self.narrow_red_compression_phase, suservos= suservos_XODT)
         self.linear_evap_ramp.default_suservo_setpoint_multiples_start = (
             constants.XODT_EVAP_START
         )
         self.linear_evap_ramp.default_suservo_setpoint_multiples_end = (
             constants.XODT_EVAP_END
         )
-        
 
     @kernel
     def dipole_trap_evaporation_hook(self):
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
         self.linear_evap_ramp.do_phase()
