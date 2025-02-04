@@ -126,7 +126,7 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     A phase with linear ramps for 1064 and 813 nm XODT
     """
 
-    duration_default = 150e-3
+    duration_default = 500e-3
     time_step_default = 1e-3
 
     suservos = suservos_XODT
