@@ -6,9 +6,7 @@ import repository.lib.constants as constants
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndBiasField,
 )
-from repository.lib.fragments.ramping_phase_bound import (
-    GeneralRampingPhaseWithBinding
-)
+from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 
 suservos_molasses = [
     "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -122,21 +120,23 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     general_setter_default_starts = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
     general_setter_default_ends = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END
 
+
 class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     """
     A phase with linear ramps for 1064 and 813 nm XODT
     """
-    
-    duration_default  = 150e-3
+
+    duration_default = 150e-3
     time_step_default = 1e-3
 
     suservos = suservos_XODT
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(suservos_XODT)
-    # The start setpoints must be overridden by daisy-chaining to previous phase
-    default_suservo_setpoint_multiples_start = [0] * len(suservos_XODT)
-    default_suservo_setpoint_multiples_end = (
-        constants.XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END
-    )
+    default_suservo_nominal_setpoints = [3.5] * len(suservos_XODT)
 
+    self.linear_evap_ramp.default_suservo_setpoint_multiples_start = (
+        constants.XODT_EVAP_START
+    )
+    self.linear_evap_ramp.default_suservo_setpoint_multiples_end = (
+        constants.XODT_EVAP_END
+    )
