@@ -86,6 +86,16 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         )
         self.adc_reader: ReadSUServoADC
 
+        self.setattr_result("photodiode_voltage_push", FloatChannel)
+        self.photodiode_voltage_push: ResultChannel
+
+        self.setattr_fragment(
+            "adc_reader_push",
+            ReadSUServoADC,
+            self.get_device("suservo_aom_singlepass_461_pushbeam"),
+        )
+        self.adc_reader_push: ReadSUServoADC
+
     @kernel
     def run_once(self) -> None:
         # Turn on the plug beam and set its amplitude, setpoint and frequency
@@ -104,6 +114,9 @@ class ScanPlugBeamParamsFrag(ExpFragment):
         self.core.break_realtime()
         photodiode_voltage = self.adc_reader.read_adc()
         self.photodiode_voltage.push(photodiode_voltage)
+        self.core.break_realtime()
+        photodiode_voltage_push = self.adc_reader_push.read_adc()
+        self.photodiode_voltage_push.push(photodiode_voltage_push)
         self.core.break_realtime()
         self.blue_mot.turn_off_all_beams()
 
