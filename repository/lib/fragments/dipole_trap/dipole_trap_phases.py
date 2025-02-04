@@ -132,7 +132,7 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     suservos = suservos_XODT
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [3.5] * len(suservos_XODT)
+    default_suservo_nominal_setpoints = [0.0] * len(suservos_XODT)
 
     default_suservo_setpoint_multiples_start = constants.XODT_EVAP_START
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_END
