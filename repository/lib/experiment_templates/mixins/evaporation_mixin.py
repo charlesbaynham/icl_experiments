@@ -25,14 +25,6 @@ class EvaporationMixin(DipoleTrapWithExperiment):
             [self.dipole_beam_controller.all_beam_default_setter]
         )
 
-        # self.linear_evap_ramp.daisy_chain_with_previous_phase(self.narrow_red_compression_phase, suservos= suservos_XODT)
-        self.linear_evap_ramp.default_suservo_setpoint_multiples_start = (
-            constants.XODT_EVAP_START
-        )
-        self.linear_evap_ramp.default_suservo_setpoint_multiples_end = (
-            constants.XODT_EVAP_END
-        )
-
     @kernel
     def DMA_initialization_hook_linear_evap(self):
         self.linear_evap_ramp.precalculate_dma_handle()
