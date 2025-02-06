@@ -476,7 +476,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_push_beam",
         125e6,
-        20,
+        15,
         "suservo_aom_singlepass_461_pushbeam",
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
