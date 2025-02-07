@@ -63,7 +63,6 @@ class AndorImagingBase(RedMOTWithExperiment):
     keep_andor_shutter_closed = False
 
     def build_fragment(self):
-
         super().build_fragment()
 
         self.setattr_device("ccb")
@@ -178,9 +177,6 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_images.append(image)
 
     def host_setup(self):
-
-        self.block_check()
-
         if self.use_andor_driver.get():
             self.ccb.issue(
                 "create_applet",
@@ -197,10 +193,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                 )
         self.image_store = []
         super().host_setup()
-
-    @host_only
-    def block_check(self):
-        """the block check from"""  # TODO
 
     @kernel
     def start_of_red_broadband_hook(self):
