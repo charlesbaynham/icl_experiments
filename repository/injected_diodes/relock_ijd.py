@@ -354,5 +354,5 @@ class RelockAllIJDsFrag(ExpFragment):
                 ijd_relock_frag.relock()
 
 
-RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
+# RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
 RelockAllIJDs = make_fragment_scan_exp(RelockAllIJDsFrag)
