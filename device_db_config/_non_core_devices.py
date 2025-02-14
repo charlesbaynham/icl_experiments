@@ -318,8 +318,8 @@ def get_non_core_devices(simulation_mode=False):
         #     },
         # },
     }
-    next_port = get_next_port()
-    return _non_core, next_port
+    print(get_next_port())
+    return _non_core
 
 
 if __name__ == "__main__":

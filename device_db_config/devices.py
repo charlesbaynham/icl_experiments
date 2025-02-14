@@ -29,7 +29,7 @@ def get_device_db(simulation_mode=False):
     db = generated_device_db.device_db.copy()
 
     # Append our own peripheral devices
-    db, next_port = _append_non_core(db, simulation_mode)
+    db = _append_non_core(db, simulation_mode)
 
     # Append dedrifter core
     db = _append_dedrifter_core(db, next_port)
@@ -74,8 +74,14 @@ def _append_non_core(db: dict, simulation_mode=False):
     return {**db, **non_core}
 
 
-def _append_dedrifter_core(db: dict, port: int):
-    dedrifter_core = device_db_dedrifter.get_dedrifter_device_db(port)
+def _append_dedrifter_core(db: dict):
+    next_port = 0
+    for device in db.values():
+        device: dict
+        next_port = max(next_port, device.get("port", 0))
+    next_port += 1
+    print(next_port)
+    dedrifter_core = device_db_dedrifter.get_dedrifter_device_db(next_port)
 
     # Merge dicts
     return {**db, **dedrifter_core}
