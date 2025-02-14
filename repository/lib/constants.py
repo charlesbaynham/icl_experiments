@@ -1062,3 +1062,34 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
 # ]
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
+
+cavity_drift_rate = (
+    0.05  # Hz/s based on ~9 kHz drift over 24 hours, through a frequnecy doubler
+)
+
+f_offset_689 = 331.543688e6
+reference_time_689 = 1739450287
+drift_rate_689 = cavity_drift_rate
+
+f_offset_698 = 336.137e6  #  337.4035e6  # 673.54e6 / 2  # 336.77e6
+reference_time_698 = 0  # 1734090967
+drift_rate_698 = -cavity_drift_rate
+
+
+@dataclass
+class DedrifterInfo:
+    laser_name: str
+    channel_name: str
+    reference_frequency: float
+    reference_time: int
+    drift_rate: float
+
+
+dedrifter_info_689 = DedrifterInfo(
+    "689", "urukul_dedrifter_ch0", f_offset_689, reference_time_689, drift_rate_689
+)
+dedrifter_info_698 = DedrifterInfo(
+    "698", "urukul_dedrifter_ch1", f_offset_698, reference_time_698, -drift_rate_698
+)
+
+dedrifter_infos = [dedrifter_info_689, dedrifter_info_698]
