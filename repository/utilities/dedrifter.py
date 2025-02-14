@@ -198,7 +198,9 @@ class DedrifterFrag(ExpFragment):
     def device_setup(self):
         self.do_a_print()
         self.core.break_realtime()
+        self.do_a_print("I broke realtime")
         self.cpld.init()
+        self.do_a_print("I initialized cpld")
         delay(1e-3)
         self.cpld.cfg_switches(0b1111)
         delay(1e-3)
