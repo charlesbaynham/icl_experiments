@@ -32,7 +32,7 @@ class AD9910Dedrifter(Fragment):
         # self.ramper: AD9910Ramper = self.setattr_fragment(
         #     "ramper", AD9910Ramper, self.info.channel_name
         # )
-        self.core: Core = self.get_device("core_dedrifter")
+        self.core_dedrifter: Core = self.get_device("core_dedrifter")
         self.dds: AD9910 = self.get_device(self.info.channel_name)
 
         name = self.info.laser_name
@@ -103,9 +103,9 @@ class AD9910Dedrifter(Fragment):
             logger.info("=" * 20)
         return f_offset
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def device_setup(self):
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         self.dds.init()
         self.device_setup_subfragments()
 
@@ -137,7 +137,7 @@ class DedrifterFrag(ExpFragment):
     """
 
     def build_fragment(self):
-        self.core: Core = self.get_device("core_dedrifter")
+        self.core_dedrifter: Core = self.get_device("core_dedrifter")
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
@@ -183,11 +183,11 @@ class DedrifterFrag(ExpFragment):
             dedrifter.f_step = np.float64(
                 dedrifter.ramp_rate.get() * self.wait_time.get()
             )
-        self.wait_time_mu = self.core.seconds_to_mu(self.wait_time.get())
+        self.wait_time_mu = self.core_dedrifter.seconds_to_mu(self.wait_time.get())
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def device_setup(self):
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         self.cpld.init()
         delay(1e-3)
         self.cpld.cfg_switches(0b1111)
@@ -206,7 +206,7 @@ class DedrifterFrag(ExpFragment):
     @kernel(arg="core_dedrifter")
     def run_once(self):
         # i = 0
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         delay(100e-3)
 
         for dedrifter in self.dedrifters:
