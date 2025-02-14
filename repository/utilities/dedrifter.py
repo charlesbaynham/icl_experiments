@@ -32,8 +32,7 @@ class AD9910Dedrifter(Fragment):
         # self.ramper: AD9910Ramper = self.setattr_fragment(
         #     "ramper", AD9910Ramper, self.info.channel_name
         # )
-        self.setattr_device("core_dedrifter")
-        self.core: Core
+        self.core: Core = self.get_device("core_dedrifter")
         self.dds: AD9910 = self.get_device(self.info.channel_name)
 
         name = self.info.laser_name
