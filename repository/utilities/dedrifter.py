@@ -187,9 +187,15 @@ class DedrifterFrag(ExpFragment):
                 dedrifter.ramp_rate.get() * self.wait_time.get()
             )
         self.wait_time_mu = self.core.seconds_to_mu(self.wait_time.get())
+        print("I finished host setup")
+
+    @rpc
+    def do_a_print(self):
+        print("I am printing")
 
     @kernel
     def device_setup(self):
+        self.do_a_print()
         self.core.break_realtime()
         self.cpld.init()
         delay(1e-3)
