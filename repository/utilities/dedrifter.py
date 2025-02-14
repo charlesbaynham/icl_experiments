@@ -190,8 +190,9 @@ class DedrifterFrag(ExpFragment):
         print("I finished host setup")
 
     @rpc
-    def do_a_print(self):
-        print("I am printing")
+    def do_a_print(self, arg: str = None):
+        arg = arg or "I am printing"
+        print(arg)
 
     @kernel
     def device_setup(self):
@@ -201,7 +202,9 @@ class DedrifterFrag(ExpFragment):
         delay(1e-3)
         self.cpld.cfg_switches(0b1111)
         delay(1e-3)
+        self.do_a_print("I finished cpld setup")
         self.device_setup_subfragments()
+        self.do_a_print("I finished device setup")
 
     @rpc
     def check_for_interrupt(self) -> bool:
@@ -215,7 +218,7 @@ class DedrifterFrag(ExpFragment):
     @kernel
     def run_once(self):
         # i = 0
-        self.do_a_print()
+        self.do_a_print("I am running")
         self.core.break_realtime()
         delay(100e-3)
 
