@@ -142,7 +142,6 @@ class DedrifterFrag(ExpFragment):
         self.setattr_device("core_dedrifter")
         self.core_dedrifter: Core
         print("I got a core")
-        self.core_dedrifter.reset()
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
