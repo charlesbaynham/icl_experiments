@@ -215,6 +215,7 @@ class DedrifterFrag(ExpFragment):
     @kernel
     def run_once(self):
         # i = 0
+        self.do_a_print()
         self.core.break_realtime()
         delay(100e-3)
 
