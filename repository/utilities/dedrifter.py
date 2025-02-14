@@ -103,13 +103,13 @@ class AD9910Dedrifter(Fragment):
             logger.info("=" * 20)
         return f_offset
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def device_setup(self):
         self.core.break_realtime()
         self.dds.init()
         self.device_setup_subfragments()
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def step_freq(self):
         self.f_act += self.f_step
         self.dds.set(frequency=self.f_act, phase=0.0, amplitude=1.0)
@@ -185,7 +185,7 @@ class DedrifterFrag(ExpFragment):
             )
         self.wait_time_mu = self.core.seconds_to_mu(self.wait_time.get())
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def device_setup(self):
         self.core.break_realtime()
         self.cpld.init()
@@ -203,7 +203,7 @@ class DedrifterFrag(ExpFragment):
         else:
             return False
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def run_once(self):
         # i = 0
         self.core.break_realtime()
