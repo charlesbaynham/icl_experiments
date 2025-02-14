@@ -80,7 +80,6 @@ def _append_dedrifter_core(db: dict):
         device: dict
         next_port = max(next_port, device.get("port", 0))
     next_port += 1
-    print(next_port)
     dedrifter_core = device_db_dedrifter.get_dedrifter_device_db(next_port)
 
     # Merge dicts

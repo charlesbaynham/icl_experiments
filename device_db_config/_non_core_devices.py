@@ -318,7 +318,7 @@ def get_non_core_devices(simulation_mode=False):
         #     },
         # },
     }
-    print(get_next_port())
+
     return _non_core
 
 
