@@ -32,7 +32,8 @@ class AD9910Dedrifter(Fragment):
         # self.ramper: AD9910Ramper = self.setattr_fragment(
         #     "ramper", AD9910Ramper, self.info.channel_name
         # )
-        self.core: Core = self.get_device("core_dedrifter")
+        self.setattr_device("core_dedrifter")
+        self.core_dedrifter: Core
         self.dds: AD9910 = self.get_device(self.info.channel_name)
 
         name = self.info.laser_name
@@ -103,13 +104,13 @@ class AD9910Dedrifter(Fragment):
             logger.info("=" * 20)
         return f_offset
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def device_setup(self):
         self.core.break_realtime()
         self.dds.init()
         self.device_setup_subfragments()
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def step_freq(self):
         self.f_act += self.f_step
         self.dds.set(frequency=self.f_act, phase=0.0, amplitude=1.0)
@@ -194,7 +195,7 @@ class DedrifterFrag(ExpFragment):
         arg = arg or "I am printing"
         print(arg)
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def device_setup(self):
         self.do_a_print()
         self.core.break_realtime()
@@ -218,7 +219,7 @@ class DedrifterFrag(ExpFragment):
         else:
             return False
 
-    @kernel
+    @kernel(arg="core_dedrifter")
     def run_once(self):
         # i = 0
         self.do_a_print("I am running")
