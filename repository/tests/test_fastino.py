@@ -14,7 +14,7 @@ class FastinoControlFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
-        self.setattr_device("fastino")
+        self.setattr_device("fastino0")
         self.fastino: Fastino
         self.setattr_param(
             "voltage", FloatParam, description="Voltage", default=0.0, unit="V"
@@ -29,9 +29,8 @@ class FastinoControlFrag(ExpFragment):
         self.device_setup_subfragments()
 
     def run_once(self):
-        voltage_value = self.voltage.get()
         self.core.break_realtime()
-        self.fastino.set_dac(0, voltage_value)
+        self.fastino.set_dac(self.channel.get(), self.voltage.get())
 
 
 FastinoControl = make_fragment_scan_exp(FastinoControlFrag)
