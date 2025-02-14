@@ -25,7 +25,7 @@ class FastinoControlFrag(ExpFragment):
         self.channel: IntParamHandle
 
     def device_setup(self):
-        self.fastino.init()
+        self.fastino0.init()
         self.device_setup_subfragments()
 
     def run_once(self):
