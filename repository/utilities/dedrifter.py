@@ -106,7 +106,7 @@ class AD9910Dedrifter(Fragment):
 
     @kernel(arg="core_dedrifter")
     def device_setup(self):
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         self.dds.init()
         self.device_setup_subfragments()
 
@@ -139,8 +139,10 @@ class DedrifterFrag(ExpFragment):
 
     def build_fragment(self):
         print("I got here")
-        self.core: Core = self.get_device("core_dedrifter")
+        self.setattr_device("core_dedrifter")
+        self.core_dedrifter: Core
         print("I got a core")
+        self.core_dedrifter.reset()
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
@@ -187,7 +189,7 @@ class DedrifterFrag(ExpFragment):
             dedrifter.f_step = np.float64(
                 dedrifter.ramp_rate.get() * self.wait_time.get()
             )
-        self.wait_time_mu = self.core.seconds_to_mu(self.wait_time.get())
+        self.wait_time_mu = self.core_dedrifter.seconds_to_mu(self.wait_time.get())
         print("I finished host setup")
 
     @rpc
@@ -198,9 +200,9 @@ class DedrifterFrag(ExpFragment):
     @kernel(arg="core_dedrifter")
     def device_setup(self):
         self.do_a_print()
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         self.do_a_print("I broke realtime")
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         self.cpld.init()
         self.do_a_print("I initialized cpld")
         delay(1e-3)
@@ -223,7 +225,7 @@ class DedrifterFrag(ExpFragment):
     def run_once(self):
         # i = 0
         self.do_a_print("I am running")
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         delay(100e-3)
 
         for dedrifter in self.dedrifters:
