@@ -32,7 +32,7 @@ class AD9910Dedrifter(Fragment):
         # self.ramper: AD9910Ramper = self.setattr_fragment(
         #     "ramper", AD9910Ramper, self.info.channel_name
         # )
-        self.core_dedrifter: Core = self.get_device("core_dedrifter")
+        self.core: Core = self.get_device("core_dedrifter")
         self.dds: AD9910 = self.get_device(self.info.channel_name)
 
         name = self.info.laser_name
@@ -77,8 +77,8 @@ class AD9910Dedrifter(Fragment):
         self.f_start = np.float64(0.0)
         self.f_act = np.float64(0.0)
 
-        kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {"attenuation", "ramp_rate"}
+        kernel_invarints = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invarints | {"attenuation", "ramp_rate"}
         # self.f_offset = self.info.reference_frequency
 
     # @host_only
@@ -103,13 +103,13 @@ class AD9910Dedrifter(Fragment):
             logger.info("=" * 20)
         return f_offset
 
-    @kernel(arg="core_dedrifter")
+    @kernel
     def device_setup(self):
-        self.core_dedrifter.break_realtime()
+        self.core.break_realtime()
         self.dds.init()
         self.device_setup_subfragments()
 
-    @kernel(arg="core_dedrifter")
+    @kernel
     def step_freq(self):
         self.f_act += self.f_step
         self.dds.set(frequency=self.f_act, phase=0.0, amplitude=1.0)
@@ -137,7 +137,7 @@ class DedrifterFrag(ExpFragment):
     """
 
     def build_fragment(self):
-        self.core_dedrifter: Core = self.get_device("core_dedrifter")
+        self.core: Core = self.get_device("core_dedrifter")
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
@@ -183,11 +183,11 @@ class DedrifterFrag(ExpFragment):
             dedrifter.f_step = np.float64(
                 dedrifter.ramp_rate.get() * self.wait_time.get()
             )
-        self.wait_time_mu = self.core_dedrifter.seconds_to_mu(self.wait_time.get())
+        self.wait_time_mu = self.core.seconds_to_mu(self.wait_time.get())
 
-    @kernel(arg="core_dedrifter")
+    @kernel
     def device_setup(self):
-        self.core_dedrifter.break_realtime()
+        self.core.break_realtime()
         self.cpld.init()
         delay(1e-3)
         self.cpld.cfg_switches(0b1111)
@@ -203,10 +203,10 @@ class DedrifterFrag(ExpFragment):
         else:
             return False
 
-    @kernel(arg="core_dedrifter")
+    @kernel
     def run_once(self):
         # i = 0
-        self.core_dedrifter.break_realtime()
+        self.core.break_realtime()
         delay(100e-3)
 
         for dedrifter in self.dedrifters:
