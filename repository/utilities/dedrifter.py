@@ -137,8 +137,7 @@ class DedrifterFrag(ExpFragment):
     """
 
     def build_fragment(self):
-        self.setattr_device("core_dedrifter")
-        self.core: Core
+        self.core: Core = self.get_device("core_dedrifter")
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
