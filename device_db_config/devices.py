@@ -32,7 +32,7 @@ def get_device_db(simulation_mode=False):
     db = _append_non_core(db, simulation_mode)
 
     # Append dedrifter core
-    db = _append_dedrifter_core(db, next_port)
+    db = _append_dedrifter_core(db)
 
     # Append our own aliases, describing the purposes of the channels
     db = _append_aliases(db)
