@@ -139,6 +139,7 @@ class DedrifterFrag(ExpFragment):
     def build_fragment(self):
         print("I got here")
         self.core: Core = self.get_device("core_dedrifter")
+        print("I got a core")
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
@@ -176,6 +177,7 @@ class DedrifterFrag(ExpFragment):
 
         kernel_invarints = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invarints | {"wait_time", "write_delay"}
+        print("I finished building")
 
     @host_only
     def host_setup(self):
