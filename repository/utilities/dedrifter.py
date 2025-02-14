@@ -77,8 +77,8 @@ class AD9910Dedrifter(Fragment):
         self.f_start = np.float64(0.0)
         self.f_act = np.float64(0.0)
 
-        kernel_invarints = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invarints | {"attenuation", "ramp_rate"}
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {"attenuation", "ramp_rate"}
         # self.f_offset = self.info.reference_frequency
 
     # @host_only
@@ -103,7 +103,7 @@ class AD9910Dedrifter(Fragment):
             logger.info("=" * 20)
         return f_offset
 
-    @kernel(arg="core_dedrifter")
+    @kernel
     def device_setup(self):
         self.core.break_realtime()
         self.dds.init()
@@ -185,7 +185,7 @@ class DedrifterFrag(ExpFragment):
             )
         self.wait_time_mu = self.core.seconds_to_mu(self.wait_time.get())
 
-    @kernel(arg="core_dedrifter")
+    @kernel
     def device_setup(self):
         self.core.break_realtime()
         self.cpld.init()
