@@ -130,7 +130,7 @@ class DedrifterExp(EnvExperiment):
 
         self.dedrifters = []
 
-        for i, info in enumerate(constants.dedrifter_infos):
+        for i in range(len(constants.dedrifter_infos)):
             self.dedrifters.append(AD9910Dedrifter(self, index=i))
 
         self.setattr_argument("wait_time", NumberValue(100e-3, unit="s"))
