@@ -209,7 +209,7 @@ class DedrifterExp(EnvExperiment):
             now = now_mu()
             for dedrifter in self.dedrifters:
                 dedrifter.step_freq()
-                delay_mu(self.write_delay)
+                delay_mu(self.write_delay_mu)
             at_mu(now + self.wait_time_mu)
 
     @rpc
