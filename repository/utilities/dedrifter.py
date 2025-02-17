@@ -33,7 +33,8 @@ core_name = "core_dedrifter"
 
 def change_core_device(device):
     parser = OptionParser()
-    methods = inspect.getmembers(parser, predicate=inspect.ismethod)
+    methods_named = inspect.getmembers(parser, predicate=inspect.ismethod)
+    methods = [method[1] for method in methods_named]
     for method in methods:
         if method.__dict__.get("artiq_embedded"):
             embedded_info = method.__dict__["artiq_embedded"]._replace(
