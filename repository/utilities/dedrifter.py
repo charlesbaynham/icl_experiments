@@ -196,8 +196,9 @@ class DedrifterExp(EnvExperiment):
         for method in core_methods_to_change:
             change_core(getattr(self.core_dedrifter, method))
 
-        # for method in cpld_methods_to_change:
-        #     change_core(getattr(self.cpld, method))
+        for method in cpld_methods_to_change:
+            change_core(getattr(self.cpld, method))
+
         change_core_device(self.core_dedrifter)
         change_core_device(self.cpld)
         for method in core_methods_to_change:
