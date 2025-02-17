@@ -24,7 +24,7 @@ core_name = "core_dedrifter"
 
 class AD9910Dedrifter(HasEnvironment):
 
-    def build(self, index):
+    def build(self, index: int = 0):
         self.info: constants.DedrifterInfo = constants.dedrifter_infos[index]
 
         self.laser_name = self.info.laser_name
@@ -100,7 +100,7 @@ class AD9910Dedrifter(HasEnvironment):
 
 class DedrifterExp(EnvExperiment):
     """
-    Run dedrifter
+    Dedrifter
     """
 
     core_name = "core_dedrifter"
@@ -116,15 +116,13 @@ class DedrifterExp(EnvExperiment):
         self.dedrifter_infos = constants.dedrifter_infos
         self.dedrifter_names = [info.channel_name for info in self.dedrifter_infos]
 
-        self.ad9910s: List[AD9910] = []
-
         self.f_act_list = [0.0, 0.0]
         self.f_step_list = [0.0, 0.0]
 
         self.dedrifters = []
 
         for i, info in enumerate(constants.dedrifter_infos):
-            self.dedrifters.append(AD9910Dedrifter(i))
+            self.dedrifters.append(AD9910Dedrifter(self, index=i))
 
         self.setattr_argument("wait_time", NumberValue(100e-3, unit="s"))
         self.wait_time: float
