@@ -34,7 +34,7 @@ def change_core(func):
     func.__dict__["artiq_embedded"] = embedded_info
 
 
-cpld_methods_to_change = ["init", "cfg_switches"]
+cpld_methods_to_change = ["init", "cfg_switches", "set_att"]
 core_methods_to_change = ["break_realtime", "seconds_to_mu"]
 dds_methods_to_change = ["set", "set_att", "init"]
 
@@ -53,6 +53,8 @@ class AD9910Dedrifter(HasEnvironment):
 
         for method in dds_methods_to_change:
             change_core(getattr(self.dds, method))
+
+        change_core(self.dds.cpld.set_att)
 
         self.setattr_argument(
             f"f_offset_{self.laser_name}",
