@@ -105,8 +105,8 @@ class AD9910Dedrifter(HasEnvironment):
         # change_core_device(self.core_dedrifter)
         # change_core_device(self.dds)
         # change_core_device(self.dds.cpld)
-        for method in core_methods_to_change:
-            change_core(getattr(self.core_dedrifter, method))
+        # for method in core_methods_to_change:
+        #     change_core(getattr(self.core_dedrifter, method))
 
         self.setattr_argument(
             f"f_offset_{self.laser_name}",
