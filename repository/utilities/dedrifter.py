@@ -32,30 +32,33 @@ class AD9910Dedrifter(HasEnvironment):
         self.dds: AD9910 = self.get_device(self.channel_name)
 
         self.setattr_argument(
-            "f_offset",
+            f"f_offset_{self.laser_name}",
             NumberValue(self.info.reference_frequency, unit="MHz"),
             group=self.laser_name,
         )
-        self.f_offset: float
 
         self.setattr_argument(
-            "reference_time",
+            f"reference_time_{self.laser_name}",
             NumberValue(self.info.reference_time, unit="s"),
             group=self.laser_name,
         )
-        self.reference_time: float
 
         self.setattr_argument(
-            "ramp_rate",
+            f"ramp_rate_{self.laser_name}",
             NumberValue(self.info.drift_rate, unit="Hz/s", scale=1),
             group=self.laser_name,
         )
-        self.ramp_rate: float
 
         self.setattr_argument(
-            "attenuation", NumberValue(0.0, unit="dB", scale=1), group=self.laser_name
+            f"attenuation_{self.laser_name}",
+            NumberValue(0.0, unit="dB", scale=1),
+            group=self.laser_name,
         )
-        self.attenuation: float
+
+        self.ref_time: float = getattr(self, f"reference_time_{self.laser_name}")
+        self.ramp_rate: float = getattr(self, f"ramp_rate_{self.laser_name}")
+        self.f_offset: float = getattr(self, f"f_offset_{self.laser_name}")
+        self.attenuation: float = getattr(self, f"attenuation_{self.laser_name}")
 
         self.f_start = np.float64(0.0)
         self.f_act = np.float64(0.0)
@@ -63,12 +66,11 @@ class AD9910Dedrifter(HasEnvironment):
 
     @rpc
     def get_offset_freq(self, verbose=False) -> float:  # -> Any | float:  # -> float:
-        ref_time = self.reference_time
-        if ref_time == 0:
+        if self.ref_time == 0:
             t_diff = 0.0
         else:
-            t_diff = time.time() - ref_time
-        f_offset: float = self.f_offset + t_diff * self.ramp_rate
+            t_diff = time.time() - self.ref_time
+        f_offset: float = f_offset + t_diff * self.ramp_rate
         if verbose:
             logger.info("Laser: %s", self.info.laser_name)
             logger.info("Seconds since last calibration: %f s", t_diff)
