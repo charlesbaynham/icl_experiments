@@ -204,6 +204,10 @@ class DedrifterExp(EnvExperiment):
         for method in core_methods_to_change:
             change_core(getattr(self.core_dedrifter, method))
 
+        for dedrifter in self.dedrifters:
+            change_core_device(dedrifter.dds)
+            change_core_device(dedrifter.dds.cpld)
+
     @kernel(arg=core_name)
     def run(self):
         self.get_wait_mu()
