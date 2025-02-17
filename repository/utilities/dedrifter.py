@@ -187,7 +187,7 @@ class DedrifterExp(EnvExperiment):
         self.setattr_argument("n_steps", NumberValue(0, precision=0, scale=1))
         self.n_steps: int
 
-        self.write_delay = np.int64(100)
+        self.write_delay_mu = np.int64(100)
         self.wait_time_mu = np.int64(0)
 
         # for method in core_methods_to_change:
@@ -203,7 +203,7 @@ class DedrifterExp(EnvExperiment):
         self.get_wait_mu()
         self.init_devices()
         for dedrifter in self.dedrifters:
-            dedrifter.init()
+            dedrifter.init(self.write_delay_mu)
 
         while True:
             now = now_mu()
