@@ -31,7 +31,7 @@ core_name = "core_dedrifter"
 
 def change_core(func):
     embedded_info = func.__dict__["artiq_embedded"]._replace(core_name=core_name)
-    func.artiq_embedded = embedded_info
+    func.__dict__["artiq_embedded"] = embedded_info
 
 
 class AD9910Dedrifter(HasEnvironment):
