@@ -34,35 +34,41 @@ class AD9910Dedrifter(HasEnvironment):
         self.setattr_argument(
             "f_offset",
             NumberValue(self.info.reference_frequency, unit="MHz"),
+            group=self.laser_name,
         )
         self.f_offset: float
 
         self.setattr_argument(
             "reference_time",
             NumberValue(self.info.reference_time, unit="s"),
+            group=self.laser_name,
         )
-        self.refence_time: float
+        self.reference_time: float
 
         self.setattr_argument(
             "ramp_rate",
             NumberValue(self.info.drift_rate, unit="Hz/s", scale=1),
+            group=self.laser_name,
         )
         self.ramp_rate: float
 
-        self.setattr_argument("attenuation", NumberValue(0.0, unit="dB", scale=1))
+        self.setattr_argument(
+            "attenuation", NumberValue(0.0, unit="dB", scale=1), group=self.laser_name
+        )
         self.attenuation: float
 
         self.f_start = np.float64(0.0)
         self.f_act = np.float64(0.0)
+        self.f_step = np.float64(0.0)
 
     @rpc
     def get_offset_freq(self, verbose=False) -> float:  # -> Any | float:  # -> float:
-        ref_time = self.reference_time()
+        ref_time = self.reference_time
         if ref_time == 0:
             t_diff = 0.0
         else:
             t_diff = time.time() - ref_time
-        f_offset: float = self.f_offset() + t_diff * self.ramp_rate()
+        f_offset: float = self.f_offset + t_diff * self.ramp_rate
         if verbose:
             logger.info("Laser: %s", self.info.laser_name)
             logger.info("Seconds since last calibration: %f s", t_diff)
@@ -152,7 +158,6 @@ class DedrifterExp(EnvExperiment):
 
     @rpc
     def get_wait_mu(self):
-        super().host_setup()
         for dedrifter in self.dedrifters:
             dedrifter.f_step = np.float64(
                 dedrifter.ramp_rate.get() * self.wait_time.get()
