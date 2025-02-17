@@ -31,16 +31,25 @@ logger = logging.getLogger(__name__)
 core_name = "core_dedrifter"
 
 
+# def change_core_device(device):
+#     parser = OptionParser()
+#     methods_named = inspect.getmembers(parser, predicate=inspect.ismethod)
+#     methods = [method[1] for method in methods_named]
+#     for method in methods:
+#         if method.__dict__.get("artiq_embedded"):
+#             embedded_info = method.__dict__["artiq_embedded"]._replace(
+#                 core_name=core_name
+#             )
+#             method.__dict__["artiq_embedded"] = embedded_info
+
+
 def change_core_device(device):
-    parser = OptionParser()
-    methods_named = inspect.getmembers(parser, predicate=inspect.ismethod)
-    methods = [method[1] for method in methods_named]
-    for method in methods:
-        if method.__dict__.get("artiq_embedded"):
-            embedded_info = method.__dict__["artiq_embedded"]._replace(
+    for attribute in device.__dict__.values():
+        if hasattr(attribute, "artiq_embedded"):
+            embedded_info = attribute.__dict__["artiq_embedded"]._replace(
                 core_name=core_name
             )
-            method.__dict__["artiq_embedded"] = embedded_info
+            attribute.__dict__["artiq_embedded"] = embedded_info
 
 
 def change_core(func):
