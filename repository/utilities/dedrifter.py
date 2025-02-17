@@ -65,8 +65,8 @@ class AD9910Dedrifter(HasEnvironment):
         self.channel_name = self.info.channel_name
         self.dds: AD9910 = self.get_device(self.channel_name)
 
-        # for method in dds_methods_to_change:
-        #     change_core(getattr(self.dds, method))
+        for method in dds_methods_to_change:
+            change_core(getattr(self.dds, method))
 
         # change_core(self.dds.cpld.set_att)
 
