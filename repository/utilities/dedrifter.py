@@ -12,6 +12,14 @@ from artiq.language.core import kernel, rpc, delay, delay_mu, at_mu, now_mu
 from artiq.language.environment import EnvExperiment, HasEnvironment
 from artiq.language.environment import NumberValue
 
+from collections import namedtuple
+
+_ARTIQEmbeddedInfo = namedtuple(
+    "_ARTIQEmbeddedInfo",
+    "core_name portable function syscall forbidden destination flags",
+)
+
+
 # from pyaion.fragments.ad9910_ramper import AD9910Ramper
 
 from repository.lib import constants
@@ -19,6 +27,11 @@ from repository.lib import constants
 logger = logging.getLogger(__name__)
 
 core_name = "core_dedrifter"
+
+
+def change_core(func):
+    embedded_info = func.artiq_embedded._replace(core_name=core_name)
+    func.artiq_embedded = embedded_info
 
 
 class AD9910Dedrifter(HasEnvironment):
@@ -32,6 +45,17 @@ class AD9910Dedrifter(HasEnvironment):
         self.laser_name = self.info.laser_name
         self.channel_name = self.info.channel_name
         self.dds: AD9910 = self.get_device(self.channel_name)
+        embedded_info_copy = self.dds.set_att.artiq_embedded.copy()
+        embedded_info = _ARTIQEmbeddedInfo(
+            core_name=core_name,
+            portable=embedded_info_copy.portable,
+            function=embedded_info_copy.function,
+            syscall=embedded_info_copy.syscall,
+            forbidden=embedded_info_copy.forbidden,
+            destination=embedded_info_copy.destination,
+            flags=embedded_info_copy.flags,
+        )
+        change_core(self.dds.set_att)
 
         self.setattr_argument(
             f"f_offset_{self.laser_name}",
