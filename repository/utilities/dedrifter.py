@@ -128,7 +128,7 @@ class DedrifterExp(EnvExperiment):
         self.f_act_list = [0.0, 0.0]
         self.f_step_list = [0.0, 0.0]
 
-        self.dedrifters = []
+        self.dedrifters: list[AD9910Dedrifter] = []
 
         for i in range(len(constants.dedrifter_infos)):
             self.dedrifters.append(AD9910Dedrifter(self, index=i))
@@ -144,7 +144,7 @@ class DedrifterExp(EnvExperiment):
     def run(self):
         self.get_wait_mu()
         self.init_devices()
-        for i, dedrifter in enumerate(self.dedrifter_infos):
+        for dedrifter in self.dedrifters:
             dedrifter.dds.set_att(dedrifter.attenuation.get())
             delay(1e-3)
             dedrifter.f_start = dedrifter.get_offset_freq(verbose=True)
