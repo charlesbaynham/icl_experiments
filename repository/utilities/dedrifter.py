@@ -43,16 +43,16 @@ core_name = "core_dedrifter"
 #             method.__dict__["artiq_embedded"] = embedded_info
 
 
-def change_core_device(device):
-    for attribute in device.__dict__.values():
-        print(attribute)
-        try:
-            embedded_info = attribute.__dict__["artiq_embedded"]._replace(
-                core_name=core_name
-            )
-            attribute.__dict__["artiq_embedded"] = embedded_info
-        except:
-            pass
+# def change_core_device(device):
+#     for attribute in device.__dict__.values():
+#         print(attribute)
+#         try:
+#             embedded_info = attribute.__dict__["artiq_embedded"]._replace(
+#                 core_name=core_name
+#             )
+#             attribute.__dict__["artiq_embedded"] = embedded_info
+#         except:
+#             pass
 
 
 def change_core(func):
@@ -60,7 +60,14 @@ def change_core(func):
     func.__dict__["artiq_embedded"] = embedded_info
 
 
-cpld_methods_to_change = ["init", "cfg_switches", "set_att", "cfg_write", "sta_read"]
+cpld_methods_to_change = [
+    "init",
+    "cfg_switches",
+    "set_att",
+    "cfg_write",
+    "sta_read",
+    "set_sync_div",
+]
 core_methods_to_change = ["break_realtime", "seconds_to_mu"]
 dds_methods_to_change = ["set", "set_att", "init", "set_att_mu", "set_mu"]
 
@@ -82,9 +89,9 @@ class AD9910Dedrifter(HasEnvironment):
 
         # change_core(self.dds.cpld.set_att)
 
-        change_core_device(self.core_dedrifter)
-        change_core_device(self.dds)
-        change_core_device(self.dds.cpld)
+        # change_core_device(self.core_dedrifter)
+        # change_core_device(self.dds)
+        # change_core_device(self.dds.cpld)
         for method in core_methods_to_change:
             change_core(getattr(self.core_dedrifter, method))
 
@@ -211,14 +218,14 @@ class DedrifterExp(EnvExperiment):
         for method in cpld_methods_to_change:
             change_core(getattr(self.cpld, method))
 
-        change_core_device(self.core_dedrifter)
-        change_core_device(self.cpld)
+        # change_core_device(self.core_dedrifter)
+        # change_core_device(self.cpld)
         for method in core_methods_to_change:
             change_core(getattr(self.core_dedrifter, method))
 
-        for dedrifter in self.dedrifters:
-            change_core_device(dedrifter.dds)
-            change_core_device(dedrifter.dds.cpld)
+        # for dedrifter in self.dedrifters:
+        #     change_core_device(dedrifter.dds)
+        #     change_core_device(dedrifter.dds.cpld)
 
     @kernel(arg=core_name)
     def run(self):
