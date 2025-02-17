@@ -13,6 +13,8 @@ from artiq.language.environment import EnvExperiment, HasEnvironment
 from artiq.language.environment import NumberValue
 
 from collections import namedtuple
+from optparse import OptionParser
+import inspect
 
 _ARTIQEmbeddedInfo = namedtuple(
     "_ARTIQEmbeddedInfo",
@@ -27,6 +29,17 @@ from repository.lib import constants
 logger = logging.getLogger(__name__)
 
 core_name = "core_dedrifter"
+
+
+def change_core_device(device):
+    parser = OptionParser()
+    methods = inspect.getmembers(parser, predicate=inspect.ismethod)
+    for method in methods:
+        if method.__dict__.get("artiq_embedded"):
+            embedded_info = method.__dict__["artiq_embedded"]._replace(
+                core_name=core_name
+            )
+            method.__dict__["artiq_embedded"] = embedded_info
 
 
 def change_core(func):
@@ -51,10 +64,13 @@ class AD9910Dedrifter(HasEnvironment):
         self.channel_name = self.info.channel_name
         self.dds: AD9910 = self.get_device(self.channel_name)
 
-        for method in dds_methods_to_change:
-            change_core(getattr(self.dds, method))
+        # for method in dds_methods_to_change:
+        #     change_core(getattr(self.dds, method))
 
-        change_core(self.dds.cpld.set_att)
+        # change_core(self.dds.cpld.set_att)
+
+        change_core_device(self.dds)
+        change_core_device(self.dds.cpld)
 
         self.setattr_argument(
             f"f_offset_{self.laser_name}",
@@ -167,11 +183,13 @@ class DedrifterExp(EnvExperiment):
         self.write_delay = np.int64(100)
         self.wait_time_mu = np.int64(0)
 
-        for method in core_methods_to_change:
-            change_core(getattr(self.core_dedrifter, method))
+        # for method in core_methods_to_change:
+        #     change_core(getattr(self.core_dedrifter, method))
 
-        for method in cpld_methods_to_change:
-            change_core(getattr(self.cpld, method))
+        # for method in cpld_methods_to_change:
+        #     change_core(getattr(self.cpld, method))
+        change_core_device(self.cpld)
+        change_core_device(self.core_dedrifter)
 
     @kernel(arg=core_name)
     def run(self):
