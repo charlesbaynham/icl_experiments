@@ -45,6 +45,7 @@ core_name = "core_dedrifter"
 
 def change_core_device(device):
     for attribute in device.__dict__.values():
+        print(attribute)
         try:
             embedded_info = attribute.__dict__["artiq_embedded"]._replace(
                 core_name=core_name
