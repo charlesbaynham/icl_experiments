@@ -34,6 +34,11 @@ def change_core(func):
     func.__dict__["artiq_embedded"] = embedded_info
 
 
+cpld_methods_to_change = ["init", "cfg_switches"]
+core_methods_to_change = ["break_realtime", "seconds_to_mu"]
+dds_methods_to_change = ["set", "set_att", "init"]
+
+
 class AD9910Dedrifter(HasEnvironment):
 
     def build(self, index: int = 0):
@@ -45,9 +50,9 @@ class AD9910Dedrifter(HasEnvironment):
         self.laser_name = self.info.laser_name
         self.channel_name = self.info.channel_name
         self.dds: AD9910 = self.get_device(self.channel_name)
-        print(self.dds.set_att.__dict__)
-        change_core(self.dds.set_att)
-        print(self.dds.set_att.__dict__)
+
+        for method in dds_methods_to_change:
+            change_core(getattr(self.dds, method))
 
         self.setattr_argument(
             f"f_offset_{self.laser_name}",
@@ -159,6 +164,12 @@ class DedrifterExp(EnvExperiment):
 
         self.write_delay = np.int64(100)
         self.wait_time_mu = np.int64(0)
+
+        for method in core_methods_to_change:
+            change_core(getattr(self.core_dedrifter, method))
+
+        for method in cpld_methods_to_change:
+            change_core(getattr(self.cpld, method))
 
     @kernel(arg=core_name)
     def run(self):
