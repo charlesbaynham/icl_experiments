@@ -48,7 +48,7 @@ def change_core(func):
     func.__dict__["artiq_embedded"] = embedded_info
 
 
-cpld_methods_to_change = ["init", "cfg_switches", "set_att", "cfg_write"]
+cpld_methods_to_change = ["init", "cfg_switches", "set_att", "cfg_write", "sta_read"]
 core_methods_to_change = ["break_realtime", "seconds_to_mu"]
 dds_methods_to_change = ["set", "set_att", "init", "set_att_mu", "set_mu"]
 
