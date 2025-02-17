@@ -45,11 +45,11 @@ class AD9910Dedrifter(HasEnvironment):
 
         self.setattr_argument(
             "ramp_rate",
-            NumberValue(self.info.drift_rate, unit="Hz/s"),
+            NumberValue(self.info.drift_rate, unit="Hz/s", scale=1),
         )
         self.ramp_rate: float
 
-        self.setattr_argument("attenuation", NumberValue(0.0, unit="dB"))
+        self.setattr_argument("attenuation", NumberValue(0.0, unit="dB", scale=1))
         self.attenuation: float
 
         self.f_start = np.float64(0.0)
