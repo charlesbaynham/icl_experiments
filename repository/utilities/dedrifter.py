@@ -139,6 +139,7 @@ class DedrifterExp(EnvExperiment):
         self.n_steps: int
 
         self.write_delay = np.int64(100)
+        self.wait_time_mu = np.int64(0)
 
     @kernel(arg=core_name)
     def run(self):
