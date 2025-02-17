@@ -98,7 +98,7 @@ class AD9910Dedrifter(HasEnvironment):
         logger.info("the read frequency is      %f", read_freq)
         logger.info(
             "I expect the frequency to have changed by %f",
-            self.ramp_rate.get() * wait_time * n_steps,
+            self.ramp_rate * wait_time * n_steps,
         )
         logger.info(
             "It has changed by                         %f",
@@ -146,7 +146,7 @@ class DedrifterExp(EnvExperiment):
         self.get_wait_mu()
         self.init_devices()
         for dedrifter in self.dedrifters:
-            dedrifter.dds.set_att(dedrifter.attenuation.get())
+            dedrifter.dds.set_att(dedrifter.attenuation)
             delay(1e-3)
             dedrifter.f_start = dedrifter.get_offset_freq(verbose=True)
             dedrifter.f_act = dedrifter.f_start
@@ -163,10 +163,8 @@ class DedrifterExp(EnvExperiment):
     @rpc
     def get_wait_mu(self):
         for dedrifter in self.dedrifters:
-            dedrifter.f_step = np.float64(
-                dedrifter.ramp_rate.get() * self.wait_time.get()
-            )
-        self.wait_time_mu = self.core_dedrifter.seconds_to_mu(self.wait_time.get())
+            dedrifter.f_step = np.float64(dedrifter.ramp_rate * self.wait_time)
+        self.wait_time_mu = self.core_dedrifter.seconds_to_mu(self.wait_time)
 
     @kernel(arg=core_name)
     def init_devices(self):
