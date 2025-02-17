@@ -36,7 +36,7 @@ def change_core(func):
 
 cpld_methods_to_change = ["init", "cfg_switches", "set_att"]
 core_methods_to_change = ["break_realtime", "seconds_to_mu"]
-dds_methods_to_change = ["set", "set_att", "init"]
+dds_methods_to_change = ["set", "set_att", "init", "set_att_mu", "set_mu"]
 
 
 class AD9910Dedrifter(HasEnvironment):
