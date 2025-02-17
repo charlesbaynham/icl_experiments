@@ -29,7 +29,7 @@ class AD9910Dedrifter(HasEnvironment):
 
         self.laser_name = self.info.laser_name
         self.channel_name = self.info.channel_name
-        self.dds = self.get_device(self.channel_name, AD9910)
+        self.dds: AD9910 = self.get_device(self.channel_name)
 
         self.setattr_argument(
             "f_offset",
