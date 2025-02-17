@@ -1,4 +1,3 @@
-from typing import List
 import logging
 import time
 import numpy as np
@@ -25,7 +24,9 @@ core_name = "core_dedrifter"
 class AD9910Dedrifter(HasEnvironment):
 
     def build(self, index: int = 0):
-        self.core_dedrifter: Core = self.get_device(core_name)
+        # self.core_dedrifter: Core = self.get_device(core_name)
+        self.setattr_device(core_name)
+        self.core_dedrifter: Core
         self.info: constants.DedrifterInfo = constants.dedrifter_infos[index]
 
         self.laser_name = self.info.laser_name
@@ -115,7 +116,9 @@ class DedrifterExp(EnvExperiment):
     core_name = "core_dedrifter"
 
     def build(self):
-        self.core_dedrifter: Core = self.get_device(core_name)
+        # self.core_dedrifter: Core = self.get_device(core_name)
+        self.setattr_device("core_dedrifter")
+        self.core_dedrifter: Core
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
