@@ -30,7 +30,7 @@ core_name = "core_dedrifter"
 
 
 def change_core(func):
-    embedded_info = func.artiq_embedded._replace(core_name=core_name)
+    embedded_info = func.__dict__["artiq_embedded"]._replace(core_name=core_name)
     func.artiq_embedded = embedded_info
 
 
@@ -46,7 +46,8 @@ class AD9910Dedrifter(HasEnvironment):
         self.channel_name = self.info.channel_name
         self.dds: AD9910 = self.get_device(self.channel_name)
         print(self.dds.set_att.__dict__)
-        # change_core(self.dds.set_att)
+        change_core(self.dds.set_att)
+        print(self.dds.set_att.__dict__)
 
         self.setattr_argument(
             f"f_offset_{self.laser_name}",
