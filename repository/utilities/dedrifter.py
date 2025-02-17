@@ -70,6 +70,7 @@ class AD9910Dedrifter(HasEnvironment):
 
         # change_core(self.dds.cpld.set_att)
 
+        change_core_device(self.core_dedrifter)
         change_core_device(self.dds)
         change_core_device(self.dds.cpld)
 
@@ -195,8 +196,8 @@ class DedrifterExp(EnvExperiment):
 
         # for method in cpld_methods_to_change:
         #     change_core(getattr(self.cpld, method))
-        change_core_device(self.cpld)
         change_core_device(self.core_dedrifter)
+        change_core_device(self.cpld)
 
     @kernel(arg=core_name)
     def run(self):
