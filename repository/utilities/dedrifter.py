@@ -25,6 +25,7 @@ core_name = "core_dedrifter"
 class AD9910Dedrifter(HasEnvironment):
 
     def build(self, index: int = 0):
+        self.core_dedrifter: Core = self.get_device(core_name)
         self.info: constants.DedrifterInfo = constants.dedrifter_infos[index]
 
         self.laser_name = self.info.laser_name
@@ -114,7 +115,7 @@ class DedrifterExp(EnvExperiment):
     core_name = "core_dedrifter"
 
     def build(self):
-        self.core: Core = self.get_device(core_name)
+        self.core_dedrifter: Core = self.get_device(core_name)
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
@@ -164,11 +165,11 @@ class DedrifterExp(EnvExperiment):
             dedrifter.f_step = np.float64(
                 dedrifter.ramp_rate.get() * self.wait_time.get()
             )
-        self.wait_time_mu = self.core.seconds_to_mu(self.wait_time.get())
+        self.wait_time_mu = self.core_dedrifter.seconds_to_mu(self.wait_time.get())
 
     @kernel(arg=core_name)
     def init_devices(self):
-        self.core.break_realtime()
+        self.core_dedrifter.break_realtime()
         self.cpld.init()
         delay(1e-3)
         self.cpld.cfg_switches(0b1111)
