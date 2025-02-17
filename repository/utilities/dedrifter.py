@@ -208,8 +208,6 @@ class DedrifterExp(EnvExperiment):
     def run(self):
         self.get_wait_mu()
         self.init_devices()
-        for dedrifter in self.dedrifters:
-            dedrifter.init(self.write_delay_mu)
 
         while True:
             now = now_mu()
@@ -232,7 +230,7 @@ class DedrifterExp(EnvExperiment):
         self.cpld.cfg_switches(0b1111)
         delay(1e-3)
         for dedrifter in self.dedrifters:
-            dedrifter.init()
+            dedrifter.init(self.write_delay_mu)
 
     @rpc
     def check_for_interrupt(self) -> bool:
