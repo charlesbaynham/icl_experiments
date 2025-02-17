@@ -45,16 +45,6 @@ class AD9910Dedrifter(HasEnvironment):
         self.laser_name = self.info.laser_name
         self.channel_name = self.info.channel_name
         self.dds: AD9910 = self.get_device(self.channel_name)
-        embedded_info_copy = self.dds.set_att.artiq_embedded.copy()
-        embedded_info = _ARTIQEmbeddedInfo(
-            core_name=core_name,
-            portable=embedded_info_copy.portable,
-            function=embedded_info_copy.function,
-            syscall=embedded_info_copy.syscall,
-            forbidden=embedded_info_copy.forbidden,
-            destination=embedded_info_copy.destination,
-            flags=embedded_info_copy.flags,
-        )
         change_core(self.dds.set_att)
 
         self.setattr_argument(
