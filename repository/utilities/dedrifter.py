@@ -123,8 +123,14 @@ class AD9910Dedrifter(HasEnvironment):
         return f_offset
 
     @kernel(arg=core_name)
-    def init(self):
+    def init(self, write_delay_mu):
         self.dds.init()
+        self.dds.set_att(self.attenuation)
+        delay(1e-3)
+        self.f_start = self.get_offset_freq(verbose=True)
+        self.f_act = self.f_start
+        self.dds.set(frequency=self.f_act, phase=0.0, amplitude=1.0)
+        delay_mu(write_delay_mu)
 
     @kernel(arg=core_name)
     def step_freq(self):
@@ -197,12 +203,7 @@ class DedrifterExp(EnvExperiment):
         self.get_wait_mu()
         self.init_devices()
         for dedrifter in self.dedrifters:
-            dedrifter.dds.set_att(dedrifter.attenuation)
-            delay(1e-3)
-            dedrifter.f_start = dedrifter.get_offset_freq(verbose=True)
-            dedrifter.f_act = dedrifter.f_start
-            dedrifter.dds.set(frequency=dedrifter.f_act, phase=0.0, amplitude=1.0)
-            delay_mu(self.write_delay)
+            dedrifter.init()
 
         while True:
             now = now_mu()
