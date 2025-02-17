@@ -73,6 +73,8 @@ class AD9910Dedrifter(HasEnvironment):
         change_core_device(self.core_dedrifter)
         change_core_device(self.dds)
         change_core_device(self.dds.cpld)
+        for method in core_methods_to_change:
+            change_core(getattr(self.core_dedrifter, method))
 
         self.setattr_argument(
             f"f_offset_{self.laser_name}",
@@ -191,13 +193,15 @@ class DedrifterExp(EnvExperiment):
         self.write_delay_mu = np.int64(100)
         self.wait_time_mu = np.int64(0)
 
-        # for method in core_methods_to_change:
-        #     change_core(getattr(self.core_dedrifter, method))
+        for method in core_methods_to_change:
+            change_core(getattr(self.core_dedrifter, method))
 
         # for method in cpld_methods_to_change:
         #     change_core(getattr(self.cpld, method))
         change_core_device(self.core_dedrifter)
         change_core_device(self.cpld)
+        for method in core_methods_to_change:
+            change_core(getattr(self.core_dedrifter, method))
 
     @kernel(arg=core_name)
     def run(self):
