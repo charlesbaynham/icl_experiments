@@ -94,7 +94,10 @@ class AD9910Dedrifter(HasEnvironment):
         self.dds: AD9910 = self.get_device(self.channel_name)
 
         change_core_device(self.dds, dds_methods_to_change)
-        change_core_device(self.dds.cpld, cpld_methods_to_change)
+        try:
+            change_core_device(self.dds.cpld, cpld_methods_to_change)
+        except AttributeError:
+            pass
         change_core_device(self.core_dedrifter, core_methods_to_change)
 
         # change_core(self.dds.cpld.set_att)
