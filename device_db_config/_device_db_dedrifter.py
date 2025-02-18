@@ -87,7 +87,7 @@ def get_dedrifter_device_db(port):
         "module": "artiq.coredevice.urukul",
         "class": "CPLD",
         "arguments": {
-            "spi_device": "blah",
+            "spi_device": "spi_urukul_dedrifter",
             "sync_device": None,
             "io_update_device": "ttl_urukul_dedrifter_io_update",
             "refclk": 125000000.0,
@@ -96,7 +96,7 @@ def get_dedrifter_device_db(port):
             "core_device": "core_dedrifter",
         },
     }
-
+v,vkrm gko trm
     dedrifter_db["urukul_dedrifter_ch0"] = {
         "type": "local",
         "module": "artiq.coredevice.ad9910",
