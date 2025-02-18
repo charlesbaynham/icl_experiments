@@ -87,7 +87,7 @@ def get_dedrifter_device_db(port):
         "module": "artiq.coredevice.urukul",
         "class": "CPLD",
         "arguments": {
-            "spi_device": "spi_urukul_dedrifter",
+            "spi_device": "blah",
             "sync_device": None,
             "io_update_device": "ttl_urukul_dedrifter_io_update",
             "refclk": 125000000.0,
