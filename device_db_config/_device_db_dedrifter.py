@@ -96,7 +96,7 @@ def get_dedrifter_device_db(port):
             "core_device": "core_dedrifter",
         },
     }
-v,vkrm gko trm
+
     dedrifter_db["urukul_dedrifter_ch0"] = {
         "type": "local",
         "module": "artiq.coredevice.ad9910",
