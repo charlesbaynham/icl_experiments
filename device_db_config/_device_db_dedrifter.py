@@ -65,21 +65,21 @@ def get_dedrifter_device_db(port):
         "type": "local",
         "module": "artiq.coredevice.kasli_i2c",
         "class": "KasliEEPROM",
-        "arguments": {"port": "EEM0"},
+        "arguments": {"port": "EEM0", "core_device": "core_dedrifter"},
     }
 
     dedrifter_db["spi_urukul_dedrifter"] = {
         "type": "local",
         "module": "artiq.coredevice.spi2",
         "class": "SPIMaster",
-        "arguments": {"channel": 0x000000},
+        "arguments": {"channel": 0x000000, "core_device": "core_dedrifter"},
     }
 
     dedrifter_db["ttl_urukul_dedrifter_io_update"] = {
         "type": "local",
         "module": "artiq.coredevice.ttl",
         "class": "TTLOut",
-        "arguments": {"channel": 0x000001},
+        "arguments": {"channel": 0x000001, "core_device": "core_dedrifter"},
     }
 
     dedrifter_db["urukul_dedrifter_cpld"] = {
@@ -93,6 +93,7 @@ def get_dedrifter_device_db(port):
             "refclk": 125000000.0,
             "clk_sel": 2,
             "clk_div": 0,
+            "core_device": "core_dedrifter",
         },
     }
 
@@ -263,20 +264,20 @@ def get_dedrifter_device_db(port):
         "type": "local",
         "module": "artiq.coredevice.ttl",
         "class": "TTLOut",
-        "arguments": {"channel": 0x000010},
+        "arguments": {"channel": 0x000010, "core_device": "core_dedrifter"},
     }
 
     dedrifter_db["led1"] = {
         "type": "local",
         "module": "artiq.coredevice.ttl",
         "class": "TTLOut",
-        "arguments": {"channel": 0x000011},
+        "arguments": {"channel": 0x000011, "core_device": "core_dedrifter"},
     }
 
     dedrifter_db["led2"] = {
         "type": "local",
         "module": "artiq.coredevice.ttl",
         "class": "TTLOut",
-        "arguments": {"channel": 0x000012},
+        "arguments": {"channel": 0x000012, "core_device": "core_dedrifter"},
     }
     return dedrifter_db
