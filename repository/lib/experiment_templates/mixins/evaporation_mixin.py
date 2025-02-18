@@ -12,7 +12,16 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 
 
-class EvaporationMixin(DipoleTrapWithExperiment):
+class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
+    """
+    Loads atoms into a dipole trap after the narrowband red MOT, and implements a
+    single stage of ramping dipole trap power.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
+    """   
     def build_fragment(self):
         super().build_fragment()
 
@@ -38,3 +47,4 @@ class EvaporationMixin(DipoleTrapWithExperiment):
     def dipole_trap_evaporation_hook(self):
         self.dipole_trap_evaporation_hook_default()
         self.linear_evap_ramp.do_phase()
+
