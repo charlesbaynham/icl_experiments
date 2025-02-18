@@ -28,6 +28,7 @@ from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
+kernel_core_name = "core"
 core_name = "core_dedrifter"
 
 
@@ -68,6 +69,10 @@ def change_core(func):
     func.__dict__["artiq_embedded"] = embedded_info
 
 
+def rename_attribute(obj, old_name, new_name):
+    obj.__dict__[new_name] = obj.__dict__.pop(old_name)
+
+
 cpld_methods_to_change = [
     "init",
     "cfg_switches",
@@ -84,21 +89,23 @@ dds_methods_to_change = ["set", "set_att", "init", "set_att_mu", "set_mu"]
 class AD9910Dedrifter(HasEnvironment):
 
     def build(self, index: int = 0):
-        # self.core_dedrifter: Core = self.get_device(core_name)
-        self.setattr_device(core_name)
-        self.core_dedrifter: Core
+        self.core_dedrifter: Core = self.get_device(core_name)
+        self.core: Core = self.get_device("core")
+        # self.setattr_device("core_dedrifter")
+        # rename_attribute(self, "core_dedrifter", "core")
+        # self.core: Core
         self.info: constants.DedrifterInfo = constants.dedrifter_infos[index]
 
         self.laser_name = self.info.laser_name
         self.channel_name = self.info.channel_name
         self.dds: AD9910 = self.get_device(self.channel_name)
 
-        change_core_device(self.dds, dds_methods_to_change)
-        try:
-            change_core_device(self.dds.cpld, cpld_methods_to_change)
-        except AttributeError:
-            pass
-        change_core_device(self.core_dedrifter, core_methods_to_change)
+        # change_core_device(self.dds, dds_methods_to_change)
+        # try:
+        #     change_core_device(self.dds.cpld, cpld_methods_to_change)
+        # except AttributeError:
+        #     pass
+        # change_core_device(self.core_dedrifter, core_methods_to_change)
 
         # change_core(self.dds.cpld.set_att)
 
@@ -157,7 +164,7 @@ class AD9910Dedrifter(HasEnvironment):
             logger.info("=" * 20)
         return f_offset
 
-    @kernel(arg=core_name)
+    @kernel(arg=kernel_core_name)
     def init(self, write_delay_mu):
         self.dds.init()
         self.dds.set_att(self.attenuation)
@@ -167,7 +174,7 @@ class AD9910Dedrifter(HasEnvironment):
         self.dds.set(frequency=self.f_act, phase=0.0, amplitude=1.0)
         delay_mu(write_delay_mu)
 
-    @kernel(arg=core_name)
+    @kernel(arg=kernel_core_name)
     def step_freq(self):
         self.f_act += self.f_step
         self.dds.set(frequency=self.f_act, phase=0.0, amplitude=1.0)
@@ -194,12 +201,20 @@ class DedrifterExp(EnvExperiment):
     Dedrifter
     """
 
-    core_name = "core_dedrifter"
+    # def register_child(self, child):
+    #     child.core_name = self.core_name
+    #     super().register_child(child)
 
     def build(self):
         # self.core_dedrifter: Core = self.get_device(core_name)
-        self.setattr_device("core_dedrifter")
-        self.core_dedrifter: Core
+        self.core_dedrifter: Core = self.get_device(core_name)
+        self.core = self.core_dedrifter
+        # self.setattr_device("core_dedrifter")
+        # self.core: Core = self.get_device("core_dedrifter")
+        # rename_attribute(self, "core_dedrifter", "core")
+        # self.core: Core
+
+        # self.core_dedrifter = self.core
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
@@ -240,28 +255,45 @@ class DedrifterExp(EnvExperiment):
         #     change_core_device(dedrifter.dds)
         #     change_core_device(dedrifter.dds.cpld)
 
-        change_core_device(self.cpld, cpld_methods_to_change)
-        change_core_device(self.core_dedrifter, core_methods_to_change)
+    @rpc
+    def printer(self):
+        print(f"{self.core}: self.core")
+        print(f"{self.core_dedrifter}: self.core_dedrifter")
+        print(f"{self.cpld.core}: self.cpld.core")
+        print(f"{self.dedrifters[0].dds.core}: self.dedrifters[0].dds.core")
+        print(f"{self.dedrifters[0].dds.cpld.core}: self.dedrifters[0].dds.cpld.core")
+        print(f"{self.core.st}")
+        
 
-    @kernel(arg=core_name)
+    @kernel(arg=kernel_core_name)
     def run(self):
-        self.get_wait_mu()
-        self.init_devices()
-
-        while True:
-            now = now_mu()
-            for dedrifter in self.dedrifters:
-                dedrifter.step_freq()
-                delay_mu(self.write_delay_mu)
-            at_mu(now + self.wait_time_mu)
+        self.printer()
+        self.core.break_realtime()
+        # self.dedrifters[0].dds.init()
+        print("init")
+        # logger.info("Starting")
+        # self.get_wait_mu()
+        # self.core.break_realtime()
+        # self.init_devices()
+        # self.printer("after kernel")
+        # # self.core_dedrifter.break_realtime()
+        # logger.info("Dedrifter started")
+        # # self.core_dedrifter.break_realtime()
+        # self.printer("loop")
+        # while True:
+        #     now = now_mu()
+        #     for dedrifter in self.dedrifters:
+        #         dedrifter.step_freq()
+        #         delay_mu(self.write_delay_mu)
+        #     at_mu(now + self.wait_time_mu)
 
     @rpc
     def get_wait_mu(self):
         for dedrifter in self.dedrifters:
             dedrifter.f_step = np.float64(dedrifter.ramp_rate * self.wait_time)
-        self.wait_time_mu = self.core_dedrifter.seconds_to_mu(self.wait_time)
+        self.wait_time_mu = self.core.seconds_to_mu(self.wait_time)
 
-    @kernel(arg=core_name)
+    @kernel(arg=kernel_core_name)
     def init_devices(self):
         self.core_dedrifter.break_realtime()
         self.cpld.init()

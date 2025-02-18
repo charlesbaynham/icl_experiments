@@ -12,7 +12,7 @@ def get_dedrifter_device_db(port):
             "arguments": {
                 "host": core_addr,
                 "ref_period": 1e-09,
-                "analyzer_proxy": "core_analyzer",
+
                 "target": "rv32g",
                 "satellite_cpu_targets": {},
             },
