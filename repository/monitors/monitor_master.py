@@ -8,12 +8,8 @@ from repository.database_monitors.monitor_ijds import MonitorBlueIJD1
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD2
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
 from repository.database_monitors.monitor_ijds import MonitorRedIJD1
-from repository.database_monitors.monitor_ion_pump import (
-    MonitorAIONCh1IonPump,
-    MonitorAIONCh2IonPump,
-    MonitorClockCh1IonPump,
-    MonitorClockCh2IonPump,
-)
+from repository.database_monitors.monitor_ion_pump import MonitorAIONCh1IonPump
+from repository.database_monitors.monitor_ion_pump import MonitorAIONCh2IonPump
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureDencoIn,
 )
@@ -24,6 +20,8 @@ from repository.database_monitors.monitor_lab_temperature import MonitorTemperat
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureSidearm,
 )
+from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
+from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
 from repository.database_monitors.monitor_topticas import *
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
