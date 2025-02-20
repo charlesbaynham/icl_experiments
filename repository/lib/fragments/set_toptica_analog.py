@@ -2,13 +2,15 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.fastino import Fastino
-from artiq.language.core import kernel
+from artiq.language.core import kernel, host_only
 from ndscan.experiment import ExpFragment
-from ndscan.experiment.entry_point import make_fragment_scan_exp
+# from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.constants import TOPTICA_461_ANALOG_SCALE
+
+logger = logging.getLogger(__name__)
 
 
 class SetTopticaAnalogFrag(ExpFragment):
@@ -52,6 +54,16 @@ class SetTopticaAnalogFrag(ExpFragment):
         )
         self.arc_factor: FloatParamHandle
 
+        self.voltage_min = -10.0 # we have a 1/5 attenuator so we can go all the way
+        self.voltage_max = 10.0
+
+    @host_only
+    def host_setup(self):
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {"voltage_min", "voltage_max", "channel"}
+        super().host_setup()
+
+
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
@@ -59,13 +71,23 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.fastino0.init()
 
     @kernel
-    def step_freq(self, freq: float = None):
-        if not freq:
-            freq = self.freq_step.get()
-        self.fastino0.set_dac(
-            self.channel, freq / (TOPTICA_461_ANALOG_SCALE * self.arc_factor.get())
+    def convert_freq(self, freq: float) -> float:
+        voltage = freq / (TOPTICA_461_ANALOG_SCALE * self.arc_factor.get())
+        if not self.check_voltage_lim(voltage):
+            raise ValueError("Voltage out of range")
+        return voltage
+    
+    @kernel
+    def check_voltage_lim(self, voltage: float) -> bool:
+        return self.voltage_min <= voltage <= self.voltage_max
+
+    @kernel
+    def step_freq(self, freq: float):
+        self.fastino0.set_dac(self.channel, 
+            self.convert_freq(freq),
         )
 
     @kernel
     def run_once(self):
-        self.step_freq()
+        self.step_freq(self.freq_step.get())
+        logger.info("Set frequency %f MHz", self.freq_step.get()/1e6)
