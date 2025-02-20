@@ -48,18 +48,29 @@ class SetTopticaAnalogFrag(ExpFragment):
         )
         self.freq_step: FloatParamHandle
 
-        self.setattr_param(
-            "arc_factor",
-            FloatParam,
-            description="ARC Factor",
-            default=0.02,
-            unit="V/V",
-            scale=1,
-        )
-        self.arc_factor: FloatParamHandle
+        # self.setattr_param(
+        #     "target_voltage",
+        #     FloatParam,
+        #     description="Target Voltage",
+        #     unit="V",
+        #     default=0.0,
+        # )
+        #self.target_voltage: FloatParamHandle
 
+        # self.setattr_param(
+        #     "arc_factor",
+        #     FloatParam,
+        #     description="ARC Factor",
+        #     default=0.02,
+        #     unit="V/V",
+        #     scale=1,
+        # )
+        # self.arc_factor: FloatParamHandle
+
+        self.arc_factor = 0.04
         self.voltage_min = -10.0  # we have a 1/5 attenuator so we can go all the way
         self.voltage_max = 10.0
+
 
 
     @host_only
@@ -80,7 +91,7 @@ class SetTopticaAnalogFrag(ExpFragment):
 
     @kernel
     def convert_freq(self, freq: float) -> float:
-        voltage = freq / (TOPTICA_461_ANALOG_SCALE * self.arc_factor.get())
+        voltage = freq / (TOPTICA_461_ANALOG_SCALE * self.arc_factor)
         if not self.check_voltage_lim(voltage):
             raise ValueError("Voltage out of range")
         return voltage
@@ -88,12 +99,20 @@ class SetTopticaAnalogFrag(ExpFragment):
     @kernel
     def check_voltage_lim(self, voltage: float) -> bool:
         return self.voltage_min <= voltage <= self.voltage_max
+    
 
     @kernel
-    def step_freq(self, freq: float):
-        self.fastino0.set_dac(self.channel, self.convert_freq(freq))
+    def step_freq(self):
+        voltage = self.convert_freq(self.freq_step.get())
+        self.fastino0.set_dac(self.channel, voltage)
 
     @kernel
     def run_once(self):
-        self.step_freq(self.freq_step.get())
-        logger.info("Set frequency %f MHz", self.freq_step.get() / 1e6)
+        # if self.target_voltage.get() == 0.0:
+        #     self.fastino0.set_dac(self.channel, 0.0)
+        #     return
+        self.step_freq()
+        delay(1.0)
+        self.fastino0.set_dac(self.channel, 0.0)
+        delay(1.0)
+        # logger.info("Set frequency %f MHz", self.freq_step.get() / 1e6)
