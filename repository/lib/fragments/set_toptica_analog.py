@@ -5,13 +5,12 @@ from artiq.coredevice.fastino import Fastino
 from artiq.language.core import kernel, host_only, rpc
 from ndscan.experiment import ExpFragment
 from wand.server import ControlInterface as WANDControlInterface
-from artiq.language.core import delay, now_mu, at_mu
+from artiq.language.core import delay
 
 # from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
-import time
 
 from repository.lib.constants import TOPTICA_461_ANALOG_SCALE
 
@@ -70,7 +69,7 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.setattr_result("frequency_diff", FloatChannel)
         self.frequency_diff: FloatChannel
 
-        self.setattr_param("read_wait", FloatParam, "Settling time", default=100e-3, unit="ms")
+        self.setattr_param("read_wait", FloatParam, default=100, unit="ms")
         self.read_wait: FloatParamHandle
 
     @host_only
@@ -106,9 +105,8 @@ class SetTopticaAnalogFrag(ExpFragment):
 
     @rpc
     def get_frequency(self) -> float:
-        time.sleep(self.read_wait.get())
         _, freq_461, _ = self.wand_server.get_freq("461")
-        return float(freq_461)
+        return freq_461
 
     @rpc
     def push_frequency(self, freq: float):
@@ -117,11 +115,10 @@ class SetTopticaAnalogFrag(ExpFragment):
     @kernel
     def run_once(self):
         f1 = self.get_frequency()
-        delay(100e-3)
-        # now = now_mu()
+        delay(1e-3)
         self.step_freq(self.freq_step.get())
-        # delay(self.read_wait.get())
+        delay(self.read_wait.get()*1e-3)
         f2 = self.get_frequency()
         logger.info("Set frequency %f MHz", self.freq_step.get() / 1e6)
-        self.frequency_461.push(f2*1e-12)
-        self.frequency_diff.push((f2 - f1)*1e-6)
+        self.frequency_461.push(f2)
+        self.frequency_diff.push(f2 - f1)
