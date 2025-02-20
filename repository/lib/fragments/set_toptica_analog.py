@@ -107,6 +107,10 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.fastino0.set_dac(self.channel, voltage)
 
     @kernel
+    def reset_freq(self):
+        self.fastino0.set_dac(self.channel, 0.0)
+
+    @kernel
     def run_once(self):
         # if self.target_voltage.get() == 0.0:
         #     self.fastino0.set_dac(self.channel, 0.0)

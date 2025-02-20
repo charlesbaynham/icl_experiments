@@ -222,7 +222,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         if self.set_toptica_analog.freq_step.get() != 0.0:
             delay(-self.set_topica_pre_delay.get()*1e-3)
-            self.set_toptica_analog.step_freq(self.set_toptica_analog.freq_step.get())
+            self.set_toptica_analog.step_freq()
             delay(self.set_topica_pre_delay.get()*1e-3)
         with parallel:
             self.andor_camera_control.trigger(
@@ -232,7 +232,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             if with_light:
                 self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
         if self.set_toptica_analog.freq_step.get() != 0.0:
-            self.set_toptica_analog.step_freq(0.0)
+            self.set_toptica_analog.reset_freq()
 
     # In red_mot_experiment this is optional, but we make it compulsory here
     # since using this base class alone should be an error
