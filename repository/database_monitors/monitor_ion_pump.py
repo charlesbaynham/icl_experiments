@@ -2,7 +2,6 @@ import logging
 import re
 from telnetlib import Telnet
 
-from ndscan.experiment import StringParam
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
@@ -77,13 +76,3 @@ class MonitorAIONCh1IonPump(MonitorIonPumpBase):
 class MonitorAIONCh2IonPump(MonitorIonPumpBase):
     ip = "10.137.1.16"
     description = "chamber2"
-
-
-class MonitorClockCh1IonPump(MonitorIonPumpBase):
-    ip = "10.137.2.2"
-    description = "clock_ch1"
-
-
-class MonitorClockCh2IonPump(MonitorIonPumpBase):
-    ip = "10.137.2.3"
-    description = "clock_ch2"
