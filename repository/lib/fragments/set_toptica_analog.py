@@ -5,6 +5,7 @@ from artiq.coredevice.fastino import Fastino
 from artiq.language.core import kernel, host_only, rpc
 from ndscan.experiment import ExpFragment
 from wand.server import ControlInterface as WANDControlInterface
+from artiq.language.core import delay
 
 # from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -68,6 +69,9 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.setattr_result("frequency_diff", FloatChannel)
         self.frequency_diff: FloatChannel
 
+        self.setattr_param("read_wait", FloatParam, default=100, unit="ms")
+        self.read_wait: FloatParamHandle
+
     @host_only
     def host_setup(self):
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -111,8 +115,10 @@ class SetTopticaAnalogFrag(ExpFragment):
     @kernel
     def run_once(self):
         f1 = self.get_frequency()
+        delay(1e-3)
         self.step_freq(self.freq_step.get())
-        logger.info("Set frequency %f MHz", self.freq_step.get() / 1e6)
+        delay(self.read_wait.get()*1e-3)
         f2 = self.get_frequency()
+        logger.info("Set frequency %f MHz", self.freq_step.get() / 1e6)
         self.frequency_461.push(f2)
         self.frequency_diff.push(f2 - f1)
