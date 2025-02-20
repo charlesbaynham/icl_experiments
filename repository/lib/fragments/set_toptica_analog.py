@@ -37,9 +37,6 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.setattr_device("fastino0")
         self.fastino0: Fastino
 
-        self.setattr_device("wand_server")
-        self.wand_server: WANDControlInterface
-
         self.channel = channel
 
         self.setattr_param(
@@ -64,13 +61,6 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.voltage_min = -10.0  # we have a 1/5 attenuator so we can go all the way
         self.voltage_max = 10.0
 
-        self.setattr_result("frequency_461", FloatChannel)
-        self.frequency_461: FloatChannel
-        self.setattr_result("frequency_diff", FloatChannel)
-        self.frequency_diff: FloatChannel
-
-        self.setattr_param("read_wait", FloatParam, default=100, unit="ms")
-        self.read_wait: FloatParamHandle
 
     @host_only
     def host_setup(self):
@@ -103,22 +93,7 @@ class SetTopticaAnalogFrag(ExpFragment):
     def step_freq(self, freq: float):
         self.fastino0.set_dac(self.channel, self.convert_freq(freq))
 
-    @rpc
-    def get_frequency(self) -> float:
-        _, freq_461, _ = self.wand_server.get_freq("461")
-        return freq_461
-
-    @rpc
-    def push_frequency(self, freq: float):
-        self.frequency_461.push(freq)
-
     @kernel
     def run_once(self):
-        f1 = self.get_frequency()
-        delay(1e-3)
         self.step_freq(self.freq_step.get())
-        delay(self.read_wait.get()*1e-3)
-        f2 = self.get_frequency()
         logger.info("Set frequency %f MHz", self.freq_step.get() / 1e6)
-        self.frequency_461.push(f2)
-        self.frequency_diff.push(f2 - f1)
