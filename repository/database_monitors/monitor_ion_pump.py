@@ -63,7 +63,7 @@ class MonitorIonPumpBase(Calibration):
             )
 
             return CalibrationResult.OK, {
-                "tags": {"sensor": self.description},
+                "tags": {"sensor": self.description, "type": "pressure"},
                 "fields": {"pressure": pressure, "current": current},
             }
 
