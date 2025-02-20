@@ -65,7 +65,7 @@ def _get_pump_pressure(
     return max([pressure, 1e-14])  # Cannot resolve below 1e-11 mbar
 
 
-class MonitorSAESIonPumpBase(Calibration):
+class _MonitorSAESIonPumpBase(Calibration):
     """
     Monitor the current and pressure of a SAES SIP Power ion pump
     """
@@ -91,11 +91,11 @@ class MonitorSAESIonPumpBase(Calibration):
         }
 
 
-class MonitorClockCh1IonPump(MonitorSAESIonPumpBase):
+class MonitorClockCh1IonPump(_MonitorSAESIonPumpBase):
     ip = "10.137.2.2"
     description = "clock_ch1"
 
 
-class MonitorClockCh2IonPump(MonitorSAESIonPumpBase):
+class MonitorClockCh2IonPump(_MonitorSAESIonPumpBase):
     ip = "10.137.2.3"
     description = "clock_ch2"

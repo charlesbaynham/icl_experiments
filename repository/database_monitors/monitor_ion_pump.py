@@ -11,7 +11,7 @@ COMMAND_PRESSURE = b"spc 0b 1\r\n"
 COMMAND_CURRENT = b"spc 0a 1\r\n"
 
 
-class MonitorIonPumpBase(Calibration):
+class _MonitorIonPumpBase(Calibration):
     """
     Monitor the current and pressure of an ion pump
     """
@@ -68,11 +68,11 @@ class MonitorIonPumpBase(Calibration):
             }
 
 
-class MonitorAIONCh1IonPump(MonitorIonPumpBase):
+class MonitorAIONCh1IonPump(_MonitorIonPumpBase):
     ip = "10.137.1.8"
     description = "chamber1"
 
 
-class MonitorAIONCh2IonPump(MonitorIonPumpBase):
+class MonitorAIONCh2IonPump(_MonitorIonPumpBase):
     ip = "10.137.1.16"
     description = "chamber2"
