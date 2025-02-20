@@ -86,7 +86,7 @@ class MonitorSAESIonPumpBase(Calibration):
         pressure = _get_pump_pressure(self.ip)
 
         return CalibrationResult.OK, {
-            "tags": {"sensor": self.description},
+            "tags": {"sensor": self.description, "type": "pressure"},
             "fields": {"pressure": 1e3 * pressure},  # Convert to mbar
         }
 
