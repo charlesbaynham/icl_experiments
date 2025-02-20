@@ -61,7 +61,8 @@ def _get_pump_pressure(
     """
     pressure = _get_pump_current(ip) / conversion_rate
     logger.debug("Pressure = %s", pressure)
-    return pressure
+
+    return max([pressure, 1e-14])  # Cannot resolve below 1e-11 mbar
 
 
 class MonitorSAESIonPumpBase(Calibration):
@@ -86,7 +87,7 @@ class MonitorSAESIonPumpBase(Calibration):
 
         return CalibrationResult.OK, {
             "tags": {"sensor": self.description},
-            "fields": {"pressure": pressure},
+            "fields": {"pressure": 1e3 * pressure},  # Convert to mbar
         }
 
 
