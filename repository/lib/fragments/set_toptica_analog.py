@@ -100,10 +100,16 @@ class SetTopticaAnalogFrag(ExpFragment):
     def check_voltage_lim(self, voltage: float) -> bool:
         return self.voltage_min <= voltage <= self.voltage_max
     
+    @rpc(flags={"async"})
+    def log_fastino_stuff(self, voltage: float):
+        logger.info("freq_step from frag: %f", self.freq_step.get())
+        logger.info("set voltage from frag: %f", voltage)
+    
 
     @kernel
     def step_freq(self):
         voltage = self.convert_freq(self.freq_step.get())
+        self.log_fastino_stuff(voltage)
         self.fastino0.set_dac(self.channel, voltage)
 
     @kernel
