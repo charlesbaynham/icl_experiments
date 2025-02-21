@@ -182,7 +182,7 @@ Based on the above, I think I need to two these things:
 When I want to playback the RAM, I need to:
 
 1. Set RAM_ENABLE = 1 in CFR1.
-2. Pulse IO_UPDATE to start the RAM playback. If I want, I can mask this using
+2. Pulse IO_UPDATE or change PROFILE to start RAM playback. For IO_UPDATE, I can mask this using
    NU_MASK to only affect the DDS I want to affect. I probably want to do this.
 
 
@@ -197,6 +197,27 @@ For this demo code, I'll do neither and just leave all the other DDSs off.
 
 Note that the RAM profiles and single-tone profiles use the same registers: the interpretation
 of these registers depends on the RAM_ENABLE bit in CFR1.
+
+IO_UPDATE
+---------
+
+On a more careful reading of the CPLD firmware, it seems like MASK_NU in CFG register in the Urukul behaves slightly different from how I thought.
+
+By masking one (or more) of the DDS chips in NU_MASK you:
+
+1. Disconnect them from the TTL IO_UPDATE lane on the physical EEM
+2. Connect them to the IO_UPDATE bit in the CFG register instead
+3. Disconnect them from the individual-addressing SPI lines (address by CS2 which does not exist in SUServo mode)
+4. Connect them to the "bulk" addressing CS=3 line
+
+I also misunderstood the RAM playback. I think that the RAM_ENABLE bit in cfg1 is read on either IO_UPDATE pulses or a PROFILE change.
+
+Fine, so the strategy is:
+
+1. Set PROFILE up for all DDSs on the Urukul. Hope (and test) that this doesn't have an immediate effect on the others.
+2. Set the RAM_ENABLE bit on the target DDS. This diesn't do anything yet, pending IO_UPDATE.
+3. Mask the other DDSs with MASK_NU
+4. Pulse IO_UPDATE
 """
 
 import logging
@@ -245,13 +266,13 @@ class AD9910RAMTest(EnvExperiment):
         ).tolist()
         self.ram_data = np.linspace(0, 2**30, self.n_steps, dtype=np.int32).tolist()
 
-        # self.phase_start = 0.0
-        # self.phase_end = 0.0
-        # self.phases = np.linspace(self.phase_start, self.phase_end, self.n_steps)
+        self.phase_start = 0.0
+        self.phase_end = 0.0
+        self.phases = np.linspace(self.phase_start, self.phase_end, self.n_steps)
 
-        # self.amp_start = 0.0
-        # self.amp_end = 1.0
-        # self.amps = np.linspace(self.amp_start, self.amp_end, self.n_steps)
+        self.amp_start = 0.0
+        self.amp_end = 1.0
+        self.amps = np.linspace(self.amp_start, self.amp_end, self.n_steps)
 
     @kernel
     def run(self):
