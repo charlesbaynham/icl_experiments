@@ -77,12 +77,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
 
-        self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-        self.set_toptica_analog: SetTopticaAnalogFrag
-
-        self.setattr_param("set_topica_pre_delay", FloatParam, "Toptica setting pre-delay", default=0.0, unit="ms")
-        self.set_topica_pre_delay: FloatParamHandle
-
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("num_andor_images")
         self.kernel_invariants.add("num_grabber_rois")
@@ -100,12 +94,17 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.setattr_device("core")
                 self.core: Core
 
+                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
+                self.set_toptica_analog: SetTopticaAnalogFrag                
+
                 self.num_grabber_rois = num_grabber_rois
 
             @kernel
             def device_setup(self):
                 self.device_setup_subfragments()
                 self.core.break_realtime()
+
+                self.set_toptica_analog.reset_freq()
 
                 grabber_clearout = [0] * self.num_grabber_rois
 
