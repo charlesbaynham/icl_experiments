@@ -77,9 +77,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
 
-        self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-        self.set_toptica_analog: SetTopticaAnalogFrag
-
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("num_andor_images")
         self.kernel_invariants.add("num_grabber_rois")
@@ -96,6 +93,9 @@ class AndorImagingBase(RedMOTWithExperiment):
 
                 self.setattr_device("core")
                 self.core: Core              
+
+                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
+                self.set_toptica_analog: SetTopticaAnalogFrag
 
                 self.num_grabber_rois = num_grabber_rois
 
@@ -121,6 +121,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                         break
 
         self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
+        self.imagingsetup: ImagingDeviceSetup
 
     def hook_setup_andor(self):
         """
