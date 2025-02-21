@@ -92,10 +92,10 @@ class _MonitorSAESIonPumpBase(Calibration):
 
 
 class MonitorClockCh1IonPump(_MonitorSAESIonPumpBase):
-    ip = "10.137.2.2"
+    ip = "clock-ionpump-ch1.lan"
     description = "clock_ch1"
 
 
 class MonitorClockCh2IonPump(_MonitorSAESIonPumpBase):
-    ip = "10.137.2.3"
+    ip = "clock-ionpump-ch2.lan"
     description = "clock_ch2"
