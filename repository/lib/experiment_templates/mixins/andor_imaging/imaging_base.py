@@ -15,8 +15,6 @@ from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParamHandle
 from sipyco.packed_exceptions import GenericRemoteException
@@ -24,7 +22,6 @@ from sipyco.packed_exceptions import GenericRemoteException
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +89,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.grabber0: Grabber
 
                 self.setattr_device("core")
-                self.core: Core              
-
-                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-                self.set_toptica_analog: SetTopticaAnalogFrag
+                self.core: Core
 
                 self.num_grabber_rois = num_grabber_rois
 
@@ -103,8 +97,6 @@ class AndorImagingBase(RedMOTWithExperiment):
             def device_setup(self):
                 self.device_setup_subfragments()
                 self.core.break_realtime()
-
-                self.set_toptica_analog.reset_freq()
 
                 grabber_clearout = [0] * self.num_grabber_rois
 
@@ -121,7 +113,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                         break
 
         self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
-        self.imagingsetup: ImagingDeviceSetup
 
     def hook_setup_andor(self):
         """
@@ -220,10 +211,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         Default implementation of a fluorescence pulse, available for use by
         mixins (but not used by default).
         """
-        # if self.set_toptica_analog.freq_step.get() != 0.0:
-        #     delay(-self.set_topica_pre_delay.get()*1e-3)
-        #     self.set_toptica_analog.step_freq()
-        #     delay(self.set_topica_pre_delay.get()*1e-3)
         with parallel:
             self.andor_camera_control.trigger(
                 exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
@@ -231,8 +218,6 @@ class AndorImagingBase(RedMOTWithExperiment):
             )
             if with_light:
                 self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-        # if self.set_toptica_analog.freq_step.get() != 0.0:
-        #     self.set_toptica_analog.reset_freq()
 
     # In red_mot_experiment this is optional, but we make it compulsory here
     # since using this base class alone should be an error
