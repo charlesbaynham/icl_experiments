@@ -11,12 +11,14 @@ from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
+from artiq.language.core import delay
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,12 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     def build_fragment(self):
         super().build_fragment()
+
+        # self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
+        # self.set_toptica_analog: SetTopticaAnalogFrag
+
+        self.setattr_param("set_topica_pre_delay", FloatParam, "Toptica setting pre-delay", default=0.0, unit="ms")
+        self.set_topica_pre_delay: FloatParamHandle
 
         self.setattr_param(
             "delay_between_absorption_pulses",
@@ -165,8 +173,18 @@ class AbsorptionImagingBase(AndorImagingBase):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
+        #step blue frequency
+        if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
+            delay(-self.set_topica_pre_delay.get())
+            self.imagingsetup.set_toptica_analog.step_freq()
+            delay(self.set_topica_pre_delay.get())
+
         # Image with atoms
         self.do_pulse()
+
+        # Reset blue frequency
+        if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
+            self.imagingsetup.set_toptica_analog.reset_freq()
 
         # Wait for atoms to disappear
         delay(self.delay_between_absorption_pulses.get())
