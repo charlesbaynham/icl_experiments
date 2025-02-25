@@ -25,7 +25,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 logger = logging.getLogger(__name__)
 
 
-class _MeasureSingleXODTFrag(ConstantBeamsMixin, DipoleTrapWithExperiment):
+class _MeasureSingleXODTFrag(DipoleTrapWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
