@@ -48,10 +48,13 @@ class MeasureSingleXODTBGCorrectedFrag(
     Make Single XODT, image twice for BG subtraction
     """
 
-class MeasureNarrowbandMOTAbsFrag(
+class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     _MeasureSingleXODTFrag,
 ):
     """
     Measure a single XODT, no molasses, with absorption imaging
     """
+
+MeasureSingleXODTBGCorrectedFrag = make_fragment_scan_exp(MeasureSingleXODTBGCorrectedFrag)
+MeasureSingleXODTAbsFrag = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
