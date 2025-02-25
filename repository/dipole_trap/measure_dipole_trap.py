@@ -48,6 +48,10 @@ class MeasureSingleXODTBGCorrectedFrag(
     Make Single XODT, image twice for BG subtraction
     """
 
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass    
+
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     _MeasureSingleXODTFrag,
@@ -55,6 +59,10 @@ class MeasureSingleXODTAbsFrag(
     """
     Measure a single XODT, no molasses, with absorption imaging
     """
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
 
 MeasureSingleXODTBGCorrectedFrag = make_fragment_scan_exp(MeasureSingleXODTBGCorrectedFrag)
 MeasureSingleXODTAbsFrag = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
