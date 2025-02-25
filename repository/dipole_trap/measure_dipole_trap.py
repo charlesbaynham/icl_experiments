@@ -33,11 +33,11 @@ class _MeasureSingleXODTFrag(ConstantBeamsMixin, DipoleTrapWithExperiment):
         self.override_param("delay_after_experiment", 0)
         self.override_param("spectroscopy_field_gradient", 0)
 
-    @kernel
-    def do_experiment_after_red_mot_hook(self):
-        # turn off dipole trap beams to expand cloud. override the hook to not have all the stages after dipole trap
-        self.constant_dipole_traps_setter.set_all_beams_off() 
-        pass
+    # @kernel
+    # def do_experiment_after_red_mot_hook(self):
+    #     # turn off dipole trap beams to expand cloud. override the hook to not have all the stages after dipole trap
+    #     self.constant_dipole_traps_setter.set_all_beams_off() 
+    #     pass
 
 class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
