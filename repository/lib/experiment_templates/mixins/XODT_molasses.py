@@ -134,32 +134,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.molasses_xodt_1.precalculate_dma_handle()
 
     @kernel
-    def before_start_hook(self):
-        self.before_start_hook_xodt_molasses()
-
-    @kernel
-    def before_start_hook_xodt_molasses(self):
-        """
-        Before the blue MOT, turn on the crossed dipole trap beams and
-        set setpoints to same as the start of the xodt molasses ramp.
-
-        TODO: Move this to a device_setup / use a default beam setter to define setpoints
-        """
-
-        self.core.break_realtime()
-        self.dipole_beam_controller.XODT_setter.turn_on_all()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.core.break_realtime()
-        self.dipole_beam_controller.set_dipole_suservo_setpoints(
-            setpoint_down_813=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                5
-            ],
-            setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                4
-            ],
-        )
-
-    @kernel
     def post_narrowband_hook(self):
         """
         Turn off red MOT beams (default hook), set coil currents, and wait
