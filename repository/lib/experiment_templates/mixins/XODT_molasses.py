@@ -27,7 +27,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
 
@@ -200,7 +199,6 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
 
@@ -358,7 +356,6 @@ class XODTDoubleMolassesPlusFieldRampMixin(
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
@@ -395,7 +392,6 @@ class XODTSingleMolassesPlusFieldRampMixin(
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
