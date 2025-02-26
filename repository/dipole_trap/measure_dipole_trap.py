@@ -22,10 +22,26 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 
+from artiq.experiment import delay
+from artiq.experiment import delay_mu
+from numpy import int64
+
 logger = logging.getLogger(__name__)
 
 
 class _MeasureSingleXODTFrag(DipoleTrapWithExperiment):
+    """
+    Loads atoms into a single XODT after the narrowband red MOT, without any molasses and spinpol.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+
+    We also override this hook to do nothing since this Mixin is now taking charge
+    of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
     def build_fragment(self):
         super().build_fragment()
 
@@ -33,11 +49,31 @@ class _MeasureSingleXODTFrag(DipoleTrapWithExperiment):
         self.override_param("delay_after_experiment", 0)
         self.override_param("spectroscopy_field_gradient", 0)
 
-    # @kernel
-    # def do_experiment_after_red_mot_hook(self):
-    #     # turn off dipole trap beams to expand cloud. override the hook to not have all the stages after dipole trap
-    #     self.constant_dipole_traps_setter.set_all_beams_off() 
-    #     pass
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_single_xodt()
+
+    @kernel
+    def before_start_hook_single_xodt(self):
+        """
+        Before the blue MOT, turn on the crossed dipole trap beams and
+        set setpoints to same as the start of the xodt molasses ramp.
+
+        TODO: Move this to a device_setup / use a default beam setter to define setpoints
+        """
+
+        self.core.break_realtime()
+        self.dipole_beam_controller.XODT_setter.turn_on_all()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.core.break_realtime()
+        self.dipole_beam_controller.set_dipole_suservo_setpoints(
+            setpoint_down_813=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
+                5
+            ],
+            setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
+                4
+            ],
+        )
 
 class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
