@@ -18,8 +18,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XOD
 
 logger = logging.getLogger(__name__)
 
-
-class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
+class XODTSingleMolassesMixinBase(DipoleTrapWithExperiment):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, and implements a
     single stage of ramping molasses (or MOT) with ramping bias magnetic field.
@@ -27,7 +26,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
 
@@ -45,37 +43,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
-
-        # # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_start",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
-        )
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_end",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
-        )
-        for idx, axis in enumerate(["x", "y", "z"]):
-            self.setattr_param_rebind(
-                f"narrowband_bias_{axis}",
-                self.red_mot,
-                default=constants.BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES[idx],
-            )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
-            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
-        )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
-        )
 
         self.setattr_param(
             "delay_before_molasses",
@@ -134,32 +101,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.molasses_xodt_1.precalculate_dma_handle()
 
     @kernel
-    def before_start_hook(self):
-        self.before_start_hook_xodt_molasses()
-
-    @kernel
-    def before_start_hook_xodt_molasses(self):
-        """
-        Before the blue MOT, turn on the crossed dipole trap beams and
-        set setpoints to same as the start of the xodt molasses ramp.
-
-        TODO: Move this to a device_setup / use a default beam setter to define setpoints
-        """
-
-        self.core.break_realtime()
-        self.dipole_beam_controller.XODT_setter.turn_on_all()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.core.break_realtime()
-        self.dipole_beam_controller.set_dipole_suservo_setpoints(
-            setpoint_down_813=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                5
-            ],
-            setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                4
-            ],
-        )
-
-    @kernel
     def post_narrowband_hook(self):
         """
         Turn off red MOT beams (default hook), set coil currents, and wait
@@ -212,6 +153,86 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
         self.molasses_xodt_1.do_phase()
+
+
+class XODTSingleMolassesMixin(XODTSingleMolassesMixinBase):
+    """
+    Loads atoms into a double dipole trap after the narrowband red MOT, and implements a
+    single stage of ramping molasses (or MOT) with ramping bias magnetic field.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~before_start_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~dipole_trap_molasses_hook`
+
+    We also override this hook to do nothing since this Mixin is now taking charge
+    of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        # # Expose the bias field for moving the MOT to the right place
+        self.setattr_param_rebind(
+            "chamber_2_red_narrowband_mot_current_start",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="chamber_2_mot_current_start",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
+        )
+        self.setattr_param_rebind(
+            "chamber_2_red_narrowband_mot_current_end",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="chamber_2_mot_current_end",
+            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
+        )
+        for idx, axis in enumerate(["x", "y", "z"]):
+            self.setattr_param_rebind(
+                f"narrowband_bias_{axis}",
+                self.red_mot,
+                default=constants.BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES[idx],
+            )
+        self.setattr_param_rebind(
+            "red_narrowband_mot_689_up_start",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
+            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
+        )
+        self.setattr_param_rebind(
+            "red_narrowband_mot_689_up_end",
+            self.red_mot.narrow_red_compression_phase,
+            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
+        )
+
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_xodt_molasses()
+
+    @kernel
+    def before_start_hook_xodt_molasses(self):
+        """
+        Before the blue MOT, turn on the crossed dipole trap beams and
+        set setpoints to same as the start of the xodt molasses ramp.
+
+        TODO: Move this to a device_setup / use a default beam setter to define setpoints
+        """
+
+        self.core.break_realtime()
+        self.dipole_beam_controller.XODT_setter.turn_on_all()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.core.break_realtime()
+        self.dipole_beam_controller.set_dipole_suservo_setpoints(
+            setpoint_down_813=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
+                5
+            ],
+            setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
+                4
+            ],
+        )
 
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):

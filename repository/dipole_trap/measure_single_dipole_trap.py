@@ -21,28 +21,17 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesMixin,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class _MeasureSingleXODTFrag(DipoleTrapWithExperiment):
-    def build_fragment(self):
-        super().build_fragment()
-
-        # Remove unused parameters
-        self.override_param("delay_after_experiment", 0)
-        self.override_param("spectroscopy_field_gradient", 0)
-
-    # @kernel
-    # def do_experiment_after_red_mot_hook(self):
-    #     # turn off dipole trap beams to expand cloud. override the hook to not have all the stages after dipole trap
-    #     self.constant_dipole_traps_setter.set_all_beams_off() 
-    #     pass
-
 class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImage,
-    _MeasureSingleXODTFrag,
+    XODTSingleMolassesMixin,
 ):
     """
     Make Single XODT, image twice for BG subtraction
@@ -54,10 +43,10 @@ class MeasureSingleXODTBGCorrectedFrag(
 
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
-    _MeasureSingleXODTFrag,
+    XODTSingleMolassesMixin,
 ):
     """
-    Measure a single XODT, no molasses, with absorption imaging
+    Measure a single XODT with absorption imaging
     """
 
     @kernel
