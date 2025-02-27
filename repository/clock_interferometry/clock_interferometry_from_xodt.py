@@ -71,6 +71,7 @@ class DifferentialClockInterferometryFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
         self.before_start_hook_clockshelving()
 
 
@@ -92,6 +93,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
         self.before_start_hook_clockshelving()
 
 
@@ -112,6 +114,7 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
         self.before_start_hook_clockshelving()
 
 
