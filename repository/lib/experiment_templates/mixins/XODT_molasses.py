@@ -45,26 +45,6 @@ class XODTSingleMolassesMixinBase(DipoleTrapWithExperiment):
         self.override_param("spectroscopy_field_gradient", 0)
 
         self.setattr_param(
-            "delay_before_molasses",
-            FloatParam,
-            "Time to hold in dipole trap before molasses starts",
-            default=constants.DELAY_BEFORE_MOLASSES,
-            unit="ms",
-        )
-        self.delay_before_molasses: FloatParamHandle
-
-        self.setattr_param(
-            "mot_coil_current_first_molasses",
-            FloatParam,
-            "MOT coil current during first molasses",
-            default=constants.XODT_MOLASSES_MOT_CURRENT,
-            unit="A",
-            min=0,
-            max=130,
-        )
-        self.mot_coil_current_first_molasses: FloatParamHandle
-
-        self.setattr_param(
             "stir_beam_detuning_molasses_1",
             FloatParam,
             "Detuning of the 689 stir beam during 1st molasses",
@@ -101,13 +81,6 @@ class XODTSingleMolassesMixinBase(DipoleTrapWithExperiment):
         self.molasses_xodt_1.precalculate_dma_handle()
 
     @kernel
-    def post_narrowband_hook(self):
-        """
-        Turn off red MOT beams (default hook), set coil currents, and wait
-        """
-        self.post_narrowband_hook_xodt_molasses()
-
-    @kernel
     def set_postnarrowband_fields_hook(self):
         self.set_postnarrowband_fields_hook_singlemollasses()
 
@@ -116,33 +89,15 @@ class XODTSingleMolassesMixinBase(DipoleTrapWithExperiment):
         pass
 
     @kernel
-    def post_narrowband_hook_xodt_molasses(self):
-        """
-        Turn off MOT fields and set bias fields to molasses ramp start.
-
-        Wait a settling time before starting the molasses.
-        """
-        self.red_mot.chamber_2_field_setter.set_all_fields(
-            self.mot_coil_current_first_molasses.get(),
-            self.molasses_xodt_1.general_setter_default_starts[0],
-            self.molasses_xodt_1.general_setter_default_starts[1],
-            self.molasses_xodt_1.general_setter_default_starts[2],
-        )
-        if self.delay_before_molasses.get() > 1e-6:
-            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
-                ignore_shutters=True
-            )
-        delay(self.delay_before_molasses.get())
-
-    @kernel
     def dipole_trap_molasses_hook(self):
         self.dipole_trap_molasses_hook_first_xodt_molasses()
 
     @kernel
     def dipole_trap_molasses_hook_first_xodt_molasses(self):
         """
-        Do the first molasses ramping phase
+        Turn the dipole beams on and do the first molasses ramping phase
         """
+        self.constant_dipole_traps_setter.turn_on_all()
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
@@ -206,6 +161,26 @@ class XODTSingleMolassesMixin(XODTSingleMolassesMixinBase):
             self.red_mot.narrow_red_compression_phase,
             original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
         )
+        self.setattr_param(
+            "delay_before_molasses",
+            FloatParam,
+            "Time to hold in dipole trap before molasses starts",
+            default=constants.DELAY_BEFORE_MOLASSES,
+            unit="ms",
+        )
+        self.delay_before_molasses: FloatParamHandle
+
+        self.setattr_param(
+            "mot_coil_current_first_molasses",
+            FloatParam,
+            "MOT coil current during first molasses",
+            default=constants.XODT_MOLASSES_MOT_CURRENT,
+            unit="A",
+            min=0,
+            max=130,
+        )
+        self.mot_coil_current_first_molasses: FloatParamHandle
+
 
 
     @kernel
@@ -233,6 +208,32 @@ class XODTSingleMolassesMixin(XODTSingleMolassesMixinBase):
                 4
             ],
         )
+
+    @kernel
+    def post_narrowband_hook(self):
+        """
+        Turn off red MOT beams (default hook), set coil currents, and wait
+        """
+        self.post_narrowband_hook_xodt_molasses()        
+
+    @kernel
+    def post_narrowband_hook_xodt_molasses(self):
+        """
+        Turn off MOT fields and set bias fields to molasses ramp start.
+
+        Wait a settling time before starting the molasses.
+        """
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            self.mot_coil_current_first_molasses.get(),
+            self.molasses_xodt_1.general_setter_default_starts[0],
+            self.molasses_xodt_1.general_setter_default_starts[1],
+            self.molasses_xodt_1.general_setter_default_starts[2],
+        )
+        if self.delay_before_molasses.get() > 1e-6:
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+                ignore_shutters=True
+            )
+        delay(self.delay_before_molasses.get())
 
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
