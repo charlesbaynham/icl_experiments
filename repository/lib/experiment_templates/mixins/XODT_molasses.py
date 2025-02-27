@@ -28,11 +28,6 @@ class XODTSingleMolassesMixinBase(DipoleTrapWithExperiment):
     * :meth:`~DMA_initialization_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
-
-    We also override this hook to do nothing since this Mixin is now taking charge
-    of field setting:
-
-    * :meth:`~set_postnarrowband_fields_hook`
     """
 
     def build_fragment(self):
