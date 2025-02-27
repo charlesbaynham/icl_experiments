@@ -72,6 +72,7 @@ class DownBeamAlignmentFrag(
     def before_start_hook(self):
         self.core.break_realtime()
         delay(1e-3)
+        self.before_start_hook_xodt_molasses()
 
         # Configure the down beam but leave it off
         self.core.break_realtime()
