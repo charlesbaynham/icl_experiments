@@ -183,8 +183,8 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.do_pulse()
 
         # Reset blue frequency
-        if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
-            self.imagingsetup.set_toptica_analog.reset_freq()
+        # if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
+        #     self.imagingsetup.set_toptica_analog.reset_freq()
 
         # Wait for atoms to disappear
         delay(self.delay_between_absorption_pulses.get())

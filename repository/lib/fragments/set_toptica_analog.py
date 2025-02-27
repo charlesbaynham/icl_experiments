@@ -88,6 +88,8 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.device_setup_subfragments()
         self.core.break_realtime()
         self.fastino0.init()
+        self.core.break_realtime()
+        self.reset_freq()
 
     @kernel
     def convert_freq(self, freq: float) -> float:
