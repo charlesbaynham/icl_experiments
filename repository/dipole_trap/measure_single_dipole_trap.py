@@ -41,13 +41,6 @@ class MeasureSingleXODTBGCorrectedFrag(
     def build_fragment(self):
         super().build_fragment()   
 
-        self.setattr_param_rebind(
-            "delay_molasses",
-            self.delay_before_molasses,
-            original_name="delay_before_molasses",
-            default= 0.01e-3,
-        )    
-
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         pass    
@@ -62,12 +55,6 @@ class MeasureSingleXODTAbsFrag(
     def build_fragment(self):
         super().build_fragment()   
 
-        self.setattr_param_rebind(
-            "delay_molasses",
-            self.delay_before_molasses,
-            original_name="delay_before_molasses",
-            default= 0.01e-3,
-        )  
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
