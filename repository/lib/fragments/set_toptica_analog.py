@@ -5,7 +5,7 @@ from artiq.coredevice.fastino import Fastino
 from artiq.language.core import kernel, host_only, rpc
 from ndscan.experiment import ExpFragment
 from wand.server import ControlInterface as WANDControlInterface
-from artiq.language.core import delay
+from artiq.language.core import delay, now_mu, at_mu
 
 # from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -55,7 +55,7 @@ class SetTopticaAnalogFrag(ExpFragment):
         #     unit="V",
         #     default=0.0,
         # )
-        #self.target_voltage: FloatParamHandle
+        # self.target_voltage: FloatParamHandle
 
         # self.setattr_param(
         #     "arc_factor",
@@ -90,10 +90,17 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.fastino0.init()
         self.core.break_realtime()
         self.reset_freq()
+        self.core.break_realtime()
+
+    @kernel
+    def device_cleanup(self):
+        self.device_cleanup_subfragments()
+        self.core.break_realtime()
+        self.reset_freq()
 
     @kernel
     def convert_freq(self, freq: float) -> float:
-        voltage = freq / (TOPTICA_461_ANALOG_SCALE * self.arc_factor)
+        voltage = freq / (TOPTICA_461_ANALOG_SCALE)
         if not self.check_voltage_lim(voltage):
             raise ValueError("Voltage out of range")
         return voltage
@@ -104,13 +111,15 @@ class SetTopticaAnalogFrag(ExpFragment):
     
     @rpc(flags={"async"})
     def log_fastino_stuff(self, voltage: float):
-        logger.info("freq_step from frag: %f", self.freq_step.get())
-        logger.info("set voltage from frag: %f", voltage)
+        logger.info("freq_step: %f", self.freq_step.get())
+        logger.info("set voltage: %f", voltage)
     
 
     @kernel
     def step_freq(self):
         voltage = self.convert_freq(self.freq_step.get())
+        # voltage = self.target_voltage.get()
+        delay(1e-6)
         self.log_fastino_stuff(voltage)
         self.fastino0.set_dac(self.channel, voltage)
 
@@ -124,7 +133,7 @@ class SetTopticaAnalogFrag(ExpFragment):
         #     self.fastino0.set_dac(self.channel, 0.0)
         #     return
         self.step_freq()
-        delay(1.0)
+        delay(3.0)
         self.fastino0.set_dac(self.channel, 0.0)
-        delay(1.0)
-        # logger.info("Set frequency %f MHz", self.freq_step.get() / 1e6)
+        delay(3.0)
+

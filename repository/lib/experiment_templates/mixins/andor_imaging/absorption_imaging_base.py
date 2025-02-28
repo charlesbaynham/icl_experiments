@@ -113,6 +113,8 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.override_param("use_andor_driver", True)
         self.setattr_param_rebind("pre_trigger_delay", self.andor_camera_control)
         self.override_param("pre_trigger_delay", 50e-6)
+        # self.setattr_param_rebind("delivery_settling_duration", self.fluorescence_pulse)
+        # self.override_param("delivery_settling_duration", 6e3)
 
     def host_setup(self):
         super().host_setup()
