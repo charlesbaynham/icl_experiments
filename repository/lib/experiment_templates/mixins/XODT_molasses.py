@@ -76,6 +76,10 @@ class XODTSingleMolassesMixinBase(DipoleTrapWithExperiment):
         self.molasses_xodt_1.precalculate_dma_handle()
 
     @kernel
+    def post_narrowband_hook(self):
+        pass
+
+    @kernel
     def set_postnarrowband_fields_hook(self):
         self.set_postnarrowband_fields_hook_singlemollasses()
 
