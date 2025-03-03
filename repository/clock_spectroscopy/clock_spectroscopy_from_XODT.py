@@ -54,6 +54,7 @@ class ClockSpecFromXXODTFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
 
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
@@ -79,6 +80,7 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
 
 
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
@@ -103,6 +105,7 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+        self.before_start_hook_xodt_molasses()
 
 
 AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(
