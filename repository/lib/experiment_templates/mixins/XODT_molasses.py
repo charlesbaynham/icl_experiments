@@ -47,7 +47,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             "red_narrowband_mot_689_up_start",
             self.red_mot.narrow_red_compression_phase,
             original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
-            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
+            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT,
         )
         self.setattr_param_rebind(
             "red_narrowband_mot_689_up_end",
@@ -59,7 +59,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             "stir_beam_detuning_mot_xodt",
             FloatParam,
             "Detuning of the 689 stir beam during xodt loading",
-            default=0,
+            default=constants.XODT_SINGLE_LOADING_STIR_DETUNING,
             unit="kHz",
             min=-2e6,
             max=2e6,
