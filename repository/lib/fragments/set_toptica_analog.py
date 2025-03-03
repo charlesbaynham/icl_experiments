@@ -81,16 +81,19 @@ class SetTopticaAnalogFrag(ExpFragment):
             "voltage_max",
             "channel",
         }
+        self.first_run = True
         super().host_setup()
+
 
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
         self.core.break_realtime()
-        self.fastino0.init()
-        self.core.break_realtime()
+        if self.first_run:
+            self.fastino0.init()
+            self.first_run = False
+            self.core.break_realtime()
         self.reset_freq()
-        self.core.break_realtime()
 
     @kernel
     def device_cleanup(self):
