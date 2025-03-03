@@ -342,20 +342,6 @@ class AndorCameraControl(Fragment):
     @host_only
     def set_roi(self):
         roi = {}
-
-        if (
-            self.cam_roi_x0.get() > 0
-            or self.cam_roi_x1.get() < 512
-            or self.cam_roi_y0.get() > 0
-            or self.cam_roi_y1.get() < 512
-        ):
-            logger.warning(
-                "Camera ROIs have been restricted: you might encounter this bug:"
-            )
-            logger.warning(
-                "https://github.com/m-labs/artiq/issues/1369#issuecomment-904447252"
-            )
-
         roi["hstart"] = int(self.cam_roi_x0.get())
         roi["hend"] = int(self.cam_roi_x1.get())
         roi["vstart"] = int(self.cam_roi_y0.get())

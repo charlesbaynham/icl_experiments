@@ -13,17 +13,14 @@ class SimpleRandom(HasEnvironment):
 
     Example usage::
 
-        from artiq.experiment import *
+        def build(self):
+            seed = 12345  # Any integer seed
+            self.rng = SimpleRandom(self, seed)
 
-        class DoRandomThing(EnvExperiment):
-            def build(self):
-                seed = 12345  # Any integer seed
-                self.rng = SimpleRandom(self, seed)
-
-            @kernel
-            def run(self):
-                for _ in range(5):
-                    print(self.rng.next())
+        @kernel
+        def run(self):
+            for _ in range(5):
+                print(self.rng.next())
     """
 
     def build(self, seed):

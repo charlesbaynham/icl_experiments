@@ -272,4 +272,4 @@ class SetKoheronFrag(ExpFragment):
         self.controller.set_current_mA(1e3 * current)
 
 
-# SetKoheron = make_fragment_scan_exp(SetKoheronFrag)
+SetKoheron = make_fragment_scan_exp(SetKoheronFrag)
