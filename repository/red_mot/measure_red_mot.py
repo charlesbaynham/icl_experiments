@@ -87,7 +87,7 @@ class MeasureNarrowbandMOTAbsFrag(
 MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
 
 MeasureNarrowbandRedMOTBGCorrected = make_fragment_scan_exp(
-    MeasureNarrowbandMOTBGCorrectedFrag, max_rtio_underflow_retries=0
+    MeasureNarrowbandMOTBGCorrectedFrag
 )
 
 MeasureNarrowbandMOTAbs = make_fragment_scan_exp(MeasureNarrowbandMOTAbsFrag)

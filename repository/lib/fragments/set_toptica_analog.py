@@ -94,6 +94,7 @@ class SetTopticaAnalogFrag(ExpFragment):
             self.first_run = False
             self.core.break_realtime()
         self.reset_freq()
+        self.core.break_realtime()
 
     @kernel
     def device_cleanup(self):
