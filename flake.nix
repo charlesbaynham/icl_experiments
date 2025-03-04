@@ -1,5 +1,5 @@
 {
-  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
+  inputs.pyaion.url = "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git?ref=default_setter_extra_slack";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq. This is currently hard because we're getting
