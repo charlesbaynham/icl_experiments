@@ -1,6 +1,7 @@
 import logging
 
 from artiq.experiment import kernel
+from artiq.experiment import delay
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -34,6 +35,16 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
             [self.dipole_beam_controller.all_beam_default_setter]
         )
 
+        self.setattr_param(
+            "total_evap_hold_time",
+            FloatParam,
+            "Duration of total evaporation",
+            default=constants.TOTAL_EVAP_HOLD_TIME,
+            min=0.0,
+            unit="s",
+        )
+        self.total_evap_hold_time: FloatParamHandle
+
     @kernel
     def DMA_initialization_hook_linear_evap(self):
         self.linear_evap_ramp.precalculate_dma_handle()
@@ -47,4 +58,4 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
     def dipole_trap_evaporation_hook(self):
         self.dipole_trap_evaporation_hook_default()
         self.linear_evap_ramp.do_phase()
-
+        delay(self.total_evap_hold_time.get()-self.linear_evap_ramp.duration.get())

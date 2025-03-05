@@ -24,6 +24,9 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     LoadSingleXODTMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationSingleRampMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +35,19 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImage,
     LoadSingleXODTMixin,
+    EvaporationSingleRampMixin,
 ):
     """
     Make Single XODT, image twice for BG subtraction
     """
-
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_linear_evap()
+        self.DMA_initialization_hook_single_xodt_mot() 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        pass    
+        pass
 
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
