@@ -10,6 +10,9 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
@@ -57,10 +60,12 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         beam after allowing the atoms to equlibriate in the lattice for a time,
         then hold them afterwards for some time.
         """
+        self.red_mot.red_beam_controller.start_ramping_spinpol()
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         delay(self.delay_before_spinpol_pulse.get())
         self.red_mot.red_beam_controller.turn_on_spin_pol(ignore_shutters=True)
         delay(self.duration_spinpol_pulse.get())
+        self.red_mot.red_beam_controller.stop_ramping_spinpol()
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
         delay(self.delay_after_spinpol_pulse.get())
 
@@ -104,7 +109,9 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         )
 
 
-class OpticalPumpingWithFieldSettingDipoleTrapMixin(OpticalPumpingWithFieldSettingBase):
+class OpticalPumpingWithFieldSettingDipoleTrapMixin(
+    OpticalPumpingWithFieldSettingBase, DipoleTrapWithExperiment
+):
     """
     Mixin for optical pumping in a dipole trap
 
@@ -210,6 +217,9 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     @kernel
     def device_setup(self) -> None:
+        # TODO: This won't work, it overrides the device_setup in
+        # red_mot_experiment, clashing with all the other mixins
+        raise RuntimeError
         self.core.break_realtime()
         self.lattice_setter.turn_on_all()
 

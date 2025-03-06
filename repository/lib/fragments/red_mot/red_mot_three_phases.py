@@ -1,8 +1,8 @@
 import logging
 
+from artiq.compiler.builtins import TFloat
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import TFloat
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -17,7 +17,9 @@ from numpy import int64
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.red_mot.red_beam_controller import RedBeamController
-from repository.lib.fragments.red_mot.red_mot_phases import BroadbandRedPhase
+from repository.lib.fragments.red_mot.red_mot_phases import (
+    BroadbandRedPhaseWithBiasRamp,
+)
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCapturePhase
 from repository.lib.fragments.red_mot.red_mot_phases import NarrowRedCompressionPhase
 
@@ -76,9 +78,9 @@ class RedMOTThreePhaseFrag(Fragment):
 
         self.setattr_fragment(
             "broadband_red_phase",
-            BroadbandRedPhase,
+            BroadbandRedPhaseWithBiasRamp,
         )
-        self.broadband_red_phase: BroadbandRedPhase
+        self.broadband_red_phase: BroadbandRedPhaseWithBiasRamp
 
         self.setattr_fragment(
             "narrow_red_capture_phase",
@@ -111,6 +113,20 @@ class RedMOTThreePhaseFrag(Fragment):
         self.narrow_red_compression_phase.bind_suservo_setpoint_params_to_default_beam_setter(
             self.red_beam_controller.all_beam_default_setter
         )
+
+        for axis in ["x", "y", "z"]:
+            self.setattr_param(
+                f"narrowband_bias_{axis}",
+                FloatParam,
+                f"Bias current for narrowband MOT - {axis.upper()}",
+                default=getattr(constants, f"RED_NARROWBAND_BIAS_FIELD_{axis.upper()}"),
+                unit="A",
+                min=-5,
+                max=5,
+            )
+        self.narrowband_bias_x: FloatParamHandle
+        self.narrowband_bias_y: FloatParamHandle
+        self.narrowband_bias_z: FloatParamHandle
 
         self.setattr_param(
             "final_narrow_hold_time",

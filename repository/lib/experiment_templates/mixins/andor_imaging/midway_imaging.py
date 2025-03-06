@@ -81,6 +81,19 @@ class MidSequenceAndorImage(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
+        self.setattr_param(
+            "repumping_time",
+            FloatParam,
+            description="Time to repump atoms before imaging",
+            min=0.0,
+            unit="ms",
+            default=0.0,
+        )
+        self.repumping_time: FloatParamHandle
+
+        # Meaningless without an experiment:
+        self.override_param("delay_after_experiment", 0)
+
         self.bg_imaging_make_result_channel()
 
         self.t_imaging_done_mu = int64(0)
@@ -105,6 +118,12 @@ class MidSequenceAndorImage(AndorImagingBase):
         lane
         """
         t_start_mu = now_mu()
+
+        delay(-self.repumping_time.get())
+        self.blue_3d_mot.turn_on_repumpers()
+        delay(self.repumping_time.get())
+        self.blue_3d_mot.turn_off_repumpers()
+
         delay(self.delay_before_imaging.get())
         self.do_pulse()
 
@@ -123,13 +142,14 @@ class MidSequenceAndorImage(AndorImagingBase):
         take the bg pulse now, otherwise wait until that time.
         """
 
-        t_bg_pulse_start_mu = self.t_imaging_done_mu + self.core.seconds_to_mu(
-            self.delay_before_bg_pulse.get()
-        )
+        delay(self.delay_before_bg_pulse.get())
 
         # Delay the bg image if necessary
-        if now_mu() < t_bg_pulse_start_mu:
-            at_mu(t_bg_pulse_start_mu)
+        t_earliest_bg_pulse_start_mu = self.t_imaging_done_mu + self.core.seconds_to_mu(
+            self.delay_before_bg_pulse.get()
+        )
+        if now_mu() < t_earliest_bg_pulse_start_mu:
+            at_mu(t_earliest_bg_pulse_start_mu)
 
         # Take the background image. The foreground image should have already happened
         self.do_pulse()
@@ -142,7 +162,6 @@ class MidSequenceAndorImage(AndorImagingBase):
         By default, AndorImagingBase would show the first image. We show the
         bg-corrected data instead.
         """
-        # FIXME
         img_array = images[0]
         bg_img_array = images[1]
         corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
@@ -154,6 +173,11 @@ class MidSequenceAndorImage(AndorImagingBase):
             persist=False,
             archive=False,
         )
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        # No experiment needed, do nothing
+        pass
 
     @kernel
     def process_grabber_data_hook(self, sums, means):

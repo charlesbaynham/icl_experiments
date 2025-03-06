@@ -20,6 +20,8 @@ class ToggleTTL(EnvExperiment):
     def run(self):
         self.ttl = self.get_device(self.ttl_device)
 
+        print("Starting toggling")
+
         self.toggle()
 
         print("Toggling completed")

@@ -63,6 +63,7 @@ from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
+from repository.lib.fragments.timestamp_synchronizer import Timestamper
 
 logger = logging.getLogger(__name__)
 
@@ -96,11 +97,19 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     :class:`~repository.clock_spectroscopy.clock_spectroscopy.BasicClockSpectroscopyExp`.
     """
 
+    image_store: list[list] = []  # for putting e.g. Andor images in
+
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
+        self.setattr_device("led0")
+        self.setattr_device("led1")
+
         # %% Fragments
+
+        self.setattr_fragment("timestamper", Timestamper, automatic_timestamp=False)
+        self.timestamper: Timestamper
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
@@ -170,6 +179,26 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_x_start", self.blue_3d_mot.chamber_2_bias_x
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_y_start", self.blue_3d_mot.chamber_2_bias_y
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_z_start", self.blue_3d_mot.chamber_2_bias_z
+        )
+
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_x_end", self.red_mot.narrowband_bias_x
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_y_end", self.red_mot.narrowband_bias_y
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_z_end", self.red_mot.narrowband_bias_z
+        )
+
         self.hook_setup_andor()
 
     @kernel
@@ -209,6 +238,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.before_start_hook()
 
         self.core.break_realtime()
+
+        self.timestamper.mark_timestamp()
+
         if self.magnetic_trap_loading_bool.get():
             self.blue_3d_mot.load_magnetic_trap()
         else:
@@ -220,22 +252,22 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Keep the blue light on for a short time while turning on the red beams
         with parallel:
-            # Start the red MOT
-            with sequential:
-                self.start_of_red_broadband_hook()
-                self.red_mot.prepare_for_broadband_phase()
-                self.red_mot.broadband_red_phase.do_phase()
-            # And turn off the blue beams, a little after the red MOT starts
+            # Turn off the blue beams, a little after the red MOT starts
             with sequential:
                 delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
                 self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
+            # and start the red MOT
+            with sequential:
+                self.red_mot.prepare_for_broadband_phase()
+                self.start_of_red_broadband_hook()
+                self.red_mot.broadband_red_phase.do_phase()
 
         self.end_of_broadband_mot_hook()
 
         self.blue_3d_mot.turn_off_repumpers()
         delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
-
+        self.set_narrowband_fields_hook()
         self.red_mot.do_narrowband_red_mot()
 
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
@@ -245,8 +277,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Do any other pre-expansion actions. By default, none
         t_light_off_mu = now_mu()
-        # TODO: To simplify, delete this pre_expansion_hook() and move its functionality to 689_spectroscopy - the one place it's used
+
         self.pre_expansion_hook()
+
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
         at_mu(t_light_off_mu)
@@ -271,6 +304,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # This one for the Andor
         self.save_andor_data_hook()
+
+        # Do extra functions at end of experiment
+        self.host_functions_after_experiment_hook()
 
     # %% Hooks / overridable methods
     #
@@ -359,14 +395,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
 
     @kernel
-    def end_of_broadband_mot_hook(self):
-        """
-        Executed immediately after the broadband MOT stage ends, before the
-        broadband ramping is disabled. No timeline correction is performed, so
-        changes here will delay the narrowband red MOT.
-        """
-
-    @kernel
     def start_of_red_broadband_hook(self):
         """
         Executed as the broadband MOT stage starts.
@@ -375,6 +403,37 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         negligible duration (i.e. just a few coarse RTIO cycles) otherwise
         assumptions about the broadband MOT duration will be wrong
         """
+
+    @kernel
+    def end_of_broadband_mot_hook(self):
+        """
+        Executed immediately after the broadband MOT stage ends, before the
+        broadband ramping is disabled. No timeline correction is performed, so
+        changes here will delay the narrowband red MOT.
+        """
+
+    @kernel
+    def set_narrowband_fields_hook(self):
+        """
+        Hook for setting magnetic fields after the broadband for use in the narrowband MOT. This
+        fires at the same cursor position as the pre_expansion_hook, and runs
+        after it.
+
+        Any changes to the cursor made by this function will be respected, i.e.
+        the rest of the sequence CAN be delayed by this hook
+        """
+        self.set_narrowband_fields_default()
+
+    @kernel
+    def set_narrowband_fields_default(self):
+        """
+        Set the magnetic fields for the narrowband MOT to the default values
+        """
+        bias_x = self.red_mot.narrowband_bias_x.get()
+        bias_y = self.red_mot.narrowband_bias_y.get()
+        bias_z = self.red_mot.narrowband_bias_z.get()
+        self.red_mot.chamber_2_field_setter.set_bias_fields(bias_x, bias_y, bias_z)
+        delay(1.5e-6 + (808e-9 * 3))
 
     @kernel
     def post_narrowband_hook(self):
@@ -433,6 +492,12 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         completed.
         """
         raise NotImplementedError
+
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        """
+        Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
+        """
 
 
 # %%

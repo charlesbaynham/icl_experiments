@@ -95,7 +95,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             "delay_between_imaging_pulses",
             FloatParam,
             "Time between the start of each fluorescence pulse",
-            default=2e-3,
+            default=3.5e-3,
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle
@@ -208,6 +208,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     @rpc
     def post_first_series_rpc(self):
+        self.image_store = []  # clear the image store
         self.image_store += self.get_andor_images()
         self.andor_camera_control.start_acquisition()
 

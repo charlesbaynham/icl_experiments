@@ -112,7 +112,7 @@ frozenlist = ">=1.1.0"
 
 [[package]]
 name = "andor-artiq-ndsp"
-version = "0.1.0"
+version = "1.0"
 description = "ARTIQ NDSP to make a USB-connected Andor camera available over SiPyCo RPC"
 optional = false
 python-versions = ">=3.9, <3.13"
@@ -129,8 +129,8 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/andor_windows_ndsp.git"
-reference = "remake"
-resolved_reference = "e6b8fce79fd6e6195a1791df24d4df3f35cbf6ed"
+reference = "HEAD"
+resolved_reference = "4483be1696e51cb014f6dec346504bb08aa6f0b5"
 
 [[package]]
 name = "anyio"
@@ -2949,22 +2949,23 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "plumbum"
-version = "1.8.3"
+version = "1.9.0"
 description = "Plumbum: shell combinators library"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "plumbum-1.8.3-py3-none-any.whl", hash = "sha256:8595d36dae2472587d6f59789c8d7b26250f45f6f6ed75ccb378de59ee7b9cf9"},
-    {file = "plumbum-1.8.3.tar.gz", hash = "sha256:6092c85ab970b7a7a9d5d85c75200bc93be82b33c9bdf640ffa87d2d7c8709f0"},
+    {file = "plumbum-1.9.0-py3-none-any.whl", hash = "sha256:9fd0d3b0e8d86e4b581af36edf3f3bbe9d1ae15b45b8caab28de1bcb27aaa7f5"},
+    {file = "plumbum-1.9.0.tar.gz", hash = "sha256:e640062b72642c3873bd5bdc3effed75ba4d3c70ef6b6a7b907357a84d909219"},
 ]
 
 [package.dependencies]
 pywin32 = {version = "*", markers = "platform_system == \"Windows\" and platform_python_implementation != \"PyPy\""}
 
 [package.extras]
-dev = ["paramiko", "psutil", "pytest (>=6.0)", "pytest-cov", "pytest-mock", "pytest-timeout"]
+dev = ["coverage[toml]", "paramiko", "psutil", "pytest (>=6.0)", "pytest-cov", "pytest-mock", "pytest-timeout"]
 docs = ["sphinx (>=4.0.0)", "sphinx-rtd-theme (>=1.0.0)"]
 ssh = ["paramiko"]
+test = ["coverage[toml]", "paramiko", "psutil", "pytest (>=6.0)", "pytest-cov", "pytest-mock", "pytest-timeout"]
 
 [[package]]
 name = "pre-commit"
@@ -3093,7 +3094,7 @@ files = [
 
 [[package]]
 name = "pyaion"
-version = "1.2"
+version = "1.3"
 description = "A package for AION users. This should be used to share code useful across the collaboration, both for ARTIQ experimental control and otherwise."
 optional = false
 python-versions = ">=3.10,<3.12"
@@ -3121,8 +3122,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "daisy-chain-ramps"
-resolved_reference = "92f260dc087146e3e7a8b0b2608202354b20a898"
+reference = "HEAD"
+resolved_reference = "9d7591a35d92f8719746cf4774933014a3b2f2b7"
 
 [[package]]
 name = "pycairo"
@@ -3599,6 +3600,16 @@ python-versions = ">=3.6"
 files = [
     {file = "python-json-logger-2.0.7.tar.gz", hash = "sha256:23e7ec02d34237c5aa1e29a070193a4ea87583bb4e7f8fd06d3de8264c4b2e1c"},
     {file = "python_json_logger-2.0.7-py3-none-any.whl", hash = "sha256:f380b826a991ebbe3de4d897aeec42760035ac760345e57b812938dc8b35e2bd"},
+]
+
+[[package]]
+name = "python-vxi11"
+version = "0.9"
+description = "Python VXI-11 driver for controlling instruments over Ethernet"
+optional = false
+python-versions = "*"
+files = [
+    {file = "python-vxi11-0.9.tar.gz", hash = "sha256:01fbd8d5be09352c6be46ae474a47d4fe44be2989f7e977c578c55733b076dff"},
 ]
 
 [[package]]
@@ -4145,7 +4156,7 @@ files = [
 
 [[package]]
 name = "relocker-driver"
-version = "0.1.0"
+version = "0.2.6"
 description = "ARTIQ driver for relocker boards"
 optional = false
 python-versions = ">=3.10, <3.13"
@@ -4162,7 +4173,7 @@ zeroconf = "^0.135.0"
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
 reference = "HEAD"
-resolved_reference = "8ad7bd90253c14bf0c45e136b817d98d5f314f8a"
+resolved_reference = "f235ea724de336777c49b650293ad83225bfe0a8"
 
 [[package]]
 name = "requests"
@@ -5069,4 +5080,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "27b04f778203ef459259f5f0151e19b7cd16f3c2e8504417d22567a4dee18fdc"
+content-hash = "c358ecae1514bf14c23289df51a3504c53aac7bfc146e895fc84f0d8e1b20404"

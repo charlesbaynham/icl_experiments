@@ -3,14 +3,21 @@ import logging
 from typing import List
 
 import numpy as np
+from artiq.coredevice.core import Core
+from artiq.coredevice.grabber import Grabber
+from artiq.coredevice.grabber import GrabberTimeoutException
 from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import parallel
 from artiq.experiment import rpc
+from artiq.language import parallel
+from artiq.language.core import delay
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
+from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
+from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParamHandle
+from sipyco.packed_exceptions import GenericRemoteException
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
@@ -61,6 +68,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_device("ccb")
         self.ccb: CCB
 
+        self.setattr_device("grabber0")
+        self.grabber0: Grabber
+
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
 
@@ -69,8 +79,40 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
 
-        # sometimes we have multiple acquisitions and need to store the images
-        self.image_store = []
+        class ImagingDeviceSetup(Fragment):
+            """
+            define a device_setup to clear out the grabber and empty the image store at the start of the shot
+            """
+
+            def build_fragment(self, num_grabber_rois):
+                self.setattr_device("grabber0")
+                self.grabber0: Grabber
+
+                self.setattr_device("core")
+                self.core: Core
+
+                self.num_grabber_rois = num_grabber_rois
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+                self.core.break_realtime()
+
+                grabber_clearout = [0] * self.num_grabber_rois
+
+                while True:
+                    try:
+                        self.grabber0.input_mu(
+                            grabber_clearout,
+                            timeout_mu=self.core.get_rtio_counter_mu()
+                            + self.core.ref_multiplier * 10,
+                        )
+                        logger.error("Found a leftover grabber image")
+                        delay(1e-3)
+                    except GrabberTimeoutException:
+                        break
+
+        self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
 
     def hook_setup_andor(self):
         """
@@ -149,7 +191,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                     f"Andor image {i}",
                     f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name}",
                 )
-
+        self.image_store = []
         super().host_setup()
 
     @kernel
@@ -194,12 +236,26 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.core.break_realtime()
         self.andor_camera_control.set_shutter(False)
 
-    @rpc(flags={"async"})
+    @rpc  # this isn't async any more because the ndscan "try again" doesn't work with async rpcs
     def _call_camera_rpc(self):
         # Get new images and add them to any images we got earlier
-        images = self.image_store + self.get_andor_images()
-        self.image_store = []
-        images_array = np.array(images)
+        try:
+            self.image_store += self.get_andor_images()
+        except GenericRemoteException as e:
+            logger.error("Andor camera error: %s", e)
+            # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
+            raise TransitoryError(f"Andor camera error: {e}")
+        n_stored_images = len(self.image_store)
+        if n_stored_images != self.num_andor_images:
+            # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
+            self.image_store = []
+            logger.error(
+                "Expected %d images but got %d", self.num_andor_images, n_stored_images
+            )
+            raise TransitoryError(
+                f"Expected {self.num_andor_images} images but got {n_stored_images}"
+            )
+        images_array = np.array(self.image_store)
         # Update detailed images
         for i, image in enumerate(images_array):
             dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
@@ -215,6 +271,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.update_andor_monitor_hook(images_array)
         # Do any other processing
         self.process_andor_image_hook(images_array)
+        self.image_store = []
 
     @host_only
     def get_andor_images(self):

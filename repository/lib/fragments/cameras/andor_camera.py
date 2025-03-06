@@ -154,6 +154,14 @@ class AndorCameraControl(Fragment):
         self.save_raw_andor_image: BoolParamHandle
 
         self.setattr_param(
+            "baseline_clamp_mode",
+            BoolParam,
+            default=True,
+            description="Baseline clamp mode",
+        )
+        self.baseline_clamp_mode: BoolParamHandle
+
+        self.setattr_param(
             "cam_roi_x0",
             IntParam,
             "Camera ROI x0",
@@ -279,7 +287,11 @@ class AndorCameraControl(Fragment):
 
         if self.use_andor_driver.get():
             self.cam: AndorDriver = self.get_device("andor_camera")
+            if self.cam.get_status() == 20072:
+                logger.warning("Andor still acquiring, stopping acquisition")
+                self.cam.stop_acquisition()
             self.set_roi()
+            self.cam.set_baseline_clamp(self.baseline_clamp_mode.get())
             if not self.keep_andor_shutter_closed:
                 self.cam.set_shutter_open()
 
@@ -295,7 +307,7 @@ class AndorCameraControl(Fragment):
                 # to the "exposure time" specified in Fast Kinetics mode.
 
                 self.fast_kinetics_shift_time = (
-                    self.fast_kinetics_height.get() * self.cam.vsspeed * 1e-6
+                    self.fast_kinetics_height.get() * self.cam.get_vsspeed() * 1e-6
                 )
                 logger.info(
                     "fast_kinetics_shift_time = %.2f us",
@@ -318,7 +330,11 @@ class AndorCameraControl(Fragment):
         super().host_setup()
 
     def host_cleanup(self):
-        if self.use_andor_driver.get():
+        # The second statement in the if clause is here because if something
+        # fails in host_setup of another fragment, it's possible for
+        # host_cleanup to be called despite host_setup not having been called
+        # yet:
+        if self.use_andor_driver.get() and hasattr(self, "cam"):
             self.cam.stop_acquisition()
             self.cam.set_shutter_closed()
         super().host_cleanup()
@@ -326,6 +342,20 @@ class AndorCameraControl(Fragment):
     @host_only
     def set_roi(self):
         roi = {}
+
+        if (
+            self.cam_roi_x0.get() > 0
+            or self.cam_roi_x1.get() < 512
+            or self.cam_roi_y0.get() > 0
+            or self.cam_roi_y1.get() < 512
+        ):
+            logger.warning(
+                "Camera ROIs have been restricted: you might encounter this bug:"
+            )
+            logger.warning(
+                "https://github.com/m-labs/artiq/issues/1369#issuecomment-904447252"
+            )
+
         roi["hstart"] = int(self.cam_roi_x0.get())
         roi["hend"] = int(self.cam_roi_x1.get())
         roi["vstart"] = int(self.cam_roi_y0.get())

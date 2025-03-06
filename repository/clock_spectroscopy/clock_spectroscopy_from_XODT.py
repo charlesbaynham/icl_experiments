@@ -6,6 +6,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
+    AbsorptionDoubleDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
@@ -51,7 +54,6 @@ class ClockSpecFromXXODTFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
-        self.before_start_hook_xodt_molasses()
 
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
@@ -77,7 +79,35 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
-        self.before_start_hook_xodt_molasses()
+
+
+class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
+    ClockRabiSpectroscopyDipoleTrapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    FLIRBlueMOTMeasurementMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperiment,
+    AbsorptionDoubleDipoleTrapMixin,
+):
+    """
+    Clock spectroscopy from dropped XXODT with shelving, clearout, and absorption imaging
+
+    Load into an XXODT, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
+    """
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+
+
+AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(
+    AbsImagingFromXXODTWithShelvingAndClearoutFrag
+)
 
 
 ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)

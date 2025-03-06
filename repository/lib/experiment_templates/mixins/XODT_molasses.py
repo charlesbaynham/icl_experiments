@@ -1,7 +1,6 @@
 import logging
 
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -26,7 +25,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
 
@@ -45,22 +43,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
 
-        # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind(
-            "chamber_2_bias_x",
-            self.blue_3d_mot,
-            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[0],
-        )
-        self.setattr_param_rebind(
-            "chamber_2_bias_y",
-            self.blue_3d_mot,
-            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[1],
-        )
-        self.setattr_param_rebind(
-            "chamber_2_bias_z",
-            self.blue_3d_mot,
-            default=constants.BIAS_DURING_MOTS_FOR_MOLASSES[2],
-        )
+        # # Expose the bias field for moving the MOT to the right place
         self.setattr_param_rebind(
             "chamber_2_red_narrowband_mot_current_start",
             self.red_mot.narrow_red_compression_phase,
@@ -73,6 +56,12 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             original_name="chamber_2_mot_current_end",
             default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
         )
+        for idx, axis in enumerate(["x", "y", "z"]):
+            self.setattr_param_rebind(
+                f"narrowband_bias_{axis}",
+                self.red_mot,
+                default=constants.BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES[idx],
+            )
         self.setattr_param_rebind(
             "red_narrowband_mot_689_up_start",
             self.red_mot.narrow_red_compression_phase,
@@ -128,6 +117,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
     @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
     def DMA_initialization_hook_xodt_molasses(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
@@ -135,35 +129,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         dma handle is valid.
         """
         self.molasses_xodt_1.precalculate_dma_handle()
-
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_xodt_molasses()
-
-    @kernel
-    def before_start_hook_xodt_molasses(self):
-        """
-        Before the blue MOT, turn on the crossed dipole trap beams and
-        set setpoints to same as the start of the xodt molasses ramp.
-        """
-
-        self.dipole_beam_controller.XODT_setter.turn_on_all()
-        delay_mu(8)
-        self.dipole_beam_controller.set_dipole_suservo_setpoints(
-            setpoint_down_813=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                5
-            ],
-            setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                4
-            ],
-        )
-
-    @kernel
-    def DMA_initialization_hook(self):
-        raise NotImplementedError(
-            "All the DMA handle calculations must be combined into one \
-                DMA_initialization_hook() method after Mixins are combined"
-        )
 
     @kernel
     def post_narrowband_hook(self):
@@ -174,6 +139,10 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def set_postnarrowband_fields_hook(self):
+        self.set_postnarrowband_fields_hook_singlemollasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook_singlemollasses(self):
         pass
 
     @kernel
@@ -228,7 +197,6 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
 
@@ -283,6 +251,11 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.daisy_chain_with_previous_phase(
             self.molasses_xodt_1, suservos=suservos_XODT
         )
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def DMA_initialization_hook_xodt_molasses(self):
@@ -381,7 +354,6 @@ class XODTDoubleMolassesPlusFieldRampMixin(
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`
@@ -418,7 +390,6 @@ class XODTSingleMolassesPlusFieldRampMixin(
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
     * :meth:`~dipole_trap_evaporation_hook`

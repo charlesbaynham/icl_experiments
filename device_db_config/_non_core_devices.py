@@ -101,7 +101,7 @@ def get_non_core_devices(simulation_mode=False):
             "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
-            "command": f"aqctl_relocker_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
+            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
         },
         "red_relocker": {
             "type": "controller",
@@ -110,13 +110,13 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
         },
-        # "red_scanner": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_relocker_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
-        # },
+        "cavity_scanner": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN0'",
+        },
         # "test_relocker": {
         #     "type": "controller",
         #     "best_effort": True,
@@ -145,6 +145,17 @@ def get_non_core_devices(simulation_mode=False):
                 "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
                 "loglevel": logging.WARNING,
             },
+        },
+        "rigol_counter": {
+            "type": "local",
+            "module": "repository.lib.fragments.rigol.rigol_device",
+            "class": "RigolCounter",
+            "arguments": {
+                "rigol_ip": "rigol-dg4162-b.lan",
+                "gate_time": "10 s",
+            },
+            "mockmodule": "repository.lib.fragments.rigol.rigol_device",
+            "mockclass": "MockRigolCounter",
         },
         "andor_camera": {
             "type": "controller",

@@ -38,6 +38,7 @@ ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
 
+GRAVITY_DOPPLER_PER_SEC_CLOCK = 429.229e12 * 9.81 / 3e8
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
@@ -93,10 +94,10 @@ URUKULED_BEAMS = [
         urukul_device="urukul_aom_1064_switch",
     ),
     UrukuledBeam(
-        "stark_shifter_689",
+        "stark_shifter_689_switch",
         frequency=100e6,
         attenuation=9.0,
-        urukul_device="urukul9912_aom_singlepass_689_stark_shifter",
+        urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
     ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
@@ -107,8 +108,8 @@ URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
 # polarizing beam (i.e. not their normal MOT beams)
-RED_SPINPOL_SETPOINT_SIGMAPLUS = 1.5  # V
-RED_SPINPOL_SETPOINT_SIGMAMINUS = 1.5  # V
+RED_SPINPOL_SETPOINT_SIGMAPLUS = 0.2  # V
+RED_SPINPOL_SETPOINT_SIGMAMINUS = 0.2  # V
 
 
 RED_SPINPOL_RAMP_UPPER_LIMIT = 1.5e6
@@ -172,9 +173,9 @@ class IJDRelockerSettings:
     channel: int
     "Channel on relocker board"
     v_min: float
-    "Lowest voltage/end of scan"
+    "Lowest voltage/start of scan"
     v_max: float
-    "Highest voltage/start of scan"
+    "Highest voltage/end of scan"
     n_steps: float
     "Number of scan steps. cannot be >100"
 
@@ -260,6 +261,34 @@ IJD_RELOCKER_DEFAULTS = {
 }
 "Settings for IJD relocker board channels"
 
+
+@dataclass
+class ScannerBoardSettings:
+    board_name: str
+    "Name of scanner board in device_db"
+    channel: int
+    "Channel on scanner board"
+    v_min: float
+    "Lowest voltage/start of scan"
+    v_max: float
+    "Highest voltage/end of scan"
+    v_step: float
+    "Voltage step size"
+    freq: float
+    "Frequency of the scan in Hz"
+
+
+SCANNER_BOARD_DEFAULTS = {
+    "filter_cavity_scanner": ScannerBoardSettings(
+        "cavity_scanner",
+        0,
+        -2,
+        2,
+        0.01,
+        100,
+    ),
+}
+
 FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state
@@ -284,75 +313,6 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
     ]
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
-
-# Default field in chamber 1
-B_FIELD_CH1_AXIAL = 0.0  # A
-
-# TODO: Include FIELD_COMP as an offset to the other default fields below.
-# Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
-# Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
-# than previous calibration based on Zeeman spectroscopy
-FIELD_COMP_X = 0.31
-FIELD_COMP_Y = -0.009
-FIELD_COMP_Z = -0.69
-FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
-
-if USE_SR87:
-    # With 6A gradient
-    B_FIELD_BIAS_LATTICE_X = 1.1  # A
-    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
-    B_FIELD_BIAS_LATTICE_Z = -1.4  # A
-else:
-    # With 1A gradient
-    B_FIELD_BIAS_LATTICE_X = 0.5  # A
-    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
-    B_FIELD_BIAS_LATTICE_Z = -1.01  # A
-
-# Default fields in chamber 2 for nulling field
-B_FIELD_BIAS_MOT_X = 0.3  # A
-B_FIELD_BIAS_MOT_Y = -0.014  # A
-
-if USE_SR87:
-    B_FIELD_BIAS_MOT_Z = (
-        -0.8
-    )  # Sr87 prefers a bit of a bias field in the MOT. We should investigate
-else:
-    B_FIELD_BIAS_MOT_Z = -0.8
-
-
-# Legacy naming.
-B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
-    B_FIELD_BIAS_MOT_X,
-    B_FIELD_BIAS_MOT_Y,
-    B_FIELD_BIAS_MOT_Z,
-)
-
-
-# Use the lattice bias fields if the bodgy USE_LATTICE variable is set
-# TODO: Get rid of this once we're shifting lattices
-if USE_LATTICE_MODE:
-    B_FIELD_BIAS_X, B_FIELD_BIAS_Y, B_FIELD_BIAS_Z = (
-        B_FIELD_BIAS_LATTICE_X,
-        B_FIELD_BIAS_LATTICE_Y,
-        B_FIELD_BIAS_LATTICE_Z,
-    )
-
-B_FIELD_GRADIENT = 90.0  # A
-
-
-BLUE_LOADING_TIME = 500e-3
-"Default blue MOT loading time"
-
-
-RED_BROADBAND_RAMP_LIMIT = 4e6
-"Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
-
-RED_INJECTION_AOM_RAMP_FREQUENCY = 30e3
-"Default ramp frequency for the broadband red MOT"
-
-
-RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
-"Default final hold time in last stage of the red mot"
 
 DEFAULT_IMAGING_PULSE = 50e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
@@ -403,14 +363,17 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT = 20
-ANDOR_ROI_DIPOLE_WIDTH = 20
+ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 10
+ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 10
+ANDOR_ROI_DIPOLE_WIDTH = 16
 
-ANDOR_DIPOLE_TRAP_FORWARD_X = 193
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 300
+ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
+# ~3 pixels below the center of the dipole trap to include falling atoms
+ANDOR_DIPOLE_TRAP_BACKWARD_Y = 348
 
-ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
-ANDOR_DIPOLE_TRAP_BACKWARD_Y = 355
+ANDOR_DIPOLE_TRAP_FORWARD_X = 184
+# ~3 pixels below the center of the dipole trap to include falling atoms
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 294
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -419,10 +382,10 @@ ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X + ANDOR_ROI_DIPOLE_WIDTH / 2
 )
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0 = round(
-    ANDOR_DIPOLE_TRAP_FORWARD_Y - ANDOR_ROI_DIPOLE_HEIGHT / 2
+    ANDOR_DIPOLE_TRAP_FORWARD_Y - ANDOR_ROI_DIPOLE_HEIGHT_BELOW
 )
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1 = round(
-    ANDOR_DIPOLE_TRAP_FORWARD_Y + ANDOR_ROI_DIPOLE_HEIGHT / 2
+    ANDOR_DIPOLE_TRAP_FORWARD_Y + ANDOR_ROI_DIPOLE_HEIGHT_ABOVE
 )
 
 ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0 = round(
@@ -432,10 +395,10 @@ ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1 = round(
     ANDOR_DIPOLE_TRAP_BACKWARD_X + ANDOR_ROI_DIPOLE_WIDTH / 2
 )
 ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0 = round(
-    ANDOR_DIPOLE_TRAP_BACKWARD_Y - ANDOR_ROI_DIPOLE_HEIGHT / 2
+    ANDOR_DIPOLE_TRAP_BACKWARD_Y - ANDOR_ROI_DIPOLE_HEIGHT_BELOW
 )
 ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1 = round(
-    ANDOR_DIPOLE_TRAP_BACKWARD_Y + ANDOR_ROI_DIPOLE_HEIGHT / 2
+    ANDOR_DIPOLE_TRAP_BACKWARD_Y + ANDOR_ROI_DIPOLE_HEIGHT_ABOVE
 )
 
 ANDOR_SENSOR_HEIGHT = 512
@@ -660,6 +623,26 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=4.7,
     ),
+    SUServoedBeam(
+        "stark_shifter_689_delivery",
+        frequency=80e6,
+        # Not maximum diffraction efficiency, but chosen so that we can't heat
+        # the AOM too much. Achieves ~0.44V which is more than we need unless we move to very short pulses:
+        attenuation=12.0,
+        suservo_device="suservo_aom_singlepass_689_stark_shifter",
+        servo_enabled=True,
+        initial_amplitude=0.3,
+        setpoint=0.28,  # Photodiode is now set to 30dB (changed 2024-12-02 from 20dB)
+    ),
+    SUServoedBeam(
+        "down_689",
+        frequency=80e6,  # TODO: Change back to 100 MHz before trying SWAP again
+        attenuation=12.0,
+        suservo_device="suservo_aom_singlepass_689_down_beam",
+        servo_enabled=True,
+        initial_amplitude=0.3,
+        setpoint=0.28,
+    ),
 ]
 
 # Convert to dict for ease of use
@@ -718,7 +701,7 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_cavity_offset_698",
-        frequency=673.87e6,
+        frequency=673.54e6,  # Lower Mirny freq --> higher laser freq
         attenuation=0.0,
     ),
 ]
@@ -800,11 +783,75 @@ WAND_SETPOINTS_87 = {
     "Sirah": (_default_698, False),
 }
 
+# Default field in chamber 1
+B_FIELD_CH1_AXIAL = 0.0  # A
+
+# TODO: Include FIELD_COMP as an offset to the other default fields below.
+# Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
+# Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
+# than previous calibration based on Zeeman spectroscopy
+FIELD_COMP_X = 0.31
+FIELD_COMP_Y = -0.009
+FIELD_COMP_Z = -0.69
+FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
+
+if USE_SR87:
+    # With 6A gradient
+    B_FIELD_BIAS_LATTICE_X = 1.1  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.4  # A
+else:
+    # With 1A gradient
+    B_FIELD_BIAS_LATTICE_X = 0.5  # A
+    B_FIELD_BIAS_LATTICE_Y = -0.02  # A
+    B_FIELD_BIAS_LATTICE_Z = -1.01  # A
+
+# Default fields in chamber 2 for optimising transfer into broadband red MOT
+B_FIELD_BIAS_BLUE_MOT_X = FIELD_COMP_X
+B_FIELD_BIAS_BLUE_MOT_Y = FIELD_COMP_Y
+B_FIELD_BIAS_BLUE_MOT_Z = (
+    FIELD_COMP_Y - 1.1
+)  # A - optimized for 87Sr bb MOT atom number 29/11/2024
+
+# Use the lattice bias fields if the bodgy USE_LATTICE variable is set
+# TODO: Get rid of this once we're shifting lattices
+if USE_LATTICE_MODE:
+    B_FIELD_BIAS_BLUE_MOT_X, B_FIELD_BIAS_BLUE_MOT_Y, B_FIELD_BIAS_BLUE_MOT_Z = (
+        B_FIELD_BIAS_LATTICE_X,
+        B_FIELD_BIAS_LATTICE_Y,
+        B_FIELD_BIAS_LATTICE_Z,
+    )
+
+B_FIELD_GRADIENT = 90.0  # A
+
+
+BLUE_LOADING_TIME = 500e-3
+"Default blue MOT loading time"
+
+RED_BROADBAND_RAMP_LOWER_LIMIT = -0.1e6
+RED_BROADBAND_RAMP_UPPER_LIMIT = 3e6 if USE_SR87 else 4e6
+"Ramp extent for the broadband red stage (n.b. will be double by the double-pass AOM)"
+
+RED_INJECTION_AOM_RAMP_FREQUENCY = 20e3 if USE_SR87 else 30e3
+"Default ramp frequency for the broadband red MOT"
+
+RED_MOT_FINAL_HOLD_TIME = 6e-3 if USE_SR87 else 100e-3
+"Default final hold time in last stage of the red mot"
+
 # Spin polarisation settings
 
 DELAY_BEFORE_OPTICAL_PUMPING = 20e-3
-DURATION_OF_SPIN_POL = 40e-3
+DURATION_OF_SPIN_POL = 20e-3
 DELAY_AFTER_OPTICAL_PUMPING = 0e-3
+
+# Clock stuff
+
+CLOCK_PI_TIME = 44e-6
+CLOCK_SHELVING_PULSE_TIME = 200e-6
+CLOCK_SHELVING_PULSE_SETPOINT = 0.12
+SHELVING_PULSE_CLEAROUT_DURATION = 500e-6
+CLOCK_DELIVERY_PREEMPT_TIME = 130e-6
+DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
 
 # %% Dipole trap settings
 
@@ -836,13 +883,13 @@ BLUE_TRANSFER_MOT_SUSERVO_MULTIPLES_END = [0.05, 0.05, 0.05]
 
 # Broadband phase
 RED_BROADBAND_TIMESTEP = (
-    20e-3  # TODO: fix this by changing the ordering of the camera shutter queueing
+    10e-3  # TODO: fix this by changing the ordering of the camera shutter queueing
 )
 if USE_SR87:
     RED_BROADBAND_SUSERVO_MULTIPLES_START = [2.2, 2.2, 2.5, 0.5]
     RED_BROADBAND_SUSERVO_MULTIPLES_END = [2.2, 2.2, 2.5, 0.5]
-    RED_BROADBAND_MOT_CURRENT_START = [6.0]
-    RED_BROADBAND_MOT_CURRENT_END = [6.0]
+    RED_BROADBAND_MOT_CURRENT_START = [3.0]
+    RED_BROADBAND_MOT_CURRENT_END = [10.0]
     RED_BROADBAND_DURATION = 120e-3
 else:
     RED_BROADBAND_SUSERVO_MULTIPLES_START = [2.2, 2.2, 2.5, 0.0]
@@ -850,6 +897,25 @@ else:
     RED_BROADBAND_MOT_CURRENT_START = [9.0]
     RED_BROADBAND_MOT_CURRENT_END = [9.0]
     RED_BROADBAND_DURATION = 100e-3
+
+# Narrowband field to load top dipole trap at 10 A MOT current
+(
+    RED_NARROWBAND_BIAS_FIELD_X,
+    RED_NARROWBAND_BIAS_FIELD_Y,
+    RED_NARROWBAND_BIAS_FIELD_Z,
+) = [a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.53])]
+
+# Note: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
+RED_BROADBAND_BIAS_FIELD_START = [
+    B_FIELD_BIAS_BLUE_MOT_X,
+    B_FIELD_BIAS_BLUE_MOT_Y,
+    B_FIELD_BIAS_BLUE_MOT_Z,
+]
+RED_BROADBAND_BIAS_FIELD_END = [
+    RED_NARROWBAND_BIAS_FIELD_X,
+    RED_NARROWBAND_BIAS_FIELD_Y,
+    FIELD_COMP_Z - 0.73,
+]
 
 # Capture Phase (i.e. 1st narrowband red MOT)
 RED_CAPTURE_DURATION = 10e-6
@@ -876,8 +942,8 @@ if USE_SR87:
     RED_COMPRESSION_DETUNING_END = [0]
     RED_COMPRESSION_SUSERVO_MULTIPLES_START = [0.6, 0.6, 0.6, 1.5]
     RED_COMPRESSION_SUSERVO_MULTIPLES_END = [0.05, 0.05, 0.05, 0.2]
-    RED_COMPRESSION_MOT_CURRENT_START = [2.0]
-    RED_COMPRESSION_MOT_CURRENT_END = [2.0]
+    RED_COMPRESSION_MOT_CURRENT_START = [10.0]
+    RED_COMPRESSION_MOT_CURRENT_END = [10.0]
 else:
     RED_COMPRESSION_DETUNING_START = [50e3]
     RED_COMPRESSION_DETUNING_END = [10e3]
@@ -904,13 +970,13 @@ XODT_2ND_MOLASSES_689_STIR_DETUNING = 900e3
 if USE_SR87:
     RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
-    RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 8.0
-    BIAS_DURING_MOTS_FOR_MOLASSES = [
-        a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.53])
+    RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 3.5
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = [
+        a + b for a, b in zip(FIELD_COMP, [0.19, 0.05, -0.51])
     ]
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 17e-3
+    XODT_MOLASSES_DURATION = 20e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
@@ -948,20 +1014,20 @@ else:
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 6.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
-    XODT_MOLASSES_DURATION = 80e-3
+    XODT_MOLASSES_DURATION = 120e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
         100e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        135e3,
+        120e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = [
         a + b for a, b in zip(FIELD_COMP, [0.148, 0.024, -0.58])
     ]
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
-    BIAS_DURING_MOTS_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 6.0
 
     DELAY_BETWEEN_MOLASSES = 0.01e-3
@@ -986,8 +1052,15 @@ OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
+XODT_EVAP_START = [1.0, 1.0]
+XODT_EVAP_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
     a + b for a, b in zip(FIELD_COMP, [-1.12, 0.0, 0.0])
 ]
+# XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
+#     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
+# ]
+
+CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.

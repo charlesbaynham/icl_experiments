@@ -6,6 +6,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.midway_imaging import (
     MidSequenceAndorImage,
 )
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class ClockSpecMidwayImagingFrag(
     MidSequenceAndorImage,
-    # EMGain,
+    EMGain,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -45,7 +46,6 @@ class ClockSpecMidwayImagingFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockshelving()
-        self.before_start_hook_xodt_molasses()
 
     @kernel
     def start_of_red_broadband_hook(self):
