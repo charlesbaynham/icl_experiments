@@ -27,6 +27,9 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationSingleRampMixin,
 )
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +39,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     BGCorrectedAndorImage,
     LoadSingleXODTMixin,
     EvaporationSingleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin
 ):
     """
     Make Single XODT, image twice for BG subtraction

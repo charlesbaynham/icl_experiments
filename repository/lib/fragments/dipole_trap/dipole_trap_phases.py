@@ -167,3 +167,5 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
 
     default_suservo_setpoint_multiples_start = constants.XODT_EVAP_START
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_END
+
+    add_final_point = True
