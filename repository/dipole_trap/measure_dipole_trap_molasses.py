@@ -26,10 +26,16 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTDoubleMolassesMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesPlusFieldRampMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTDoubleMolassesPlusFieldRampMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
+)
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.fragments.stark_shifter import StarkShifter
 
@@ -86,7 +92,8 @@ class DoubleXODTFrag(
 
 class DoubleXODTAbsFrag(
     AbsorptionDoubleDipoleTrapMixin,
-    XODTSingleMolassesMixin,
+    XODTSingleMolassesPlusFieldRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
     Measure a double XODT with aborption imaging
