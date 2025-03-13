@@ -216,7 +216,7 @@ class GeneralRampingPhase(Fragment):
         # Photodiode offset
         if self.default_suservo_offset == []:
             self.default_suservo_offset = [0.0] * len(self.suservos)
-            
+
         self.validate_attributes()
 
         # %% Devices
@@ -675,6 +675,7 @@ class GeneralRampingPhase(Fragment):
                 nominal_value
                 * suservo_global_multiple_start
                 * start_multiple_handle.get()
+                + self.default_suservo_offset[i]
             )
 
             # Calculate the step sizes for all the SUServo steps
