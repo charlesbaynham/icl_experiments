@@ -5,7 +5,8 @@ from artiq.experiment import kernel
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
-from repository.lib.fragments.ramping_phase import GeneralRampingPhase
+#from repository.lib.fragments.ramping_phase import GeneralRampingPhase
+from repository.lib.fragments.pyaion_overrides.ramping_phase_override import GeneralRampingPhase 
 
 logger = logging.getLogger(__name__)
 

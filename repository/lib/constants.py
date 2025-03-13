@@ -496,7 +496,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.01326,
+        photodiode_offset=0.01326, # 0.001
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -508,7 +508,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.0188,
+        photodiode_offset=0.0188, #0.045
     ),
     SUServoedBeam(
         "red_up",
@@ -520,7 +520,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=0.4,
         initial_amplitude=0.05,
-        photodiode_offset=0.017,
+        photodiode_offset=0.017, #0.001
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -532,7 +532,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
-        photodiode_offset=0.0188,  # TODO: This is a guess
+        photodiode_offset=0.0188,  # TODO: This is a guess 0
     ),
     ### OTHER ###
     SUServoedBeam(
