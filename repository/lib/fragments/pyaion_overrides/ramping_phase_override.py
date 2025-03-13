@@ -176,17 +176,17 @@ class GeneralRampingPhase(Fragment):
         assert len(self.default_suservo_setpoint_multiples_start) == len(
             self.suservos
         ), TypeError(
-            "self.default_syservo_setpoints_start must have same length as self.suservos_for_intensity"
+            "self.default_suservo_setpoints_start must have same length as self.suservos_for_intensity"
         )
         assert len(self.default_suservo_setpoint_multiples_end) == len(
             self.suservos
         ), TypeError(
-            "self.default_syservo_setpoints_end must have same length as self.suservos_for_intensity"
+            "self.default_suservo_setpoints_end must have same length as self.suservos_for_intensity"
         )
         assert len(self.default_suservo_offset) == len(
             self.suservos
         ), TypeError(
-            "self.default_syservo_offset must have same length as self.suservos_for_intensity"
+            "self.default_suservo_offset must have same length as self.suservos_for_intensity"
         )
 
         assert len(self.general_setter_default_starts) == len(
@@ -212,6 +212,11 @@ class GeneralRampingPhase(Fragment):
         )
 
     def build_fragment(self):
+
+        # Photodiode offset
+        if self.default_suservo_offset == []:
+            self.default_suservo_offset = [0.0] * len(self.suservos)
+            
         self.validate_attributes()
 
         # %% Devices
@@ -384,10 +389,6 @@ class GeneralRampingPhase(Fragment):
                     setpoint_end_handle,
                 )
             )
-
-        # Photodiode offset
-        if self.default_suservo_offset == []:
-            self.default_suservo_offset = [0.0] * len(self.suservos)
 
         # Add a global parameter that allows ramping all the suservo setpoints at the same time
         self.setattr_param(
