@@ -54,8 +54,9 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     default_suservo_offset = [0.0] * 6
     for idx,beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS:
-            if beam_info["name"] == beam_name:
-                default_suservo_offset[idx] = beam_info["photodiode_offset"]
+            if beam_info == beam_name:
+                default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[beam_name].photodiode_offset
+                print(beam_info, default_suservo_offset[idx])
                 break
     
 
