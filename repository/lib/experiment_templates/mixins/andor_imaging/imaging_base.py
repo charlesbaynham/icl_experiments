@@ -18,6 +18,7 @@ from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.fragment import TransitoryError
+from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from sipyco.packed_exceptions import GenericRemoteException
 
@@ -25,6 +26,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
+from repository.lib.analysis.gauss_fit_2d import fit_gaussian
 
 logger = logging.getLogger(__name__)
 
@@ -77,10 +79,19 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_param_rebind("use_andor_driver", self.andor_camera_control)
         self.use_andor_driver: BoolParamHandle
 
+        self.setattr_param(
+            "do_gauss_fit",
+            BoolParam,
+            "Do a 2D Gaussian fit on the Andor images",
+            True,
+        )
+        self.do_gauss_fit: BoolParamHandle
+
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("num_andor_images")
         self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
+        self.kernel_invariants.add("do_gauss_fit")
 
         class ImagingDeviceSetup(Fragment):
             """
@@ -149,10 +160,25 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         self.hook_setup_andor_results()
 
+    def setup_gauss_fit_results(self):
+        self.amps: List[OpaqueChannel] = []
+        self.x_pos: List[OpaqueChannel] = []
+        self.y_pos: List[OpaqueChannel] = []
+        self.sigmas_x: List[OpaqueChannel] = []
+        self.sigmas_y: List[OpaqueChannel] = []
+        for i in range(self.num_grabber_rois):
+            self.amps.append(self.setattr_result(f"amp_{i}", OpaqueChannel))
+            self.x_pos.append(self.setattr_result(f"x_pos_{i}", OpaqueChannel))
+            self.y_pos.append(self.setattr_result(f"y_pos_{i}", OpaqueChannel))
+            self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}", OpaqueChannel))
+            self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}", OpaqueChannel))
+
     def hook_setup_andor_results(self):
         # Set up result channels for all the Grabber ROIs
         self.andor_sums: List[FloatChannel] = []
         self.andor_means: List[FloatChannel] = []
+        if self.do_gauss_fit.get():
+            self.setup_gauss_fit_results()
 
         for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             sum = self.setattr_result(
@@ -400,8 +426,53 @@ class AndorImagingBase(RedMOTWithExperiment):
                     andor_image.push(img_array)
                 else:
                     andor_image.push([])
+
+                if not self.do_gauss_fit.get():
+                    for i in range(self.num_grabber_rois):
+                        self.push_gauss_fit_pars([[] * 5], 0)
             else:
                 # We must always push something to ResultChannels, so push something empty
                 andor_profile_x.push([])
                 andor_profile_y.push([])
                 andor_image.push([])
+
+    @host_only
+    def fit_from_grabber_rois(self, image):
+        for i in range(self.num_grabber_rois):
+            param_prefix = f"roi_{i}_"
+            sliced_image = self.andor_camera_control.slice_from_roi_params(
+                image, param_prefix
+            )
+            popt = fit_2d_gaussian(sliced_image)
+            self.push_gauss_fit_pars(popt, i)
+
+    @host_only
+    def push_gauss_fit_pars(self, pars, i):
+        self.amps[i].push(pars[0])
+        self.x_pos[i].push(pars[1])
+        self.y_pos[i].push(pars[2])
+        self.sigmas_x[i].push(pars[3])
+        self.sigmas_y[i].push(pars[4])
+
+
+@host_only
+def fit_2d_gaussian(image):
+    """
+    Fit a 2D Gaussian to an image
+
+    Parameters
+    ----------
+    image : np.array
+        The image to fit
+
+    Returns
+    -------
+    tuple
+        The fit parameters
+    """
+    popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="lm")
+    A = popt[0]
+    pos = (popt[1], popt[2])
+    sigma_x = popt[3]
+    sigma_y = popt[4]
+    return A, pos, sigma_x, sigma_y

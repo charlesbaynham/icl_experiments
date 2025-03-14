@@ -531,6 +531,14 @@ class AndorCameraControl(Fragment):
         if control_shutter:
             self.ttl_shutter.off()
 
+    @host_only
+    def slice_from_roi_params(self, img, param_prefix):
+        x0 = getattr(self, param_prefix + "x0").get()
+        x1 = getattr(self, param_prefix + "x1").get()
+        y0 = getattr(self, param_prefix + "y0").get()
+        y1 = getattr(self, param_prefix + "y1").get()
+        return img[x0:x1, -y1:-y0]
+
     @kernel
     def readout_ROIs(self, sums, means, timeout_mu):
         """

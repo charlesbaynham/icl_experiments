@@ -14,6 +14,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
+    fit_2d_gaussian,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
@@ -274,3 +275,12 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             persist=False,
             archive=False,
         )
+        if self.do_gauss_fit.get():
+            for i in range(self.num_grabber_rois / self.num_grabber_readouts):
+                for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
+                    param_prefix = f"roi_{j}_"
+                    sliced_image = self.andor_camera_control.slice_from_roi_params(
+                        image, param_prefix
+                    )
+                    popt = fit_2d_gaussian(sliced_image)
+                    self.push_gauss_fit_pars(popt, 2 * i + j)
