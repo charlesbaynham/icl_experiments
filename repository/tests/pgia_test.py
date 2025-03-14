@@ -77,7 +77,7 @@ class TestPGIA(SetSUServoStatic):
 
         sum = 0.0
 
-        for i in range(self.number_of_points.get()):          
+        for i in range(1, self.number_of_points.get()-1):          
             values[i] = self.read_suservo_adc.read_adc()
             delay(self.delay.get())
 
