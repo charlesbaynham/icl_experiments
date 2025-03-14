@@ -344,6 +344,10 @@ class RedBeamController(Fragment):
         self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.sw.on()
 
+        #change suservo gain params
+        
+        #self.suservo_fragments[0].set_iir_params(ki = -100.0)
+
     @kernel
     def init(self):
         """
