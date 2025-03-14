@@ -38,7 +38,7 @@ class TestPGIA(SetSUServoStatic):
             "delay",
             FloatParam,
             description="delay between points",
-            default=0,
+            default=0.0001,
         )
         self.delay: FloatParamHandle
 
@@ -86,7 +86,7 @@ class TestPGIA(SetSUServoStatic):
         
         mean = sum / len(values)
         num = 0.0
-        for i in range(self.number_of_points.get()):
+        for i in range(len(values)):
             num = num + (values[i] - mean) ** 2
         std_dev = num / len(values)
 
