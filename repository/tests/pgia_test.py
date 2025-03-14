@@ -75,14 +75,24 @@ class TestPGIA(SetSUServoStatic):
 
         self.LibSetSUServoStatic.set_pgia_gain_mu(self.pgia_setting.get())
 
+        sum = 0
+
         for i in range(self.number_of_points.get()):          
             values[i] = self.read_suservo_adc.read_adc()
             delay(self.delay.get())
 
-        mean = sum(values) / len(values) 
+            sum = sum + values[i]
+        
+        
+        mean = sum / len(values)
+        num = 0
+        for i in range(self.number_of_points.get()):
+            num = num + (values[i] - mean) ** 2
+        std_dev = num / len(values)
+
         self.adc_values.push(values)
         self.adc_mean.push(mean)
-        self.adc_std_dev.push(sum((x - mean) ** 2 for x in values) / len(values))     
+        self.adc_std_dev.push(std_dev)     
 
 
 
