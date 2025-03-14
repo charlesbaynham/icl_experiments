@@ -9,7 +9,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParamHandle
-from lib.fragments.read_adc import ReadSUServoADC
+from repository.lib.fragments.read_adc import ReadSUServoADC
 from pyaion.utilities.set_suservo_static import SetSUServoStatic
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment import FloatChannel
