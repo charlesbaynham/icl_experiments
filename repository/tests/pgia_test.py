@@ -93,6 +93,9 @@ class TestPGIA(SetSUServoStatic):
         self.adc_mean.push(mean)
         self.adc_std_dev.push(std_dev)     
 
+        self.set_dataset("adc_values", values, broadcast=True,
+            archive=False)
+
 
 
 TestPGIAExp = make_fragment_scan_exp(TestPGIA)
