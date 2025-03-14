@@ -92,7 +92,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.grabber0: Grabber
 
                 self.setattr_device("core")
-                self.core: Core              
+                self.core: Core
 
                 self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
                 self.set_toptica_analog: SetTopticaAnalogFrag
@@ -172,17 +172,17 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_means.append(mean)
 
         # Set up result channels for the Andor images
-        self.andor_sum_slice_xs: List[OpaqueChannel] = []
-        self.andor_sum_slice_ys: List[OpaqueChannel] = []
+        self.andor_profile_xs: List[OpaqueChannel] = []
+        self.andor_profile_ys: List[OpaqueChannel] = []
         self.andor_images: List[OpaqueChannel] = []
 
         for i in range(self.num_andor_images):
-            slice_x = self.setattr_result(f"andor_sum_slice_x_{i}", OpaqueChannel)
-            slice_y = self.setattr_result(f"andor_sum_slice_y_{i}", OpaqueChannel)
+            profile_x = self.setattr_result(f"andor_profile_x_{i}", OpaqueChannel)
+            profile_y = self.setattr_result(f"andor_profile_y_{i}", OpaqueChannel)
             image = self.setattr_result(f"andor_image_{i}", OpaqueChannel)
 
-            self.andor_sum_slice_xs.append(slice_x)
-            self.andor_sum_slice_ys.append(slice_y)
+            self.andor_profile_xs.append(profile_x)
+            self.andor_profile_ys.append(profile_y)
             self.andor_images.append(image)
 
     def host_setup(self):
@@ -299,10 +299,10 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @host_only
     @staticmethod
-    def slice_image(img):
-        sum_slice_x = np.sum(img, axis=1)
-        sum_slice_y = np.sum(img, axis=0)
-        return sum_slice_x, sum_slice_y
+    def get_projections(img):
+        profile_x = np.sum(img, axis=1)
+        profile_y = np.sum(img, axis=0)
+        return profile_x, profile_y
 
     @host_only
     def update_andor_monitor_hook(self, images):
@@ -376,22 +376,22 @@ class AndorImagingBase(RedMOTWithExperiment):
         processing of the Andor images after they have been read out.
         """
         for (
-            andor_sum_slice_x,
-            andor_sum_slice_y,
+            andor_profile_x,
+            andor_profile_y,
             andor_image,
             img_array,
         ) in zip(
-            self.andor_sum_slice_xs,
-            self.andor_sum_slice_ys,
+            self.andor_profile_xs,
+            self.andor_profile_ys,
             self.andor_images,
             imgs_array,
         ):
             if self.use_andor_driver.get():
-                sum_slice_x, sum_slice_y = AndorImagingBase.slice_image(img_array)
+                profile_x, profile_y = AndorImagingBase.get_projections(img_array)
 
                 # Write them to the result channels
-                andor_sum_slice_x.push(sum_slice_x)
-                andor_sum_slice_y.push(sum_slice_y)
+                andor_profile_x.push(profile_x)
+                andor_profile_y.push(profile_y)
 
                 # Save them to pass to the monitor
 
@@ -402,6 +402,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                     andor_image.push([])
             else:
                 # We must always push something to ResultChannels, so push something empty
-                andor_sum_slice_x.push([])
-                andor_sum_slice_y.push([])
+                andor_profile_x.push([])
+                andor_profile_y.push([])
                 andor_image.push([])
