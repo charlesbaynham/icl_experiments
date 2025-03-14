@@ -87,7 +87,7 @@ class TestPGIA(SetSUServoStatic):
         mean = sum / (len(values)-1)
         for i in range(1, len(values)):        
             num = num + (values[i] - mean) ** 2
-        std_dev = num / (len(values) - 1)
+        std_dev = (num / (len(values) - 1)) ** 0.5
 
         self.adc_values.push(values)
         self.adc_mean.push(mean)
