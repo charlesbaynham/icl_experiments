@@ -30,7 +30,7 @@ class TestPGIA(SetSUServoStatic):
         super().build_fragment()
 
         self.setattr_fragment(
-            "read_suservo_adc", ReadSUServoADC
+            "read_suservo_adc", ReadSUServoADC, self.channel 
         )
         self.read_suservo_adc: ReadSUServoADC
 
