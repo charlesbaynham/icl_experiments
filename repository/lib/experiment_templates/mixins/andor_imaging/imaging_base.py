@@ -177,8 +177,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         # Set up result channels for all the Grabber ROIs
         self.andor_sums: List[FloatChannel] = []
         self.andor_means: List[FloatChannel] = []
-        if self.do_gauss_fit.get():
-            self.setup_gauss_fit_results()
+        self.setup_gauss_fit_results()
 
         for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             sum = self.setattr_result(
