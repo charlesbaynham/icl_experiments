@@ -167,11 +167,11 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
         for i in range(self.num_grabber_rois * self.num_grabber_readouts):
-            self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel))
-            self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel))
-            self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel))
-            self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}", FloatChannel))
-            self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}", FloatChannel))
+            self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel, display_hints={"priority": -1}))
+            self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}))
+            self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}))
+            self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}", FloatChannel, display_hints={"priority": -1}))
+            self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}", FloatChannel, display_hints={"priority": -1}))
 
     def hook_setup_andor_results(self):
         # Set up result channels for all the Grabber ROIs
