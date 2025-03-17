@@ -537,7 +537,10 @@ class AndorCameraControl(Fragment):
         x1 = getattr(self, param_prefix + "x1").get()
         y0 = getattr(self, param_prefix + "y0").get()
         y1 = getattr(self, param_prefix + "y1").get()
-        return img[x0:x1, -y1:-y0], (x0, y0)
+        width, height = img.shape
+        print(f"Image shape: {width}, {height}")
+        print(f"ROI: {x0}, {x1}, {y0}, {y1}")
+        return img[x0:x1, height-y0:height-y1:-1], (x0, y0)
 
     @kernel
     def readout_ROIs(self, sums, means, timeout_mu):

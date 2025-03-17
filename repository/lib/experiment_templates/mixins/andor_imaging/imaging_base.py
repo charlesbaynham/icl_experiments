@@ -166,7 +166,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.y_pos: List[FloatChannel] = []
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
-        for i in range(self.num_grabber_rois):
+        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
             self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel))
             self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel))
             self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel))
@@ -446,15 +446,12 @@ class AndorImagingBase(RedMOTWithExperiment):
     def fit_from_grabber_rois(self, image):
         for i in range(self.num_grabber_rois):
             param_prefix = f"roi_{i}_"
+            print(f"roi {i} shape: {image.shape}")
             sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
                 image, param_prefix
             )
-            try:
-                popt = fit_2d_gaussian(sliced_image, offsets)
-            except RuntimeError as e:
-                logger.warning("Runtime error in 2d gauss fit, pushing empty")
-                logger.warning(e)
-                popt = [np.nan] * 5
+            print(f"{i} sliced image shape {sliced_image.shape}")
+            popt = fit_2d_gaussian(sliced_image, offsets)
             self.push_gauss_fit_pars(popt, i)
 
     @host_only
@@ -481,7 +478,12 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
     tuple
         The fit parameters
     """
-    popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="lm")
+    try:
+        popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="lm")
+    except RuntimeError as e:
+        logger.warning("Runtime error in 2d gauss fit, pushing empty")
+        logger.warning(e)
+        popt = [np.nan] * 5
     A = popt[0]
     pos_x = popt[1] + offsets[0]
     pos_y = popt[2] + offsets[1]
