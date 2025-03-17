@@ -4,6 +4,7 @@ import numpy as np
 from artiq.experiment import delay
 from artiq.experiment import host_only
 from artiq.experiment import kernel
+from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -51,7 +52,6 @@ class BGCorrectedAndorImage(AndorImagingBase):
             default=constants.ANDOR_CAMERA_BACKGROUND_DELAY,
         )
         self.delay_before_bg_pulse: FloatParamHandle
-
         self.bg_imaging_make_result_channel()
 
     def bg_imaging_make_result_channel(self):
@@ -101,6 +101,7 @@ class BGCorrectedAndorImage(AndorImagingBase):
     def process_grabber_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])
 
+    
     def process_andor_image_hook(self, imgs_array):
         super().process_andor_image_hook(imgs_array)
         if self.do_gauss_fit.get():

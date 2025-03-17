@@ -161,17 +161,17 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.hook_setup_andor_results()
 
     def setup_gauss_fit_results(self):
-        self.amps: List[OpaqueChannel] = []
-        self.x_pos: List[OpaqueChannel] = []
-        self.y_pos: List[OpaqueChannel] = []
-        self.sigmas_x: List[OpaqueChannel] = []
-        self.sigmas_y: List[OpaqueChannel] = []
+        self.amps: List[FloatChannel] = []
+        self.x_pos: List[FloatChannel] = []
+        self.y_pos: List[FloatChannel] = []
+        self.sigmas_x: List[FloatChannel] = []
+        self.sigmas_y: List[FloatChannel] = []
         for i in range(self.num_grabber_rois):
-            self.amps.append(self.setattr_result(f"amp_{i}", OpaqueChannel))
-            self.x_pos.append(self.setattr_result(f"x_pos_{i}", OpaqueChannel))
-            self.y_pos.append(self.setattr_result(f"y_pos_{i}", OpaqueChannel))
-            self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}", OpaqueChannel))
-            self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}", OpaqueChannel))
+            self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel))
+            self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel))
+            self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel))
+            self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}", FloatChannel))
+            self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}", FloatChannel))
 
     def hook_setup_andor_results(self):
         # Set up result channels for all the Grabber ROIs
@@ -212,10 +212,17 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     def host_setup(self):
         if self.use_andor_driver.get():
+            self.default_rois = []
+            for i in range(self.num_grabber_rois):
+                x0 = getattr(self.andor_camera_control, f"roi_{i}_x0").get()
+                y0 = getattr(self.andor_camera_control, f"roi_{i}_y0").get()
+                x1 = getattr(self.andor_camera_control, f"roi_{i}_x1").get()
+                y1 = getattr(self.andor_camera_control, f"roi_{i}_y1").get()
+                self.default_rois.append([x0, x1, y0, y1])
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET}",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[self.default_rois[0]]}' --dataset_prefix 'andor_monitor'",
             )
 
             for i in range(self.num_andor_images):
@@ -223,7 +230,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.ccb.issue(
                     "create_applet",
                     f"Andor image {i}",
-                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name}",
+                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{self.default_rois}' --dataset_prefix 'andor_img_{i}'",
                 )
         self.image_store = []
         super().host_setup()
@@ -428,7 +435,7 @@ class AndorImagingBase(RedMOTWithExperiment):
 
                 if not self.do_gauss_fit.get():
                     for i in range(self.num_grabber_rois):
-                        self.push_gauss_fit_pars([[] * 5], 0)
+                        self.push_gauss_fit_pars([np.nan] * 5, 0)
             else:
                 # We must always push something to ResultChannels, so push something empty
                 andor_profile_x.push([])
@@ -439,10 +446,15 @@ class AndorImagingBase(RedMOTWithExperiment):
     def fit_from_grabber_rois(self, image):
         for i in range(self.num_grabber_rois):
             param_prefix = f"roi_{i}_"
-            sliced_image = self.andor_camera_control.slice_from_roi_params(
+            sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
                 image, param_prefix
             )
-            popt = fit_2d_gaussian(sliced_image)
+            try:
+                popt = fit_2d_gaussian(sliced_image, offsets)
+            except RuntimeError as e:
+                logger.warning("Runtime error in 2d gauss fit, pushing empty")
+                logger.warning(e)
+                popt = [np.nan] * 5
             self.push_gauss_fit_pars(popt, i)
 
     @host_only
@@ -455,7 +467,7 @@ class AndorImagingBase(RedMOTWithExperiment):
 
 
 @host_only
-def fit_2d_gaussian(image):
+def fit_2d_gaussian(image, offsets=(0, 0)):
     """
     Fit a 2D Gaussian to an image
 
@@ -471,7 +483,8 @@ def fit_2d_gaussian(image):
     """
     popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="lm")
     A = popt[0]
-    pos = (popt[1], popt[2])
+    pos_x = popt[1] + offsets[0]
+    pos_y = popt[2] + offsets[1]
     sigma_x = popt[3]
     sigma_y = popt[4]
-    return A, pos, sigma_x, sigma_y
+    return A, pos_x, pos_y, sigma_x, sigma_y
