@@ -166,7 +166,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.y_pos: List[FloatChannel] = []
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
-        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
+        for i in range(int((self.num_grabber_rois * self.num_grabber_readouts)/self.num_andor_images)):
             self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel, display_hints={"priority": -1}))
             self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}))
             self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}))
