@@ -468,26 +468,16 @@ class AndorImagingBase(RedMOTWithExperiment):
 def fit_2d_gaussian(image, offsets=(0, 0)):
     """
     Fit a 2D Gaussian to an image
-
-    Parameters
-    ----------
-    image : np.array
-        The image to fit
-
-    Returns
-    -------
-    tuple
-        The fit parameters
     """
     try:
-        popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="lm")
+        popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="trf")
     except RuntimeError as e:
         logger.warning("Runtime error in 2d gauss fit, pushing empty")
         logger.warning(e)
         popt = [np.nan] * 5
     A = popt[0]
-    pos_x = popt[1] + offsets[0]
-    pos_y = popt[2] + offsets[1]
-    sigma_x = popt[3]
-    sigma_y = popt[4]
+    pos_x = popt[2] + offsets[0]
+    pos_y = popt[1] + offsets[1]
+    sigma_x = popt[4]
+    sigma_y = popt[3]
     return A, pos_x, pos_y, sigma_x, sigma_y
