@@ -126,15 +126,17 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     def host_setup(self):
         super().host_setup()
+        default_rois = self.get_monitor_rois()
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{default_rois}'",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois}'",
+
         )
 
     def fast_kinetics_setup_results(self):
@@ -276,14 +278,13 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             archive=False,
         )
         if self.do_gauss_fit.get():
-            for i, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
-                for j in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
-                    grabber_idx = int(2 * j)
-                    param_prefix = f"roi_{grabber_idx}_"
-                    print(f"i: {i}, j: {j}, image.shape: {image.shape}")
+            for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+                for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
+                
+                    grabber_idx = int(2*i)
+    
                     sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                        image, param_prefix
-                    )
-                    print(f"{param_prefix} sliced_image.shape: {sliced_image.shape}")
+                        image, grabber_idx
+                    )             
                     popt = fit_2d_gaussian(sliced_image, offsets)
                     self.push_gauss_fit_pars(popt, int(2 * i + j))

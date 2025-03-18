@@ -166,7 +166,8 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.y_pos: List[FloatChannel] = []
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
-        for i in range(int((self.num_grabber_rois * self.num_grabber_readouts)/self.num_andor_images)):
+        # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
+        for i in range(self.num_grabber_rois):
             self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel, display_hints={"priority": -1}))
             self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}))
             self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}))
@@ -211,18 +212,13 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.andor_images.append(image)
 
     def host_setup(self):
+        super().host_setup()
         if self.use_andor_driver.get():
-            self.default_rois = []
-            for i in range(self.num_grabber_rois):
-                x0 = getattr(self.andor_camera_control, f"roi_{i}_x0").get()
-                y0 = getattr(self.andor_camera_control, f"roi_{i}_y0").get()
-                x1 = getattr(self.andor_camera_control, f"roi_{i}_x1").get()
-                y1 = getattr(self.andor_camera_control, f"roi_{i}_y1").get()
-                self.default_rois.append([x0, x1, y0, y1])
+            default_rois = self.get_monitor_rois()
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[self.default_rois[0]]}' --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[default_rois[0]]}' --dataset_prefix 'andor_monitor'",
             )
 
             for i in range(self.num_andor_images):
@@ -230,10 +226,10 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.ccb.issue(
                     "create_applet",
                     f"Andor image {i}",
-                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{self.default_rois}' --dataset_prefix 'andor_img_{i}'",
+                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{default_rois}' --dataset_prefix 'andor_img_{i}'",
                 )
         self.image_store = []
-        super().host_setup()
+        
 
     @kernel
     def start_of_red_broadband_hook(self):
@@ -352,6 +348,14 @@ class AndorImagingBase(RedMOTWithExperiment):
             archive=False,
         )
 
+    @host_only
+    def get_monitor_rois(self):
+        """
+        Get the default ROIs for the Andor monitors
+        """
+        default_rois = [self.andor_camera_control.get_roi_i(0)]
+        return default_rois
+
     @kernel
     def save_andor_data_hook(self):
         """
@@ -445,12 +449,9 @@ class AndorImagingBase(RedMOTWithExperiment):
     @host_only
     def fit_from_grabber_rois(self, image):
         for i in range(self.num_grabber_rois):
-            param_prefix = f"roi_{i}_"
-            print(f"roi {i} shape: {image.shape}")
             sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                image, param_prefix
+                image, i
             )
-            print(f"{i} sliced image shape {sliced_image.shape}")
             popt = fit_2d_gaussian(sliced_image, offsets)
             self.push_gauss_fit_pars(popt, i)
 
