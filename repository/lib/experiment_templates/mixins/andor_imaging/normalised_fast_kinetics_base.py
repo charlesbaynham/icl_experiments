@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 import numpy as np
 from artiq.experiment import at_mu
@@ -164,6 +165,20 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
+
+    def setup_gauss_fit_results(self):
+        self.amps: List[FloatChannel] = []
+        self.x_pos: List[FloatChannel] = []
+        self.y_pos: List[FloatChannel] = []
+        self.sigmas_x: List[FloatChannel] = []
+        self.sigmas_y: List[FloatChannel] = []
+        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+            for j in ('ground', 'excited') :
+                self.amps.append(self.setattr_result(f"amp_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
+                self.x_pos.append(self.setattr_result(f"x_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
+                self.y_pos.append(self.setattr_result(f"y_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
+                self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
+                self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
 
     def get_grabber_roi_defaults(self):
         return calculate_grabber_rois(
