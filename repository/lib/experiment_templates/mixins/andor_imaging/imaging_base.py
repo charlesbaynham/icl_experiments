@@ -436,15 +436,24 @@ class AndorImagingBase(RedMOTWithExperiment):
                     andor_image.push(img_array)
                 else:
                     andor_image.push([])
-
-                if not self.do_gauss_fit.get():
-                    for i in range(self.num_grabber_rois):
-                        self.push_gauss_fit_pars([np.nan] * 5, 0)
             else:
                 # We must always push something to ResultChannels, so push something empty
                 andor_profile_x.push([])
                 andor_profile_y.push([])
                 andor_image.push([])
+
+        if self.do_gauss_fit.get():
+            logger.info("Doing gauss fit")
+            self.do_gauss_fit_hook(imgs_array)
+        else:
+            logger.info("Not doing gauss fit")
+            for i in range(len(self.amps)):
+                self.push_gauss_fit_pars([np.nan] * 5, i)
+
+    @host_only
+    def do_gauss_fit_hook(self, imgs_array):
+        for img_array in imgs_array:
+            self.fit_from_grabber_rois(img_array)
 
     @host_only
     def fit_from_grabber_rois(self, image):
@@ -473,6 +482,10 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
         popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="trf")
     except RuntimeError as e:
         logger.warning("Runtime error in 2d gauss fit, pushing empty")
+        logger.warning(e)
+        popt = [np.nan] * 5
+    except ValueError as e:
+        logger.warning("Value error in 2d gauss fit, pushing empty")
         logger.warning(e)
         popt = [np.nan] * 5
     A = popt[0]

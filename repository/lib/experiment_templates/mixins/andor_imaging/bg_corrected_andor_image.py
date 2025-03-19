@@ -97,13 +97,14 @@ class BGCorrectedAndorImage(AndorImagingBase):
     def process_grabber_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])
 
-    
-    def process_andor_image_hook(self, imgs_array):
-        super().process_andor_image_hook(imgs_array)
-        if self.do_gauss_fit.get():
-            img_array = imgs_array[0]
-            bg_img_array = imgs_array[1]
-            corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
-            self.fit_from_grabber_rois(corrected_img_array)
-        else:
-            pass
+    # @host_only
+    # def process_andor_image_hook(self, imgs_array):
+    #     super().process_andor_image_hook(imgs_array)
+
+    @host_only
+    def do_gauss_fit_hook(self, img_array):
+        img_array = img_array[0]
+        bg_img_array = img_array[1]
+        corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
+        self.fit_from_grabber_rois(corrected_img_array)
+

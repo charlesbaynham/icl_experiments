@@ -111,8 +111,8 @@ def estimate_initial_params_1d_fit(x: np.ndarray, y: np.ndarray, data: np.ndarra
     mean_cols = np.sum(data, axis=0)
     mean_rows = np.sum(data, axis=1)
 
-    logger.warning("len x: %d, len y: %d", len(x), len(y))
-    logger.warning("len mean_cols: %d, len mean_rows: %d", len(mean_cols), len(mean_rows))
+    # logger.warning("len x: %d, len y: %d", len(x), len(y))
+    # logger.warning("len mean_cols: %d, len mean_rows: %d", len(mean_cols), len(mean_rows))
 
     bounds_col = get_bounds_1d(x, mean_cols)
     bounds_row = get_bounds_1d(y, mean_rows)
@@ -123,9 +123,9 @@ def estimate_initial_params_1d_fit(x: np.ndarray, y: np.ndarray, data: np.ndarra
     # print(f"col: {bounds_col}")
     # print(f"row: {bounds_row}")
 
-    logger.warning("1d bounds:")
-    logger.warning("col: %s", bounds_col)
-    logger.warning("row: %s", bounds_row)
+    # logger.warning("1d bounds:")
+    # logger.warning("col: %s", bounds_col)
+    # logger.warning("row: %s", bounds_row)
     popt_x, _ = opt.curve_fit(gaussian, x, mean_cols, p0=[np.max(mean_cols), x0, len(x)/2, 0], bounds=bounds_col)
     popt_y, _ = opt.curve_fit(gaussian, y, mean_rows, p0=[np.max(mean_rows), y0, len(y)/2, 0], bounds=bounds_row)
 
@@ -344,14 +344,9 @@ def fit_gaussian(
         raise ValueError("Invalid estimator")
     # print("Time to estimate initial parameters:", time.time() - t0)
     # t0 = time.time()
-    logger.warning("Initial guess:")
-    logger.warning("A: %f, x0: %f, y0: %f, sigma_x: %f, sigma_y: %f", *initial_guess[:5])
-    logger.warning("theta: %f, offset: %f", initial_guess[5], initial_guess[6])
-    # print("Initial guess:")
-    # print(
-    #     f"A: {initial_guess[0]}, x0: {initial_guess[1]}, y0: {initial_guess[2]}, sigma_x: {initial_guess[3]}, sigma_y: {initial_guess[4]}"
-    # )
-    # print(f"theta: {initial_guess[5]}, offset: {initial_guess[6]}")
+    # logger.warning("Initial guess:")
+    # logger.warning("A: %f, x0: %f, y0: %f, sigma_x: %f, sigma_y: %f", *initial_guess[:5])
+    # logger.warning("theta: %f, offset: %f", initial_guess[5], initial_guess[6])
     if method == "lm":
         kwargs = {"method": method}
     else:
@@ -367,15 +362,12 @@ def fit_gaussian(
         popt = res.x
     else:
         raise ValueError("Invalid fitter")
-    # print("Fit params:")
-    # print(
-    #     f"A: {popt[0]}, x0: {popt[1]}, y0: {popt[2]}, sigma_x: {popt[3]}, sigma_y: {popt[4]}, theta: {popt[5]}, offset: {popt[6]}"
+
+    # logger.warning("Fit params:")
+    # logger.warning(
+    #     "A: %f, x0: %f, y0: %f, sigma_x: %f, sigma_y: %f, theta: %f, offset: %f",
+    #     *popt
     # )
-    logger.warning("Fit params:")
-    logger.warning(
-        "A: %f, x0: %f, y0: %f, sigma_x: %f, sigma_y: %f, theta: %f, offset: %f",
-        *popt
-    )
     # print("Time to fit:", time.time() - t0)
     return popt, initial_guess
 

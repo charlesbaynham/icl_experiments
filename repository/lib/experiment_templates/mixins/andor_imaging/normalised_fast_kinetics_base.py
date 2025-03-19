@@ -292,14 +292,18 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             persist=False,
             archive=False,
         )
-        if self.do_gauss_fit.get():
-            for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
-                for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
-                
-                    grabber_idx = int(2*i)
     
-                    sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                        image, grabber_idx
-                    )             
-                    popt = fit_2d_gaussian(sliced_image, offsets)
-                    self.push_gauss_fit_pars(popt, int(2 * i + j))
+    @host_only
+    def do_gauss_fit_hook(self, img_array: np.ndarray):
+        ground_bg_corrected = img_array[0].astype(int) - img_array[2].astype(int)
+        excited_bg_corrected = img_array[1].astype(int) - img_array[3].astype(int)
+        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+            for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
+            
+                grabber_idx = int(2*i)
+
+                sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
+                    image, grabber_idx
+                )             
+                popt = fit_2d_gaussian(sliced_image, offsets)
+                self.push_gauss_fit_pars(popt, int(2 * i + j))
