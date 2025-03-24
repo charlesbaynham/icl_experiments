@@ -19,6 +19,9 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XOD
 
 logger = logging.getLogger(__name__)
 
+#order diagonal, sigmaplus, sigmaminus, up
+RED_SUSERVO_PGIA = [2, 1, 2, 2]
+
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     """
     Loads atoms in a single XODT after the narrowband red MOT. Turns the dipole beams on at the start of a stage of ramping MOT beams.
@@ -109,6 +112,14 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         Turn the dipole beams on and do the xodt loading ramping phase
         """
         self.constant_dipole_traps_setter.turn_on_all()
+
+        # Set the PGIA gains for the red suservos
+        for i, handle in enumerate(self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info):
+            gain = RED_SUSERVO_PGIA[i]
+            handle.setter.set_pgia_gain_mu(gain)
+            print(f"Setting PGIA gain for {handle.setter.channel} to {gain}")
+
+
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
@@ -119,6 +130,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
 
         self.mot_xodt.do_phase()
+
 
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
