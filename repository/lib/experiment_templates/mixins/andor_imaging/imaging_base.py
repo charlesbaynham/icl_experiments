@@ -501,11 +501,11 @@ class AndorImagingBase(RedMOTWithExperiment):
                     self.expansion_time,
                     result,
                     {"T": name, "fit_xs": f"fit_xs_{name}", "fit_ys": f"fit_ys_{name}"},
-                    {
-                        name: FloatChannel(name, f"Fitted {name}", unit="K", scale=1),
-                        f"fit_t_{name}": OpaqueChannel(f"fit_t_{name}"),
-                        f"fit_sigma_{name}": OpaqueChannel(f"fit_sigma_{name}"),
-                    },
+                    [
+                        FloatChannel(name, f"Fitted {name}", unit="K", scale=1),
+                        OpaqueChannel(f"fit_t_{name}"),
+                        OpaqueChannel(f"fit_sigma_{name}"),
+                    ],
                 )
         return default_analyses
 
