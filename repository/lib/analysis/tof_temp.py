@@ -51,7 +51,7 @@ def get_custom_analysis(
         analysis_results[analysis_results_names["fit_ys"]].push(sigma_fit)
         return []
 
-    fn = partial(analyse_fn, x_param=x_param_handle, y_result=y_param_handle)
+    fn = partial(analyse_fn, x_param=x_param_handle, y_result=y_param_handle, analysis_results_names=analysis_results_names)
 
     return [CustomAnalysis([x_param_handle], fn, analysis_results)]
 

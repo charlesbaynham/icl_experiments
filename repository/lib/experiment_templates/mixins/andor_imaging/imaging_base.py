@@ -500,6 +500,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 default_analyses += get_custom_analysis(
                     self.expansion_time,
                     result,
+                    {"T": name, "fit_xs": f"fit_xs_{name}", "fit_ys": f"fit_ys_{name}"},
                     {
                         name: FloatChannel(name, f"Fitted {name}", unit="K", scale=1),
                         f"fit_t_{name}": OpaqueChannel(f"fit_t_{name}"),
