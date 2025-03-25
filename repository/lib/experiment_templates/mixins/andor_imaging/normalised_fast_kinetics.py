@@ -112,3 +112,11 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
         return forward_rois + backward_rois
+    
+    def get_monitor_rois(self):
+        default_rois = []
+        fwd_roi = self.andor_camera_control.get_roi_i(0)
+        bwd_roi = self.andor_camera_control.get_roi_i(2)
+        default_rois.append(fwd_roi)
+        default_rois.append(bwd_roi)
+        return default_rois
