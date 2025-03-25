@@ -27,6 +27,7 @@ def expansion_model(t: float, sigma0: float, T: float, psf: float):
 def get_custom_analysis(
     x_param_handle: ParamHandle,
     y_param_handle: ParamHandle,
+    analysis_results_names: dict[str, str],
     analysis_results: dict[str, ResultChannel],
 ):
 
@@ -36,15 +37,18 @@ def get_custom_analysis(
         analysis_results: dict[str, ResultChannel],
         x_param: Optional[ParamHandle] = None,
         y_result: Optional[ParamHandle] = None,
+        analysis_results_names: Optional[dict[str, str]] = None,
     ):
+        if analysis_results_names is None:
+            analysis_results_names = {"T": "T", "fit_xs": "fit_xs", "fit_ys": "fit_ys"}
         t = axis_values[x_param]
         sigma = result_values[y_result] * pixel_size
         popt, t_fit, sigma_fit = fit_expansion(t, sigma)
         # analysis_results["sigma0"].push(popt[0])
-        analysis_results["T"].push(popt[1])
+        analysis_results[analysis_results_names["T"]].push(popt[1])
         # analysis_results["psf"].push(popt[2])
-        analysis_results["fit_xs"].push(t_fit)
-        analysis_results["fit_ys"].push(sigma_fit)
+        analysis_results[analysis_results_names["fit_xs"]].push(t_fit)
+        analysis_results[analysis_results_names["fit_ys"]].push(sigma_fit)
         return []
 
     fn = partial(analyse_fn, x_param=x_param_handle, y_result=y_param_handle)
