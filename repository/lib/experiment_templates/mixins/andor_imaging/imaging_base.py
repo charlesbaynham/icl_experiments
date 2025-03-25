@@ -15,8 +15,6 @@ from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -27,6 +25,7 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 from repository.lib.analysis.gauss_fit_2d import fit_gaussian
+from repository.lib.analysis.tof_temp import get_custom_analysis
 
 logger = logging.getLogger(__name__)
 
@@ -168,11 +167,31 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.sigmas_y: List[FloatChannel] = []
         # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
         for i in range(self.num_grabber_rois):
-            self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}", FloatChannel, display_hints={"priority": -1}))
+            self.amps.append(
+                self.setattr_result(
+                    f"amp_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.x_pos.append(
+                self.setattr_result(
+                    f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.y_pos.append(
+                self.setattr_result(
+                    f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.sigmas_x.append(
+                self.setattr_result(
+                    f"sigma_x_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.sigmas_y.append(
+                self.setattr_result(
+                    f"sigma_y_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
 
     def hook_setup_andor_results(self):
         # Set up result channels for all the Grabber ROIs
@@ -229,7 +248,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                     f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{default_rois}' --dataset_prefix 'andor_img_{i}'",
                 )
         self.image_store = []
-        
 
     @kernel
     def start_of_red_broadband_hook(self):
@@ -471,6 +489,24 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.y_pos[i].push(pars[2])
         self.sigmas_x[i].push(pars[3])
         self.sigmas_y[i].push(pars[4])
+
+    def get_default_analyses(self):
+        default_analyses = super().get_default_analyses()
+        if self.do_gauss_fit.get():
+            for name, result in [
+                ("T_x", self.sigmas_x),
+                ("T_y", self.sigmas_y),
+            ]:
+                default_analyses += get_custom_analysis(
+                    self.expansion_time,
+                    result,
+                    [
+                        FloatChannel(name, f"Fitted {name}", unit="K"),
+                        OpaqueChannel(f"fit_t_{name}"),
+                        OpaqueChannel(f"fit_sigma_{name}"),
+                    ],
+                )
+        return default_analyses
 
 
 @host_only
