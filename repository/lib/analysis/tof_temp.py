@@ -42,7 +42,7 @@ def get_custom_analysis(
         if analysis_results_names is None:
             analysis_results_names = {"T": "T", "fit_xs": "fit_xs", "fit_ys": "fit_ys"}
         t = axis_values[x_param]
-        sigma = result_values[y_result] * pixel_size
+        sigma = [i * pixel_size for i in result_values[y_result]]
         popt, t_fit, sigma_fit = fit_expansion(t, sigma)
         # analysis_results["sigma0"].push(popt[0])
         analysis_results[analysis_results_names["T"]].push(popt[1])

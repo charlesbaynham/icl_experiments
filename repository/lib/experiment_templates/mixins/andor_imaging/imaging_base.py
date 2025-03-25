@@ -494,8 +494,8 @@ class AndorImagingBase(RedMOTWithExperiment):
         default_analyses = super().get_default_analyses()
         if self.do_gauss_fit.get():
             for name, result in [
-                ("T_x", self.sigmas_x),
-                ("T_y", self.sigmas_y),
+                ("T_x", self.sigmas_x[0]),
+                ("T_y", self.sigmas_y[0]),
             ]:
                 default_analyses += get_custom_analysis(
                     self.expansion_time,
