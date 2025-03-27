@@ -20,8 +20,8 @@ pixel_size = ANDOR_CAMERA_FACTS["pixel_size"]  # meters
 
 
 # Define the expansion model function
-def expansion_model(t: float, sigma0: float, T: float, psf: float):
-    return np.sqrt(sigma0**2 + (kB * T / mass) * t**2 + psf**2)
+def expansion_model(t: float, sigma0: float, T: float):
+    return np.sqrt(sigma0**2 + (kB * T / mass) * t**2)
 
 
 def get_custom_analysis(
@@ -51,7 +51,12 @@ def get_custom_analysis(
         analysis_results[analysis_results_names["fit_ys"]].push(sigma_fit)
         return []
 
-    fn = partial(analyse_fn, x_param=x_param_handle, y_result=y_param_handle, analysis_results_names=analysis_results_names)
+    fn = partial(
+        analyse_fn,
+        x_param=x_param_handle,
+        y_result=y_param_handle,
+        analysis_results_names=analysis_results_names,
+    )
 
     return [CustomAnalysis([x_param_handle], fn, analysis_results)]
 
