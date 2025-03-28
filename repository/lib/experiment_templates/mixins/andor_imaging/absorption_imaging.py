@@ -45,7 +45,7 @@ class AbsorptionDoubleDipoleTrapMixin(AbsorptionImagingBase):
             constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         ]
         return [default_foward, default_backward]
-    
+
     def hook_setup_andor_results(self):
         super().hook_setup_andor_results()
         self.setattr_result(
@@ -54,7 +54,6 @@ class AbsorptionDoubleDipoleTrapMixin(AbsorptionImagingBase):
             display_hints={"priority": -1},
         )
         self.atom_number_ratio: FloatChannel
-
 
     def process_andor_image_hook(self, images):
         super().process_andor_image_hook(images)
