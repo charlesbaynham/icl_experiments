@@ -2,7 +2,6 @@ import logging
 from typing import List
 
 import numpy as np
-from artiq.experiment import delay
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.language import parallel
@@ -11,12 +10,16 @@ from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
+from artiq.language.core import delay
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    fit_2d_gaussian,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,18 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     def build_fragment(self):
         super().build_fragment()
+
+        # self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
+        # self.set_toptica_analog: SetTopticaAnalogFrag
+
+        self.setattr_param(
+            "set_topica_pre_delay",
+            FloatParam,
+            "Toptica setting pre-delay",
+            default=0.0,
+            unit="ms",
+        )
+        self.set_topica_pre_delay: FloatParamHandle
 
         self.setattr_param(
             "delay_between_absorption_pulses",
@@ -105,6 +120,8 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.override_param("use_andor_driver", True)
         self.setattr_param_rebind("pre_trigger_delay", self.andor_camera_control)
         self.override_param("pre_trigger_delay", 50e-6)
+        # self.setattr_param_rebind("delivery_settling_duration", self.fluorescence_pulse)
+        # self.override_param("delivery_settling_duration", 6e3)
 
     def host_setup(self):
         super().host_setup()
@@ -165,8 +182,18 @@ class AbsorptionImagingBase(AndorImagingBase):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
+        # step blue frequency
+        if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
+            delay(-self.set_topica_pre_delay.get())
+            self.imagingsetup.set_toptica_analog.step_freq()
+            delay(self.set_topica_pre_delay.get())
+
         # Image with atoms
         self.do_pulse()
+
+        # Reset blue frequency
+        if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
+            self.imagingsetup.set_toptica_analog.reset_freq()
 
         # Wait for atoms to disappear
         delay(self.delay_between_absorption_pulses.get())
@@ -231,6 +258,62 @@ class AbsorptionImagingBase(AndorImagingBase):
             # self.light_img.push([])
             # self.bg_img.push([])
             self.od_img.push([])
+
+        if self.do_gauss_fit.get():
+            logger.info("Doing gauss fit")
+            self.do_gauss_fit_hook(od_slices)
+        else:
+            logger.info("Not doing gauss fit")
+            for i in range(len(self.amps)):
+                self.push_gauss_fit_pars([np.nan] * 5, i)
+
+    @host_only
+    def do_gauss_fit_hook(self, imgs_array):
+        for img_array in imgs_array:
+            self.fit_from_abs_rois(img_array)
+
+    @host_only
+    def fit_from_grabber_rois(self, image):
+        for i in range(self.num_grabber_rois):
+            sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
+                image, f"abs_roi_{i}"
+            )
+            popt = fit_2d_gaussian(sliced_image, offsets)
+            self.push_gauss_fit_pars(popt, i)
+
+    def setup_gauss_fit_results(self):
+        self.amps: List[FloatChannel] = []
+        self.x_pos: List[FloatChannel] = []
+        self.y_pos: List[FloatChannel] = []
+        self.sigmas_x: List[FloatChannel] = []
+        self.sigmas_y: List[FloatChannel] = []
+        # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
+        for i in range(len(self.get_default_abs_rois())):
+            self.amps.append(
+                self.setattr_result(
+                    f"amp_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.x_pos.append(
+                self.setattr_result(
+                    f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.y_pos.append(
+                self.setattr_result(
+                    f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.sigmas_x.append(
+                self.setattr_result(
+                    f"sigma_x_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.sigmas_y.append(
+                self.setattr_result(
+                    f"sigma_y_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
 
     @host_only
     def calc_atom_number(
