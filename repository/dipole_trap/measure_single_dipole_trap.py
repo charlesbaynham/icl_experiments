@@ -56,11 +56,18 @@ class MeasureSingleXODTBGCorrectedFrag(
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     LoadSingleXODTMixin,
+    EvaporationSingleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin
 ):
     """
     Measure a single XODT with absorption imaging
     """
-
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_linear_evap()
+        self.DMA_initialization_hook_single_xodt_mot() 
+        
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         pass
