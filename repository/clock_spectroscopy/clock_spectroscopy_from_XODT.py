@@ -154,3 +154,4 @@ ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
 ClockSpecFromXXODTWithShelving = make_fragment_scan_exp(
     ClockSpecFromXXODTWithShelvingAndClearoutFrag
 )
+ClockSpecFromXODT = make_fragment_scan_exp(ClockSpecFromSingleXODTFrag)
