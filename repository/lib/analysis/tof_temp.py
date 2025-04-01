@@ -69,12 +69,11 @@ def fit_expansion(
     n: int = 100,
 ):
     if p0 is None:
-        p0 = [sigma00, T0, psf0]
+        p0 = [sigma00, T0]
 
     bounds_sigma0 = (0, np.inf)
     bounds_T = (0, 1)
-    bounds_psf = (0, np.inf)
-    bounds = list(zip(*[bounds_sigma0, bounds_T, bounds_psf]))
+    bounds = list(zip(*[bounds_sigma0, bounds_T]))
     popt, pcov = curve_fit(expansion_model, t, sigma, p0=p0, bounds=bounds)
 
     if evaluate_fn:
@@ -102,11 +101,10 @@ if __name__ == "__main__":
     # Perform the curve fit
     popt, t_fit, sigma_fit = fit_expansion(time_data, sigma_data)
 
-    sigma0_fit, temp_fit, psf_fit = popt
+    sigma0_fit, temp_fit = popt
 
     print(f"sigma0_fit: {sigma0_fit}")
     print(f"temp_fit: {temp_fit}")
-    print(f"psf_fit: {psf_fit}")
 
     # Plot results
     plt.plot(time_data, sigma_data, "o", label="Data")

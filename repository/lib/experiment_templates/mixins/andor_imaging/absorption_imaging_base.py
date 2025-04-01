@@ -163,6 +163,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         # self.bg_img: OpaqueChannel
         self.setattr_result("od_img", OpaqueChannel)
         self.od_img: OpaqueChannel
+        self.setup_gauss_fit_results()
 
         self.atom_numbers: List[FloatChannel] = []
         for i in range(self.num_absorption_rois):
@@ -273,10 +274,10 @@ class AbsorptionImagingBase(AndorImagingBase):
             self.fit_from_abs_rois(img_array)
 
     @host_only
-    def fit_from_grabber_rois(self, image):
+    def fit_from_abs_rois(self, image):
         for i in range(self.num_grabber_rois):
             sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                image, f"abs_roi_{i}"
+                image, i, prefix="abs_roi_", obj=self
             )
             popt = fit_2d_gaussian(sliced_image, offsets)
             self.push_gauss_fit_pars(popt, i)

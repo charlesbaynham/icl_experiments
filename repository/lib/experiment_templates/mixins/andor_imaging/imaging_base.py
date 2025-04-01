@@ -500,7 +500,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 default_analyses += get_custom_analysis(
                     self.expansion_time,
                     result,
-                    {"T": name, "fit_xs": f"fit_xs_{name}", "fit_ys": f"fit_ys_{name}"},
+                    {"T": name, "fit_xs": f"fit_t_{name}", "fit_ys": f"fit_sigma_{name}"},
                     [
                         FloatChannel(name, f"Fitted {name}", unit="K", scale=1),
                         OpaqueChannel(f"fit_t_{name}"),
@@ -516,7 +516,7 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
     Fit a 2D Gaussian to an image
     """
     try:
-        popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="trf")
+        popt, _ = fit_gaussian(image[:, ::-1], estimator="1d", fitter="curve_fit", method="trf")
     except RuntimeError as e:
         logger.warning("Runtime error in 2d gauss fit, pushing empty")
         logger.warning(e)
@@ -526,8 +526,8 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
         logger.warning(e)
         popt = [np.nan] * 5
     A = popt[0]
-    pos_x = popt[2] + offsets[0]
-    pos_y = popt[1] + offsets[1]
-    sigma_x = popt[4]
-    sigma_y = popt[3]
+    pos_x = popt[1] + offsets[0]
+    pos_y = popt[2] + offsets[1]
+    sigma_x = popt[3]
+    sigma_y = popt[4]
     return A, pos_x, pos_y, sigma_x, sigma_y
