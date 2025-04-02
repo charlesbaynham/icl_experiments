@@ -67,7 +67,6 @@ class ClockSpecFromSingleXODTFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
-        self.before_start_hook_xodt_molasses()
 
 class ClockSpecFromXXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
