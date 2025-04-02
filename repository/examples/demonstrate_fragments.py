@@ -2,8 +2,14 @@ from ndscan.experiment import ExpFragment, make_fragment_scan_exp
 from ndscan.experiment import FloatParam, FloatChannel
 from ndscan.experiment.parameters import FloatParamHandle
 import time
+from artiq.experiment import kernel
+from artiq.coredevice.core import Core
+
 class Demo1(ExpFragment):
     def build_fragment(self, *args, **kwargs):
+        self.setattr_device("core")
+        self.core : Core
+        
         self.setattr_param("num1", FloatParam, default=1.0, description="Number 1")
         self.num1 : FloatParamHandle
 
@@ -13,12 +19,14 @@ class Demo1(ExpFragment):
         self.setattr_result("sum", FloatChannel)
         self.sum: FloatChannel
 
+    @kernel
     def run_once(self):
         the_sum = self.num1.get() + self.num2.get()
 
         time.sleep(0.1)
         
         self.sum.push(the_sum)
+
         
         
         
