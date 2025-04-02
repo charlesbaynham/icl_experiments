@@ -1,9 +1,11 @@
 from ndscan.experiment import ExpFragment, make_fragment_scan_exp
-
+from ndscan.experiment import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 
 class Demo1(ExpFragment):
     def build_fragment(self, *args, **kwargs):
-        pass
+        self.setattr_param("num1", FloatParam, default=1.0, description="Number 1")
+        self.num1 : FloatParamHandle
 
     def run_once(self):
         pass
