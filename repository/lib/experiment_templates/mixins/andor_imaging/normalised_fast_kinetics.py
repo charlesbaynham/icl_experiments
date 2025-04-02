@@ -33,7 +33,7 @@ class NormalisedRedMOTFastKineticsMixin(NormalisedFastKineticsBase):
 
     # Lengthen the readout timeout from the default 2s to support evaporation
     # TODO: Associate this with the Evap mixin somehow rather than hard-coding it here
-    image_read_timeout = 10.0
+    image_read_timeout = 15.0
 
 
 class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
