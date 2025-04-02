@@ -19,9 +19,20 @@ class Demo1(ExpFragment):
         self.setattr_result("sum", FloatChannel)
         self.sum: FloatChannel
 
+        self.some_other_number = 0.0
+
+    @kernel
+    def device_setup(self):
+        self.device_setup_subfragments()
+
+        self.some_other_number = 10.0
+
+        print("Hello from the setup")
+        
+    
     @kernel
     def run_once(self):
-        the_sum = self.num1.get() + self.num2.get()
+        the_sum = self.num1.get() + self.num2.get() + self.some_other_number
 
         time.sleep(0.1)
         
