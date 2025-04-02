@@ -64,6 +64,9 @@ class AndorImagingBase(RedMOTWithExperiment):
     num_grabber_readouts = 1
     "How many images will the Grabber read out"
 
+    image_read_timeout = 2.0
+    "Timeout for the ANDOR camera readout - must be longer than sequence"
+
     keep_andor_shutter_closed = False
 
     def build_fragment(self):
@@ -338,7 +341,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     def get_andor_images(self):
         # Readout and store the andor images
         imgs_array = self.andor_camera_control.readout_all_new_images(
-            num_images=self.num_images_per_series
+            num_images=self.num_images_per_series, timeout=self.image_read_timeout
         )
 
         return imgs_array.tolist()
@@ -500,7 +503,11 @@ class AndorImagingBase(RedMOTWithExperiment):
                 default_analyses += get_custom_analysis(
                     self.expansion_time,
                     result,
-                    {"T": name, "fit_xs": f"fit_t_{name}", "fit_ys": f"fit_sigma_{name}"},
+                    {
+                        "T": name,
+                        "fit_xs": f"fit_t_{name}",
+                        "fit_ys": f"fit_sigma_{name}",
+                    },
                     [
                         FloatChannel(name, f"Fitted {name}", unit="K", scale=1),
                         OpaqueChannel(f"fit_t_{name}"),
@@ -516,7 +523,9 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
     Fit a 2D Gaussian to an image
     """
     try:
-        popt, _ = fit_gaussian(image[:, ::-1], estimator="1d", fitter="curve_fit", method="trf")
+        popt, _ = fit_gaussian(
+            image[:, ::-1], estimator="1d", fitter="curve_fit", method="trf"
+        )
     except RuntimeError as e:
         logger.warning("Runtime error in 2d gauss fit, pushing empty")
         logger.warning(e)
