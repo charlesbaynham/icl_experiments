@@ -1,11 +1,11 @@
-from ndscan.experiment import ExpFragment, make_fragment_scan_exp
+from ndscan.experiment import ExpFragment, Fragment, make_fragment_scan_exp
 from ndscan.experiment import FloatParam, FloatChannel
 from ndscan.experiment.parameters import FloatParamHandle
 import time
 from artiq.experiment import kernel
 from artiq.coredevice.core import Core
 
-class Demo1(ExpFragment):
+class NumberAdder(Fragment):
     def build_fragment(self, *args, **kwargs):
         self.setattr_device("core")
         self.core : Core
@@ -27,11 +27,10 @@ class Demo1(ExpFragment):
 
         self.some_other_number = 10.0
 
-        print("Hello from the setup")
-        
+
     
     @kernel
-    def run_once(self):
+    def add_numbers(self):
         the_sum = self.num1.get() + self.num2.get() + self.some_other_number
 
         time.sleep(0.1)
@@ -41,10 +40,12 @@ class Demo1(ExpFragment):
         
         
         
-class Demo2(ExpFragment):
+class Demo1(ExpFragment):
     def build_fragment(self, *args, **kwargs):
-        pass
+        self.setattr_fragment("adder", NumberAdder)
+        self.adder : NumberAdder
 
+    @kernel
     def run_once(self):
         pass
 
