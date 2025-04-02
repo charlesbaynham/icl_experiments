@@ -1,7 +1,7 @@
 from ndscan.experiment import ExpFragment, make_fragment_scan_exp
 from ndscan.experiment import FloatParam, FloatChannel
 from ndscan.experiment.parameters import FloatParamHandle
-
+import time
 class Demo1(ExpFragment):
     def build_fragment(self, *args, **kwargs):
         self.setattr_param("num1", FloatParam, default=1.0, description="Number 1")
@@ -15,7 +15,13 @@ class Demo1(ExpFragment):
 
     def run_once(self):
         the_sum = self.num1.get() + self.num2.get()
-        print(f"Sum: {the_sum}")
+
+        time.sleep(0.1)
+        
+        self.sum.push(the_sum)
+        
+        
+        
 class Demo2(ExpFragment):
     def build_fragment(self, *args, **kwargs):
         pass
