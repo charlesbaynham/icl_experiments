@@ -45,9 +45,14 @@ class Demo1(ExpFragment):
         self.setattr_fragment("adder", NumberAdder)
         self.adder : NumberAdder
 
+        self.setattr_fragment("adder2", NumberAdder)
+        self.adder2 : NumberAdder
+
     @kernel
     def run_once(self):
         self.adder.add_numbers()
+        self.adder2.add_numbers()
+
 
 class Demo3(ExpFragment):
     def build_fragment(self, *args, **kwargs):
