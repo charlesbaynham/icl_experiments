@@ -31,6 +31,10 @@ class NormalisedRedMOTFastKineticsMixin(NormalisedFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
+    # Lengthen the readout timeout from the default 2s to support evaporation
+    # TODO: Associate this with the Evap mixin somehow rather than hard-coding it here
+    image_read_timeout = 10.0
+
 
 class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
     """
@@ -112,7 +116,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
         return forward_rois + backward_rois
-    
+
     def get_monitor_rois(self):
         default_rois = []
         fwd_roi = self.andor_camera_control.get_roi_i(0)
