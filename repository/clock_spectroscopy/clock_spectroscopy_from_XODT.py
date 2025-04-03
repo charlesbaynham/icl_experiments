@@ -35,7 +35,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     LoadSingleXODTMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationSingleRampMixin,
+    EvaporationSingleRampMixin, EvaporationThreeRampsMixin
 )
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class ClockSpecFromSingleXODTFrag(
     NormalisedRedMOTFastKineticsMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
-    EvaporationSingleRampMixin,
+    EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
