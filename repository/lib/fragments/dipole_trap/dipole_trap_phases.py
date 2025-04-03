@@ -187,5 +187,5 @@ class XODTWithLinearRamp_3(XODTWithLinearRamp):
 
     duration_default = 500e-3
 
-    default_suservo_setpoint_multiples_start = constants.XODT_EVAP_2_START
-    default_suservo_setpoint_multiples_end = constants.XODT_EVAP_2_END
+    default_suservo_setpoint_multiples_start = constants.XODT_EVAP_3_START
+    default_suservo_setpoint_multiples_end = constants.XODT_EVAP_3_END
