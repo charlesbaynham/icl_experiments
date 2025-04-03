@@ -137,7 +137,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.ccb.issue(
             "create_applet",
             "Optical Density Image",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --default_rois '{self.get_default_abs_rois()}' --dataset_prefix od_omage",
         )
 
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
@@ -261,7 +261,7 @@ class AbsorptionImagingBase(AndorImagingBase):
             self.od_img.push([])
 
         if self.do_gauss_fit.get():
-            logger.info("Doing gauss fit")
+            logger.info("Doing gauss fitod_im")
             self.do_gauss_fit_hook(od_slices)
         else:
             logger.info("Not doing gauss fit")
@@ -275,7 +275,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     @host_only
     def fit_from_abs_rois(self, image):
-        for i in range(self.num_grabber_rois):
+        for i in range(self.num_absorption_rois):
             sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
                 image, i, prefix="abs_roi_", obj=self
             )
@@ -289,7 +289,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
         # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
-        for i in range(len(self.get_default_abs_rois())):
+        for i in range(len(self.num_absorption_rois)):
             self.amps.append(
                 self.setattr_result(
                     f"amp_{i}", FloatChannel, display_hints={"priority": -1}
