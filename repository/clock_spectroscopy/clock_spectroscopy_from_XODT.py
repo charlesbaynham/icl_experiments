@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 class ClockSpecFromSingleXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     NormalisedRedMOTFastKineticsMixin,
+    EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     EvaporationThreeRampsMixin,
