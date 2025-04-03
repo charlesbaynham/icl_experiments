@@ -577,7 +577,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=5,
     ),
     SUServoedBeam(
         "up_813",
@@ -1049,7 +1049,7 @@ XODT_SINGLE_LOADING_DURATION = 40e-3
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
-    0e3,
+    15e3,
 ]
 XODT_SINGLE_LOADING_689_DETUNING_END = [
     0e3,

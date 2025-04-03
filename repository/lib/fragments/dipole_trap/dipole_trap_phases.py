@@ -158,7 +158,7 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     """
 
     duration_default = 500e-3
-    time_step_default = 1e-3
+    time_step_default = 40e-3
 
     suservos = suservos_XODT
 
