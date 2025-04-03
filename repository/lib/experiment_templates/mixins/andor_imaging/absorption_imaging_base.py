@@ -137,7 +137,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.ccb.issue(
             "create_applet",
             "Optical Density Image",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --default_rois '{self.get_default_abs_rois()}' --dataset_prefix od_omage",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --default_rois '{self.get_abs_rois()}' --dataset_prefix od_omage",
         )
 
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
@@ -262,7 +262,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
         if self.do_gauss_fit.get():
             logger.info("Doing gauss fitod_im")
-            self.do_gauss_fit_hook(od_slices)
+            self.do_gauss_fit_hook([od_img])
         else:
             logger.info("Not doing gauss fit")
             for i in range(len(self.amps)):
@@ -289,7 +289,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
         # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
-        for i in range(len(self.num_absorption_rois)):
+        for i in range(self.num_absorption_rois):
             self.amps.append(
                 self.setattr_result(
                     f"amp_{i}", FloatChannel, display_hints={"priority": -1}
@@ -357,20 +357,36 @@ class AbsorptionImagingBase(AndorImagingBase):
         Ns = []
         OD_slices = []
 
-        for i in range(self.num_absorption_rois):
-            param_prefix = f"abs_roi_{i}_"
-            x0 = getattr(self, param_prefix + "x0").get()
-            x1 = getattr(self, param_prefix + "x1").get()
-            y0 = getattr(self, param_prefix + "y0").get()
-            y1 = getattr(self, param_prefix + "y1").get()
+        for i, roi in enumerate(self.get_abs_rois()):
+            x0 = roi[0]
+            y0 = roi[1]
+            x1 = roi[2]
+            y1 = roi[3]
             OD_slice = OD[x0:x1, -y1:-y0]
 
             N = np.sum(OD_slice) * A_pixel / sigma_0
 
             Ns.append(N)
             OD_slices.append(OD_slice)
+            print(f"OD slice {i}: {OD_slice}")
 
         return Ns, OD_slices, OD, n_invalid
+    
+
+    @host_only
+    def get_abs_rois(self):
+        """
+        Get the absorption ROIs from the parameters
+        """
+        abs_rois = []
+        for i in range(self.num_absorption_rois):
+            param_prefix = f"abs_roi_{i}_"
+            x0 = getattr(self, param_prefix + "x0").get()
+            y0 = getattr(self, param_prefix + "y0").get()
+            x1 = getattr(self, param_prefix + "x1").get()
+            y1 = getattr(self, param_prefix + "y1").get()
+            abs_rois.append([x0, y0, x1, y1])
+        return abs_rois
 
     @kernel
     def save_andor_data_hook(self):

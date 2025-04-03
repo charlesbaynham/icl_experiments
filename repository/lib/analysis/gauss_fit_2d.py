@@ -429,6 +429,8 @@ def fit_gaussian(
     method="trf",
 ):
     data = np.rot90(data, k=1)
+    print(data.shape)
+    print(data)
     if xy is None:
         x, y = np.meshgrid(np.arange(data.shape[1]), np.arange(data.shape[0]))
     else:
