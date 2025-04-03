@@ -7,7 +7,9 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 import repository.lib.constants as constants
 
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp, XODTWithLinearRamp_2, XODTWithLinearRamp_3
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
+    XODTWithLinearRamp, XODTWithLinearRamp_2, XODTWithLinearRamp_3,
+)
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
