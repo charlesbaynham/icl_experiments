@@ -137,7 +137,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.ccb.issue(
             "create_applet",
             "Optical Density Image",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --default_rois '{self.get_default_abs_rois()}' --dataset_prefix od_omage",
         )
 
         andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
@@ -261,7 +261,7 @@ class AbsorptionImagingBase(AndorImagingBase):
             self.od_img.push([])
 
         if self.do_gauss_fit.get():
-            logger.info("Doing gauss fit")
+            logger.info("Doing gauss fitod_im")
             self.do_gauss_fit_hook(od_slices)
         else:
             logger.info("Not doing gauss fit")
