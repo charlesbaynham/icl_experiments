@@ -275,7 +275,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     @host_only
     def fit_from_abs_rois(self, image):
-        for i in range(self.num_abs_rois):
+        for i in range(self.num_absorption_rois):
             sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
                 image, i, prefix="abs_roi_", obj=self
             )
