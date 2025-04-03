@@ -169,3 +169,23 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_END
 
     add_final_point = True
+
+class XODTWithLinearRamp_2(XODTWithLinearRamp):
+    """
+    A second phase with linear ramps for 1064 and 813 nm XODT
+    """
+
+    duration_default = 500e-3
+
+    default_suservo_setpoint_multiples_start = constants.XODT_EVAP_2_START
+    default_suservo_setpoint_multiples_end = constants.XODT_EVAP_2_END
+
+class XODTWithLinearRamp_3(XODTWithLinearRamp):
+    """
+    A third phase with linear ramps for 1064 and 813 nm XODT
+    """
+
+    duration_default = 500e-3
+
+    default_suservo_setpoint_multiples_start = constants.XODT_EVAP_2_START
+    default_suservo_setpoint_multiples_end = constants.XODT_EVAP_2_END
