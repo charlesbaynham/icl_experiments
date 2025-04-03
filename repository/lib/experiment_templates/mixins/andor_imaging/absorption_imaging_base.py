@@ -275,7 +275,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     @host_only
     def fit_from_abs_rois(self, image):
-        for i in range(self.num_grabber_rois):
+        for i in range(self.num_abs_rois):
             sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
                 image, i, prefix="abs_roi_", obj=self
             )
@@ -289,7 +289,7 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
         # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
-        for i in range(len(self.get_default_abs_rois())):
+        for i in range(len(self.num_absorption_rois)):
             self.amps.append(
                 self.setattr_result(
                     f"amp_{i}", FloatChannel, display_hints={"priority": -1}
