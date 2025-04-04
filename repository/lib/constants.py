@@ -99,12 +99,12 @@ URUKULED_BEAMS = [
         attenuation=3.0,
         urukul_device="urukul_aom_1064_switch",
     ),
-    UrukuledBeam(
-        "stark_shifter_689_switch",
-        frequency=100e6,
-        attenuation=9.0,
-        urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
-    ),
+    # UrukuledBeam(
+    #     "stark_shifter_689_switch",
+    #     frequency=100e6,
+    #     attenuation=9.0,
+    #     urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
+    # ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
