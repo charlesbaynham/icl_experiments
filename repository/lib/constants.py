@@ -72,13 +72,13 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         name="clock_up",
         frequency=200e6,
-        attenuation=10, #FIXME: Return to 0.0
+        attenuation=30., #FIXME: Return to 0.0
         urukul_device="urukul9912_aom_698_up_switch",
     ),
     UrukuledBeam(
         name="clock_down",
         frequency=200e6,
-        attenuation=10, #FIXME: Return to 0.0
+        attenuation=30., #FIXME: Return to 0.0
         urukul_device="urukul9912_aom_698_down_switch",
     ),
     UrukuledBeam(
