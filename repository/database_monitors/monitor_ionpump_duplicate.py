@@ -12,20 +12,20 @@ COMMAND_PRESSURE = b"spc 0b 1\r\n"
 COMMAND_CURRENT = b"spc 0a 1\r\n"
 
 
-class MonitorIonPump(Calibration):
+class MonitorIonPumpDup(Calibration):
     """
     Monitor the current and pressure of an ion pump
     """
 
     def build_calibration(self):
         self.setattr_param(
-            "ip", StringParam, "IP of the ion pump", default='"10.137.1.8"'
+            "ip", StringParam, "IP of the ion pump", default='"10.137.1.16"'
         )
         self.setattr_param(
             "description",
             StringParam,
             "Description of the ion pump",
-            default='"chamber1"',
+            default='"chamber2"',
         )
 
         self.set_timeout(30)

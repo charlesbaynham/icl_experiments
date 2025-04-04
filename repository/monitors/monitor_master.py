@@ -8,8 +8,8 @@ from repository.database_monitors.monitor_ijds import MonitorBlueIJD1
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD2
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
 from repository.database_monitors.monitor_ijds import MonitorRedIJD1
-from repository.database_monitors.monitor_ion_pump import MonitorAIONCh1IonPump
-from repository.database_monitors.monitor_ion_pump import MonitorAIONCh2IonPump
+from repository.database_monitors.monitor_ion_pump import MonitorIonPump
+from repository.database_monitors.monitor_ionpump_duplicate import MonitorIonPumpDup
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureDencoIn,
 )
@@ -20,8 +20,6 @@ from repository.database_monitors.monitor_lab_temperature import MonitorTemperat
 from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureSidearm,
 )
-from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
-from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
 from repository.database_monitors.monitor_topticas import *
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
@@ -74,10 +72,8 @@ MonitorMaster = make_monitor_controller(
         "temperature_denco_in": MonitorTemperatureDencoIn,
         "temperature_denco_out": MonitorTemperatureDencoOut,
         "temperature_PCW": MonitorTemperaturePCW,
-        "ion_pump": MonitorAIONCh1IonPump,  # Keep legacy naming from when we only imagined one experiment
-        "ion_pump_cham2": MonitorAIONCh2IonPump,
-        "ion_pump_clock_ch1": MonitorClockCh1IonPump,
-        "ion_pump_clock_ch2": MonitorClockCh2IonPump,
+        "ion_pump": MonitorIonPump,
+        "ion_pump_cham2": MonitorIonPumpDup,
         "heartbeat": MonitorHeartbeat,
         # "turbopump": MonitorTurbo,
         "blue_ijd1": MonitorBlueIJD1,

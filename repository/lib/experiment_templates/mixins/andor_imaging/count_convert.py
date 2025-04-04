@@ -15,7 +15,7 @@ class CountConvert(EMGain):
             "count_convert_mode",
             BoolParam,
             description="Enable count convert mode",
-            default=True,
+            default=False,
         )
         self.count_convert_mode: BoolParamHandle
 

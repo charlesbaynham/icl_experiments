@@ -173,9 +173,9 @@ class IJDRelockerSettings:
     channel: int
     "Channel on relocker board"
     v_min: float
-    "Lowest voltage/start of scan"
+    "Lowest voltage/end of scan"
     v_max: float
-    "Highest voltage/end of scan"
+    "Highest voltage/start of scan"
     n_steps: float
     "Number of scan steps. cannot be >100"
 
@@ -261,34 +261,6 @@ IJD_RELOCKER_DEFAULTS = {
 }
 "Settings for IJD relocker board channels"
 
-
-@dataclass
-class ScannerBoardSettings:
-    board_name: str
-    "Name of scanner board in device_db"
-    channel: int
-    "Channel on scanner board"
-    v_min: float
-    "Lowest voltage/start of scan"
-    v_max: float
-    "Highest voltage/end of scan"
-    v_step: float
-    "Voltage step size"
-    freq: float
-    "Frequency of the scan in Hz"
-
-
-SCANNER_BOARD_DEFAULTS = {
-    "filter_cavity_scanner": ScannerBoardSettings(
-        "cavity_scanner",
-        0,
-        -2,
-        2,
-        0.01,
-        100,
-    ),
-}
-
 FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state
@@ -364,8 +336,8 @@ else:
     ANDOR_ROI_Y1 = y + height / 2
 
 ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 10
-ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 10
-ANDOR_ROI_DIPOLE_WIDTH = 16
+ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 40
+ANDOR_ROI_DIPOLE_WIDTH = 50
 
 ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
 # ~3 pixels below the center of the dipole trap to include falling atoms
@@ -605,7 +577,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=5,
     ),
     SUServoedBeam(
         "up_813",
@@ -1055,7 +1027,7 @@ OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_START = [1.0, 1.0]
-XODT_EVAP_END = [1.0, 1.0]
+XODT_EVAP_END = [0.5, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
@@ -1065,4 +1037,24 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
 #     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
 # ]
 
+XODT_EVAP_2_START = [0.5, 1.0]
+XODT_EVAP_2_END = [0.4, 1.0]
+
+XODT_EVAP_3_START = [0.4, 1.0]
+XODT_EVAP_3_END = [0.3, 1.0]
+
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
+
+XODT_SINGLE_LOADING_DURATION = 40e-3
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
+XODT_SINGLE_LOADING_689_DETUNING_START = [
+    15e3,
+]
+XODT_SINGLE_LOADING_689_DETUNING_END = [
+    0e3,
+]
+RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
+XODT_SINGLE_LOADING_STIR_DETUNING = 30e3
+
+TOTAL_EVAP_HOLD_TIME = 5.0
