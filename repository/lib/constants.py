@@ -76,6 +76,12 @@ URUKULED_BEAMS = [
         urukul_device="urukul9912_aom_698_up_switch",
     ),
     UrukuledBeam(
+        name="clock_down",
+        frequency=200e6,
+        attenuation=0,
+        urukul_device="urukul9912_aom_698_down_switch",
+    ),
+    UrukuledBeam(
         "blue_imaging_switch",
         frequency=100e6,
         attenuation=13,
