@@ -453,7 +453,7 @@ SUSERVOED_BEAMS = [
         "suservo_aom_singlepass_461_2dmot_a",
         "TTL_shutter_461_2dmot_is_it_a",
         shutter_delay=20e-3,
-        setpoint=1.9,
+        setpoint=1.8,
         servo_enabled=True,
     ),
     SUServoedBeam(
@@ -463,7 +463,7 @@ SUSERVOED_BEAMS = [
         "suservo_aom_singlepass_461_2dmot_b",
         "TTL_shutter_461_2dmot_is_it_b",
         shutter_delay=20e-3,
-        setpoint=2.9,
+        setpoint=2.7,
         servo_enabled=True,
     ),
     SUServoedBeam(
