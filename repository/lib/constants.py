@@ -76,6 +76,12 @@ URUKULED_BEAMS = [
         urukul_device="urukul9912_aom_698_up_switch",
     ),
     UrukuledBeam(
+        name="clock_down",
+        frequency=200e6,
+        attenuation=0,
+        urukul_device="urukul9912_aom_698_down_switch",
+    ),
+    UrukuledBeam(
         "blue_imaging_switch",
         frequency=100e6,
         attenuation=13,
@@ -93,12 +99,12 @@ URUKULED_BEAMS = [
         attenuation=3.0,
         urukul_device="urukul_aom_1064_switch",
     ),
-    UrukuledBeam(
-        "stark_shifter_689_switch",
-        frequency=100e6,
-        attenuation=9.0,
-        urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
-    ),
+    # UrukuledBeam(
+    #     "stark_shifter_689_switch",
+    #     frequency=100e6,
+    #     attenuation=9.0,
+    #     urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
+    # ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
@@ -150,7 +156,7 @@ IJD_DEFAULTS = {
         associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
     ),
     "blue_IJD2_controller": IJDSettings(
-        8800,
+        8900,
         373e-3,
         367e-3,
         3e-3,
