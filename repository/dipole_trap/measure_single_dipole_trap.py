@@ -56,7 +56,7 @@ class MeasureSingleXODTBGCorrectedFrag(
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     LoadSingleXODTMixin,
-    EvaporationSingleRampMixin,
+    EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin
 ):
     """
