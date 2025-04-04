@@ -36,21 +36,9 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
-from repository.lib.fragments.rigol_counter import RigolCounterFrag
+from repository.lib.experiment_templates.mixins.rigol_counter import RigolCounterMixin
 
 logger = logging.getLogger(__name__)
-
-
-class CheckRigolandRelockerMixin(CheckForRelocksMixin):
-    def build_fragment(self):
-        self.setattr_fragment("rigol", RigolCounterFrag)
-        self.rigol: RigolCounterFrag
-        super().build_fragment()
-
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        self.relock_checker.check_and_log_relocks()
-        self.rigol.check_counter_rpc()
 
 
 class DifferentialClockInterferometryFrag(
@@ -58,10 +46,10 @@ class DifferentialClockInterferometryFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     CountConvert,
+    RigolCounterMixin,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    CheckRigolandRelockerMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -79,10 +67,10 @@ class DifferentialClockInterferometryWithNoiseFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     DoubleTrapImagingNormalised,
     CountConvert,
+    RigolCounterMixin,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    CheckRigolandRelockerMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -100,9 +88,9 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     AbsorptionDoubleDipoleTrapMixin,
     FLIRBlueMOTMeasurementMixin,
+    RigolCounterMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    CheckRigolandRelockerMixin,
     DipoleTrapWithExperiment,
 ):
     """

@@ -64,6 +64,7 @@ from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
+from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.setattr_fragment("timestamper", Timestamper, automatic_timestamp=False)
         self.timestamper: Timestamper
+
+        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
+        self.relock_checker: CheckForRelocksFrag
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
@@ -496,8 +500,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     @kernel
     def host_functions_after_experiment_hook(self):
         """
-        Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
+        Hook for doing any extra functions at the end of the experiment.
         """
+        self.host_functions_after_experiment_hook_default()
+
+    @kernel
+    def host_functions_after_experiment_hook_default(self):
+        """
+        Default implementation of the host functions after experiment hook
+        """
+        self.relock_checker.check_and_log_relocks()
 
 
 # %%
