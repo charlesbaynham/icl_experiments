@@ -177,7 +177,7 @@ class RelockIJDFrag(ExpFragment):
         self.device_setup()
         self.relock()
 
-    def relock(self) -> None:
+    def relock(self, enable_auto_relock=False) -> None:
         auto_relocking = self.relocker_frag.get_auto_relock()
         if auto_relocking:
             self.relocker_frag.set_auto_relock(False)
@@ -243,7 +243,7 @@ class RelockIJDFrag(ExpFragment):
                 "v_window": v_window_start,
             },
         )
-        if auto_relocking:
+        if enable_auto_relock or auto_relocking:
             self.relocker_frag.set_auto_relock(True)
 
     @portable
@@ -341,6 +341,9 @@ class RelockAllIJDsFrag(ExpFragment):
             default=prev_default.frequency + constants.RED_IJD_RELOCK_FREQUENCY_BOOST,
         )
 
+        self.setattr_param("enable_auto_relocking", BoolParam, "Enable Autorelocking", default=True)
+        self.enable_auto_relocking: BoolParamHandle
+
     def run_once(self) -> None:
         # Manually call the device_setup, since this is not a kernel function
         self.device_setup()
@@ -351,7 +354,7 @@ class RelockAllIJDsFrag(ExpFragment):
             enabled = self.ijd_controller_enabled[i]
 
             if enabled.get():
-                ijd_relock_frag.relock()
+                ijd_relock_frag.relock(self.enable_auto_relocking.get())
 
 
 RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
