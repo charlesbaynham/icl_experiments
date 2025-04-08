@@ -240,7 +240,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[self.andor_camera_control.calculate_roi_config()]}' --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[default_rois[0]]}' --dataset_prefix 'andor_monitor'",
             )
 
             for i in range(self.num_andor_images):
