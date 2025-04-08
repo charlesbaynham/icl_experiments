@@ -6,7 +6,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationMixin
+    EvaporationSingleRampMixin
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -16,7 +16,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
 )
 
 
-class EvaporationFrag(EvaporationMixin,
+class EvaporationFrag(EvaporationSingleRampMixin,
                       BGCorrectedAndorImage,
                       FLIRBlueMOTMeasurementMixin
                       ):

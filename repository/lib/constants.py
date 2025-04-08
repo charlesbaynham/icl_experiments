@@ -611,7 +611,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=5,
     ),
     SUServoedBeam(
         "up_813",
@@ -1061,7 +1061,7 @@ OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_START = [1.0, 1.0]
-XODT_EVAP_END = [1.0, 1.0]
+XODT_EVAP_END = [0.5, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
@@ -1071,4 +1071,24 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
 #     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
 # ]
 
+XODT_EVAP_2_START = [0.5, 1.0]
+XODT_EVAP_2_END = [0.4, 1.0]
+
+XODT_EVAP_3_START = [0.4, 1.0]
+XODT_EVAP_3_END = [0.3, 1.0]
+
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
+
+XODT_SINGLE_LOADING_DURATION = 40e-3
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
+XODT_SINGLE_LOADING_689_DETUNING_START = [
+    15e3,
+]
+XODT_SINGLE_LOADING_689_DETUNING_END = [
+    0e3,
+]
+RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
+XODT_SINGLE_LOADING_STIR_DETUNING = 30e3
+
+TOTAL_EVAP_HOLD_TIME = 5.0

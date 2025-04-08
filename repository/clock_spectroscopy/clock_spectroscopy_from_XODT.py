@@ -28,9 +28,46 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
+    NormalisedRedMOTFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    LoadSingleXODTMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationSingleRampMixin, EvaporationThreeRampsMixin
+)
 
 logger = logging.getLogger(__name__)
 
+class ClockSpecFromSingleXODTFrag(
+    ClockRabiSpectroscopyDipoleTrapMixin,
+    NormalisedRedMOTFastKineticsMixin,
+    EMGain,
+    FLIRBlueMOTMeasurementMixin,
+    LoadSingleXODTMixin,
+    EvaporationThreeRampsMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Clock spectroscopy from dropped single XODT with evaporation
+
+    Load into an XODT, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
+    """
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_linear_evap()
+        self.DMA_initialization_hook_single_xodt_mot() 
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
 
 class ClockSpecFromXXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -114,3 +151,4 @@ ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
 ClockSpecFromXXODTWithShelving = make_fragment_scan_exp(
     ClockSpecFromXXODTWithShelvingAndClearoutFrag
 )
+ClockSpecFromXODT = make_fragment_scan_exp(ClockSpecFromSingleXODTFrag)
