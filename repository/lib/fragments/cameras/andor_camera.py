@@ -342,6 +342,20 @@ class AndorCameraControl(Fragment):
     @host_only
     def set_roi(self):
         roi = {}
+
+        if (
+            self.cam_roi_x0.get() > 0
+            or self.cam_roi_x1.get() < 512
+            or self.cam_roi_y0.get() > 0
+            or self.cam_roi_y1.get() < 512
+        ):
+            logger.warning(
+                "Camera ROIs have been restricted: you might encounter this bug:"
+            )
+            logger.warning(
+                "https://github.com/m-labs/artiq/issues/1369#issuecomment-904447252"
+            )
+
         roi["hstart"] = int(self.cam_roi_x0.get())
         roi["hend"] = int(self.cam_roi_x1.get())
         roi["vstart"] = int(self.cam_roi_y0.get())
@@ -518,20 +532,23 @@ class AndorCameraControl(Fragment):
             self.ttl_shutter.off()
 
     @host_only
-    def slice_from_roi_params(self, img, i, prefix="roi_"):
-        x0, y0, x1, y1 = self.get_roi_i(i, prefix=prefix)
+    def slice_from_roi_params(self, img, i, prefix="roi_", obj=None):
+        x0, y0, x1, y1 = self.get_roi_i(i, prefix=prefix, obj=obj)
         width, height = img.shape
         print(f"Image shape: {width}, {height}")
         print(f"ROI: {x0}, {x1}, {y0}, {y1}")
-        return img[x0:x1, height-y0:height-y1:-1], (x0, y0)
-    
+        return img[x0:x1, height - y0 : height - y1 : -1], (x0, y0)
+
     @host_only
-    def get_roi_i(self, i, prefix="roi_"):
-        x0 = getattr(self, f"{prefix}{i}_x0").get()
-        y0 = getattr(self, f"{prefix}{i}_y0").get()
-        x1 = getattr(self, f"{prefix}{i}_x1").get()
-        y1 = getattr(self, f"{prefix}{i}_y1").get()
+    def get_roi_i(self, i, prefix="roi_", obj=None):
+        if obj is None:
+            obj = self
+        x0 = getattr(obj, f"{prefix}{i}_x0").get()
+        y0 = getattr(obj, f"{prefix}{i}_y0").get()
+        x1 = getattr(obj, f"{prefix}{i}_x1").get()
+        y1 = getattr(obj, f"{prefix}{i}_y1").get()
         return [x0, y0, x1, y1]
+
     @kernel
     def readout_ROIs(self, sums, means, timeout_mu):
         """

@@ -3,10 +3,10 @@ Define the phases available in the dipole trap.
 """
 
 import repository.lib.constants as constants
+from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndBiasField,
 )
-from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 
 suservos_molasses = [
     "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -30,9 +30,10 @@ suservos_cavity_lattice = [
     "suservo_aom_singlepass_1379_cavity_input",
 ]
 
+
 class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     """
-    A MOT phase with ramps for the MOT beams and a 1064/813 XODT. 
+    A MOT phase with ramps for the MOT beams and a 1064/813 XODT.
 
     This has no field ramping because it is used for loading a single XODT
     """
@@ -53,13 +54,13 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     default_suservo_nominal_setpoints = [0.0] * 6
     default_suservo_offset = [0.0] * 6
 
-    for idx,beam_name in enumerate(suservos):
+    for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS:
             if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
-                default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[beam_info].photodiode_offset
+                default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[
+                    beam_info
+                ].photodiode_offset
                 break
-    
-
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START
@@ -70,6 +71,7 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
 
     default_urukul_detunings_start = constants.XODT_MOLASSES_689_DETUNING_START
     default_urukul_detunings_end = constants.XODT_MOLASSES_689_DETUNING_END
+
 
 class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     """
@@ -167,7 +169,7 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     """
 
     duration_default = 500e-3
-    time_step_default = 1e-3
+    time_step_default = 40e-3
 
     suservos = suservos_XODT
 
@@ -176,5 +178,29 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
 
     default_suservo_setpoint_multiples_start = constants.XODT_EVAP_START
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_END
+
+    # add_final_point = True
+
+
+class XODTWithLinearRamp_2(XODTWithLinearRamp):
+    """
+    A second phase with linear ramps for 1064 and 813 nm XODT
+    """
+
+    duration_default = 500e-3
+
+    default_suservo_setpoint_multiples_start = constants.XODT_EVAP_2_START
+    default_suservo_setpoint_multiples_end = constants.XODT_EVAP_2_END
+
+
+class XODTWithLinearRamp_3(XODTWithLinearRamp):
+    """
+    A third phase with linear ramps for 1064 and 813 nm XODT
+    """
+
+    duration_default = 500e-3
+
+    default_suservo_setpoint_multiples_start = constants.XODT_EVAP_3_START
+    default_suservo_setpoint_multiples_end = constants.XODT_EVAP_3_END
 
     add_final_point = True

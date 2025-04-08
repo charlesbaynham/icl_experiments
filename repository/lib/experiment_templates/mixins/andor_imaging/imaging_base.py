@@ -15,18 +15,17 @@ from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from sipyco.packed_exceptions import GenericRemoteException
 
 from repository.lib import constants
+from repository.lib.analysis.gauss_fit_2d import fit_gaussian
+from repository.lib.analysis.tof_temp import get_custom_analysis
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
-from repository.lib.analysis.gauss_fit_2d import fit_gaussian
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +63,9 @@ class AndorImagingBase(RedMOTWithExperiment):
     "How many ROIs in each image for the Grabber"
     num_grabber_readouts = 1
     "How many images will the Grabber read out"
+
+    image_read_timeout = 2.0
+    "Timeout for the ANDOR camera readout - must be longer than sequence"
 
     keep_andor_shutter_closed = False
 
@@ -104,6 +106,9 @@ class AndorImagingBase(RedMOTWithExperiment):
 
                 self.setattr_device("core")
                 self.core: Core
+
+                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
+                self.set_toptica_analog: SetTopticaAnalogFrag
 
                 self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
                 self.set_toptica_analog: SetTopticaAnalogFrag
@@ -168,11 +173,31 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.sigmas_y: List[FloatChannel] = []
         # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
         for i in range(self.num_grabber_rois):
-            self.amps.append(self.setattr_result(f"amp_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.x_pos.append(self.setattr_result(f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.y_pos.append(self.setattr_result(f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}", FloatChannel, display_hints={"priority": -1}))
-            self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}", FloatChannel, display_hints={"priority": -1}))
+            self.amps.append(
+                self.setattr_result(
+                    f"amp_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.x_pos.append(
+                self.setattr_result(
+                    f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.y_pos.append(
+                self.setattr_result(
+                    f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.sigmas_x.append(
+                self.setattr_result(
+                    f"sigma_x_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
+            self.sigmas_y.append(
+                self.setattr_result(
+                    f"sigma_y_{i}", FloatChannel, display_hints={"priority": -1}
+                )
+            )
 
     def hook_setup_andor_results(self):
         # Set up result channels for all the Grabber ROIs
@@ -218,7 +243,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[default_rois[0]]}' --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[self.andor_camera_control.calculate_roi_config()]}' --dataset_prefix 'andor_monitor'",
             )
 
             for i in range(self.num_andor_images):
@@ -229,7 +254,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                     f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{default_rois}' --dataset_prefix 'andor_img_{i}'",
                 )
         self.image_store = []
-        
 
     @kernel
     def start_of_red_broadband_hook(self):
@@ -320,7 +344,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     def get_andor_images(self):
         # Readout and store the andor images
         imgs_array = self.andor_camera_control.readout_all_new_images(
-            num_images=self.num_images_per_series
+            num_images=self.num_images_per_series, timeout=self.image_read_timeout
         )
 
         return imgs_array.tolist()
@@ -472,6 +496,29 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.sigmas_x[i].push(pars[3])
         self.sigmas_y[i].push(pars[4])
 
+    def get_default_analyses(self):
+        default_analyses = super().get_default_analyses()
+        if self.do_gauss_fit.get():
+            for name, result in [
+                ("T_x", self.sigmas_x[0]),
+                ("T_y", self.sigmas_y[0]),
+            ]:
+                default_analyses += get_custom_analysis(
+                    self.expansion_time,
+                    result,
+                    {
+                        "T": name,
+                        "fit_xs": f"fit_t_{name}",
+                        "fit_ys": f"fit_sigma_{name}",
+                    },
+                    [
+                        FloatChannel(name, f"Fitted {name}", unit="K", scale=1),
+                        OpaqueChannel(f"fit_t_{name}"),
+                        OpaqueChannel(f"fit_sigma_{name}"),
+                    ],
+                )
+        return default_analyses
+
 
 @host_only
 def fit_2d_gaussian(image, offsets=(0, 0)):
@@ -479,7 +526,9 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
     Fit a 2D Gaussian to an image
     """
     try:
-        popt, _ = fit_gaussian(image, estimator="1d", fitter="curve_fit", method="trf")
+        popt, _ = fit_gaussian(
+            image[:, ::-1], estimator="1d", fitter="curve_fit", method="trf"
+        )
     except RuntimeError as e:
         logger.warning("Runtime error in 2d gauss fit, pushing empty")
         logger.warning(e)
@@ -489,8 +538,8 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
         logger.warning(e)
         popt = [np.nan] * 5
     A = popt[0]
-    pos_x = popt[2] + offsets[0]
-    pos_y = popt[1] + offsets[1]
-    sigma_x = popt[4]
-    sigma_y = popt[3]
+    pos_x = popt[1] + offsets[0]
+    pos_y = popt[2] + offsets[1]
+    sigma_x = popt[3]
+    sigma_y = popt[4]
     return A, pos_x, pos_y, sigma_x, sigma_y

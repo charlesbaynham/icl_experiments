@@ -1,11 +1,9 @@
 import logging
 
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -19,8 +17,9 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XOD
 
 logger = logging.getLogger(__name__)
 
-#order diagonal, sigmaplus, sigmaminus, up
+# order diagonal, sigmaplus, sigmaminus, up
 RED_SUSERVO_PGIA = [2, 1, 2, 2]
+
 
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     """
@@ -37,6 +36,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
     * :meth:`~set_postnarrowband_fields_hook`
     """
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -115,13 +115,16 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
         # Set the PGIA gains for the red suservos
         i = 0
-        for handle in self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info:
+        for (
+            handle
+        ) in (
+            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        ):
             gain = RED_SUSERVO_PGIA[i]
             handle.setter.set_pgia_gain_mu(gain)
             i += 1
 
-        #self.mot_xodt.suservo_setters_and_param_handles[0][0]
-
+        # self.mot_xodt.suservo_setters_and_param_handles[0][0]
 
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
@@ -133,7 +136,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
 
         self.mot_xodt.do_phase()
-
 
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
@@ -248,32 +250,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         dma handle is valid.
         """
         self.molasses_xodt_1.precalculate_dma_handle()
-
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_xodt_molasses()
-
-    @kernel
-    def before_start_hook_xodt_molasses(self):
-        """
-        Before the blue MOT, turn on the crossed dipole trap beams and
-        set setpoints to same as the start of the xodt molasses ramp.
-
-        TODO: Move this to a device_setup / use a default beam setter to define setpoints
-        """
-
-        self.core.break_realtime()
-        self.dipole_beam_controller.XODT_setter.turn_on_all()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.core.break_realtime()
-        self.dipole_beam_controller.set_dipole_suservo_setpoints(
-            setpoint_down_813=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                5
-            ],
-            setpoint_dipole_trap_1064_delivery=self.molasses_xodt_1.default_suservo_setpoint_multiples_start[
-                4
-            ],
-        )
 
     @kernel
     def post_narrowband_hook(self):

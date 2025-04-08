@@ -14,7 +14,6 @@ from ndscan.experiment import BoolParam
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -272,4 +271,4 @@ class SetKoheronFrag(ExpFragment):
         self.controller.set_current_mA(1e3 * current)
 
 
-SetKoheron = make_fragment_scan_exp(SetKoheronFrag)
+# SetKoheron = make_fragment_scan_exp(SetKoheronFrag)

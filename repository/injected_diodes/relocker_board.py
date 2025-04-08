@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import List
 from typing import Optional
 
@@ -19,6 +20,9 @@ from ndscan.experiment.parameters import IntParamHandle
 from relocker_driver.driver import RelockerDriver
 
 from repository.lib.constants import IJD_RELOCKER_DEFAULTS
+from repository.lib.constants import SCANNER_BOARD_DEFAULTS
+from repository.lib.constants import IJDRelockerSettings
+from repository.lib.constants import ScannerBoardSettings
 
 logger = logging.getLogger(__name__)
 
@@ -249,7 +253,7 @@ class RelockerChannelFrag(ExpFragment):
         # Log action
         results = self.get_result()
         scan_voltages = self.get_scan_voltages()[::-1]
-        scan_currents = self.get_scan_currents(scan_voltages)
+        # scan_currents = self.get_scan_currents(scan_voltages)
 
         read_voltages = self.get_read_voltages()
         logger.info(results)
@@ -258,9 +262,9 @@ class RelockerChannelFrag(ExpFragment):
         i_end = int(results[1])
         i_lock = int(results[2])
 
-        window_start = scan_currents[i_start]
-        window_end = scan_currents[i_end]
-        lock_point = scan_currents[i_lock]
+        # window_start = scan_currents[i_start]
+        # window_end = scan_currents[i_end]
+        # lock_point = scan_currents[i_lock]
 
         err = np.zeros_like(read_voltages)
         self.set_dataset(
@@ -270,12 +274,12 @@ class RelockerChannelFrag(ExpFragment):
             archive=False,
         )
 
-        self.set_dataset(
-            f"{self.relocker_name}_{self.channel}_set_currents",
-            scan_currents,
-            broadcast=True,
-            archive=False,
-        )
+        # self.set_dataset(
+        #     f"{self.relocker_name}_{self.channel}_set_currents",
+        #     scan_currents,
+        #     broadcast=True,
+        #     archive=False,
+        # )
         self.set_dataset(
             f"{self.relocker_name}_{self.channel}_set_voltages",
             np.array(scan_voltages),
@@ -290,9 +294,9 @@ class RelockerChannelFrag(ExpFragment):
         )
         cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x {self.relocker_name}_{self.channel}_set_voltages --fit {self.relocker_name}_{self.channel}_read_voltages --error err"
         self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
-        logger.info("window_start: %s", window_start)
-        logger.info("window_end: %s", window_end)
-        logger.info("lock_point: %s", lock_point)
+        logger.info("window_start: %s", i_start)
+        logger.info("window_end: %s", i_end)
+        logger.info("lock_point: %s", i_lock)
         # self.influx_logger.write(
         #     tags={
         #         "type": self.__class__.__name__,
@@ -392,6 +396,121 @@ class RelockerAutoFrag(ExpFragment):
             relocker_frag.set_auto_relock(enabled.get())
 
 
+class ScanIJDRelockerFrag(ExpFragment):
+    def build_fragment(self, channel_name: Optional[str] = None):
+        self.setattr_device("influx_logger")
+        self.influx_logger: InfluxController
+
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
+
+        self.setattr_device("ccb")
+        if channel_name:
+            self.channel_name = channel_name
+            defaults = IJD_RELOCKER_DEFAULTS[channel_name]
+        else:
+            channel_names = list(IJD_RELOCKER_DEFAULTS.keys())
+            channel_names += list(SCANNER_BOARD_DEFAULTS.keys())
+            self.setattr_argument(
+                "channel_name",
+                EnumerationValue(channel_names, default=channel_names[0]),
+            )
+            self.channel_name: str
+            defaults = IJD_RELOCKER_DEFAULTS["red_IJD1_relocker"]
+
+        self.setattr_param(
+            "v_min",
+            FloatParam,
+            description="v min",
+            default=defaults.v_min,
+            unit="V",
+            min=-4.0,
+            max=4.0,
+        )
+        self.v_min: FloatParamHandle
+
+        self.setattr_param(
+            "v_max",
+            FloatParam,
+            description="v max",
+            default=defaults.v_max,
+            unit="V",
+            min=-4.0,
+            max=4.0,
+        )
+        self.v_max: FloatParamHandle
+
+        self.setattr_param(
+            "v_step",
+            FloatParam,
+            description="voltage step",
+            default=0.01,
+            unit="V",
+        )
+        self.v_step: FloatParamHandle
+
+        self.setattr_param(
+            "freq", FloatParam, description="frequency", default=1, unit="Hz"
+        )
+        self.freq: FloatParamHandle
+
+        # self.setattr_param(
+        #     "time_to_scan",
+        #     IntParam,
+        #     description="time to leave scan running",
+        #     default=10,
+        #     unit="s",
+        # )
+        # self.time_to_scan: IntParamHandle
+
+    def host_setup(self):
+        defaults_dict = {**IJD_RELOCKER_DEFAULTS, **SCANNER_BOARD_DEFAULTS}
+        defaults: IJDRelockerSettings | ScannerBoardSettings = defaults_dict[
+            self.channel_name
+        ]
+        self.channel = defaults.channel
+        self.relocker_name = defaults.board_name
+        self.relocker: RelockerDriver = self.get_device(self.relocker_name)
+        super().host_setup()
+
+    def start_scan(self):
+        cmd = f"SCAN {self.channel} {self.v_min.get()} {self.v_max.get()} {self.v_step.get()} {self.freq.get()}"
+        self.relocker.write(cmd)
+
+    def cancel_scan(self):
+        self.relocker.cancel_command()
+        logger.info(self.relocker.read_line())
+        logger.info(self.relocker.read_line())
+
+    # def run_once(self):
+
+    #     self.relocker.scan(
+    #         self.channel,
+    #         self.v_min.get(),
+    #         self.v_max.get(),
+    #         self.v_step.get(),
+    #         self.freq.get(),
+    #     )
+
+    #     while True:
+    #         time.sleep(1)
+    #         if self.scheduler.check_termination(self.scheduler.rid):
+    #             break
+    #     self.cleanup()
+
+    def run_once(self):
+        self.start_scan()
+        while True:
+            time.sleep(1)
+            if self.scheduler.check_termination(self.scheduler.rid):
+                break
+        self.cancel_scan()
+
+    def cleanup(self):
+        logger.info("Cancelling scan")
+        self.relocker.cancel_command()
+
+
 RunRelockerChannel = make_fragment_scan_exp(RelockerChannelFrag)
-RunAllRelockers = make_fragment_scan_exp(RelockerFrag)
-RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
+# RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
+ScanIJDRelocker = make_fragment_scan_exp(ScanIJDRelockerFrag)

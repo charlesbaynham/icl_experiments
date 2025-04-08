@@ -15,6 +15,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     fit_2d_gaussian,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
@@ -137,7 +139,6 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             "create_applet",
             "Excited bg corrected",
             f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois}'",
-
         )
 
     def fast_kinetics_setup_results(self):
@@ -173,12 +174,32 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
         for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
-            for j in ('ground', 'excited') :
-                self.amps.append(self.setattr_result(f"amp_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
-                self.x_pos.append(self.setattr_result(f"x_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
-                self.y_pos.append(self.setattr_result(f"y_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
-                self.sigmas_x.append(self.setattr_result(f"sigma_x_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
-                self.sigmas_y.append(self.setattr_result(f"sigma_y_{i}_{j}", FloatChannel, display_hints={"priority": -1}))
+            for j in ("ground", "excited"):
+                self.amps.append(
+                    self.setattr_result(
+                        f"amp_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.x_pos.append(
+                    self.setattr_result(
+                        f"x_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.y_pos.append(
+                    self.setattr_result(
+                        f"y_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.sigmas_x.append(
+                    self.setattr_result(
+                        f"sigma_x_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.sigmas_y.append(
+                    self.setattr_result(
+                        f"sigma_y_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
 
     def get_grabber_roi_defaults(self):
         return calculate_grabber_rois(
@@ -292,18 +313,17 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             persist=False,
             archive=False,
         )
-    
+
     @host_only
     def do_gauss_fit_hook(self, img_array: np.ndarray):
         ground_bg_corrected = img_array[0].astype(int) - img_array[2].astype(int)
         excited_bg_corrected = img_array[1].astype(int) - img_array[3].astype(int)
         for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
             for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
-            
-                grabber_idx = int(2*i)
+                grabber_idx = int(2 * i)
 
                 sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
                     image, grabber_idx
-                )             
+                )
                 popt = fit_2d_gaussian(sliced_image, offsets)
                 self.push_gauss_fit_pars(popt, int(2 * i + j))
