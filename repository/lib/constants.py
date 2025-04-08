@@ -156,7 +156,7 @@ IJD_DEFAULTS = {
         associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
     ),
     "blue_IJD2_controller": IJDSettings(
-        8800,
+        8900,
         373e-3,
         367e-3,
         3e-3,
