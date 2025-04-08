@@ -25,7 +25,6 @@ from repository.lib.analysis.gauss_fit_2d import fit_gaussian
 from repository.lib.analysis.tof_temp import get_custom_analysis
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 
 logger = logging.getLogger(__name__)
 
@@ -106,12 +105,6 @@ class AndorImagingBase(RedMOTWithExperiment):
 
                 self.setattr_device("core")
                 self.core: Core
-
-                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-                self.set_toptica_analog: SetTopticaAnalogFrag
-
-                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-                self.set_toptica_analog: SetTopticaAnalogFrag
 
                 self.num_grabber_rois = num_grabber_rois
 
