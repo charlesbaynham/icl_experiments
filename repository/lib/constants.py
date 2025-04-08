@@ -267,6 +267,34 @@ IJD_RELOCKER_DEFAULTS = {
 }
 "Settings for IJD relocker board channels"
 
+
+@dataclass
+class ScannerBoardSettings:
+    board_name: str
+    "Name of scanner board in device_db"
+    channel: int
+    "Channel on scanner board"
+    v_min: float
+    "Lowest voltage/start of scan"
+    v_max: float
+    "Highest voltage/end of scan"
+    v_step: float
+    "Voltage step size"
+    freq: float
+    "Frequency of the scan in Hz"
+
+
+SCANNER_BOARD_DEFAULTS = {
+    "filter_cavity_scanner": ScannerBoardSettings(
+        "cavity_scanner",
+        0,
+        -2,
+        2,
+        0.01,
+        100,
+    ),
+}
+
 FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 # Order matters here since this is the order in which they are applied to the
 # camera and it will complain if it's ever in an invalid state
