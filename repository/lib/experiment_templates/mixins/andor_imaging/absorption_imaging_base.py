@@ -5,22 +5,21 @@ import numpy as np
 from artiq.experiment import host_only
 from artiq.experiment import kernel
 from artiq.language import parallel
+from artiq.language.core import delay
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
-from artiq.language.core import delay
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     fit_2d_gaussian,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
@@ -372,7 +371,6 @@ class AbsorptionImagingBase(AndorImagingBase):
             print(f"OD slice {i}: {OD_slice}")
 
         return Ns, OD_slices, OD, n_invalid
-    
 
     @host_only
     def get_abs_rois(self):

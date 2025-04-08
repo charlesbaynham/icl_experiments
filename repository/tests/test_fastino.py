@@ -1,5 +1,3 @@
-import logging
-
 from artiq.coredevice.core import Core
 from artiq.coredevice.fastino import Fastino
 from artiq.language.core import kernel

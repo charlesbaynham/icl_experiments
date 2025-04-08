@@ -3,10 +3,10 @@ Define the phases available in the dipole trap.
 """
 
 import repository.lib.constants as constants
+from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndBiasField,
 )
-from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 
 suservos_molasses = [
     "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -30,9 +30,10 @@ suservos_cavity_lattice = [
     "suservo_aom_singlepass_1379_cavity_input",
 ]
 
+
 class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     """
-    A MOT phase with ramps for the MOT beams and a 1064/813 XODT. 
+    A MOT phase with ramps for the MOT beams and a 1064/813 XODT.
 
     This has no field ramping because it is used for loading a single XODT
     """
@@ -61,6 +62,7 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
 
     default_urukul_detunings_start = constants.XODT_MOLASSES_689_DETUNING_START
     default_urukul_detunings_end = constants.XODT_MOLASSES_689_DETUNING_END
+
 
 class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     """
@@ -168,7 +170,8 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     default_suservo_setpoint_multiples_start = constants.XODT_EVAP_START
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_END
 
-    #add_final_point = True
+    # add_final_point = True
+
 
 class XODTWithLinearRamp_2(XODTWithLinearRamp):
     """
@@ -179,6 +182,7 @@ class XODTWithLinearRamp_2(XODTWithLinearRamp):
 
     default_suservo_setpoint_multiples_start = constants.XODT_EVAP_2_START
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_2_END
+
 
 class XODTWithLinearRamp_3(XODTWithLinearRamp):
     """

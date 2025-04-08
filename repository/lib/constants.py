@@ -789,7 +789,7 @@ WAND_SETPOINTS_87 = {
     "Sirah": (_default_698, False),
 }
 
-TOPTICA_461_ANALOG_SCALE = 210e6/(3.05)  # MHz/V # rough value # arc factor 0.15 V/V
+TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.15 V/V
 
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A

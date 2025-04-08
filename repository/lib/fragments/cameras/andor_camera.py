@@ -537,8 +537,8 @@ class AndorCameraControl(Fragment):
         width, height = img.shape
         print(f"Image shape: {width}, {height}")
         print(f"ROI: {x0}, {x1}, {y0}, {y1}")
-        return img[x0:x1, height-y0:height-y1:-1], (x0, y0)
-    
+        return img[x0:x1, height - y0 : height - y1 : -1], (x0, y0)
+
     @host_only
     def get_roi_i(self, i, prefix="roi_", obj=None):
         if obj is None:
@@ -548,6 +548,7 @@ class AndorCameraControl(Fragment):
         x1 = getattr(obj, f"{prefix}{i}_x1").get()
         y1 = getattr(obj, f"{prefix}{i}_y1").get()
         return [x0, y0, x1, y1]
+
     @kernel
     def readout_ROIs(self, sums, means, timeout_mu):
         """

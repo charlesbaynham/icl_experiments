@@ -1,14 +1,18 @@
 from functools import partial
-from typing import Iterable, Optional
-import numpy as np
-from scipy.optimize import curve_fit
-from scipy.constants import k as kB
-from scipy.constants import atomic_mass
-from repository.lib.constants import USE_SR87, ANDOR_CAMERA_FACTS
-from ndscan.experiment.default_analysis import CustomAnalysis
-from ndscan.experiment.result_channels import ResultChannel
-from ndscan.experiment.parameters import ParamHandle
+from typing import Iterable
+from typing import Optional
+
 import matplotlib.pyplot as plt
+import numpy as np
+from ndscan.experiment.default_analysis import CustomAnalysis
+from ndscan.experiment.parameters import ParamHandle
+from ndscan.experiment.result_channels import ResultChannel
+from scipy.constants import atomic_mass
+from scipy.constants import k as kB
+from scipy.optimize import curve_fit
+
+from repository.lib.constants import ANDOR_CAMERA_FACTS
+from repository.lib.constants import USE_SR87
 
 # Define the mass of the atom
 mass = atomic_mass * (87 if USE_SR87 else 88)
@@ -30,7 +34,6 @@ def get_custom_analysis(
     analysis_results_names: dict[str, str],
     analysis_results: dict[str, ResultChannel],
 ):
-
     def analyse_fn(
         axis_values: dict[ParamHandle, list],
         result_values: dict[ParamHandle, list],

@@ -13,11 +13,17 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
     DoubleTrapImagingNormalised,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
+    NormalisedRedMOTFastKineticsMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -25,20 +31,13 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
-    NormalisedRedMOTFastKineticsMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    LoadSingleXODTMixin,
-)
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationSingleRampMixin, EvaporationThreeRampsMixin
-)
 
 logger = logging.getLogger(__name__)
+
 
 class ClockSpecFromSingleXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -59,15 +58,17 @@ class ClockSpecFromSingleXODTFrag(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
+
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_single_xodt_mot() 
+        self.DMA_initialization_hook_single_xodt_mot()
 
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
+
 
 class ClockSpecFromXXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,

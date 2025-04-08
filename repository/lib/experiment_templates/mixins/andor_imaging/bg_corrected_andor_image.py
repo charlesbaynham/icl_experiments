@@ -4,12 +4,14 @@ import numpy as np
 from artiq.experiment import delay
 from artiq.experiment import host_only
 from artiq.experiment import kernel
-from artiq.experiment import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import ANDOR_MONITOR_DATASET
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    ANDOR_MONITOR_DATASET,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
@@ -107,4 +109,3 @@ class BGCorrectedAndorImage(AndorImagingBase):
         bg_img_array = img_array[1]
         corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
         self.fit_from_grabber_rois(corrected_img_array)
-

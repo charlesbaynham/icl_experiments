@@ -2,7 +2,6 @@ import logging
 from typing import List
 
 from artiq.language.core import host_only
-from artiq.language.core import kernel
 from artiq.language.core import rpc
 from ndscan.experiment.fragment import Fragment
 from ndscan.experiment.result_channels import IntChannel

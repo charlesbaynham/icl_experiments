@@ -1,14 +1,14 @@
+import logging
+import time
 from typing import Optional
-from scipy.optimize import least_squares
+
+import numpy as np
+import scipy.ndimage as ndi
+import scipy.optimize as opt
 
 # from scipy.fft import fft2, fftshift
 from scipy.ndimage import center_of_mass
-import scipy.optimize as opt
-import numpy as np
-import scipy.ndimage as ndi
-import logging
-import time
-
+from scipy.optimize import least_squares
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,9 @@ def gaussian_2d(pos, amplitude, x0, y0, sigma_x, sigma_y, theta, offset):
     a = (np.cos(theta) ** 2) / (2 * sigma_x**2) + (np.sin(theta) ** 2) / (
         2 * sigma_y**2
     )
-    b = -(np.sin(2 * theta)) / (4 * sigma_x**2) + (np.sin(2 * theta)) / (4 * sigma_y**2)
+    b = -(np.sin(2 * theta)) / (4 * sigma_x**2) + (np.sin(2 * theta)) / (
+        4 * sigma_y**2
+    )
     c = (np.sin(theta) ** 2) / (2 * sigma_x**2) + (np.cos(theta) ** 2) / (
         2 * sigma_y**2
     )
@@ -67,7 +69,6 @@ def residuals(params, p, data):
 
 
 def estimate_initial_params_1d_fit(x: np.ndarray, y: np.ndarray, data: np.ndarray):
-
     offset = mean_edge_values(data)
 
     # max_index = np.unravel_index(np.argmax(data), data.shape)
@@ -126,7 +127,6 @@ def estimate_initial_params_1d_fit(x: np.ndarray, y: np.ndarray, data: np.ndarra
 def estimate_initial_params_1d_fit_rotation(
     x: np.ndarray, y: np.ndarray, data: np.ndarray
 ):
-
     x_data = x[0, :]
     y_data = y[:, 0]
 

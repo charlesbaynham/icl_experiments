@@ -15,19 +15,17 @@ from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from sipyco.packed_exceptions import GenericRemoteException
 
 from repository.lib import constants
+from repository.lib.analysis.gauss_fit_2d import fit_gaussian
+from repository.lib.analysis.tof_temp import get_custom_analysis
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
-from repository.lib.analysis.gauss_fit_2d import fit_gaussian
-from repository.lib.analysis.tof_temp import get_custom_analysis
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +105,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.grabber0: Grabber
 
                 self.setattr_device("core")
-                self.core: Core              
+                self.core: Core
 
                 self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
                 self.set_toptica_analog: SetTopticaAnalogFrag

@@ -1,11 +1,9 @@
 import logging
 
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -18,6 +16,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFiel
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 logger = logging.getLogger(__name__)
+
 
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     """
@@ -34,6 +33,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
     * :meth:`~set_postnarrowband_fields_hook`
     """
+
     def build_fragment(self):
         super().build_fragment()
 
