@@ -49,9 +49,6 @@ class AbsorptionImagingBase(AndorImagingBase):
     def build_fragment(self):
         super().build_fragment()
 
-        # self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-        # self.set_toptica_analog: SetTopticaAnalogFrag
-
         self.setattr_param(
             "set_topica_pre_delay",
             FloatParam,
