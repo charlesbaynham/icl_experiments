@@ -1,4 +1,5 @@
 from artiq.coredevice.ad9910 import AD9910
+from artiq.experiment import kernel
 from pyaion.utilities.set_suservo_static import SetSUServoStatic
 from pyaion.utilities.set_suservo_static import SetSUServoStaticExp  # noqa
 
