@@ -512,5 +512,5 @@ class ScanIJDRelockerFrag(ExpFragment):
 
 
 RunRelockerChannel = make_fragment_scan_exp(RelockerChannelFrag)
-# RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
+RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
 ScanIJDRelocker = make_fragment_scan_exp(ScanIJDRelockerFrag)
