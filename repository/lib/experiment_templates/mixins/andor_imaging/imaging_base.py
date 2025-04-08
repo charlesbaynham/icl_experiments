@@ -240,7 +240,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[self.andor_camera_control.calculate_roi_config()]}' --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{default_rois}' --dataset_prefix 'andor_monitor'",
             )
 
             for i in range(self.num_andor_images):
@@ -248,7 +248,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.ccb.issue(
                     "create_applet",
                     f"Andor image {i}",
-                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{default_rois}' --dataset_prefix 'andor_img_{i}'",
+                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{[default_rois[i]]}' --dataset_prefix 'andor_img_{i}'",
                 )
         self.image_store = []
 
@@ -396,13 +396,16 @@ class AndorImagingBase(RedMOTWithExperiment):
             # Arrays to hold the ROIs from this readout
             s = [0] * self.num_grabber_rois
             m = [0.0] * self.num_grabber_rois
-
-            self.andor_camera_control.readout_ROIs(
-                s,
-                m,
-                timeout_mu=self.core.get_rtio_counter_mu()
-                + self.core.seconds_to_mu(1.0),
-            )
+            try:
+                self.andor_camera_control.readout_ROIs(
+                    s,
+                    m,
+                    timeout_mu=self.core.get_rtio_counter_mu()
+                    + self.core.seconds_to_mu(1.0),
+                )
+            except GrabberTimeoutException:
+                logger.warning("Grabber readout timed out")
+                # If we get a timeout, we just skip this readout
 
             # Copy ROI data from temporary arrays into main array
             for j in range(self.num_grabber_rois):
