@@ -110,9 +110,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
                 self.set_toptica_analog: SetTopticaAnalogFrag
 
-                self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-                self.set_toptica_analog: SetTopticaAnalogFrag
-
                 self.num_grabber_rois = num_grabber_rois
 
             @kernel
