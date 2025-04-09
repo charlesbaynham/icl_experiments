@@ -239,7 +239,7 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
         we're about to do
         """
         self.lattice_suservo.set_setpoint(self.lattice_high_setpoint.get())
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        # self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel
     def spin_polarize(self):
