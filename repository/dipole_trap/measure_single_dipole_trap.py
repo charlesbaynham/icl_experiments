@@ -41,6 +41,10 @@ class MeasureSingleXODTBGCorrectedFrag(
         self.DMA_initialization_hook_single_xodt_mot()
 
     @kernel
+    def post_narrowband_hook(self):
+        pass
+
+    @kernel
     def do_experiment_after_dipole_trap_hook(self):
         pass
 

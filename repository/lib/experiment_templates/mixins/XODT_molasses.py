@@ -18,7 +18,9 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XOD
 logger = logging.getLogger(__name__)
 
 # order diagonal, sigmaplus, sigmaminus, up
-RED_SUSERVO_PGIA = constants.SUSERVO_PGIA[0:4]
+# RED_SUSERVO_PGIA = constants.SUSERVO_PGIA[0:4]
+
+RED_SUSERVO_PGIA = [2, 1, 2, 2]
 
 
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
