@@ -119,16 +119,16 @@ class DipoleBeamController(Fragment):
         self.device_setup_subfragments()
 
         # Turn on dipole beams before blue MOT
-        self.core.break_realtime()
-        self.XODT_setter.turn_on_all()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.core.break_realtime()
-        self.set_dipole_suservo_setpoints(
-            setpoint_down_813=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[5],
-            setpoint_dipole_trap_1064_delivery=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[
-                4
-            ],
-        )
+        # self.core.break_realtime()
+        # self.XODT_setter.turn_on_all()
+        # delay_mu(int64(self.core.ref_multiplier))
+        # self.core.break_realtime()
+        # self.set_dipole_suservo_setpoints(
+        #     setpoint_down_813=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[5],
+        #     setpoint_dipole_trap_1064_delivery=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[
+        #         4
+        #     ],
+        # )
 
         # Look up the SUServo setpoints from the default beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
