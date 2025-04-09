@@ -17,7 +17,7 @@ from repository.lib.fragments.pulse_shaping import BlackmanShapedPulse
 logger = logging.getLogger(__name__)
 
 
-class ClockRabiSpectroscopyShaped(ClockRabiSpectroscopyBase):
+class ShapedRabiSpectroscopy(ClockRabiSpectroscopyBase):
     """
     Sets up the clock beam for clock spectroscopy with a shaped pulse
 
@@ -62,9 +62,7 @@ class ClockRabiSpectroscopyShaped(ClockRabiSpectroscopyBase):
         self.post_sequence_cleanup_hook_base()
 
 
-class ClockShapedRabiSpectroscopyRedMotMixin(
-    ClockRabiSpectroscopyShaped, RedMOTWithExperiment
-):
+class ShapedRabiSpectroscopyRedMotMixin(ShapedRabiSpectroscopy, RedMOTWithExperiment):
     """
     Uses a clock pulse for spectroscopy after the red MOT
 
@@ -81,8 +79,8 @@ class ClockShapedRabiSpectroscopyRedMotMixin(
         self.do_rabi_spectroscopy()
 
 
-class ClockRabiSpectroscopyDipoleTrapMixin(
-    ClockRabiSpectroscopyShaped, DipoleTrapWithExperiment
+class ShapedRabiSpectroscopyDipoleTrapMixin(
+    ShapedRabiSpectroscopy, DipoleTrapWithExperiment
 ):
     """
     Implements clock Rabi spectroscopy after the dipole trap
