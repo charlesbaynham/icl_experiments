@@ -1079,9 +1079,18 @@ XODT_EVAP_3_END = [0.3, 1.0]
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
+# Single dipole trap loading phase
+# order diagonal, sigmaplus, sigmaminus, up, 1064, 813
 XODT_SINGLE_LOADING_DURATION = 40e-3
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
+SUSERVO_PGIA = [2, 1, 2, 2, 0, 0]
+FACTORS_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+FACTORS_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [
+    a * 10**b for a, b in zip(FACTORS_START, SUSERVO_PGIA)
+]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [
+    a * 10**b for a, b in zip(FACTORS_END, SUSERVO_PGIA)
+]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     15e3,
 ]
