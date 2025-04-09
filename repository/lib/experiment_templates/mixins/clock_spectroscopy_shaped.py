@@ -32,11 +32,15 @@ class ShapedRabiSpectroscopy(ClockRabiSpectroscopyBase):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("clock_spectroscopy_shaped_pulse", BlackmanShapedPulse)
+        self.setattr_fragment(
+            "clock_spectroscopy_shaped_pulse",
+            BlackmanShapedPulse,
+            ad9910_name="urukul9910_aom_698_up_switch",
+        )
         self.clock_spectroscopy_shaped_pulse: BlackmanShapedPulse
 
         self.clock_spectroscopy_shaped_pulse.bind_param(
-            "spectroscopy_pulse_time", self.spectroscopy_pulse_time
+            "pulse_duration", self.spectroscopy_pulse_time
         )
 
     @kernel
