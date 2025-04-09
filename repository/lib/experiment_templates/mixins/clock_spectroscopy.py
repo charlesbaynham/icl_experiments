@@ -165,10 +165,14 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         )
         at_mu(_t_start)
 
+        self.fire_clock_spec_pulse()
+        delay(self.delay_after_spectroscopy.get())
+
+    @kernel
+    def fire_clock_spec_pulse(self):
         self.clock_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
         self.clock_dds.sw.off()
-        delay(self.delay_after_spectroscopy.get())
 
 
 class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):

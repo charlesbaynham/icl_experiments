@@ -75,40 +75,6 @@ class BetaShapedPulse(ShapedPulse):
         return return_value
 
 
-class BlackmanShapedPulse(ShapedPulse):
-    """
-    Blackman pulses (amplitude only)
-    """
-
-    def build_fragment(self, *args, **kwargs):
-        self._old_num_steps = -1
-
-        super().build_fragment(*args, **kwargs)
-
-    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
-        """
-        Use the Blackman window function to generate a smooth range of amplitudes
-
-        The output will be normalized to 0 -> +1.
-        """
-
-        amplitude = np.blackman(n_words)
-        phase = np.zeros_like(amplitude)
-
-        return amplitude, phase
-
-    @kernel
-    def is_recalc_needed(self) -> bool:
-        return_value = False
-
-        if self.num_steps.get() != self._old_num_steps:
-            return_value = True
-
-        self._old_num_steps = self.num_steps.get()
-
-        return return_value
-
-
 class _TestShapedPulseBase(ExpFragment):
     the_pulse = None
 

@@ -41,6 +41,8 @@ class ShapedPulse(Fragment, abc.ABC):
        needs to be recalculated, and False if it doesn't. This allows the
        Fragment to avoid recalculating / rewriting DDS RAM between scan shots if
        it's not needed. This ideally should be a kernel method, for speed.
+
+    See :class:`~.BlackmanShapedPulse` for an example.
     """
 
     ad9910_name: str = None
@@ -87,7 +89,7 @@ class ShapedPulse(Fragment, abc.ABC):
         self.setattr_param(
             "num_steps",
             IntParam,
-            description="Number of steps",
+            description="Number of steps in the shaped pulse",
             default=1024,
             min=1,
             max=self._max_num_steps,
@@ -258,6 +260,8 @@ class ShapedPulse(Fragment, abc.ABC):
     def trigger_pulse(self):
         """
         Fire the configured pulse. This should be called after `prepare_playback`.
+
+        Advances the timeline by the duration of the pulse
         """
         self.dds.sw.on()
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
@@ -394,3 +398,37 @@ class ShapedPulse(Fragment, abc.ABC):
         delay(100e-3)
         cpld.cfg_write(cpld.cfg_reg & ~(1 << CFG_RST))
         delay(2000e-3)
+
+
+class BlackmanShapedPulse(ShapedPulse):
+    """
+    Blackman shaped pulses (amplitude only)
+    """
+
+    def build_fragment(self, *args, **kwargs):
+        self._old_num_steps = -1
+
+        super().build_fragment(*args, **kwargs)
+
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+        """
+        Use the Blackman window function to generate a smooth range of amplitudes
+
+        The output will be normalized to 0 -> +1.
+        """
+
+        amplitude = np.blackman(n_words)
+        phase = np.zeros_like(amplitude)
+
+        return amplitude, phase
+
+    @kernel
+    def is_recalc_needed(self) -> bool:
+        return_value = False
+
+        if self.num_steps.get() != self._old_num_steps:
+            return_value = True
+
+        self._old_num_steps = self.num_steps.get()
+
+        return return_value
