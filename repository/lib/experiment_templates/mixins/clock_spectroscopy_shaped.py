@@ -6,14 +6,14 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     CLOCK_BEAM_INFO,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockRabiSpectroscopyBase,
+    ClockRabiSpectroscopyDipoleTrapMixin,
 )
 from repository.lib.fragments.pulse_shaping import BlackmanShapedPulse
 
 logger = logging.getLogger(__name__)
 
 
-class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyBase):
+class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin):
     """
     Sets up the clock beam for clock spectroscopy with a shaped pulse in a
     dipole trap
@@ -46,6 +46,11 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyBase):
 
     @kernel
     def post_dipole_trap_hook(self):
+        self.post_dipole_trap_hook_default()
+        self.post_dipole_trap_hook_shaped_pulses()
+
+    @kernel
+    def post_dipole_trap_hook_shaped_pulses(self):
         """
         Before spectroscopy in the dipole trap, set up the clock beam for RAM
         mode
@@ -60,7 +65,3 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyBase):
         self.clock_spectroscopy_shaped_pulse.disable_ram_mode()
 
         self.post_sequence_cleanup_hook_base()
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        self.do_rabi_spectroscopy()
