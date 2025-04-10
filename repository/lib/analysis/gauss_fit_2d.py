@@ -71,9 +71,6 @@ def residuals(params, p, data):
 def estimate_initial_params_1d_fit(x: np.ndarray, y: np.ndarray, data: np.ndarray):
     offset = mean_edge_values(data)
 
-    # max_index = np.unravel_index(np.argmax(data), data.shape)
-    # x0 = x[max_index]
-    # y0 = y[max_index]
     y0, x0 = center_of_mass(data)
 
     A = np.max(data)
@@ -84,21 +81,9 @@ def estimate_initial_params_1d_fit(x: np.ndarray, y: np.ndarray, data: np.ndarra
     mean_cols = np.sum(data, axis=0)
     mean_rows = np.sum(data, axis=1)
 
-    # logger.warning("len x: %d, len y: %d", len(x), len(y))
-    # logger.warning("len mean_cols: %d, len mean_rows: %d", len(mean_cols), len(mean_rows))
-
     bounds_col = get_bounds_1d(x_data, mean_cols)
     bounds_row = get_bounds_1d(y_data, mean_rows)
 
-    logger.warning("x0: %d, y0: %d", x0, y0)
-
-    # print("1d bounds:")
-    # print(f"col: {bounds_col}")
-    # print(f"row: {bounds_row}")
-
-    # logger.warning("1d bounds:")
-    # logger.warning("col: %s", bounds_col)
-    # logger.warning("row: %s", bounds_row)
     popt_x, _ = opt.curve_fit(
         gaussian,
         x_data,
