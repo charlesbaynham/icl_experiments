@@ -121,7 +121,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
     def do_first_pulse(self):
         self.do_pulse()
         delay(self.delay_repumps_after_first_pulse.get())
-        self.blue_3d_mot.turn_on_repumpers()
+        # self.blue_3d_mot.turn_on_repumpers() # FIXME
 
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
