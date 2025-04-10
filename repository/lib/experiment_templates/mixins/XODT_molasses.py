@@ -66,6 +66,32 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_mot_xodt: FloatParamHandle
 
+        # Override default currents to suit single XODT loading
+        self.setattr_param_rebind(
+            "narrowband_bias_x",
+            self.red_mot,
+            default=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
+        )
+        self.setattr_param_rebind(
+            "narrowband_bias_y",
+            self.red_mot,
+            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
+        )
+        self.setattr_param_rebind(
+            "narrowband_bias_z",
+            self.red_mot,
+            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
+        )
+        self.setattr_param_rebind(
+            "narrow_red_compression_phase",
+            self.red_mot,
+            default=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
+        )
+        self.narrowband_bias_x: FloatParamHandle
+        self.narrowband_bias_y: FloatParamHandle
+        self.narrowband_bias_z: FloatParamHandle
+        self.narrow_red_compression_phase: FloatParamHandle
+
         self.mot_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
