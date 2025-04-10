@@ -429,12 +429,12 @@ class Blue3DMOTFrag(Fragment):
         return self.mot_3d_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
 
     @kernel
-    def turn_on_repumpers(self, ignore_shutters=False):
-        return self.repump_beam_setter.turn_beams_on(ignore_shutters=ignore_shutters)
+    def turn_on_repumpers(self):
+        return self.repump_beam_setter.turn_beams_on()
 
     @kernel
-    def turn_off_repumpers(self, ignore_shutters=False):
-        return self.repump_beam_setter.turn_beams_off(ignore_shutters=ignore_shutters)
+    def turn_off_repumpers(self):
+        return self.repump_beam_setter.turn_beams_off()
 
     @kernel
     def turn_on_all_beams_except_radial(self, ignore_shutters=False):
