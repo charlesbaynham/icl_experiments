@@ -152,6 +152,8 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             2
         )
 
+        self.red_mot.red_beam_controller.suservo_fragments[3].set_setpoint(0.4 * 20)
+
         delay(2.0)
 
         self.up_channel.set(en_out=1, en_iir=1, profile=self.up_channel.channel)
