@@ -171,8 +171,9 @@ class ShapedPulse(Fragment, abc.ABC):
             0xFFFF,
         )
 
-        if self.is_recalc_needed():
-            self._store_waveform_in_ram()
+        # if self.is_recalc_needed():
+        #     # FIXME
+        #     self._store_waveform_in_ram()
 
     @kernel
     def _store_waveform_in_ram(self):
