@@ -54,9 +54,10 @@ class ShapedRabiSpectroscopy(ClockRabiSpectroscopyBase):
 
         Set up the clock beam for RAM mode.
         """
-        self.clock_spectroscopy_shaped_pulse.prepare_pulse(
-            frequency=CLOCK_BEAM_INFO.frequency
-        )
+        # FIXME it's probably the prepare() call
+        # self.clock_spectroscopy_shaped_pulse.prepare_pulse(
+        #     frequency=CLOCK_BEAM_INFO.frequency
+        # )
 
     @kernel
     def post_sequence_cleanup_hook(self):
