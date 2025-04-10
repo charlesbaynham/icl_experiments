@@ -535,8 +535,10 @@ class AndorCameraControl(Fragment):
     def slice_from_roi_params(self, img, i, prefix="roi_", obj=None):
         x0, y0, x1, y1 = self.get_roi_i(i, prefix=prefix, obj=obj)
         width, height = img.shape
-        print(f"Image shape: {width}, {height}")
-        print(f"ROI: {x0}, {x1}, {y0}, {y1}")
+
+        logger.debug(f"Image shape: {width}, {height}")
+        logger.debug(f"ROI: {x0}, {x1}, {y0}, {y1}")
+
         return img[x0:x1, height - y0 : height - y1 : -1], (x0, y0)
 
     @host_only
