@@ -168,7 +168,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.y_pos: List[FloatChannel] = []
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
-        # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
+
         for i in range(self.num_grabber_rois):
             self.amps.append(
                 self.setattr_result(

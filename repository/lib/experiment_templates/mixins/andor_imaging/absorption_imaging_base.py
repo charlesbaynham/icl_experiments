@@ -365,7 +365,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
             Ns.append(N)
             OD_slices.append(OD_slice)
-            print(f"OD slice {i}: {OD_slice}")
+            logger.debug(f"OD slice {i}: {OD_slice}")
 
         return Ns, OD_slices, OD, n_invalid
 
