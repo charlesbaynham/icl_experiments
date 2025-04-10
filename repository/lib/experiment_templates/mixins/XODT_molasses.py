@@ -131,30 +131,21 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         #     red_channel.set(en_out=1, en_iir=0, profile=red_channel.channel)
 
         self.up_channel.set(en_out=1, en_iir=0, profile=self.up_channel.channel)
-        delay(0.5)
 
-        # FIXME
         # Set the PGIA gains for the red suservos
-        # i = 0
-        # for (
-        #     handle
-        # ) in (
-        #     self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
-        # ):
+        i = 0
+        for (
+            handle
+        ) in (
+            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        ):
+            gain = RED_SUSERVO_PGIA[i]
+            handle.setter.set_pgia_gain_mu(gain)
+            i += 1
 
-        #     gain = RED_SUSERVO_PGIA[i]
-        #     handle.setter.set_pgia_gain_mu(gain)
-        #     i += 1
-
-        self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info[
-            3
-        ].setter.set_pgia_gain_mu(
-            2
+        self.red_mot.red_beam_controller.suservo_fragments[3].set_setpoint(
+            0.4 * self.mot_xodt.default_suservo_setpoint_multiples_start[3]
         )
-
-        self.red_mot.red_beam_controller.suservo_fragments[3].set_setpoint(0.4 * 20)
-
-        delay(2.0)
 
         self.up_channel.set(en_out=1, en_iir=1, profile=self.up_channel.channel)
 
