@@ -13,7 +13,9 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT, suservos_molasses
+from artiq.coredevice.suservo import Channel
+
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +117,15 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         """
         self.constant_dipole_traps_setter.turn_on_all()
 
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
+            ignore_shutters=True
+        )
+
+        #disable the servo
+        for beam in suservos_molasses:
+            red_channel: Channel = self.red_mot.red_beam_controller.get_device(beam)
+            red_channel.set(en_out=1, en_iir=0, profile=red_channel.channel)
+
         # Set the PGIA gains for the red suservos
         i = 0
         for (
@@ -122,15 +133,17 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         ) in (
             self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
         ):
+
             gain = RED_SUSERVO_PGIA[i]
             handle.setter.set_pgia_gain_mu(gain)
             i += 1
 
-        # self.mot_xodt.suservo_setters_and_param_handles[0][0]
+        #enable the servo
+        for beam in suservos_molasses:
+            red_channel: Channel = self.red_mot.red_beam_controller.get_device(beam)
+            red_channel.set(en_out=1, en_iir=1, profile=red_channel.channel)
 
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
-            ignore_shutters=True
-        )
+        # self.mot_xodt.suservo_setters_and_param_handles[0][0]
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
