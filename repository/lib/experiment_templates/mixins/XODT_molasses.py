@@ -1,5 +1,6 @@
 import logging
 
+from artiq.coredevice.suservo import Channel
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
@@ -13,9 +14,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT, suservos_molasses
-from artiq.coredevice.suservo import Channel
-
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +83,11 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             [self.red_mot.injection_aom_static_frequency]
         )
 
+        self.up_channel = self.red_mot.red_beam_controller.get_device(
+            "suservo_aom_singlepass_689_up"
+        )
+        self.up_channel: Channel
+
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
@@ -121,27 +125,41 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             ignore_shutters=True
         )
 
-        #disable the servo
-        for beam in suservos_molasses:
-            red_channel: Channel = self.red_mot.red_beam_controller.get_device(beam)
-            red_channel.set(en_out=1, en_iir=0, profile=red_channel.channel)
+        # disable the servo
+        # for beam in suservos_molasses:
+        #     red_channel = self.red_mot.red_beam_controller.get_device(beam)
+        #     red_channel.set(en_out=1, en_iir=0, profile=red_channel.channel)
 
+        self.up_channel.set(en_out=1, en_iir=0, profile=self.up_channel.channel)
+        delay(0.5)
+
+        # FIXME
         # Set the PGIA gains for the red suservos
-        i = 0
-        for (
-            handle
-        ) in (
-            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
-        ):
+        # i = 0
+        # for (
+        #     handle
+        # ) in (
+        #     self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        # ):
 
-            gain = RED_SUSERVO_PGIA[i]
-            handle.setter.set_pgia_gain_mu(gain)
-            i += 1
+        #     gain = RED_SUSERVO_PGIA[i]
+        #     handle.setter.set_pgia_gain_mu(gain)
+        #     i += 1
 
-        #enable the servo
-        for beam in suservos_molasses:
-            red_channel: Channel = self.red_mot.red_beam_controller.get_device(beam)
-            red_channel.set(en_out=1, en_iir=1, profile=red_channel.channel)
+        self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info[
+            3
+        ].setter.set_pgia_gain_mu(
+            2
+        )
+
+        delay(2.0)
+
+        self.up_channel.set(en_out=1, en_iir=1, profile=self.up_channel.channel)
+
+        # #enable the servo
+        # for beam in suservos_molasses:
+        #     red_channel = self.red_mot.red_beam_controller.get_device(beam)
+        #     red_channel.set(en_out=1, en_iir=1, profile=red_channel.channel)
 
         # self.mot_xodt.suservo_setters_and_param_handles[0][0]
 
