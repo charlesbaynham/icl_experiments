@@ -13,9 +13,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
     ShapedRabiSpectroscopyDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsMixin,
-)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -33,7 +30,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
-    EvaporationThreeRampsMixin,
+    # EvaporationThreeRampsMixin,  FIXME disable evaporation
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
@@ -51,7 +48,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_linear_evap()
+        # self.DMA_initialization_hook_linear_evap() # FIXME
         self.DMA_initialization_hook_single_xodt_mot()
 
     @kernel
