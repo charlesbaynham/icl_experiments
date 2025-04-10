@@ -35,7 +35,7 @@ class ShapedRabiSpectroscopy(ClockRabiSpectroscopyBase):
         self.setattr_fragment(
             "clock_spectroscopy_shaped_pulse",
             BlackmanShapedPulse,
-            ad9910_name="urukul9910_aom_698_up_switch",
+            ad9910_name=CLOCK_BEAM_INFO.urukul_device,
         )
         self.clock_spectroscopy_shaped_pulse: BlackmanShapedPulse
 
