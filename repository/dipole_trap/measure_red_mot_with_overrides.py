@@ -2,6 +2,7 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+import repository.lib.constants as constants
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
@@ -98,11 +99,11 @@ LoadBackwardDipoleTrap = make_experiment(
 
 LoadForwardDipoleTrap = make_experiment(
     "LoadForwardDipoleTrap",
-    chamber_2_bias_x=0.67,
-    chamber_2_bias_y=0.04,
-    chamber_2_bias_z=-1.13,
+    chamber_2_bias_x=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
+    chamber_2_bias_y=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
+    chamber_2_bias_z=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
     chamber_2_mot_current_start=3,
-    chamber_2_mot_current_end=3,
+    chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
     roi_0_x0=130,
     roi_0_x1=280,
     roi_0_y0=275,

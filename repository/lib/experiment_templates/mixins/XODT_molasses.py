@@ -83,8 +83,8 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             default=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
         )
         self.setattr_param_rebind(
-            "narrow_red_compression_phase",
-            self.red_mot,
+            "chamber_2_mot_current_end",
+            self.red_mot.narrow_red_compression_phase,
             default=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
         )
         self.narrowband_bias_x: FloatParamHandle
