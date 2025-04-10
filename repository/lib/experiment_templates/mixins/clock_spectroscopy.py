@@ -1,12 +1,10 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
-from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
-from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -157,24 +155,6 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         )
         self.delay_after_spectroscopy: FloatParamHandle
 
-        self.setattr_device("ttl_debugging")  # FIXME
-        self.ttl_debugging: TTLOut  # FIXME
-
-        class _Setup(Fragment):  # FIXME
-            def build_fragment(selfsub, *args, **kwargs):
-                selfsub.setattr_device("core")
-                selfsub.ttl = self.ttl_debugging
-
-            @kernel
-            def device_setup(selfsub):
-                selfsub.device_setup_subfragments()
-
-                selfsub.core.break_realtime()
-                selfsub.ttl.output()
-                selfsub.ttl.off()
-
-        self.setattr_fragment("setup", _Setup)  # FIXME
-
     @kernel
     def do_rabi_spectroscopy(self):
         _t_start = now_mu()
@@ -190,9 +170,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         )
         at_mu(_t_start)
 
-        self.ttl_debugging.on()  # FIXME
         self.fire_clock_spec_pulse()
-        self.ttl_debugging.off()  # FIXME
         delay(self.delay_after_spectroscopy.get())
 
     @kernel

@@ -30,7 +30,6 @@ class ShapedClockSpecFromSingleXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
-    # EvaporationThreeRampsMixin,  FIXME disable evaporation
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
@@ -48,7 +47,6 @@ class ShapedClockSpecFromSingleXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        # self.DMA_initialization_hook_linear_evap() # FIXME
         self.DMA_initialization_hook_single_xodt_mot()
 
     @kernel
