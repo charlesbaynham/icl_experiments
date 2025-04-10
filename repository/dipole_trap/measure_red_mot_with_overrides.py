@@ -80,7 +80,7 @@ def make_experiment(
     Exp.__name__ = name
     Exp.__qualname__ = name
 
-    return make_fragment_scan_exp(Exp)
+    return make_fragment_scan_exp(Exp, max_rtio_underflow_retries=0)
 
 
 LoadBackwardDipoleTrap = make_experiment(
