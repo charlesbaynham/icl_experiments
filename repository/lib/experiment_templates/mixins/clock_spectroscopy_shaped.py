@@ -2,30 +2,27 @@ import logging
 
 from artiq.experiment import kernel
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
-)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     CLOCK_BEAM_INFO,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyBase,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.pulse_shaping import BlackmanShapedPulse
 
 logger = logging.getLogger(__name__)
 
 
-class ShapedRabiSpectroscopy(ClockRabiSpectroscopyBase):
+class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyBase):
     """
-    Sets up the clock beam for clock spectroscopy with a shaped pulse
+    Sets up the clock beam for clock spectroscopy with a shaped pulse in a
+    dipole trap
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
     * :meth:`~do_first_pulse`
-    * :meth:`~pre_expansion_hook`
+    * :meth:`~post_dipole_trap_hook`
     * :meth:`~post_sequence_cleanup_hook`
     """
 
@@ -48,16 +45,14 @@ class ShapedRabiSpectroscopy(ClockRabiSpectroscopyBase):
         self.clock_spectroscopy_shaped_pulse.trigger_pulse()
 
     @kernel
-    def pre_expansion_hook(self):
+    def post_dipole_trap_hook(self):
         """
-        Pre-expansion hook for the shaped pulse
-
-        Set up the clock beam for RAM mode.
+        Before spectroscopy in the dipole trap, set up the clock beam for RAM
+        mode
         """
-        # FIXME it's probably the prepare() call
-        # self.clock_spectroscopy_shaped_pulse.prepare_pulse(
-        #     frequency=CLOCK_BEAM_INFO.frequency
-        # )
+        self.clock_spectroscopy_shaped_pulse.prepare_pulse(
+            frequency=CLOCK_BEAM_INFO.frequency
+        )
 
     @kernel
     def post_sequence_cleanup_hook(self):
@@ -65,38 +60,6 @@ class ShapedRabiSpectroscopy(ClockRabiSpectroscopyBase):
         self.clock_spectroscopy_shaped_pulse.disable_ram_mode()
 
         self.post_sequence_cleanup_hook_base()
-
-
-class ShapedRabiSpectroscopyRedMotMixin(ShapedRabiSpectroscopy, RedMOTWithExperiment):
-    """
-    Uses a clock pulse for spectroscopy after the red MOT
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~do_first_pulse`
-    * :meth:`~pre_expansion_hook`
-    * :meth:`~post_sequence_cleanup_hook`
-    """
-
-    @kernel
-    def do_experiment_after_red_mot_hook(self):
-        self.do_rabi_spectroscopy()
-
-
-class ShapedRabiSpectroscopyDipoleTrapMixin(
-    ShapedRabiSpectroscopy, DipoleTrapWithExperiment
-):
-    """
-    Implements clock Rabi spectroscopy after the dipole trap
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~do_first_pulse`
-    * :meth:`~pre_expansion_hook`
-    * :meth:`~post_sequence_cleanup_hook`
-    """
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

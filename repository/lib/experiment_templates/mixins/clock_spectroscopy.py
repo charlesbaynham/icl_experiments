@@ -127,6 +127,11 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     """
     Customizes ClockSpectroscopyBase for Rabi spectroscopy
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
