@@ -15,6 +15,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_molasses
 
 logger = logging.getLogger(__name__)
 
@@ -126,11 +127,9 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
 
         # disable the servo
-        # for beam in suservos_molasses:
-        #     red_channel = self.red_mot.red_beam_controller.get_device(beam)
-        #     red_channel.set(en_out=1, en_iir=0, profile=red_channel.channel)
-
-        self.up_channel.set(en_out=1, en_iir=0, profile=self.up_channel.channel)
+        for beam in suservos_molasses:
+            red_channel = self.red_mot.red_beam_controller.get_device(beam)
+            red_channel.set(en_out=1, en_iir=0, profile=red_channel.channel)
 
         # Set the PGIA gains for the red suservos
         i = 0
@@ -141,18 +140,16 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         ):
             gain = RED_SUSERVO_PGIA[i]
             handle.setter.set_pgia_gain_mu(gain)
+            self.red_mot.red_beam_controller.suservo_fragments[i].set_setpoint(
+            self.mot_xodt.default_suservo_nominal_setpoints[i] 
+            * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
+        )
             i += 1
 
-        self.red_mot.red_beam_controller.suservo_fragments[3].set_setpoint(
-            0.4 * self.mot_xodt.default_suservo_setpoint_multiples_start[3]
-        )
-
-        self.up_channel.set(en_out=1, en_iir=1, profile=self.up_channel.channel)
-
         # #enable the servo
-        # for beam in suservos_molasses:
-        #     red_channel = self.red_mot.red_beam_controller.get_device(beam)
-        #     red_channel.set(en_out=1, en_iir=1, profile=red_channel.channel)
+        for beam in suservos_molasses:
+            red_channel = self.red_mot.red_beam_controller.get_device(beam)
+            red_channel.set(en_out=1, en_iir=1, profile=red_channel.channel)
 
         # self.mot_xodt.suservo_setters_and_param_handles[0][0]
 
