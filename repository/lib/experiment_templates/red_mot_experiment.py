@@ -205,8 +205,19 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.hook_setup_andor()
 
+        self._first_run = True
+
     @kernel
     def device_setup(self) -> None:
+        if self._first_run:
+            self._first_run = False
+
+            # HACK: This adds enough slack for the beam setter to turn on all the
+            # beams. This should be solved instead by fixing the default beam setter
+            # to figure out how much slack it needs and solving this in pyaion
+            self.core.break_realtime()
+            delay(10e-3)
+
         self.device_setup_subfragments()
 
         self.core.break_realtime()
