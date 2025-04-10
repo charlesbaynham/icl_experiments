@@ -417,8 +417,8 @@ class BlackmanShapedPulse(ShapedPulse):
         The output will be normalized to 0 -> +1.
         """
 
-        # amplitude = np.blackman(n_words)
-        amplitude = np.ones(n_words)  # FIXME the "shaped" pulse is rectangular
+        amplitude = np.blackman(n_words)
+        # amplitude = np.ones(n_words)  # FIXME the "shaped" pulse is rectangular
         phase = np.zeros_like(amplitude)
 
         return amplitude, phase
