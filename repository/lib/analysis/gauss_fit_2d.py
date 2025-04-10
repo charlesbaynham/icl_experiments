@@ -429,15 +429,15 @@ def fit_gaussian(
     method="trf",
 ):
     data = np.rot90(data, k=1)
-    print(data.shape)
-    print(data)
+
     if xy is None:
         x, y = np.meshgrid(np.arange(data.shape[1]), np.arange(data.shape[0]))
     else:
         x, y = xy
-    print("bounds:")
+
     bounds = get_bounds_2d(x, y, data)
-    print(bounds)
+    logger.debug("Bounds: %s", bounds)
+
     xdata = np.vstack((x.ravel(), y.ravel()))
     t0 = time.time()
     if estimator == "1d_rot":
@@ -449,11 +449,9 @@ def fit_gaussian(
     if print_time:
         logger.warning("Time to estimate initial parameters: %.4f s", time.time() - t0)
     t0 = time.time()
-    logger.warning("Initial guess:")
-    logger.warning(
-        "A: %f, x0: %f, y0: %f, sigma_x: %f, sigma_y: %f", *initial_guess[:5]
-    )
-    logger.warning("theta: %f, offset: %f", initial_guess[5], initial_guess[6])
+    logger.debug("Initial guess:")
+    logger.debug("A: %f, x0: %f, y0: %f, sigma_x: %f, sigma_y: %f", *initial_guess[:5])
+    logger.debug("theta: %f, offset: %f", initial_guess[5], initial_guess[6])
     if method == "lm":
         kwargs = {"method": method}
     else:
@@ -470,12 +468,12 @@ def fit_gaussian(
     else:
         raise ValueError("Invalid fitter")
 
-    logger.warning("Fit params:")
-    logger.warning(
+    logger.debug("Fit params:")
+    logger.debug(
         "A: %f, x0: %f, y0: %f, sigma_x: %f, sigma_y: %f, theta: %f, offset: %f", *popt
     )
     if print_time:
-        logger.warning("Time to fit: %.4f s", time.time() - t0)
+        logger.debug("Time to fit: %.4f s", time.time() - t0)
     return popt, initial_guess
 
 
