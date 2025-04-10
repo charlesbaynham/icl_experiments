@@ -21,5 +21,7 @@
         "**/node_modules/*/**",
         "**/nix/aravis/**",
         "**/flake.nix"
-    ]
+    ],
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
 }
