@@ -169,9 +169,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             self.red_mot.red_beam_controller.suservo_fragments[i].set_setpoint(
                 SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
             )
-            print(
-                SETPOINTS[i], self.mot_xodt.default_suservo_setpoint_multiples_start[i]
-            )
             i += 1
 
         # #enable the servo
