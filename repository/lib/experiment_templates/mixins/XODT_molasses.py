@@ -15,7 +15,6 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_molasses
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +22,11 @@ logger = logging.getLogger(__name__)
 # RED_SUSERVO_PGIA = constants.SUSERVO_PGIA[0:4]
 
 RED_SUSERVO_PGIA = [2, 1, 2, 2]
+
+# FIXME - this is a hack, should get the setpoints with self.mot_xodt.default_suservo_nominal_setpoints[i]
+# but it returns 0.0
+# order sigmaplus, sigmaminus, diagonal, up
+SETPOINTS = [1.5, 3.0, 1.5, 0.4]
 
 
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
@@ -84,9 +88,24 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             [self.red_mot.injection_aom_static_frequency]
         )
 
+        self.diagonal_channel = self.red_mot.red_beam_controller.get_device(
+            "suservo_aom_singlepass_689_red_mot_diagonal"
+        )
+
+        self.sigmaplus_channel = self.red_mot.red_beam_controller.get_device(
+            "suservo_aom_singlepass_689_red_mot_sigmaplus"
+        )
+
+        self.sigmaminus_channel = self.red_mot.red_beam_controller.get_device(
+            "suservo_aom_singlepass_689_red_mot_sigmaminus"
+        )
+
         self.up_channel = self.red_mot.red_beam_controller.get_device(
             "suservo_aom_singlepass_689_up"
         )
+        self.diagonal_channel: Channel
+        self.sigmaplus_channel: Channel
+        self.sigmaminus_channel: Channel
         self.up_channel: Channel
 
     @kernel
@@ -127,9 +146,16 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
 
         # disable the servo
-        for beam in suservos_molasses:
-            red_channel = self.red_mot.red_beam_controller.get_device(beam)
-            red_channel.set(en_out=1, en_iir=0, profile=red_channel.channel)
+        self.diagonal_channel.set(
+            en_out=1, en_iir=0, profile=self.diagonal_channel.channel
+        )
+        self.sigmaplus_channel.set(
+            en_out=1, en_iir=0, profile=self.sigmaplus_channel.channel
+        )
+        self.sigmaminus_channel.set(
+            en_out=1, en_iir=0, profile=self.sigmaminus_channel.channel
+        )
+        self.up_channel.set(en_out=1, en_iir=0, profile=self.up_channel.channel)
 
         # Set the PGIA gains for the red suservos
         i = 0
@@ -141,15 +167,26 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             gain = RED_SUSERVO_PGIA[i]
             handle.setter.set_pgia_gain_mu(gain)
             self.red_mot.red_beam_controller.suservo_fragments[i].set_setpoint(
-            self.mot_xodt.default_suservo_nominal_setpoints[i] 
-            * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
-        )
+                SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
+            )
+            delay(0.1)
+            print(
+                SETPOINTS[i], self.mot_xodt.default_suservo_setpoint_multiples_start[i]
+            )
             i += 1
+            delay(0.1)
 
         # #enable the servo
-        for beam in suservos_molasses:
-            red_channel = self.red_mot.red_beam_controller.get_device(beam)
-            red_channel.set(en_out=1, en_iir=1, profile=red_channel.channel)
+        self.diagonal_channel.set(
+            en_out=1, en_iir=1, profile=self.diagonal_channel.channel
+        )
+        self.sigmaplus_channel.set(
+            en_out=1, en_iir=1, profile=self.sigmaplus_channel.channel
+        )
+        self.sigmaminus_channel.set(
+            en_out=1, en_iir=1, profile=self.sigmaminus_channel.channel
+        )
+        self.up_channel.set(en_out=1, en_iir=1, profile=self.up_channel.channel)
 
         # self.mot_xodt.suservo_setters_and_param_handles[0][0]
 
