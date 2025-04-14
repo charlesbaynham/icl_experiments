@@ -73,13 +73,13 @@ URUKULED_BEAMS = [
         name="clock_up",
         frequency=200e6,
         attenuation=0,
-        urukul_device="urukul9912_aom_698_up_switch",
+        urukul_device="urukul9910_aom_698_up_switch",
     ),
     UrukuledBeam(
         name="clock_down",
         frequency=200e6,
         attenuation=0,
-        urukul_device="urukul9912_aom_698_down_switch",
+        urukul_device="urukul9910_aom_698_down_switch",
     ),
     UrukuledBeam(
         "blue_imaging_switch",
@@ -675,6 +675,7 @@ _default_461 = (
 _default_707 = 423_913_478e6
 _default_679 = 441_332_627e6
 _default_698 = 429_228_387.3e6  # Measured empirically
+_clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
@@ -769,7 +770,7 @@ WAND_SETPOINTS_88 = {
     ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
-    "Sirah": (_default_698, False),
+    "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
 
@@ -786,7 +787,7 @@ WAND_SETPOINTS_87 = {
     ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
-    "Sirah": (_default_698, False),
+    "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
 TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.15 V/V
@@ -1082,7 +1083,7 @@ CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock 
 # Single dipole trap loading phase
 # order sigmaplus, sigmaminus, diagonal, up, 1064, 813
 XODT_SINGLE_LOADING_DURATION = 40e-3
-SUSERVO_PGIA = [1, 2, 2, 2, 0, 0]
+SUSERVO_PGIA = [2, 1, 2, 2, 0, 0]
 FACTORS_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
 FACTORS_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [
@@ -1099,5 +1100,9 @@ XODT_SINGLE_LOADING_689_DETUNING_END = [
 ]
 RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
 XODT_SINGLE_LOADING_STIR_DETUNING = 30e3
+XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 16.0
+XODT_SINGLE_NARROWBAND_BIAS_X = 0.67
+XODT_SINGLE_NARROWBAND_BIAS_Y = 0.04
+XODT_SINGLE_NARROWBAND_BIAS_Z = -1.13
 
 TOTAL_EVAP_HOLD_TIME = 5.0

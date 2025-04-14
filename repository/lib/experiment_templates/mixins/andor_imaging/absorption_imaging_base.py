@@ -49,9 +49,6 @@ class AbsorptionImagingBase(AndorImagingBase):
     def build_fragment(self):
         super().build_fragment()
 
-        # self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
-        # self.set_toptica_analog: SetTopticaAnalogFrag
-
         self.setattr_param(
             "set_topica_pre_delay",
             FloatParam,
@@ -368,7 +365,7 @@ class AbsorptionImagingBase(AndorImagingBase):
 
             Ns.append(N)
             OD_slices.append(OD_slice)
-            print(f"OD slice {i}: {OD_slice}")
+            logger.debug(f"OD slice {i}: {OD_slice}")
 
         return Ns, OD_slices, OD, n_invalid
 

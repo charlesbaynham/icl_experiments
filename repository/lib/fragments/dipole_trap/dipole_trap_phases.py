@@ -9,9 +9,9 @@ from repository.lib.fragments.ramping_phase_bound import (
 )
 
 suservos_molasses = [
+    "suservo_aom_singlepass_689_red_mot_diagonal",
     "suservo_aom_singlepass_689_red_mot_sigmaplus",
     "suservo_aom_singlepass_689_red_mot_sigmaminus",
-    "suservo_aom_singlepass_689_red_mot_diagonal",
     "suservo_aom_singlepass_689_up",
 ]
 urukuls_molasses = ["urukul9910_aom_doublepass_689_red_injection"]
