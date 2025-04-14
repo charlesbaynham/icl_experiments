@@ -96,6 +96,15 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
     default_suservo_nominal_setpoints = [0.0] * 6
+    default_suservo_offset = [0.0] * 6
+
+    for idx, beam_name in enumerate(suservos):
+        for beam_info in constants.SUSERVOED_BEAMS:
+            if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
+                default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[
+                    beam_info
+                ].photodiode_offset
+                break
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START
