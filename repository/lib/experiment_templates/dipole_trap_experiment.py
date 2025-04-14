@@ -131,12 +131,20 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def do_experiment_after_red_mot_hook(self):
         self.dipole_trap_molasses_hook()
+        self.dipole_trap_loading_hook()
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
         self.post_dipole_trap_hook()
         delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
+
+    @kernel
+    def dipole_trap_loading_hook(self):
+        """
+        Hook for implementation of stages after the dipole trap loading stage. By default, turn on the dipole trap beams.
+        """
+        self.constant_dipole_traps_setter.turn_on_all()        
 
     @kernel
     def dipole_trap_molasses_hook(self):

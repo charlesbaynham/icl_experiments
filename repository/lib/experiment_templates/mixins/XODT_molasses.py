@@ -33,7 +33,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
     * :meth:`~DMA_initialization_hook`
     * :meth:`~post_narrowband_hook`
-    * :meth:`~dipole_trap_molasses_hook`
+    * :meth:`~dipole_trap_loading_hook`
 
     We also override this hook to do nothing since this Mixin is now taking charge
     of field setting:
@@ -112,11 +112,11 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         pass
 
     @kernel
-    def dipole_trap_molasses_hook(self):
-        self.dipole_trap_molasses_hook_single_xodt_mot()
+    def dipole_trap_loading_hook(self):
+        self.dipole_trap_loading_hook_single_xodt_mot()
 
     @kernel
-    def dipole_trap_molasses_hook_single_xodt_mot(self):
+    def dipole_trap_loading_hook_single_xodt_mot(self):
         """
         Turn the dipole beams on and do the xodt loading ramping phase
         """
