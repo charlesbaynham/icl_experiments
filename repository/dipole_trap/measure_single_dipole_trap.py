@@ -18,7 +18,7 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin, XODTSingleMolassesMixin
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImage,
     LoadSingleXODTMixin,
+    XODTSingleMolassesMixin,
     EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
@@ -39,6 +40,7 @@ class MeasureSingleXODTBGCorrectedFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -48,6 +50,7 @@ class MeasureSingleXODTBGCorrectedFrag(
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     LoadSingleXODTMixin,
+    XODTSingleMolassesMixin,
     EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
@@ -60,6 +63,7 @@ class MeasureSingleXODTAbsFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
