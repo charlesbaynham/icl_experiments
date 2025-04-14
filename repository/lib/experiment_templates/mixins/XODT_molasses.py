@@ -19,14 +19,12 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XOD
 logger = logging.getLogger(__name__)
 
 # order diagonal, sigmaplus, sigmaminus, up
-# RED_SUSERVO_PGIA = constants.SUSERVO_PGIA[0:4]
-
-RED_SUSERVO_PGIA = [2, 1, 2, 2]
+RED_SUSERVO_PGIA = constants.SUSERVO_PGIA[0:4]
 
 # FIXME - this is a hack, should get the setpoints with self.mot_xodt.default_suservo_nominal_setpoints[i]
 # but it returns 0.0
-# order sigmaplus, sigmaminus, diagonal, up
-SETPOINTS = [1.5, 3.0, 1.5, 0.4]
+# order diagonal, sigmaplus, sigmaminus, up
+SETPOINTS = [1.5, 3.0, 1.5, 0.4, 4.7, 5.0]
 
 
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
@@ -184,17 +182,34 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.up_channel.set(en_out=1, en_iir=0, profile=self.up_channel.channel)
 
         # Set the PGIA gains for the red suservos
+        # i = 0
+        # for (
+        #     handle
+        # ) in (
+        #     self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        # ):
+        #     gain = RED_SUSERVO_PGIA[i]
+        #     handle.setter.set_pgia_gain_mu(gain)
+        #     self.red_mot.red_beam_controller.suservo_fragments[i].set_setpoint(
+        #         SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
+        #     )
+        #     i += 1
+
+        self.mot_xodt.suservo_setters_and_param_handles
+
         i = 0
-        for (
-            handle
-        ) in (
-            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
-        ):
-            gain = RED_SUSERVO_PGIA[i]
-            handle.setter.set_pgia_gain_mu(gain)
-            self.red_mot.red_beam_controller.suservo_fragments[i].set_setpoint(
+        for handle in self.mot_xodt.suservo_setters_and_param_handles:
+            gain = constants.SUSERVO_PGIA[i]
+            handle[0].set_pgia_gain_mu(gain)
+            handle[0].set_setpoint(
                 SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
             )
+            delay(0.001)
+            print(
+                SETPOINTS[i],
+                self.mot_xodt.default_suservo_setpoint_multiples_start[i],
+            )
+            delay(0.001)
             i += 1
 
         # #enable the servo

@@ -4,24 +4,23 @@ from typing import *
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
+from artiq.experiment import TFloat
+from artiq.experiment import TInt32
+from artiq.experiment import TList
 from artiq.experiment import at_mu
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import portable
-from artiq.experiment import TFloat
-from artiq.experiment import TInt32
-from artiq.experiment import TList
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int32
 from numpy import int64
-
+from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.utilities.dummy_devices import DummyAD9910
 from pyaion.utilities.dummy_devices import DummySUServoChannel
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +128,7 @@ class GeneralRampingPhase(Fragment):
     default_suservo_setpoint_multiples_start: List[float] = []
     default_suservo_setpoint_multiples_end: List[float] = []
     default_suservo_offset: List[float] = []
+    default_suservo_pgia: List[int] = []
 
     general_setter_names: List[str] = []
     general_setter_param_options: List[Dict] = []
@@ -183,9 +183,7 @@ class GeneralRampingPhase(Fragment):
         ), TypeError(
             "self.default_suservo_setpoints_end must have same length as self.suservos_for_intensity"
         )
-        assert len(self.default_suservo_offset) == len(
-            self.suservos
-        ), TypeError(
+        assert len(self.default_suservo_offset) == len(self.suservos), TypeError(
             "self.default_suservo_offset must have same length as self.suservos_for_intensity"
         )
 
@@ -216,6 +214,9 @@ class GeneralRampingPhase(Fragment):
         # Photodiode offset
         if self.default_suservo_offset == []:
             self.default_suservo_offset = [0.0] * len(self.suservos)
+
+        if self.default_suservo_pgia == []:
+            self.default_suservo_pgia = [0.0] * len(self.suservos)
 
         self.validate_attributes()
 
