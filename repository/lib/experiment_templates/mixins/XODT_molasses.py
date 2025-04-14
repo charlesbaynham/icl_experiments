@@ -54,17 +54,17 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
 
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
-            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT,
-        )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
-        )
+        # self.setattr_param_rebind(
+        #     "red_narrowband_mot_689_up_start",
+        #     self.red_mot.narrow_red_compression_phase,
+        #     original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
+        #     default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT,
+        # )
+        # self.setattr_param_rebind(
+        #     "red_narrowband_mot_689_up_end",
+        #     self.red_mot.narrow_red_compression_phase,
+        #     original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
+        # )
 
         self.setattr_param(
             "stir_beam_detuning_mot_xodt",
@@ -78,30 +78,30 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.stir_beam_detuning_mot_xodt: FloatParamHandle
 
         # Override default currents to suit single XODT loading
-        self.setattr_param_rebind(
-            "narrowband_bias_x",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
-        )
-        self.setattr_param_rebind(
-            "narrowband_bias_y",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
-        )
-        self.setattr_param_rebind(
-            "narrowband_bias_z",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
-        )
-        self.setattr_param_rebind(
-            "chamber_2_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            default=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
-        )
-        self.narrowband_bias_x: FloatParamHandle
-        self.narrowband_bias_y: FloatParamHandle
-        self.narrowband_bias_z: FloatParamHandle
-        self.narrow_red_compression_phase: FloatParamHandle
+        # self.setattr_param_rebind(
+        #     "narrowband_bias_x",
+        #     self.red_mot,
+        #     default=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
+        # )
+        # self.setattr_param_rebind(
+        #     "narrowband_bias_y",
+        #     self.red_mot,
+        #     default=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
+        # )
+        # self.setattr_param_rebind(
+        #     "narrowband_bias_z",
+        #     self.red_mot,
+        #     default=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
+        # )
+        # self.setattr_param_rebind(
+        #     "chamber_2_mot_current_end",
+        #     self.red_mot.narrow_red_compression_phase,
+        #     default=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
+        # )
+        # self.narrowband_bias_x: FloatParamHandle
+        # self.narrowband_bias_y: FloatParamHandle
+        # self.narrowband_bias_z: FloatParamHandle
+        # self.narrow_red_compression_phase: FloatParamHandle
 
         self.mot_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
             [
@@ -243,8 +243,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.molasses_xodt_1: MolassesInXODT
 
         # Remove unused parameters
-        if self.spectroscopy_field_gradient != 0:
-            self.override_param("spectroscopy_field_gradient", 0)
+        # self.override_param("spectroscopy_field_gradient", 0)
 
         # # Expose the bias field for moving the MOT to the right place
         self.setattr_param_rebind(
