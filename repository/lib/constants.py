@@ -20,7 +20,8 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
-from pyaion.models import SUServoedBeam
+#from pyaion.models import SUServoedBeam
+from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 DELAY_BETWEEN_RTIO_EVENTS = 4e-9
@@ -531,6 +532,7 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.01238,
+        pgia_setting = 2,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -543,6 +545,7 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.0152,
+        pgia_setting = 2,
     ),
     SUServoedBeam(
         "red_up",
@@ -555,6 +558,7 @@ SUSERVOED_BEAMS = [
         setpoint=0.4,
         initial_amplitude=0.05,
         photodiode_offset=0.018,
+        pgia_setting = 2,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -567,6 +571,7 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0108,  # TODO: This is a guess
+        pgia_setting = 1,
     ),
     ### OTHER ###
     SUServoedBeam(
@@ -1084,14 +1089,8 @@ CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock 
 # order diagonal, sigmaplus, sigmaminus, up, 1064, 813
 XODT_SINGLE_LOADING_DURATION = 40e-3
 SUSERVO_PGIA = [2, 1, 2, 2, 0, 0]
-FACTORS_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-FACTORS_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [
-    a * 10**b for a, b in zip(FACTORS_START, SUSERVO_PGIA)
-]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [
-    a * 10**b for a, b in zip(FACTORS_END, SUSERVO_PGIA)
-]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     15e3,
 ]

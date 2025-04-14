@@ -53,6 +53,7 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     default_urukul_nominal_frequencies = [0.0]
     default_suservo_nominal_setpoints = [0.0] * 6
     default_suservo_offset = [0.0] * 6
+    default_suservo_pgia = [0] * 6
 
     for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS:
@@ -60,6 +61,7 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
                 default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[
                     beam_info
                 ].photodiode_offset
+                default_suservo_pgia[idx] = constants.SUSERVOED_BEAMS[beam_info].pgia_setting
                 break
 
     default_suservo_setpoint_multiples_start = (

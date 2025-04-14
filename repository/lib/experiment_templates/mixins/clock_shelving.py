@@ -11,7 +11,8 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
-from pyaion.models import SUServoedBeam
+#from pyaion.models import SUServoedBeam
+from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib import constants

@@ -216,7 +216,7 @@ class GeneralRampingPhase(Fragment):
             self.default_suservo_offset = [0.0] * len(self.suservos)
 
         if self.default_suservo_pgia == []:
-            self.default_suservo_pgia = [0.0] * len(self.suservos)
+            self.default_suservo_pgia = [0 * len(self.suservos)]
 
         self.validate_attributes()
 
@@ -677,7 +677,7 @@ class GeneralRampingPhase(Fragment):
                 * suservo_global_multiple_start
                 * start_multiple_handle.get()
                 + self.default_suservo_offset[i]
-            )
+            ) * 10 ** (self.default_suservo_pgia[i])
 
             # Calculate the step sizes for all the SUServo steps
             suservo_steps[i] = self._calc_step_size(

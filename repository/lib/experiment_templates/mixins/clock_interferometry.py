@@ -8,7 +8,8 @@ from artiq.experiment import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-from pyaion.models import SUServoedBeam
+#from pyaion.models import SUServoedBeam
+from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (

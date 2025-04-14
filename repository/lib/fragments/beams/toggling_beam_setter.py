@@ -13,7 +13,8 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
-from pyaion.models import SUServoedBeam
+#from pyaion.models import SUServoedBeam
+from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS

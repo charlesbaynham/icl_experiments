@@ -1,7 +1,8 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
-from pyaion.models import SUServoedBeam
+#from pyaion.models import SUServoedBeam
+from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams

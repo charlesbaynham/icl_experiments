@@ -15,6 +15,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_molasses
 
 logger = logging.getLogger(__name__)
 
@@ -195,21 +196,21 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         #     )
         #     i += 1
 
-        self.mot_xodt.suservo_setters_and_param_handles
+        gain = [0] * len(suservos_molasses + suservos_XODT)
+
+        for idx, beam_name in enumerate(suservos_molasses+suservos_XODT):
+            for beam_info in constants.SUSERVOED_BEAMS:
+                if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
+                    gain[idx] = constants.SUSERVOED_BEAMS[
+                        beam_info
+                    ].pgia_setting
 
         i = 0
         for handle in self.mot_xodt.suservo_setters_and_param_handles:
-            gain = constants.SUSERVO_PGIA[i]
-            handle[0].set_pgia_gain_mu(gain)
+            handle[0].set_pgia_gain_mu(gain[i])
             handle[0].set_setpoint(
-                SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
+                SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i] * 10**(gain[i])
             )
-            delay(0.001)
-            print(
-                SETPOINTS[i],
-                self.mot_xodt.default_suservo_setpoint_multiples_start[i],
-            )
-            delay(0.001)
             i += 1
 
         # #enable the servo
@@ -356,10 +357,10 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def set_postnarrowband_fields_hook(self):
-        self.set_postnarrowband_fields_hook_singlemollasses()
+        self.set_postnarrowband_fields_hook_singlemolasses()
 
     @kernel
-    def set_postnarrowband_fields_hook_singlemollasses(self):
+    def set_postnarrowband_fields_hook_singlemolasses(self):
         pass
 
     @kernel
