@@ -176,6 +176,8 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         self.urukul_beam_infos = [
             constants.URUKULED_BEAMS["red_spinpol"],
             constants.URUKULED_BEAMS["blue_imaging_switch"],
+            constants.URUKULED_BEAMS["clock_up"],
+            constants.URUKULED_BEAMS["clock_down"],
         ]
 
         if not self.enable_servoing:

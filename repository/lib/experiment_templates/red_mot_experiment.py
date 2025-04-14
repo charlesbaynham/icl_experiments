@@ -61,6 +61,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
@@ -110,6 +111,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.setattr_fragment("timestamper", Timestamper, automatic_timestamp=False)
         self.timestamper: Timestamper
+
+        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
+        self.relock_checker: CheckForRelocksFrag
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
@@ -201,8 +205,19 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.hook_setup_andor()
 
+        self._first_run = True
+
     @kernel
     def device_setup(self) -> None:
+        if self._first_run:
+            self._first_run = False
+
+            # HACK: This adds enough slack for the beam setter to turn on all the
+            # beams. This should be solved instead by fixing the default beam setter
+            # to figure out how much slack it needs and solving this in pyaion
+            self.core.break_realtime()
+            delay(10e-3)
+
         self.device_setup_subfragments()
 
         self.core.break_realtime()
@@ -496,8 +511,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     @kernel
     def host_functions_after_experiment_hook(self):
         """
-        Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
+        Hook for doing any extra functions at the end of the experiment.
         """
+        self.host_functions_after_experiment_hook_default()
+
+    @kernel
+    def host_functions_after_experiment_hook_default(self):
+        """
+        Default implementation of the host functions after experiment hook
+        """
+        self.relock_checker.check_and_log_relocks()
 
 
 # %%

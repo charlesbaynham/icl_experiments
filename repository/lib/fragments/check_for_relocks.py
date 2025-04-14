@@ -2,14 +2,12 @@ import logging
 from typing import List
 
 from artiq.language.core import host_only
-from artiq.language.core import kernel
 from artiq.language.core import rpc
 from ndscan.experiment.fragment import Fragment
 from ndscan.experiment.result_channels import IntChannel
 from relocker_driver.driver import RelockerDriver
 
 from repository.lib.constants import IJD_RELOCKER_DEFAULTS
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
 
@@ -66,18 +64,3 @@ class CheckForRelocksFrag(Fragment):
                     n,
                 )
             self.num_relock_channels[i].push(n)
-
-
-class CheckForRelocksMixin(RedMOTWithExperiment):
-    """
-    Mixin for checking if the IJD relockers relocked during the experiment.
-    """
-
-    def build_fragment(self):
-        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
-        self.relock_checker: CheckForRelocksFrag
-        super().build_fragment()
-
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        self.relock_checker.check_and_log_relocks()

@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import List
 from typing import Optional
 
@@ -17,14 +18,11 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from relocker_driver.driver import RelockerDriver
-import time
 
-from repository.lib.constants import (
-    IJD_RELOCKER_DEFAULTS,
-    SCANNER_BOARD_DEFAULTS,
-    IJDRelockerSettings,
-    ScannerBoardSettings,
-)
+from repository.lib.constants import IJD_RELOCKER_DEFAULTS
+from repository.lib.constants import SCANNER_BOARD_DEFAULTS
+from repository.lib.constants import IJDRelockerSettings
+from repository.lib.constants import ScannerBoardSettings
 
 logger = logging.getLogger(__name__)
 
@@ -514,5 +512,5 @@ class ScanIJDRelockerFrag(ExpFragment):
 
 
 RunRelockerChannel = make_fragment_scan_exp(RelockerChannelFrag)
-# RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
+RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
 ScanIJDRelocker = make_fragment_scan_exp(ScanIJDRelockerFrag)

@@ -2,15 +2,15 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.fastino import Fastino
-from artiq.language.core import kernel, host_only, rpc
+from artiq.language.core import delay
+from artiq.language.core import host_only
+from artiq.language.core import kernel
+from artiq.language.core import rpc
 from ndscan.experiment import ExpFragment
-from wand.server import ControlInterface as WANDControlInterface
-from artiq.language.core import delay, now_mu, at_mu
 
 # from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.result_channels import FloatChannel
 
 from repository.lib.constants import TOPTICA_461_ANALOG_SCALE
 
@@ -71,8 +71,6 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.voltage_min = -10.0  # we have a 1/5 attenuator so we can go all the way
         self.voltage_max = 10.0
 
-
-
     @host_only
     def host_setup(self):
         kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -83,7 +81,6 @@ class SetTopticaAnalogFrag(ExpFragment):
         }
         self.first_run = True
         super().host_setup()
-
 
     @kernel
     def device_setup(self):
@@ -112,12 +109,11 @@ class SetTopticaAnalogFrag(ExpFragment):
     @kernel
     def check_voltage_lim(self, voltage: float) -> bool:
         return self.voltage_min <= voltage <= self.voltage_max
-    
+
     @rpc(flags={"async"})
     def log_fastino_stuff(self, voltage: float):
         logger.info("freq_step: %f", self.freq_step.get())
         logger.info("set voltage: %f", voltage)
-    
 
     @kernel
     def step_freq(self):
@@ -140,4 +136,3 @@ class SetTopticaAnalogFrag(ExpFragment):
         delay(3.0)
         self.fastino0.set_dac(self.channel, 0.0)
         delay(3.0)
-

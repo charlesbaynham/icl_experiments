@@ -1,6 +1,7 @@
-from artiq.experiment import *
-import numpy as np
 import time
+
+import numpy as np
+from artiq.experiment import *
 
 
 class TestCCBPlotting(EnvExperiment):

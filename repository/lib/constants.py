@@ -73,7 +73,13 @@ URUKULED_BEAMS = [
         name="clock_up",
         frequency=200e6,
         attenuation=0,
-        urukul_device="urukul9912_aom_698_up_switch",
+        urukul_device="urukul9910_aom_698_up_switch",
+    ),
+    UrukuledBeam(
+        name="clock_down",
+        frequency=200e6,
+        attenuation=0,
+        urukul_device="urukul9910_aom_698_down_switch",
     ),
     UrukuledBeam(
         "blue_imaging_switch",
@@ -150,7 +156,7 @@ IJD_DEFAULTS = {
         associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
     ),
     "blue_IJD2_controller": IJDSettings(
-        8800,
+        8900,
         373e-3,
         367e-3,
         3e-3,
@@ -453,7 +459,7 @@ SUSERVOED_BEAMS = [
         "suservo_aom_singlepass_461_2dmot_a",
         "TTL_shutter_461_2dmot_is_it_a",
         shutter_delay=20e-3,
-        setpoint=1.9,
+        setpoint=1.8,
         servo_enabled=True,
     ),
     SUServoedBeam(
@@ -463,7 +469,7 @@ SUSERVOED_BEAMS = [
         "suservo_aom_singlepass_461_2dmot_b",
         "TTL_shutter_461_2dmot_is_it_b",
         shutter_delay=20e-3,
-        setpoint=2.9,
+        setpoint=2.7,
         servo_enabled=True,
     ),
     SUServoedBeam(
@@ -605,7 +611,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=5,
     ),
     SUServoedBeam(
         "up_813",
@@ -669,6 +675,7 @@ _default_461 = (
 _default_707 = 423_913_478e6
 _default_679 = 441_332_627e6
 _default_698 = 429_228_387.3e6  # Measured empirically
+_clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
@@ -763,7 +770,7 @@ WAND_SETPOINTS_88 = {
     ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
-    "Sirah": (_default_698, False),
+    "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
 
@@ -780,10 +787,10 @@ WAND_SETPOINTS_87 = {
     ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
-    "Sirah": (_default_698, False),
+    "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
-TOPTICA_461_ANALOG_SCALE = 210e6/(3.05)  # MHz/V # rough value # arc factor 0.15 V/V
+TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.15 V/V
 
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
@@ -1055,7 +1062,7 @@ OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_START = [1.0, 1.0]
-XODT_EVAP_END = [1.0, 1.0]
+XODT_EVAP_END = [0.5, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
@@ -1065,4 +1072,28 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
 #     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
 # ]
 
+XODT_EVAP_2_START = [0.5, 1.0]
+XODT_EVAP_2_END = [0.4, 1.0]
+
+XODT_EVAP_3_START = [0.4, 1.0]
+XODT_EVAP_3_END = [0.3, 1.0]
+
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
+
+XODT_SINGLE_LOADING_DURATION = 40e-3
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
+XODT_SINGLE_LOADING_689_DETUNING_START = [
+    15e3,
+]
+XODT_SINGLE_LOADING_689_DETUNING_END = [
+    0e3,
+]
+RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
+XODT_SINGLE_LOADING_STIR_DETUNING = 30e3
+XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 16.0
+XODT_SINGLE_NARROWBAND_BIAS_X = 0.67
+XODT_SINGLE_NARROWBAND_BIAS_Y = 0.04
+XODT_SINGLE_NARROWBAND_BIAS_Z = -1.13
+
+TOTAL_EVAP_HOLD_TIME = 5.0

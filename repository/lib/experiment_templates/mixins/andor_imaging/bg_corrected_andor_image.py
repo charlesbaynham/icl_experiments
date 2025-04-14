@@ -50,7 +50,6 @@ class BGCorrectedAndorImage(AndorImagingBase):
             default=constants.ANDOR_CAMERA_BACKGROUND_DELAY,
         )
         self.delay_before_bg_pulse: FloatParamHandle
-
         self.bg_imaging_make_result_channel()
 
     def bg_imaging_make_result_channel(self):
@@ -99,3 +98,14 @@ class BGCorrectedAndorImage(AndorImagingBase):
     @kernel
     def process_grabber_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])
+
+    # @host_only
+    # def process_andor_image_hook(self, imgs_array):
+    #     super().process_andor_image_hook(imgs_array)
+
+    @host_only
+    def do_gauss_fit_hook(self, img_array):
+        img_array = img_array[0]
+        bg_img_array = img_array[1]
+        corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
+        self.fit_from_grabber_rois(corrected_img_array)

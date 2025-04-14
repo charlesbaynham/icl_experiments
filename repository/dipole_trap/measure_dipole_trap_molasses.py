@@ -22,11 +22,11 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTDoubleMolassesMixin,
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusFieldRampMixin,
+    XODTDoubleMolassesMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTDoubleMolassesPlusFieldRampMixin,
@@ -34,8 +34,8 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
 )
-from repository.lib.experiment_templates.mixins.pumped_lattice import (
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesPlusFieldRampMixin,
 )
 from repository.lib.fragments.stark_shifter import StarkShifter
 
