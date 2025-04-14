@@ -51,16 +51,9 @@ def get_non_core_devices(simulation_mode=False):
         "wand_server": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "labserver.lan",
             "port": PORT_WAND_CONTROL,
-            "command": (
-                "bash -c '"
-                "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
-                "nix run .#wand_server -- -n icl_aion --bind \\* "
-                f"--port-notify {PORT_WAND_NOTIFY} "
-                f"--port-control {PORT_WAND_CONTROL}"
-                "'"
-            ),
+            # "command": "this will never be run because the AION system will start it for us",
         },
         # "artiq_http": {
         #     "type": "controller",
