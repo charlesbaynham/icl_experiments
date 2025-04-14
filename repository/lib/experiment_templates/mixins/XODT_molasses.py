@@ -243,7 +243,8 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.molasses_xodt_1: MolassesInXODT
 
         # Remove unused parameters
-        self.override_param("spectroscopy_field_gradient", 0)
+        if self.spectroscopy_field_gradient != 0:
+            self.override_param("spectroscopy_field_gradient", 0)
 
         # # Expose the bias field for moving the MOT to the right place
         self.setattr_param_rebind(
