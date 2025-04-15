@@ -683,8 +683,12 @@ class GeneralRampingPhase(Fragment):
             suservo_steps[i] = self._calc_step_size(
                 nominal_value
                 * suservo_global_multiple_start
-                * start_multiple_handle.get(),
-                nominal_value * suservo_global_multiple_end * end_multiple_handle.get(),
+                * start_multiple_handle.get()
+                * 10 ** (self.default_suservo_pgia[i]),
+                nominal_value
+                * suservo_global_multiple_end
+                * end_multiple_handle.get()
+                * 10 ** (self.default_suservo_pgia[i]),
                 num_points,
             )
 
