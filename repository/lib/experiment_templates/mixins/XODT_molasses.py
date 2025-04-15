@@ -14,8 +14,8 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_molasses
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +133,15 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.sigmaminus_channel: Channel
         self.up_channel: Channel
 
+        self.gain = [0] * len(suservos_molasses + suservos_XODT)
+
+        for idx, beam_name in enumerate(suservos_molasses + suservos_XODT):
+            for beam_info in constants.SUSERVOED_BEAMS:
+                if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
+                    self.gain[idx] = constants.SUSERVOED_BEAMS[
+                        beam_info
+                    ].alt_pgia_setting
+
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
@@ -196,20 +205,13 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         #     )
         #     i += 1
 
-        gain = [0] * len(suservos_molasses + suservos_XODT)
-
-        for idx, beam_name in enumerate(suservos_molasses+suservos_XODT):
-            for beam_info in constants.SUSERVOED_BEAMS:
-                if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
-                    gain[idx] = constants.SUSERVOED_BEAMS[
-                        beam_info
-                    ].alt_pgia_setting
-
         i = 0
         for handle in self.mot_xodt.suservo_setters_and_param_handles:
             handle[0].set_pgia_gain_mu(gain[i])
             handle[0].set_setpoint(
-                SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i] * 10**(gain[i])
+                SETPOINTS[i]
+                * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
+                * 10 ** (self.gain[i])
             )
             i += 1
 
