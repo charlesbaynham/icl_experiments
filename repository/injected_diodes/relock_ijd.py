@@ -19,6 +19,8 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import LinearGenerator
 from ndscan.experiment import Subscan
 from ndscan.experiment import setattr_subscan
+from ndscan.experiment.annotations import axis_location
+from ndscan.experiment.default_analysis import CustomAnalysis
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -27,8 +29,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
-from ndscan.experiment.default_analysis import CustomAnalysis
-from ndscan.experiment.annotations import axis_location
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 import repository.lib.constants as constants
@@ -125,6 +125,7 @@ class RelockIJDFrag(ExpFragment):
             f"frag_koheron_{controller_name}",
             SetKoheronFrag,
             controller_name=controller_name,
+            analysis_fn=self.find_lock_point,
         )
         for k, v in IJD_RELOCKER_DEFAULTS.items():
             if v.associated_controller == controller_name:
@@ -286,7 +287,12 @@ class RelockIJDFrag(ExpFragment):
             v_window_start,
         )
 
-    def analyse_fn(self, axis_values, result_values, analysis_results):
+    def analyse_fn(
+        self,
+        axis_values,
+        result_values,
+        analysis_results: dict[str, FloatChannel],
+    ):
         current = axis_values[self.frag_ijd_scanner.current]
         voltage = result_values[self.frag_ijd_scanner.voltage]
         i_lock, window_start, window_end, v_window_start = self.find_lock_point(
@@ -395,6 +401,9 @@ class RelockAllIJDsFrag(ExpFragment):
 
             if enabled.get():
                 ijd_relock_frag.relock(self.enable_auto_relocking.get())
+
+    def get_default_analyses(self):
+        return super().get_default_analyses()
 
 
 # RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
