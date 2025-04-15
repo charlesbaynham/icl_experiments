@@ -10,9 +10,6 @@ from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from ndscan.experiment import Fragment
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
-    ControlBeamsWithoutCoolingAOM,
-)
 
 from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.dummy_devices import DummySUServoFrag
@@ -21,6 +18,9 @@ from repository.lib.dummy_devices import DummyTTL
 # from pyaion.models import SUServoedBeam
 from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
 from repository.lib.fragments.pyaion_overrides.models_override import UrukuledBeam
+from repository.lib.fragments.pyaion_overrides.toggle_beams_with_AOM_and_shutter_override import (
+    ControlBeamsWithoutCoolingAOM,
+)
 
 logger = logging.getLogger(__name__)
 
