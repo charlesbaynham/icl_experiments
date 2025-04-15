@@ -61,7 +61,7 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
                 default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[
                     beam_info
                 ].photodiode_offset
-                default_suservo_pgia[idx] = constants.SUSERVOED_BEAMS[beam_info].pgia_setting
+                default_suservo_pgia[idx] = constants.SUSERVOED_BEAMS[beam_info].alt_pgia_setting
                 break
 
     default_suservo_setpoint_multiples_start = (

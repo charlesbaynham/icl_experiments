@@ -39,8 +39,8 @@ class SUServoedBeam:
     Relevant only when servoing beams with very low amplitudes, this number should
     be added to all setpoints before setting them.
     """
-    pgia_setting: int = 0
-    "value of the adc gain for the suservo"
+    alt_pgia_setting: int = 0
+    "value of the adc gain for the suservo when it is changed"
 
 
 @dataclass

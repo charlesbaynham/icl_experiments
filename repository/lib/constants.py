@@ -532,7 +532,7 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.01238,
-        pgia_setting = 2,
+        alt_pgia_setting = 2,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -545,7 +545,7 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.0152,
-        pgia_setting = 2,
+        alt_pgia_setting = 2,
     ),
     SUServoedBeam(
         "red_up",
@@ -558,7 +558,7 @@ SUSERVOED_BEAMS = [
         setpoint=0.4,
         initial_amplitude=0.05,
         photodiode_offset=0.018,
-        pgia_setting = 2,
+        alt_pgia_setting = 2,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -571,7 +571,7 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0108,  # TODO: This is a guess
-        pgia_setting = 1,
+        alt_pgia_setting = 1,
     ),
     ### OTHER ###
     SUServoedBeam(

@@ -203,7 +203,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
                 if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
                     gain[idx] = constants.SUSERVOED_BEAMS[
                         beam_info
-                    ].pgia_setting
+                    ].alt_pgia_setting
 
         i = 0
         for handle in self.mot_xodt.suservo_setters_and_param_handles:
