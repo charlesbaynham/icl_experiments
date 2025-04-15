@@ -595,7 +595,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=3.8,
+        setpoint=3.5,
     ),
     SUServoedBeam(
         "lattice_input_1379",
