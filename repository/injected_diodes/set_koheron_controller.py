@@ -14,10 +14,13 @@ from ndscan.experiment import BoolParam
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
+from ndscan.experiment.annotations import axis_location
+from ndscan.experiment.default_analysis import CustomAnalysis
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from ndscan.experiment.result_channels import FloatChannel
 
 from device_db_config import get_configuration_from_db
 from repository.lib import constants
@@ -34,6 +37,7 @@ class SetKoheronFrag(ExpFragment):
     def build_fragment(
         self,
         controller_name: Optional[str] = None,
+        analysis_fn: Optional[callable] = None,
     ):
         """
         Build this fragment
@@ -41,6 +45,7 @@ class SetKoheronFrag(ExpFragment):
         If controller_name is provided then this fragment use it.
         Otherwise, it will expose it as an ARTIQ argument (note, not an ndscan parameter) instead.
         """
+        self.analysis_fn = analysis_fn
 
         self.setattr_device("core")
         self.core: Core
@@ -269,6 +274,39 @@ class SetKoheronFrag(ExpFragment):
     @rpc
     def set_current_rpc(self, current):
         self.controller.set_current_mA(1e3 * current)
+
+    def analyse_fn(
+        self,
+        axis_values,
+        result_values,
+        analysis_results: dict[str, FloatChannel],
+    ):
+        current = axis_values[self.current]
+        voltage = result_values[self.voltage]
+        i_lock, window_start, window_end, v_window_start = self.analysis_fn(
+            current, voltage
+        )
+        analysis_results["i_lock"].push(round(i_lock, 4))
+        analysis_results["window_start"].push(round(window_start, 4))
+        analysis_results["window_end"].push(round(window_end, 4))
+        return [
+            axis_location(self.current, analysis_results["i_lock"]),
+            axis_location(self.current, analysis_results["window_start"]),
+            axis_location(self.current, analysis_results["window_end"]),
+        ]
+
+    def get_default_analyses(self):
+        if self.analysis_fn is None:
+            return []
+        required_axes = [self.current]
+        analyze_fn = self.analyse_fn
+        analysis_results = [
+            FloatChannel("i_lock", display_hints={"priority": -1}),
+            FloatChannel("window_start", display_hints={"priority": -1}),
+            FloatChannel("window_end", display_hints={"priority": -1}),
+        ]
+        new_analysis = CustomAnalysis(required_axes, analyze_fn, analysis_results)
+        return [new_analysis]
 
 
 # SetKoheron = make_fragment_scan_exp(SetKoheronFrag)

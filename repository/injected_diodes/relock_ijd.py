@@ -19,8 +19,6 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import LinearGenerator
 from ndscan.experiment import Subscan
 from ndscan.experiment import setattr_subscan
-from ndscan.experiment.annotations import axis_location
-from ndscan.experiment.default_analysis import CustomAnalysis
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -28,7 +26,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from ndscan.experiment.result_channels import FloatChannel
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 import repository.lib.constants as constants
@@ -286,46 +283,6 @@ class RelockIJDFrag(ExpFragment):
             window_end,
             v_window_start,
         )
-
-    def analyse_fn(
-        self,
-        axis_values,
-        result_values,
-        analysis_results: dict[str, FloatChannel],
-    ):
-        current = axis_values[self.frag_ijd_scanner.current]
-        voltage = result_values[self.frag_ijd_scanner.voltage]
-        i_lock, window_start, window_end, v_window_start = self.find_lock_point(
-            current, voltage
-        )
-        analysis_results["i_lock"].push(i_lock)
-        analysis_results["window_start"].push(window_start)
-        analysis_results["window_end"].push(window_end)
-        analysis_results["v_window_start"].push(v_window_start)
-        return [
-            axis_location(self.frag_ijd_scanner.current, analysis_results["i_lock"]),
-            axis_location(
-                self.frag_ijd_scanner.voltage, analysis_results["window_start"]
-            ),
-            axis_location(
-                self.frag_ijd_scanner.voltage, analysis_results["window_end"]
-            ),
-            axis_location(
-                self.frag_ijd_scanner.voltage, analysis_results["v_window_start"]
-            ),
-        ]
-
-    def get_default_analyses(self):
-        required_axes = [self.frag_ijd_scanner.current]
-        analyze_fn = self.analyse_fn
-        analysis_results = [
-            FloatChannel("i_lock"),
-            FloatChannel("window_start"),
-            FloatChannel("window_end"),
-            FloatChannel("v_window_start"),
-        ]
-        new_analysis = CustomAnalysis(required_axes, analyze_fn, analysis_results)
-        return [new_analysis]
 
 
 class RelockAllIJDsFrag(ExpFragment):
