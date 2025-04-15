@@ -16,12 +16,12 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
 )
-from pyaion.models import UrukuledBeam
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beams.reset_all_beams import ResetAllICLBeams
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsSlow
+from repository.lib.fragments.pyaion_overrides.models_override import UrukuledBeam
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndMOTField,
 )

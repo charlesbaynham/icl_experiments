@@ -6,9 +6,10 @@ from artiq.experiment import kernel
 from ndscan.experiment import ExpFragment
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-#from pyaion.models import SUServoedBeam
+
+# from pyaion.models import SUServoedBeam
 from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
-from pyaion.models import UrukuledBeam
+from repository.lib.fragments.pyaion_overrides.models_override import UrukuledBeam
 
 BEAM_INFO_SUSERVO_NO_SHUTTER = SUServoedBeam(
     "no_shutter_suservo", 0.0, 0.0, "suservo0_ch0"
