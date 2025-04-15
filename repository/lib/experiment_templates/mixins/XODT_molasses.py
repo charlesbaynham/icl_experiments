@@ -207,7 +207,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
         i = 0
         for handle in self.mot_xodt.suservo_setters_and_param_handles:
-            handle[0].set_pgia_gain_mu(gain[i])
+            handle[0].set_pgia_gain_mu(self.gain[i])
             handle[0].set_setpoint(
                 SETPOINTS[i]
                 * self.mot_xodt.default_suservo_setpoint_multiples_start[i]

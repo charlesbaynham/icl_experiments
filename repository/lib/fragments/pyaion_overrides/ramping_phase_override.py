@@ -216,7 +216,7 @@ class GeneralRampingPhase(Fragment):
             self.default_suservo_offset = [0.0] * len(self.suservos)
 
         if self.default_suservo_pgia == []:
-            self.default_suservo_pgia = [0 * len(self.suservos)]
+            self.default_suservo_pgia = [0] * len(self.suservos)
 
         self.validate_attributes()
 
