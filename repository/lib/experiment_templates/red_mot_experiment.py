@@ -235,6 +235,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
         ):
             handle.setter.set_pgia_gain_mu(0)
+            handle.setter.set_iir_params(ki=-10000.0)
         self.core.break_realtime()
 
         self.DMA_initialization_hook()

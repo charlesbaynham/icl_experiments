@@ -191,20 +191,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
         self.up_channel.set(en_out=1, en_iir=0, profile=self.up_channel.channel)
 
-        # Set the PGIA gains for the red suservos
-        # i = 0
-        # for (
-        #     handle
-        # ) in (
-        #     self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
-        # ):
-        #     gain = RED_SUSERVO_PGIA[i]
-        #     handle.setter.set_pgia_gain_mu(gain)
-        #     self.red_mot.red_beam_controller.suservo_fragments[i].set_setpoint(
-        #         SETPOINTS[i] * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
-        #     )
-        #     i += 1
-
+        # Set the PGIA gains for the red suservos, and change suservo setpoint and gain
         i = 0
         for handle in self.mot_xodt.suservo_setters_and_param_handles:
             handle[0].set_pgia_gain_mu(self.gain[i])
@@ -213,6 +200,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
                 * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
                 * 10 ** (self.gain[i])
             )
+            handle[0].set_iir_params(ki=-10000.0 / (10 ** self.gain[i]) * 3)
             i += 1
 
         # #enable the servo
