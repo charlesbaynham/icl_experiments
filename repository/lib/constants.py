@@ -544,7 +544,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.0152,
+        photodiode_offset=0.018,
         alt_pgia_setting=2,
     ),
     SUServoedBeam(
@@ -557,7 +557,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=0.4,
         initial_amplitude=0.05,
-        photodiode_offset=0.018,
+        photodiode_offset=0.0,
         alt_pgia_setting=2,
     ),
     SUServoedBeam(
