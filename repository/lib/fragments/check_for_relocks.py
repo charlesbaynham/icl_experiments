@@ -1,6 +1,7 @@
 import logging
 from typing import List
 
+import numpy as np
 from artiq.language.core import host_only
 from artiq.language.core import rpc
 from ndscan.experiment.fragment import Fragment
@@ -53,8 +54,9 @@ class CheckForRelocksFrag(Fragment):
             n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
         return n_relocks
 
-    @rpc(flags={"async"})
-    def check_and_log_relocks(self):
+    @rpc
+    def check_and_log_relocks(self) -> np.int32:
+        relocks_total = 0
         num_relolocks = self.check_for_relocks()
         for i, n in enumerate(num_relolocks):
             if n:
@@ -64,3 +66,5 @@ class CheckForRelocksFrag(Fragment):
                     n,
                 )
             self.num_relock_channels[i].push(n)
+            relocks_total += n
+        return int(sum(num_relolocks))
