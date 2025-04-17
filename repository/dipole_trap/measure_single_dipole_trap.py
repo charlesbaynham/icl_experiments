@@ -32,7 +32,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
-    Make Single XODT, image twice for BG subtraction
+    Make Single XODT, evaporate, image twice for BG subtraction
     """
 
     @kernel
