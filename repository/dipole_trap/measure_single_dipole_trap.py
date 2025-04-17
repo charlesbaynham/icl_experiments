@@ -18,7 +18,10 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin, XODTSingleMolassesMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +35,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
-    Make Single XODT, evaporate, image twice for BG subtraction
+    Make Single XODT, image twice for BG subtraction
     """
 
     @kernel
