@@ -531,7 +531,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.001,  # 0.01238,
+        photodiode_offset=0.0124,  # 0.001,  # 0.01238,
         alt_pgia_setting=2,
     ),
     SUServoedBeam(
@@ -544,7 +544,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.001,
+        photodiode_offset=0.019,  # 0.001,
         alt_pgia_setting=2,
     ),
     SUServoedBeam(
@@ -557,7 +557,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=0.4,
         initial_amplitude=0.05,
-        photodiode_offset=0.016,
+        photodiode_offset=0.0012,  # 0.016,
         alt_pgia_setting=2,
     ),
     SUServoedBeam(
@@ -570,7 +570,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
-        photodiode_offset=0.0027,  # 0.0108,
+        photodiode_offset=0.0115,  # 0.0027,  # 0.0108,
         alt_pgia_setting=1,
     ),
     ### OTHER ###
