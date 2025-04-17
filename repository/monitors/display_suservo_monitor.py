@@ -127,7 +127,7 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
         delay(self.waittime.get())
 
         self.core.break_realtime()
-        v = self.adc_reader.read_adc() - self.beam_info.photodiode_offset
+        v = self.adc_reader.read_adc()
 
         self.voltage.push(v)
 
@@ -287,10 +287,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
         for i_beam in range(len(self.adc_readers)):
             self.core.break_realtime()
-            voltages[i_beam] = (
-                self.adc_readers[i_beam].read_adc()
-                - self.suservo_beam_infos[i_beam].photodiode_offset
-            )
+            voltages[i_beam] = self.adc_readers[i_beam].read_adc()
             self.core.break_realtime()
             ctrl_signals[i_beam] = self.adc_readers[i_beam].read_ctrl_signal()
 
