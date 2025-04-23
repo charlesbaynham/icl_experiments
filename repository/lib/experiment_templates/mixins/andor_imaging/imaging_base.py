@@ -18,6 +18,8 @@ from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from sipyco.packed_exceptions import GenericRemoteException
 
 from repository.lib import constants
@@ -104,6 +106,15 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.setattr_device("grabber0")
                 self.grabber0: Grabber
 
+                self.setattr_param(
+                    "set_topica_pre_delay",
+                    FloatParam,
+                    "Toptica setting pre-delay",
+                    default=10e-3,
+                    unit="ms",
+                )
+                self.set_topica_pre_delay: FloatParamHandle
+
                 self.setattr_device("core")
                 self.core: Core
 
@@ -117,7 +128,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.device_setup_subfragments()
                 self.core.break_realtime()
 
-                # self.set_toptica_analog.reset_freq()
+                self.set_toptica_analog.reset_freq()
 
                 grabber_clearout = [0] * self.num_grabber_rois
 
@@ -269,10 +280,13 @@ class AndorImagingBase(RedMOTWithExperiment):
         Default implementation of a fluorescence pulse, available for use by
         mixins (but not used by default).
         """
-        # if self.set_toptica_analog.freq_step.get() != 0.0:
-        #     delay(-self.set_topica_pre_delay.get()*1e-3)
-        #     self.set_toptica_analog.step_freq()
-        #     delay(self.set_topica_pre_delay.get()*1e-3)
+        if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
+            delay(-self.imagingsetup.set_topica_pre_delay.get())
+            self.imagingsetup.set_toptica_analog.step_freq()
+            delay(
+                self.imagingsetup.set_topica_pre_delay.get()
+                + constants.DELAY_BETWEEN_RTIO_EVENTS
+            )
         with parallel:
             self.andor_camera_control.trigger(
                 exposure=self.fluorescence_pulse.fluorescence_pulse_duration.get(),
@@ -280,8 +294,14 @@ class AndorImagingBase(RedMOTWithExperiment):
             )
             if with_light:
                 self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
-        # if self.set_toptica_analog.freq_step.get() != 0.0:
-        #     self.set_toptica_analog.reset_freq()
+        if self.imagingsetup.set_toptica_analog.freq_step.get() != 0.0:
+            delay(
+                constants.DELAY_BETWEEN_RTIO_EVENTS
+            )  # to avoid collision with turn_off_beams in do_imaging_pulse
+            self.imagingsetup.set_toptica_analog.reset_freq()
+            delay(
+                constants.DELAY_BETWEEN_RTIO_EVENTS
+            )  # to avoid collision with next event, e.g. MOT field setting in BGCorrectedAndorImage
 
     # In red_mot_experiment this is optional, but we make it compulsory here
     # since using this base class alone should be an error

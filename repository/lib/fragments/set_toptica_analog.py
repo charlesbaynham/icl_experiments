@@ -70,6 +70,7 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.arc_factor = 0.04
         self.voltage_min = -10.0  # we have a 1/5 attenuator so we can go all the way
         self.voltage_max = 10.0
+        self.voltage: float = 0.0
 
     @host_only
     def host_setup(self):
@@ -86,11 +87,14 @@ class SetTopticaAnalogFrag(ExpFragment):
     def device_setup(self):
         self.device_setup_subfragments()
         self.core.break_realtime()
+        self.fastino0.init()
         if self.first_run:
-            self.fastino0.init()
+
             self.first_run = False
-            self.core.break_realtime()
+        self.core.break_realtime()
         self.reset_freq()
+        self.core.break_realtime()
+        self.voltage = self.convert_freq(self.freq_step.get())
         self.core.break_realtime()
 
     @kernel
@@ -117,11 +121,11 @@ class SetTopticaAnalogFrag(ExpFragment):
 
     @kernel
     def step_freq(self):
-        voltage = self.convert_freq(self.freq_step.get())
+        # voltage = self.convert_freq(self.freq_step.get())
         # voltage = self.target_voltage.get()
-        delay(1e-6)
-        self.log_fastino_stuff(voltage)
-        self.fastino0.set_dac(self.channel, voltage)
+        # delay(1e-6)
+        # self.log_fastino_stuff(voltage)
+        self.fastino0.set_dac(self.channel, self.voltage)
 
     @kernel
     def reset_freq(self):
