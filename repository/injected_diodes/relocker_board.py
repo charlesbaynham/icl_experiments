@@ -12,7 +12,6 @@ from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import OpaqueChannel
-from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -322,12 +321,13 @@ class RelockerChannelFrag(ExpFragment):
 
 
 class RelockerFrag(ExpFragment):
+    "Run all relockers"
+
     def build_fragment(self):
         self.relocker_frags: List[RelockerChannelFrag] = []
         self.relocker_enabled: List[BoolParamHandle] = []
 
         for ijd_name in IJD_RELOCKER_DEFAULTS:
-            IJD_RELOCKER_DEFAULTS[ijd_name]
             fragment_name = f"frag_relocker_{ijd_name}"
 
             frag = self.setattr_fragment(
@@ -353,40 +353,13 @@ class RelockerFrag(ExpFragment):
             enabled = self.relocker_enabled[i]
 
             if enabled.get():
-                if relocker_frag.write_settings:
-                    relocker_frag.set_scan_settings()
-                    relocker_frag.set_lock_settings()
                 relocker_frag.relock()
                 relocker_frag.log_results()
+                time.sleep(0.1)
 
 
-class RelockerAutoFrag(ExpFragment):
+class RelockerAutoFrag(RelockerFrag):
     "Enable relocker autorelocking"
-
-    def build_fragment(self):
-        self.relocker_frags: List[RelockerChannelFrag] = []
-        self.relocker_enabled: List[BoolParamHandle] = []
-
-        for ijd_name in IJD_RELOCKER_DEFAULTS:
-            IJD_RELOCKER_DEFAULTS[ijd_name]
-            fragment_name = f"frag_relocker_{ijd_name}"
-
-            frag = self.setattr_fragment(
-                fragment_name,
-                RelockerChannelFrag,
-                ijd_name,
-            )
-
-            self.relocker_frags.append(frag)  # frag.frag_ijd type: ignore
-
-            self.relocker_enabled.append(
-                self.setattr_param(
-                    f"{ijd_name}_enabled",
-                    BoolParam,
-                    description=f"{ijd_name} enabled",
-                    default=True,
-                )
-            )
 
     def run_once(self) -> None:
         for i in range(len(self.relocker_frags)):
@@ -509,8 +482,3 @@ class ScanIJDRelockerFrag(ExpFragment):
     def cleanup(self):
         logger.info("Cancelling scan")
         self.relocker.cancel_command()
-
-
-RunRelockerChannel = make_fragment_scan_exp(RelockerChannelFrag)
-RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
-ScanIJDRelocker = make_fragment_scan_exp(ScanIJDRelockerFrag)
