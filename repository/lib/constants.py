@@ -979,6 +979,7 @@ XODT_2ND_MOLASSES_689_STIR_DETUNING = 900e3
 # "suservo_aom_singlepass_689_up",
 # "suservo_aom_1064_delivery",
 # "suservo_aom_down_813"
+# "suservo_aom_singlepass_487_transparency"
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
 if USE_SR87:
@@ -991,8 +992,8 @@ if USE_SR87:
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
     XODT_MOLASSES_DURATION = 20e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
         0e3,
     ]

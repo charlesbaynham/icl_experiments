@@ -5,6 +5,7 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -16,6 +17,12 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleX
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_molasses
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    SetBeamsToDefaults,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    make_set_beams_to_default,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -248,6 +255,21 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
         self.molasses_xodt_1: MolassesInXODT
 
+        self.setattr_fragment(
+            "transparency_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
+
         # Remove unused parameters
         # self.override_param("spectroscopy_field_gradient", 0)
 
@@ -381,9 +403,12 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         """
         Do the first molasses ramping phase
         """
+
+        # turn on red beams and transparency beam
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
+        self.transparency_setter.turn_on_all()
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
@@ -391,6 +416,9 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
         self.molasses_xodt_1.do_phase()
+
+        # turn off transparency beam
+        self.transparency_setter.turn_off_all()
 
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):

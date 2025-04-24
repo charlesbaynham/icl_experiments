@@ -26,6 +26,9 @@ suservos_XODT = [
     "suservo_aom_1064_delivery",
     "suservo_aom_down_813",
 ]
+
+suservos_transparency = ["suservo_aom_singlepass_487_transparency"]
+
 suservos_cavity_lattice = [
     "suservo_aom_singlepass_1379_cavity_input",
 ]
@@ -55,6 +58,8 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     default_suservo_offset = [0.0] * 6
     default_suservo_pgia = [0] * 6
 
+    # Set the photodiodes offset and PGIA settings for the suservos
+    # to the default values
     for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS:
             if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
@@ -92,16 +97,16 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     urukuls = urukuls_molasses
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = suservos_molasses + suservos_XODT
+    suservos = suservos_molasses + suservos_XODT + suservos_transparency
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
-    default_suservo_nominal_setpoints = [0.0] * 6
-    default_suservo_offset = [0.0] * 6
-    default_suservo_pgia = [0] * 6
+    default_suservo_nominal_setpoints = [0.0] * len(suservos)
+    default_suservo_offset = [0.0] * len(suservos)
+    default_suservo_pgia = [0] * len(suservos)
 
     for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS:
