@@ -419,7 +419,9 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.molasses_xodt_1.do_phase()
 
         # turn off transparency beam
-        self.transparency_setter.turn_off_all()
+        self.transparency_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
 
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
