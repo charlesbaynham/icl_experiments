@@ -339,6 +339,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
                 self.dipole_beam_controller.all_beam_default_setter,
+                self.transparency_setter,
             ]
         )
 
