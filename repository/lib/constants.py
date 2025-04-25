@@ -73,13 +73,13 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         name="clock_up",
         frequency=200e6,
-        attenuation=10.0,  # FIXME: Change back to 0 as default
+        attenuation=5.0,  # FIXME: Change back to 0 as default
         urukul_device="urukul9910_aom_698_up_switch",
     ),
     UrukuledBeam(
         name="clock_down",
         frequency=200e6,
-        attenuation=10.0,  # FIXME: Change back to 0 as default
+        attenuation=5.0,  # FIXME: Change back to 0 as default
         urukul_device="urukul9910_aom_698_down_switch",
     ),
     UrukuledBeam(
