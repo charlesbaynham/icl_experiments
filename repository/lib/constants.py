@@ -73,7 +73,7 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         name="clock_up",
         frequency=200e6,
-        attenuation=0.0,
+        attenuation=10.0,
         urukul_device="urukul9910_aom_698_up_switch",
     ),
     UrukuledBeam(
