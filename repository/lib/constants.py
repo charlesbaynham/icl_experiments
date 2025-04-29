@@ -90,7 +90,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_USOC_delivery",
-        frequency=100e6,
+        frequency=130e6,
         attenuation=15,
         urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
     ),
