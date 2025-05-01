@@ -88,6 +88,13 @@ def get_temperatures(ipaddr):
             raise RuntimeError("No response received!")
         else:
             temperatures = [float(x) for x in rxdata.decode()[2:].split("+")]
+
+            # If the temperature is over 9999 it means the channel is not
+            # connected, so mark it with a NaN
+            for index, temperature in enumerate(temperatures):
+                if temperature > 9999:
+                    temperatures[index] = float("nan")
+
             return temperatures
 
 
@@ -133,7 +140,7 @@ class _MonitorLabTemperatureBrainbox(Calibration):
 
 
 class MonitorTemperatureSidearmBrainbox(_MonitorLabTemperatureBrainbox):
-    monitor_ip = "xxxxx"  # FIXME: Replace with actual IP address
+    monitor_ip = "brainbox-temperature-aion.lan"
     descriptions = {
-        0: "test_temperature",
+        6: "above_chamber",
     }
