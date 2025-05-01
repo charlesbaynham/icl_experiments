@@ -194,6 +194,7 @@
                   export PATH=${pkgs.lib.makeBinPath overriddenOutputs.devShells.artiq.buildInputs}:$PATH
 
                   export WAND_CONFIG_PATH=$(mktemp -t wand_server_XXXXXXXX)
+                  cat ${config_file}
                   cp "${config_file}" "$WAND_CONFIG_PATH"
                   exec wand_server "$@"
                 '');
