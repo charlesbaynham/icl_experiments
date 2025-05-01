@@ -73,13 +73,13 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         name="clock_up",
         frequency=200e6,
-        attenuation=10.0,  # FIXME: Change back to 0 as default
+        attenuation=10.0,
         urukul_device="urukul9910_aom_698_up_switch",
     ),
     UrukuledBeam(
         name="clock_down",
         frequency=200e6,
-        attenuation=10.0,  # FIXME: Change back to 0 as default
+        attenuation=0.0,
         urukul_device="urukul9910_aom_698_down_switch",
     ),
     UrukuledBeam(
@@ -679,7 +679,7 @@ _default_461 = (
 )
 _default_707 = 423_913_478e6
 _default_679 = 441_332_627e6
-_default_487 = 615_103_493e6  # From NIST
+# _default_487 = 615_103_493e6  # From NIST
 _default_698 = 429_228_387.3e6  # Measured empirically
 _clock_laser_offset = -80e6
 
@@ -769,7 +769,7 @@ WAND_SETPOINTS_88 = {
     "461": (_default_461, True),
     "707": (_default_707, True),
     "679": (_default_679, True),
-    "487": (_default_487, True),
+    # "487": (_default_487, True),
     "689": (_default_689, False),
     "689_IJD": (
         _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
@@ -785,7 +785,7 @@ WAND_SETPOINTS_87 = {
     "461": (_default_461 - 60e6, True),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
-    "487": (_default_487, True),
+    # "487": (_default_487, True),
     "689": (_default_689 - _isotope_shift_689, False),
     "689_IJD": (
         _default_689
