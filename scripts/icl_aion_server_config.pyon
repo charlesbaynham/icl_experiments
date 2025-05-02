@@ -169,7 +169,6 @@
             "locked": false,
             "locked_at": 0,
         },
-    },
         "487": {
             "auto_exposure": true,
             "channel": 8,
@@ -194,6 +193,7 @@
             "host": "10.137.1.12",
             "target": "laser1",
         },
+    },
     "name": "icl_aion",
     "poll_time": 5,
     "switch": {

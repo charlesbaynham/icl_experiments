@@ -124,6 +124,7 @@ class RelockIJDFrag(ExpFragment):
             f"frag_koheron_{controller_name}",
             SetKoheronFrag,
             controller_name=controller_name,
+            analysis_fn=self.find_lock_point,
         )
         for k, v in IJD_RELOCKER_DEFAULTS.items():
             if v.associated_controller == controller_name:
@@ -359,6 +360,9 @@ class RelockAllIJDsFrag(ExpFragment):
 
             if enabled.get():
                 ijd_relock_frag.relock(self.enable_auto_relocking.get())
+
+    def get_default_analyses(self):
+        return super().get_default_analyses()
 
 
 # RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
