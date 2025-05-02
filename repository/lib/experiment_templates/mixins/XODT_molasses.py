@@ -142,13 +142,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
         self.gain = [0] * len(suservos_molasses + suservos_XODT)
 
-        # for idx, beam_name in enumerate(suservos_molasses + suservos_XODT):
-        #     for beam_info in constants.SUSERVOED_BEAMS:
-        #         if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
-        #             self.gain[idx] = constants.SUSERVOED_BEAMS[
-        #                 beam_info
-        #             ].alt_pgia_setting
-
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
@@ -185,44 +178,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
-
-        # # disable the servo
-        # self.diagonal_channel.set(
-        #     en_out=1, en_iir=0, profile=self.diagonal_channel.channel
-        # )
-        # self.sigmaplus_channel.set(
-        #     en_out=1, en_iir=0, profile=self.sigmaplus_channel.channel
-        # )
-        # self.sigmaminus_channel.set(
-        #     en_out=1, en_iir=0, profile=self.sigmaminus_channel.channel
-        # )
-        # self.up_channel.set(en_out=1, en_iir=0, profile=self.up_channel.channel)
-
-        # # Set the PGIA gains for the red suservos, and change suservo setpoint and gain
-        # i = 0
-        # for handle in self.mot_xodt.suservo_setters_and_param_handles:
-        #     handle[0].set_pgia_gain_mu(self.gain[i])
-        #     handle[0].set_setpoint(
-        #         SETPOINTS[i]
-        #         * self.mot_xodt.default_suservo_setpoint_multiples_start[i]
-        #         * 10 ** (self.gain[i])
-        #     )
-        #     handle[0].set_iir_params(ki=-10000.0 / (10 ** self.gain[i]) * 3)
-        #     i += 1
-
-        # # #enable the servo
-        # self.diagonal_channel.set(
-        #     en_out=1, en_iir=1, profile=self.diagonal_channel.channel
-        # )
-        # self.sigmaplus_channel.set(
-        #     en_out=1, en_iir=1, profile=self.sigmaplus_channel.channel
-        # )
-        # self.sigmaminus_channel.set(
-        #     en_out=1, en_iir=1, profile=self.sigmaminus_channel.channel
-        # )
-        # self.up_channel.set(en_out=1, en_iir=1, profile=self.up_channel.channel)
-
-        # self.mot_xodt.suservo_setters_and_param_handles[0][0]
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
