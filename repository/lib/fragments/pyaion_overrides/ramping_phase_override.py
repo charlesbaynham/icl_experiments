@@ -740,9 +740,9 @@ class GeneralRampingPhase(Fragment):
 
             # Set the PGIA to the requested value
             # FIXME: Alice please check I haven't messed this up!
-            for i in range(len(self.suservo_setters_and_param_handles)):
-                suservo_channel = self.suservo_setters_and_param_handles[i][0]
-                suservo_channel.set_pgia_gain_mu(self.default_suservo_pgia[i])
+            # for i in range(len(self.suservo_setters_and_param_handles)):
+            #     suservo_channel = self.suservo_setters_and_param_handles[i][0]
+            #     suservo_channel.set_pgia_gain_mu(self.default_suservo_pgia[i])
 
             # Play the ramp
             if self.add_final_point:
