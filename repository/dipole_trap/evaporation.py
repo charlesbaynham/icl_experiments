@@ -15,7 +15,6 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 class EvaporationFrag(
     EvaporationSingleRampMixin, BGCorrectedAndorImage, FLIRBlueMOTMeasurementMixin
 ):
-
     """
     Do evaporation from XODT
     """

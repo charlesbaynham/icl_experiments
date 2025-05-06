@@ -51,9 +51,7 @@ def gaussian_2d(pos, amplitude, x0, y0, sigma_x, sigma_y, theta, offset):
     a = (np.cos(theta) ** 2) / (2 * sigma_x**2) + (np.sin(theta) ** 2) / (
         2 * sigma_y**2
     )
-    b = -(np.sin(2 * theta)) / (4 * sigma_x**2) + (np.sin(2 * theta)) / (
-        4 * sigma_y**2
-    )
+    b = -(np.sin(2 * theta)) / (4 * sigma_x**2) + (np.sin(2 * theta)) / (4 * sigma_y**2)
     c = (np.sin(theta) ** 2) / (2 * sigma_x**2) + (np.cos(theta) ** 2) / (
         2 * sigma_y**2
     )
