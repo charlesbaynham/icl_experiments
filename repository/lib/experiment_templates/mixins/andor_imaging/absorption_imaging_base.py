@@ -258,10 +258,10 @@ class AbsorptionImagingBase(AndorImagingBase):
             self.od_img.push([])
 
         if self.do_gauss_fit.get():
-            logger.info("Doing gauss fitod_im")
+            logger.debug("Doing gauss fitod_im")
             self.do_gauss_fit_hook([od_img])
         else:
-            logger.info("Not doing gauss fit")
+            logger.debug("Not doing gauss fit")
             for i in range(len(self.amps)):
                 self.push_gauss_fit_pars([np.nan] * 5, i)
 

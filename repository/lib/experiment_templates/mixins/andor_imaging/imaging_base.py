@@ -484,10 +484,10 @@ class AndorImagingBase(RedMOTWithExperiment):
                 andor_image.push([])
 
         if self.do_gauss_fit.get():
-            logger.info("Doing gauss fit")
+            logger.debug("Doing gauss fit")
             self.do_gauss_fit_hook(imgs_array)
         else:
-            logger.info("Not doing gauss fit")
+            logger.debug("Not doing gauss fit")
             for i in range(len(self.amps)):
                 self.push_gauss_fit_pars([np.nan] * 5, i)
 
