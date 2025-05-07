@@ -91,6 +91,12 @@ class SingleXODTSloshedFrag(
         self.DMA_initialization_hook_single_xodt_mot()
 
     @kernel
+    def post_dipole_trap_hook(self):
+        """
+        Override post_dipole_trap_hook so that the beams are not turned off
+        """
+
+    @kernel
     def do_experiment_after_dipole_trap_hook(self):
         """
         Turn off the vertical trap then wait then image
