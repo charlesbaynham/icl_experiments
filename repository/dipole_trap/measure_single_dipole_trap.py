@@ -27,17 +27,17 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImage,
     LoadSingleXODTMixin,
-    EvaporationThreeRampsMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    # EvaporationThreeRampsMixin,
+    # OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
-    Make Single XODT, evaporate, image twice for BG subtraction
+    Make Single XODT, image twice for BG subtraction
     """
 
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_linear_evap()
+        # self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_single_xodt_mot()
 
     @kernel
