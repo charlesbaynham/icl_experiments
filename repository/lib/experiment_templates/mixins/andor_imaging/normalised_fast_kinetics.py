@@ -63,7 +63,7 @@ class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
         return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_andor_images,
+            num_images=self.num_images_per_series,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
