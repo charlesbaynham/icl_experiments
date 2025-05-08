@@ -65,15 +65,6 @@ class SingleXODTSloshedFrag(
     """
 
     def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_fragment(
-            "down_813_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["down_813"].suservo_device,
-        )
-        self.down_813_suservo: LibSetSUServoStatic
-
         self.setattr_param(
             "slosh_time",
             FloatParam,
@@ -83,6 +74,15 @@ class SingleXODTSloshedFrag(
             min=0,
         )
         self.slosh_time: FloatParamHandle
+
+        self.setattr_fragment(
+            "down_813_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["down_813"].suservo_device,
+        )
+        self.down_813_suservo: LibSetSUServoStatic
+
+        super().build_fragment()
 
     @kernel
     def DMA_initialization_hook(self):
