@@ -8,7 +8,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
-    NormalisedRedMOTFastKineticsMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
     ShapedRabiSpectroscopyDipoleTrapMixin,
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class ShapedClockSpecFromSingleXODTFrag(
     ShapedRabiSpectroscopyDipoleTrapMixin,
-    NormalisedRedMOTFastKineticsMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
