@@ -34,7 +34,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    Shaped clock spectroscopy from dropped single XODT with evaporation
+    Shaped clock spectroscopy from dropped single XODT
 
     Load into an XODT, then use the up clock beam for spectroscopy, altering the
     (single-pass) SUServo AOM's frequency and shaping the pulse with the final
