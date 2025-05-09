@@ -303,8 +303,8 @@ CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
     [
         ("Width", 256),
         ("Height", 256),
-        ("OffsetX", 1650),
-        ("OffsetY", 780),
+        ("OffsetX", 1700),
+        ("OffsetY", 800),
     ]
 )
 "Chamber 2 horizontal camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
