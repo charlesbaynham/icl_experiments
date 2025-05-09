@@ -301,10 +301,10 @@ FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 # camera and it will complain if it's ever in an invalid state
 CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
     [
-        ("Width", 8),
-        ("Height", 8),
-        ("OffsetX", 0),
-        ("OffsetY", 0),
+        ("Width", 256),
+        ("Height", 256),
+        ("OffsetX", 1650),
+        ("OffsetY", 780),
     ]
 )
 "Chamber 2 horizontal camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
