@@ -66,7 +66,7 @@ class MeasureNarrowbandMOTNoAndorFrag(
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
     BGCorrectedAndorImage,
-    FLIRMeasurementMixin,
+    # FLIRMeasurementMixin,
     _MeasureNarrowbandMOTFrag,
 ):
     """
