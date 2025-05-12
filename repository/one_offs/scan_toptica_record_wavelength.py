@@ -9,7 +9,7 @@ from wand.server import ControlInterface as WANDControlInterface
 
 from repository.lib import constants
 
-MAX_VOLTAGE_STEP = 5.0
+MAX_VOLTAGE_STEP = 20
 
 TOPTICA_TO_WAND_NAMES = {
     "toptica_461": "461",
@@ -80,7 +80,7 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         # Get the laser's nominal setpoint
         self.nominal_setpoint = constants.WAND_SETPOINTS_87[
             TOPTICA_TO_WAND_NAMES[self.laser_name]
-        ]
+        ][0]
 
         return super().host_setup()
 
