@@ -343,7 +343,10 @@ class RelockAllIJDsFrag(ExpFragment):
         )
 
         self.setattr_param(
-            "enable_auto_relocking", BoolParam, "Enable Autorelocking", default=True
+            "enable_auto_relocking",
+            BoolParam,
+            "Enable relocker board autorelocking",
+            default=True,
         )
         self.enable_auto_relocking: BoolParamHandle
 
