@@ -189,7 +189,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_461": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-461-679",
@@ -201,7 +201,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_679": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-461-679",
@@ -213,7 +213,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_1379": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-1379-698",
@@ -226,7 +226,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_698": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-1379-698",
@@ -239,7 +239,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_707": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-707-689",
@@ -251,7 +251,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_689": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-707-689",
@@ -264,7 +264,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_487": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-487-641",
@@ -276,7 +276,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_641": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-487-641",
