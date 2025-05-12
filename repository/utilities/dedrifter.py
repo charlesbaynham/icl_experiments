@@ -33,14 +33,6 @@ class DedriftExpFrag(ExpFragment):
     """
 
     def build_fragment(self):
-        self.setattr_device("dedrifter_core")
-        self.dedrifter_core: Core
-
-        # Patch "core" attribute to be the dedrifter core
-        self.core: Core = self.dedrifter_core
-        self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("core")
-
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
@@ -83,6 +75,15 @@ class DedriftExpFrag(ExpFragment):
 
         self.kernel_invariants.add("wait_time")
         self.kernel_invariants.add("write_delay")
+
+    def build(self, fragment_path, *args, **kwargs):
+        super().build(fragment_path, *args, **kwargs)
+
+        # Patch "core" attribute to be the dedrifter core
+        self.setattr_device("dedrifter_core")
+        self.dedrifter_core: Core
+        self.core = self.dedrifter_core
+        self.kernel_invariants.add("core")
 
     @host_only
     def host_setup(self):

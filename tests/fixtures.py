@@ -101,7 +101,8 @@ def fragment_precompiler(fragment_factory):
         def precompile(self):
             for func in [self.device_setup, self.run_once, self.device_cleanup]:
                 if hasattr(func, "artiq_embedded"):
-                    precompiled = self.core.precompile(func)
+                    core: Core = self.core
+                    precompiled = core.precompile(func)
                     print(precompiled)
 
         setattr(exp, "precompile", precompile)

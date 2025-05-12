@@ -21,15 +21,9 @@ logger = logging.getLogger(__name__)
 
 class AD9910Dedrifter(Fragment):
     def build_fragment(self, dedrifter_info: DedrifterInfo):
-        self.info = dedrifter_info
-
-        self.setattr_device("dedrifter_core")
-        self.dedrifter_core: Core
-
-        # Patch "core" attribute to be the dedrifter core
-        self.core: Core = self.dedrifter_core
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("core")
+
+        self.info = dedrifter_info
 
         self.dds: AD9910 = self.get_device(self.info.channel_name)
         self.kernel_invariants.add("dds")
@@ -84,6 +78,15 @@ class AD9910Dedrifter(Fragment):
         # Kernel vars
         self.f_start = np.float64(0.0)
         self.f_act = np.float64(0.0)
+
+    def build(self, fragment_path, *args, **kwargs):
+        super().build(fragment_path, *args, **kwargs)
+
+        # Patch "core" attribute to be the dedrifter core
+        self.setattr_device("dedrifter_core")
+        self.dedrifter_core: Core
+        self.core = self.dedrifter_core
+        self.kernel_invariants.add("core")
 
     # @host_only
     # def host_setup(self):

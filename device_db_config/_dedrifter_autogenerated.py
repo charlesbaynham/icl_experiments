@@ -9,7 +9,7 @@ device_db = {
         "arguments": {
             "host": core_addr,
             "ref_period": 1e-09,
-            "analyzer_proxy": "core_analyzer",
+            "analyzer_proxy": "dedrifter_core_analyzer",
             "target": "rv32g",
             "satellite_cpu_targets": {},
         },
