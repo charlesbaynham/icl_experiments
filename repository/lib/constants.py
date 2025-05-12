@@ -517,7 +517,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.4,
+        setpoint=0.1,
         servo_enabled=True,
     ),
     ### RED ###
