@@ -158,13 +158,13 @@ IJD_DEFAULTS = {
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
         window_high=373e-3,
-        window_low=367e-3,
+        window_low=368e-3,
         relock_step=3e-3,
     ),
     "blue_IJD3_controller": IJDSettings(
         temperature=8850,
-        window_high=360e-3,
-        window_low=350e-3,
+        window_high=365e-3,
+        window_low=355e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
