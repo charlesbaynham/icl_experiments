@@ -62,8 +62,19 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         )
         self.toptica_current: FloatParamHandle
 
-        self.setattr_result("frequency", FloatChannel, display_hints={"priority": -1})
-        self.setattr_result("detuning", FloatChannel)
+        self.setattr_result(
+            "frequency",
+            FloatChannel,
+            display_hints={"priority": -1},
+            description="Measured laser frequency",
+            unit="MHz",
+        )
+        self.setattr_result(
+            "detuning",
+            FloatChannel,
+            description="Measured laser detuning",
+            unit="MHz",
+        )
 
         self.frequency: FloatChannel
         self.detuning: FloatChannel
