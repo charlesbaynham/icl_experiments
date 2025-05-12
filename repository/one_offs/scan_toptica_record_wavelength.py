@@ -9,8 +9,6 @@ from wand.server import ControlInterface as WANDControlInterface
 
 from repository.lib import constants
 
-MAX_VOLTAGE_STEP = 20
-
 TOPTICA_TO_WAND_NAMES = {
     "toptica_461": "461",
     "toptica_679": "679",
@@ -93,6 +91,16 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
             TOPTICA_TO_WAND_NAMES[self.laser_name]
         ][0]
 
+        # Make sure that the slew rate protection is on
+        slew_rate_protection_enabled = (
+            self.laser.dl.pc.output_filter.slew_rate_enabled.get()
+        )
+        if not slew_rate_protection_enabled:
+            raise RuntimeError(
+                f"Slew rate protection is not enabled for {self.laser_name}. "
+                "Please enable it in the Toptica GUI and set a save value."
+            )
+
         return super().host_setup()
 
     def run_once(self):
@@ -107,12 +115,6 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
 
     def set_toptica(self, new_voltage, new_current):
         if new_voltage > 0:
-            current_voltage = self.laser.dl.pc.voltage_set.get()
-            if abs(new_voltage - current_voltage) > MAX_VOLTAGE_STEP:
-                raise ValueError(
-                    f"{new_voltage}V is too far from the current value of {current_voltage}V for {self.laser_name}"
-                )
-
             self.laser.dl.pc.voltage_set.set(new_voltage)
 
         if new_current > 0:
