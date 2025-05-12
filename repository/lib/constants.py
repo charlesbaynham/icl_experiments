@@ -149,21 +149,30 @@ class IJDSettings:
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
-        8600,
-        362e-3,
-        352e-3,
-        3e-3,
+        temperature=8600,
+        window_high=362e-3,
+        window_low=352e-3,
+        relock_step=3e-3,
         associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
     ),
     "blue_IJD2_controller": IJDSettings(
-        8900,
-        373e-3,
-        367e-3,
-        3e-3,
+        temperature=8900,
+        window_high=373e-3,
+        window_low=367e-3,
+        relock_step=3e-3,
     ),
-    "blue_IJD3_controller": IJDSettings(8850, 360e-3, 350e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(
+        temperature=8850,
+        window_high=360e-3,
+        window_low=350e-3,
+        relock_step=3e-3,
+    ),
     "red_IJD1_controller": IJDSettings(
-        9460, 174.0e-3, 169.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
+        temperature=9460,
+        window_high=174.0e-3,
+        window_low=169.0e-3,
+        relock_step=3e-3,
+        associated_beams=["red_doublepass_injection"],
     ),
 }
 "Injected diode default settings"
