@@ -7,6 +7,8 @@ from ndscan.experiment.result_channels import FloatChannel
 from toptica_wrapper import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 
+from repository.lib import constants
+
 MAX_VOLTAGE_STEP = 5.0
 
 TOPTICA_TO_WAND_NAMES = {
@@ -60,9 +62,11 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         )
         self.toptica_current: FloatParamHandle
 
-        self.setattr_result("frequency")
+        self.setattr_result("frequency", FloatChannel, display_hints={"priority": -1})
+        self.setattr_result("detuning", FloatChannel)
 
         self.frequency: FloatChannel
+        self.detuning: FloatChannel
 
     def host_setup(self):
         # Get the laser controller and open a connection to it. This is done in
@@ -72,6 +76,11 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         # Open a connection
         self.laser_controller.get_dlcpro().open()
         self.laser = self.laser_controller.get_laser()
+
+        # Get the laser's nominal setpoint
+        self.nominal_setpoint = constants.WAND_SETPOINTS_87[
+            TOPTICA_TO_WAND_NAMES[self.laser_name]
+        ]
 
         return super().host_setup()
 
@@ -83,6 +92,7 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         _, freq, _ = self.wand_server.get_freq(TOPTICA_TO_WAND_NAMES[self.laser_name])
 
         self.frequency.push(freq)
+        self.detuning.push(freq - self.nominal_setpoint)
 
     def set_toptica(self, new_voltage, new_current):
         if new_voltage > 0:
