@@ -116,7 +116,7 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
             self.laser.dl.pc.voltage_set.set(new_voltage)
 
         if new_current > 0:
-            self.laser.dl.cc.current_set.set(new_current)
+            self.laser.dl.cc.current_set.set(1e3 * new_current)
 
 
 ScanTopticaWithWavemeter = make_fragment_scan_exp(ScanTopticaWithWavemeterFrag)
