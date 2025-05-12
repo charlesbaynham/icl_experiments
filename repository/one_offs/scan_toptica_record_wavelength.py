@@ -4,7 +4,6 @@ from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
-from pyaion.lib.utils import get_local_devices
 from toptica_wrapper import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 
@@ -32,7 +31,7 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
-        toptica_lasers = get_local_devices(self, TopticaDLCPro)
+        toptica_lasers = list(TOPTICA_TO_WAND_NAMES.keys())
 
         if self.laser_name is None:
             # Allow the user to choose the laser by subclassing this Fragment if
