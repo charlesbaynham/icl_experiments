@@ -1106,3 +1106,46 @@ XODT_SINGLE_NARROWBAND_BIAS_Y = 0.03
 XODT_SINGLE_NARROWBAND_BIAS_Z = -1.03
 
 TOTAL_EVAP_HOLD_TIME = 5.0
+
+# %% Dedrifter settings
+
+ramp_rate = (
+    0.052  # Hz/s based on ~9 kHz drift over 24 hours, through a frequnecy doubler
+)
+
+f_offset_689 = 331.543688e6
+reference_time_689 = 1739450287
+ramp_rate_689 = ramp_rate
+
+f_offset_698 = 336.137e6  #  337.4035e6  # 673.54e6 / 2  # 336.77e6
+reference_time_698 = 0  # 1734090967
+ramp_rate_698 = ramp_rate
+
+
+@dataclass
+class DedrifterInfo:
+    laser_name: str
+    channel_name: str
+    reference_frequency: float
+    reference_time: int
+    ramp_rate: float
+    isotope_shift: float = 0
+
+
+dedrifter_info_689 = DedrifterInfo(
+    laser_name="689",
+    channel_name="dedrifter_urukul0_ch0",
+    reference_frequency=f_offset_689,
+    reference_time=reference_time_689,
+    ramp_rate=ramp_rate,
+    isotope_shift=_isotope_shift_689 / 2,
+)
+dedrifter_info_698 = DedrifterInfo(
+    laser_name="698",
+    channel_name="dedrifter_urukul0_ch1",
+    reference_frequency=f_offset_698,
+    reference_time=reference_time_698,
+    ramp_rate=-ramp_rate,
+)
+
+dedrifter_infos = [dedrifter_info_689, dedrifter_info_698]
