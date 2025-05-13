@@ -631,19 +631,19 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         self.up_beam_suservo: LibSetSUServoStatic
 
         self.setattr_fragment(
-            "transparency_suservo",
+            "transparency_suservo_clearout",
             LibSetSUServoStatic,
             constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
         )
-        self.transparency_suservo: LibSetSUServoStatic
+        self.transparency_suservo_clearout: LibSetSUServoStatic
 
         self.setattr_fragment(
-            "transparency_setter",
+            "transparency_setter_clearout",
             make_set_beams_to_default(
                 suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
             ),
         )
-        self.transparency_setter: SetBeamsToDefaults
+        self.transparency_setter_clearout: SetBeamsToDefaults
 
         self.setattr_param(
             "clearout_pulse_time",
@@ -658,12 +658,12 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
 
     @kernel
     def do_clearout_pulse_hook(self):
-        self.transparency_setter.turn_on_all()
+        self.transparency_setter_clearout.turn_on_all()
         self.up_beam_suservo.set_pgia_gain_mu(0)
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.clearout_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
-        self.transparency_suservo.set_channel_state(
+        self.transparency_suservo_clearout.set_channel_state(
             rf_switch_state=False, enable_iir=False
         )
