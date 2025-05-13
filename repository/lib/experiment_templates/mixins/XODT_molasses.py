@@ -605,3 +605,65 @@ class XODTSingleMolassesPlusFieldRampMixin(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
+
+
+class ClearOut689Mixin(DipoleTrapWithExperiment):
+    """
+    Pulse 689 nm beam to clear out atoms after molasses
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_clearout_pulse_hook`
+
+    """
+
+    def build_fragment(self):
+        # We assume that the up beam has already been configured by the MOT
+        # sequence, but that we must control the amplitude
+        self.setattr_fragment(
+            "up_beam_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
+        )
+        self.up_beam_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
+
+        self.setattr_param(
+            "clearout_pulse_time",
+            FloatParam,
+            "Time to pulse the 689 nm beam to clear out atoms",
+            default=0.0,
+            unit="ms",
+        )
+        self.clearout_pulse_time: FloatParamHandle
+
+        super().build_fragment()
+
+    @kernel
+    def do_clearout_pulse_hook(self):
+        self.transparency_setter.turn_on_all()
+        self.up_beam_suservo.set_pgia_gain_mu(0)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(self.clearout_pulse_time.get())
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        self.transparency_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
