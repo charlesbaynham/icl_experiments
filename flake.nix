@@ -210,7 +210,7 @@
                 moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\\* -v --host-filter 10.137.1.252 --port-control 32490";
 
                 # Automatic startup of database monitors
-                monitor_launcher = "sleep 200 && artiq_client submit -p monitors -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+                monitor_launcher = "sleep 200 && artiq_client submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
               in
               overriddenOutputs.apps.full_stack.override (prev: {
