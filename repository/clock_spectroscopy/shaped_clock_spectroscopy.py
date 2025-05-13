@@ -100,7 +100,7 @@ class ShapedClockSpecWithSlicingFrag(
         self.post_dipole_trap_hook_shaped_pulses()
         delay_mu(int64(self.core.ref_multiplier))
         self.post_dipole_trap_hook_default()
-        # Hard-code a delay to allow the dipole trap to fully turn off
+        # FIXME: Hard-code a delay to avoid RTIO underflow from shutter setting into the past
         delay(5e-6)
         self.post_dipole_trap_hook_shelving_and_clearout()
 
