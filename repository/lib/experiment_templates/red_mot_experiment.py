@@ -58,18 +58,11 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
-from repository.lib import constants
 from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
-    SetBeamsToDefaults,
-)
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
-    make_set_beams_to_default,
-)
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
 
@@ -210,21 +203,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             "bias_field_z_end", self.red_mot.narrowband_bias_z
         )
 
-        self.setattr_fragment(
-            "transparency_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
-        )
-        self.transparency_suservo: LibSetSUServoStatic
-
-        self.setattr_fragment(
-            "transparency_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
-            ),
-        )
-        self.transparency_setter: SetBeamsToDefaults
-
         self.hook_setup_andor()
 
         self._first_run = True
@@ -259,8 +237,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             handle.setter.set_pgia_gain_mu(0)
             handle.setter.set_iir_params(ki=-10000.0)
         self.core.break_realtime()
-
-        self.transparency_setter.turn_on_all()
 
         self.DMA_initialization_hook()
 
