@@ -84,11 +84,15 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
 
 class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     """
-    A molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT, and bias fields
+    A molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT,
+    and bias fields
 
-    We only define a single set of ramp parameters (unlike in the red MOT ramping phases) because we will probably only use this phase on Sr87
+    We only define a single set of ramp parameters (unlike in the red MOT
+    ramping phases) because we will probably only use this phase on Sr87
 
-    The default suservo and urukul frequency "nominals" are set to zero at this point: To use these beams, they must be a bound to other parameters or values after this phase is instantiated or added as a subfragment
+    The default suservo and urukul frequency "nominals" are set to zero at this
+    point: To use these beams, they must be a bound to other parameters or
+    values after this phase is instantiated or added as a subfragment
     """
 
     duration_default = constants.XODT_MOLASSES_DURATION
@@ -136,11 +140,11 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
 
 class MolassesInXODT_2(MolassesInXODT):
     """
-    A 2nd molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT, and bias fields
+    A 2nd molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm
+    XODT, and bias fields
 
-    We only define a single set of ramp parameters (unlike in the red MOT ramping phases) because we will probably only use this phase on Sr87
-
-    The default suservo and urukul frequency "nominals" are set to zero at this point: To use these beams, they must be a bound to other parameters or values after this phase is instantiated or added as a subfragment
+    We only define a single set of ramp parameters (unlike in the red MOT
+    ramping phases) because we will probably only use this phase on Sr87
     """
 
     duration_default = constants.XODT_2ND_MOLASSES_DURATION
