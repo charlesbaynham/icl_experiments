@@ -97,7 +97,7 @@ def estimate_initial_params_1d_fit(x: np.ndarray, y: np.ndarray, data: np.ndarra
         bounds=bounds_row,
     )
 
-    logger.info("Done 1d fits")
+    logger.debug("Done 1d fits")
 
     sigma_x = popt_x[2]
     sigma_y = popt_y[2]
@@ -169,7 +169,7 @@ def estimate_initial_params_1d_fit_rotation(
         bounds=bounds_row,
     )
 
-    logger.info("Done 1d fits")
+    logger.debug("Done 1d fits")
 
     sigma_x = popt_x[2]
     sigma_y = popt_y[2]

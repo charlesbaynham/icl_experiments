@@ -149,21 +149,30 @@ class IJDSettings:
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
-        8600,
-        362e-3,
-        352e-3,
-        3e-3,
+        temperature=8600,
+        window_high=362e-3,
+        window_low=352e-3,
+        relock_step=3e-3,
         associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
     ),
     "blue_IJD2_controller": IJDSettings(
-        8900,
-        373e-3,
-        367e-3,
-        3e-3,
+        temperature=8900,
+        window_high=373e-3,
+        window_low=368e-3,
+        relock_step=3e-3,
     ),
-    "blue_IJD3_controller": IJDSettings(8850, 360e-3, 350e-3, 3e-3),
+    "blue_IJD3_controller": IJDSettings(
+        temperature=8850,
+        window_high=365e-3,
+        window_low=355e-3,
+        relock_step=3e-3,
+    ),
     "red_IJD1_controller": IJDSettings(
-        9460, 174.0e-3, 169.0e-3, 3e-3, associated_beams=["red_doublepass_injection"]
+        temperature=9460,
+        window_high=174.0e-3,
+        window_low=169.0e-3,
+        relock_step=3e-3,
+        associated_beams=["red_doublepass_injection"],
     ),
 }
 "Injected diode default settings"
@@ -209,60 +218,60 @@ class IJDRelockerSettings:
 
 IJD_RELOCKER_DEFAULTS = {
     "blue_IJD1_relocker": IJDRelockerSettings(
-        "blue_relocker",
-        0,
-        -2,
-        2,
-        100,
-        0.6,
-        0.1,
-        1.4,
-        0.05,
-        1000,
-        True,
-        "blue_IJD1_controller",
+        board_name="blue_relocker",
+        channel=0,
+        v_min=-2,
+        v_max=2,
+        n_steps=100,
+        window_frac=0.6,
+        min_diff=0.1,
+        v_low_threshold=1.4,
+        v_rise_threshold=0.05,
+        wait_time=1000,
+        auto_relock=True,
+        associated_controller="blue_IJD1_controller",
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
-        "blue_relocker",
-        1,
-        -2,
-        2,
-        100,
-        0.6,
-        0.1,
-        1.4,
-        0.05,
-        1000,
-        True,
-        "blue_IJD2_controller",
+        board_name="blue_relocker",
+        channel=1,
+        v_min=-2,
+        v_max=2,
+        n_steps=100,
+        window_frac=0.6,
+        min_diff=0.1,
+        v_low_threshold=1.4,
+        v_rise_threshold=0.05,
+        wait_time=1000,
+        auto_relock=True,
+        associated_controller="blue_IJD2_controller",
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
-        "blue_relocker",
-        2,
-        -2,
-        2,
-        100,
-        0.6,
-        0.1,
-        1.4,
-        0.05,
-        1000,
-        True,
-        "blue_IJD3_controller",
+        board_name="blue_relocker",
+        channel=2,
+        v_min=-2,
+        v_max=2,
+        n_steps=100,
+        window_frac=0.6,
+        min_diff=0.1,
+        v_low_threshold=1.4,
+        v_rise_threshold=0.05,
+        wait_time=1000,
+        auto_relock=True,
+        associated_controller="blue_IJD3_controller",
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
-        "red_relocker",
-        0,
-        -2,
-        2,
-        100,
-        0.5,
-        0.1,
-        1.15,
-        0.05,
-        1000,
-        True,
-        "red_IJD1_controller",
+        board_name="red_relocker",
+        channel=0,
+        v_min=-2,
+        v_max=2,
+        n_steps=100,
+        window_frac=0.5,
+        min_diff=0.1,
+        v_low_threshold=1.15,
+        v_rise_threshold=0.05,
+        wait_time=1000,
+        auto_relock=True,
+        associated_controller="red_IJD1_controller",
     ),
 }
 "Settings for IJD relocker board channels"
@@ -1091,9 +1100,9 @@ XODT_SINGLE_LOADING_689_DETUNING_END = [
 ]
 RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
 XODT_SINGLE_LOADING_STIR_DETUNING = 30e3
-XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 16.0
-XODT_SINGLE_NARROWBAND_BIAS_X = 0.67
-XODT_SINGLE_NARROWBAND_BIAS_Y = 0.04
-XODT_SINGLE_NARROWBAND_BIAS_Z = -1.13
+XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 10.0
+XODT_SINGLE_NARROWBAND_BIAS_X = 0.5
+XODT_SINGLE_NARROWBAND_BIAS_Y = 0.03
+XODT_SINGLE_NARROWBAND_BIAS_Z = -1.03
 
 TOTAL_EVAP_HOLD_TIME = 5.0

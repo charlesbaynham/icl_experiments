@@ -109,3 +109,22 @@ class BGCorrectedAndorImage(AndorImagingBase):
         bg_img_array = img_array[1]
         corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
         self.fit_from_grabber_rois(corrected_img_array)
+
+
+class BGCorrectedAndorImageSingleXODT(BGCorrectedAndorImage):
+    """
+    Image with a single fluorescence pulse using the Andor camera then take another for background subtraction
+
+    ROI set for the single, "forward" XODT
+    """
+
+    def get_grabber_roi_defaults(self, num_grabber_rois):
+        return [
+            [
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            ]
+            * num_grabber_rois
+        ]
