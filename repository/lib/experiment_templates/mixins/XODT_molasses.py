@@ -15,6 +15,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleX
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
     XODTWithFieldAndIntensityRamp,
 )
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 logger = logging.getLogger(__name__)
@@ -488,7 +489,6 @@ class EvapAndFieldRampBase(_RampDuringEvapHookBase):
         self.setattr_fragment(
             "ramp_during_evap_phase",
             XODTWithFieldAndIntensityRamp,
-            enforce_binding_to_defaults=True,
         )
         self.ramp_during_evap_phase: XODTWithFieldAndIntensityRamp
 
@@ -502,10 +502,9 @@ class FieldOnlyRampBase(_RampDuringEvapHookBase):
     def _define_evap_phase_ramp(self):
         self.setattr_fragment(
             "ramp_during_evap_phase",
-            XODTWithFieldAndIntensityRamp,
-            enforce_binding_to_defaults=True,
+            XODTWithFieldRamp,
         )
-        self.ramp_during_evap_phase: XODTWithFieldAndIntensityRamp
+        self.ramp_during_evap_phase: XODTWithFieldRamp
 
 
 class XODTDoubleMolassesPlusFieldRampMixin(

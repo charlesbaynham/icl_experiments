@@ -45,7 +45,11 @@ class GeneralRampingPhaseWithBinding(GeneralRampingPhase):
         super().daisy_chain_with_previous_phase(*args, **kwargs)
 
     def host_setup(self):
-        if self.enforce_binding_to_defaults and not self.__binding_completed:
+        if (
+            self.enforce_binding_to_defaults
+            and not self.__binding_completed
+            and self.suservos  # Binding is only relevant if we have SUServos to control
+        ):
             raise TypeError(
                 "bind_suservo_setpoint_params_to_default_beam_setter has not been called\n"
                 "This must be called from the Fragment which initiates this phase to rebind the red beam setpoints"
