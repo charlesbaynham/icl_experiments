@@ -45,7 +45,6 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.experiment import at_mu
 from artiq.experiment import delay
-from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from artiq.experiment import now_mu
 from artiq.experiment import parallel
@@ -55,7 +54,6 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
@@ -270,7 +268,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             # Turn off the blue beams, a little after the red MOT starts
             with sequential:
                 delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
-                self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
+                self.blue_3d_mot.turn_off_all_beams()  # FIXME
+                # self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
             # and start the red MOT
             with sequential:
                 self.red_mot.prepare_for_broadband_phase()
@@ -279,8 +278,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.end_of_broadband_mot_hook()
 
-        self.blue_3d_mot.turn_off_repumpers()
-        delay_mu(int64(self.core.ref_multiplier))
         self.red_mot.terminate_broadband_mot()
         self.set_narrowband_fields_hook()
         self.red_mot.do_narrowband_red_mot()
