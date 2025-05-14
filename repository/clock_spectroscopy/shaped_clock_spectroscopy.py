@@ -51,11 +51,6 @@ class ShapedClockSpecFromSingleXODTFrag(
     once more for background.
     """
 
-    def build_fragment(self):
-        super().build_fragment()
-
-        # FIXME this phase requires a daisy-chain, however there's no previous phase
-
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
