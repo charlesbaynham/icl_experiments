@@ -24,9 +24,7 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    EvapAndFieldRampBase,
-)
+from repository.lib.experiment_templates.mixins.XODT_molasses import FieldOnlyRampBase
 from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
 
 logger = logging.getLogger(__name__)
@@ -39,7 +37,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    EvapAndFieldRampBase,
+    FieldOnlyRampBase,
     DipoleTrapWithExperiment,
 ):
     """
@@ -56,12 +54,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     def build_fragment(self):
         super().build_fragment()
 
-        self.bias_and_evap_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
-            [
-                self.red_mot.red_beam_controller.all_beam_default_setter,
-                self.dipole_beam_controller.all_beam_default_setter,
-            ]
-        )
+        # FIXME this phase requires a daisy-chain, however there's no previous phase
 
     @kernel
     def DMA_initialization_hook(self):

@@ -136,6 +136,18 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     duration_default = constants.XODT_EVAP_AND_FIELD_RAMP_DURATION
     time_step_default = 1e-3
 
+    # Chamber 2 bias coils in amps
+    general_setter_default_starts = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
+    general_setter_default_ends = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END
+
+
+class XODTWithFieldAndIntensityRamp(
+    XODTWithFieldRamp, GeneralRampingPhaseWithBindingAndBiasField
+):
+    """
+    A phase with ramps for 1064/813 nm XODT and bias fields
+    """
+
     suservos = suservos_XODT
 
     # These must be overridden / rebound by consumer fragments otherwise not
@@ -148,10 +160,6 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     default_suservo_setpoint_multiples_end = (
         constants.XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END
     )
-
-    # Chamber 2 bias coils in amps
-    general_setter_default_starts = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
-    general_setter_default_ends = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END
 
 
 class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
