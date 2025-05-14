@@ -53,6 +53,16 @@ class ShapedClockSpecFromSingleXODTFrag(
     once more for background.
     """
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.bias_and_evap_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
+            [
+                self.red_mot.red_beam_controller.all_beam_default_setter,
+                self.dipole_beam_controller.all_beam_default_setter,
+            ]
+        )
+
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
