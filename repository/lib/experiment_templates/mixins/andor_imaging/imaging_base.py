@@ -87,7 +87,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             "do_gauss_fit",
             BoolParam,
             "Do a 2D Gaussian fit on the Andor images",
-            True,
+            False,  # FIXME Put back for master branch
         )
         self.do_gauss_fit: BoolParamHandle
 
