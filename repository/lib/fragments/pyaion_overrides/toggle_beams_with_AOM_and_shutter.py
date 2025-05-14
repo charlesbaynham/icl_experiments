@@ -143,8 +143,6 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         self.t_rtio_cycle_mu = np.int64(self.core.ref_multiplier)
         self.kernel_invariants.add("t_rtio_cycle_mu")
 
-        logger.warning("Using overridden beam setter fragment")  # FIXME
-
         return super().host_setup()
 
     @kernel
