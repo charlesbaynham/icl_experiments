@@ -1,6 +1,5 @@
 import logging
 
-from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -105,7 +104,7 @@ class ShapedClockSpecWithSlicingFrag(
         delay_mu(int64(self.core.ref_multiplier))
         self.post_dipole_trap_hook_default()
         # FIXME: Hard-code a delay to avoid RTIO underflow from shutter setting into the past
-        delay(5e-6)
+        # delay(5e-6)
         self.post_dipole_trap_hook_shelving_and_clearout()
 
 
