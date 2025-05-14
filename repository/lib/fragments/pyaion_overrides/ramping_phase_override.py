@@ -127,8 +127,9 @@ class GeneralRampingPhase(Fragment):
     default_suservo_nominal_setpoints: List[float] = []
     default_suservo_setpoint_multiples_start: List[float] = []
     default_suservo_setpoint_multiples_end: List[float] = []
-    default_suservo_offset: List[float] = []
-    default_suservo_pgia: List[int] = []
+
+    suservo_offsets: Optional[List[float]] = None
+    suservo_pgias: Optional[List[int]] = None
 
     general_setter_names: List[str] = []
     general_setter_param_options: List[Dict] = []
@@ -183,8 +184,11 @@ class GeneralRampingPhase(Fragment):
         ), TypeError(
             "self.default_suservo_setpoints_end must have same length as self.suservos_for_intensity"
         )
-        assert len(self.default_suservo_offset) == len(self.suservos), TypeError(
-            "self.default_suservo_offset must have same length as self.suservos_for_intensity"
+        assert len(self.suservo_offsets) == len(self.suservos), TypeError(
+            "self.suservo_offsets must have same length as self.suservos"
+        )
+        assert len(self.suservo_pgias) == len(self.suservos), TypeError(
+            "self.suservo_pgias must have same length as self.suservos"
         )
 
         assert len(self.general_setter_default_starts) == len(
@@ -212,11 +216,11 @@ class GeneralRampingPhase(Fragment):
     def build_fragment(self):
 
         # Photodiode offset
-        if self.default_suservo_offset == []:
-            self.default_suservo_offset = [0.0] * len(self.suservos)
+        if self.suservo_offsets == []:
+            self.suservo_offsets = [0.0] * len(self.suservos)
 
-        if self.default_suservo_pgia == []:
-            self.default_suservo_pgia = [0] * len(self.suservos)
+        if self.suservo_pgias == []:
+            self.suservo_pgias = [0] * len(self.suservos)
 
         self.validate_attributes()
 
@@ -676,8 +680,8 @@ class GeneralRampingPhase(Fragment):
                 nominal_value
                 * suservo_global_multiple_start
                 * start_multiple_handle.get()
-                + self.default_suservo_offset[i]
-            ) * 10 ** (self.default_suservo_pgia[i])
+                + self.suservo_offsets[i]
+            ) * 10 ** (self.suservo_pgias[i])
 
             # Calculate the step sizes for all the SUServo steps
             suservo_steps[i] = self._calc_step_size(
@@ -685,16 +689,16 @@ class GeneralRampingPhase(Fragment):
                     nominal_value
                     * suservo_global_multiple_start
                     * start_multiple_handle.get()
-                    + self.default_suservo_offset[i]
+                    + self.suservo_offsets[i]
                 )
-                * 10 ** (self.default_suservo_pgia[i]),
+                * 10 ** (self.suservo_pgias[i]),
                 (
                     nominal_value
                     * suservo_global_multiple_end
                     * end_multiple_handle.get()
-                    + self.default_suservo_offset[i]
+                    + self.suservo_offsets[i]
                 )
-                * 10 ** (self.default_suservo_pgia[i]),
+                * 10 ** (self.suservo_pgias[i]),
                 num_points,
             )
 
@@ -741,7 +745,7 @@ class GeneralRampingPhase(Fragment):
             # Set the PGIA to the requested value
             for i in range(len(self.suservo_setters_and_param_handles)):
                 suservo_channel = self.suservo_setters_and_param_handles[i][0]
-                suservo_channel.set_pgia_gain_mu(self.default_suservo_pgia[i])
+                suservo_channel.set_pgia_gain_mu(self.suservo_pgias[i])
 
             # Play the ramp
             if self.add_final_point:
