@@ -117,30 +117,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             ]
         )
 
-        self.mot_xodt.bind_ad9910_frequency_params(
-            [self.red_mot.injection_aom_static_frequency]
-        )
-
-        self.diagonal_channel = self.red_mot.red_beam_controller.get_device(
-            "suservo_aom_singlepass_689_red_mot_diagonal"
-        )
-
-        self.sigmaplus_channel = self.red_mot.red_beam_controller.get_device(
-            "suservo_aom_singlepass_689_red_mot_sigmaplus"
-        )
-
-        self.sigmaminus_channel = self.red_mot.red_beam_controller.get_device(
-            "suservo_aom_singlepass_689_red_mot_sigmaminus"
-        )
-
-        self.up_channel = self.red_mot.red_beam_controller.get_device(
-            "suservo_aom_singlepass_689_up"
-        )
-        self.diagonal_channel: Channel
-        self.sigmaplus_channel: Channel
-        self.sigmaminus_channel: Channel
-        self.up_channel: Channel
-
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
