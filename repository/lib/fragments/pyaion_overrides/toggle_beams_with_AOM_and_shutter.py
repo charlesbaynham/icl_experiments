@@ -256,10 +256,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
                 profile=suservo.channel,
             )
 
-            # TODO: Not having the below delay DOES cause this method to consume
-            # an extra lane, but fixing this caused overflow bugs in our code so
-            # I'm removing it here in case others have the same problem.
-            delay_mu(self.t_rtio_cycle_mu)  # FIXME I've put this back
+            delay_mu(self.t_rtio_cycle_mu)
 
             if not ignore_shutters:
                 shutter.off()
