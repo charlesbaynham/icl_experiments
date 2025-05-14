@@ -2,6 +2,7 @@ import logging
 
 from artiq.coredevice.suservo import Channel
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -378,6 +379,10 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             rf_switch_state=False, enable_iir=False
         )
 
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+            ignore_shutters=True
+        )
+
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
     """
@@ -654,15 +659,34 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         )
         self.clearout_pulse_time: FloatParamHandle
 
+        self.setattr_param(
+            "clearout_pulse_aom_amplitude",
+            FloatParam,
+            "Amplitude of delivery AOM during clearout pulse. SUServoing is disabled",
+            default=1.0,
+            min=0.0,
+            max=1.0,
+        )
+        self.clearout_pulse_aom_amplitude: FloatParamHandle
+
         super().build_fragment()
 
     @kernel
     def do_clearout_pulse_hook(self):
         self.transparency_setter_clearout.turn_on_all()
+        delay_mu(8)
         self.up_beam_suservo.set_pgia_gain_mu(0)
+        delay_mu(8)
+        self.up_beam_suservo.suservo_channel.set_y(
+            profile=self.up_beam_suservo.suservo_profile,
+            y=self.clearout_pulse_aom_amplitude.get(),
+        )
+        delay_mu(8)
         self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
         delay(self.clearout_pulse_time.get())
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        delay_mu(8)
 
         self.transparency_suservo_clearout.set_channel_state(
             rf_switch_state=False, enable_iir=False
