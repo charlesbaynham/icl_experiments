@@ -143,6 +143,8 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
         self.t_rtio_cycle_mu = np.int64(self.core.ref_multiplier)
         self.kernel_invariants.add("t_rtio_cycle_mu")
 
+        logger.warning("Using overridden beam setter fragment")  # FIXME
+
         return super().host_setup()
 
     @kernel
@@ -257,7 +259,7 @@ class ControlBeamsWithoutCoolingAOM(Fragment):
             # TODO: Not having the below delay DOES cause this method to consume
             # an extra lane, but fixing this caused overflow bugs in our code so
             # I'm removing it here in case others have the same problem.
-            # delay_mu(self.t_rtio_cycle_mu)
+            delay_mu(self.t_rtio_cycle_mu)  # FIXME I've put this back
 
             if not ignore_shutters:
                 shutter.off()
