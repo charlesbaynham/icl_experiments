@@ -17,6 +17,8 @@ from pyaion.models import SUServoedBeam
 
 logger = logging.getLogger(__name__)
 
+# FIXME: Update PyAION once https://gitlab.com/aion-physics/code/artiq/pyaion/-/merge_requests/66 is merged
+
 
 class ControlBeamsWithoutCoolingAOM(Fragment):
     """
