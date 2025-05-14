@@ -55,18 +55,18 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
     default_suservo_nominal_setpoints = [0.0] * 6
-    default_suservo_offset = [0.0] * 6
-    default_suservo_pgia = [0] * 6
+    suservo_offsets = [0.0] * 6
+    suservo_pgias = [0] * 6
 
     # Set the photodiodes offset and PGIA settings for the suservos
     # to the default values
     for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS:
             if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
-                default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[
+                suservo_offsets[idx] = constants.SUSERVOED_BEAMS[
                     beam_info
                 ].photodiode_offset
-                default_suservo_pgia[idx] = constants.SUSERVOED_BEAMS[
+                suservo_pgias[idx] = constants.SUSERVOED_BEAMS[
                     beam_info
                 ].alt_pgia_setting
                 break
@@ -109,16 +109,16 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
     default_suservo_nominal_setpoints = [0.0] * len(suservos)
-    default_suservo_offset = [0.0] * len(suservos)
-    default_suservo_pgia = [0] * len(suservos)
+    suservo_offsets = [0.0] * len(suservos)
+    suservo_pgias = [0] * len(suservos)
 
     for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS:
             if constants.SUSERVOED_BEAMS[beam_info].suservo_device == beam_name:
-                default_suservo_offset[idx] = constants.SUSERVOED_BEAMS[
+                suservo_offsets[idx] = constants.SUSERVOED_BEAMS[
                     beam_info
                 ].photodiode_offset
-                default_suservo_pgia[idx] = constants.SUSERVOED_BEAMS[
+                suservo_pgias[idx] = constants.SUSERVOED_BEAMS[
                     beam_info
                 ].alt_pgia_setting
                 break
