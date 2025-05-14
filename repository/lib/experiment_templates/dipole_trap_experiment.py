@@ -94,7 +94,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
             "dipole_hold_time",
             FloatParam,
             "Time to hold final dipole trap before experiment",
-            default=0.0,
+            default=constants.DIPOLE_TRAP_HOLD_TIME,
             unit="us",
         )
         self.dipole_hold_time: FloatParamHandle
