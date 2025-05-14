@@ -440,6 +440,62 @@ DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 
 SRS_SHUTTER_DELAY = 5e-3
 
+SUSERVOED_BEAMS_LOW_INTENSITY = [
+    ### RED ###
+    SUServoedBeam(
+        "red_mot_diagonal",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
+        shutter_device="ttl_shutter_red_mot_diagonal",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        initial_amplitude=0.05,
+        setpoint=1.5,
+        photodiode_offset=0.0129,  # 0.001,  # 0.01238,
+        pgia_setting=2,
+    ),
+    SUServoedBeam(
+        "red_mot_sigmaminus",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaminus",
+        shutter_device="ttl_shutter_red_sigmaminus",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        initial_amplitude=0.05,
+        setpoint=1.5,
+        photodiode_offset=0.0185,  # 0.001,
+        pgia_setting=2,
+    ),
+    SUServoedBeam(
+        "red_up",
+        100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_up",
+        shutter_device="ttl_shutter_red_up",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        setpoint=0.4,
+        initial_amplitude=0.05,
+        photodiode_offset=0.0164,  # 0.0032,  # 0.016,
+        pgia_setting=2,
+    ),
+    SUServoedBeam(
+        "red_mot_sigmaplus",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
+        shutter_device="ttl_shutter_red_sigmaplus",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        initial_amplitude=0.05,
+        setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
+        photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
+        pgia_setting=1,
+    ),
+]
+
 # Information about beams controlled by AOMs
 SUSERVOED_BEAMS = [
     ### BLUE ###
@@ -532,7 +588,6 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.0129,  # 0.001,  # 0.01238,
-        alt_pgia_setting=2,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -545,7 +600,6 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5,
         photodiode_offset=0.0185,  # 0.001,
-        alt_pgia_setting=2,
     ),
     SUServoedBeam(
         "red_up",
@@ -558,7 +612,6 @@ SUSERVOED_BEAMS = [
         setpoint=0.4,
         initial_amplitude=0.05,
         photodiode_offset=0.0164,  # 0.0032,  # 0.016,
-        alt_pgia_setting=2,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -571,7 +624,6 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
-        alt_pgia_setting=1,
     ),
     ### OTHER ###
     SUServoedBeam(

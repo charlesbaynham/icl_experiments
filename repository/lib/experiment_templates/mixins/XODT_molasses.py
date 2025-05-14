@@ -141,8 +141,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.sigmaminus_channel: Channel
         self.up_channel: Channel
 
-        self.gain = [0] * len(suservos_molasses + suservos_XODT)
-
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
