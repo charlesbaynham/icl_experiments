@@ -90,6 +90,10 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             ]
         )
 
+        self.mot_xodt.bind_ad9910_frequency_params(
+            [self.red_mot.injection_aom_static_frequency]
+        )
+
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
