@@ -109,3 +109,41 @@ class BGCorrectedAndorImage(AndorImagingBase):
         bg_img_array = img_array[1]
         corrected_img_array = np.int32(img_array) - np.int32(bg_img_array)
         self.fit_from_grabber_rois(corrected_img_array)
+
+
+class XODTImagingBGSubtracted(BGCorrectedAndorImage):
+    """
+    Image single XODT with two fluorescence pulses and background-subtract
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Set default ROIs
+        self.setattr_param_rebind(
+            "roi_x0",
+            self.andor_camera_control,
+            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+        )
+        self.setattr_param_rebind(
+            "roi_x1",
+            self.andor_camera_control,
+            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+        )
+        self.setattr_param_rebind(
+            "roi_y0",
+            self.andor_camera_control,
+            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+        )
+        self.setattr_param_rebind(
+            "roi_y1",
+            self.andor_camera_control,
+            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+        )
