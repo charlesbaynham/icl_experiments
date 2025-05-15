@@ -14,7 +14,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
-    NormalisedRedMOTFastKineticsMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 class ClockSpecFromSingleXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    NormalisedRedMOTFastKineticsMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
@@ -70,7 +70,7 @@ class ClockSpecFromSingleXODTFrag(
 
 class ClockSpecFromSingleXODTEvaporatedFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    NormalisedRedMOTFastKineticsMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
