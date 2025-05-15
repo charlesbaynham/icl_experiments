@@ -710,6 +710,9 @@ SUSERVOED_BEAMS = [
 
 # Convert to dict for ease of use
 SUSERVOED_BEAMS = {beam.name: beam for beam in SUSERVOED_BEAMS}
+SUSERVOED_BEAMS_LOW_INTENSITY = {
+    beam.name: beam for beam in SUSERVOED_BEAMS_LOW_INTENSITY
+}
 
 
 # Mirny settings for Sr 88 / Sr 87
