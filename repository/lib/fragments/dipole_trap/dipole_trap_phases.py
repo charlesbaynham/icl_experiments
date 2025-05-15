@@ -62,7 +62,10 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     # to the default values
     for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS_LOW_INTENSITY:
-            if constants.SUSERVOED_BEAMS_LOW_INTENSITY[beam_info].suservo_device == beam_name:
+            if (
+                constants.SUSERVOED_BEAMS_LOW_INTENSITY[beam_info].suservo_device
+                == beam_name
+            ):
                 suservo_offsets[idx] = constants.SUSERVOED_BEAMS_LOW_INTENSITY[
                     beam_info
                 ].photodiode_offset
@@ -114,7 +117,10 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
 
     for idx, beam_name in enumerate(suservos):
         for beam_info in constants.SUSERVOED_BEAMS_LOW_INTENSITY:
-            if constants.SUSERVOED_BEAMS_LOW_INTENSITY[beam_info].suservo_device == beam_name:
+            if (
+                constants.SUSERVOED_BEAMS_LOW_INTENSITY[beam_info].suservo_device
+                == beam_name
+            ):
                 suservo_offsets[idx] = constants.SUSERVOED_BEAMS_LOW_INTENSITY[
                     beam_info
                 ].photodiode_offset

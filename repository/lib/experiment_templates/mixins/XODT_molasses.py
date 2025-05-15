@@ -1,6 +1,5 @@
 import logging
 
-from artiq.coredevice.suservo import Channel
 from artiq.experiment import delay
 from artiq.experiment import delay_mu
 from artiq.experiment import kernel
@@ -16,7 +15,6 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_molasses
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     SetBeamsToDefaults,
@@ -84,33 +82,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_mot_xodt: FloatParamHandle
 
-        # Override default currents to suit single XODT loading
-        # self.setattr_param_rebind(
-        #     "narrowband_bias_x",
-        #     self.red_mot,
-        #     default=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
-        # )
-        # self.setattr_param_rebind(
-        #     "narrowband_bias_y",
-        #     self.red_mot,
-        #     default=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
-        # )
-        # self.setattr_param_rebind(
-        #     "narrowband_bias_z",
-        #     self.red_mot,
-        #     default=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
-        # )
-        # self.setattr_param_rebind(
-        #     "chamber_2_mot_current_end",
-        #     self.red_mot.narrow_red_compression_phase,
-        #     default=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
-        # )
-        # self.narrowband_bias_x: FloatParamHandle
-        # self.narrowband_bias_y: FloatParamHandle
-        # self.narrowband_bias_z: FloatParamHandle
-        # self.narrow_red_compression_phase: FloatParamHandle
-
-        #FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
+        # FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
         self.mot_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
@@ -266,7 +238,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_molasses_1: FloatParamHandle
 
-        #FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
+        # FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
         self.molasses_xodt_1.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,

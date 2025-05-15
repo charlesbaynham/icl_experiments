@@ -1045,21 +1045,29 @@ if USE_SR87:
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 3.5
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = [
-        a + b for a, b in zip(FIELD_COMP, [0.19, 0.05, -0.51])
+        a + b for a, b in zip(FIELD_COMP, [0.22, 0.009, -0.39])
     ]
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 20e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0, 1.0]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0, 1.0]
+    XODT_MOLASSES_DURATION = 200e-3
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [
+        0.0007,
+        0.0005,
+        0.0004,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+    ]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.0007, 0.0005, 0.0004, 0.0, 1.0, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
-        0e3,
+        70e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        0e3,
+        70e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.13])
+        a + b for a, b in zip(FIELD_COMP, [0.0, 0.00, -0.0])
     ]
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 10.0
