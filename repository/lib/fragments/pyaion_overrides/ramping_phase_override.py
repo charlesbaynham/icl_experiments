@@ -216,10 +216,10 @@ class GeneralRampingPhase(Fragment):
     def build_fragment(self):
 
         # Photodiode offset
-        if self.suservo_offsets == []:
+        if self.suservo_offsets is None:
             self.suservo_offsets = [0.0] * len(self.suservos)
 
-        if self.suservo_pgias == []:
+        if self.suservo_pgias is None:
             self.suservo_pgias = [0] * len(self.suservos)
 
         self.validate_attributes()
