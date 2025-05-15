@@ -1045,7 +1045,7 @@ if USE_SR87:
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 3.5
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = [
-        a + b for a, b in zip(FIELD_COMP, [0.22, 0.009, -0.39])
+        a + b for a, b in zip(FIELD_COMP, [0.22, 0.009, -0.33])
     ]
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
