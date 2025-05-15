@@ -31,13 +31,18 @@ logger = logging.getLogger(__name__)
 
 
 class ShapedClockSpecFromSingleXODTFrag(
+    # Clock stuff:
     ShapedRabiSpectroscopyDipoleTrapMixin,
+    # Spin polarisation:
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampBase,
+    # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
+    # Loading:
     LoadSingleXODTMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampBase,
+    # Base:
     DipoleTrapWithExperiment,
 ):
     """
@@ -55,6 +60,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_evap_with_field_ramp()
 
     @kernel
     def before_start_hook(self):
