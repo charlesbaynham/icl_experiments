@@ -81,8 +81,8 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
         constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END
     )
 
-    default_urukul_detunings_start = 0.0
-    default_urukul_detunings_end = 0.0
+    default_urukul_detunings_start = [0.0]
+    default_urukul_detunings_end = [0.0]
 
 
 class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
