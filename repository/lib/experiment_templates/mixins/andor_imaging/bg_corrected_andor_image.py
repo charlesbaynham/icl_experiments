@@ -111,46 +111,20 @@ class BGCorrectedAndorImage(AndorImagingBase):
         self.fit_from_grabber_rois(corrected_img_array)
 
 
-class _XODTROIOverrides(AndorImagingBase):
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        # Set default ROIs
-        self.setattr_param_rebind(
-            "roi_0_x0",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-        )
-        self.setattr_param_rebind(
-            "roi_0_x1",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y0",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-        )
-        self.setattr_param_rebind(
-            "roi_0_y1",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
-        )
-
-
-class XODTImagingBGSubtracted(_XODTROIOverrides, BGCorrectedAndorImage):
+class BGCorrectedAndorImageSingleXODT(BGCorrectedAndorImage):
     """
-    Image single XODT with two fluorescence pulses and background-subtract
+    Image with a single fluorescence pulse using the Andor camera then take another for background subtraction
 
-    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
-    details.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_imaging_hook_andor`
+    ROI set for the single, "forward" XODT
     """
 
-    num_andor_images = 2
-    num_grabber_readouts = 2
-    num_grabber_rois = 1
+    def get_grabber_roi_defaults(self, num_grabber_rois):
+        return [
+            [
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+                constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            ]
+            * num_grabber_rois
+        ]
