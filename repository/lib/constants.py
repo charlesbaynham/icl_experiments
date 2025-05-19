@@ -496,6 +496,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
     ),
 ]
 
+
 # Information about beams controlled by AOMs
 SUSERVOED_BEAMS = [
     ### BLUE ###
@@ -1045,7 +1046,7 @@ if USE_SR87:
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 3.5
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = [
-        a + b for a, b in zip(FIELD_COMP, [0.22, 0.029, -0.39])
+        a + b for a, b in zip(FIELD_COMP, [0.22, 0.029, -0.21])
     ]
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
@@ -1056,7 +1057,7 @@ if USE_SR87:
         0.0004,
         0.0,
         1.0,
-        1.0,
+        0.5,
         1.0,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.0007, 0.0005, 0.0004, 0.0, 1.0, 1.0, 1.0]
@@ -1156,8 +1157,8 @@ CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock 
 # order diagonal, sigmaplus, sigmaminus, up, 1064, 813
 XODT_SINGLE_LOADING_DURATION = 40e-3
 SUSERVO_PGIA = [2, 1, 2, 2, 0, 0]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 0.5, 0.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 0.0]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     15e3,
 ]
