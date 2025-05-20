@@ -85,7 +85,7 @@ def make_experiment(
 
 LoadBackwardDipoleTrap = make_experiment(
     "LoadBackwardDipoleTrap",
-    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_X,
+    chamber_2_bias_x=0.57,
     chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_Y,
     chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_Z,
     chamber_2_mot_current_start=3,
@@ -99,9 +99,9 @@ LoadBackwardDipoleTrap = make_experiment(
 
 LoadForwardDipoleTrap = make_experiment(
     "LoadForwardDipoleTrap",
-    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_X,
+    chamber_2_bias_x=0.57,
     chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_Y,
-    chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_Z,
+    chamber_2_bias_z=-0.65,
     chamber_2_mot_current_start=3,
     chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
     roi_0_x0=130,
