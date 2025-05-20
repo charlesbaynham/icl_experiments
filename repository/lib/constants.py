@@ -1053,14 +1053,14 @@ if USE_SR87:
     XODT_MOLASSES_DURATION = 200e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [
         0.0007,
-        0.0005,
-        0.0004,
+        0.0014,
+        0.0018,
         0.0,
         1.0,
         0.5,
         1.0,
     ]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.0007, 0.0005, 0.0004, 0.0, 1.0, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.0007, 0.0014, 0.0018, 0.0, 1.0, 1.0, 1.0]
     XODT_MOLASSES_689_DETUNING_START = [
         70e3,
     ]
