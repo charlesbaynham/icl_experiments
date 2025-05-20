@@ -312,6 +312,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         """
 
         # turn on red beams and transparency beam
+        red_suservos = (
+            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        )
+        for i in range(len(red_suservos)):
+            red_suservos[i].setter.set_setpoint(0.0)
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
