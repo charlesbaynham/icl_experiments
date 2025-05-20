@@ -1050,7 +1050,7 @@ if USE_SR87:
     ]
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 200e-3
+    XODT_MOLASSES_DURATION = 400e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [
         0.0007,
         0.0014,
@@ -1058,7 +1058,7 @@ if USE_SR87:
         0.002,
         1.0,
         0.5,
-        1.0,
+        0.15,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1066,14 +1066,14 @@ if USE_SR87:
         0.0018,
         0.002,
         1.0,
-        1.0,
-        1.0,
+        0.5,
+        0.15,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        70e3,
+        -30e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        70e3,
+        -30e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = [
         a + b for a, b in zip(FIELD_COMP, [0.0, 0.00, -0.0])
