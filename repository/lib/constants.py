@@ -452,7 +452,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.0129,  # 0.001,  # 0.01238,
+        photodiode_offset=0.0133,  # 0.001,  # 0.01238,
         pgia_setting=2,
     ),
     SUServoedBeam(
@@ -465,7 +465,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.0185,  # 0.001,
+        photodiode_offset=0.018,  # 0.001,
         pgia_setting=2,
     ),
     SUServoedBeam(
@@ -478,7 +478,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         servo_enabled=True,
         setpoint=0.4,
         initial_amplitude=0.05,
-        photodiode_offset=0.0164,  # 0.0032,  # 0.016,
+        photodiode_offset=0.016,  # 0.0032,  # 0.016,
         pgia_setting=2,
     ),
     SUServoedBeam(
@@ -588,7 +588,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.0129,  # 0.001,  # 0.01238,
+        photodiode_offset=0.0133,  # 0.001,  # 0.01238,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -600,7 +600,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.0185,  # 0.001,
+        photodiode_offset=0.018,  # 0.001,
     ),
     SUServoedBeam(
         "red_up",
@@ -612,7 +612,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=0.4,
         initial_amplitude=0.05,
-        photodiode_offset=0.0164,  # 0.0032,  # 0.016,
+        photodiode_offset=0.016,  # 0.0032,  # 0.016,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
