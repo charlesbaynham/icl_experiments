@@ -36,13 +36,13 @@ def make_experiment(
             super().build_fragment()
 
             self.setattr_param_rebind(
-                "chamber_2_bias_x", self.blue_3d_mot, default=chamber_2_bias_x
+                "narrowband_bias_x", self.red_mot, default=chamber_2_bias_x
             )
             self.setattr_param_rebind(
-                "chamber_2_bias_y", self.blue_3d_mot, default=chamber_2_bias_y
+                "narrowband_bias_y", self.red_mot, default=chamber_2_bias_y
             )
             self.setattr_param_rebind(
-                "chamber_2_bias_z", self.blue_3d_mot, default=chamber_2_bias_z
+                "narrowband_bias_z", self.red_mot, default=chamber_2_bias_z
             )
 
             self.setattr_param_rebind(
@@ -85,23 +85,23 @@ def make_experiment(
 
 LoadBackwardDipoleTrap = make_experiment(
     "LoadBackwardDipoleTrap",
-    chamber_2_bias_x=0.29,
-    chamber_2_bias_y=0.02,
-    chamber_2_bias_z=-1.14,
+    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_X,
+    chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_Y,
+    chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_Z,
     chamber_2_mot_current_start=3,
-    chamber_2_mot_current_end=3,
+    chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
     roi_0_x0=130,
     roi_0_x1=280,
-    roi_0_y0=330,
-    roi_0_y1=375,
+    roi_0_y0=225,
+    roi_0_y1=275,
 )
 
 
 LoadForwardDipoleTrap = make_experiment(
     "LoadForwardDipoleTrap",
-    chamber_2_bias_x=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
-    chamber_2_bias_y=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
-    chamber_2_bias_z=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
+    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_X,
+    chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_Y,
+    chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_Z,
     chamber_2_mot_current_start=3,
     chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
     roi_0_x0=130,
