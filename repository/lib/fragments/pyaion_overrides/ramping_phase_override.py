@@ -374,7 +374,6 @@ class GeneralRampingPhase(Fragment):
                 f"setpoint_multiple_start_{suservo_name}",
                 FloatParam,
                 f"Multiple of nominal setpoint at start of ramp for {suservo_name}",
-                min=0,
                 default=setpoint_start,
             )
 
@@ -382,7 +381,6 @@ class GeneralRampingPhase(Fragment):
                 f"setpoint_multiple_end_{suservo_name}",
                 FloatParam,
                 f"Multiple of nominal setpoint at end of ramp for {suservo_name}",
-                min=0,
                 default=setpoint_end,
             )
 
@@ -746,6 +744,8 @@ class GeneralRampingPhase(Fragment):
             for i in range(len(self.suservo_setters_and_param_handles)):
                 suservo_channel = self.suservo_setters_and_param_handles[i][0]
                 suservo_channel.set_pgia_gain_mu(self.suservo_pgias[i])
+                if self.suservo_pgias[i] != 0:
+                    suservo_channel.set_iir_params(ki=-300.0)
 
             # Play the ramp
             if self.add_final_point:
