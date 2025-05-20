@@ -271,10 +271,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def post_narrowband_hook(self):
-        """
-        Turn off red MOT beams (default hook), set coil currents, and wait
-        """
-        self.post_narrowband_hook_xodt_molasses()
+        pass
 
     @kernel
     def set_postnarrowband_fields_hook(self):
@@ -285,7 +282,12 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         pass
 
     @kernel
-    def post_narrowband_hook_xodt_molasses(self):
+    def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
+        self.dipole_trap_molasses_hook_first_xodt_molasses()
+
+    @kernel
+    def set_fields_xodt_molasses(self):
         """
         Turn off MOT fields and set bias fields to molasses ramp start.
 
@@ -302,10 +304,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
                 ignore_shutters=True
             )
         delay(self.delay_before_molasses.get())
-
-    @kernel
-    def dipole_trap_molasses_hook(self):
-        self.dipole_trap_molasses_hook_first_xodt_molasses()
 
     @kernel
     def dipole_trap_molasses_hook_first_xodt_molasses(self):
