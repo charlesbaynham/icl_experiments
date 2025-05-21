@@ -1185,7 +1185,7 @@ CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock 
 # Single dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up, 1064, 813
 XODT_SINGLE_LOADING_DURATION = 100e-3
-SUSERVO_PGIA = [2, 1, 2, 2, 0, 0]
+SUSERVO_PGIA = [2, 1, 2, 2, 0, 0]  # FIXME: appears unused
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 0.5, 0.0]
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 0.0]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
