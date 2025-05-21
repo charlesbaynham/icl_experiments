@@ -25,15 +25,6 @@ from repository.lib.fragments.pyaion_overrides.default_beam_setter_override impo
 
 logger = logging.getLogger(__name__)
 
-# order diagonal, sigmaplus, sigmaminus, up
-RED_SUSERVO_PGIA = constants.SUSERVO_PGIA[0:4]
-
-# FIXME - this is a hack, should get the setpoints with self.mot_xodt.default_suservo_nominal_setpoints[i]
-# but it returns 0.0
-# order diagonal, sigmaplus, sigmaminus, up
-SETPOINTS = [1.5, 3.0, 1.5, 0.4, 4.7, 5.0]
-
-
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     """
     Loads atoms in a single XODT after the narrowband red MOT. Turns the dipole beams on at the start of a stage of ramping MOT beams.
@@ -59,18 +50,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
 
-        # self.setattr_param_rebind(
-        #     "red_narrowband_mot_689_up_start",
-        #     self.red_mot.narrow_red_compression_phase,
-        #     original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
-        #     default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT,
-        # )
-        # self.setattr_param_rebind(
-        #     "red_narrowband_mot_689_up_end",
-        #     self.red_mot.narrow_red_compression_phase,
-        #     original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
-        # )
-
         self.setattr_param(
             "stir_beam_detuning_mot_xodt",
             FloatParam,
@@ -82,7 +61,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_mot_xodt: FloatParamHandle
 
-        # FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
         self.mot_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
@@ -176,9 +154,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             ),
         )
         self.transparency_setter: SetBeamsToDefaults
-
-        # Remove unused parameters
-        # self.override_param("spectroscopy_field_gradient", 0)
 
         # # Expose the bias field for moving the MOT to the right place
         self.setattr_param_rebind(
