@@ -35,6 +35,17 @@ def make_experiment(
         def build_fragment(self):
             super().build_fragment()
 
+            # Rename the "expansion_time" since the dipole trap is left on so
+            # the atoms are not expanding
+            self.setattr_param_rebind(
+                "dipole_hold_time",
+                self,
+                "expansion_time",
+                description="Time to hold the dipole trap for",
+                default=constants.DIPOLE_TRAP_HOLD_TIME,
+                unit="ms",
+            )
+
             self.setattr_param_rebind(
                 "narrowband_bias_x", self.red_mot, default=chamber_2_bias_x
             )
