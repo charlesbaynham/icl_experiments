@@ -7,10 +7,10 @@ import repository.lib.constants as constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp_3
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 
 class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
@@ -91,11 +91,11 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
         self.linear_evap_ramp_3: XODTWithLinearRamp_3
 
         self.linear_evap_ramp_2.daisy_chain_with_previous_phase(
-            self.linear_evap_ramp, suservos=suservos_XODT
+            self.linear_evap_ramp, suservos=SUSERVOS_XODT
         )
 
         self.linear_evap_ramp_3.daisy_chain_with_previous_phase(
-            self.linear_evap_ramp_2, suservos=suservos_XODT
+            self.linear_evap_ramp_2, suservos=SUSERVOS_XODT
         )
 
     @kernel

@@ -8,28 +8,28 @@ from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndBiasField,
 )
 
-suservos_molasses = [
+SUSERVOS_MOLASSES = [
     "suservo_aom_singlepass_689_red_mot_diagonal",
     "suservo_aom_singlepass_689_red_mot_sigmaplus",
     "suservo_aom_singlepass_689_red_mot_sigmaminus",
     "suservo_aom_singlepass_689_up",
 ]
-urukuls_molasses = ["urukul9910_aom_doublepass_689_red_injection"]
+URUKULS_MOLASSES = ["urukul9910_aom_doublepass_689_red_injection"]
 
-suservos_optical_pumping = [
+SUSERVOS_OPTICAL_PUMPING = [
     "suservo_aom_singlepass_689_red_mot_sigmaplus",
     "suservo_aom_singlepass_689_red_mot_sigmaminus",
 ]
-urukuls_optical_pumping = ["urukul9910_aom_doublepass_689_red_spinpol"]
+URUKULS_OPTICAL_PUMPING = ["urukul9910_aom_doublepass_689_red_spinpol"]
 
-suservos_XODT = [
+SUSERVOS_XODT = [
     "suservo_aom_1064_delivery",
     "suservo_aom_down_813",
 ]
 
-suservos_transparency = ["suservo_aom_singlepass_487_transparency"]
+SUSERVOS_TRANSPARENCY = ["suservo_aom_singlepass_487_transparency"]
 
-suservos_cavity_lattice = [
+SUSERVOS_CAVITY_LATTICE = [
     "suservo_aom_singlepass_1379_cavity_input",
 ]
 
@@ -44,10 +44,10 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     duration_default = constants.XODT_SINGLE_LOADING_DURATION
     time_step_default = 1e-3
 
-    urukuls = urukuls_molasses
+    urukuls = URUKULS_MOLASSES
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = suservos_molasses + suservos_XODT
+    suservos = SUSERVOS_MOLASSES + SUSERVOS_XODT
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -101,10 +101,10 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     duration_default = constants.XODT_MOLASSES_DURATION
     time_step_default = 1e-3
 
-    urukuls = urukuls_molasses
+    urukuls = URUKULS_MOLASSES
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = suservos_molasses + suservos_XODT + suservos_transparency
+    suservos = SUSERVOS_MOLASSES + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -177,15 +177,15 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     duration_default = constants.XODT_EVAP_AND_FIELD_RAMP_DURATION
     time_step_default = 1e-3
 
-    suservos = suservos_XODT
+    suservos = SUSERVOS_XODT
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(suservos_XODT)
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT)
     # The start setpoints must be overridden by daisy-chaining to previous phase
-    default_suservo_setpoint_multiples_start = [0] * len(suservos_XODT)
+    default_suservo_setpoint_multiples_start = [0] * len(SUSERVOS_XODT)
     default_suservo_setpoint_multiples_end = (
         constants.XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END
     )
@@ -203,10 +203,10 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     duration_default = 500e-3
     time_step_default = 40e-3
 
-    suservos = suservos_XODT
+    suservos = SUSERVOS_XODT
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(suservos_XODT)
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT)
 
     default_suservo_setpoint_multiples_start = constants.XODT_EVAP_START
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_END

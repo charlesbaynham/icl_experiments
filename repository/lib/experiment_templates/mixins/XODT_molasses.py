@@ -11,10 +11,10 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
     SetBeamsToDefaults,
 )
@@ -286,7 +286,7 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         )
 
         self.molasses_xodt_2.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, suservos=suservos_XODT
+            self.molasses_xodt_1, suservos=SUSERVOS_XODT
         )
 
     @kernel
@@ -404,7 +404,7 @@ class XODTDoubleMolassesPlusFieldRampMixin(
         super().build_fragment()
 
         self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
-            self.molasses_xodt_2, suservos=suservos_XODT
+            self.molasses_xodt_2, suservos=SUSERVOS_XODT
         )
 
     @kernel
@@ -440,7 +440,7 @@ class XODTSingleMolassesPlusFieldRampMixin(
         super().build_fragment()
 
         self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, suservos=suservos_XODT
+            self.molasses_xodt_1, suservos=SUSERVOS_XODT
         )
 
     @kernel
