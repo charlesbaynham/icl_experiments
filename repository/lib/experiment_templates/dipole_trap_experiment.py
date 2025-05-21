@@ -127,7 +127,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
                 use_automatic_setup=False,
             ),
         )
-        self.constant_dipole_traps_setter: SetBeamsToDefaults
+        self.constant_dipole_traps_setter: SetBeamsToDefaults  # FIXME This is duplicated in dipole_trap_beam_controller
 
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)

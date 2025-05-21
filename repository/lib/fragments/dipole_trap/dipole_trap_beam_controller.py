@@ -53,7 +53,9 @@ class DipoleBeamController(Fragment):
                 ],
             ),
         )
-        self.all_beam_default_setter: SetBeamsToDefaults
+        self.all_beam_default_setter: (
+            SetBeamsToDefaults  # FIXME This is duplicated in dipole_trap_experiment
+        )
 
         self.setattr_fragment(
             "hor_dipole_trap_setter",
