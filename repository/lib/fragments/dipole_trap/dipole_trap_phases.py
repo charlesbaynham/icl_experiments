@@ -9,29 +9,47 @@ from repository.lib.fragments.ramping_phase_bound import (
 )
 
 SUSERVOS_MOLASSES = [
-    "suservo_aom_singlepass_689_red_mot_diagonal",
-    "suservo_aom_singlepass_689_red_mot_sigmaplus",
-    "suservo_aom_singlepass_689_red_mot_sigmaminus",
-    "suservo_aom_singlepass_689_up",
+    "red_mot_diagonal",
+    "red_mot_sigmaplus",
+    "red_mot_sigmaminus",
+    "red_up",
 ]
-URUKULS_MOLASSES = ["urukul9910_aom_doublepass_689_red_injection"]
+URUKULS_MOLASSES = [
+    "red_doublepass_injection",
+]
 
-SUSERVOS_OPTICAL_PUMPING = [
-    "suservo_aom_singlepass_689_red_mot_sigmaplus",
-    "suservo_aom_singlepass_689_red_mot_sigmaminus",
-]
-URUKULS_OPTICAL_PUMPING = ["urukul9910_aom_doublepass_689_red_spinpol"]
+# FIXME: Unused
+# SUSERVOS_OPTICAL_PUMPING = [
+#     "suservo_aom_singlepass_689_red_mot_sigmaplus",
+#     "suservo_aom_singlepass_689_red_mot_sigmaminus",
+# ]
+# URUKULS_OPTICAL_PUMPING = ["urukul9910_aom_doublepass_689_red_spinpol"]
 
 SUSERVOS_XODT = [
-    "suservo_aom_1064_delivery",
-    "suservo_aom_down_813",
+    "dipole_trap_1064_delivery",
+    "down_813",
+]
+SUSERVOS_TRANSPARENCY = ["blue_transparency_beam"]
+
+
+SUSERVOS_MOLASSES_DEVICES = [
+    constants.SUSERVOED_BEAMS[b].suservo_device for b in SUSERVOS_MOLASSES
+]
+SUSERVOS_XODT_DEVICES = [
+    constants.SUSERVOED_BEAMS[b].suservo_device for b in SUSERVOS_XODT
+]
+SUSERVOS_TRANSPARENCY_DEVICES = [
+    constants.SUSERVOED_BEAMS[b].suservo_device for b in SUSERVOS_TRANSPARENCY
 ]
 
-SUSERVOS_TRANSPARENCY = ["suservo_aom_singlepass_487_transparency"]
-
-SUSERVOS_CAVITY_LATTICE = [
-    "suservo_aom_singlepass_1379_cavity_input",
+URUKULS_MOLASSES_DEVICES = [
+    constants.URUKULED_BEAMS[b].urukul_device for b in URUKULS_MOLASSES
 ]
+
+# Unused
+# SUSERVOS_CAVITY_LATTICE = [
+#     "suservo_aom_singlepass_1379_cavity_input",
+# ]
 
 
 class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
@@ -44,10 +62,11 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     duration_default = constants.XODT_SINGLE_LOADING_DURATION
     time_step_default = 1e-3
 
-    urukuls = URUKULS_MOLASSES
+    urukuls = URUKULS_MOLASSES_DEVICES
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_MOLASSES + SUSERVOS_XODT
+
+    suservos = SUSERVOS_MOLASSES_DEVICES + SUSERVOS_XODT_DEVICES
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -55,24 +74,26 @@ class MOTInSingleXODT(GeneralRampingPhaseWithBinding):
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
     default_suservo_nominal_setpoints = [0.0] * 6
-    suservo_offsets = [0.0] * 6
-    suservo_pgias = [0] * 6
 
-    # Set the photodiodes offset and PGIA settings for the suservos
-    # to the default values
-    for idx, beam_name in enumerate(suservos):
-        for beam_info in constants.SUSERVOED_BEAMS_LOW_INTENSITY:
-            if (
-                constants.SUSERVOED_BEAMS_LOW_INTENSITY[beam_info].suservo_device
-                == beam_name
-            ):
-                suservo_offsets[idx] = constants.SUSERVOED_BEAMS_LOW_INTENSITY[
-                    beam_info
-                ].photodiode_offset
-                suservo_pgias[idx] = constants.SUSERVOED_BEAMS_LOW_INTENSITY[
-                    beam_info
-                ].pgia_setting
-                break
+    # Look up the photodiode offsets and PGIA settings for the lower-power
+    # beams. In future we might specify these for all beams, but for now we
+    # prefer to just put it in for the low power ones since this is the only
+    # place we need it.
+    suservo_offsets, suservo_pgias = zip(
+        *[
+            (
+                (0.0, 0.0)
+                if beam_name not in constants.SUSERVOED_BEAMS_LOW_INTENSITY
+                else (
+                    constants.SUSERVOED_BEAMS_LOW_INTENSITY[
+                        beam_name
+                    ].photodiode_offset,
+                    constants.SUSERVOED_BEAMS_LOW_INTENSITY[beam_name].pgia_setting,
+                )
+            )
+            for beam_name in SUSERVOS_MOLASSES + SUSERVOS_XODT
+        ]
+    )
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START
@@ -101,10 +122,14 @@ class MolassesInXODT(GeneralRampingPhaseWithBindingAndBiasField):
     duration_default = constants.XODT_MOLASSES_DURATION
     time_step_default = 1e-3
 
-    urukuls = URUKULS_MOLASSES
+    urukuls = URUKULS_MOLASSES_DEVICES
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_MOLASSES + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY
+    suservos = (
+        SUSERVOS_MOLASSES_DEVICES
+        + SUSERVOS_XODT_DEVICES
+        + SUSERVOS_TRANSPARENCY_DEVICES
+    )
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -177,7 +202,7 @@ class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     duration_default = constants.XODT_EVAP_AND_FIELD_RAMP_DURATION
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT
+    suservos = SUSERVOS_XODT_DEVICES
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -203,7 +228,7 @@ class XODTWithLinearRamp(GeneralRampingPhaseWithBinding):
     duration_default = 500e-3
     time_step_default = 40e-3
 
-    suservos = SUSERVOS_XODT
+    suservos = SUSERVOS_XODT_DEVICES
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT)
