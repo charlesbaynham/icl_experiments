@@ -385,7 +385,7 @@ ANDOR_ROI_DIPOLE_WIDTH = 16
 
 ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
 # ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_BACKWARD_Y = 348
+ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
 
 ANDOR_DIPOLE_TRAP_FORWARD_X = 184
 # ~3 pixels below the center of the dipole trap to include falling atoms
