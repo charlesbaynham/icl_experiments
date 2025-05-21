@@ -1063,6 +1063,10 @@ if USE_SR87:
     RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 3.5
+
+    # This is optimized for loading into the HODT, not the XODT, because the 813
+    # will be turned on during the molasses phase. The molasses phase itself
+    # uses XODT_MOLASSES_BIAS_FIELD_START
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = [
         a + b for a, b in zip(FIELD_COMP, [0.22, 0.029, -0.21])
     ]
