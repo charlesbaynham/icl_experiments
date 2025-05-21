@@ -61,27 +61,22 @@ class _RedAndXODTBeams(GeneralRampingPhaseWithBinding):
         #
         # Do this in the constructor so that it pays attention to the beam names
         # if they have been changed by child classes
-        suservo_lowpower_beaminfos_by_devicename = {
-            v.suservo_device: v
-            for _, v in constants.SUSERVOED_BEAMS_LOW_INTENSITY.items()
+        combined_beaminfos_for_low_power = constants.SUSERVOED_BEAMS.copy()
+        combined_beaminfos_for_low_power.update(constants.SUSERVOED_BEAMS_LOW_INTENSITY)
+
+        suservo_beaminfos_by_devicename = {
+            info.suservo_device: info
+            for info in combined_beaminfos_for_low_power.values()
         }
-        self.suservo_offsets, self.suservo_pgias = zip(
-            *[
-                (
-                    (0.0, 0.0)
-                    if device_name not in suservo_lowpower_beaminfos_by_devicename
-                    else (
-                        suservo_lowpower_beaminfos_by_devicename[
-                            device_name
-                        ].photodiode_offset,
-                        suservo_lowpower_beaminfos_by_devicename[
-                            device_name
-                        ].pgia_setting,
-                    )
-                )
-                for device_name in self.suservos
-            ]
-        )
+
+        self.suservo_offsets = [
+            suservo_beaminfos_by_devicename[device_name].photodiode_offset
+            for device_name in self.suservos
+        ]
+        self.suservo_pgias = [
+            suservo_beaminfos_by_devicename[device_name].pgia_setting
+            for device_name in self.suservos
+        ]
 
         # Specify the SUServo nominal setpoints like this too for the same
         # reason (i.e. because we currently sometimes want the transparency beam
@@ -96,6 +91,8 @@ class MOTInSingleXODT(_RedAndXODTBeams):
     A MOT phase with ramps for the MOT beams and a 1064/813 XODT.
 
     This has no field ramping because it is used for loading a single XODT
+
+    This is optimized to transfer a red MOT into a single XODT
     """
 
     duration_default = constants.XODT_SINGLE_LOADING_DURATION
