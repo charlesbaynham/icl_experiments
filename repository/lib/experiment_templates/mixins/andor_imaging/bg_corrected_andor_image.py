@@ -55,10 +55,14 @@ class BGCorrectedAndorImage(AndorImagingBase):
     def bg_imaging_make_result_channel(self):
         # AndorImagingBase makes sum and mean ResultChannels automatically, but
         # we create another one for the bg-corrected data
-        self.setattr_result("andor_mean_bg_corrected", FloatChannel)
+        self.setattr_result(
+            "andor_mean_bg_corrected", FloatChannel, display_hints={"priority": -1}
+        )
         self.andor_mean_bg_corrected: FloatChannel
 
-        self.setattr_result("andor_sum_bg_corrected", FloatChannel)
+        self.setattr_result(
+            "andor_sum_bg_corrected", FloatChannel, display_hints={"priority": -1}
+        )
         self.andor_sum_bg_corrected: FloatChannel
 
     @kernel
