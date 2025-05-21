@@ -106,19 +106,23 @@ class _DualCameraBase(Fragment):
         self.image_vertical: ResultChannel
 
         self.setattr_result(
-            "image_horizontal_timestamp", IntChannel, display_hints={"priority": -1}
+            "image_horizontal_timestamp", IntChannel, display_hints={"priority": -2}
         )
         self.image_horizontal_timestamp: ResultChannel
 
-        self.setattr_result("image_horizontal_mean", FloatChannel)
+        self.setattr_result(
+            "image_horizontal_mean", FloatChannel, display_hints={"priority": -1}
+        )
         self.image_horizontal_mean: ResultChannel
 
         self.setattr_result(
-            "image_vertical_timestamp", IntChannel, display_hints={"priority": -1}
+            "image_vertical_timestamp", IntChannel, display_hints={"priority": -2}
         )
         self.image_vertical_timestamp: ResultChannel
 
-        self.setattr_result("image_vertical_mean", FloatChannel)
+        self.setattr_result(
+            "image_vertical_mean", FloatChannel, display_hints={"priority": -1}
+        )
         self.image_vertical_mean: ResultChannel
 
         # %% Kernel attributes
