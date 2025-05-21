@@ -875,7 +875,20 @@ B_FIELD_CH1_AXIAL = 0.0  # A
 FIELD_COMP_X = 0.31
 FIELD_COMP_Y = -0.009
 FIELD_COMP_Z = -0.69
-FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
+
+
+def add_field_offset(x, y, z):
+    """
+    Adds the field offset to the passed field
+
+    Allows for easy updating of the bias field when it changes
+    """
+    return (
+        x + FIELD_COMP_X,
+        y + FIELD_COMP_Y,
+        z + FIELD_COMP_Z,
+    )
+
 
 if USE_SR87:
     # With 6A gradient
@@ -987,14 +1000,14 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = [a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.53])]
+) = add_field_offset(0.188, 0.057, -0.53)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
-) = [a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, 0.17])]
+) = add_field_offset(0.188, 0.057, 0.17)
 
 
 # TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
@@ -1069,9 +1082,7 @@ if USE_SR87:
     # This is optimized for loading into the HODT, not the XODT, because the 813
     # will be turned on during the molasses phase. The molasses phase itself
     # uses XODT_MOLASSES_BIAS_FIELD_START
-    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = [
-        a + b for a, b in zip(FIELD_COMP, [0.22, 0.029, -0.21])
-    ]
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.22, 0.029, -0.21)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
     XODT_MOLASSES_DURATION = 400e-3
@@ -1099,9 +1110,7 @@ if USE_SR87:
     XODT_MOLASSES_689_DETUNING_END = [
         -30e3,
     ]
-    XODT_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.00, -0.0])
-    ]
+    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 0.0
 
@@ -1115,12 +1124,8 @@ if USE_SR87:
     XODT_2ND_MOLASSES_689_DETUNING_END = [
         550e3,
     ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-    ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, -0.33])
-    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = add_field_offset(0.0, 0.0, -0.33)
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 else:
     DELAY_BEFORE_MOLASSES = 0.01e-3
@@ -1137,9 +1142,7 @@ else:
     XODT_MOLASSES_689_DETUNING_END = [
         120e3,
     ]
-    XODT_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.148, 0.024, -0.58])
-    ]
+    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.148, 0.024, -0.58)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 6.0
@@ -1154,15 +1157,11 @@ else:
     XODT_2ND_MOLASSES_689_DETUNING_END = [
         0e3,
     ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-    ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = add_field_offset(0.0, 0.0, 0.0)
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 
-OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
+OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
 # SUServo order: [1064 delivery, down 813]
@@ -1170,9 +1169,7 @@ XODT_EVAP_START = [1.0, 1.0]
 XODT_EVAP_END = [0.5, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
-XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
-    a + b for a, b in zip(FIELD_COMP, [-1.12, 0.0, 0.0])
-]
+XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
 # XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
 #     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
 # ]
