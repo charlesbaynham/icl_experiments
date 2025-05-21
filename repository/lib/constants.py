@@ -980,7 +980,9 @@ else:
     RED_BROADBAND_MOT_CURRENT_END = [9.0]
     RED_BROADBAND_DURATION = 100e-3
 
-# Narrowband field to load FORWARD dipole trap at 10 A MOT current
+# Narrowband field to load FORWARD dipole trap at 10 A MOT current Note that
+# this is the default for normal red MOTs. One day we might want to split the
+# red MOT and the forward XODT fields, but not today.
 (
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
