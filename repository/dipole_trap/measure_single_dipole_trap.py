@@ -17,7 +17,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 
 logger = logging.getLogger(__name__)
 

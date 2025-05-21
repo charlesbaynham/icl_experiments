@@ -27,7 +27,7 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
 )
