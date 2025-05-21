@@ -8,11 +8,15 @@ from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from numpy import int64
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    SetBeamsToDefaults,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    make_set_beams_to_default,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -119,22 +123,22 @@ class DipoleBeamController(Fragment):
         self.device_setup_subfragments()
 
         # Turn on dipole beams before blue MOT
-        self.core.break_realtime()
-        self.XODT_setter.turn_on_all()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.core.break_realtime()
-        self.set_dipole_suservo_setpoints(
-            setpoint_down_813=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[5],
-            setpoint_dipole_trap_1064_delivery=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[
-                4
-            ],
-        )
+        # self.core.break_realtime()
+        # self.XODT_setter.turn_on_all()
+        # delay_mu(int64(self.core.ref_multiplier))
+        # self.core.break_realtime()
+        # self.set_dipole_suservo_setpoints(
+        #     setpoint_down_813=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[5],
+        #     setpoint_dipole_trap_1064_delivery=constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START[
+        #         4
+        #     ],
+        # )
 
         # Look up the SUServo setpoints from the default beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[
-                i
-            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            self.suservo_nominal_amplitudes[i] = (
+                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            )
 
         self.core.break_realtime()
 

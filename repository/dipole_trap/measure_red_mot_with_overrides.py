@@ -85,15 +85,15 @@ def make_experiment(
 
 LoadBackwardDipoleTrap = make_experiment(
     "LoadBackwardDipoleTrap",
-    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_X,
-    chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_Y,
-    chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_Z,
+    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
+    chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
+    chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
     chamber_2_mot_current_start=3,
     chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
-    roi_0_x0=130,
-    roi_0_x1=280,
-    roi_0_y0=225,
-    roi_0_y1=275,
+    roi_0_x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+    roi_0_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+    roi_0_y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+    roi_0_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
 )
 
 
@@ -104,23 +104,8 @@ LoadForwardDipoleTrap = make_experiment(
     chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_Z,
     chamber_2_mot_current_start=3,
     chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
-    roi_0_x0=130,
-    roi_0_x1=280,
-    roi_0_y0=275,
-    roi_0_y1=325,
-)
-
-
-LoadBothDipoleTraps = make_experiment(
-    "LoadBothDipoleTraps",
-    roi_0_x0=130,
-    roi_0_x1=280,
-    roi_0_y0=275,
-    roi_0_y1=375,
-    # TODO: These param are not right! They need choosing.
-    chamber_2_bias_x=0.4,
-    chamber_2_bias_y=0.02,
-    chamber_2_bias_z=-1.015,
-    chamber_2_mot_current_start=3,
-    chamber_2_mot_current_end=3,
+    roi_0_x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+    roi_0_x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+    roi_0_y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+    roi_0_y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
 )

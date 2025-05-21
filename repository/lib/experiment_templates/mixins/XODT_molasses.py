@@ -1,9 +1,11 @@
 import logging
 
 from artiq.experiment import delay
+from artiq.experiment import delay_mu
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -14,8 +16,22 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    SetBeamsToDefaults,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    make_set_beams_to_default,
+)
 
 logger = logging.getLogger(__name__)
+
+# order diagonal, sigmaplus, sigmaminus, up
+RED_SUSERVO_PGIA = constants.SUSERVO_PGIA[0:4]
+
+# FIXME - this is a hack, should get the setpoints with self.mot_xodt.default_suservo_nominal_setpoints[i]
+# but it returns 0.0
+# order diagonal, sigmaplus, sigmaminus, up
+SETPOINTS = [1.5, 3.0, 1.5, 0.4, 4.7, 5.0]
 
 
 class LoadSingleXODTMixin(DipoleTrapWithExperiment):
@@ -26,7 +42,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
     * :meth:`~DMA_initialization_hook`
     * :meth:`~post_narrowband_hook`
-    * :meth:`~dipole_trap_molasses_hook`
+    * :meth:`~dipole_trap_loading_hook`
 
     We also override this hook to do nothing since this Mixin is now taking charge
     of field setting:
@@ -43,17 +59,17 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
 
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
-            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT,
-        )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
-        )
+        # self.setattr_param_rebind(
+        #     "red_narrowband_mot_689_up_start",
+        #     self.red_mot.narrow_red_compression_phase,
+        #     original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
+        #     default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT,
+        # )
+        # self.setattr_param_rebind(
+        #     "red_narrowband_mot_689_up_end",
+        #     self.red_mot.narrow_red_compression_phase,
+        #     original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
+        # )
 
         self.setattr_param(
             "stir_beam_detuning_mot_xodt",
@@ -66,32 +82,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_mot_xodt: FloatParamHandle
 
-        # Override default currents to suit single XODT loading
-        self.setattr_param_rebind(
-            "narrowband_bias_x",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
-        )
-        self.setattr_param_rebind(
-            "narrowband_bias_y",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
-        )
-        self.setattr_param_rebind(
-            "narrowband_bias_z",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
-        )
-        self.setattr_param_rebind(
-            "chamber_2_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            default=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
-        )
-        self.narrowband_bias_x: FloatParamHandle
-        self.narrowband_bias_y: FloatParamHandle
-        self.narrowband_bias_z: FloatParamHandle
-        self.narrow_red_compression_phase: FloatParamHandle
-
+        # FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
         self.mot_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
@@ -126,15 +117,16 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         pass
 
     @kernel
-    def dipole_trap_molasses_hook(self):
-        self.dipole_trap_molasses_hook_single_xodt_mot()
+    def dipole_trap_loading_hook(self):
+        self.dipole_trap_loading_hook_single_xodt_mot()
 
     @kernel
-    def dipole_trap_molasses_hook_single_xodt_mot(self):
+    def dipole_trap_loading_hook_single_xodt_mot(self):
         """
         Turn the dipole beams on and do the xodt loading ramping phase
         """
         self.constant_dipole_traps_setter.turn_on_all()
+
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
@@ -170,8 +162,23 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
         self.molasses_xodt_1: MolassesInXODT
 
+        self.setattr_fragment(
+            "transparency_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
+
         # Remove unused parameters
-        self.override_param("spectroscopy_field_gradient", 0)
+        # self.override_param("spectroscopy_field_gradient", 0)
 
         # # Expose the bias field for moving the MOT to the right place
         self.setattr_param_rebind(
@@ -235,10 +242,12 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_molasses_1: FloatParamHandle
 
+        # FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
         self.molasses_xodt_1.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
                 self.dipole_beam_controller.all_beam_default_setter,
+                self.transparency_setter,
             ]
         )
 
@@ -262,21 +271,23 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def post_narrowband_hook(self):
-        """
-        Turn off red MOT beams (default hook), set coil currents, and wait
-        """
-        self.post_narrowband_hook_xodt_molasses()
-
-    @kernel
-    def set_postnarrowband_fields_hook(self):
-        self.set_postnarrowband_fields_hook_singlemollasses()
-
-    @kernel
-    def set_postnarrowband_fields_hook_singlemollasses(self):
         pass
 
     @kernel
-    def post_narrowband_hook_xodt_molasses(self):
+    def set_postnarrowband_fields_hook(self):
+        self.set_postnarrowband_fields_hook_singlemolasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook_singlemolasses(self):
+        pass
+
+    @kernel
+    def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
+        self.dipole_trap_molasses_hook_first_xodt_molasses()
+
+    @kernel
+    def set_fields_xodt_molasses(self):
         """
         Turn off MOT fields and set bias fields to molasses ramp start.
 
@@ -295,17 +306,21 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         delay(self.delay_before_molasses.get())
 
     @kernel
-    def dipole_trap_molasses_hook(self):
-        self.dipole_trap_molasses_hook_first_xodt_molasses()
-
-    @kernel
     def dipole_trap_molasses_hook_first_xodt_molasses(self):
         """
         Do the first molasses ramping phase
         """
+
+        # turn on red beams and transparency beam
+        red_suservos = (
+            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        )
+        for i in range(len(red_suservos)):
+            red_suservos[i].setter.set_setpoint(0.0)
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
+        self.transparency_setter.turn_on_all()
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
@@ -313,6 +328,15 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
         self.molasses_xodt_1.do_phase()
+
+        # turn off transparency beam
+        self.transparency_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
+
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+            ignore_shutters=True
+        )
 
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
@@ -541,3 +565,84 @@ class XODTSingleMolassesPlusFieldRampMixin(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
+
+
+class ClearOut689Mixin(DipoleTrapWithExperiment):
+    """
+    Pulse 689 nm beam to clear out atoms after molasses
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_clearout_pulse_hook`
+
+    """
+
+    def build_fragment(self):
+        # We assume that the up beam has already been configured by the MOT
+        # sequence, but that we must control the amplitude
+        self.setattr_fragment(
+            "up_beam_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
+        )
+        self.up_beam_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_suservo_clearout",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo_clearout: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter_clearout",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter_clearout: SetBeamsToDefaults
+
+        self.setattr_param(
+            "clearout_pulse_time",
+            FloatParam,
+            "Time to pulse the 689 nm beam to clear out atoms",
+            default=0.0,
+            unit="ms",
+        )
+        self.clearout_pulse_time: FloatParamHandle
+
+        self.setattr_param(
+            "clearout_pulse_aom_amplitude",
+            FloatParam,
+            "Amplitude of delivery AOM during clearout pulse. SUServoing is disabled",
+            default=1.0,
+            min=0.0,
+            max=1.0,
+        )
+        self.clearout_pulse_aom_amplitude: FloatParamHandle
+
+        super().build_fragment()
+
+    @kernel
+    def do_clearout_pulse_hook(self):
+        self.transparency_setter_clearout.turn_on_all()
+        delay_mu(8)
+        self.up_beam_suservo.set_pgia_gain_mu(0)
+        delay_mu(8)
+        self.up_beam_suservo.suservo_channel.set_y(
+            profile=self.up_beam_suservo.suservo_profile,
+            y=self.clearout_pulse_aom_amplitude.get(),
+        )
+        delay_mu(8)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(self.clearout_pulse_time.get())
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        delay_mu(8)
+
+        self.transparency_suservo_clearout.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )

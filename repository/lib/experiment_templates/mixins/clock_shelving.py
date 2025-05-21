@@ -11,14 +11,16 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.fragments.urukul_init import make_urukul_init
-from pyaion.models import SUServoedBeam
-from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+
+# from pyaion.models import SUServoedBeam
+from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
+from repository.lib.fragments.pyaion_overrides.models_override import UrukuledBeam
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]

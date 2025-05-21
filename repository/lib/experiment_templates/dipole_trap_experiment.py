@@ -46,13 +46,17 @@ from artiq.experiment import delay
 from artiq.experiment import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    SetBeamsToDefaults,
+)
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    make_set_beams_to_default,
 )
 
 logger = logging.getLogger(__name__)
@@ -130,7 +134,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
+        self.dipole_trap_loading_hook()
         self.dipole_trap_molasses_hook()
+        self.do_clearout_pulse_hook()
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
@@ -139,11 +145,24 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.do_experiment_after_dipole_trap_hook()
 
     @kernel
+    def dipole_trap_loading_hook(self):
+        """
+        Hook for implementation of stages after the dipole trap loading stage. By default, turn on the dipole trap beams.
+        """
+        self.constant_dipole_traps_setter.turn_on_all()
+
+    @kernel
     def dipole_trap_molasses_hook(self):
         """
         Hook for implementation of stages after the dipole trap molasses stage. By default, turn on the dipole trap beams.
         """
         self.constant_dipole_traps_setter.turn_on_all()
+
+    @kernel
+    def do_clearout_pulse_hook(self):
+        """
+        Hook for implementation of a clearout pulse with 689.
+        """
 
     @kernel
     def dipole_trap_optical_pumping_hook(self):

@@ -26,13 +26,15 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 import repository.lib.constants as constants
 from repository.injected_diodes.relocker_board import RelockerChannelFrag
 from repository.injected_diodes.set_koheron_controller import SetKoheronFrag
 from repository.lib.constants import IJD_DEFAULTS
 from repository.lib.constants import IJD_RELOCKER_DEFAULTS
+from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
+    make_set_beams_to_default,
+)
 
 # from ndscan.experiment import Fragment
 

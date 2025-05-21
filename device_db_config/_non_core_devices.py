@@ -131,7 +131,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
             "mockclass": "MockCamera",
             "arguments": {
-                "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
+                "name": "FLIR-Blackfly S BFS-PGE-50S5M-23476914",
                 "loglevel": logging.WARNING,
             },
         },
