@@ -58,6 +58,9 @@ class BGCorrectedAndorImage(AndorImagingBase):
         self.setattr_result("andor_mean_bg_corrected", FloatChannel)
         self.andor_mean_bg_corrected: FloatChannel
 
+        self.setattr_result("andor_sum_bg_corrected", FloatChannel)
+        self.andor_sum_bg_corrected: FloatChannel
+
     @kernel
     def do_imaging_hook_andor(self):
         """
@@ -97,6 +100,7 @@ class BGCorrectedAndorImage(AndorImagingBase):
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
+        self.andor_sum_bg_corrected.push(sums[0] - sums[1])
         self.andor_mean_bg_corrected.push(means[0] - means[1])
 
     # @host_only
