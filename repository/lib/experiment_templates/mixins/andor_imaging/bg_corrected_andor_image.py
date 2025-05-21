@@ -61,7 +61,8 @@ class BGCorrectedAndorImage(AndorImagingBase):
         self.andor_mean_bg_corrected: FloatChannel
 
         self.setattr_result(
-            "andor_sum_bg_corrected", FloatChannel, display_hints={"priority": -1}
+            "andor_sum_bg_corrected",
+            FloatChannel,
         )
         self.andor_sum_bg_corrected: FloatChannel
 
