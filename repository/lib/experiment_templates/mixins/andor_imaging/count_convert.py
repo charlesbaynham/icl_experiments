@@ -7,7 +7,15 @@ from sipyco.packed_exceptions import GenericRemoteException
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 
 
-class CountConvert(EMGain):
+class CountConvertWithEMGain(EMGain):
+    """
+    Adds EM gain control to the Andor camera and converts the EM counts to photons
+
+    This mixin will default to turning the gain off unless the user checks a
+    box. DO NOT ADD THIS MIXIN TO AN EXPERIMENT UNLESS YOU ARE CERTAIN YOU KNOW
+    WHAT YOU ARE DOING!!! If not, you might break a camera that cost >£30k.
+    """
+
     def build_fragment(self):
         super().build_fragment()
 

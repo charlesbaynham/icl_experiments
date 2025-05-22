@@ -10,12 +10,11 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
     AbsorptionDoubleDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.count_convert import (
-    CountConvert,
+    CountConvertWithEMGain,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
@@ -42,8 +41,7 @@ logger = logging.getLogger(__name__)
 
 class _DifferentialClockInterferometryImaging(
     DoubleTrapImagingNormalised,
-    EMGain,
-    CountConvert,
+    CountConvertWithEMGain,
     FLIRBlueMOTMeasurementMixin,
 ):
     """
