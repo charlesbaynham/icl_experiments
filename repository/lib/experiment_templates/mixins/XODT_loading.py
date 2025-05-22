@@ -109,7 +109,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.mot_in_xodt.do_phase()
 
 
-class LoadXXODT(LoadSingleXODTMixin):
+class LoadXXODTMixin(LoadSingleXODTMixin):
     """
     Loads atoms into a double crossed dipole trap after the narrowband red MOT
 
@@ -117,7 +117,7 @@ class LoadXXODT(LoadSingleXODTMixin):
 
     * :meth:`~DMA_initialization_hook`
     * :meth:`~post_narrowband_hook`
-    * :meth:`~dipole_trap_molasses_hook`
+    * :meth:`~dipole_trap_loading_hook`
 
     We also override this hook to do nothing since this Mixin is now taking charge
     of field setting:
