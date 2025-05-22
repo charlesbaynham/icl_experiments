@@ -15,6 +15,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.pumped_lattice import (
+    OpticalPumpingWithFieldSettingBase,
+)
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import EvapFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
@@ -356,9 +359,15 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
 
         # If we have a spin pol stage, bind the field start values to the end of
         # the spin pol stage
-        if hasattr(self, "bias_x_for_pumping"):
-            # FIXME: do this by implementing general setter daisy chaining
-            pass
+        if isinstance(self, OpticalPumpingWithFieldSettingBase):
+            for l in "xyz":
+                # This code is fragile because it relies on strings, but it
+                # should break with an error if the strings change so the unit
+                # tests will catch it:
+                self.ramp_during_evap_phase.bind_param(
+                    param_name=f"bias_field_{l}",
+                    source=getattr(self, f"bias_{l}_for_pumping"),
+                )
 
     @abc.abstractmethod
     def _define_evap_phase_ramp(self):
