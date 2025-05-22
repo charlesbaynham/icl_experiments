@@ -217,3 +217,6 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
             )
 
         self.mot_in_second_xodt.do_phase()
+
+        # Leave the red beams on. They will be either used for spin pol or
+        # turned off by the evaporation stage.

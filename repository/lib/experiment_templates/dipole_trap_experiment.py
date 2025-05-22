@@ -143,21 +143,20 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def dipole_trap_loading_hook(self):
         """
-        Hook for implementation of stages after the dipole trap loading stage. By default, turn on the dipole trap beams.
+        Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
         """
-        self.constant_dipole_traps_setter.turn_on_all()
+        self.constant_dipole_traps_setter.turn_on_all()  # FIXME: Not the right place for this
 
     @kernel
     def dipole_trap_molasses_hook(self):
         """
-        Hook for implementation of stages after the dipole trap molasses stage. By default, turn on the dipole trap beams.
+        Hook for implementation of stages in the dipole trap molasses stage. By default, do nothing
         """
-        self.constant_dipole_traps_setter.turn_on_all()
 
     @kernel
     def do_clearout_pulse_hook(self):
         """
-        Hook for implementation of a clearout pulse with 689.
+        Hook for implementation of a clearout pulse with 689. By default, do nothing
         """
 
     @kernel
@@ -169,7 +168,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def dipole_trap_evaporation_hook(self):
         """
-        Hook for implementation of stages after the dipole trap evaporation stage. By default, do nothing.
+        Hook for implementation of evaporation in the dipole trap.
+
+        By default, turn off all the red beams to allow holding in dipole trap before experiment
         """
         self.dipole_trap_evaporation_hook_default()
 
@@ -193,7 +194,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def dipole_trap_evaporation_hook_default(self):
         """
-        By default, turn off all the red beams to allow holding in dipole trap before experiment
+        Turn off all the red beams to allow holding in dipole trap before experiment
+
+        Advances the timeline by a few coarse cycles
         """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
