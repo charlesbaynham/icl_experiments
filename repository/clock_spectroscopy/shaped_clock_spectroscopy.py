@@ -25,7 +25,9 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_molasses import FieldOnlyRampBase
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    FieldOnlyRampInEvapMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     ShapedRabiSpectroscopyDipoleTrapMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampBase,
+    FieldOnlyRampInEvapMixin,
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
     EMGain,
@@ -74,7 +76,7 @@ class ShapedClockSpecWithSlicingFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampBase,
+    FieldOnlyRampInEvapMixin,
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
     EMGain,

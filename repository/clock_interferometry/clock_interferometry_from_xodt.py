@@ -33,7 +33,9 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 )
 from repository.lib.experiment_templates.mixins.rigol_counter import RigolCounterMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_molasses import FieldOnlyRampBase
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    FieldOnlyRampInEvapMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +58,7 @@ class _DifferentialClockInterferometry(
     ClockShelvingAndClearoutDipoleTrapMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampBase,  # FIXME this is not a base
+    FieldOnlyRampInEvapMixin,
     # Extra monitoring:
     RigolCounterMixin,
     # Loading:

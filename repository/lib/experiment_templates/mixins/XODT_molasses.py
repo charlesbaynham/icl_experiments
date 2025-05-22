@@ -397,7 +397,7 @@ class EvapAndFieldRampBase(_RampDuringEvapHookBase):
         self.ramp_during_evap_phase: XODTWithFieldAndIntensityRamp
 
 
-class FieldOnlyRampBase(_RampDuringEvapHookBase):
+class FieldOnlyRampInEvapMixin(_RampDuringEvapHookBase):
     """
     Ramps the magnetic field during the evaporation phase, but with no actual
     evaporation
