@@ -86,9 +86,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
-        self.dipole_beam_controller: DipoleBeamController
-
         # Hold time in dipole trap - can be negative
         self.setattr_param(
             "dipole_hold_time",
@@ -109,6 +106,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_pre_experiment_delay: FloatParamHandle
 
         # %% Fragments
+
+        self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
+        self.dipole_beam_controller: DipoleBeamController
 
         self.setattr_fragment(
             "constant_dipole_traps_setter",

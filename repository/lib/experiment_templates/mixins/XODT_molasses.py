@@ -16,6 +16,9 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
+    XODTWithFieldAndIntensityRamp,
+)
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 
 logger = logging.getLogger(__name__)
@@ -336,22 +339,28 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.do_phase()
 
 
-class EvapAndFieldRampBase(DipoleTrapWithExperiment):
+import abc
+
+
+class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
     """
-    Exposes the evaporation and field ramping phase for use in evaporation Mixins
+    Framework for implementing a ramping phase during the evaporation phase
+
+    This is generalised so that we can have either evaporation + field ramping, or only field ramping
     """
 
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
-        )
-        self.bias_and_evap_ramp: XODTWithFieldRamp
+        self._define_evap_phase_ramp()
+
+    @abc.abstractmethod
+    def _define_evap_phase_ramp(self):
+        pass
 
     @kernel
     def DMA_initialization_hook_evap_with_field_ramp(self):
-        self.bias_and_evap_ramp.precalculate_dma_handle()
+        self.ramp_during_evap_phase.precalculate_dma_handle()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -363,15 +372,42 @@ class EvapAndFieldRampBase(DipoleTrapWithExperiment):
     @kernel
     def dipole_trap_evaporation_hook_with_field_ramp(self):
         """
-        Do the evap and field ramp
+        Do the evap / field ramp phase
         """
-        self.bias_and_evap_ramp.do_phase()
+        self.ramp_during_evap_phase.do_phase()
 
     @kernel
     def dipole_trap_evaporation_hook(self):
         # Default hook turns off red beams - good!
         self.dipole_trap_evaporation_hook_default()
         self.dipole_trap_evaporation_hook_with_field_ramp()
+
+
+class EvapAndFieldRampBase(_RampDuringEvapHookBase):
+    """
+    Exposes the evaporation and field ramping phase for use in evaporation Mixins
+    """
+
+    def _define_evap_phase_ramp(self):
+        self.setattr_fragment(
+            "ramp_during_evap_phase",
+            XODTWithFieldAndIntensityRamp,
+        )
+        self.ramp_during_evap_phase: XODTWithFieldAndIntensityRamp
+
+
+class FieldOnlyRampBase(_RampDuringEvapHookBase):
+    """
+    Ramps the magnetic field during the evaporation phase, but with no actual
+    evaporation
+    """
+
+    def _define_evap_phase_ramp(self):
+        self.setattr_fragment(
+            "ramp_during_evap_phase",
+            XODTWithFieldRamp,
+        )
+        self.ramp_during_evap_phase: XODTWithFieldRamp
 
 
 class XODTDoubleMolassesPlusFieldRampMixin(
@@ -399,7 +435,7 @@ class XODTDoubleMolassesPlusFieldRampMixin(
     def build_fragment(self):
         super().build_fragment()
 
-        self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
+        self.ramp_during_evap_phase.daisy_chain_with_previous_phase(
             self.molasses_xodt_2, suservos=SUSERVOS_XODT
         )
 
@@ -435,7 +471,7 @@ class XODTSingleMolassesPlusFieldRampMixin(
     def build_fragment(self):
         super().build_fragment()
 
-        self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
+        self.ramp_during_evap_phase.daisy_chain_with_previous_phase(
             self.molasses_xodt_1, suservos=SUSERVOS_XODT
         )
 

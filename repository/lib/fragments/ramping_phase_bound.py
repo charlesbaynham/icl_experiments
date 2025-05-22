@@ -12,13 +12,22 @@ logger = logging.getLogger(__name__)
 
 class GeneralRampingPhaseWithBinding(GeneralRampingPhase):
     """
-    Template fragment for a phase of the experiment using a ramp with bound SUServo setpoints.
+    Template fragment for a phase of the experiment using a ramp with bound
+    SUServo setpoints.
 
-    This adds to the functionality
-    of :class:`~GeneralRampingPhase` with a method binding the ramp SUServo setpoints
-    to the default setpoints in an instance of :class:`~SetBeamsToDefaults`, or a list of instances of :class:`~SetBeamsToDefaults`. This is useful
-    for having a common reference "default" setpoint used in both the ramp and other
-    stages in the sequence, while exposing that default as a parameter in ndscan.
+    This adds to the functionality of :class:`~GeneralRampingPhase` with a
+    method binding the ramp SUServo setpoints to the default setpoints in an
+    instance of :class:`~SetBeamsToDefaults`, or a list of instances of
+    :class:`~SetBeamsToDefaults`. This is useful for having a common reference
+    "default" setpoint used in both the ramp and other stages in the sequence,
+    while exposing that default as a parameter in ndscan.
+
+    The `enforce_binding_to_defaults` parameter will force you to either call
+    `bind_suservo_setpoint_params_to_default_beam_setter` at some point or to
+    daisy chain with a previous phase. This can protect you from errors where
+    you have a list of zeros for your `default_suservo_nominal_setpoints` but
+    forget to rebind these to a default setter (either by passing one with
+    `enforce_binding_to_defaults` or by daisy chaining to a previous phase).
 
     See the docs for :class:`~GeneralRampingPhase` for more information.
     """
@@ -28,8 +37,19 @@ class GeneralRampingPhaseWithBinding(GeneralRampingPhase):
         self.__binding_completed = False
         return super().build_fragment()
 
+    def daisy_chain_with_previous_phase(self, *args, **kwargs):
+        # Like `bind_suservo_setpoint_params_to_default_beam_setter`, this
+        # method also sets up the default setters and so counts as having
+        # completed the binding
+        self.__binding_completed = True
+        super().daisy_chain_with_previous_phase(*args, **kwargs)
+
     def host_setup(self):
-        if self.enforce_binding_to_defaults and not self.__binding_completed:
+        if (
+            self.enforce_binding_to_defaults
+            and not self.__binding_completed
+            and self.suservos  # Binding is only relevant if we have SUServos to control
+        ):
             raise TypeError(
                 "bind_suservo_setpoint_params_to_default_beam_setter has not been called\n"
                 "This must be called from the Fragment which initiates this phase to rebind the red beam setpoints"

@@ -275,15 +275,23 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         # Keep the blue light on for a short time while turning on the red beams
         with parallel:
+            # Start the red MOT
+            with sequential:
+                # Turn on the red beams and start ramping them
+                self.red_mot.prepare_for_broadband_phase()
+                # Hook for mixins to use - default nothing
+                self.start_of_red_broadband_hook()
+                # Save the time now so we can come back to it
+                t_red_light_on = now_mu()
             # Turn off the blue beams, a little after the red MOT starts
             with sequential:
                 delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
                 self.blue_3d_mot.turn_off_all_beams()
-            # and start the red MOT
-            with sequential:
-                self.red_mot.prepare_for_broadband_phase()
-                self.start_of_red_broadband_hook()
-                self.red_mot.broadband_red_phase.do_phase()
+
+        # Continue the broadband phase as a GenericRampingPhase, for
+        # compatibility with the rest of the sequence
+        at_mu(t_red_light_on)
+        self.red_mot.broadband_red_phase.do_phase()
 
         self.end_of_broadband_mot_hook()
 

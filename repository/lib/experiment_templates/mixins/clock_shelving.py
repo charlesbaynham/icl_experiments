@@ -186,4 +186,12 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     def post_dipole_trap_hook(self):
         self.post_dipole_trap_hook_default()
         delay_mu(int64(self.core.ref_multiplier))
+        self.post_dipole_trap_hook_shelving_and_clearout()
+
+    @kernel
+    def post_dipole_trap_hook_shelving_and_clearout(self):
+        """
+        Before spectroscopy in the dipole trap but after dropping, fire a
+        velocity-selection pulse
+        """
         self.clock_shelving()
