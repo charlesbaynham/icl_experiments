@@ -126,7 +126,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_molasses_1: FloatParamHandle
 
-        # FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
         self.molasses_xodt_1.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
