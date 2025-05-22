@@ -26,7 +26,6 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import FieldOnlyRampBase
-from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
 
 logger = logging.getLogger(__name__)
 

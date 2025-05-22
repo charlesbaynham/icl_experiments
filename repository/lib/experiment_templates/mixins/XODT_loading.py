@@ -211,9 +211,9 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
         delay(self.delay_before_second_xodt.get())
 
         # Beams on and load into the second XODT
-        if self.delay_before_molasses.get() > 1e-6:
+        if self.delay_before_second_xodt.get() > 1e-6:
             self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
                 ignore_shutters=True
             )
 
-        self.delay_before_second_xodt.do_phase()
+        self.mot_in_second_xodt.do_phase()
