@@ -8,7 +8,7 @@ from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndBiasField,
 )
 
-SUSERVOS_MOLASSES = [
+SUSERVOS_RED = [
     "suservo_aom_singlepass_689_red_mot_diagonal",
     "suservo_aom_singlepass_689_red_mot_sigmaplus",
     "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -45,7 +45,7 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     urukuls = URUKULS_MOLASSES
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_MOLASSES + SUSERVOS_XODT
+    suservos = SUSERVOS_RED + SUSERVOS_XODT
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -108,6 +108,33 @@ class MOTInSingleXODT(_RedAndXODTBeamsBase):
     default_urukul_detunings_end = [0.0]
 
 
+class MOTInBottomXODT(_RedAndXODTBeamsBase):
+    """
+    Make a MOT on the backward XODT
+
+    This phase will be used after :class:`~MOTInSingleXODT`, so atoms will
+    already be in the top trap. We therefore cannot turn off the XODT beams, so
+    leave them alone.
+
+    This also ignores the magnetic field, assuming that it has been set to the
+    right value already.
+    """
+
+    duration_default = constants.XODT_SINGLE_LOADING_DURATION
+
+    suservos = SUSERVOS_RED
+
+    default_suservo_setpoint_multiples_start = (
+        constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START
+    )
+    default_suservo_setpoint_multiples_end = (
+        constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END
+    )
+
+    default_urukul_detunings_start = [0.0]
+    default_urukul_detunings_end = [0.0]
+
+
 class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBiasField):
     """
     A molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT,
@@ -123,7 +150,7 @@ class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBias
 
     duration_default = constants.XODT_MOLASSES_DURATION
 
-    suservos = SUSERVOS_MOLASSES + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START
