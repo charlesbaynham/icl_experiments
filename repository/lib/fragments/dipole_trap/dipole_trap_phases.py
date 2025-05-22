@@ -34,7 +34,7 @@ SUSERVOS_CAVITY_LATTICE = [
 ]
 
 
-class _RedAndXODTBeams(GeneralRampingPhaseWithBinding):
+class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     """
     Ramp stage for the red MOT beams and the XODT beams, with the red MOT beams
     set to "low power mode" (i.e. their PGIA has been boosted)
@@ -86,7 +86,7 @@ class _RedAndXODTBeams(GeneralRampingPhaseWithBinding):
         super().__init__(*args, **kwargs)
 
 
-class MOTInSingleXODT(_RedAndXODTBeams):
+class MOTInSingleXODT(_RedAndXODTBeamsBase):
     """
     A MOT phase with ramps for the MOT beams and a 1064/813 XODT.
 
@@ -108,7 +108,7 @@ class MOTInSingleXODT(_RedAndXODTBeams):
     default_urukul_detunings_end = [0.0]
 
 
-class MolassesInXODT(_RedAndXODTBeams, GeneralRampingPhaseWithBindingAndBiasField):
+class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBiasField):
     """
     A molasses phase with ramps for 689 nm molasses beams, a 1064/813 nm XODT,
     and bias fields
