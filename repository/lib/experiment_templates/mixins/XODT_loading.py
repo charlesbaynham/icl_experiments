@@ -1,6 +1,7 @@
 import logging
 
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -66,10 +67,10 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
-    def DMA_initialization_hook_single_xodt_mot(self):
+    def DMA_initialization_hook_loading_xodt_mot(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
@@ -112,7 +113,6 @@ class LoadXXODT(LoadSingleXODTMixin):
     """
     Loads atoms into a double crossed dipole trap after the narrowband red MOT
 
-
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
@@ -133,7 +133,7 @@ class LoadXXODT(LoadSingleXODTMixin):
 
         # Parameters for the bias field jump
         for axis, default_current in zip(
-            ["x", "y", "z"],
+            "xyz",
             [
                 constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
                 constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
@@ -171,94 +171,49 @@ class LoadXXODT(LoadSingleXODTMixin):
         )
         self.stir_beam_detuning_mot_second_xodt: FloatParamHandle
 
-        # Bind the nominal setpoints for this stage only - we want to be able to jump discontinuously
+        # Bind the nominal setpoints and frequencies for this stage only - we want to be able to jump discontinuously
         self.mot_in_second_xodt.daisy_chain_with_previous_phase(self.mot_in_xodt)
 
-        # This ought to be handled by the daisy chain, but it's not implemented yet. *sigh*
-        # TODO: implement AD9910 chaining and use it here
-        self.mot_in_second_xodt.bind_ad9910_frequency_params(
-            [self.red_mot.injection_aom_static_frequency]
-        )
-
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_xodt_molasses()
-
-    @kernel
-    def DMA_initialization_hook_xodt_molasses(self):
+    def DMA_initialization_hook_loading_xodt_mot(self):
         """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
+        Override the DMA calculation for the single XODT to save the user having to write two hooks
         """
-        self.molasses_xodt_1.precalculate_dma_handle()
+        self.mot_in_xodt.precalculate_dma_handle()
+        self.mot_in_second_xodt.precalculate_dma_handle()
 
     @kernel
-    def post_narrowband_hook(self):
-        pass
+    def dipole_trap_loading_hook(self):
+        self.dipole_trap_loading_hook_single_xodt_mot()
+        self.dipole_trap_loading_hook_second_xodt_mot()
 
     @kernel
-    def set_postnarrowband_fields_hook(self):
-        self.set_postnarrowband_fields_hook_singlemolasses()
+    def dipole_trap_loading_hook_second_xodt_mot(self):
 
-    @kernel
-    def set_postnarrowband_fields_hook_singlemolasses(self):
-        pass
-
-    @kernel
-    def dipole_trap_molasses_hook(self):
-        self.set_fields_xodt_molasses()
-        self.dipole_trap_molasses_hook_first_xodt_molasses()
-
-    @kernel
-    def set_fields_xodt_molasses(self):
-        """
-        Turn off MOT fields and set bias fields to molasses ramp start.
-
-        Wait a settling time before starting the molasses.
-        """
-        self.red_mot.chamber_2_field_setter.set_all_fields(
-            self.mot_coil_current_first_molasses.get(),
-            self.molasses_xodt_1.general_setter_default_starts[0],
-            self.molasses_xodt_1.general_setter_default_starts[1],
-            self.molasses_xodt_1.general_setter_default_starts[2],
-        )
-        if self.delay_before_molasses.get() > 1e-6:
+        # Turn the red beams off if there's time
+        if self.delay_before_second_xodt.get() > 1e-6:
             self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
                 ignore_shutters=True
             )
-        delay(self.delay_before_molasses.get())
-
-    @kernel
-    def dipole_trap_molasses_hook_first_xodt_molasses(self):
-        """
-        Do the first molasses ramping phase
-        """
-
-        # turn on red beams and transparency beam
-        red_suservos = (
-            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
-        )
-        for i in range(len(red_suservos)):
-            red_suservos[i].setter.set_setpoint(0.0)
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
-            ignore_shutters=True
-        )
-        self.transparency_setter.turn_on_all()
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
-            detuning=self.stir_beam_detuning_molasses_1.get()
+            detuning=self.stir_beam_detuning_mot_second_xodt.get()
         )
 
-        self.molasses_xodt_1.do_phase()
-
-        # turn off transparency beam
-        self.transparency_suservo.set_channel_state(
-            rf_switch_state=False, enable_iir=False
+        # Step the bias field
+        self.red_mot.chamber_2_field_setter.set_bias_fields(
+            self.field_bias_second_xodt_x.get(),
+            self.field_bias_second_xodt_y.get(),
+            self.field_bias_second_xodt_z.get(),
         )
 
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
-            ignore_shutters=True
-        )
+        delay(self.delay_before_second_xodt.get())
+
+        # Beams on and load into the second XODT
+        if self.delay_before_molasses.get() > 1e-6:
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
+                ignore_shutters=True
+            )
+
+        self.delay_before_second_xodt.do_phase()

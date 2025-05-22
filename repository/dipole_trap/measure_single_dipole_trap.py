@@ -34,7 +34,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -76,7 +76,7 @@ class SingleXODTSloshedFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
     def post_dipole_trap_hook(self):
@@ -105,7 +105,7 @@ class MeasureSingleXODTAbsFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
