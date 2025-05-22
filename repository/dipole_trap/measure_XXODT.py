@@ -18,9 +18,6 @@ from repository.lib.fragments.stark_shifter import StarkShifter
 
 logger = logging.getLogger(__name__)
 
-EXPOSE_MOLASSES_1_PARAMS = False
-EXPOSE_MOLASSES_2_PARAMS = True
-
 
 class MeasureXXODTFrag(
     DoubleTrapImagingBGSubtracted,
