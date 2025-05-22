@@ -15,6 +15,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.count_convert impo
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingNormalised,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
@@ -31,84 +32,85 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.rigol_counter import RigolCounterMixin
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusFieldRampMixin,
-)
+from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import FieldOnlyRampBase
 
 logger = logging.getLogger(__name__)
 
 
-class DifferentialClockInterferometryFrag(
-    ClockInterferometryDipoleTrapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
+class _DifferentialClockInterferometryImaging(
     DoubleTrapImagingNormalised,
+    EMGain,
     CountConvert,
-    RigolCounterMixin,
     FLIRBlueMOTMeasurementMixin,
-    XODTSingleMolassesPlusFieldRampMixin,
+):
+    """
+    Seperate the imaging setup so we can also use absorption imaging
+    """
+
+
+class _DifferentialClockInterferometry(
+    # Clock interferometry:
+    ClockInterferometryDipoleTrapMixin,
+    # Velocity slicing:
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampBase,  # FIXME this is not a base
+    # Extra monitoring:
+    RigolCounterMixin,
+    # Loading:
+    LoadSingleXODTMixin,
+    # Base:
     DipoleTrapWithExperiment,
+):
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
+        self.before_start_hook_clockshelving()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+        self.DMA_initialization_hook_loading_xodt_mot()
+
+
+class DifferentialClockInterferometryFrag(
+    _DifferentialClockInterferometry,
+    _DifferentialClockInterferometryImaging,
 ):
     """
     Clock interferometry from a double XODT
     """
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
-
 
 class DifferentialClockInterferometryWithNoiseFrag(
+    _DifferentialClockInterferometry,
+    _DifferentialClockInterferometryImaging,
     ClockInterferometryWithNoiseDipoleTrapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
-    DoubleTrapImagingNormalised,
-    CountConvert,
-    RigolCounterMixin,
-    FLIRBlueMOTMeasurementMixin,
-    XODTSingleMolassesPlusFieldRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
 ):
     """
     Clock interferometry from a double XODT with added noise
     """
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
-
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
-    ClockInterferometryWithNoiseDipoleTrapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
+    _DifferentialClockInterferometry,
     AbsorptionDoubleDipoleTrapMixin,
-    FLIRBlueMOTMeasurementMixin,
-    RigolCounterMixin,
-    XODTSingleMolassesPlusFieldRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    ClockInterferometryWithNoiseDipoleTrapMixin,
 ):
     """
     Absorption imaging clock interferometry from a double XODT with added noise
     """
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
-
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
     DifferentialClockInterferometryFrag
 )
-
-
 DifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
     DifferentialClockInterferometryWithNoiseFrag
 )
-
 AbsImagingDifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
     AbsImagingDifferentialClockInterferometryWithNoiseFrag
 )
