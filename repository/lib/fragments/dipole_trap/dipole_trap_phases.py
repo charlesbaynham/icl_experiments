@@ -120,7 +120,7 @@ class MOTInBottomXODT(_RedAndXODTBeamsBase):
     right value already. We could add a ramp instead, maybe it would help.
     """
 
-    duration_default = constants.XODT_SINGLE_LOADING_DURATION
+    duration_default = constants.XXODT_LOWER_LOADING_DURATION
 
     suservos = SUSERVOS_RED
 
