@@ -227,13 +227,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.core.break_realtime()
 
         # initializes the pgia gains to 0
+        # FIXME incorporate in beam setter
         for (
             handle
         ) in (
             self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
         ):
             handle.setter.set_pgia_gain_mu(0)
-            handle.setter.set_iir_params(ki=-10000.0)
+            handle.setter.set_iir_params(
+                ki=-10000.0
+            )  #  FIXME why? This means that all our red beams have low SUServo gains all the time. That seems bad.
         self.core.break_realtime()
 
         self.DMA_initialization_hook()
