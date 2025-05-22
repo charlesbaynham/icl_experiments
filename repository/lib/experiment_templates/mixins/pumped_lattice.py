@@ -78,8 +78,6 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
     """
 
     def build_fragment(self):
-        super().build_fragment()
-
         for idx, c in enumerate("xyz"):
             self.setattr_param(
                 f"bias_{c}_for_pumping",
@@ -91,6 +89,8 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         self.bias_x_for_pumping: FloatParamHandle
         self.bias_y_for_pumping: FloatParamHandle
         self.bias_z_for_pumping: FloatParamHandle
+
+        super().build_fragment()
 
     @kernel
     def set_fields_for_optical_pumping(self):

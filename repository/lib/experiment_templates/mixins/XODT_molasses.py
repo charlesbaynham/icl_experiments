@@ -365,7 +365,7 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
                 # should break with an error if the strings change so the unit
                 # tests will catch it:
                 self.ramp_during_evap_phase.bind_param(
-                    param_name=f"bias_field_{l}",
+                    param_name=f"bias_field_{l}_start",
                     source=getattr(self, f"bias_{l}_for_pumping"),
                 )
 
