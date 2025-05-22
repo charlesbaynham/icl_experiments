@@ -117,7 +117,7 @@ class MOTInBottomXODT(_RedAndXODTBeamsBase):
     leave them alone.
 
     This also ignores the magnetic field, assuming that it has been set to the
-    right value already.
+    right value already. We could add a ramp instead, maybe it would help.
     """
 
     duration_default = constants.XODT_SINGLE_LOADING_DURATION
@@ -125,10 +125,10 @@ class MOTInBottomXODT(_RedAndXODTBeamsBase):
     suservos = SUSERVOS_RED
 
     default_suservo_setpoint_multiples_start = (
-        constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START
+        constants.XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START
     )
     default_suservo_setpoint_multiples_end = (
-        constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END
+        constants.XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_END
     )
 
     default_urukul_detunings_start = [0.0]

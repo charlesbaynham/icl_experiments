@@ -1061,9 +1061,6 @@ else:
 
 ### DIPOLE TRAP DEFAULT PARAMETERS ###
 
-# Unused in Sr88 so only one setting needed
-XODT_2ND_MOLASSES_689_STIR_DETUNING = 900e3
-
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
 # "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -1203,8 +1200,11 @@ XODT_SINGLE_NARROWBAND_BIAS_Z = -1.03
 
 TOTAL_EVAP_HOLD_TIME = 5.0
 
-# Second dipole trap loading phase
+# %% Second dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up
 # FIXME WIP
 XXODT_LOWER_LOADING_DURATION = 100e-3
-XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 0.5, 0.0]
+XXODT_LOWER_LOADING_WAIT_BEFORE = 10e-3
+XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2]
+XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1]
+XXODT_LOWER_LOADING_689_STIR_DETUNING = 900e3

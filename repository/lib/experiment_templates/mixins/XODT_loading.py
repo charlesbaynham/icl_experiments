@@ -8,6 +8,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInBottomXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 
 logger = logging.getLogger(__name__)
@@ -34,8 +35,8 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("mot_xodt", MOTInSingleXODT)
-        self.mot_xodt: MOTInSingleXODT
+        self.setattr_fragment("mot_in_xodt", MOTInSingleXODT)
+        self.mot_in_xodt: MOTInSingleXODT
 
         # Remove unused parameters
         self.override_param("spectroscopy_field_gradient", 0)
@@ -51,14 +52,14 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_mot_xodt: FloatParamHandle
 
-        self.mot_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
+        self.mot_in_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
                 self.dipole_beam_controller.all_beam_default_setter,
             ]
         )
 
-        self.mot_xodt.bind_ad9910_frequency_params(
+        self.mot_in_xodt.bind_ad9910_frequency_params(
             [self.red_mot.injection_aom_static_frequency]
         )
 
@@ -74,7 +75,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.mot_xodt.precalculate_dma_handle()
+        self.mot_in_xodt.precalculate_dma_handle()
 
     @kernel
     def post_narrowband_hook(self):
@@ -93,7 +94,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         """
         Turn the dipole beams on and do the xodt loading ramping phase
         """
-        self.constant_dipole_traps_setter.turn_on_all()
+        self.constant_dipole_traps_setter.turn_on_all()  # FIXME this isn't the right place for this, they should be set up in device_setup and then enabled here
 
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(  # FIXME Get rid of this and make sure it works
             ignore_shutters=True
@@ -104,10 +105,10 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             detuning=self.stir_beam_detuning_mot_xodt.get()
         )
 
-        self.mot_xodt.do_phase()
+        self.mot_in_xodt.do_phase()
 
 
-class LoadXXODT(DipoleTrapWithExperiment):
+class LoadXXODT(LoadSingleXODTMixin):
     """
     Loads atoms into a double crossed dipole trap after the narrowband red MOT
 
@@ -127,96 +128,55 @@ class LoadXXODT(DipoleTrapWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
-        self.molasses_xodt_1: MolassesInXODT
+        self.setattr_fragment("mot_in_second_xodt", MOTInBottomXODT)
+        self.mot_in_second_xodt: MOTInBottomXODT
 
-        self.setattr_fragment(
-            "transparency_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
-        )
-        self.transparency_suservo: LibSetSUServoStatic
-
-        self.setattr_fragment(
-            "transparency_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
-            ),
-        )
-        self.transparency_setter: SetBeamsToDefaults
-
-        # # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_start",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
-        )
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_end",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
-        )
-        for idx, axis in enumerate(["x", "y", "z"]):
-            self.setattr_param_rebind(
-                f"narrowband_bias_{axis}",
+        # Parameters for the bias field jump
+        for axis, default_current in zip(
+            ["x", "y", "z"],
+            [
+                constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
+                constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
+                constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
+            ],
+        ):
+            self.setattr_param_like(
+                f"field_bias_second_xodt_{axis}",
                 self.red_mot,
-                default=constants.BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES[idx],
+                "narrowband_bias_x",
+                default=default_current,
             )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
-            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
-        )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
-        )
+
+        self.field_bias_second_xodt_x: FloatParamHandle
+        self.field_bias_second_xodt_y: FloatParamHandle
+        self.field_bias_second_xodt_z: FloatParamHandle
 
         self.setattr_param(
-            "delay_before_molasses",
+            "delay_before_second_xodt",
             FloatParam,
-            "Time to hold in dipole trap before molasses starts",
-            default=constants.DELAY_BEFORE_MOLASSES,
+            "Time to hold in top dipole trap before turning on light for second",
+            default=constants.XXODT_LOWER_LOADING_WAIT_BEFORE,
             unit="ms",
         )
-        self.delay_before_molasses: FloatParamHandle
+        self.delay_before_second_xodt: FloatParamHandle
 
         self.setattr_param(
-            "mot_coil_current_first_molasses",
+            "stir_beam_detuning_mot_second_xodt",
             FloatParam,
-            "MOT coil current during first molasses",
-            default=constants.XODT_MOLASSES_MOT_CURRENT,
-            unit="A",
-            min=0,
-            max=130,
-        )
-        self.mot_coil_current_first_molasses: FloatParamHandle
-
-        self.setattr_param(
-            "stir_beam_detuning_molasses_1",
-            FloatParam,
-            "Detuning of the 689 stir beam during 1st molasses",
-            default=0,
+            "Detuning of the 689 stir beam during second xodt loading",
+            default=constants.XXODT_LOWER_LOADING_689_STIR_DETUNING,
             unit="kHz",
             min=-2e6,
             max=2e6,
         )
-        self.stir_beam_detuning_molasses_1: FloatParamHandle
+        self.stir_beam_detuning_mot_second_xodt: FloatParamHandle
 
-        # FIXME: this is using the high intensity setter, and maybe setting the wrong pgia?
-        self.molasses_xodt_1.bind_suservo_setpoint_params_to_default_beam_setter(
-            [
-                self.red_mot.red_beam_controller.all_beam_default_setter,
-                self.dipole_beam_controller.all_beam_default_setter,
-                self.transparency_setter,
-            ]
-        )
+        # Bind the nominal setpoints for this stage only - we want to be able to jump discontinuously
+        self.mot_in_second_xodt.daisy_chain_with_previous_phase(self.mot_in_xodt)
 
-        self.molasses_xodt_1.bind_ad9910_frequency_params(
+        # This ought to be handled by the daisy chain, but it's not implemented yet. *sigh*
+        # TODO: implement AD9910 chaining and use it here
+        self.mot_in_second_xodt.bind_ad9910_frequency_params(
             [self.red_mot.injection_aom_static_frequency]
         )
 

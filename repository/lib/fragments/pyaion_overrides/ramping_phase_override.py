@@ -453,13 +453,12 @@ class GeneralRampingPhase(Fragment):
             self.default_urukul_amplitudes_start,
             self.default_urukul_amplitudes_start,
         ):
-            # For each requested SUServo, get a setter Fragment for it and
-            # define parameters for the nominal setpoint, and the multiples of
-            # that nominal value that this ramping phase should start and end
-            # with. These will take default values defined by the class
-            # attributes when a concrete instance of this class is created, but
-            # the user will be able to override those value through normal
-            # NDScan behaviour.
+            # For each requested AD9910 channel (not urukul - that naming is
+            # wrong), get a device for it and define parameters for the nominal
+            # frequency and the start / end detunings from it. These will take
+            # default values defined by the class attributes when a concrete
+            # instance of this class is created, but the user will be able to
+            # override those value through normal NDScan behaviour.
             channel: AD9910 = self.get_device(urukul_channel_name)
 
             nominal_freq_handle = self.setattr_param(
@@ -538,6 +537,7 @@ class GeneralRampingPhase(Fragment):
         ad9910s=[],
         general_setters=[],
         bind_nominal_setpoints=True,
+        bind_nominal_frequencies=True,
     ):
         """
         Bind the start points of the specified ramping parameters to the end
@@ -569,6 +569,8 @@ class GeneralRampingPhase(Fragment):
             List of general_setter_names to daisy-chain
         bind_nominal_setpoints : bool, default=True
             Bind *all* nominal setpoints that are present in the previous phase
+        bind_nominal_frequencies : bool, default=True
+            Bind *all* AD9910 nominal frequencies that are present in the previous phase
         """
 
         if ad9910s:
@@ -613,6 +615,40 @@ class GeneralRampingPhase(Fragment):
                     self.bind_param(
                         setpoint_start_handle.name,
                         getattr(previous_phase, setpoint_end_handle.name),
+                    )
+
+        # For each ad9910 device in this phase, look for it in the previous
+        # phase. If found, bind this phase's nominal frequency to that of the
+        # previous phase
+        for ad9910_name, device_and_param_handles in zip(
+            self.urukuls, self.ad9910_channels_and_param_handles
+        ):
+            if ad9910_name in previous_phase.urukuls:
+                (
+                    _,
+                    nominal_freq_handle,
+                    detuning_start_handle,
+                    detuning_end_handle,
+                    amplitude_start_handle,
+                    amplitude_end_handle,
+                ) = device_and_param_handles
+
+                # Bind this suservo's nominal frequency to the previous phase's
+                if bind_nominal_frequencies:
+                    self.bind_param(
+                        nominal_freq_handle.name,
+                        getattr(previous_phase, nominal_freq_handle.name),
+                    )
+
+                # If this AD9910 is one of the ones to daisy-chain, bind the start amplitude and detuning
+                if ad9910_name in ad9910s:
+                    self.bind_param(
+                        detuning_start_handle.name,
+                        getattr(previous_phase, detuning_end_handle.name),
+                    )
+                    self.bind_param(
+                        amplitude_start_handle.name,
+                        getattr(previous_phase, amplitude_end_handle.name),
                     )
 
     @portable
