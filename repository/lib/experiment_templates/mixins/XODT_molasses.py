@@ -16,12 +16,12 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import EvapFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
     XODTWithFieldAndIntensityRamp,
 )
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
 
 logger = logging.getLogger(__name__)
 
@@ -355,6 +355,12 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
 
         self._define_evap_phase_ramp()
 
+        # If we have a spin pol stage, bind the field start values to the end of
+        # the spin pol stage
+        if hasattr(self, "bias_x_for_pumping"):
+            # FIXME: do this by implementing general setter daisy chaining
+            pass
+
     @abc.abstractmethod
     def _define_evap_phase_ramp(self):
         pass
@@ -406,9 +412,9 @@ class FieldOnlyRampInEvapMixin(_RampDuringEvapHookBase):
     def _define_evap_phase_ramp(self):
         self.setattr_fragment(
             "ramp_during_evap_phase",
-            XODTWithFieldRamp,
+            EvapFieldRamp,
         )
-        self.ramp_during_evap_phase: XODTWithFieldRamp
+        self.ramp_during_evap_phase: EvapFieldRamp
 
 
 class XODTDoubleMolassesPlusFieldRampMixin(

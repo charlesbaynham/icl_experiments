@@ -192,23 +192,27 @@ class MolassesInXODT_2(MolassesInXODT):
     general_setter_default_ends = constants.XODT_2ND_MOLASSES_BIAS_FIELD_END
 
 
-class XODTWithFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
+class EvapFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     """
-    A phase with ramps for 1064/813 nm XODT and bias fields
+    A phase that just ramps the bias field in the evaporation stage, from the
+    spin pol settings to the clock spec settings
     """
 
     duration_default = constants.XODT_EVAP_AND_FIELD_RAMP_DURATION
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT
+    suservos = []
 
     # Chamber 2 bias coils in amps
+    #
+    # N.B. The start values are ignored if there is a spin pol phase present -
+    # the spin pol settings are used instead.
     general_setter_default_starts = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
     general_setter_default_ends = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END
 
 
 class XODTWithFieldAndIntensityRamp(
-    XODTWithFieldRamp, GeneralRampingPhaseWithBindingAndBiasField
+    EvapFieldRamp, GeneralRampingPhaseWithBindingAndBiasField
 ):
     """
     A phase with ramps for 1064/813 nm XODT and bias fields

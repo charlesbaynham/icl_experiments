@@ -18,6 +18,7 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 logger = logging.getLogger(__name__)
 
 
+# FIXME rename from "pumped_lattice" to "optical_pumping"
 class OpticalPumpingBase(RedMOTWithExperiment):
     """
     Defines a spin_polarize() method for use in optical pumping Mixins
