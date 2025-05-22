@@ -20,7 +20,6 @@ from numpy import int32
 from numpy import int64
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.utilities.dummy_devices import DummyAD9910
-from pyaion.utilities.dummy_devices import DummySUServoChannel
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +129,7 @@ class GeneralRampingPhase(Fragment):
 
     suservo_offsets: Optional[List[float]] = None
     suservo_pgias: Optional[List[int]] = None
+    suservo_kIs: Optional[List[int]] = None
 
     general_setter_names: List[str] = []
     general_setter_param_options: List[Dict] = []
@@ -172,23 +172,26 @@ class GeneralRampingPhase(Fragment):
         )
 
         assert len(self.suservos) == len(set(self.suservos)), TypeError(
-            "self.suservos_for_intensity contains duplicate entries"
+            "self.suservos contains duplicate entries"
         )
         assert len(self.default_suservo_setpoint_multiples_start) == len(
             self.suservos
         ), TypeError(
-            "self.default_suservo_setpoints_start must have same length as self.suservos_for_intensity"
+            "self.default_suservo_setpoints_start must have same length as self.suservos"
         )
         assert len(self.default_suservo_setpoint_multiples_end) == len(
             self.suservos
         ), TypeError(
-            "self.default_suservo_setpoints_end must have same length as self.suservos_for_intensity"
+            "self.default_suservo_setpoints_end must have same length as self.suservos"
         )
         assert len(self.suservo_offsets) == len(self.suservos), TypeError(
             "self.suservo_offsets must have same length as self.suservos"
         )
         assert len(self.suservo_pgias) == len(self.suservos), TypeError(
             "self.suservo_pgias must have same length as self.suservos"
+        )
+        assert len(self.suservo_kIs) == len(self.suservos), TypeError(
+            "self.suservo_kIs must have same length as self.suservos"
         )
 
         assert len(self.general_setter_default_starts) == len(
@@ -214,13 +217,17 @@ class GeneralRampingPhase(Fragment):
         )
 
     def build_fragment(self):
-
-        # Photodiode offset
+        # Give suservo_offset and suservo_pgias default values if they are not specified
         if self.suservo_offsets is None:
             self.suservo_offsets = [0.0] * len(self.suservos)
 
         if self.suservo_pgias is None:
             self.suservo_pgias = [0] * len(self.suservos)
+
+        if self.suservo_kIs is None:
+            self.suservo_kIs = [-10000.0] * len(
+                self.suservos
+            )  # Default kI for SUServo loops if not specified.
 
         self.validate_attributes()
 
@@ -237,7 +244,7 @@ class GeneralRampingPhase(Fragment):
         # least 1 long by adding a dummy object if they're empty. Here are those
         # dummy objects:
         self.dummy_ad9910 = DummyAD9910()
-        self.dummy_suservo = DummySUServoChannel()
+        self.dummy_suservo_setter = DummySUServoFrag()
 
         # I also need to loop over parameter handles, so I must make a dummy
         # parameter to pass. I'll override it so that it doesn't appear in the
@@ -417,12 +424,17 @@ class GeneralRampingPhase(Fragment):
             # handle
             suservo_setters_and_param_handles.append(
                 (
-                    self.dummy_suservo,
+                    self.dummy_suservo_setter,
                     self.dummy_param,
                     self.dummy_param,
                     self.dummy_param,
                 )
             )
+
+            # Also add zero values to the PGIA and offset lists
+            self.suservo_pgias = [0]
+            self.suservo_offsets = [0.0]
+            self.suservo_kIs = [0.0]
 
         return suservo_setters_and_param_handles
 
@@ -769,6 +781,9 @@ class GeneralRampingPhase(Fragment):
             logger.info("frequency_values: %s", frequency_values)
             logger.info("amplitude_values: %s", amplitude_values)
             logger.info("general_values: %s", general_values)
+            logger.info("pgia_values: %s", self.suservo_pgias)
+            logger.info("suservo_offsets: %s", self.suservo_offsets)
+            logger.info("suservo_kIs: %s", self.suservo_kIs)
 
         # Record these ramping parameters into a DMA sequence
         with self.core_dma.record(self.fqn):
@@ -776,12 +791,13 @@ class GeneralRampingPhase(Fragment):
             t_start_this_step_mu = now_mu()
             t_one_rtio_cycle_mu = int64(self.core.ref_multiplier)
 
-            # Set the PGIA to the requested value
+            # Set the PGIA and loop params to the requested values
             for i in range(len(self.suservo_setters_and_param_handles)):
                 suservo_channel = self.suservo_setters_and_param_handles[i][0]
                 suservo_channel.set_pgia_gain_mu(self.suservo_pgias[i])
-                if self.suservo_pgias[i] != 0:
-                    suservo_channel.set_iir_params(ki=-300.0)
+                delay_mu(t_one_rtio_cycle_mu)
+                suservo_channel.set_iir_params(ki=self.suservo_kIs[i])
+                delay_mu(t_one_rtio_cycle_mu)
 
             # Play the ramp
             if self.add_final_point:
