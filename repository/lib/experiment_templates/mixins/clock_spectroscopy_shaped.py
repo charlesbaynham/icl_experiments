@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay_mu
+from artiq.language import kernel
 from numpy import int64
 
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (

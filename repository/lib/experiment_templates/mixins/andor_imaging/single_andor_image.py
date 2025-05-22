@@ -1,6 +1,6 @@
 import logging
 
-from artiq.experiment import kernel
+from artiq.language import kernel
 
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,

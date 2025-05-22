@@ -4,7 +4,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import *
-from artiq.experiment import delay
+from artiq.language import delay
 
 logger = logging.getLogger(__name__)
 

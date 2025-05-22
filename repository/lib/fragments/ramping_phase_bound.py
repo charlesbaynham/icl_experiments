@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import host_only
-from artiq.experiment import kernel
+from artiq.language import host_only
+from artiq.language import kernel
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.ramping_phase import GeneralRampingPhase
 

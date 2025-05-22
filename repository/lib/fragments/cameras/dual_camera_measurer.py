@@ -2,10 +2,10 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import parallel
-from artiq.experiment import rpc
+from artiq.language import host_only
+from artiq.language import kernel
+from artiq.language import parallel
+from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.parameters import BoolParam

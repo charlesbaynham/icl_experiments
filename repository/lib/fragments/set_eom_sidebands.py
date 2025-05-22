@@ -4,7 +4,7 @@ from typing import List
 from artiq.coredevice.adf5356 import ADF5356
 from artiq.coredevice.core import Core
 from artiq.coredevice.mirny import Mirny
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam

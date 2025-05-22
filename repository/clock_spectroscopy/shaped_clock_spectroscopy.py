@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from numpy import int64
 

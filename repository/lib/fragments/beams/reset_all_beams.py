@@ -3,8 +3,8 @@ from typing import *
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle

@@ -4,8 +4,8 @@ from typing import List
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.experiment import TFloat
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment import Fragment
 from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults

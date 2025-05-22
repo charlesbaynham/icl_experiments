@@ -1,8 +1,8 @@
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults

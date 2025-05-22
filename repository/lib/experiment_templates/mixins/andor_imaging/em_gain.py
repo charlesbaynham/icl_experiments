@@ -2,9 +2,9 @@ import logging
 
 import sipyco
 import sipyco.packed_exceptions
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import rpc
+from artiq.language import host_only
+from artiq.language import kernel
+from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle

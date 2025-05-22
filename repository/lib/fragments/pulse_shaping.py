@@ -8,12 +8,12 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD
-from artiq.experiment import kernel
-from artiq.experiment import portable
-from artiq.experiment import rpc
 from artiq.language import TInt32
 from artiq.language import TList
 from artiq.language import delay
+from artiq.language import kernel
+from artiq.language import portable
+from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle

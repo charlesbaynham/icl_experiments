@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from artiq.experiment import TFloat
 from artiq.experiment import TList
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 
 

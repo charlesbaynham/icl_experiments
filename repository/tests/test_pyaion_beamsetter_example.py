@@ -1,4 +1,4 @@
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import Fragment
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,

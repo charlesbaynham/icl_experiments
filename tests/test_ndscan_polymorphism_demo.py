@@ -1,5 +1,5 @@
 import pytest
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
 
