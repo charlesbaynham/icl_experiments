@@ -8,12 +8,10 @@ from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
-    SetBeamsToDefaults,
-)
 
 logger = logging.getLogger(__name__)
 

@@ -21,8 +21,8 @@ from dataclasses import field
 from typing import Optional
 
 # from pyaion.models import SUServoedBeam
-from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
-from repository.lib.fragments.pyaion_overrides.models_override import UrukuledBeam
+from pyaion.models import SUServoedBeam
+from pyaion.models import UrukuledBeam
 
 DELAY_BETWEEN_RTIO_EVENTS = 4e-9
 

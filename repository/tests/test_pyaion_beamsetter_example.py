@@ -2,7 +2,8 @@ from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 
 # from pyaion.models import SUServoedBeam
-from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
+from pyaion.models import SUServoedBeam
+
 from repository.lib.fragments.pyaion_overrides.toggle_beams_with_AOM_and_shutter_override import (
     ControlBeamsWithoutCoolingAOM,
 )

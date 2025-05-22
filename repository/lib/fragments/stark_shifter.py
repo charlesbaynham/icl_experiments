@@ -6,15 +6,11 @@ from artiq.experiment import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 import repository.lib.constants as constants
 from repository.lib import constants
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
-    SetBeamsToDefaults,
-)
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
-    make_set_beams_to_default,
-)
 
 logger = logging.getLogger(__name__)
 

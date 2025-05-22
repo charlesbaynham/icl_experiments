@@ -1,13 +1,10 @@
 import logging
 
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
-    SetBeamsToDefaults,
-)
-from repository.lib.fragments.pyaion_overrides.default_beam_setter_override import (
-    make_set_beams_to_default,
-)
 
 logger = logging.getLogger(__name__)
 

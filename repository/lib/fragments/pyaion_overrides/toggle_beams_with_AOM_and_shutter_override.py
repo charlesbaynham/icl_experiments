@@ -13,8 +13,7 @@ from artiq.experiment import now_mu
 from artiq.experiment import portable
 from ndscan.experiment import Fragment
 from pyaion.lib.utils import get_local_devices
-
-from repository.lib.fragments.pyaion_overrides.models_override import SUServoedBeam
+from pyaion.models import SUServoedBeam
 
 logger = logging.getLogger(__name__)
 
