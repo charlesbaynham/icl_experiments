@@ -1,3 +1,4 @@
+import abc
 import logging
 
 from artiq.language import delay
@@ -7,6 +8,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.ramping_phase import GeneralRampingPhase
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
@@ -339,15 +341,14 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.do_phase()
 
 
-import abc
-
-
 class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
     """
     Framework for implementing a ramping phase during the evaporation phase
 
     This is generalised so that we can have either evaporation + field ramping, or only field ramping
     """
+
+    ramp_during_evap_phase: GeneralRampingPhase
 
     def build_fragment(self):
         super().build_fragment()
@@ -370,7 +371,7 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
         )
 
     @kernel
-    def dipole_trap_evaporation_hook_with_field_ramp(self):
+    def dipole_trap_evaporation_hook_ramper(self):
         """
         Do the evap / field ramp phase
         """
@@ -380,7 +381,7 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
     def dipole_trap_evaporation_hook(self):
         # Default hook turns off red beams - good!
         self.dipole_trap_evaporation_hook_default()
-        self.dipole_trap_evaporation_hook_with_field_ramp()
+        self.dipole_trap_evaporation_hook_ramper()
 
 
 class EvapAndFieldRampBase(_RampDuringEvapHookBase):
