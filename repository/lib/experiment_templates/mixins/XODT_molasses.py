@@ -177,9 +177,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.transparency_setter: SetBeamsToDefaults
 
-        # Remove unused parameters
-        # self.override_param("spectroscopy_field_gradient", 0)
-
         # # Expose the bias field for moving the MOT to the right place
         self.setattr_param_rebind(
             "chamber_2_red_narrowband_mot_current_start",
