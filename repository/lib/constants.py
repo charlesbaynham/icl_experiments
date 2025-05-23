@@ -153,7 +153,7 @@ IJD_DEFAULTS = {
         window_high=362e-3,
         window_low=352e-3,
         relock_step=3e-3,
-        associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
+        associated_beams=["blue_doublepass_injection"],
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
