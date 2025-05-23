@@ -1057,7 +1057,7 @@ if USE_SR87:
         0.0018,
         0.002,
         1.0,
-        0.5,
+        1.0,
         0.15,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
@@ -1066,14 +1066,14 @@ if USE_SR87:
         0.0018,
         0.002,
         1.0,
-        0.5,
+        0.7,
         0.15,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        -30e3,
+        -35e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        -30e3,
+        -48e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = [
         a + b for a, b in zip(FIELD_COMP, [0.0, 0.00, -0.0])
