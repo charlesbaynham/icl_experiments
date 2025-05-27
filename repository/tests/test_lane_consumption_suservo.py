@@ -19,7 +19,7 @@ class TestSUServoLaneUsage(EnvExperiment):
         self.core: Core
 
         self.setattr_argument(
-            "num", NumberValue(default=8, type="int", precision=0, scale=1, step=1)
+            "num", NumberValue(default=9, type="int", precision=0, scale=1, step=1)
         )
         self.num: int
 
