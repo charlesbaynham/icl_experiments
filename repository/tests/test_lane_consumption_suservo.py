@@ -47,7 +47,7 @@ class TestSUServoLaneUsage(EnvExperiment):
             profile=0,
         )
 
-        delay(500e3)  # Make loads of slack
+        delay(500e-3)  # Make loads of slack
 
         # Do an IIR write twice, consuming at least one lane, maybe more
         self.suservo_channel.set_iir(0, 0, 0.0)
