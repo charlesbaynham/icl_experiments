@@ -331,9 +331,9 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             rf_switch_state=False, enable_iir=False
         )
 
-        # self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
-        #     ignore_shutters=True
-        # )
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+            ignore_shutters=True
+        )
 
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
@@ -444,10 +444,10 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
             self.molasses_xodt_2.general_setter_default_starts[2],
         )
         # Turn off MOT beams between molasses if there is a gap
-        # if self.delay_between_molasses.get() > 1e-6:
-        #     self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
-        #         ignore_shutters=True
-        #     )
+        if self.delay_between_molasses.get() > 1e-6:
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+                ignore_shutters=True
+            )
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
@@ -456,9 +456,9 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
 
         delay(self.delay_between_molasses.get())
 
-        # self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
-        #     ignore_shutters=True
-        # )
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
+            ignore_shutters=True
+        )
         self.molasses_xodt_2.do_phase()
 
 
