@@ -428,6 +428,7 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
 
     @kernel
     def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
         self.dipole_trap_molasses_hook_second_xodt_molasses()
 
