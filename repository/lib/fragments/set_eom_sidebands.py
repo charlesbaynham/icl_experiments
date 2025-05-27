@@ -193,6 +193,15 @@ class SetEOMSidebandsFrag(Fragment):
             nominal_frequency + detuning
         )
 
+    @kernel
+    def set_689_stir_sideband_state(self, state: bool):
+        """
+        Set the 689 stir sideband's RF switch state
+
+        Advances the timeline by the duration of SPI writes
+        """
+        self.mirny_channels[self.index_of_stir_beam].sw.set_o(state)
+
 
 class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
     mirny_settings_87 = MIRNY_SETTINGS_87
