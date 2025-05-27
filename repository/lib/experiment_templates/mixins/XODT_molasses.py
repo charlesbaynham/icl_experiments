@@ -319,6 +319,8 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.transparency_setter.turn_on_all()
 
+        self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_state(False)
+
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
             detuning=self.stir_beam_detuning_molasses_1.get()
