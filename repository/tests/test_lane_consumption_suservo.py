@@ -19,7 +19,7 @@ class TestSUServoLaneUsage(EnvExperiment):
         self.core: Core
 
         self.setattr_argument(
-            "num", NumberValue(default=9, type="int", precision=0, scale=1, step=1)
+            "num", NumberValue(default=8, type="int", precision=0, scale=1, step=1)
         )
         self.num: int
 
@@ -49,7 +49,8 @@ class TestSUServoLaneUsage(EnvExperiment):
 
         delay(500e3)  # Make loads of slack
 
-        # Do an IIR write, consuming at least one lane, maybe more
+        # Do an IIR write twice, consuming at least one lane, maybe more
+        self.suservo_channel.set_iir(0, 0, 0.0)
         self.suservo_channel.set_iir(0, 0, 0.0)
 
         for i in range(self.num):
