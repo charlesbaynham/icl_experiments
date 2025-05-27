@@ -1089,7 +1089,7 @@ if USE_SR87:
         -35e3,
     ]
     XODT_2ND_MOLASSES_689_DETUNING_END = [
-        48e3,
+        -48e3,
     ]
     XODT_2ND_MOLASSES_BIAS_FIELD_START = [
         a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
