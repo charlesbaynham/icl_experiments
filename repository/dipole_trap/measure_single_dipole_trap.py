@@ -20,9 +20,6 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTDoubleMolassesMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
 )
 
@@ -33,7 +30,8 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
-    XODTDoubleMolassesMixin,
+    XODTSingleMolassesMixin,
+    # XODTDoubleMolassesMixin,
     # EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # ClearOut689Mixin,
