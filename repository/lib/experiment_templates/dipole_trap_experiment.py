@@ -111,7 +111,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_beam_controller: DipoleBeamController
 
         self.setattr_fragment(
-            "constant_dipole_traps_setter",
+            "dipole_traps_setter",
             make_set_beams_to_default(
                 suservo_beam_infos=[
                     constants.SUSERVOED_BEAMS["down_813"],
@@ -120,10 +120,11 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
                 urukul_beam_infos=[
                     constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"]
                 ],
-                use_automatic_setup=False,
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
             ),
         )
-        self.constant_dipole_traps_setter: SetBeamsToDefaults  # FIXME This is duplicated in dipole_trap_beam_controller
+        self.dipole_traps_setter: SetBeamsToDefaults  # FIXME This is duplicated in dipole_trap_beam_controller
 
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
@@ -145,7 +146,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         """
         Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
         """
-        self.constant_dipole_traps_setter.turn_on_all()  # FIXME: Not the right place for this
+        self.dipole_traps_setter.turn_on_all()  # FIXME: Not the right place for this
 
     @kernel
     def dipole_trap_molasses_hook(self):
