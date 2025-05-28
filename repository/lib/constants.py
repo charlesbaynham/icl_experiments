@@ -336,11 +336,6 @@ DEFAULT_IMAGING_PULSE = 50e-6
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
 "Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
 
-DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000.0
-"$k_I$ constant for the fluorescence beam's SUServo loop"
-
-DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
-"$k_I$ constant for the clock delivery beam's SUServo loop"
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
@@ -577,6 +572,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
+        kI_loop_constant=-200000.0,
     ),
     SUServoedBeam(
         "blue_transparency_beam",
@@ -663,6 +659,7 @@ SUSERVOED_BEAMS = [
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
         setpoint=3.5,
+        kI_loop_constant=-200000.0,
     ),
     SUServoedBeam(
         "lattice_input_1379",
