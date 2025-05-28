@@ -64,6 +64,9 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
         combined_beaminfos_for_low_power = constants.SUSERVOED_BEAMS.copy()
         combined_beaminfos_for_low_power.update(constants.SUSERVOED_BEAMS_LOW_INTENSITY)
 
+        # FIXME: here I should get the kI from the SUServo beam infos once it's
+        # been added. Don't forget to put back the "-300" that it used to be
+
         suservo_beaminfos_by_devicename = {
             info.suservo_device: info
             for info in combined_beaminfos_for_low_power.values()
