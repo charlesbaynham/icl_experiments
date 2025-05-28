@@ -288,9 +288,17 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
             [self.red_mot.injection_aom_static_frequency]
         )
 
-        self.molasses_xodt_2.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, suservos=SUSERVOS_XODT
+        self.molasses_xodt_2.bind_suservo_setpoint_params_to_default_beam_setter(
+            [
+                self.red_mot.red_beam_controller.all_beam_default_setter,
+                self.dipole_beam_controller.all_beam_default_setter,
+                self.transparency_setter,
+            ]
         )
+
+        # self.molasses_xodt_2.daisy_chain_with_previous_phase(
+        #     self.molasses_xodt_1, suservos=suservos_XODT
+        # )
 
     @kernel
     def DMA_initialization_hook(self):
@@ -309,6 +317,7 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
 
     @kernel
     def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
         self.dipole_trap_molasses_hook_second_xodt_molasses()
 

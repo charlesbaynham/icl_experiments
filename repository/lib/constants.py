@@ -1061,6 +1061,9 @@ else:
 
 ### DIPOLE TRAP DEFAULT PARAMETERS ###
 
+# Unused in Sr88 so only one setting needed
+XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
+
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
 # "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -1089,7 +1092,7 @@ if USE_SR87:
         0.0018,
         0.002,
         1.0,
-        0.5,
+        1.0,
         0.15,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
@@ -1098,31 +1101,31 @@ if USE_SR87:
         0.0018,
         0.002,
         1.0,
-        0.5,
+        0.7,
         0.15,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        -30e3,
+        -35e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        -30e3,
+        -48e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 0.0
 
-    DELAY_BETWEEN_MOLASSES = 50e-3
+    DELAY_BETWEEN_MOLASSES = 0.0001e-3
     XODT_2ND_MOLASSES_DURATION = 50e-3
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.15]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.15]
     XODT_2ND_MOLASSES_689_DETUNING_START = [
-        450e3,
+        -35e3,
     ]
     XODT_2ND_MOLASSES_689_DETUNING_END = [
-        550e3,
+        -48e3,
     ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
-    XODT_2ND_MOLASSES_BIAS_FIELD_END = add_field_offset(0.0, 0.0, -0.33)
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = add_field_offset([0.0, 0.0, 0.0])
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 else:
     DELAY_BEFORE_MOLASSES = 0.01e-3
@@ -1131,8 +1134,8 @@ else:
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
     XODT_MOLASSES_DURATION = 120e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.15]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.15]
     XODT_MOLASSES_689_DETUNING_START = [
         100e3,
     ]
