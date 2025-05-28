@@ -47,7 +47,6 @@ class DipoleBeamController(Fragment):
             ),
         )
         self.all_beam_default_setter: SetBeamsToDefaults
-        # FIXME This is duplicated in dipole_trap_experiment
 
         # Beam toggler - used for turning the beams on and off once the DDSs are
         # configured by the default setter
