@@ -210,7 +210,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         if self._first_run:
             self._first_run = False
 
-            # HACK: This adds enough slack for the beam setter to turn on all the
+            # FIXME: This adds enough slack for the beam setter to turn on all the
             # beams. This should be solved instead by fixing the default beam setter
             # to figure out how much slack it needs and solving this in pyaion
             self.core.break_realtime()
