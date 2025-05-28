@@ -678,6 +678,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=5,
     ),
     SUServoedBeam(
@@ -686,6 +687,7 @@ SUSERVOED_BEAMS = [
         attenuation=7.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=3.5,
     ),
     SUServoedBeam(
@@ -694,6 +696,7 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=4.7,
     ),
     SUServoedBeam(
