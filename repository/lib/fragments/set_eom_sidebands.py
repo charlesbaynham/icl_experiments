@@ -142,10 +142,6 @@ class SetEOMSidebandsFrag(Fragment):
                 mirny_channel.init()
 
     @kernel
-    def get_stir_beam_frequency(self) -> float:
-        self.frequency_handles
-
-    @kernel
     def set_sidebands(self):
         for i in range(len(self.mirny_channels)):
             mirny_channel = self.mirny_channels[i]
