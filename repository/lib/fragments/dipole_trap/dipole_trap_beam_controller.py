@@ -1,16 +1,16 @@
 import logging
-from typing import List
 
 from artiq.coredevice.core import Core
-from artiq.language import delay_mu
 from artiq.language import kernel
 from ndscan.experiment import Fragment
-from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
+from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
+from repository.lib.fragments.beams.toggling_beam_setter import (
+    make_toggle_list_of_beams,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,9 @@ DIPOLE_SUSERVO_INFOS = [
         "lattice_input_1379",
     ]
 ]
+DIPOLE_URUKUL_INFOS = [
+    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
+]
 
 
 class DipoleBeamController(Fragment):
@@ -34,65 +37,30 @@ class DipoleBeamController(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        # %% FRAGMENTS
-
         # Setup of defaults for all beams
         self.setattr_fragment(
             "all_beam_default_setter",
             make_set_beams_to_default(
                 suservo_beam_infos=DIPOLE_SUSERVO_INFOS,
+                urukul_beam_infos=DIPOLE_URUKUL_INFOS,
                 name="DipoleBeamSettings",
-                urukul_beam_infos=[
-                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
-                ],
-                use_automatic_setup=True,
+                use_automatic_setup=True,  # Automatically configure the DDSs but do not turn the beams on
                 use_automatic_turnon=False,
             ),
         )
-        self.all_beam_default_setter: (
-            SetBeamsToDefaults  # FIXME This is duplicated in dipole_trap_experiment
+        self.all_beam_default_setter: SetBeamsToDefaults
+        # FIXME This is duplicated in dipole_trap_experiment
+
+        # Beam toggler - used for turning the beams on and off once the DDSs are
+        # configured by the default setter
+        self.setattr_fragment(
+            "dipole_beam_toggler",
+            make_toggle_list_of_beams(
+                suservo_beam_infos=DIPOLE_SUSERVO_INFOS,
+                urukul_beam_infos=DIPOLE_URUKUL_INFOS,
+            ),
         )
-
-        # FIXME: unused
-        # self.setattr_fragment(
-        #     "hor_dipole_trap_setter",
-        #     make_set_beams_to_default(
-        #         suservo_beam_infos=[
-        #             constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"]
-        #         ],
-        #         urukul_beam_infos=[
-        #             constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
-        #         ],
-        #         name="hor_dipole_trap_setter",
-        #     ),
-        # )
-        # self.hor_dipole_trap_setter: SetBeamsToDefaults
-
-        # self.setattr_fragment(
-        #     "XODT_setter",
-        #     make_set_beams_to_default(
-        #         suservo_beam_infos=[
-        #             constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
-        #             constants.SUSERVOED_BEAMS["down_813"],
-        #         ],
-        #         urukul_beam_infos=[
-        #             constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
-        #         ],
-        #         name="XODT_setter",
-        #     ),
-        # )
-        # self.XODT_setter: SetBeamsToDefaults
-
-        self.suservo_fragments: List[LibSetSUServoStatic] = []
-
-        # Make a SUServo controlling Fragment for each beam
-        for beam_info in DIPOLE_SUSERVO_INFOS:
-            f = self.setattr_fragment(
-                "suservofrag_" + beam_info.name,
-                LibSetSUServoStatic,
-                channel=beam_info.suservo_device,
-            )
-            self.suservo_fragments.append(f)
+        self.dipole_beam_toggler: ToggleListOfBeams
 
     @kernel
     def turn_off_dipole_beams(self):
@@ -101,9 +69,13 @@ class DipoleBeamController(Fragment):
 
         Advances the timeline by a few coarse RTIO cycles
         """
+        self.dipole_beam_toggler.turn_off_beams()
 
-        for i in range(len(self.suservo_fragments)):
-            self.suservo_fragments[i].set_channel_state(
-                rf_switch_state=False, enable_iir=False
-            )
-            delay_mu(int64(self.core.ref_multiplier))
+    @kernel
+    def turn_on_dipole_beams(self):
+        """
+        Turns on all dipole beams
+
+        Advances the timeline by a few coarse RTIO cycles
+        """
+        self.dipole_beam_toggler.turn_on_beams()
