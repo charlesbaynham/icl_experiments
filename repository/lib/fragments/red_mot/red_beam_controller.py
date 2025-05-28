@@ -48,6 +48,7 @@ class RedBeamController(Fragment):
     """
 
     def build_fragment(self):
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.setattr_device("core")
         self.core: Core
 
@@ -145,9 +146,7 @@ class RedBeamController(Fragment):
             self.suservo_fragments.append(f)
             self.suservo_setpoint_offsets.append(beam_info.photodiode_offset)
 
-        # Make an array to store the nominal amplitudes but leave it empty for
-        # now - we'll populate it in device_setup() so that we can scan over it
-        self.suservo_nominal_amplitudes = [0.0] * len(RED_SUSERVO_INFOS)
+        # Bind
 
         # Commented out since the cavity EOM is currently driven by a Rigol
         # self.setattr_fragment("laser_stab_system", LaserStabilisationSystem)
@@ -269,12 +268,11 @@ class RedBeamController(Fragment):
         self.ramp_rate = 0.0
         self.spinpol_ramp_rate = 0.0
 
+        # %% Kernel invariants
+
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
         self.kernel_invariants.add("debug_mode")
-
-        # %% Kernel invariants
-        kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {"debug_mode", "injection_aom"}
+        self.kernel_invariants.add("injection_aom")
 
     def host_setup(self):
         super().host_setup()
@@ -296,12 +294,6 @@ class RedBeamController(Fragment):
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
-
-        # Look up the SUServo setpoints from the beam setter
-        for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[i] = (
-                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
-            )
 
         # Precalculate the ramp rate required to get the requested modulation frequency
         self.ramp_rate = abs(
@@ -343,10 +335,6 @@ class RedBeamController(Fragment):
         # correct. These are glitch free, so we do them each time
         self.injection_aom.set(self.injection_aom_static_frequency.get())
         self.injection_aom.sw.on()
-
-        # change suservo gain params
-
-        # self.suservo_fragments[0].set_iir_params(ki = -100.0)
 
     @kernel
     def init(self):
@@ -464,47 +452,6 @@ class RedBeamController(Fragment):
             )
 
         self.injection_aom.set(freq)
-
-    @kernel
-    def set_mot_suservo_amplitudes(
-        self,
-        amplitude_red_diagonal: TFloat,
-        amplitude_red_axialplus: TFloat,
-        amplitude_red_axialminus: TFloat,
-        amplitude_red_up: TFloat,
-    ):
-        """
-        Set the SUServo target amplitudes of all MOT beams individually,
-        expressed as a multiple of their nominal amplitudes
-        """
-
-        # Prepare array of beam amplitudes
-        # This must match the ordering in RED_SUSERVO_INFOS
-        ampltiudes = [
-            amplitude_red_diagonal,
-            amplitude_red_axialplus,
-            amplitude_red_axialminus,
-            amplitude_red_up,
-        ]
-
-        for i in range(len(self.suservo_fragments)):
-            suservo_frag = self.suservo_fragments[i]
-            nominal_setpoint = self.suservo_nominal_amplitudes[i]
-            photodiode_offset = self.suservo_setpoint_offsets[i]
-
-            setpoint = nominal_setpoint * ampltiudes[i] + photodiode_offset
-
-            if self.debug_mode:
-                logger.info(
-                    "Setting %s setpoint to %.2f x %.2f + %.4f = %.3f V",
-                    suservo_frag,
-                    ampltiudes[i],
-                    nominal_setpoint,
-                    photodiode_offset,
-                    setpoint,
-                )
-
-            suservo_frag.set_setpoint(setpoint)
 
     @kernel
     def turn_on_spin_pol(self, ignore_shutters=False):
