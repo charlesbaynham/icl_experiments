@@ -97,10 +97,6 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         """
         self.dipole_beam_controller.turn_on_dipole_beams()
 
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(  # FIXME Get rid of this and make sure it works
-            ignore_shutters=True
-        )
-
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
             detuning=self.stir_beam_detuning_mot_xodt.get()
