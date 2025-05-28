@@ -46,8 +46,6 @@ from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
@@ -110,22 +108,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
         self.dipole_beam_controller: DipoleBeamController
 
-        self.setattr_fragment(
-            "dipole_traps_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[
-                    constants.SUSERVOED_BEAMS["down_813"],
-                    constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
-                ],
-                urukul_beam_infos=[
-                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"]
-                ],
-                use_automatic_setup=True,
-                use_automatic_turnon=False,
-            ),
-        )
-        self.dipole_traps_setter: SetBeamsToDefaults  # FIXME This is duplicated in dipole_trap_beam_controller
-
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
@@ -146,7 +128,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         """
         Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
         """
-        self.dipole_traps_setter.turn_on_all()  # FIXME: Not the right place for this
+        self.dipole_beam_controller.turn_on_dipole_beams()
 
     @kernel
     def dipole_trap_molasses_hook(self):
@@ -210,6 +192,3 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         completed.
         """
         raise NotImplementedError
-
-
-# %%

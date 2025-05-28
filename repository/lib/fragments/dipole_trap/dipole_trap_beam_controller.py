@@ -18,9 +18,7 @@ DIPOLE_SUSERVO_INFOS = [
     constants.SUSERVOED_BEAMS[beam]
     for beam in [
         "down_813",
-        "up_813",
         "dipole_trap_1064_delivery",
-        "lattice_input_1379",
     ]
 ]
 DIPOLE_URUKUL_INFOS = [
