@@ -27,7 +27,7 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.pumped_lattice import (
+from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.rigol_counter import RigolCounterMixin

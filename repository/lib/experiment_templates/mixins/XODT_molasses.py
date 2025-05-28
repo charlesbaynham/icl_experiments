@@ -15,7 +15,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.experiment_templates.mixins.pumped_lattice import (
+from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingBase,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
