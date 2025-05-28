@@ -207,14 +207,14 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
     @kernel
     def device_setup(self) -> None:
-        if self._first_run:
-            self._first_run = False
+        # if self._first_run:
+        #     self._first_run = False
 
-            # FIXME: This adds enough slack for the beam setter to turn on all the
-            # beams. This should be solved instead by fixing the default beam setter
-            # to figure out how much slack it needs and solving this in pyaion
-            self.core.break_realtime()
-            delay(10e-3)
+        #     # FIXME: This adds enough slack for the beam setter to turn on all the
+        #     # beams. This should be solved instead by fixing the default beam setter
+        #     # to figure out how much slack it needs and solving this in pyaion
+        #     self.core.break_realtime()
+        #     delay(10e-3)
 
         self.device_setup_subfragments()
 
