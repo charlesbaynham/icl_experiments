@@ -420,9 +420,6 @@ class BlackmanShapedPulse(ShapedPulse):
         amplitude = np.blackman(n_words)
         phase = np.zeros_like(amplitude)
 
-        # FIXME: shaped pulses are just square
-        # amplitude = np.ones_like(amplitude)
-
         return amplitude, phase
 
     @kernel
