@@ -54,10 +54,8 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     default_urukul_nominal_frequencies = [0.0]
 
     def __init__(self, *args, **kwargs):
-        # Look up the photodiode offsets and PGIA settings for the lower-power
-        # beams. In future we might specify these for all beams, but for now we
-        # prefer to just put it in for the low power ones since this is the only
-        # place we need it.
+        # Look up the photodiode offsets, PGIA settings and IIR kI coefficients for the lower-power
+        # beams. If a beam is not in the list, default to the values for the normal beams.
         #
         # Do this in the constructor so that it pays attention to the beam names
         # if they have been changed by child classes
@@ -69,16 +67,17 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
             for info in combined_beaminfos_for_low_power.values()
         }
 
-        self.suservo_offsets = [
-            suservo_beaminfos_by_devicename[device_name].photodiode_offset
-            for device_name in self.suservos
-        ]
-        self.suservo_pgias = [
+        self.default_suservo_pgias = [
             suservo_beaminfos_by_devicename[device_name].pgia_setting
             for device_name in self.suservos
         ]
-        self.suservo_kIs = [
+        self.default_suservo_kIs = [
             suservo_beaminfos_by_devicename[device_name].kI_loop_constant
+            for device_name in self.suservos
+        ]
+
+        self.suservo_offsets = [
+            suservo_beaminfos_by_devicename[device_name].photodiode_offset
             for device_name in self.suservos
         ]
 
