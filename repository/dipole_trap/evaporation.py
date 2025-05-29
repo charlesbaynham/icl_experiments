@@ -52,7 +52,7 @@ class MeasureEvaporatedXODTFrag(
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
-    EvaporationThreeRampsMixin,
+    # EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # ClearOut689Mixin,
 ):
