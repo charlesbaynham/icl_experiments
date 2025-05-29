@@ -2,11 +2,15 @@
 Define the phases available in the dipole trap.
 """
 
+import logging
+
 import repository.lib.constants as constants
 from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndBiasField,
 )
+
+logger = logging.getLogger(__name__)
 
 SUSERVOS_RED = [
     "suservo_aom_singlepass_689_red_mot_diagonal",
@@ -61,6 +65,15 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
         # if they have been changed by child classes
         combined_beaminfos_for_low_power = constants.SUSERVOED_BEAMS.copy()
         combined_beaminfos_for_low_power.update(constants.SUSERVOED_BEAMS_LOW_INTENSITY)
+
+        logger.debug("constants.SUSERVOED_BEAMS: %s", constants.SUSERVOED_BEAMS)
+        logger.debug(
+            "constants.SUSERVOED_BEAMS_LOW_INTENSITY: %s",
+            constants.SUSERVOED_BEAMS_LOW_INTENSITY,
+        )
+        logger.debug(
+            "combined_beaminfos_for_low_power: %s", combined_beaminfos_for_low_power
+        )
 
         suservo_beaminfos_by_devicename = {
             info.suservo_device: info
