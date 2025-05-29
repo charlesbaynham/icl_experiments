@@ -38,12 +38,12 @@ class TestIIRSlackConsumptionFrag(ExpFragment):
                 ]
             )
             suservo_channel.set_pgia_gain_mu(
-                self.blue_3d_mot.blue_transfer_MOT.suservo_pgias[i]
+                self.blue_3d_mot.blue_transfer_MOT.default_suservo_pgias[i]
             )
             delay_mu(t_one_rtio_cycle_mu)
 
             suservo_channel.set_iir_params(
-                ki=self.blue_3d_mot.blue_transfer_MOT.suservo_kIs[i]
+                ki=self.blue_3d_mot.blue_transfer_MOT.default_suservo_pgias[i]
             )
             delay_mu(t_one_rtio_cycle_mu)
 
