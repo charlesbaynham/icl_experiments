@@ -486,7 +486,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         initial_amplitude=0.05,
         photodiode_offset=0.016,  # 0.0032,  # 0.016,
         pgia_setting=2,
-        ki_loop_constant=-10000.0,  # -300.0,
+        ki_loop_constant=-300.0,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
