@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 # replaced by the module of the same name in "lib.fragments.pyaion_overrides"
 pyaion_override_list = [
     # "pyaion.fragments.toggle_beams_with_AOM_and_shutter",
-    "pyaion.models",  # FIXME
 ]
 
 
