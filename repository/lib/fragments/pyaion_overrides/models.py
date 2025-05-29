@@ -9,12 +9,26 @@ models act as normal python classes and so are fully compatible with ARTIQ
 kernels.
 """
 
+from functools import wraps
 from typing import List
 from typing import Optional
 
+import pydantic
+import pydantic.dataclasses
 from pyaion.fragments.suservo import DEFAULT_KI as DEFAULT_SUSERVO_KI
+from pydantic import ConfigDict
 from pydantic import Field
-from pydantic.dataclasses import dataclass
+
+
+# Default to forbid extra fields in dataclasses
+@wraps(pydantic.dataclasses.dataclass)
+def dataclass(fn):
+    return pydantic.dataclasses.dataclass(
+        fn,
+        config=ConfigDict(
+            extra=pydantic.Extra.forbid,
+        ),
+    )
 
 
 @dataclass
