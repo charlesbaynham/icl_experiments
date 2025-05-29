@@ -1,8 +1,13 @@
-from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from ndscan.experiment import make_fragment_scan_exp, ExpFragment
 from artiq.coredevice.core import Core
-from artiq.language import delay_mu, now_mu, kernel, delay
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
+from artiq.language import now_mu
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import make_fragment_scan_exp
 from numpy import int64
+
+from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 
 
 class TestIIRSlackConsumptionFrag(ExpFragment):
