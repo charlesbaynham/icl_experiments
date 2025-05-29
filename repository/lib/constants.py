@@ -872,7 +872,7 @@ TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-# TODO: Include FIELD_COMP as an offset to the other default fields below.
+
 # Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
 # Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
 # than previous calibration based on Zeeman spectroscopy
