@@ -458,7 +458,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         setpoint=1.5,
         photodiode_offset=0.0133,  # 0.001,  # 0.01238,
         pgia_setting=2,
-        ki_loop_constant=-300.0,
+        kI_loop_constant=-300.0,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -472,7 +472,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         setpoint=1.5,
         photodiode_offset=0.018,  # 0.001,
         pgia_setting=2,
-        ki_loop_constant=-300.0,
+        kI_loop_constant=-300.0,
     ),
     SUServoedBeam(
         "red_up",
@@ -486,7 +486,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         initial_amplitude=0.05,
         photodiode_offset=0.016,  # 0.0032,  # 0.016,
         pgia_setting=2,
-        ki_loop_constant=-300.0,
+        kI_loop_constant=-300.0,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -500,7 +500,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
         pgia_setting=1,
-        ki_loop_constant=-300.0,
+        kI_loop_constant=-300.0,
     ),
 ]
 
