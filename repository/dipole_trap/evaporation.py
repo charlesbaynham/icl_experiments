@@ -57,7 +57,7 @@ class MeasureEvaporatedXODTFrag(
     # ClearOut689Mixin,
 ):
     """
-    Measure a Single XODT with evaporation
+    Measure a Single XODT with molasses and evaporation
     """
 
     @kernel
