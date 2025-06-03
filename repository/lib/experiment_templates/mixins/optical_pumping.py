@@ -1,8 +1,8 @@
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
@@ -77,8 +77,6 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
     """
 
     def build_fragment(self):
-        super().build_fragment()
-
         for idx, c in enumerate("xyz"):
             self.setattr_param(
                 f"bias_{c}_for_pumping",
@@ -90,6 +88,8 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         self.bias_x_for_pumping: FloatParamHandle
         self.bias_y_for_pumping: FloatParamHandle
         self.bias_z_for_pumping: FloatParamHandle
+
+        super().build_fragment()
 
     @kernel
     def set_fields_for_optical_pumping(self):

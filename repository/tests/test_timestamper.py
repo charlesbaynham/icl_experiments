@@ -1,7 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp

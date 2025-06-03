@@ -10,8 +10,8 @@ from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
+from artiq.language import kernel
+from artiq.language import now_mu
 from pyaion.lib.utils import get_local_devices
 
 logger = logging.getLogger(__name__)

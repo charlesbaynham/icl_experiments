@@ -7,10 +7,10 @@ from artiq.experiment import BooleanValue
 from artiq.experiment import EnumerationValue
 from artiq.experiment import TArray
 from artiq.experiment import TFloat
-from artiq.experiment import delay
-from artiq.experiment import kernel
 from artiq.experiment import ms
-from artiq.experiment import rpc
+from artiq.language import delay
+from artiq.language import kernel
+from artiq.language import rpc
 from artiq_influx_generic import InfluxController
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
@@ -123,7 +123,7 @@ class DisplaySingleSUServoMonitorFrag(ExpFragment):
         delay(self.waittime.get())
 
         self.core.break_realtime()
-        v = self.adc_reader.read_adc() - self.beam_info.photodiode_offset
+        v = self.adc_reader.read_adc()
 
         self.voltage.push(v)
 
@@ -283,10 +283,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
         for i_beam in range(len(self.adc_readers)):
             self.core.break_realtime()
-            voltages[i_beam] = (
-                self.adc_readers[i_beam].read_adc()
-                - self.suservo_beam_infos[i_beam].photodiode_offset
-            )
+            voltages[i_beam] = self.adc_readers[i_beam].read_adc()
             self.core.break_realtime()
             ctrl_signals[i_beam] = self.adc_readers[i_beam].read_ctrl_signal()
 

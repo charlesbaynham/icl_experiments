@@ -6,10 +6,10 @@ from artiq.coredevice.zotino import Zotino
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
 from artiq.experiment import TList
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import portable
+from artiq.language import delay_mu
+from artiq.language import kernel
+from artiq.language import now_mu
+from artiq.language import portable
 from ndscan.experiment import Fragment
 
 from device_db_config.configuration import VoltageControlledCurrentSupply

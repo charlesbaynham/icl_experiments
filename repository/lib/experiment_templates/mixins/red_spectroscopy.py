@@ -2,10 +2,10 @@ import logging
 from enum import Enum
 from enum import unique
 
-from artiq.experiment import delay
-from artiq.experiment import kernel
-from artiq.experiment import parallel
-from artiq.experiment import sequential
+from artiq.language import delay
+from artiq.language import kernel
+from artiq.language import parallel
+from artiq.language import sequential
 from ndscan.experiment import *
 from ndscan.experiment.parameters import EnumParam
 from ndscan.experiment.parameters import FloatParamHandle

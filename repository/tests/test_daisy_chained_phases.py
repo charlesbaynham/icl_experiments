@@ -1,8 +1,8 @@
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
+from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 

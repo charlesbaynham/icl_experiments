@@ -6,10 +6,10 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.grabber import GrabberTimeoutException
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import rpc
+from artiq.language import host_only
+from artiq.language import kernel
 from artiq.language import parallel
+from artiq.language import rpc
 from artiq.language.core import delay
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
@@ -87,7 +87,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             "do_gauss_fit",
             BoolParam,
             "Do a 2D Gaussian fit on the Andor images",
-            True,
+            False,
         )
         self.do_gauss_fit: BoolParamHandle
 

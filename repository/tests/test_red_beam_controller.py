@@ -1,6 +1,6 @@
 from artiq.coredevice.core import Core
-from artiq.experiment import delay
-from artiq.experiment import now_mu
+from artiq.language import delay
+from artiq.language import now_mu
 from ndscan.experiment import *
 
 from repository.lib.fragments.red_mot import RedBeamController

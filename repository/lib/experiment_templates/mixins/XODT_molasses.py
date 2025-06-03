@@ -1,150 +1,32 @@
+import abc
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.ramping_phase import GeneralRampingPhase
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.optical_pumping import (
+    OpticalPumpingWithFieldSettingBase,
+)
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import EvapFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithFieldRamp
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
+    XODTWithFieldAndIntensityRamp,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class LoadSingleXODTMixin(DipoleTrapWithExperiment):
-    """
-    Loads atoms in a single XODT after the narrowband red MOT. Turns the dipole beams on at the start of a stage of ramping MOT beams.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~DMA_initialization_hook`
-    * :meth:`~post_narrowband_hook`
-    * :meth:`~dipole_trap_molasses_hook`
-
-    We also override this hook to do nothing since this Mixin is now taking charge
-    of field setting:
-
-    * :meth:`~set_postnarrowband_fields_hook`
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_fragment("mot_xodt", MOTInSingleXODT)
-        self.mot_xodt: MOTInSingleXODT
-
-        # Remove unused parameters
-        self.override_param("spectroscopy_field_gradient", 0)
-
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
-            default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT,
-        )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
-        )
-
-        self.setattr_param(
-            "stir_beam_detuning_mot_xodt",
-            FloatParam,
-            "Detuning of the 689 stir beam during xodt loading",
-            default=constants.XODT_SINGLE_LOADING_STIR_DETUNING,
-            unit="kHz",
-            min=-2e6,
-            max=2e6,
-        )
-        self.stir_beam_detuning_mot_xodt: FloatParamHandle
-
-        # Override default currents to suit single XODT loading
-        self.setattr_param_rebind(
-            "narrowband_bias_x",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_X,
-        )
-        self.setattr_param_rebind(
-            "narrowband_bias_y",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Y,
-        )
-        self.setattr_param_rebind(
-            "narrowband_bias_z",
-            self.red_mot,
-            default=constants.XODT_SINGLE_NARROWBAND_BIAS_Z,
-        )
-        self.setattr_param_rebind(
-            "chamber_2_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            default=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
-        )
-        self.narrowband_bias_x: FloatParamHandle
-        self.narrowband_bias_y: FloatParamHandle
-        self.narrowband_bias_z: FloatParamHandle
-        self.narrow_red_compression_phase: FloatParamHandle
-
-        self.mot_xodt.bind_suservo_setpoint_params_to_default_beam_setter(
-            [
-                self.red_mot.red_beam_controller.all_beam_default_setter,
-                self.dipole_beam_controller.all_beam_default_setter,
-            ]
-        )
-
-        self.mot_xodt.bind_ad9910_frequency_params(
-            [self.red_mot.injection_aom_static_frequency]
-        )
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_single_xodt_mot()
-
-    @kernel
-    def DMA_initialization_hook_single_xodt_mot(self):
-        """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
-        """
-        self.mot_xodt.precalculate_dma_handle()
-
-    @kernel
-    def post_narrowband_hook(self):
-        pass
-
-    @kernel
-    def set_postnarrowband_fields_hook(self):
-        pass
-
-    @kernel
-    def dipole_trap_molasses_hook(self):
-        self.dipole_trap_molasses_hook_single_xodt_mot()
-
-    @kernel
-    def dipole_trap_molasses_hook_single_xodt_mot(self):
-        """
-        Turn the dipole beams on and do the xodt loading ramping phase
-        """
-        self.constant_dipole_traps_setter.turn_on_all()
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
-            ignore_shutters=True
-        )
-
-        # Step the 689 stir frequency
-        self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
-            detuning=self.stir_beam_detuning_mot_xodt.get()
-        )
-
-        self.mot_xodt.do_phase()
 
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
@@ -170,8 +52,20 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.setattr_fragment("molasses_xodt_1", MolassesInXODT)
         self.molasses_xodt_1: MolassesInXODT
 
-        # Remove unused parameters
-        self.override_param("spectroscopy_field_gradient", 0)
+        self.setattr_fragment(
+            "transparency_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
 
         # # Expose the bias field for moving the MOT to the right place
         self.setattr_param_rebind(
@@ -239,6 +133,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             [
                 self.red_mot.red_beam_controller.all_beam_default_setter,
                 self.dipole_beam_controller.all_beam_default_setter,
+                self.transparency_setter,
             ]
         )
 
@@ -262,21 +157,23 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
 
     @kernel
     def post_narrowband_hook(self):
-        """
-        Turn off red MOT beams (default hook), set coil currents, and wait
-        """
-        self.post_narrowband_hook_xodt_molasses()
-
-    @kernel
-    def set_postnarrowband_fields_hook(self):
-        self.set_postnarrowband_fields_hook_singlemollasses()
-
-    @kernel
-    def set_postnarrowband_fields_hook_singlemollasses(self):
         pass
 
     @kernel
-    def post_narrowband_hook_xodt_molasses(self):
+    def set_postnarrowband_fields_hook(self):
+        self.set_postnarrowband_fields_hook_singlemolasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook_singlemolasses(self):
+        pass
+
+    @kernel
+    def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
+        self.dipole_trap_molasses_hook_first_xodt_molasses()
+
+    @kernel
+    def set_fields_xodt_molasses(self):
         """
         Turn off MOT fields and set bias fields to molasses ramp start.
 
@@ -295,17 +192,21 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         delay(self.delay_before_molasses.get())
 
     @kernel
-    def dipole_trap_molasses_hook(self):
-        self.dipole_trap_molasses_hook_first_xodt_molasses()
-
-    @kernel
     def dipole_trap_molasses_hook_first_xodt_molasses(self):
         """
         Do the first molasses ramping phase
         """
+
+        # turn on red beams and transparency beam
+        red_suservos = (
+            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        )
+        for i in range(len(red_suservos)):
+            red_suservos[i].setter.set_setpoint(0.0)
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
             ignore_shutters=True
         )
+        self.transparency_setter.turn_on_all()
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
@@ -313,6 +214,15 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
         self.molasses_xodt_1.do_phase()
+
+        # turn off transparency beam
+        self.transparency_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
+
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+            ignore_shutters=True
+        )
 
 
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
@@ -378,9 +288,17 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
             [self.red_mot.injection_aom_static_frequency]
         )
 
-        self.molasses_xodt_2.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, suservos=suservos_XODT
+        self.molasses_xodt_2.bind_suservo_setpoint_params_to_default_beam_setter(
+            [
+                self.red_mot.red_beam_controller.all_beam_default_setter,
+                self.dipole_beam_controller.all_beam_default_setter,
+                self.transparency_setter,
+            ]
         )
+
+        # self.molasses_xodt_2.daisy_chain_with_previous_phase(
+        #     self.molasses_xodt_1, suservos=suservos_XODT
+        # )
 
     @kernel
     def DMA_initialization_hook(self):
@@ -399,6 +317,7 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
 
     @kernel
     def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
         self.dipole_trap_molasses_hook_second_xodt_molasses()
 
@@ -433,22 +352,39 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.do_phase()
 
 
-class EvapAndFieldRampBase(DipoleTrapWithExperiment):
+class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
     """
-    Exposes the evaporation and field ramping phase for use in evaporation Mixins
+    Framework for implementing a ramping phase during the evaporation phase
+
+    This is generalised so that we can have either evaporation + field ramping, or only field ramping
     """
+
+    ramp_during_evap_phase: GeneralRampingPhase
 
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "bias_and_evap_ramp", XODTWithFieldRamp, enforce_binding_to_defaults=False
-        )
-        self.bias_and_evap_ramp: XODTWithFieldRamp
+        self._define_evap_phase_ramp()
+
+        # If we have a spin pol stage, bind the field start values to the end of
+        # the spin pol stage
+        if isinstance(self, OpticalPumpingWithFieldSettingBase):
+            for l in "xyz":
+                # This code is fragile because it relies on strings, but it
+                # should break with an error if the strings change so the unit
+                # tests will catch it:
+                self.ramp_during_evap_phase.bind_param(
+                    param_name=f"bias_field_{l}_start",
+                    source=getattr(self, f"bias_{l}_for_pumping"),
+                )
+
+    @abc.abstractmethod
+    def _define_evap_phase_ramp(self):
+        pass
 
     @kernel
     def DMA_initialization_hook_evap_with_field_ramp(self):
-        self.bias_and_evap_ramp.precalculate_dma_handle()
+        self.ramp_during_evap_phase.precalculate_dma_handle()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -458,17 +394,44 @@ class EvapAndFieldRampBase(DipoleTrapWithExperiment):
         )
 
     @kernel
-    def dipole_trap_evaporation_hook_with_field_ramp(self):
+    def dipole_trap_evaporation_hook_ramper(self):
         """
-        Do the evap and field ramp
+        Do the evap / field ramp phase
         """
-        self.bias_and_evap_ramp.do_phase()
+        self.ramp_during_evap_phase.do_phase()
 
     @kernel
     def dipole_trap_evaporation_hook(self):
         # Default hook turns off red beams - good!
         self.dipole_trap_evaporation_hook_default()
-        self.dipole_trap_evaporation_hook_with_field_ramp()
+        self.dipole_trap_evaporation_hook_ramper()
+
+
+class EvapAndFieldRampBase(_RampDuringEvapHookBase):
+    """
+    Exposes the evaporation and field ramping phase for use in evaporation Mixins
+    """
+
+    def _define_evap_phase_ramp(self):
+        self.setattr_fragment(
+            "ramp_during_evap_phase",
+            XODTWithFieldAndIntensityRamp,
+        )
+        self.ramp_during_evap_phase: XODTWithFieldAndIntensityRamp
+
+
+class FieldOnlyRampInEvapMixin(_RampDuringEvapHookBase):
+    """
+    Ramps the magnetic field during the evaporation phase, but with no actual
+    evaporation
+    """
+
+    def _define_evap_phase_ramp(self):
+        self.setattr_fragment(
+            "ramp_during_evap_phase",
+            EvapFieldRamp,
+        )
+        self.ramp_during_evap_phase: EvapFieldRamp
 
 
 class XODTDoubleMolassesPlusFieldRampMixin(
@@ -496,8 +459,8 @@ class XODTDoubleMolassesPlusFieldRampMixin(
     def build_fragment(self):
         super().build_fragment()
 
-        self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
-            self.molasses_xodt_2, suservos=suservos_XODT
+        self.ramp_during_evap_phase.daisy_chain_with_previous_phase(
+            self.molasses_xodt_2, suservos=SUSERVOS_XODT
         )
 
     @kernel
@@ -532,8 +495,8 @@ class XODTSingleMolassesPlusFieldRampMixin(
     def build_fragment(self):
         super().build_fragment()
 
-        self.bias_and_evap_ramp.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, suservos=suservos_XODT
+        self.ramp_during_evap_phase.daisy_chain_with_previous_phase(
+            self.molasses_xodt_1, suservos=SUSERVOS_XODT
         )
 
     @kernel
@@ -541,3 +504,84 @@ class XODTSingleMolassesPlusFieldRampMixin(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
+
+
+class ClearOut689Mixin(DipoleTrapWithExperiment):
+    """
+    Pulse 689 nm beam to clear out atoms after molasses
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_clearout_pulse_hook`
+
+    """
+
+    def build_fragment(self):
+        # We assume that the up beam has already been configured by the MOT
+        # sequence, but that we must control the amplitude
+        self.setattr_fragment(
+            "up_beam_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["red_up"].suservo_device,
+        )
+        self.up_beam_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_suservo_clearout",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo_clearout: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter_clearout",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter_clearout: SetBeamsToDefaults
+
+        self.setattr_param(
+            "clearout_pulse_time",
+            FloatParam,
+            "Time to pulse the 689 nm beam to clear out atoms",
+            default=0.0,
+            unit="ms",
+        )
+        self.clearout_pulse_time: FloatParamHandle
+
+        self.setattr_param(
+            "clearout_pulse_aom_amplitude",
+            FloatParam,
+            "Amplitude of delivery AOM during clearout pulse. SUServoing is disabled",
+            default=1.0,
+            min=0.0,
+            max=1.0,
+        )
+        self.clearout_pulse_aom_amplitude: FloatParamHandle
+
+        super().build_fragment()
+
+    @kernel
+    def do_clearout_pulse_hook(self):
+        self.transparency_setter_clearout.turn_on_all()
+        delay_mu(8)
+        self.up_beam_suservo.set_pgia_gain_mu(0)
+        delay_mu(8)
+        self.up_beam_suservo.suservo_channel.set_y(
+            profile=self.up_beam_suservo.suservo_profile,
+            y=self.clearout_pulse_aom_amplitude.get(),
+        )
+        delay_mu(8)
+        self.up_beam_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        delay(self.clearout_pulse_time.get())
+        self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+        delay_mu(8)
+
+        self.transparency_suservo_clearout.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )

@@ -2,8 +2,8 @@ import logging
 from typing import List
 
 import numpy as np
-from artiq.experiment import host_only
-from artiq.experiment import kernel
+from artiq.language import host_only
+from artiq.language import kernel
 from artiq.language import parallel
 from artiq.language.core import delay
 from ndscan.experiment import FloatChannel

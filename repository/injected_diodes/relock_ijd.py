@@ -10,8 +10,8 @@ from typing import Tuple
 
 from artiq.coredevice.core import Core
 from artiq.experiment import TList
-from artiq.experiment import kernel
-from artiq.experiment import portable
+from artiq.language import kernel
+from artiq.language import portable
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
 from koheron_ctl200_laser_driver import CTL200

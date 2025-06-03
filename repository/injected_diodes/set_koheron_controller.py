@@ -6,9 +6,9 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import EnumerationValue
 from artiq.experiment import TFloat
-from artiq.experiment import delay
-from artiq.experiment import kernel
-from artiq.experiment import rpc
+from artiq.language import delay
+from artiq.language import kernel
+from artiq.language import rpc
 from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import BoolParam
 from ndscan.experiment import ExpFragment

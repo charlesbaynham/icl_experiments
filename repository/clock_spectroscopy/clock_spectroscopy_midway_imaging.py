@@ -1,6 +1,6 @@
 import logging
 
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -13,7 +13,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.midway_imaging imp
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.pumped_lattice import (
+from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (

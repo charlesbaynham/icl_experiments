@@ -6,7 +6,7 @@ from artiq.coredevice.sampler import Sampler
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
 from artiq.experiment import StringValue
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle

@@ -3,8 +3,8 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import GrabberTimeoutException
 from artiq.experiment import NumberValue
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 

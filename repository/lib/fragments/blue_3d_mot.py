@@ -2,11 +2,11 @@ import logging
 
 from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -341,7 +341,7 @@ class Blue3DMOTFrag(Fragment):
         """
 
         # Turn on all the AOMs but close all the shutters
-        delay(200e-6)  # We need some slack - create it deterministically
+        delay(400e-6)  # We need some slack - create it deterministically
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
 
         frequency_blue_doublepass = (

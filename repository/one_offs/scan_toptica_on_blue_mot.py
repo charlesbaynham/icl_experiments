@@ -1,5 +1,5 @@
 from artiq.coredevice.core import Core
-from artiq.experiment import now_mu
+from artiq.language import now_mu
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from toptica_wrapper.driver import TopticaDLCPro
