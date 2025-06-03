@@ -26,7 +26,6 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch6",
-    "urukul9910_aom_doublepass_461_USOC_delivery": "urukul5_ch2",
     "urukul9912_aom_singlepass_461_imaging_switch": "urukul2_ch3",
     "suservo_aom_singlepass_487_transparency": "suservo1_ch7",
     # Red

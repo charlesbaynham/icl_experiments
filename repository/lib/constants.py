@@ -88,12 +88,12 @@ URUKULED_BEAMS = [
         attenuation=13,
         urukul_device="urukul9912_aom_singlepass_461_imaging_switch",
     ),
-    UrukuledBeam(
-        "blue_USOC_delivery",
-        frequency=70e6,
-        attenuation=20.0,
-        urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
-    ),
+    # UrukuledBeam(  # On 20250603 this was not plugged in, it must have been like that for a while
+    #     "blue_USOC_delivery",
+    #     frequency=70e6,
+    #     attenuation=20.0,
+    #     urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
+    # ),
     UrukuledBeam(
         "dipole_trap_1064_freespace_AOM",
         frequency=110e6,
