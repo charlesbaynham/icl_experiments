@@ -178,6 +178,30 @@ def get_non_core_devices(simulation_mode=False):
                 "simulation": simulation_mode,
             },
         },
+        "chamber_1_radial1_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-1.lan",
+                "port": 18202,
+                "simulation": simulation_mode,
+            },
+        },
+        "chamber_1_radial2_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-2.lan",
+                "port": 18203,
+                "simulation": simulation_mode,
+            },
+        },
         "chamber_1_radial_coil_driver": {
             "type": "local",
             "module": "tti_power_supply",

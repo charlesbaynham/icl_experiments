@@ -861,6 +861,8 @@ TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.
 
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
+B_FIELD_CH1_RADIAL1 = 3.3  # A
+B_FIELD_CH1_RADIAL2 = 5.0  # A
 
 
 # Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
