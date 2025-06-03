@@ -61,7 +61,14 @@ URUKULED_BEAMS = [
         frequency=200.0e6,
         amplitude=1.0,
         attenuation=20.0,
-        urukul_device="urukul9910_aom_doublepass_461_injection",
+        urukul_device="urukul9910_aom_doublepass_461_master_to_ijd1",
+    ),
+    UrukuledBeam(
+        name="blue_singlepass_injection",
+        frequency=120e6,
+        amplitude=1.0,
+        attenuation=21.0,
+        urukul_device="urukul9910_aom_singlepass_461_ijd1_to_ijd23",
     ),
     UrukuledBeam(
         "red_spinpol",
@@ -154,7 +161,10 @@ IJD_DEFAULTS = {
         window_high=362e-3,
         window_low=352e-3,
         relock_step=3e-3,
-        associated_beams=["blue_doublepass_injection"],
+        # IJD1 does not actually need the blue_singlepass_injection AOM, but
+        # IJDs 2 and 3 do. Rather than adding it to one of IJD2 and 3, or both,
+        # we add it here so there are no glitches during intialisation.
+        associated_beams=["blue_doublepass_injection", "blue_singlepass_injection"],
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
@@ -516,26 +526,6 @@ SUSERVOED_BEAMS = [
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
         setpoint=0.8,
-        servo_enabled=True,
-    ),
-    SUServoedBeam(
-        "blue_2dmot_A",
-        120e6,
-        21,
-        "suservo_aom_singlepass_461_2dmot_a",
-        "TTL_shutter_461_2dmot_is_it_a",
-        shutter_delay=20e-3,
-        setpoint=1.8,
-        servo_enabled=True,
-    ),
-    SUServoedBeam(
-        "blue_2dmot_B",
-        120e6,
-        21,
-        "suservo_aom_singlepass_461_2dmot_b",
-        "TTL_shutter_461_2dmot_is_it_b",
-        shutter_delay=20e-3,
-        setpoint=2.7,
         servo_enabled=True,
     ),
     SUServoedBeam(

@@ -31,7 +31,7 @@ class GeneralRampingPhaseNoGeneral(GeneralRampingPhase):
 
     urukuls = [
         "urukul9910_aom_doublepass_689_red_injection",
-        "urukul9910_aom_doublepass_461_injection",
+        "urukul9910_aom_doublepass_461_master_to_ijd1",
     ]
     default_urukul_nominal_frequencies = [340e6, 200e6]
     default_urukul_detunings_start = [1e6, 0.0]
@@ -60,7 +60,7 @@ class GeneralRampingPhaseNoSUServo(GeneralRampingPhase):
 
     urukuls = [
         "urukul9910_aom_doublepass_689_red_injection",
-        "urukul9910_aom_doublepass_461_injection",
+        "urukul9910_aom_doublepass_461_master_to_ijd1",
     ]
     default_urukul_nominal_frequencies = [340e6, 200e6]
     default_urukul_detunings_start = [1e6, 0.0]

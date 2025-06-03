@@ -1,7 +1,9 @@
 import logging
+from typing import List
 
 from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
@@ -29,14 +31,20 @@ from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsExceptCavi
 
 logger = logging.getLogger(__name__)
 
+# The blue 2D MOT beams are now delivered freespace, direct to the atoms. There
+# is therefore no AOM and no SUServo, but there are shutters so we handle them
+# directly:
+BLUE_2D_MOT_SHUTTERS = [
+    "TTL_shutter_461_2dmot_is_it_a",
+    "TTL_shutter_461_2dmot_is_it_b",
+]
+
 
 BlueBeamSetter = make_set_beams_to_default(
     suservo_beam_infos=[
         constants.SUSERVOED_BEAMS[beam]
         for beam in [
             "blue_push_beam",
-            "blue_2dmot_A",
-            "blue_2dmot_B",
             "blue_3dmot_radial",
             "blue_3dmot_axialplus",
             "blue_3dmot_axialminus",
@@ -50,6 +58,9 @@ BlueBeamSetter = make_set_beams_to_default(
 
 BLUE_DOUBLEPASS_INJECTION_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS[
     "blue_doublepass_injection"
+]
+BLUE_SINGLEPASS_INJECTION_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS[
+    "blue_singlepass_injection"
 ]
 
 
@@ -91,6 +102,7 @@ class Blue3DMOTFrag(Fragment):
     """
 
     def build_fragment(self, manual_init=False):
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.setattr_device("core")
         self.core: Core
 
@@ -107,8 +119,17 @@ class Blue3DMOTFrag(Fragment):
             BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.urukul_device
         )
 
+        self.singlepass_injection_aom: AD9912 = self.get_device(
+            BLUE_SINGLEPASS_INJECTION_BEAM_INFO.urukul_device
+        )
+
         self.setattr_fragment("all_beam_default_setter", BlueBeamSetter)
         self.all_beam_default_setter: SetBeamsToDefaults
+
+        self.blue_2d_mot_shutters: List[TTLOut] = [
+            self.get_device(d) for d in BLUE_2D_MOT_SHUTTERS
+        ]
+        self.kernel_invariants.add("blue_2d_mot_shutters")
 
         self.setattr_fragment(
             "mot_all_beam_setter",
@@ -119,8 +140,6 @@ class Blue3DMOTFrag(Fragment):
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
                 constants.SUSERVOED_BEAMS["repump_679"],
                 constants.SUSERVOED_BEAMS["repump_707"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
                 constants.SUSERVOED_BEAMS["blue_push_beam"],
             ],
         )
@@ -143,8 +162,6 @@ class Blue3DMOTFrag(Fragment):
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
                 constants.SUSERVOED_BEAMS["blue_push_beam"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
             ],
         )
         self.mot_2d_and_3d_beams_setter: ControlBeamsWithoutCoolingAOM
@@ -156,8 +173,6 @@ class Blue3DMOTFrag(Fragment):
                 constants.SUSERVOED_BEAMS["blue_3dmot_radial"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialplus"],
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
             ],
         )
         self.mot_2d_and_3d_beams_nopush_setter: ControlBeamsWithoutCoolingAOM
@@ -181,8 +196,6 @@ class Blue3DMOTFrag(Fragment):
                 constants.SUSERVOED_BEAMS["blue_3dmot_axialminus"],
                 constants.SUSERVOED_BEAMS["repump_679"],
                 constants.SUSERVOED_BEAMS["repump_707"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_A"],
-                constants.SUSERVOED_BEAMS["blue_2dmot_B"],
                 constants.SUSERVOED_BEAMS["blue_push_beam"],
             ],
         )
@@ -315,8 +328,8 @@ class Blue3DMOTFrag(Fragment):
         self.manual_init = manual_init
 
         # %% Kernel invariants
-        kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {"debug_mode", "manual_init"}
+        self.kernel_invariants.add("debug_mode")
+        self.kernel_invariants.add("manual_init")
 
     @kernel
     def device_setup(self):
@@ -344,12 +357,13 @@ class Blue3DMOTFrag(Fragment):
         delay(400e-6)  # We need some slack - create it deterministically
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
 
-        frequency_blue_doublepass = (
-            BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.frequency
+        self.doublepass_injection_aom.set(
+            frequency=BLUE_DOUBLEPASS_INJECTION_BEAM_INFO.frequency
             + self.blue_doublepass_injection_detuning.get()
         )
-        self.doublepass_injection_aom.set(frequency=frequency_blue_doublepass)
-        delay_mu(int64(self.core.ref_multiplier))
+        self.singlepass_injection_aom.set(
+            frequency=BLUE_SINGLEPASS_INJECTION_BEAM_INFO.frequency
+        )
 
         self.mirny_eom_sidebands.set_sidebands()
 
@@ -388,36 +402,48 @@ class Blue3DMOTFrag(Fragment):
         self.enable_mot_fields()
 
     @kernel
+    def _set_2d_mot_shutters(self, state: bool):
+        """
+        Set the state of the 2D MOT shutters
+
+        :param state: True to open, False to close
+        """
+        for shutter in self.blue_2d_mot_shutters:
+            shutter.set_o(state)
+            # Avoid multiple lane usage:
+            delay_mu(self.core.seconds_to_mu(self.core.coarse_ref_period))
+
+    @kernel
     def turn_on_3d_and_2d_beams(self):
-        return self.mot_2d_and_3d_beams_setter.turn_beams_on()
+        self.mot_2d_and_3d_beams_setter.turn_beams_on()
+        self._set_2d_mot_shutters(True)
 
     @kernel
     def turn_off_3d_and_2d_beams(self):
-        return self.mot_2d_and_3d_beams_setter.turn_beams_off()
-
-    @kernel
-    def turn_off_3d_and_2d_beams_nopush(self):
-        return self.mot_2d_and_3d_beams_nopush_setter.turn_beams_off()
+        self._set_2d_mot_shutters(False)
+        self.mot_2d_and_3d_beams_setter.turn_beams_off()
 
     @kernel
     def turn_on_all_beams(self):
-        return self.mot_all_beam_setter.turn_beams_on()
+        self.mot_all_beam_setter.turn_beams_on()
+        self._set_2d_mot_shutters(True)
 
     @kernel
     def turn_off_all_beams(self):
-        return self.mot_all_beam_setter.turn_beams_off()
+        self.mot_all_beam_setter.turn_beams_off()
+        self._set_2d_mot_shutters(False)
 
     @kernel
     def turn_on_push_beam(self):
-        return self.blue_push_beam_setter.turn_beams_on()
+        self.blue_push_beam_setter.turn_beams_on()
 
     @kernel
     def turn_off_push_beam(self):
-        return self.blue_push_beam_setter.turn_beams_off()
+        self.blue_push_beam_setter.turn_beams_off()
 
     @kernel
     def turn_on_3d_beams(self, ignore_shutters=False):
-        return self.mot_3d_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
+        self.mot_3d_beams_setter.turn_beams_on(ignore_shutters=ignore_shutters)
 
     @kernel
     def turn_off_3d_beams(self, ignore_shutters=False):
@@ -426,31 +452,21 @@ class Blue3DMOTFrag(Fragment):
         This method will not advance the cursor BUT will write shutter closing
         events into the future by "shutter_delay_time" seconds.
         """
-        return self.mot_3d_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
+        self.mot_3d_beams_setter.turn_beams_off(ignore_shutters=ignore_shutters)
 
     @kernel
     def turn_on_repumpers(self):
-        return self.repump_beam_setter.turn_beams_on()
+        self.repump_beam_setter.turn_beams_on()
 
     @kernel
     def turn_off_repumpers(self):
-        return self.repump_beam_setter.turn_beams_off()
-
-    @kernel
-    def turn_on_all_beams_except_radial(self, ignore_shutters=False):
-        return self.mot_all_beams_except_radial_setter.turn_beams_on(
-            ignore_shutters=ignore_shutters
-        )
+        self.repump_beam_setter.turn_beams_off()
 
     @kernel
     def turn_off_all_beams_except_radial(self, ignore_shutters=False):
         return self.mot_all_beams_except_radial_setter.turn_beams_off(
             ignore_shutters=ignore_shutters
         )
-
-    @kernel
-    def turn_on_radial_beams(self, ignore_shutters=False):
-        return self.radial_beam_setter.turn_beams_on(ignore_shutters=ignore_shutters)
 
     @kernel
     def turn_off_radial_beams(self, ignore_shutters=False):

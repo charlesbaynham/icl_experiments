@@ -18,7 +18,8 @@ information like "optimal drive power for this AOM": that information belongs in
 aliases = {
     # %% SUServos
     # Blue
-    "urukul9910_aom_doublepass_461_injection": "urukul5_ch3",
+    "urukul9910_aom_doublepass_461_master_to_ijd1": "urukul5_ch3",
+    "urukul9910_aom_singlepass_461_ijd1_to_ijd23": "urukul5_ch2",
     "suservo_aom_singlepass_461_imaging_delivery": "suservo1_ch3",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
     "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
@@ -76,7 +77,6 @@ aliases = {
     "ttl_camera_trigger_andor": "ttl4",
     "ttl_camera_trigger_horizontal": "ttl6",
     "ttl_camera_trigger_vertical": "ttl7",
-    "TTL_blue_ijds": "ttl12",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch1",
     "mirny_eom_cavity_offset_698": "mirny0_ch0",
