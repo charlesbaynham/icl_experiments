@@ -196,6 +196,12 @@ class SetMagneticFieldsSlow(Fragment):
     def _set_coils(
         self, current_axial: TFloat, current_radial_1: TFloat, current_radial_2: TFloat
     ):
+        logger.debug(
+            "Setting magnetic fields: axial=%s, radial_1=%s, radial_2=%s",
+            current_axial,
+            current_radial_1,
+            current_radial_2,
+        )
         self.chamber_1_axial_coil_driver.set_current(current_axial)
         self.chamber_1_radial1_coil_driver.set_current(current_radial_1)
         self.chamber_1_radial2_coil_driver.set_current(current_radial_2)
