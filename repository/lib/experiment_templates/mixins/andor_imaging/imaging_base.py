@@ -128,8 +128,6 @@ class AndorImagingBase(RedMOTWithExperiment):
                 self.device_setup_subfragments()
                 self.core.break_realtime()
 
-                self.set_toptica_analog.reset_freq()
-
                 grabber_clearout = [0] * self.num_grabber_rois
 
                 while True:
