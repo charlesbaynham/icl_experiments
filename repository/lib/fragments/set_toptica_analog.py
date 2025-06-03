@@ -2,10 +2,8 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.fastino import Fastino
-from artiq.language.core import delay
 from artiq.language.core import host_only
 from artiq.language.core import kernel
-from artiq.language.core import rpc
 from ndscan.experiment import ExpFragment
 
 # from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -87,15 +85,14 @@ class SetTopticaAnalogFrag(ExpFragment):
     def device_setup(self):
         self.device_setup_subfragments()
         self.core.break_realtime()
-        self.fastino0.init()
         if self.first_run:
-
+            self.fastino0.init()
             self.first_run = False
+
+        self.voltage = self.frequency_to_voltage(self.freq_step.get())
+
         self.core.break_realtime()
         self.reset_freq()
-        self.core.break_realtime()
-        self.voltage = self.convert_freq(self.freq_step.get())
-        self.core.break_realtime()
 
     @kernel
     def device_cleanup(self):
@@ -104,7 +101,7 @@ class SetTopticaAnalogFrag(ExpFragment):
         self.reset_freq()
 
     @kernel
-    def convert_freq(self, freq: float) -> float:
+    def frequency_to_voltage(self, freq: float) -> float:
         voltage = freq / (TOPTICA_461_ANALOG_SCALE)
         if not self.check_voltage_lim(voltage):
             raise ValueError("Voltage out of range")
@@ -114,29 +111,10 @@ class SetTopticaAnalogFrag(ExpFragment):
     def check_voltage_lim(self, voltage: float) -> bool:
         return self.voltage_min <= voltage <= self.voltage_max
 
-    @rpc(flags={"async"})
-    def log_fastino_stuff(self, voltage: float):
-        logger.info("freq_step: %f", self.freq_step.get())
-        logger.info("set voltage: %f", voltage)
-
     @kernel
     def step_freq(self):
-        # voltage = self.convert_freq(self.freq_step.get())
-        # voltage = self.target_voltage.get()
-        # delay(1e-6)
-        # self.log_fastino_stuff(voltage)
         self.fastino0.set_dac(self.channel, self.voltage)
 
     @kernel
     def reset_freq(self):
         self.fastino0.set_dac(self.channel, 0.0)
-
-    @kernel
-    def run_once(self):
-        # if self.target_voltage.get() == 0.0:
-        #     self.fastino0.set_dac(self.channel, 0.0)
-        #     return
-        self.step_freq()
-        delay(3.0)
-        self.fastino0.set_dac(self.channel, 0.0)
-        delay(3.0)
