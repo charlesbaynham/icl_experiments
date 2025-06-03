@@ -121,7 +121,7 @@ class _DualCameraBase(Fragment):
         self.image_vertical_timestamp: ResultChannel
 
         self.setattr_result(
-            # "image_vertical_mean", FloatChannel, display_hints={"priority": -2}  # FIXME without this comment the 3D MOT scripts don't work
+            # "image_vertical_mean", FloatChannel, display_hints={"priority": -2}  # TODO without this comment the 3D MOT scripts don't work
             "image_vertical_mean",
             FloatChannel,
         )
