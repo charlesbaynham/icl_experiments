@@ -45,6 +45,7 @@ class AbsorptionImagingBase(AndorImagingBase):
     num_andor_images = 3
     num_absorption_rois = 1
     num_images_per_series = 3
+    num_grabber_readouts = 3
 
     def build_fragment(self):
         super().build_fragment()
