@@ -546,7 +546,7 @@ SUSERVOED_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=3.0,
+        setpoint=2.9,
     ),
     SUServoedBeam(
         "blue_3dmot_axialplus",
@@ -556,7 +556,7 @@ SUSERVOED_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=2.0,
+        setpoint=1.6,
     ),
     SUServoedBeam(
         "blue_imaging_delivery",
