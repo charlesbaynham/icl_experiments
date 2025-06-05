@@ -738,7 +738,7 @@ _default_461 = (
 )
 _default_707 = 423_913_478e6
 _default_679 = 441_332_627e6
-_default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
+_default_487 = 615_103_493e6 + 7 * 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6  # Measured empirically
 _clock_laser_offset = -80e6
 
@@ -1089,7 +1089,7 @@ if USE_SR87:
         0.002,
         1.0,
         1.0,
-        0.15,
+        1.05,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1098,7 +1098,7 @@ if USE_SR87:
         0.002,
         1.0,
         0.7,
-        0.15,
+        1.05,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         -35e3,
@@ -1112,8 +1112,8 @@ if USE_SR87:
 
     DELAY_BETWEEN_MOLASSES = 0.0001e-3
     XODT_2ND_MOLASSES_DURATION = 50e-3
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.15]
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.15]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 1.05]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 1.05]
     XODT_2ND_MOLASSES_689_DETUNING_START = [
         -35e3,
     ]
@@ -1130,8 +1130,8 @@ else:
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
     XODT_MOLASSES_DURATION = 120e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.15]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.15]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 1.05]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 1.05]
     XODT_MOLASSES_689_DETUNING_START = [
         100e3,
     ]
