@@ -20,61 +20,14 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import EvapFieldRamp
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesDipoleRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2, MolassesDipoleRamp
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
     XODTWithFieldAndIntensityRamp,
 )
 
 logger = logging.getLogger(__name__)
-
-
-class PreCoolMixin(DipoleTrapWithExperiment):
-    """
-    Adiabatically cool the atoms in the dipole trap before evaporation.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~DMA_initialization_hook`
-    * :meth:`~dipole_trap_evaporation_hook`
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_fragment(
-            "linear_evap_ramp", XODTWithLinearRamp, enforce_binding_to_defaults=False
-        )
-        self.linear_evap_ramp: XODTWithLinearRamp
-
-        self.linear_evap_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
-            [self.dipole_beam_controller.all_beam_default_setter]
-        )
-
-        self.setattr_param(
-            "total_evap_hold_time",
-            FloatParam,
-            "Duration of total evaporation",
-            default=constants.TOTAL_EVAP_HOLD_TIME,
-            min=0.0,
-            unit="s",
-        )
-        self.total_evap_hold_time: FloatParamHandle
-
-    @kernel
-    def DMA_initialization_hook_linear_evap(self):
-        self.linear_evap_ramp.precalculate_dma_handle()
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_linear_evap()
-
-    @kernel
-    def dipole_trap_evaporation_hook(self):
-        self.dipole_trap_evaporation_hook_default()
-        self.linear_evap_ramp.do_phase()
-        delay(self.total_evap_hold_time.get() - self.linear_evap_ramp.duration.get())
 
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
@@ -272,6 +225,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             ignore_shutters=True
         )
 
+
 class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, and implements a
@@ -291,7 +245,7 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
 
     * :meth:`~set_postnarrowband_fields_hook`
     """
-        
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -335,6 +289,8 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
         Adiabatically cool after the molasses
         """
         self.cool_molasses.do_phase()
+
+
 class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, and implements a
