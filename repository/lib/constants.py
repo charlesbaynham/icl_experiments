@@ -1101,10 +1101,10 @@ if USE_SR87:
         2.5,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        -35e3,
+        -50e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        -48e3,
+        -63e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
