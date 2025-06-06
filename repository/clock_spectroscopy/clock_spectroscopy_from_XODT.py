@@ -34,6 +34,7 @@ from repository.lib.experiment_templates.mixins.pumped_lattice import (
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusFieldRampMixin,
+    XODTSingleMolassesMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
+    XODTSingleMolassesMixin,
     EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
