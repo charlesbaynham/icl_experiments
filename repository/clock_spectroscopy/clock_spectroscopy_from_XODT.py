@@ -22,9 +22,6 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsMixin,
-)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -33,8 +30,10 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusFieldRampMixin,
     XODTSingleMolassesMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesPlusFieldRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -76,7 +75,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
-    EvaporationThreeRampsMixin,
+    # EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
@@ -93,7 +92,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_linear_evap()
+        # self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
