@@ -120,8 +120,8 @@ class MOTInSingleXODT(_RedAndXODTBeamsBase):
         constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END
     )
 
-    default_urukul_detunings_start = [0.0]
-    default_urukul_detunings_end = [0.0]
+    default_urukul_detunings_start = constants.XODT_SINGLE_LOADING_689_DETUNING_START
+    default_urukul_detunings_end = constants.XODT_SINGLE_LOADING_689_DETUNING_END
 
 
 class MOTInBottomXODT(_RedAndXODTBeamsBase):
