@@ -2,11 +2,15 @@
 Define the phases available in the dipole trap.
 """
 
+import logging
+
 import repository.lib.constants as constants
 from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndBiasField,
 )
+
+logger = logging.getLogger(__name__)
 
 SUSERVOS_RED = [
     "suservo_aom_singlepass_689_red_mot_diagonal",
@@ -54,27 +58,39 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     default_urukul_nominal_frequencies = [0.0]
 
     def __init__(self, *args, **kwargs):
-        # Look up the photodiode offsets and PGIA settings for the lower-power
-        # beams. In future we might specify these for all beams, but for now we
-        # prefer to just put it in for the low power ones since this is the only
-        # place we need it.
+        # Look up the photodiode offsets, PGIA settings and IIR kI coefficients for the lower-power
+        # beams. If a beam is not in the list, default to the values for the normal beams.
         #
         # Do this in the constructor so that it pays attention to the beam names
         # if they have been changed by child classes
         combined_beaminfos_for_low_power = constants.SUSERVOED_BEAMS.copy()
         combined_beaminfos_for_low_power.update(constants.SUSERVOED_BEAMS_LOW_INTENSITY)
 
+        logger.debug("constants.SUSERVOED_BEAMS: %s", constants.SUSERVOED_BEAMS)
+        logger.debug(
+            "constants.SUSERVOED_BEAMS_LOW_INTENSITY: %s",
+            constants.SUSERVOED_BEAMS_LOW_INTENSITY,
+        )
+        logger.debug(
+            "combined_beaminfos_for_low_power: %s", combined_beaminfos_for_low_power
+        )
+
         suservo_beaminfos_by_devicename = {
             info.suservo_device: info
             for info in combined_beaminfos_for_low_power.values()
         }
 
-        self.suservo_offsets = [
-            suservo_beaminfos_by_devicename[device_name].photodiode_offset
+        self.default_suservo_pgias = [
+            suservo_beaminfos_by_devicename[device_name].pgia_setting
             for device_name in self.suservos
         ]
-        self.suservo_pgias = [
-            suservo_beaminfos_by_devicename[device_name].pgia_setting
+        self.default_suservo_kIs = [
+            suservo_beaminfos_by_devicename[device_name].kI_loop_constant
+            for device_name in self.suservos
+        ]
+
+        self.suservo_offsets = [
+            suservo_beaminfos_by_devicename[device_name].photodiode_offset
             for device_name in self.suservos
         ]
 

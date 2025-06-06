@@ -95,11 +95,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         """
         Turn the dipole beams on and do the xodt loading ramping phase
         """
-        self.constant_dipole_traps_setter.turn_on_all()  # FIXME this isn't the right place for this, they should be set up in device_setup and then enabled here
-
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(  # FIXME Get rid of this and make sure it works
-            ignore_shutters=True
-        )
+        self.dipole_beam_controller.turn_on_dipole_beams()
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(

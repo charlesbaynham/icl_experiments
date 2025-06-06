@@ -17,7 +17,7 @@ from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
 from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
-from repository.lib.experiment_templates.mixins.pumped_lattice import (
+from repository.lib.experiment_templates.mixins.optical_pumping import (
     DroppedPumpedLatticeMixin,
 )
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (

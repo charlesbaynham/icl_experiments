@@ -14,7 +14,6 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -86,14 +85,6 @@ class FluorescencePulseBase(Fragment):
         )
         self.delivery_beam_toggler: ToggleListOfBeams
 
-        # Create a SUServo interface too, so we can tune the PID settings
-        self.setattr_fragment(
-            "delivery_beam_suservo",
-            LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["blue_imaging_delivery"].suservo_device,
-        )
-        self.delivery_beam_suservo: LibSetSUServoStatic
-
         self.setattr_param(
             "fluorescence_pulse_duration",
             FloatParam,
@@ -114,16 +105,6 @@ class FluorescencePulseBase(Fragment):
         )
         self.delivery_settling_duration: FloatParamHandle
 
-        self.setattr_param(
-            "delivery_suservo_kI",
-            FloatParam,
-            "kI parameter for the delivery SUServo",
-            default=constants.DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I,
-            max=0,
-            min=-1e9,
-        )
-        self.delivery_suservo_kI: FloatParamHandle
-
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
@@ -133,9 +114,6 @@ class FluorescencePulseBase(Fragment):
         # Configure and enable the SUServos for all configured beams, and also the delivery beam
         self.all_beam_default_setter.turn_on_all(light_enabled=False)
         self.delivery_beam_setter.turn_on_all(light_enabled=False)
-
-        # Boost the delivery SUServo's gain
-        self.delivery_beam_suservo.set_iir_params(ki=self.delivery_suservo_kI.get())
 
     @kernel
     def do_imaging_pulse(

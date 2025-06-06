@@ -336,11 +336,6 @@ DEFAULT_IMAGING_PULSE = 50e-6
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
 "Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
 
-DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000.0
-"$k_I$ constant for the fluorescence beam's SUServo loop"
-
-DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
-"$k_I$ constant for the clock delivery beam's SUServo loop"
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
@@ -463,6 +458,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         setpoint=1.5,
         photodiode_offset=0.0133,  # 0.001,  # 0.01238,
         pgia_setting=2,
+        kI_loop_constant=-300.0,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -476,6 +472,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         setpoint=1.5,
         photodiode_offset=0.018,  # 0.001,
         pgia_setting=2,
+        kI_loop_constant=-300.0,
     ),
     SUServoedBeam(
         "red_up",
@@ -489,6 +486,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         initial_amplitude=0.05,
         photodiode_offset=0.016,  # 0.0032,  # 0.016,
         pgia_setting=2,
+        kI_loop_constant=-300.0,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -502,6 +500,7 @@ SUSERVOED_BEAMS_LOW_INTENSITY = [
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
         pgia_setting=1,
+        kI_loop_constant=-300.0,
     ),
 ]
 
@@ -577,6 +576,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
+        kI_loop_constant=-200000.0,
     ),
     SUServoedBeam(
         "blue_transparency_beam",
@@ -663,6 +663,7 @@ SUSERVOED_BEAMS = [
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
         setpoint=3.5,
+        kI_loop_constant=-200000.0,
     ),
     SUServoedBeam(
         "lattice_input_1379",
@@ -678,6 +679,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=5,
     ),
     SUServoedBeam(
@@ -686,6 +688,7 @@ SUSERVOED_BEAMS = [
         attenuation=7.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=3.5,
     ),
     SUServoedBeam(
@@ -694,6 +697,7 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=4.7,
     ),
     SUServoedBeam(
@@ -868,7 +872,7 @@ TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
 
-# TODO: Include FIELD_COMP as an offset to the other default fields below.
+
 # Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
 # Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
 # than previous calibration based on Zeeman spectroscopy
@@ -1000,7 +1004,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.53)
+) = add_field_offset(0.188, 0.057, -0.21)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
@@ -1061,6 +1065,9 @@ else:
 
 ### DIPOLE TRAP DEFAULT PARAMETERS ###
 
+# Unused in Sr88 so only one setting needed
+XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
+
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
 # "suservo_aom_singlepass_689_red_mot_sigmaminus",
@@ -1089,7 +1096,7 @@ if USE_SR87:
         0.0018,
         0.002,
         1.0,
-        0.5,
+        1.0,
         0.15,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
@@ -1098,31 +1105,31 @@ if USE_SR87:
         0.0018,
         0.002,
         1.0,
-        0.5,
+        0.7,
         0.15,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        -30e3,
+        -35e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        -30e3,
+        -48e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 0.0
 
-    DELAY_BETWEEN_MOLASSES = 50e-3
+    DELAY_BETWEEN_MOLASSES = 0.0001e-3
     XODT_2ND_MOLASSES_DURATION = 50e-3
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.15]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.15]
     XODT_2ND_MOLASSES_689_DETUNING_START = [
-        450e3,
+        -35e3,
     ]
     XODT_2ND_MOLASSES_689_DETUNING_END = [
-        550e3,
+        -48e3,
     ]
     XODT_2ND_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
-    XODT_2ND_MOLASSES_BIAS_FIELD_END = add_field_offset(0.0, 0.0, -0.33)
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 else:
     DELAY_BEFORE_MOLASSES = 0.01e-3
@@ -1131,8 +1138,8 @@ else:
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
     XODT_MOLASSES_DURATION = 120e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.15]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.15]
     XODT_MOLASSES_689_DETUNING_START = [
         100e3,
     ]
@@ -1182,9 +1189,8 @@ CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock 
 # Single dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up, 1064, 813
 XODT_SINGLE_LOADING_DURATION = 100e-3
-SUSERVO_PGIA = [2, 1, 2, 2, 0, 0]  # FIXME: appears unused
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 0.5, 0.0]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 0.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 0.5, 0.5]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     15e3,
 ]

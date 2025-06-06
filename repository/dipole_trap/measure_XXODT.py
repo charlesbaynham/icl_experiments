@@ -94,6 +94,8 @@ class MeasureXXODTAbsorptionFrag(
 
 
 MeasureXXODT = make_fragment_scan_exp(MeasureXXODTFrag, max_rtio_underflow_retries=0)
+
+
 StarkBlastXXODT = make_fragment_scan_exp(
     StarkBlastXXODTFrag, max_rtio_underflow_retries=0
 )

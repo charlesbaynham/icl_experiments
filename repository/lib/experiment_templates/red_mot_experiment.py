@@ -56,7 +56,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
-from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
 from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
@@ -207,36 +206,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
     @kernel
     def device_setup(self) -> None:
-        if self._first_run:
-            self._first_run = False
-
-            # HACK: This adds enough slack for the beam setter to turn on all the
-            # beams. This should be solved instead by fixing the default beam setter
-            # to figure out how much slack it needs and solving this in pyaion
-            self.core.break_realtime()
-            delay(10e-3)
-
         self.device_setup_subfragments()
 
-        self.core.break_realtime()
-
-        # Boost the clock delivery SUServo's gain
-        self.clock_delivery_beam_suservo.set_iir_params(
-            ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
-        )
-        self.core.break_realtime()
-
-        # initializes the pgia gains to 0
-        # FIXME incorporate in beam setter
-        for (
-            handle
-        ) in (
-            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
-        ):
-            handle.setter.set_pgia_gain_mu(0)
-            handle.setter.set_iir_params(
-                ki=-10000.0
-            )  #  FIXME why? This means that all our red beams have low SUServo gains all the time. That seems bad.
         self.core.break_realtime()
 
         self.DMA_initialization_hook()
@@ -273,10 +244,24 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
 
-        # Ramp down the blue MOT
-        self.blue_3d_mot.do_blue_transfer_mot()
+        # The ordering here looks odd because we're working around lane
+        # constraints. The blue transfer MOT phase will queue lots of events
+        # into the RTIO lanes, filling them completely. If lane spreading were
+        # enabled, that would prevent us going backwards in time. Since we often
+        # go back in time in our code, we run with lane spreading disabled.
+        # However that means that the processor must wait for the lane to empty
+        # out before more events can be queued, causing an underflow. To avoid
+        # this, we first schedule the start of the red MOT (which is light on
+        # lane usage), then go back in time to schedule the blue MOT transfer.
+        # This is heavy on lane usage and consumes a new lane, but that's fine.
+
+        t_start_blue_rampdown_mu = now_mu()
+        t_end_blue_rampdown_mu = t_start_blue_rampdown_mu + self.core.seconds_to_mu(
+            self.blue_3d_mot.blue_transfer_MOT.get_duration()
+        )
 
         # Keep the blue light on for a short time while turning on the red beams
+        at_mu(t_end_blue_rampdown_mu)
         with parallel:
             # Start the red MOT
             with sequential:
@@ -290,6 +275,12 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             with sequential:
                 delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
                 self.blue_3d_mot.turn_off_all_beams()
+
+        # Go back to the start of the blue MOT rampdown, before all the red beam stuff above
+        at_mu(t_start_blue_rampdown_mu)
+
+        # Ramp down the blue MOT
+        self.blue_3d_mot.do_blue_transfer_mot()
 
         # Continue the broadband phase as a GenericRampingPhase, for
         # compatibility with the rest of the sequence
