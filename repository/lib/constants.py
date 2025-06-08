@@ -671,6 +671,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.0,
         setpoint=5,
+        kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
         "up_813",
@@ -689,6 +690,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.0,
         setpoint=4.7,
+        kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
         "stark_shifter_689_delivery",
