@@ -104,7 +104,7 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
             "evap_bool",
             BoolParam,
             "Do evaporation?",
-            default=False,
+            default=True,
         )
         self.evap_bool: BoolParamHandle
 
