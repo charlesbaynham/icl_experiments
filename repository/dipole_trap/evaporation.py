@@ -15,6 +15,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationSingleRampMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -49,7 +52,7 @@ class MeasureEvaporatedXODTFrag(
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
-    # EvaporationThreeRampsMixin,
+    EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # ClearOut689Mixin,
 ):
@@ -73,7 +76,7 @@ class MeasureExaporatedXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
-    # EvaporationThreeRampsMixin,
+    EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
