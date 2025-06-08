@@ -1,6 +1,6 @@
 import logging
 
-from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.ad9910 import AD9910
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
@@ -70,6 +70,14 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         )
         self.clock_delivery_preempt_time: FloatParamHandle
 
+        self.setattr_param(
+            "clock_switch_amplitude",
+            FloatParam,
+            "Clock up switch AOM amplitude",
+            default=CLOCK_BEAM_INFO.amplitude,
+        )
+        self.clock_switch_amplitude: FloatParamHandle
+
         self.setattr_fragment(
             "clock_delivery_setter",
             LibSetSUServoStatic,
@@ -77,7 +85,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         )
         self.clock_delivery_setter: LibSetSUServoStatic
 
-        self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
         # Ensure clock dds urukul is initiated
         self.clock_initiator = self.setattr_fragment(
@@ -111,7 +119,10 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
 
         # Setup switch AOM
         self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
-        self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        self.clock_dds.set(
+            frequency=CLOCK_BEAM_INFO.frequency,
+            amplitude=self.clock_switch_amplitude.get(),
+        )
         self.clock_dds.sw.off()
         self.clock_dds.cfg_sw(False)
 
