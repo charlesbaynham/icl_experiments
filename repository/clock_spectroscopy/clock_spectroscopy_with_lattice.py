@@ -2,6 +2,9 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedRedMOTFastKineticsMixin,
 )
@@ -10,6 +13,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
     TripleImageDipoleTrapFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockRabiSpectroscopyDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
@@ -71,13 +77,13 @@ class BasicClockSpecFromLatticeFrag(
 
 
 class ClockSpecFromVerticalLatticeFrag(
-    ClockRabiSpectroscopyRedMotMixin,
+    ClockRabiSpectroscopyDipoleTrapMixin,
     ConstantBeamsMixin,
     NormalisedRedMOTFastKineticsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     FLIRBlueMOTMeasurementMixin,
-    RedMOTWithExperiment,
+    DipoleTrapWithExperiment,
 ):
     """
     Clock spectroscopy from vertical lattice
