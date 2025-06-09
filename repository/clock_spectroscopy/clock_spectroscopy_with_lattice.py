@@ -19,6 +19,10 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
+from repository.lib.experiment_templates.mixins.constant_lattice import (
+    ConstantBeamsMixin,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,3 +64,20 @@ class BasicClockSpecFromLatticeFrag(
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
 BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)
+
+class ClockSpecFromVerticalLatticeFrag(
+    ClockRabiSpectroscopyRedMotMixin,
+    ConstantBeamsMixin,
+    TripleImageDipoleTrapFastKineticsMixin,
+    FLIRBlueMOTMeasurementMixin,
+    RedMOTWithExperiment,
+):
+    """
+    Clock spectroscopy from vertical lattice
+
+    Load into a vertical lattice, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
+    """
