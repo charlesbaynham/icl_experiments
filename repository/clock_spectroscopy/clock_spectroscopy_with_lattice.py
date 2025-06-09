@@ -1,5 +1,6 @@
 import logging
 
+from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -94,6 +95,15 @@ class ClockSpecFromVerticalLatticeFrag(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def before_start_hook(self):
+        self.before_start_hook_clockspec()
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
