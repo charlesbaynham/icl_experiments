@@ -18,6 +18,7 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     DroppedPumpedLatticeMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.mixins.constant_lattice import ConstantBeamsMixin
 
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
