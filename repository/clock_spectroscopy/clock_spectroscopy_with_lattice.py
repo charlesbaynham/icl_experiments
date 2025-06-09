@@ -11,6 +11,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fas
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
 )
+from repository.lib.experiment_templates.mixins.constant_lattice import (
+    ConstantBeamsMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -18,11 +21,6 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     DroppedPumpedLatticeMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.experiment_templates.mixins.constant_lattice import ConstantBeamsMixin
-
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +61,6 @@ class BasicClockSpecFromLatticeFrag(
     """
 
 
-ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
-BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)
-
 class ClockSpecFromVerticalLatticeFrag(
     ClockRabiSpectroscopyRedMotMixin,
     ConstantBeamsMixin,
@@ -82,3 +77,8 @@ class ClockSpecFromVerticalLatticeFrag(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
+
+
+ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
+BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)
+ClockSpecFromVerticalLattice = make_fragment_scan_exp(ClockSpecFromVerticalLatticeFrag)
