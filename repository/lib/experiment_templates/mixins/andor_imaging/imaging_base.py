@@ -66,7 +66,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     num_grabber_readouts = 1
     "How many images will the Grabber read out"
 
-    image_read_timeout = 2.0
+    image_read_timeout = 15.0
     "Timeout for the ANDOR camera readout - must be longer than sequence"
 
     keep_andor_shutter_closed = False

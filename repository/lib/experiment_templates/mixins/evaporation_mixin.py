@@ -1,5 +1,7 @@
 from artiq.language import delay
 from artiq.language import kernel
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -98,6 +100,14 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
             self.linear_evap_ramp_2, suservos=SUSERVOS_XODT
         )
 
+        self.setattr_param(
+            "evap_bool",
+            BoolParam,
+            "Do evaporation?",
+            default=True,
+        )
+        self.evap_bool: BoolParamHandle
+
     @kernel
     def DMA_initialization_hook_linear_evap(self):
         self.linear_evap_ramp.precalculate_dma_handle()
@@ -111,16 +121,19 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
 
     @kernel
     def dipole_trap_evaporation_hook(self):
-        self.dipole_trap_evaporation_hook_default()
-        self.linear_evap_ramp.do_phase()
-        self.linear_evap_ramp_2.do_phase()
-        self.linear_evap_ramp_3.do_phase()
+        if self.evap_bool.get():
+            self.dipole_trap_evaporation_hook_default()
+            self.linear_evap_ramp.do_phase()
+            self.linear_evap_ramp_2.do_phase()
+            self.linear_evap_ramp_3.do_phase()
 
-        # hold the final trap to get a known total evaporation time
-        duration_1 = self.linear_evap_ramp.duration.get()
-        duration_2 = self.linear_evap_ramp_2.duration.get()
-        duration_3 = self.linear_evap_ramp_3.duration.get()
-        hold_time = self.total_evap_hold_time.get()
+            # hold the final trap to get a known total evaporation time
+            duration_1 = self.linear_evap_ramp.duration.get()
+            duration_2 = self.linear_evap_ramp_2.duration.get()
+            duration_3 = self.linear_evap_ramp_3.duration.get()
+            hold_time = self.total_evap_hold_time.get()
 
-        if hold_time > duration_1 + duration_2 + duration_3:
-            delay(hold_time - duration_1 - duration_2 - duration_3)
+            if hold_time > duration_1 + duration_2 + duration_3:
+                delay(hold_time - duration_1 - duration_2 - duration_3)
+        else:
+            self.dipole_trap_evaporation_hook_default()

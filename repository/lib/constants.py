@@ -671,6 +671,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.0,
         setpoint=5,
+        kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
         "up_813",
@@ -689,6 +690,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.0,
         setpoint=4.7,
+        kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
         "stark_shifter_689_delivery",
@@ -1078,7 +1080,7 @@ if USE_SR87:
     # This is optimized for loading into the HODT, not the XODT, because the 813
     # will be turned on during the molasses phase. The molasses phase itself
     # uses XODT_MOLASSES_BIAS_FIELD_START
-    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.22, 0.029, -0.21)
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.22, 0.029, -0.39)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
     XODT_MOLASSES_DURATION = 400e-3
@@ -1160,12 +1162,15 @@ else:
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
 XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7]
-XODT_COOL_MOLASSES_MULTIPLE_END = [0.5, 0.7]
+XODT_COOL_MOLASSES_MULTIPLE_END = [0.4, 0.7]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
+XODT_EVAP_DURATION = 2000e-3
+XODT_EVAP_2_DURATION = 2000e-3
+XODT_EVAP_3_DURATION = 2000e-3
 # SUServo order: [1064 delivery, down 813]
-XODT_EVAP_START = [1.0, 1.0]
-XODT_EVAP_END = [1.0, 1.0]
+XODT_EVAP_START = [0.4, 0.7]
+XODT_EVAP_END = [0.28, 0.7]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
@@ -1173,11 +1178,9 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
 #     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
 # ]
 
-XODT_EVAP_2_START = [0.5, 1.0]
-XODT_EVAP_2_END = [0.4, 1.0]
+XODT_EVAP_2_END = [0.21, 0.7]
 
-XODT_EVAP_3_START = [0.4, 1.0]
-XODT_EVAP_3_END = [0.3, 1.0]
+XODT_EVAP_3_END = [0.18, 0.7]
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
