@@ -20,6 +20,12 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     DroppedPumpedLatticeMixin,
 )
+from repository.lib.experiment_templates.mixins.optical_pumping import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    FieldOnlyRampInEvapMixin,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
@@ -64,6 +70,8 @@ class BasicClockSpecFromLatticeFrag(
 class ClockSpecFromVerticalLatticeFrag(
     ClockRabiSpectroscopyRedMotMixin,
     ConstantBeamsMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
     TripleImageDipoleTrapFastKineticsMixin,
     FLIRBlueMOTMeasurementMixin,
     RedMOTWithExperiment,

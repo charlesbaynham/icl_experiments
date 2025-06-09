@@ -5,6 +5,8 @@ from artiq.language import delay_mu
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -88,6 +90,14 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         self.bias_x_for_pumping: FloatParamHandle
         self.bias_y_for_pumping: FloatParamHandle
         self.bias_z_for_pumping: FloatParamHandle
+
+        self.setattr_param(
+            "bool_spinpol",
+            BoolParam,
+            default=False,
+            description="Do optical pumping?",
+        )
+        self.bool_spinpol: BoolParamHandle
 
         super().build_fragment()
 
