@@ -434,15 +434,15 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
 
         # If we have a spin pol stage, bind the field start values to the end of
         # the spin pol stage
-        # if isinstance(self, OpticalPumpingWithFieldSettingBase):
-        #     for l in "xyz":
-        #         # This code is fragile because it relies on strings, but it
-        #         # should break with an error if the strings change so the unit
-        #         # tests will catch it:
-        #         self.ramp_during_evap_phase.bind_param(
-        #             param_name=f"bias_field_{l}_start",
-        #             source=getattr(self, f"bias_{l}_for_pumping"),
-        #         )
+        if isinstance(self, OpticalPumpingWithFieldSettingBase):
+            for l in "xyz":
+                # This code is fragile because it relies on strings, but it
+                # should break with an error if the strings change so the unit
+                # tests will catch it:
+                self.ramp_during_evap_phase.bind_param(
+                    param_name=f"bias_field_{l}_start",
+                    source=getattr(self, f"bias_{l}_for_pumping"),
+                )
 
     @abc.abstractmethod
     def _define_evap_phase_ramp(self):

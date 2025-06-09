@@ -91,14 +91,6 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         self.bias_y_for_pumping: FloatParamHandle
         self.bias_z_for_pumping: FloatParamHandle
 
-        self.setattr_param(
-            "bool_spinpol",
-            BoolParam,
-            default=False,
-            description="Do optical pumping?",
-        )
-        self.bool_spinpol: BoolParamHandle
-
         super().build_fragment()
 
     @kernel
