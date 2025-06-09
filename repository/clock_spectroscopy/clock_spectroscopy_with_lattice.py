@@ -96,6 +96,11 @@ class ClockSpecFromVerticalLatticeFrag(
     once more for background.
     """
 
+    # keep dipole beams on
+    @kernel
+    def post_dipole_trap_hook(self):
+        pass
+
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()

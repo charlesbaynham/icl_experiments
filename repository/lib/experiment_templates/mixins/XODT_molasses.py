@@ -423,6 +423,14 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
     Framework for implementing a ramping phase during the evaporation phase
 
     This is generalised so that we can have either evaporation + field ramping, or only field ramping
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
     """
 
     ramp_during_evap_phase: GeneralRampingPhase
