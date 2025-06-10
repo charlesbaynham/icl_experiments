@@ -1080,7 +1080,7 @@ if USE_SR87:
     # This is optimized for loading into the HODT, not the XODT, because the 813
     # will be turned on during the molasses phase. The molasses phase itself
     # uses XODT_MOLASSES_BIAS_FIELD_START
-    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.032, -0.39)
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.39)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
     XODT_MOLASSES_DURATION = 400e-3
