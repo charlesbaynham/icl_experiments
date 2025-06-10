@@ -573,7 +573,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.4,
+        setpoint=0.5,
         servo_enabled=True,
     ),
     ### RED ###
@@ -1103,10 +1103,10 @@ if USE_SR87:
         0.25,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        -50e3,
+        -60e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        -63e3,
+        -70e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
@@ -1162,15 +1162,15 @@ else:
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
 XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7]
-XODT_COOL_MOLASSES_MULTIPLE_END = [0.4, 0.7]
+XODT_COOL_MOLASSES_MULTIPLE_END = [0.5, 0.7]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 2000e-3
 XODT_EVAP_2_DURATION = 2000e-3
 XODT_EVAP_3_DURATION = 2000e-3
 # SUServo order: [1064 delivery, down 813]
-XODT_EVAP_START = [0.4, 0.7]
-XODT_EVAP_END = [0.28, 0.7]
+XODT_EVAP_START = [0.5, 0.7]
+XODT_EVAP_END = [0.3, 0.7]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
