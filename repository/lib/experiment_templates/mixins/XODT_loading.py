@@ -139,7 +139,7 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
             self.setattr_param_like(
                 f"field_bias_second_xodt_{axis}",
                 self.red_mot,
-                "narrowband_bias_x",
+                f"narrowband_bias_{axis}",
                 default=default_current,
             )
 
