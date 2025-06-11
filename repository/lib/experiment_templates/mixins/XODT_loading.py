@@ -140,6 +140,7 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
                 f"field_bias_second_xodt_{axis}",
                 self.red_mot,
                 f"narrowband_bias_{axis}",
+                description=f"Bias field during second XODT loading {axis}",
                 default=default_current,
             )
 
