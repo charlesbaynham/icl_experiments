@@ -1210,7 +1210,7 @@ TOTAL_EVAP_HOLD_TIME = 5.0
 # %% Second dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up
 
-XXODT_LOWER_LOADING_DURATION = 17e-3
+XXODT_LOWER_LOADING_DURATION = 55e-3  # FIXME this results in a horrible XXODT - but it does get atoms in both traps. We can do much better I'm sure, but for now I'll do interferometry
 XXODT_LOWER_LOADING_WAIT_BEFORE = 11e-3
 XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = (
     XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START[:4]
