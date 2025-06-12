@@ -144,9 +144,18 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
                 default=default_current,
             )
 
+        self.setattr_param_like(
+            "field_gradient_second_xodt",
+            self.blue_3d_mot,
+            "chamber_2_field_gradient",
+            description="Field gradient during second XODT loading",
+            default=constants.RED_NARROWBAND_GRADIENT_FIELD_BACKWARD,
+        )
+
         self.field_bias_second_xodt_x: FloatParamHandle
         self.field_bias_second_xodt_y: FloatParamHandle
         self.field_bias_second_xodt_z: FloatParamHandle
+        self.field_gradient_second_xodt: FloatParamHandle
 
         self.setattr_param(
             "delay_before_second_xodt",
@@ -198,11 +207,12 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
             detuning=self.stir_beam_detuning_mot_second_xodt.get()
         )
 
-        # Step the bias field
-        self.red_mot.chamber_2_field_setter.set_bias_fields(
-            self.field_bias_second_xodt_x.get(),
-            self.field_bias_second_xodt_y.get(),
-            self.field_bias_second_xodt_z.get(),
+        # Step the field
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            current_mot=self.field_gradient_second_xodt.get(),
+            current_x=self.field_bias_second_xodt_x.get(),
+            current_y=self.field_bias_second_xodt_y.get(),
+            current_z=self.field_bias_second_xodt_z.get(),
         )
 
         delay(self.delay_before_second_xodt.get())
@@ -217,3 +227,5 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
 
         # Leave the red beams on. They will be either used for spin pol or
         # turned off by the evaporation stage.
+
+        # FIXME Confirm that the field are set again correctly at some point

@@ -1006,6 +1006,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
 ) = add_field_offset(0.188, 0.057, 0.17)
+RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
 # TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
@@ -1187,14 +1188,9 @@ CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock 
 # Single dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up, 1064, 813
 XODT_SINGLE_LOADING_DURATION = 80e-3
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [
-    0.025,
-    0.02,
-    0.03,
-    0.16,
-    0.5,
-    0.5,
-]  # FIXME: this is for double interferometry
+
+# FIXME: this is for double interferometry:
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.025, 0.02, 0.03, 0.16, 0.5, 0.5]
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.001, 0.005, 0.005, 0.003, 1.0, 1.0]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     0e3,
