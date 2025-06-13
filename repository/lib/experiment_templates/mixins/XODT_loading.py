@@ -4,10 +4,16 @@ from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
+)
+from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
+from repository.lib.fragments.beams.toggling_beam_setter import (
+    make_toggle_list_of_beams,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInBottomXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
@@ -229,3 +235,61 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
         # turned off by the evaporation stage.
 
         # FIXME Confirm that the field are set again correctly at some point
+
+
+class LoadXXODTWithTransparencyBeamMixin(LoadXXODTMixin):
+    """
+    Loads atoms into a double crossed dipole trap after the narrowband red MOT
+    with a transparency beam protecting the top trap during the second XODT
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~dipole_trap_loading_hook`
+
+    We also override this hook to do nothing since this Mixin is now taking charge
+    of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        # %% Fragments
+
+        self.setattr_fragment(
+            "transparency_toggler",
+            make_toggle_list_of_beams(
+                [constants.SUSERVOED_BEAMS["blue_transparency_beam"]],
+            ),
+        )
+        self.transparency_toggler: ToggleListOfBeams
+
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[
+                    constants.SUSERVOED_BEAMS["blue_transparency_beam"]
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
+
+    @kernel
+    def dipole_trap_loading_hook(self):
+        self.dipole_trap_loading_hook_single_xodt_mot()
+
+        self.transparency_toggler.turn_on_beams()
+
+        self.dipole_trap_loading_hook_second_xodt_mot()
+
+        # Turn off the transparency beam after the second XODT. The red beams
+        # are left on by default so they can be used for spin pol - if we're not
+        # doing spin pol, the default evaporation stage will turn them off. Why
+        # do we use the "evaporation stage" to turn off our red beams? Legacy code,
+        # innit.
+        self.transparency_toggler.turn_off_beams()
