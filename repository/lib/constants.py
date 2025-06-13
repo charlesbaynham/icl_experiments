@@ -998,14 +998,14 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.21)
+) = add_field_offset(0.188, 0.057, -0.26)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
-) = add_field_offset(0.188, 0.057, 0.17)
+) = add_field_offset(0.158, 0.029, 0.155)
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
