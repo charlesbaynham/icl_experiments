@@ -92,15 +92,6 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             "clock_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
         )
 
-        self.setattr_param(
-            "delay_repumps_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before repumps turn on",
-            default=0.01e-3,
-            unit="ms",
-        )
-        self.delay_repumps_after_first_pulse: FloatParamHandle
-
     @kernel
     def before_start_hook_clockspec(self):
         self.core.break_realtime()
@@ -129,12 +120,6 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
-
-    @kernel
-    def do_first_pulse(self):
-        self.do_pulse()
-        delay(self.delay_repumps_after_first_pulse.get())
-        self.blue_3d_mot.turn_on_repumpers()
 
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):

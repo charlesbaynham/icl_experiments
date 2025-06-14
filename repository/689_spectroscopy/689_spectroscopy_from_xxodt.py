@@ -6,7 +6,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingNormalised,
+    DoubleTrapImagingRepumpedNormalised,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class RedSpectroscopyFromXXODTFrag(
     RedSpectroscopyDipoleTrap,
-    DoubleTrapImagingNormalised,
+    DoubleTrapImagingRepumpedNormalised,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadXXODTMixin,

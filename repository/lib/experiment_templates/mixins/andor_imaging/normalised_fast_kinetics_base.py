@@ -327,3 +327,35 @@ class NormalisedFastKineticsBase(AndorImagingBase):
                 )
                 popt = fit_2d_gaussian(sliced_image, offsets)
                 self.push_gauss_fit_pars(popt, int(2 * i + j))
+
+
+class NormalisedFastKineticsRepumpedBase(NormalisedFastKineticsBase):
+    """
+    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    experiment with repumping after the first fluorescence pulse.
+
+    This is a mixin base.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_first_pulse`
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()
