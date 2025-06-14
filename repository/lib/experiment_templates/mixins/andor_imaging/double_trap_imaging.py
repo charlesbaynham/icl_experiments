@@ -15,7 +15,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedXXODTFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsRepumpedBase,
+    NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
@@ -118,7 +118,7 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
 
 
 class DoubleTrapImagingRepumpedNormalised(
-    NormalisedXXODTFastKineticsMixin, NormalisedFastKineticsRepumpedBase
+    NormalisedXXODTFastKineticsMixin, NormalisedFastKineticsRepumpedMixin
 ):
     """
     Image two traps with three pulses of light, imaging the ground, excited and

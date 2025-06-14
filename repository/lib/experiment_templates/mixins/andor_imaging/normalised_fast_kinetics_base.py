@@ -329,12 +329,12 @@ class NormalisedFastKineticsBase(AndorImagingBase):
                 self.push_gauss_fit_pars(popt, int(2 * i + j))
 
 
-class NormalisedFastKineticsRepumpedBase(NormalisedFastKineticsBase):
+class NormalisedFastKineticsRepumpedMixin(NormalisedFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
-    experiment with repumping after the first fluorescence pulse.
+    Adds repumping after the first fluorescence pulse to a
+    :class:`~.NormalisedFastKineticsBase` experiment.
 
-    This is a mixin base.
+    This is a mixin for :class:`~.NormalisedFastKineticsBase`.
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 

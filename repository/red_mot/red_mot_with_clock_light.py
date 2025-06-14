@@ -36,13 +36,11 @@ class RedMOTWithClockLight(
         self.setattr_device("ttl_shutter_repump_679")
         self.ttl_shutter_repump_679: TTLOut
 
-        self.override_param("delay_repumps_after_first_pulse", 0.0)
-
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
 
-        # Turn on the click light immediately and leave it throughout
+        # Turn on the clock light immediately and leave it throughout
         self.clock_dds.cfg_sw(True)
 
     @kernel
