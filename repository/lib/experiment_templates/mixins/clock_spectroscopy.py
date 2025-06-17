@@ -7,9 +7,11 @@ from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.fragments.urukul_init import make_urukul_init
 
+# from pyaion.models import SUServoedBeam
 # from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -70,56 +72,54 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         )
         self.clock_delivery_preempt_time: FloatParamHandle
 
-        self.setattr_param(
-            "clock_switch_amplitude",
-            FloatParam,
-            "Clock up switch AOM amplitude",
-            default=CLOCK_BEAM_INFO.amplitude,
-        )
-        self.clock_switch_amplitude: FloatParamHandle
+        # self.setattr_param(
+        #     "clock_switch_amplitude",
+        #     FloatParam,
+        #     "Clock up switch AOM amplitude",
+        #     default=CLOCK_BEAM_INFO.amplitude,
+        # )
+        # self.clock_switch_amplitude: FloatParamHandle FIXME
 
-        self.setattr_fragment(
-            "clock_delivery_setter",
-            LibSetSUServoStatic,
-            channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
-        )
+        if not hasattr(self, "clock_delivery_setter"):
+            self.setattr_fragment(
+                "clock_delivery_setter",
+                LibSetSUServoStatic,
+                channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
+            )
         self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
-        # Ensure clock dds urukul is initiated
-        self.clock_initiator = self.setattr_fragment(
-            "clock_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
+        # Ensure the clock beam is set up
+        # %% Fragments
+        self.setattr_fragment(
+            "spectroscopy_clock_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[
+                    CLOCK_BEAM_DELIVERY_INFO,
+                ],
+                urukul_beam_infos=[
+                    CLOCK_BEAM_INFO,
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
+            ),
         )
+        self.spectroscopy_clock_default_setter: SetBeamsToDefaults
 
-    @kernel
-    def before_start_hook_clockspec(self):
-        self.core.break_realtime()
-
-        # Setup delivery AOM. This might get overwritten by other
-        # before_start_hooks but that's fine, we set it later too.
-        self.clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-            + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            enable_iir=True,
+        self.delivery_handles = (
+            self.spectroscopy_clock_default_setter.get_setpoints_beaminfo_setters()[
+                CLOCK_BEAM_DELIVERY_INFO.name
+            ][1]
         )
+        self.kernel_invariants.add("delivery_handles")
 
-        # Setup switch AOM
-        self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
-        self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency,
-            amplitude=self.clock_switch_amplitude.get(),
+        # Bind the default setter's setpoint to this fragment's parameters, for
+        # ease of use
+        self.spectroscopy_clock_default_setter.bind_param(
+            self.delivery_handles.setpoint_handle.name,
+            self.spectroscopy_clock_delivery_setpoint,
         )
-        self.clock_dds.sw.off()
-        self.clock_dds.cfg_sw(False)
-
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
 
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
@@ -158,12 +158,12 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+            freq=self.delivery_handles.frequency_handle.get()
             + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            amplitude=self.delivery_handles.initial_amplitude_handle.get(),
+            attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+            setpoint_v=self.delivery_handles.setpoint_handle.get(),
             enable_iir=True,
         )
         at_mu(_t_start)

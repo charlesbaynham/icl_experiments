@@ -64,10 +64,6 @@ class ShapedClockSpecFromSingleXODTFrag(
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-
 
 class ShapedClockSpecWithSlicingFrag(
     # Clock spec:
@@ -102,10 +98,6 @@ class ShapedClockSpecWithSlicingFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
 
     @kernel
     def post_dipole_trap_hook(self):

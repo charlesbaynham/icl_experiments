@@ -71,10 +71,6 @@ class ClockSpecFromSingleXODTFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-
 
 class ClockSpecFromSingleXODTEvaporatedFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -104,10 +100,6 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-
 
 class ClockSpecFromXXODTFrag(
     # Clock spec:
@@ -133,10 +125,6 @@ class ClockSpecFromXXODTFrag(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
-
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -178,10 +166,6 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-
 
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
@@ -211,10 +195,6 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
 
 
 AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(

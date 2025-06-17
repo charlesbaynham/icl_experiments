@@ -106,10 +106,6 @@ class ClockSpecFromVerticalLatticeFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
 BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)

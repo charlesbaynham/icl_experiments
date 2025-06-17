@@ -38,8 +38,6 @@ class RedMOTWithClockLight(
 
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockspec()
-
         # Turn on the clock light immediately and leave it throughout
         self.clock_dds.cfg_sw(True)
 

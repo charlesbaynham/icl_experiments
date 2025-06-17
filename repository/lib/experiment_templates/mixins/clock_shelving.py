@@ -87,19 +87,20 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
         self.shelving_clock_delivery_setpoint: FloatParamHandle
 
-        self.setattr_fragment(
-            "shelving_clock_delivery_setter",
-            LibSetSUServoStatic,
-            channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
-        )
-        self.shelving_clock_delivery_setter: LibSetSUServoStatic
+        if not hasattr(self, "clock_delivery_setter"):
+            self.setattr_fragment(
+                "clock_delivery_setter",
+                LibSetSUServoStatic,
+                channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
+            )
+        self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
         # Ensure the clock beam is set up
         # %% Fragments
         self.setattr_fragment(
-            "clock_default_setter",
+            "shelving_clock_default_setter",
             make_set_beams_to_default(
                 suservo_beam_infos=[
                     CLOCK_BEAM_DELIVERY_INFO,
@@ -111,10 +112,10 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
                 use_automatic_turnon=False,
             ),
         )
-        self.clock_default_setter: SetBeamsToDefaults
+        self.shelving_clock_default_setter: SetBeamsToDefaults
 
         self.delivery_handles = (
-            self.clock_default_setter.get_setpoints_beaminfo_setters()[
+            self.shelving_clock_default_setter.get_setpoints_beaminfo_setters()[
                 CLOCK_BEAM_DELIVERY_INFO.name
             ][1]
         )
@@ -123,7 +124,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         # Bind the default setter's setpoint to this fragment's parameter, for
         # ease of use
-        self.clock_default_setter.bind_param(
+        self.shelving_clock_default_setter.bind_param(
             self.delivery_handles.setpoint_handle.name,
             self.shelving_clock_delivery_setpoint,
         )
@@ -133,7 +134,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         # Prepare the clock beam
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
-        self.shelving_clock_delivery_setter.set_suservo(
+        self.clock_delivery_setter.set_suservo(
             freq=self.delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
             amplitude=self.delivery_handles.initial_amplitude_handle.get(),
