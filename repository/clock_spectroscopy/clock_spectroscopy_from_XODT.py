@@ -138,6 +138,12 @@ class ClockSpecFromXXODTFrag(
     def before_start_hook(self):
         self.before_start_hook_clockspec()
 
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
