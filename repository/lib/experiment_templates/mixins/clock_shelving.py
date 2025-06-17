@@ -140,7 +140,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             amplitude=self.delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.delivery_handles.setpoint_handle.get(),
+            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
         at_mu(_t_start)
