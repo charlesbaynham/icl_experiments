@@ -67,7 +67,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             "clock_delivery_preempt_time",
             FloatParam,
             "Preempt time before spectroscopy pulse",
-            default=80e-6,
+            default=constants.CLOCK_DELIVERY_PREEMPT_TIME,
             unit="us",
         )
         self.clock_delivery_preempt_time: FloatParamHandle

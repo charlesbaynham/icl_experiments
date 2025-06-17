@@ -653,8 +653,8 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=2.5,
-        kI_loop_constant=-200000.0,
+        setpoint=3.5,
+        kI_loop_constant=-100000.0,
     ),
     SUServoedBeam(
         "lattice_input_1379",
@@ -944,7 +944,7 @@ CLOCK_PI_TIME = 44e-6
 CLOCK_SHELVING_PULSE_TIME = 200e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.12
 SHELVING_PULSE_CLEAROUT_DURATION = 500e-6
-CLOCK_DELIVERY_PREEMPT_TIME = 130e-6
+CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
 
 # %% Dipole trap settings
