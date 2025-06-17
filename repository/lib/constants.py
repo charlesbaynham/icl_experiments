@@ -124,6 +124,7 @@ URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 # polarizing beam (i.e. not their normal MOT beams)
 RED_SPINPOL_SETPOINT_SIGMAPLUS = 0.2  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 0.2  # V
+RED_SPINPOL_PGIA_GAIN = 0
 
 
 RED_SPINPOL_RAMP_UPPER_LIMIT = 1.5e6

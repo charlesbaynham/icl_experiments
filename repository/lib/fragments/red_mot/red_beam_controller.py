@@ -454,6 +454,8 @@ class RedBeamController(Fragment):
 
         # Update the appropriate SUServo with the new setpoint and turn it on
         self.spinpol_setter.set_setpoint(self.spinpol_setpoint)
+        self.spinpol_setter.set_pgia_gain_mu(constants.RED_SPINPOL_PGIA_GAIN)
+        self.spinpol_setter.set_iir_params()  # Use default IIR params
         self.spinpol_toggler.turn_beams_on(ignore_shutters)
 
     @kernel
