@@ -106,7 +106,6 @@ class ShapedClockSpecWithSlicingFrag(
     @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
 
     @kernel
     def post_dipole_trap_hook(self):

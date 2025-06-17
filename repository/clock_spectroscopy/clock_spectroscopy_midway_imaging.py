@@ -44,10 +44,6 @@ class ClockSpecMidwayImagingFrag(
     """
 
     @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockshelving()
-
-    @kernel
     def start_of_red_broadband_hook(self):
         self.start_of_red_broadband_hook_imaging_base()
         self.start_of_red_broadband_hook_midway_imaging()

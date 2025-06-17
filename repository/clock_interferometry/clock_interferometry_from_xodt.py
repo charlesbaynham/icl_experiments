@@ -64,10 +64,6 @@ class _DifferentialClockInterferometry(
     # Base:
     DipoleTrapWithExperiment,
 ):
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockspec()
-        self.before_start_hook_clockshelving()
 
     @kernel
     def DMA_initialization_hook(self):

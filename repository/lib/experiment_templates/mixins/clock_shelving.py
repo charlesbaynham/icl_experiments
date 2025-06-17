@@ -9,8 +9,9 @@ from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.fragments.urukul_init import make_urukul_init
 
 # from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
@@ -95,31 +96,37 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
-        # Ensure clock dds urukul is initiated
-        self.shelving_initiator = self.setattr_fragment(
-            "shelving_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
+        # Ensure the clock beam is set up
+        # %% Fragments
+        self.setattr_fragment(
+            "clock_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[
+                    CLOCK_BEAM_DELIVERY_INFO,
+                ],
+                urukul_beam_infos=[
+                    CLOCK_BEAM_INFO,
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
+            ),
+        )
+        self.clock_default_setter: SetBeamsToDefaults
+
+        self.delivery_handles = (
+            self.clock_default_setter.get_setpoints_beaminfo_setters()[
+                CLOCK_BEAM_DELIVERY_INFO.name
+            ][1]
         )
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockshelving()
+        self.kernel_invariants.add("delivery_handles")
 
-    @kernel
-    def before_start_hook_clockshelving(self):
-        self.core.break_realtime()
-
-        self.shelving_clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency,
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            enable_iir=True,
+        # Bind the default setter's setpoint to this fragment's parameter, for
+        # ease of use
+        self.clock_default_setter.bind_param(
+            self.delivery_handles.setpoint_handle.name,
+            self.shelving_clock_delivery_setpoint,
         )
-
-        self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
-        self.clock_dds.sw.off()
-        self.clock_dds.cfg_sw(False)
 
     @kernel
     def clock_shelving(self):
@@ -127,19 +134,15 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
         self.shelving_clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+            freq=self.delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            amplitude=self.delivery_handles.initial_amplitude_handle.get(),
+            attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+            setpoint_v=self.delivery_handles.setpoint_handle.get(),
             enable_iir=True,
         )
         at_mu(_t_start)
-
-        delay_mu(int64(self.core.ref_multiplier))
-        self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
-        delay_mu(int64(self.core.ref_multiplier))
 
         # Pulse it onto the atoms
         self.clock_dds.sw.on()
