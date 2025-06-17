@@ -35,11 +35,12 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusDipoleRampMixin,
+    FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusFieldRampMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -109,12 +110,18 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
 
 
 class ClockSpecFromXXODTFrag(
+    # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    # Spin polarisation:
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    # Imaging:
     DoubleTrapImagingRepumpedNormalised,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
-    XODTSingleMolassesPlusFieldRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    # Loading:
+    LoadXXODTMixin,
+    # Base:
     DipoleTrapWithExperiment,
 ):
     """
@@ -133,13 +140,20 @@ class ClockSpecFromXXODTFrag(
 
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
+    # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    # Spin polarisation:
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    # Shelving and clearout:
     ClockShelvingAndClearoutDipoleTrapMixin,
+    # Imaging:
     DoubleTrapImagingRepumpedNormalised,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
-    XODTSingleMolassesPlusFieldRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    # Loading:
+    LoadXXODTMixin,
+    # Base:
     DipoleTrapWithExperiment,
 ):
     """
@@ -158,12 +172,16 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
 
 
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
+    # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
-    FLIRBlueMOTMeasurementMixin,
-    XODTSingleMolassesPlusFieldRampMixin,
+    # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    FieldOnlyRampInEvapMixin,
+    # Shelving and clearout:
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    # Loading:
+    LoadXXODTMixin,
+    # Base:
     AbsorptionDoubleDipoleTrapMixin,
 ):
     """
