@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
@@ -131,20 +130,6 @@ class RedBeamController(Fragment):
             constants.URUKULED_BEAMS["red_spinpol"].urukul_device,
             constants.URUKULED_BEAMS["red_spinpol"].attenuation,
         )
-
-        self.suservo_fragments: List[LibSetSUServoStatic] = []
-        self.suservo_setpoint_offsets: List[float] = []
-
-        # Make a SUServo controlling Fragment for each red beam, and store the
-        # photodiode offsets for each
-        for beam_info in RED_SUSERVO_INFOS:
-            f = self.setattr_fragment(
-                "suservofrag_" + beam_info.name,
-                LibSetSUServoStatic,
-                channel=beam_info.suservo_device,
-            )
-            self.suservo_fragments.append(f)
-            self.suservo_setpoint_offsets.append(beam_info.photodiode_offset)
 
         # Bind
 
