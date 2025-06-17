@@ -173,6 +173,12 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     """
 
     @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
     def before_start_hook(self):
         self.before_start_hook_clockspec()
 
@@ -199,6 +205,12 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_evap_with_field_ramp()
 
     @kernel
     def before_start_hook(self):
