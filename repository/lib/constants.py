@@ -652,7 +652,7 @@ SUSERVOED_BEAMS = [
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=2.5,
         kI_loop_constant=-200000.0,
     ),
     SUServoedBeam(
