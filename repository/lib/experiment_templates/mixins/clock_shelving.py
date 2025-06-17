@@ -145,13 +145,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
         at_mu(_t_start)
 
-        # FIXME The following setpoint doesn't seem to actually happen:
-        t_slack = now_mu() - self.core.get_rtio_counter_mu()
-        logger.warning(
-            "Clock shelving setpoint: %s", self.shelving_clock_delivery_setpoint.get()
-        )
-        at_mu(self.core.get_rtio_counter_mu() + t_slack)
-
         # Pulse it onto the atoms
         self.clock_dds.sw.on()
         delay(self.shelving_pulse_time.get())
