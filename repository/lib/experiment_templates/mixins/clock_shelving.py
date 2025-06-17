@@ -114,18 +114,18 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
         self.shelving_clock_default_setter: SetBeamsToDefaults
 
-        self.delivery_handles = (
+        self.shelving_delivery_handles = (
             self.shelving_clock_default_setter.get_setpoints_beaminfo_setters()[
                 CLOCK_BEAM_DELIVERY_INFO.name
             ][1]
         )
 
-        self.kernel_invariants.add("delivery_handles")
+        self.kernel_invariants.add("shelving_delivery_handles")
 
         # Bind the default setter's setpoint to this fragment's parameter, for
         # ease of use
         self.shelving_clock_default_setter.bind_param(
-            self.delivery_handles.setpoint_handle.name,
+            self.shelving_delivery_handles.setpoint_handle.name,
             self.shelving_clock_delivery_setpoint,
         )
 
@@ -135,15 +135,22 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.delivery_handles.frequency_handle.get()
+            freq=self.shelving_delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
-            amplitude=self.delivery_handles.initial_amplitude_handle.get(),
+            amplitude=self.shelving_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
         at_mu(_t_start)
+
+        # FIXME The following setpoint doesn't seem to actually happen:
+        t_slack = now_mu() - self.core.get_rtio_counter_mu()
+        logger.warning(
+            "Clock shelving setpoint: %s", self.shelving_clock_delivery_setpoint.get()
+        )
+        at_mu(self.core.get_rtio_counter_mu() + t_slack)
 
         # Pulse it onto the atoms
         self.clock_dds.sw.on()

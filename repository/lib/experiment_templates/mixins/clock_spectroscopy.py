@@ -107,17 +107,17 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         )
         self.spectroscopy_clock_default_setter: SetBeamsToDefaults
 
-        self.delivery_handles = (
+        self.clockspec_delivery_handles = (
             self.spectroscopy_clock_default_setter.get_setpoints_beaminfo_setters()[
                 CLOCK_BEAM_DELIVERY_INFO.name
             ][1]
         )
-        self.kernel_invariants.add("delivery_handles")
+        self.kernel_invariants.add("clockspec_delivery_handles")
 
         # Bind the default setter's setpoint to this fragment's parameters, for
         # ease of use
         self.spectroscopy_clock_default_setter.bind_param(
-            self.delivery_handles.setpoint_handle.name,
+            self.clockspec_delivery_handles.setpoint_handle.name,
             self.spectroscopy_clock_delivery_setpoint,
         )
 
@@ -158,12 +158,12 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.delivery_handles.frequency_handle.get()
+            freq=self.clockspec_delivery_handles.frequency_handle.get()
             + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=self.delivery_handles.initial_amplitude_handle.get(),
+            amplitude=self.clockspec_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
-            setpoint_v=self.delivery_handles.setpoint_handle.get(),
+            setpoint_v=self.clockspec_delivery_handles.setpoint_handle.get(),
             enable_iir=True,
         )
         at_mu(_t_start)
