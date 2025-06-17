@@ -54,8 +54,8 @@
             "channel": 5,
             "display_colour": "blue",
             "exposure": [
-                100,
-                100
+                20,
+                20
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
@@ -78,8 +78,8 @@
             "channel": 6,
             "display_colour": "blue",
             "exposure": [
-                5,
-                5
+                20,
+                20
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
