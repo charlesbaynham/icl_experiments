@@ -119,7 +119,10 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
 
         # For now, bind the std. dev. of the phase steps together
         self.setattr_param_like(
-            "phase_step_std", self.phase_rng, original_name="phase_step_one_std"
+            "phase_step_std",
+            self.phase_rng,
+            original_name="phase_step_one_std",
+            description="Std. dev. of both phase steps in turns",
         )
         self.phase_rng.bind_param("phase_step_one_std", self.phase_step_std)
         self.phase_rng.bind_param("phase_step_two_std", self.phase_step_std)
