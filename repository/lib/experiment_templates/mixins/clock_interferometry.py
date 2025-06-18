@@ -76,6 +76,16 @@ class ClockInterferometryBase(
         )
         self.phase_step: FloatParamHandle
 
+        # The AD9910 switch AOM is manually controlled here, so override the
+        # default setter's parameters because they will be ignored which would
+        # otherwise be confusing
+        self.clock_default_setter.override_param(
+            f"frequency_{CLOCK_BEAM_INFO.name}", CLOCK_BEAM_INFO.frequency
+        )
+        self.clock_default_setter.override_param(
+            f"amplitude_{CLOCK_BEAM_INFO.name}", CLOCK_BEAM_INFO.amplitude
+        )
+
         # Add control of the Stark shifting 689 beam
         self.setattr_fragment("stark_shifter", StarkShifter)
         self.stark_shifter: StarkShifter
@@ -102,20 +112,11 @@ class ClockInterferometryBase(
     def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
-        delay(-self.clock_delivery_preempt_time.get())
-        # Set frequency on the suservo, phase on the clock switch
-        self.clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-            + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
-            enable_iir=True,
-        )
-        delay(self.clock_delivery_preempt_time.get())
+        self.prepare_clock_delivery_aom()
+
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
+            amplitude=CLOCK_BEAM_INFO.amplitude,
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
 
@@ -132,6 +133,7 @@ class ClockInterferometryBase(
         # Phase step
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
+            amplitude=CLOCK_BEAM_INFO.amplitude,
             phase=self.calculate_phase_for_pi_pulse(),
         )
 
@@ -149,6 +151,7 @@ class ClockInterferometryBase(
         t_end_pi_mu = now_mu()
         self.clock_dds.set(
             frequency=CLOCK_BEAM_INFO.frequency,
+            amplitude=CLOCK_BEAM_INFO.amplitude,
             phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
 

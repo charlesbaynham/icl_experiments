@@ -72,14 +72,6 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         )
         self.clock_delivery_preempt_time: FloatParamHandle
 
-        # self.setattr_param(
-        #     "clock_switch_amplitude",
-        #     FloatParam,
-        #     "Clock up switch AOM amplitude",
-        #     default=CLOCK_BEAM_INFO.amplitude,
-        # )
-        # self.clock_switch_amplitude: FloatParamHandle FIXME
-
         if not hasattr(self, "clock_delivery_setter"):
             self.setattr_fragment(
                 "clock_delivery_setter",
@@ -131,6 +123,25 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             param_handles.append(self.clock_delivery_handles.frequency_handle)
         return param_handles
 
+    @kernel
+    def prepare_clock_delivery_aom(self):
+        """
+        Ensure's the clock delivery AOM is on, configured and settled. Does not
+        advance the timeline and *does* write into the past.
+        """
+        _t_start = now_mu()
+        delay(-self.clock_delivery_preempt_time.get())
+        self.clock_delivery_setter.set_suservo(
+            freq=self.clock_delivery_handles.frequency_handle.get()
+            + self.spectroscopy_pulse_aom_detuning.get(),
+            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
+            attenuation=CLOCK_BEAM_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
+            enable_iir=True,
+        )
+        at_mu(_t_start)
+
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     """
@@ -165,19 +176,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
     @kernel
     def do_rabi_spectroscopy(self):
-        _t_start = now_mu()
-        delay(-self.clock_delivery_preempt_time.get())
-        self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get()
-            + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
-            enable_iir=True,
-        )
-        at_mu(_t_start)
-
+        self.prepare_clock_delivery_aom()
         self.fire_clock_spec_pulse()
         delay(self.delay_after_spectroscopy.get())
 
