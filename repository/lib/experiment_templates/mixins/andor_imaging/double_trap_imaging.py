@@ -139,10 +139,13 @@ class DoubleTrapImagingRepumpedNormalised(
         self.setattr_result("excitation_fraction_backward", FloatChannel)
         self.setattr_result("atom_number_backward", FloatChannel)
 
+        self.setattr_result("atom_number_imbalance", FloatChannel)
+
         self.excitation_fraction_forward: FloatChannel
         self.atom_number_forward: FloatChannel
         self.excitation_fraction_backward: FloatChannel
         self.atom_number_backward: FloatChannel
+        self.atom_number_imbalance: FloatChannel
 
     def host_setup(self):
         super().host_setup()
@@ -190,5 +193,10 @@ class DoubleTrapImagingRepumpedNormalised(
                 (sum_excited_bwd - sum_background_bwd_excited) / atom_number_bwd
             )
 
+        imbalance = (atom_number_fwd - atom_number_bwd) / (
+            atom_number_fwd + atom_number_bwd
+        )
+
         self.atom_number_forward.push(atom_number_fwd)
         self.atom_number_backward.push(atom_number_bwd)
+        self.atom_number_imbalance.push(imbalance)
