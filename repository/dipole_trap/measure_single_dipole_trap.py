@@ -14,9 +14,13 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageSingleXODT,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationSingleRampMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 
 logger = logging.getLogger(__name__)
@@ -94,6 +98,21 @@ class SingleXODTSloshedFrag(
         delay(self.slosh_time.get())
 
 
+class SingleXODTVerticalSloshedFrag(
+    FLIRMeasurementMixin,
+    BGCorrectedAndorImageSingleXODT,
+    LoadSingleXODTMixin,
+    EvaporationSingleRampMixin,
+    SwitchHODT,
+):
+    """
+    Vertically slosh a single XODT
+
+    Make Single XODT, decrease HODT depth to displace the atoms under gravity,
+    switch up the HODT depth and let it slosh, then drop and image
+    """
+
+
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     LoadSingleXODTMixin,
@@ -117,3 +136,4 @@ MeasureSingleXODTBGCorrectedFrag = make_fragment_scan_exp(
 )
 MeasureSingleXODTAbsFrag = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
 SingleXODTSloshed = make_fragment_scan_exp(SingleXODTSloshedFrag)
+SingleXODTVerticalSloshed = make_fragment_scan_exp(SingleXODTVerticalSloshedFrag)
