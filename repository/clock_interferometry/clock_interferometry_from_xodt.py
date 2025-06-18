@@ -31,7 +31,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.rigol_counter import RigolCounterMixin
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadXXODTWithTransparencyBeamMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     FieldOnlyRampInEvapMixin,
 )
@@ -60,7 +62,8 @@ class _DifferentialClockInterferometry(
     # Extra monitoring:
     RigolCounterMixin,
     # Loading:
-    LoadXXODTMixin,
+    # LoadXXODTMixin, # FIXME
+    LoadXXODTWithTransparencyBeamMixin,
     # Base:
     DipoleTrapWithExperiment,
 ):
