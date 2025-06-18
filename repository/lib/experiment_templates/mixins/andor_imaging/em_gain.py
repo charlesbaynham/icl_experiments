@@ -111,5 +111,5 @@ class EMGain(AndorImagingBase):
     def host_cleanup(self):
         self._set_gain_guarded(0)
         if self.em_gain_enabled.get():
-            logger.warning("EM gain turned off again")
+            logger.info("EM gain turned off again")
         return super().host_cleanup()
