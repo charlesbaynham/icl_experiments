@@ -234,8 +234,6 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
         # Leave the red beams on. They will be either used for spin pol or
         # turned off by the evaporation stage.
 
-        # FIXME Confirm that the field are set again correctly at some point
-
 
 class LoadXXODTWithTransparencyBeamMixin(LoadXXODTMixin):
     """
