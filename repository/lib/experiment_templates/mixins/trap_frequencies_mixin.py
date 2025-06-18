@@ -40,7 +40,9 @@ class SwitchHODT(DipoleTrapWithExperiment):
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.hodt_suservo.set_channel_state(rf_switch_state=True, enable_iir=False)
+        self.hodt_suservo.set_setpoint(4.7)
+        self.hodt_suservo.set_suservo(
+            freq=110e6, amplitude=1.0, attenuation=2.0, setpoint_v=4.7, enable_iir=True
+        )
         delay(self.slosh_time.get())
-        print("ROFLMAO")
         self.hodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
