@@ -99,35 +99,30 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         # Ensure the clock beam is set up
         # %% Fragments
-        self.setattr_fragment(
-            "shelving_clock_default_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[
-                    CLOCK_BEAM_DELIVERY_INFO,
-                ],
-                urukul_beam_infos=[
-                    CLOCK_BEAM_INFO,
-                ],
-                use_automatic_setup=True,
-                use_automatic_turnon=False,
-            ),
-        )
-        self.shelving_clock_default_setter: SetBeamsToDefaults
+        if not hasattr(self, "clock_default_setter"):
+            # Create the default setter for the clock beam
+            # if it has not already been created
+            self.setattr_fragment(
+                "clock_default_setter",
+                make_set_beams_to_default(
+                    suservo_beam_infos=[
+                        CLOCK_BEAM_DELIVERY_INFO,
+                    ],
+                    urukul_beam_infos=[
+                        CLOCK_BEAM_INFO,
+                    ],
+                    use_automatic_setup=True,
+                    use_automatic_turnon=False,
+                ),
+            )
+            self.clock_default_setter: SetBeamsToDefaults
 
         self.shelving_delivery_handles = (
-            self.shelving_clock_default_setter.get_setpoints_beaminfo_setters()[
+            self.clock_default_setter.get_setpoints_beaminfo_setters()[
                 CLOCK_BEAM_DELIVERY_INFO.name
             ][1]
         )
-
         self.kernel_invariants.add("shelving_delivery_handles")
-
-        # Bind the default setter's setpoint to this fragment's parameter, for
-        # ease of use
-        self.shelving_clock_default_setter.bind_param(
-            self.shelving_delivery_handles.setpoint_handle.name,
-            self.shelving_clock_delivery_setpoint,
-        )
 
     @kernel
     def clock_shelving(self):
