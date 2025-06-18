@@ -29,6 +29,13 @@ class SwitchHODT(DipoleTrapWithExperiment):
         )
         self.hodt_suservo: LibSetSUServoStatic
 
+        self.setattr_fragment(
+            "vodt_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["down_813"].suservo_device,
+        )
+        self.vodt_suservo: LibSetSUServoStatic
+
         self.setattr_param(
             "slosh_time",
             FloatParam,
@@ -36,7 +43,24 @@ class SwitchHODT(DipoleTrapWithExperiment):
             default=50e-6,
             unit="us",
         )
+
         self.slosh_time: FloatParamHandle
+
+        self.setattr_param(
+            "setpoint_hodt",
+            FloatParam,
+            "Setpoint for HODT SUServo during slosh",
+            default=4.7,
+            unit="V",
+        )
+
+        self.setpoint_hodt: FloatParamHandle
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        """
+        keep dipole beams on after evap
+        """
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -46,3 +70,4 @@ class SwitchHODT(DipoleTrapWithExperiment):
         )
         delay(self.slosh_time.get())
         self.hodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+        self.vodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
