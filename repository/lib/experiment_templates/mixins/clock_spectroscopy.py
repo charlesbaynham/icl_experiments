@@ -110,19 +110,26 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             )
             self.clock_default_setter: SetBeamsToDefaults
 
-        self.clockspec_delivery_handles = (
-            self.clock_default_setter.get_setpoints_beaminfo_setters()[
-                CLOCK_BEAM_DELIVERY_INFO.name
-            ][1]
-        )
-        self.kernel_invariants.add("clockspec_delivery_handles")
+            self.clock_delivery_handles = (
+                self.clock_default_setter.get_setpoints_beaminfo_setters()[
+                    CLOCK_BEAM_DELIVERY_INFO.name
+                ][1]
+            )
+            self.kernel_invariants.add("clock_delivery_handles")
 
         # Bind the default setter's setpoint to this fragment's parameters, for
         # ease of use
         self.clock_default_setter.bind_param(
-            self.clockspec_delivery_handles.setpoint_handle.name,
+            self.clock_delivery_handles.setpoint_handle.name,
             self.spectroscopy_clock_delivery_setpoint,
         )
+
+    def get_always_shown_params(self):
+        # Expose the clock base frequency for convenience
+        param_handles = super().get_always_shown_params()
+        if self.clock_delivery_handles.frequency_handle not in param_handles:
+            param_handles.append(self.clock_delivery_handles.frequency_handle)
+        return param_handles
 
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
@@ -161,9 +168,9 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.clockspec_delivery_handles.frequency_handle.get()
+            freq=self.clock_delivery_handles.frequency_handle.get()
             + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=self.clockspec_delivery_handles.initial_amplitude_handle.get(),
+            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),

@@ -117,12 +117,19 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             )
             self.clock_default_setter: SetBeamsToDefaults
 
-        self.shelving_delivery_handles = (
-            self.clock_default_setter.get_setpoints_beaminfo_setters()[
-                CLOCK_BEAM_DELIVERY_INFO.name
-            ][1]
-        )
-        self.kernel_invariants.add("shelving_delivery_handles")
+            self.clock_delivery_handles = (
+                self.clock_default_setter.get_setpoints_beaminfo_setters()[
+                    CLOCK_BEAM_DELIVERY_INFO.name
+                ][1]
+            )
+            self.kernel_invariants.add("clock_delivery_handles")
+
+    def get_always_shown_params(self):
+        # Expose the clock base frequency for convenience
+        param_handles = super().get_always_shown_params()
+        if self.clock_delivery_handles.frequency_handle not in param_handles:
+            param_handles.append(self.clock_delivery_handles.frequency_handle)
+        return param_handles
 
     @kernel
     def clock_shelving(self):
@@ -130,9 +137,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.shelving_delivery_handles.frequency_handle.get()
+            freq=self.clock_delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
-            amplitude=self.shelving_delivery_handles.initial_amplitude_handle.get(),
+            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
