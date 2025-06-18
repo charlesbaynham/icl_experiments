@@ -14,9 +14,27 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
     FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadXXODTWithTransparencyBeamMixin,
+)
 from repository.lib.fragments.stark_shifter import StarkShifter
 
 logger = logging.getLogger(__name__)
+
+
+class MeasureXXODTWithTransparancyFrag(
+    DoubleTrapImagingBGSubtracted,
+    FLIRBlueMOTMeasurementMixin,
+    LoadXXODTWithTransparencyBeamMixin,
+    EMGain,
+):
+    """
+    Measure a double XODT with transparency beam
+    """
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
 
 
 class MeasureXXODTFrag(
@@ -101,4 +119,7 @@ StarkBlastXXODT = make_fragment_scan_exp(
 )
 MeasureXXODTAbsorption = make_fragment_scan_exp(
     MeasureXXODTAbsorptionFrag, max_rtio_underflow_retries=0
+)
+MeasureXXODTWithTransparency = make_fragment_scan_exp(
+    MeasureXXODTWithTransparancyFrag, max_rtio_underflow_retries=0
 )
