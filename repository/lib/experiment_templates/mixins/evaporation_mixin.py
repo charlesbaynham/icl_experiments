@@ -61,7 +61,12 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
     def dipole_trap_evaporation_hook(self):
         self.dipole_trap_evaporation_hook_default()
         self.linear_evap_ramp.do_phase()
-        delay(self.total_evap_hold_time.get() - self.linear_evap_ramp.duration.get())
+        if self.linear_evap_ramp.duration.get() < self.total_evap_hold_time.get():
+            # hold the final trap to get a known total evaporation time
+            # if the ramp is shorter than the hold time, delay for the difference
+            delay(
+                self.total_evap_hold_time.get() - self.linear_evap_ramp.duration.get()
+            )
 
 
 class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
