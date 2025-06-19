@@ -21,6 +21,9 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
 from repository.lib.experiment_templates.mixins.clock_interferometry_with_noise import (
     ClockInterferometryWithNoiseDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.clock_interferometry_with_signal import (
+    StarkShifterWithSignalMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
@@ -90,6 +93,17 @@ class DifferentialClockInterferometryWithNoiseFrag(
 ):
     """
     Clock interferometry from a double XODT with added noise
+    """
+
+
+class DifferentialClockInterferometryWithNoiseAndSignalFrag(
+    _DifferentialClockInterferometry,
+    _DifferentialClockInterferometryImaging,
+    StarkShifterWithSignalMixin,
+    ClockInterferometryWithNoiseDipoleTrapMixin,
+):
+    """
+    Clock interferometry from a double XODT with signal and noise
     """
 
 
