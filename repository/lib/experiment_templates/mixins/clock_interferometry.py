@@ -76,16 +76,6 @@ class ClockInterferometryBase(
         )
         self.phase_step: FloatParamHandle
 
-        # The AD9910 switch AOM is manually controlled here, so override the
-        # default setter's parameters because they will be ignored which would
-        # otherwise be confusing
-        self.clock_default_setter.override_param(
-            f"frequency_{CLOCK_BEAM_INFO.name}", CLOCK_BEAM_INFO.frequency
-        )
-        self.clock_default_setter.override_param(
-            f"amplitude_{CLOCK_BEAM_INFO.name}", CLOCK_BEAM_INFO.amplitude
-        )
-
         # Add control of the Stark shifting 689 beam
         self.setattr_fragment("stark_shifter", StarkShifter)
         self.stark_shifter: StarkShifter
@@ -95,6 +85,21 @@ class ClockInterferometryBase(
         self.phase_constant = 10.0
         self.clock_dds_frequency_pi_pulse = 0.0
         self.clock_dds_frequency_final_pi_by_2_pulse = 0.0
+
+    def host_setup(self):
+        super().host_setup()
+
+        # Get param handles for the clock delivery AOM - we'll drive it manually
+        # here, but if the user changed them we should respect that. We must do
+        # this in host_setup because the amplitude doesn't exist at build time
+        # because the fragment can't detect that it's an AD9910 because ARTIQ
+        # passes it a DummyDevice. Is this a bug? Yes.
+        self.clock_switch_frequency_handle: FloatParamHandle = getattr(
+            self.clock_default_setter, f"frequency_{CLOCK_BEAM_INFO.name}"
+        )
+        self.clock_switch_amplitude_handle: FloatParamHandle = getattr(
+            self.clock_default_setter, f"amplitude_{CLOCK_BEAM_INFO.name}"
+        )
 
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
@@ -115,8 +120,8 @@ class ClockInterferometryBase(
         self.prepare_clock_delivery_aom()
 
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency,
-            amplitude=CLOCK_BEAM_INFO.amplitude,
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
 
@@ -132,8 +137,8 @@ class ClockInterferometryBase(
 
         # Phase step
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency,
-            amplitude=CLOCK_BEAM_INFO.amplitude,
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_pi_pulse(),
         )
 
@@ -150,8 +155,8 @@ class ClockInterferometryBase(
         # Phase step
         t_end_pi_mu = now_mu()
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency,
-            amplitude=CLOCK_BEAM_INFO.amplitude,
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
 
