@@ -5,6 +5,7 @@ from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
@@ -114,6 +115,26 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.clock_default_setter.bind_param(
             self.clock_delivery_handles.setpoint_handle.name,
             self.spectroscopy_clock_delivery_setpoint,
+        )
+
+        # Turn the clock delivery AOM on at the start of each shot. This might
+        # get overridden by e.g. slicing so we must do it again, but we want the
+        # duty cycle to be 100% so the AOM settles
+        class TurnOnClockDeliveryAOM(Fragment):
+            def build_fragment(self, parent_frag: "ClockSpectroscopyBase"):
+                self.parent = parent_frag
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+
+                self.parent.core.break_realtime()
+                delay(self.parent.clock_delivery_preempt_time.get())
+
+                self.parent.prepare_clock_delivery_aom()
+
+        self.setattr_fragment(
+            "turn_on_clock_delivery_aom", TurnOnClockDeliveryAOM, self
         )
 
     def get_always_shown_params(self):
