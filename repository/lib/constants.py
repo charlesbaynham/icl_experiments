@@ -635,7 +635,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_repump_707",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=1.0,  # FIXME lowered because we've stolen some power for the clock table
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "repump_679",
