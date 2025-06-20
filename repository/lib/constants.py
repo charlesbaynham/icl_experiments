@@ -576,7 +576,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.5,
+        setpoint=1.0,
         servo_enabled=True,
     ),
     ### RED ###
@@ -1210,8 +1210,8 @@ TOTAL_EVAP_HOLD_TIME = 5.0
 # %% Second dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up
 
-XXODT_LOWER_LOADING_DURATION = 70e-3  # FIXME this results in a horrible XXODT - but it does get atoms in both traps. We can do much better I'm sure, but for now I'll do interferometry
-XXODT_LOWER_LOADING_WAIT_BEFORE = 11e-3
+XXODT_LOWER_LOADING_DURATION = 50e-3
+XXODT_LOWER_LOADING_WAIT_BEFORE = 3e-3
 XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = (
     XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START[:4]
 )
