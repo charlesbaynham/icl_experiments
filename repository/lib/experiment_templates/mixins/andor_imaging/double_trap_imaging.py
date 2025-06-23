@@ -108,13 +108,23 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
     def bg_imaging_make_result_channel(self):
         self.setattr_result("andor_sum_fwd_corrected", FloatChannel)
         self.setattr_result("andor_sum_bkd_corrected", FloatChannel)
+        self.setattr_result("andor_sum_imbalance", FloatChannel)
         self.andor_sum_fwd_corrected: FloatChannel
         self.andor_sum_bkd_corrected: FloatChannel
+        self.andor_sum_imbalance: FloatChannel
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
-        self.andor_sum_fwd_corrected.push(sums[0] - sums[2])
-        self.andor_sum_bkd_corrected.push(sums[1] - sums[3])
+        atom_number_fwd = sums[0] - sums[2]
+        atom_number_bwd = sums[1] - sums[3]
+
+        imbalance = (atom_number_fwd - atom_number_bwd) / (
+            atom_number_fwd + atom_number_bwd
+        )
+
+        self.andor_sum_fwd_corrected.push(atom_number_fwd)
+        self.andor_sum_bkd_corrected.push(atom_number_bwd)
+        self.andor_sum_imbalance.push(imbalance)
 
 
 class DoubleTrapImagingRepumpedNormalised(
