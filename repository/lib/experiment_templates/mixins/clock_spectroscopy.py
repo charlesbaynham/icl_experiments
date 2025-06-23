@@ -49,7 +49,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             "spectroscopy_pulse_aom_detuning",
             FloatParam,
             "Frequency detuning of delivery AOM during spectroscopy pulse",
-            default=0,
+            default=constants.CLOCK_DELIVERY_SPECTROSCOPY_DETUNING,
             unit="kHz",
         )
         self.spectroscopy_pulse_aom_detuning: FloatParamHandle
