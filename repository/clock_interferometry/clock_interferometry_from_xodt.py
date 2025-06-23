@@ -62,7 +62,6 @@ class _DifferentialClockInterferometry(
     # Extra monitoring:
     RigolCounterMixin,
     # Loading:
-    # LoadXXODTMixin, # FIXME
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
     DipoleTrapWithExperiment,

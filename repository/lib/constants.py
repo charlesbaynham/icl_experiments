@@ -385,19 +385,17 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20  # FIXME
-ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20  # FIXME
-# ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 10
-# ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 10
-ANDOR_ROI_DIPOLE_WIDTH = 16
+ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
+ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
+ANDOR_ROI_DIPOLE_WIDTH = 32
 
-ANDOR_DIPOLE_TRAP_BACKWARD_X = 192
+ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
 ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
 
-ANDOR_DIPOLE_TRAP_FORWARD_X = 194
+ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 294
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -576,7 +574,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.5,
+        setpoint=1.0,
         servo_enabled=True,
     ),
     ### RED ###
@@ -637,7 +635,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_repump_707",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=1.0,  # FIXME lowered because we've stolen some power for the clock table
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "repump_679",
@@ -948,6 +946,7 @@ CLOCK_SHELVING_PULSE_SETPOINT = 0.12
 SHELVING_PULSE_CLEAROUT_DURATION = 500e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
+CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = 10e3
 
 # %% Dipole trap settings
 
@@ -1210,8 +1209,8 @@ TOTAL_EVAP_HOLD_TIME = 5.0
 # %% Second dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up
 
-XXODT_LOWER_LOADING_DURATION = 70e-3  # FIXME this results in a horrible XXODT - but it does get atoms in both traps. We can do much better I'm sure, but for now I'll do interferometry
-XXODT_LOWER_LOADING_WAIT_BEFORE = 11e-3
+XXODT_LOWER_LOADING_DURATION = 50e-3
+XXODT_LOWER_LOADING_WAIT_BEFORE = 3e-3
 XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = (
     XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START[:4]
 )
