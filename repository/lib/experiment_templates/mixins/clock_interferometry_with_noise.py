@@ -8,9 +8,6 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
-)
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
@@ -19,14 +16,14 @@ from repository.lib.utils import GaussianRandom
 logger = logging.getLogger(__name__)
 
 
-class _ClockInterferometryWithNoise(ClockInterferometryBase):
+class ClockInterferometryWithNoiseDipoleTrapMixin(ClockInterferometryBase):
     """
     Customizes ClockInterferometryBase for pi/2 - pi - pi/2 clock interferometry
     with noise added as a random phase step between pulses 1/2 and 2/3
 
-    Kernel hooks used (not including wherever the interferometry is done - needs
-    customization):
+    Kernel hooks used (multiple mixins cannot use the same hooks):
 
+    * :meth:`~do_experiment_after_dipole_trap_hook`
     * :meth:`~before_start_hook`
     * :meth:`~do_first_pulse`
     """
@@ -156,20 +153,6 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
         random_phase_two = self.phase_rng.get_random_phases()[1]
         self.random_phase_two.push(random_phase_two)
         return self.phase_constant + 4.0 * self.phase_step.get() + random_phase_two
-
-
-class ClockInterferometryWithNoiseDipoleTrapMixin(
-    _ClockInterferometryWithNoise, DipoleTrapWithExperiment
-):
-    """
-    Implements clock interferometry after the dipole trap with added noisy phase steps between pulses
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_dipole_trap_hook`
-    * :meth:`~do_first_pulse`
-    """
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
