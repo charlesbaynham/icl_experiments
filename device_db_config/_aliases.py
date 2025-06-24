@@ -78,10 +78,10 @@ aliases = {
     "ttl_camera_trigger_horizontal": "ttl6",
     "ttl_camera_trigger_vertical": "ttl7",
     # %% Mirny
-    "mirny_eom_waveguide_1379": "mirny0_ch1",
-    "mirny_eom_707_sideband_A": "mirny1_ch1",
-    "mirny_eom_707_sideband_B": "mirny1_ch2",
-    "mirny_eom_689_sideband": "mirny1_ch3",
+    "mirny_eom_waveguide_1379": "mirny0_ch0",
+    "mirny_eom_707_sideband_A": "mirny0_ch1",
+    "mirny_eom_707_sideband_B": "mirny0_ch2",
+    "mirny_eom_689_sideband": "mirny0_ch3",
     # %% Other
     "zotino_plant_room": "zotino0",
 }
