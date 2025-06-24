@@ -774,17 +774,17 @@ MIRNY_SETTINGS_87 = [
 MIRNY_SETTINGS_88 = [
     MirnySettings(
         device_name="mirny_eom_707_sideband_A",
-        frequency=MIRNY_SETTINGS_87[1].frequency,
+        frequency=MIRNY_SETTINGS_87[0].frequency,
         rf_switch=False,
     ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_B",
-        frequency=MIRNY_SETTINGS_87[2].frequency,
+        frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
     ),
     MirnySettings(
         device_name="mirny_eom_689_sideband",
-        frequency=MIRNY_SETTINGS_87[3].frequency,
+        frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
     ),
 ]
