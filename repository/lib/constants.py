@@ -761,11 +761,6 @@ _default_689 = (
 
 MIRNY_SETTINGS_87 = [
     MirnySettings(
-        device_name="mirny_eom_cavity_offset_689",
-        frequency=661.82e6,
-        attenuation=5.0,
-    ),
-    MirnySettings(
         device_name="mirny_eom_707_sideband_A", frequency=585e6, attenuation=20.0
     ),
     MirnySettings(
@@ -774,19 +769,9 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
     ),
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_698",
-        frequency=673.54e6,  # Lower Mirny freq --> higher laser freq
-        attenuation=0.0,
-    ),
 ]
 
 MIRNY_SETTINGS_88 = [
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_689",
-        frequency=_isotope_shift_689 - MIRNY_SETTINGS_87[0].frequency,
-        attenuation=3.0,
-    ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_A",
         frequency=MIRNY_SETTINGS_87[1].frequency,
@@ -801,11 +786,6 @@ MIRNY_SETTINGS_88 = [
         device_name="mirny_eom_689_sideband",
         frequency=MIRNY_SETTINGS_87[3].frequency,
         rf_switch=False,
-    ),
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_698",
-        frequency=MIRNY_SETTINGS_87[4].frequency,
-        attenuation=0.0,
     ),
 ]
 
