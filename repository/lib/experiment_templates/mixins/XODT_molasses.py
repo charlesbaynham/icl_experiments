@@ -123,7 +123,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             "stir_beam_detuning_molasses_1",
             FloatParam,
             "Detuning of the 689 stir beam during 1st molasses",
-            default=0,
+            default=constants.XODT_MOLASSES_689_STIR_DETUNING,
             unit="kHz",
             min=-2e6,
             max=2e6,
