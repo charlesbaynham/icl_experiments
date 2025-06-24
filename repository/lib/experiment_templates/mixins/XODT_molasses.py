@@ -303,7 +303,6 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~DMA_initialization_hook`
-    * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_molasses_hook`
 
     We override this to do nothing since this Mixin is now taking charge of field setting:
