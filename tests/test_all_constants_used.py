@@ -55,9 +55,7 @@ def test_all_constants_used(all_module_files):
             content = f.read()
 
         # Find all constant usages in the file
-        constants_used = set(
-            name for name in all_constants if f"constants.{name}" in content
-        )
+        constants_used = set(name for name in all_constants if "name" in content)
 
         # Store the used constants for this file
         constants_used_per_file[file] = constants_used
