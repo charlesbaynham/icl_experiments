@@ -8,12 +8,10 @@ from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-
-# from pyaion.models import SUServoedBeam
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -165,7 +163,9 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         at_mu(_t_start)
 
     @kernel
-    def set_shifter_setpoint_hook(self, t_first_pulse_mu: int):
+    def set_shifter_setpoint_hook(
+        self, t_first_pulse_mu: int64
+    ):  # FIXME rename this to be agnostic about purpose
         """
         Hook to set the Stark shifter setpoint
 
