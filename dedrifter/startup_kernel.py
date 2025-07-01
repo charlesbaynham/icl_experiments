@@ -35,7 +35,7 @@ class StartupKernel(EnvExperiment):
             # We're building parameters - ignore the error
             self.cplds = []
 
-        self.infos: list[constants.DedrifterInfo] = constants.dedrifter_infos
+        self.infos: list[constants.DedrifterInfo] = constants.DEDRIFTER_INFOS
         self.kernel_invariants.add("infos")
 
     @kernel

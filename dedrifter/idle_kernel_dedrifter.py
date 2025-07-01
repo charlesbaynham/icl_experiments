@@ -25,7 +25,7 @@ class IdleKernel(EnvExperiment):
         self.setattr_device("core")
         self.core: Core
 
-        self.infos: list[constants.DedrifterInfo] = constants.dedrifter_infos
+        self.infos: list[constants.DedrifterInfo] = constants.DEDRIFTER_INFOS
         self.kernel_invariants.add("infos")
 
         self.led: TTLOut = self.get_device("led1")
