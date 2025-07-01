@@ -56,4 +56,4 @@ build-backend = "poetry.core.masonry.api"
 xfail_strict = true
 testpaths = "tests"
 pythonpath = "."
-addopts = "-n auto"
+addopts = "-n 16"
