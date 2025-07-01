@@ -5,49 +5,30 @@ from pathlib import Path
 import pytest
 
 import repository
+import dedrifter
 from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
 
-# @pytest.fixture
-# def mocked_constants():
-#     # Mock the constants module
-#     original_constants = constants
-#     accessed_constants = set()
-
-#     class NewConstants:
-#         def __getattr__(self, name):
-#             # Record getattr accesses
-#             accessed_constants.add(name)
-
-#             # Return the constant from the original module
-#             return getattr(original_constants, name)
-
-#     # Patch the constants module with the new one
-#     sys.modules["repository.lib.constants"] = NewConstants()
-
-#     # return a getter for the accessed constants
-#     def get_accessed_constants():
-#         return accessed_constants.copy()
-
-#     yield get_accessed_constants
-
-#     # Cleanup: restore the original constants module
-#     sys.modules["repository.lib.constants"] = original_constants
-
-
 @pytest.fixture
 def all_module_files():
-    # Directory to search through
-    search_dir = Path(repository.__file__, "..").resolve()
-
-    files = [
-        f
-        for f in search_dir.rglob("*.py")
-        if f.resolve() != Path(constants.__file__).resolve()
-        and not f.name.startswith("__")
+    # Directories to search through
+    search_dirs = [
+        Path(repository.__file__, "..").resolve(),
+        Path(dedrifter.__file__, "..").resolve(),
     ]
+
+    files = []
+
+    for search_dir in search_dirs:
+
+        files += [
+            f
+            for f in search_dir.rglob("*.py")
+            if f.resolve() != Path(constants.__file__).resolve()
+            and not f.name.startswith("__")
+        ]
 
     return files
 

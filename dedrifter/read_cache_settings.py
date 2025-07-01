@@ -27,7 +27,7 @@ class ReadDedrifters(ExpFragment):
         # Any DDS, to get access to the conversion functions
         self.dds: AD9910 = self.get_device("urukul0_ch0")
 
-        self.infos: list[constants.DedrifterInfo] = constants.dedrifter_infos
+        self.infos: list[constants.DedrifterInfo] = constants.DEDRIFTER_INFOS
 
         self.cache_interface = DedrifterCacheAccess(self)
 
