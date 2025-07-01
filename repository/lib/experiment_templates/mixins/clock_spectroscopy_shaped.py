@@ -107,7 +107,9 @@ class ShapedClockShelvingAndClearoutDipoleTrapMixin(
         # disable ram mode after shelving and clearout
         self.clock_shelving_shaped_pulse.disable_ram_mode()
         # re-set the AOM to default
-        self.clock_default_setter.turn_on_all(light_enabled=True)
+        self.clock_default_setter.turn_on_all(light_enabled=False)
+        # delivery AOM back on
+        self.clock_delivery_setter.set_channel_state(rf_switch_state=True)
 
     @kernel
     def post_dipole_trap_hook_shaped_pulses(self):
