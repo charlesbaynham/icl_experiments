@@ -8,9 +8,9 @@ from ndscan.experiment import make_fragment_scan_exp
 from numpy import int32
 from numpy import int64
 
+from dedrifter.dedrifter_cache_interface import DedrifterCacheAccess
+from dedrifter.dedrifter_cache_interface import DedrifterCachedInfo
 from repository.lib import constants
-from repository.lib.dedrifter_cache_interface import DedrifterCacheAccess
-from repository.lib.dedrifter_cache_interface import DedrifterCachedInfo
 
 logger = logging.getLogger(__name__)
 

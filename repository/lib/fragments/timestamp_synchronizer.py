@@ -153,6 +153,21 @@ class Timestamper(Fragment):
         return self.core.mu_to_seconds(t_now_mu) + self.artiq_utc_offset
 
     @kernel
+    def get_offset_from_utc(self) -> float:
+        """
+        Get the offset between the Sinara RTIO clock and UTC in seconds
+
+        This is effectively the UNIX timestamp of the moment that the crate was
+        turned on.
+        """
+        if not self.artiq_utc_offset:
+            raise RuntimeError(
+                "ARTIQ UTC offset has not been set - this Fragment has not been set up correctly."
+            )
+
+        return self.artiq_utc_offset
+
+    @kernel
     def mark_timestamp(self):
         """
         Mark this moment on the ARTIQ timeline as the official timestamp of this
