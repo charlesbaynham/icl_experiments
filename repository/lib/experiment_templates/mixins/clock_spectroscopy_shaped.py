@@ -109,7 +109,9 @@ class ShapedClockShelvingAndClearoutDipoleTrapMixin(
         # re-set the AOM to default
         self.clock_default_setter.turn_on_all(light_enabled=False)
         # delivery AOM back on
-        self.clock_delivery_setter.set_channel_state(rf_switch_state=True)
+        self.clock_delivery_setter.set_channel_state(
+            rf_switch_state=True, enable_iir=True
+        )
 
     @kernel
     def post_dipole_trap_hook_shaped_pulses(self):
