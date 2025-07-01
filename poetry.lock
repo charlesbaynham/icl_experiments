@@ -3064,7 +3064,7 @@ toptica-lasersdk = "^3.1.1"
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
 reference = "HEAD"
-resolved_reference = "fd42ac5ca1b01a09d5edea2489ca1b14ab0caa49"
+resolved_reference = "451af0e4f1661104480312d694c790f369aa8d23"
 
 [[package]]
 name = "pycairo"
