@@ -1200,3 +1200,59 @@ XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_END = (
     XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START
 )
 XXODT_LOWER_LOADING_689_STIR_DETUNING = XODT_SINGLE_LOADING_STIR_DETUNING
+
+
+# %% Dedrifter settings
+
+
+CAVITY_RAMP_RATE = (
+    0.052  # Hz/s based on ~9 kHz drift over 24 hours, through a frequency doubler
+)
+
+
+CAVITY_OFFSET_689 = 331.543688e6
+REFERENCE_TIME_689 = 1739450287
+CAVITY_RAMP_RATE_689 = CAVITY_RAMP_RATE
+
+CAVITY_OFFSET_698 = 336.437e6  #  337.4035e6  # 673.54e6 / 2  # 336.77e6
+REFERENCE_TIME_698 = 1750511992
+CAVITY_RAMP_RATE_698 = -CAVITY_RAMP_RATE
+
+
+if not USE_SR87:  # TODO be smarter
+    # Account for isotope shifts, remembering that the output frequency is
+    # doubled and that the Sr-88 lock uses a negative sideband
+    CAVITY_RAMP_RATE_689 *= -1
+    CAVITY_OFFSET_689 = _isotope_shift_689 / 2 - CAVITY_OFFSET_689
+
+
+# Time step for dedrifting steps
+T_STEP_DEDRIFTER = 100e-6
+
+
+@dataclass
+class DedrifterInfo:
+    laser_name: str
+    channel_name: str
+    reference_frequency: float
+    reference_time: int
+    ramp_rate: float
+    attenuation = 0.0
+
+
+dedrifter_info_689 = DedrifterInfo(
+    "689",
+    "urukul0_ch0",
+    CAVITY_OFFSET_689,
+    REFERENCE_TIME_689,
+    CAVITY_RAMP_RATE_689,
+)
+dedrifter_info_698 = DedrifterInfo(
+    "698",
+    "urukul0_ch1",
+    CAVITY_OFFSET_698,
+    REFERENCE_TIME_698,
+    CAVITY_RAMP_RATE_698,
+)
+
+dedrifter_infos = [dedrifter_info_689, dedrifter_info_698]
