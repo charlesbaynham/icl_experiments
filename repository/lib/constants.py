@@ -1214,6 +1214,8 @@ CAVITY_OFFSET_689 = 331.543688e6
 REFERENCE_TIME_689 = 1739450287
 CAVITY_RAMP_RATE_689 = CAVITY_RAMP_RATE
 
+# to put at the right place, move by half the detuning on the AOM (AOM double passed)
+# in thesame direction as we want to steer the detuning (AOM positively passed)
 CAVITY_OFFSET_698 = 335.95e6
 # 336.137e6  # 336.437e6  #  337.4035e6  # 673.54e6 / 2  # 336.77e6
 REFERENCE_TIME_698 = 1750511992
