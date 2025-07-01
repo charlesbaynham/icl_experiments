@@ -1,6 +1,6 @@
 import logging
 
-from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.ad9910 import AD9910
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
@@ -12,8 +12,6 @@ from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -95,7 +93,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             )
         self.clock_delivery_setter: LibSetSUServoStatic
 
-        self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
         # Ensure the clock beam is set up
         # %% Fragments
@@ -148,15 +146,22 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         at_mu(_t_start)
 
         # Pulse it onto the atoms
-        self.clock_dds.sw.on()
-        delay(self.shelving_pulse_time.get())
-        self.clock_dds.sw.off()
+        self.fire_clock_shelving_pulse()
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.shelving_pulse_clearout_duration.get(),
             ignore_final_shutters=True,
         )
+
+    @kernel
+    def fire_clock_shelving_pulse(self):
+        """
+        Fire the clock shelving pulse onto the atoms.
+        """
+        self.clock_dds.sw.on()
+        delay(self.shelving_pulse_time.get())
+        self.clock_dds.sw.off()
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
