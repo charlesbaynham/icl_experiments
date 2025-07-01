@@ -159,18 +159,18 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
-        self.set_shifter_setpoint_hook(_t_start)
+        self.after_clock_delivery_setup_hook(_t_start)
         at_mu(_t_start)
 
     @kernel
-    def set_shifter_setpoint_hook(
-        self, t_first_pulse_mu: int64
-    ):  # FIXME rename this to be agnostic about purpose
+    def after_clock_delivery_setup_hook(self, t_first_pulse_mu: int64):
         """
-        Hook to set the Stark shifter setpoint
+        Hook for actions after the clock delivery AOM is prepared
 
         Called after the clock delivery AOM is prepared, before the first
-        spectroscopy pulse is fired.
+        spectroscopy pulse is fired. This method is passed the time that the
+        first clock pulse will occur, which is in the future relative to
+        `now_mu()`.
 
         No-op by default
         """

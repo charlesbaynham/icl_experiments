@@ -139,7 +139,7 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
         self.signal_injector: SignalInjector
 
     @kernel
-    def set_shifter_setpoint_hook(self, t_first_pulse_mu: np.int64):
+    def after_clock_delivery_setup_hook(self, t_first_pulse_mu: np.int64):
         """
         Hook to set the Stark shifter setpoint
 
