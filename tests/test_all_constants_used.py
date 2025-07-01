@@ -31,7 +31,10 @@ def mocked_constants():
     def get_accessed_constants():
         return accessed_constants.copy()
 
-    return get_accessed_constants
+    yield get_accessed_constants
+
+    # Cleanup: restore the original constants module
+    sys.modules["repository.lib.constants"] = original_constants
 
 
 @pytest.fixture
@@ -42,7 +45,9 @@ def used_constants_by_file(mocked_constants):
     search_dir = Path(repository.__file__, "..").resolve()
 
     for file_path in search_dir.rglob("*.py"):
-        if file_path.resolve() != Path(constants.__file__).resolve():
+        if file_path.resolve() != Path(
+            constants.__file__
+        ).resolve() and not file_path.name.startswith("__"):
             # import the file
             import importlib
 
@@ -67,14 +72,22 @@ def test_all_constants_used(used_constants_by_file):
     Test that all constants in constants.py are used in the codebase.
     """
     # Get all the constant names from constants.py
-    unused_constants = set(
+    all_constants = set(
         [name for name in dir(constants) if name.isupper() and not name.startswith("_")]
     )
 
-    if not unused_constants:
+    print("Number of constants found: ", len(all_constants))
+    print("All constants: ", sorted(list(all_constants)))
+
+    print("Used constants by file:")
+    for file_path, used_constants in used_constants_by_file.items():
+        print(f"{file_path}: {sorted(list(used_constants))}")
+
+    if not all_constants:
         raise AssertionError("No constants found in constants.py")
 
     # Check if any constants are unused
+    unused_constants = all_constants.copy()
     for file_path, used_constants in used_constants_by_file.items():
         unused_constants -= used_constants
 
