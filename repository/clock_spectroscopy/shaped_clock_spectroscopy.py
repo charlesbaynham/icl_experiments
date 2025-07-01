@@ -139,7 +139,7 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped single XODT with evaporation, sheped shelving and clearout
+    Clock spectroscopy from dropped single XODT with evaporation, shaped shelving and clearout
 
     Load into an XODT, velocity-slice using a shaped pulse, then use the up clock beam for spectroscopy, altering the
     (single-pass) AOM.
