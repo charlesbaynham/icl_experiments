@@ -60,6 +60,9 @@ class StartupKernel(EnvExperiment):
 
             self.core.break_realtime()
             ad9910.set_att(info.attenuation)
-            ad9910.cfg_sw(state=True)
+
+            # Intentionally leave the RF switch off - the idle kernel will turn
+            # it on only if the config is correct, so we can tell at a glance if
+            # the dedrifter is running
 
         core_log("Startup kernel finished")

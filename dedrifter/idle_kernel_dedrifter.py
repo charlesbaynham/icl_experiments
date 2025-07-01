@@ -74,6 +74,13 @@ class IdleKernel(EnvExperiment):
         self.core.reset()
         delay(1.0)
 
+        # Turn on the RFF switches for all the AD9910s Note that we do not touch
+        # the attenuators here - they should be set correctly by the
+        # startup kernel and altering them here would cause a glitch
+        core_log("Turning on RF switches for all AD9910s")
+        for i in range(len(self.infos)):
+            self.ad9910s[i].cfg_sw(state=True)
+
         f_reference_frequencies_mu = [
             self.cache_info.reference_frequencies_mu[i] for i in range(len(self.infos))
         ]
