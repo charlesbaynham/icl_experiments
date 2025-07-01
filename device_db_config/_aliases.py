@@ -84,21 +84,4 @@ aliases = {
     "mirny_eom_689_sideband": "mirny0_ch3",
     # %% Other
     "zotino_plant_room": "zotino0",
-    # FIXME extras from here
-    "suservo_aom_singlepass_461_2DMOT_A": "suservo0_ch0",
-    "ttl_shutter_461_2DMOT_A": "ttl8",
-    # TTLs
-    "ttl_out_a": "ttl8",
-    "ttl_out_b": "ttl9",
-    "ttl_out_c": "ttl10",
-    # SUServos
-    "suservo_example_a": "suservo0_ch0",
-    "suservo_example_b": "suservo0_ch1",
-    "suservo_example_different_device": "suservo1_ch0",
-    # Urukuls
-    "ad9910_example_a": "urukul5_ch0",
-    "ad9910_example_b": "urukul5_ch1",
-    "ad9912_example_a": "urukul2_ch0",
-    "ad9912_example_b": "urukul2_ch1",
-    # FIXME extras to here
 }
