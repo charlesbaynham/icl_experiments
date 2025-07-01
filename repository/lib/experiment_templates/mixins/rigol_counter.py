@@ -1,4 +1,4 @@
-from artiq.experiment import kernel
+from artiq.language import kernel
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.rigol_counter import RigolCounterFrag

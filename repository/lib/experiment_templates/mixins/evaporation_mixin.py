@@ -1,5 +1,7 @@
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -7,10 +9,10 @@ import repository.lib.constants as constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp_2
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp_3
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import suservos_XODT
 
 
 class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
@@ -59,7 +61,12 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
     def dipole_trap_evaporation_hook(self):
         self.dipole_trap_evaporation_hook_default()
         self.linear_evap_ramp.do_phase()
-        delay(self.total_evap_hold_time.get() - self.linear_evap_ramp.duration.get())
+        if self.linear_evap_ramp.duration.get() < self.total_evap_hold_time.get():
+            # hold the final trap to get a known total evaporation time
+            # if the ramp is shorter than the hold time, delay for the difference
+            delay(
+                self.total_evap_hold_time.get() - self.linear_evap_ramp.duration.get()
+            )
 
 
 class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
@@ -91,12 +98,20 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
         self.linear_evap_ramp_3: XODTWithLinearRamp_3
 
         self.linear_evap_ramp_2.daisy_chain_with_previous_phase(
-            self.linear_evap_ramp, suservos=suservos_XODT
+            self.linear_evap_ramp, suservos=SUSERVOS_XODT
         )
 
         self.linear_evap_ramp_3.daisy_chain_with_previous_phase(
-            self.linear_evap_ramp_2, suservos=suservos_XODT
+            self.linear_evap_ramp_2, suservos=SUSERVOS_XODT
         )
+
+        self.setattr_param(
+            "evap_bool",
+            BoolParam,
+            "Do evaporation?",
+            default=True,
+        )
+        self.evap_bool: BoolParamHandle
 
     @kernel
     def DMA_initialization_hook_linear_evap(self):
@@ -111,16 +126,19 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
 
     @kernel
     def dipole_trap_evaporation_hook(self):
-        self.dipole_trap_evaporation_hook_default()
-        self.linear_evap_ramp.do_phase()
-        self.linear_evap_ramp_2.do_phase()
-        self.linear_evap_ramp_3.do_phase()
+        if self.evap_bool.get():
+            self.dipole_trap_evaporation_hook_default()
+            self.linear_evap_ramp.do_phase()
+            self.linear_evap_ramp_2.do_phase()
+            self.linear_evap_ramp_3.do_phase()
 
-        # hold the final trap to get a known total evaporation time
-        duration_1 = self.linear_evap_ramp.duration.get()
-        duration_2 = self.linear_evap_ramp_2.duration.get()
-        duration_3 = self.linear_evap_ramp_3.duration.get()
-        hold_time = self.total_evap_hold_time.get()
+            # hold the final trap to get a known total evaporation time
+            duration_1 = self.linear_evap_ramp.duration.get()
+            duration_2 = self.linear_evap_ramp_2.duration.get()
+            duration_3 = self.linear_evap_ramp_3.duration.get()
+            hold_time = self.total_evap_hold_time.get()
 
-        if hold_time > duration_1 + duration_2 + duration_3:
-            delay(hold_time - duration_1 - duration_2 - duration_3)
+            if hold_time > duration_1 + duration_2 + duration_3:
+                delay(hold_time - duration_1 - duration_2 - duration_3)
+        else:
+            self.dipole_trap_evaporation_hook_default()

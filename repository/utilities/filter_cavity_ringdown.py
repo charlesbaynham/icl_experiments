@@ -7,10 +7,10 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLInOut
 from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import kernel
 
 logger = logging.getLogger(__name__)
 

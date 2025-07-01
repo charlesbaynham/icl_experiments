@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -15,15 +15,13 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
     BGCorrectedAndorImageSingleXODT,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsMixin,
+    EvaporationSingleRampMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.pumped_lattice import (
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
+from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +30,6 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
-    # EvaporationThreeRampsMixin,
-    # OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
     Make Single XODT, image twice for BG subtraction
@@ -42,8 +38,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        # self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -54,8 +49,6 @@ class SingleXODTSloshedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
-    # EvaporationThreeRampsMixin,
-    # OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
     Slosh a single XODT
@@ -87,8 +80,7 @@ class SingleXODTSloshedFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        # self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
     def post_dipole_trap_hook(self):
@@ -106,11 +98,24 @@ class SingleXODTSloshedFrag(
         delay(self.slosh_time.get())
 
 
+class SingleXODTVerticalSloshedFrag(
+    FLIRMeasurementMixin,
+    BGCorrectedAndorImageSingleXODT,
+    LoadSingleXODTMixin,
+    EvaporationSingleRampMixin,
+    SwitchHODT,
+):
+    """
+    Vertically slosh a single XODT
+
+    Make Single XODT, decrease HODT depth to displace the atoms under gravity,
+    switch up the HODT depth and let it slosh, then drop and image
+    """
+
+
 class MeasureSingleXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     LoadSingleXODTMixin,
-    EvaporationThreeRampsMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
 ):
     """
     Measure a single XODT with absorption imaging
@@ -119,8 +124,7 @@ class MeasureSingleXODTAbsFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_single_xodt_mot()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -132,3 +136,4 @@ MeasureSingleXODTBGCorrectedFrag = make_fragment_scan_exp(
 )
 MeasureSingleXODTAbsFrag = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
 SingleXODTSloshed = make_fragment_scan_exp(SingleXODTSloshedFrag)
+SingleXODTVerticalSloshed = make_fragment_scan_exp(SingleXODTVerticalSloshedFrag)

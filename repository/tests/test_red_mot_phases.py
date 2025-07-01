@@ -2,7 +2,7 @@ import logging
 from typing import *
 
 from artiq.experiment import *
-from artiq.experiment import delay
+from artiq.language import delay
 from ndscan.experiment import *
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default

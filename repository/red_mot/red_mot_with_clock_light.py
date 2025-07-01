@@ -1,8 +1,8 @@
 import logging
 
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from numpy import int64
 
@@ -36,13 +36,9 @@ class RedMOTWithClockLight(
         self.setattr_device("ttl_shutter_repump_679")
         self.ttl_shutter_repump_679: TTLOut
 
-        self.override_param("delay_repumps_after_first_pulse", 0.0)
-
     @kernel
     def before_start_hook(self):
-        self.before_start_hook_clockspec()
-
-        # Turn on the click light immediately and leave it throughout
+        # Turn on the clock light immediately and leave it throughout
         self.clock_dds.cfg_sw(True)
 
     @kernel

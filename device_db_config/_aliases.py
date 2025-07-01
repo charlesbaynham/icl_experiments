@@ -18,7 +18,8 @@ information like "optimal drive power for this AOM": that information belongs in
 aliases = {
     # %% SUServos
     # Blue
-    "urukul9910_aom_doublepass_461_injection": "urukul5_ch3",
+    "urukul9910_aom_doublepass_461_master_to_ijd1": "urukul5_ch3",
+    "urukul9910_aom_singlepass_461_ijd1_to_ijd23": "urukul5_ch2",
     "suservo_aom_singlepass_461_imaging_delivery": "suservo1_ch3",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
     "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
@@ -26,9 +27,8 @@ aliases = {
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
     "suservo_aom_singlepass_461_3DMOT_axialplus": "suservo1_ch6",
-    "urukul9910_aom_doublepass_461_USOC_delivery": "urukul5_ch2",
     "urukul9912_aom_singlepass_461_imaging_switch": "urukul2_ch3",
-    "suservo_aom_doublepass_461_plug": "suservo1_ch7",
+    "suservo_aom_singlepass_487_transparency": "suservo1_ch7",
     # Red
     "urukul9910_aom_doublepass_689_red_injection": "urukul8_ch0",
     "urukul9910_aom_doublepass_689_red_spinpol": "urukul8_ch1",
@@ -77,14 +77,11 @@ aliases = {
     "ttl_camera_trigger_andor": "ttl4",
     "ttl_camera_trigger_horizontal": "ttl6",
     "ttl_camera_trigger_vertical": "ttl7",
-    "TTL_blue_ijds": "ttl12",
     # %% Mirny
-    "mirny_eom_waveguide_1379": "mirny0_ch1",
-    "mirny_eom_cavity_offset_698": "mirny0_ch0",
-    "mirny_eom_cavity_offset_689": "mirny1_ch0",
-    "mirny_eom_707_sideband_A": "mirny1_ch1",
-    "mirny_eom_707_sideband_B": "mirny1_ch2",
-    "mirny_eom_689_sideband": "mirny1_ch3",
+    "mirny_eom_waveguide_1379": "mirny0_ch0",
+    "mirny_eom_707_sideband_A": "mirny0_ch1",
+    "mirny_eom_707_sideband_B": "mirny0_ch2",
+    "mirny_eom_689_sideband": "mirny0_ch3",
     # %% Other
     "zotino_plant_room": "zotino0",
 }

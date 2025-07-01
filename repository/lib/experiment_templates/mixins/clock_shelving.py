@@ -1,16 +1,19 @@
 import logging
 
 from artiq.coredevice.ad9912 import AD9912
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from pyaion.fragments.urukul_init import make_urukul_init
+
+# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -84,60 +87,65 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
         self.shelving_clock_delivery_setpoint: FloatParamHandle
 
-        self.setattr_fragment(
-            "shelving_clock_delivery_setter",
-            LibSetSUServoStatic,
-            channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
-        )
-        self.shelving_clock_delivery_setter: LibSetSUServoStatic
+        if not hasattr(self, "clock_delivery_setter"):
+            self.setattr_fragment(
+                "clock_delivery_setter",
+                LibSetSUServoStatic,
+                channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
+            )
+        self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9912 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
-        # Ensure clock dds urukul is initiated
-        self.shelving_initiator = self.setattr_fragment(
-            "shelving_initiator", make_urukul_init([CLOCK_BEAM_INFO.urukul_device])
-        )
+        # Ensure the clock beam is set up
+        # %% Fragments
+        if not hasattr(self, "clock_default_setter"):
+            # Create the default setter for the clock beam
+            # if it has not already been created
+            self.setattr_fragment(
+                "clock_default_setter",
+                make_set_beams_to_default(
+                    suservo_beam_infos=[
+                        CLOCK_BEAM_DELIVERY_INFO,
+                    ],
+                    urukul_beam_infos=[
+                        CLOCK_BEAM_INFO,
+                    ],
+                    use_automatic_setup=True,
+                    use_automatic_turnon=False,
+                ),
+            )
+            self.clock_default_setter: SetBeamsToDefaults
 
-    @kernel
-    def before_start_hook(self):
-        self.before_start_hook_clockshelving()
+            self.clock_delivery_handles = (
+                self.clock_default_setter.get_setpoints_beaminfo_setters()[
+                    CLOCK_BEAM_DELIVERY_INFO.name
+                ][1]
+            )
+            self.kernel_invariants.add("clock_delivery_handles")
 
-    @kernel
-    def before_start_hook_clockshelving(self):
-        self.core.break_realtime()
-
-        self.shelving_clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency,
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            enable_iir=True,
-        )
-
-        self.clock_dds.set_att(CLOCK_BEAM_INFO.attenuation)
-        self.clock_dds.sw.off()
-        self.clock_dds.cfg_sw(False)
+    def get_always_shown_params(self):
+        # Expose the clock base frequency for convenience
+        param_handles = super().get_always_shown_params()
+        if self.clock_delivery_handles.frequency_handle not in param_handles:
+            param_handles.append(self.clock_delivery_handles.frequency_handle)
+        return param_handles
 
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
-        self.shelving_clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
+        self.clock_delivery_setter.set_suservo(
+            freq=self.clock_delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
+            attenuation=CLOCK_BEAM_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
         at_mu(_t_start)
-
-        delay_mu(int64(self.core.ref_multiplier))
-        self.clock_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
-        delay_mu(int64(self.core.ref_multiplier))
 
         # Pulse it onto the atoms
         self.clock_dds.sw.on()
@@ -184,4 +192,12 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     def post_dipole_trap_hook(self):
         self.post_dipole_trap_hook_default()
         delay_mu(int64(self.core.ref_multiplier))
+        self.post_dipole_trap_hook_shelving_and_clearout()
+
+    @kernel
+    def post_dipole_trap_hook_shelving_and_clearout(self):
+        """
+        Before spectroscopy in the dipole trap but after dropping, fire a
+        velocity-selection pulse
+        """
         self.clock_shelving()

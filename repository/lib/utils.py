@@ -1,6 +1,6 @@
 import numpy as np
 from artiq.experiment import HasEnvironment
-from artiq.experiment import portable
+from artiq.language import portable
 from numpy import int64
 
 

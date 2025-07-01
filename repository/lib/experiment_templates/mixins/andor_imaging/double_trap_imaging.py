@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import host_only
-from artiq.experiment import kernel
+from artiq.language import host_only
+from artiq.language import kernel
 from ndscan.experiment import FloatChannel
 
 from repository.lib import constants
@@ -13,6 +13,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedXXODTFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
@@ -105,23 +108,33 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
     def bg_imaging_make_result_channel(self):
         self.setattr_result("andor_sum_fwd_corrected", FloatChannel)
         self.setattr_result("andor_sum_bkd_corrected", FloatChannel)
+        self.setattr_result("andor_sum_imbalance", FloatChannel)
+        self.setattr_result("andor_sum_total", FloatChannel)
         self.andor_sum_fwd_corrected: FloatChannel
         self.andor_sum_bkd_corrected: FloatChannel
+        self.andor_sum_imbalance: FloatChannel
+        self.andor_sum_total: FloatChannel
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
-        self.andor_sum_fwd_corrected.push(sums[0] - sums[2])
-        self.andor_sum_bkd_corrected.push(sums[1] - sums[3])
+        atom_number_fwd = sums[0] - sums[2]
+        atom_number_bwd = sums[1] - sums[3]
+
+        total = atom_number_fwd + atom_number_bwd
+        imbalance = (atom_number_fwd - atom_number_bwd) / total
+
+        self.andor_sum_fwd_corrected.push(atom_number_fwd)
+        self.andor_sum_bkd_corrected.push(atom_number_bwd)
+        self.andor_sum_imbalance.push(imbalance)
+        self.andor_sum_total.push(total)
 
 
-class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
+class DoubleTrapImagingRepumpedNormalised(
+    NormalisedXXODTFastKineticsMixin, NormalisedFastKineticsRepumpedMixin
+):
     """
     Image two traps with three pulses of light, imaging the ground, excited and
-    background.
-
-    Reumping is not handled here, but you can override e.g.
-    :meth:`~do_first_pulse` to add it if required. See e.g.
-    :class:`~ClockRabiSpectroscopyRedMotMixin`.
+    background, with 707 repumping after the first pulse.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -138,10 +151,13 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
         self.setattr_result("excitation_fraction_backward", FloatChannel)
         self.setattr_result("atom_number_backward", FloatChannel)
 
+        self.setattr_result("atom_number_imbalance", FloatChannel)
+
         self.excitation_fraction_forward: FloatChannel
         self.atom_number_forward: FloatChannel
         self.excitation_fraction_backward: FloatChannel
         self.atom_number_backward: FloatChannel
+        self.atom_number_imbalance: FloatChannel
 
     def host_setup(self):
         super().host_setup()
@@ -189,5 +205,10 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
                 (sum_excited_bwd - sum_background_bwd_excited) / atom_number_bwd
             )
 
+        imbalance = (atom_number_fwd - atom_number_bwd) / (
+            atom_number_fwd + atom_number_bwd
+        )
+
         self.atom_number_forward.push(atom_number_fwd)
         self.atom_number_backward.push(atom_number_bwd)
+        self.atom_number_imbalance.push(imbalance)

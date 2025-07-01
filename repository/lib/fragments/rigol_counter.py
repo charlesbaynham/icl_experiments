@@ -29,10 +29,10 @@ class RigolCounterFrag(Fragment):
     def check_counter_rpc(self):
         frequency = self.rigol_counter.get_frequency()
         if abs(frequency - CLOCK_LASER_BEATNOTE_FREQUENCY) > 200e-3:
-            logger.debug(
+            logger.warning(
                 "Frequency %.2f is too far from expected %.2f",
                 frequency,
                 CLOCK_LASER_BEATNOTE_FREQUENCY,
             )
 
-        self.rigol_counter_frequency.push(CLOCK_LASER_BEATNOTE_FREQUENCY - frequency)
+        self.rigol_counter_frequency.push(frequency)

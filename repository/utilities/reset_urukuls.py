@@ -5,8 +5,8 @@ from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD as Urukul_CPLD
 from artiq.coredevice.urukul import *
 from artiq.experiment import EnvExperiment
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from pyaion.lib.utils import get_local_devices
 
 logger = logging.getLogger(__name__)

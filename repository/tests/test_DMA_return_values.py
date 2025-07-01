@@ -6,7 +6,7 @@ from artiq.coredevice.ttl import TTLInOut
 from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 from artiq.experiment import *
-from artiq.experiment import kernel
+from artiq.language import kernel
 
 
 class TestDMAReturnValues(EnvExperiment):

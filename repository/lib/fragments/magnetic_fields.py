@@ -2,8 +2,8 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.experiment import TFloat
-from artiq.experiment import kernel
-from artiq.experiment import rpc
+from artiq.language import kernel
+from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -118,9 +118,33 @@ class SetMagneticFieldsSlow(Fragment):
         )
         self.ch1_axial_current: FloatParamHandle
 
+        self.setattr_param(
+            "ch1_radial_1_current",
+            FloatParam,
+            "Current in ch1 radial_1 coils",
+            unit="A",
+            min=0,
+            max=10,
+            default=constants.B_FIELD_CH1_RADIAL1,
+        )
+        self.ch1_radial_1_current: FloatParamHandle
+
+        self.setattr_param(
+            "ch1_radial_2_current",
+            FloatParam,
+            "Current in ch1 radial_2 coils",
+            unit="A",
+            min=0,
+            max=10,
+            default=constants.B_FIELD_CH1_RADIAL2,
+        )
+        self.ch1_radial_2_current: FloatParamHandle
+
         # %% Kernel variables
         self.coils_initiated = False
-        self.ch1_axial_last_value = 0.0
+        self.axial_last_value = 0.0
+        self.radial1_last_value = 0.0
+        self.radial2_last_value = 0.0
 
     def host_setup(self):
         # TODO: this is in host_setup because the __init__ method of the driver
@@ -128,6 +152,12 @@ class SetMagneticFieldsSlow(Fragment):
         # ARTIQ. This is bad!
         self.setattr_device("chamber_1_axial_coil_driver")
         self.chamber_1_axial_coil_driver: TENMAPowerSupply
+
+        self.setattr_device("chamber_1_radial1_coil_driver")
+        self.chamber_1_radial1_coil_driver: TENMAPowerSupply
+
+        self.setattr_device("chamber_1_radial2_coil_driver")
+        self.chamber_1_radial2_coil_driver: TENMAPowerSupply
 
         return super().host_setup()
 
@@ -143,13 +173,35 @@ class SetMagneticFieldsSlow(Fragment):
 
         Trys to avoid doing this, since it's slow and requires an RPC
         """
-        axial_field = self.ch1_axial_current.get()
+        axial_new_value = self.ch1_axial_current.get()
+        radial1_new_value = self.ch1_radial_1_current.get()
+        radial2_new_value = self.ch1_radial_2_current.get()
 
-        if not self.coils_initiated or self.ch1_axial_last_value != axial_field:
-            self.set_ch1_axial(axial_field)
+        coils_need_setting = (
+            not self.coils_initiated
+            or self.axial_last_value != axial_new_value
+            or self.radial1_last_value != radial1_new_value
+            or self.radial2_last_value != radial2_new_value
+        )
+
+        if coils_need_setting:
+            self._set_coils(axial_new_value, radial1_new_value, radial2_new_value)
+
             self.coils_initiated = True
-            self.ch1_axial_last_value = axial_field
+            self.axial_last_value = axial_new_value
+            self.radial1_last_value = radial1_new_value
+            self.radial2_last_value = radial2_new_value
 
     @rpc
-    def set_ch1_axial(self, current: TFloat):
-        self.chamber_1_axial_coil_driver.set_current(current)
+    def _set_coils(
+        self, current_axial: TFloat, current_radial_1: TFloat, current_radial_2: TFloat
+    ):
+        logger.debug(
+            "Setting magnetic fields: axial=%s, radial_1=%s, radial_2=%s",
+            current_axial,
+            current_radial_1,
+            current_radial_2,
+        )
+        self.chamber_1_axial_coil_driver.set_current(current_axial)
+        self.chamber_1_radial1_coil_driver.set_current(current_radial_1)
+        self.chamber_1_radial2_coil_driver.set_current(current_radial_2)

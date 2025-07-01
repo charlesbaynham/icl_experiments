@@ -1,10 +1,14 @@
 from pathlib import Path
+from typing import Callable
 
-import matplotlib.pyplot as plt
+import matplotlib
 from artiq.experiment import *
 
 from repository.lib.utils import GaussianRandom
 from repository.lib.utils import SimpleRandom
+
+matplotlib.use("Agg")  # Use a non-interactive backend for matplotlib
+import matplotlib.pyplot as plt
 
 
 class RandomNumbersUniform(EnvExperiment):
@@ -41,9 +45,9 @@ class RandomNumbersGaussian(EnvExperiment):
         plt.savefig(Path(__file__, "..", "random_numbers_gaussian.png").resolve())
 
 
-def test_random_numbers_uniform(build_and_run_experiment):
+def test_random_numbers_uniform(build_and_run_experiment: Callable[..., None]):
     build_and_run_experiment(RandomNumbersUniform)
 
 
-def test_random_numbers_gaussian(build_and_run_experiment):
+def test_random_numbers_gaussian(build_and_run_experiment: Callable[..., None]):
     build_and_run_experiment(RandomNumbersGaussian)

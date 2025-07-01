@@ -131,7 +131,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
             "mockclass": "MockCamera",
             "arguments": {
-                "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
+                "name": "FLIR-Blackfly S BFS-PGE-50S5M-23476914",
                 "loglevel": logging.WARNING,
             },
         },
@@ -175,6 +175,30 @@ def get_non_core_devices(simulation_mode=False):
             "arguments": {
                 "id": "tenma-powersupply-1.lan",
                 "port": 18200,
+                "simulation": simulation_mode,
+            },
+        },
+        "chamber_1_radial1_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-1.lan",
+                "port": 18202,
+                "simulation": simulation_mode,
+            },
+        },
+        "chamber_1_radial2_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-2.lan",
+                "port": 18203,
                 "simulation": simulation_mode,
             },
         },

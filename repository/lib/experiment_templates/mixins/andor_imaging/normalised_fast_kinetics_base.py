@@ -2,12 +2,12 @@ import logging
 from typing import List
 
 import numpy as np
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import rpc
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import host_only
+from artiq.language import kernel
+from artiq.language import now_mu
+from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -327,3 +327,35 @@ class NormalisedFastKineticsBase(AndorImagingBase):
                 )
                 popt = fit_2d_gaussian(sliced_image, offsets)
                 self.push_gauss_fit_pars(popt, int(2 * i + j))
+
+
+class NormalisedFastKineticsRepumpedMixin(NormalisedFastKineticsBase):
+    """
+    Adds repumping after the first fluorescence pulse to a
+    :class:`~.NormalisedFastKineticsBase` experiment.
+
+    This is a mixin for :class:`~.NormalisedFastKineticsBase`.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_first_pulse`
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()

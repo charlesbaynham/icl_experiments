@@ -1,13 +1,15 @@
 import logging
 
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+
+# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
@@ -84,6 +86,21 @@ class ClockInterferometryBase(
         self.clock_dds_frequency_pi_pulse = 0.0
         self.clock_dds_frequency_final_pi_by_2_pulse = 0.0
 
+    def host_setup(self):
+        super().host_setup()
+
+        # Get param handles for the clock delivery AOM - we'll drive it manually
+        # here, but if the user changed them we should respect that. We must do
+        # this in host_setup because the amplitude doesn't exist at build time
+        # because the fragment can't detect that it's an AD9910 because ARTIQ
+        # passes it a DummyDevice. Is this a bug? Yes.
+        self.clock_switch_frequency_handle: FloatParamHandle = getattr(
+            self.clock_default_setter, f"frequency_{CLOCK_BEAM_INFO.name}"
+        )
+        self.clock_switch_amplitude_handle: FloatParamHandle = getattr(
+            self.clock_default_setter, f"amplitude_{CLOCK_BEAM_INFO.name}"
+        )
+
     @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
         return self.phase_constant
@@ -100,20 +117,11 @@ class ClockInterferometryBase(
     def do_clock_interferometry(self):
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
-        delay(-self.clock_delivery_preempt_time.get())
-        # Set frequency on the suservo, phase on the clock switch
-        self.clock_delivery_setter.set_suservo(
-            freq=CLOCK_BEAM_DELIVERY_INFO.frequency
-            + self.spectroscopy_pulse_aom_detuning.get(),
-            amplitude=CLOCK_BEAM_DELIVERY_INFO.initial_amplitude,
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
-            enable_iir=True,
-        )
-        delay(self.clock_delivery_preempt_time.get())
+        self.prepare_clock_delivery_aom()
+
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency,
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
 
@@ -129,7 +137,8 @@ class ClockInterferometryBase(
 
         # Phase step
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency,
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_pi_pulse(),
         )
 
@@ -146,7 +155,8 @@ class ClockInterferometryBase(
         # Phase step
         t_end_pi_mu = now_mu()
         self.clock_dds.set(
-            frequency=CLOCK_BEAM_INFO.frequency,
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
 

@@ -6,10 +6,10 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.grabber import GrabberTimeoutException
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import rpc
+from artiq.language import host_only
+from artiq.language import kernel
 from artiq.language import parallel
+from artiq.language import rpc
 from artiq.language.core import delay
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
@@ -66,7 +66,7 @@ class AndorImagingBase(RedMOTWithExperiment):
     num_grabber_readouts = 1
     "How many images will the Grabber read out"
 
-    image_read_timeout = 2.0
+    image_read_timeout = 15.0
     "Timeout for the ANDOR camera readout - must be longer than sequence"
 
     keep_andor_shutter_closed = False
@@ -87,7 +87,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             "do_gauss_fit",
             BoolParam,
             "Do a 2D Gaussian fit on the Andor images",
-            True,
+            False,
         )
         self.do_gauss_fit: BoolParamHandle
 
@@ -127,8 +127,6 @@ class AndorImagingBase(RedMOTWithExperiment):
             def device_setup(self):
                 self.device_setup_subfragments()
                 self.core.break_realtime()
-
-                self.set_toptica_analog.reset_freq()
 
                 grabber_clearout = [0] * self.num_grabber_rois
 

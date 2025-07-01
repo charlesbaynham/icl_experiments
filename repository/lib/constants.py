@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
+# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -60,7 +61,14 @@ URUKULED_BEAMS = [
         frequency=200.0e6,
         amplitude=1.0,
         attenuation=20.0,
-        urukul_device="urukul9910_aom_doublepass_461_injection",
+        urukul_device="urukul9910_aom_doublepass_461_master_to_ijd1",
+    ),
+    UrukuledBeam(
+        name="blue_singlepass_injection",
+        frequency=120e6,
+        amplitude=1.0,
+        attenuation=21.0,
+        urukul_device="urukul9910_aom_singlepass_461_ijd1_to_ijd23",
     ),
     UrukuledBeam(
         "red_spinpol",
@@ -72,13 +80,13 @@ URUKULED_BEAMS = [
     UrukuledBeam(
         name="clock_up",
         frequency=200e6,
-        attenuation=0,
+        attenuation=0.0,
         urukul_device="urukul9910_aom_698_up_switch",
     ),
     UrukuledBeam(
         name="clock_down",
         frequency=200e6,
-        attenuation=0,
+        attenuation=0.0,
         urukul_device="urukul9910_aom_698_down_switch",
     ),
     UrukuledBeam(
@@ -87,12 +95,12 @@ URUKULED_BEAMS = [
         attenuation=13,
         urukul_device="urukul9912_aom_singlepass_461_imaging_switch",
     ),
-    UrukuledBeam(
-        "blue_USOC_delivery",
-        frequency=100e6,
-        attenuation=15,
-        urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
-    ),
+    # UrukuledBeam(  # On 20250603 this was not plugged in, it must have been like that for a while
+    #     "blue_USOC_delivery",
+    #     frequency=70e6,
+    #     attenuation=20.0,
+    #     urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
+    # ),
     UrukuledBeam(
         "dipole_trap_1064_freespace_AOM",
         frequency=110e6,
@@ -116,6 +124,7 @@ URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
 # polarizing beam (i.e. not their normal MOT beams)
 RED_SPINPOL_SETPOINT_SIGMAPLUS = 0.2  # V
 RED_SPINPOL_SETPOINT_SIGMAMINUS = 0.2  # V
+RED_SPINPOL_PGIA_GAIN = 0
 
 
 RED_SPINPOL_RAMP_UPPER_LIMIT = 1.5e6
@@ -153,7 +162,10 @@ IJD_DEFAULTS = {
         window_high=362e-3,
         window_low=352e-3,
         relock_step=3e-3,
-        associated_beams=["blue_doublepass_injection", "blue_USOC_delivery"],
+        # IJD1 does not actually need the blue_singlepass_injection AOM, but
+        # IJDs 2 and 3 do. Rather than adding it to one of IJD2 and 3, or both,
+        # we add it here so there are no glitches during intialisation.
+        associated_beams=["blue_doublepass_injection", "blue_singlepass_injection"],
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
@@ -309,10 +321,10 @@ FLIR_CAMERA_TRIGGER_PREEMPT_TIME = 30e-6
 # camera and it will complain if it's ever in an invalid state
 CHAMBER_2_HORIZONTAL_CAMERA_DEFAULTS = OrderedDict(
     [
-        ("Width", 8),
-        ("Height", 8),
-        ("OffsetX", 0),
-        ("OffsetY", 0),
+        ("Width", 256),
+        ("Height", 256),
+        ("OffsetX", 1700),
+        ("OffsetY", 800),
     ]
 )
 "Chamber 2 horizontal camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
@@ -335,11 +347,6 @@ DEFAULT_IMAGING_PULSE = 50e-6
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
 "Default duration of the delay between turning on the delivery AOM and turning on the fluorescence probe."
 
-DEFAULT_IMAGING_DELIVERY_SUSERVO_PID_I = -200000.0
-"$k_I$ constant for the fluorescence beam's SUServo loop"
-
-DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I = -200000.0
-"$k_I$ constant for the clock delivery beam's SUServo loop"
 
 ANDOR_CAMERA_SHUTTER_OPEN_TIME = 130e-3  # Could probably be shorter if required
 "Pre-open delay for the Andor camera's external protective shutter"
@@ -378,17 +385,17 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
-ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 10
-ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 10
-ANDOR_ROI_DIPOLE_WIDTH = 16
+ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
+ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
+ANDOR_ROI_DIPOLE_WIDTH = 32
 
-ANDOR_DIPOLE_TRAP_BACKWARD_X = 184
+ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_BACKWARD_Y = 348
+ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
 
-ANDOR_DIPOLE_TRAP_FORWARD_X = 184
+ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-ANDOR_DIPOLE_TRAP_FORWARD_Y = 294
+ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     ANDOR_DIPOLE_TRAP_FORWARD_X - ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -448,6 +455,67 @@ DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 
 SRS_SHUTTER_DELAY = 5e-3
 
+SUSERVOED_BEAMS_LOW_INTENSITY = [
+    ### RED ###
+    SUServoedBeam(
+        "red_mot_diagonal",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_diagonal",
+        shutter_device="ttl_shutter_red_mot_diagonal",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        initial_amplitude=0.05,
+        setpoint=1.5,
+        photodiode_offset=0.0133,  # 0.001,  # 0.01238,
+        pgia_setting=2,
+        kI_loop_constant=-300.0,
+    ),
+    SUServoedBeam(
+        "red_mot_sigmaminus",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaminus",
+        shutter_device="ttl_shutter_red_sigmaminus",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        initial_amplitude=0.05,
+        setpoint=1.5,
+        photodiode_offset=0.018,  # 0.001,
+        pgia_setting=2,
+        kI_loop_constant=-300.0,
+    ),
+    SUServoedBeam(
+        "red_up",
+        100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_up",
+        shutter_device="ttl_shutter_red_up",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        setpoint=0.4,
+        initial_amplitude=0.05,
+        photodiode_offset=0.016,  # 0.0032,  # 0.016,
+        pgia_setting=2,
+        kI_loop_constant=-300.0,
+    ),
+    SUServoedBeam(
+        "red_mot_sigmaplus",
+        frequency=100e6,
+        attenuation=0.0,
+        suservo_device="suservo_aom_singlepass_689_red_mot_sigmaplus",
+        shutter_device="ttl_shutter_red_sigmaplus",
+        shutter_delay=SRS_SHUTTER_DELAY,
+        servo_enabled=True,
+        initial_amplitude=0.05,
+        setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
+        photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
+        pgia_setting=1,
+        kI_loop_constant=-300.0,
+    ),
+]
+
+
 # Information about beams controlled by AOMs
 SUSERVOED_BEAMS = [
     ### BLUE ###
@@ -459,26 +527,6 @@ SUSERVOED_BEAMS = [
         "TTL_shutter_461_pushbeam",
         shutter_delay=20e-3,
         setpoint=0.8,
-        servo_enabled=True,
-    ),
-    SUServoedBeam(
-        "blue_2dmot_A",
-        120e6,
-        21,
-        "suservo_aom_singlepass_461_2dmot_a",
-        "TTL_shutter_461_2dmot_is_it_a",
-        shutter_delay=20e-3,
-        setpoint=1.8,
-        servo_enabled=True,
-    ),
-    SUServoedBeam(
-        "blue_2dmot_B",
-        120e6,
-        21,
-        "suservo_aom_singlepass_461_2dmot_b",
-        "TTL_shutter_461_2dmot_is_it_b",
-        shutter_delay=20e-3,
-        setpoint=2.7,
         servo_enabled=True,
     ),
     SUServoedBeam(
@@ -499,7 +547,7 @@ SUSERVOED_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=3.0,
+        setpoint=2.9,
     ),
     SUServoedBeam(
         "blue_3dmot_axialplus",
@@ -509,7 +557,7 @@ SUSERVOED_BEAMS = [
         "TTL_shutter_461_3dmot",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=2.0,
+        setpoint=1.6,
     ),
     SUServoedBeam(
         "blue_imaging_delivery",
@@ -519,13 +567,14 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_461_imaging_delivery",
         servo_enabled=True,
         setpoint=1.5,
+        kI_loop_constant=-200000.0,
     ),
     SUServoedBeam(
-        "blue_plug_beam",
-        165e6,
+        "blue_transparency_beam",
+        80e6,
         20,
-        "suservo_aom_doublepass_461_plug",
-        setpoint=0.8,
+        "suservo_aom_singlepass_487_transparency",
+        setpoint=0.2,
         servo_enabled=True,
     ),
     ### RED ###
@@ -539,7 +588,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.01326,
+        photodiode_offset=0.0133,  # 0.001,  # 0.01238,
     ),
     SUServoedBeam(
         "red_mot_sigmaminus",
@@ -551,7 +600,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5,
-        photodiode_offset=0.0188,
+        photodiode_offset=0.018,  # 0.001,
     ),
     SUServoedBeam(
         "red_up",
@@ -563,7 +612,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         setpoint=0.4,
         initial_amplitude=0.05,
-        photodiode_offset=0.017,
+        photodiode_offset=0.016,  # 0.0032,  # 0.016,
     ),
     SUServoedBeam(
         "red_mot_sigmaplus",
@@ -575,7 +624,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.05,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
-        photodiode_offset=0.0188,  # TODO: This is a guess
+        photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
     ),
     ### OTHER ###
     SUServoedBeam(
@@ -605,6 +654,7 @@ SUSERVOED_BEAMS = [
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
         setpoint=3.5,
+        kI_loop_constant=-100000.0,
     ),
     SUServoedBeam(
         "lattice_input_1379",
@@ -620,7 +670,9 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
-        setpoint=5,
+        initial_amplitude=0.0,
+        setpoint=4.8,
+        kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
         "up_813",
@@ -628,6 +680,7 @@ SUSERVOED_BEAMS = [
         attenuation=7.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=3.5,
     ),
     SUServoedBeam(
@@ -636,7 +689,9 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
         servo_enabled=True,
+        initial_amplitude=0.0,
         setpoint=4.7,
+        kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
         "stark_shifter_689_delivery",
@@ -662,6 +717,9 @@ SUSERVOED_BEAMS = [
 
 # Convert to dict for ease of use
 SUSERVOED_BEAMS = {beam.name: beam for beam in SUSERVOED_BEAMS}
+SUSERVOED_BEAMS_LOW_INTENSITY = {
+    beam.name: beam for beam in SUSERVOED_BEAMS_LOW_INTENSITY
+}
 
 
 # Mirny settings for Sr 88 / Sr 87
@@ -683,6 +741,7 @@ _default_461 = (
 )
 _default_707 = 423_913_478e6
 _default_679 = 441_332_627e6
+_default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6  # Measured empirically
 _clock_laser_offset = -80e6
 
@@ -702,11 +761,6 @@ _default_689 = (
 
 MIRNY_SETTINGS_87 = [
     MirnySettings(
-        device_name="mirny_eom_cavity_offset_689",
-        frequency=661.82e6,
-        attenuation=5.0,
-    ),
-    MirnySettings(
         device_name="mirny_eom_707_sideband_A", frequency=585e6, attenuation=20.0
     ),
     MirnySettings(
@@ -715,38 +769,23 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
     ),
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_698",
-        frequency=673.54e6,  # Lower Mirny freq --> higher laser freq
-        attenuation=0.0,
-    ),
 ]
 
 MIRNY_SETTINGS_88 = [
     MirnySettings(
-        device_name="mirny_eom_cavity_offset_689",
-        frequency=_isotope_shift_689 - MIRNY_SETTINGS_87[0].frequency,
-        attenuation=3.0,
-    ),
-    MirnySettings(
         device_name="mirny_eom_707_sideband_A",
-        frequency=MIRNY_SETTINGS_87[1].frequency,
+        frequency=MIRNY_SETTINGS_87[0].frequency,
         rf_switch=False,
     ),
     MirnySettings(
         device_name="mirny_eom_707_sideband_B",
-        frequency=MIRNY_SETTINGS_87[2].frequency,
+        frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
     ),
     MirnySettings(
         device_name="mirny_eom_689_sideband",
-        frequency=MIRNY_SETTINGS_87[3].frequency,
+        frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
-    ),
-    MirnySettings(
-        device_name="mirny_eom_cavity_offset_698",
-        frequency=MIRNY_SETTINGS_87[4].frequency,
-        attenuation=0.0,
     ),
 ]
 
@@ -772,6 +811,7 @@ WAND_SETPOINTS_88 = {
     "461": (_default_461, True),
     "707": (_default_707, True),
     "679": (_default_679, True),
+    "487": (_default_487, True),
     "689": (_default_689, False),
     "689_IJD": (
         _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
@@ -787,6 +827,7 @@ WAND_SETPOINTS_87 = {
     "461": (_default_461 - 60e6, True),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
+    "487": (_default_487, True),
     "689": (_default_689 - _isotope_shift_689, False),
     "689_IJD": (
         _default_689
@@ -803,15 +844,30 @@ TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.
 
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
+B_FIELD_CH1_RADIAL1 = 3.2  # A
+B_FIELD_CH1_RADIAL2 = 5.4  # A
 
-# TODO: Include FIELD_COMP as an offset to the other default fields below.
+
 # Measure the FIELD_COMP required for zero field using Zeeman spectroscopy
 # Updated 30/10/2024 based on XODT position vs MOT - possibly less reliable
 # than previous calibration based on Zeeman spectroscopy
 FIELD_COMP_X = 0.31
 FIELD_COMP_Y = -0.009
 FIELD_COMP_Z = -0.69
-FIELD_COMP = [FIELD_COMP_X, FIELD_COMP_Y, FIELD_COMP_Z]
+
+
+def add_field_offset(x, y, z):
+    """
+    Adds the field offset to the passed field
+
+    Allows for easy updating of the bias field when it changes
+    """
+    return (
+        x + FIELD_COMP_X,
+        y + FIELD_COMP_Y,
+        z + FIELD_COMP_Z,
+    )
+
 
 if USE_SR87:
     # With 6A gradient
@@ -867,13 +923,14 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 CLOCK_PI_TIME = 44e-6
 CLOCK_SHELVING_PULSE_TIME = 200e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.12
-SHELVING_PULSE_CLEAROUT_DURATION = 500e-6
-CLOCK_DELIVERY_PREEMPT_TIME = 130e-6
+SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
+CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
+CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = 10e3
 
 # %% Dipole trap settings
 
-DIPOLE_TRAP_HOLD_TIME = 50e-3
+DIPOLE_TRAP_HOLD_TIME = 20e-3
 DIPOLE_TRAP_LOADING_TIME = 50e-3
 
 DIPOLE_TRAP_MOLASSES_DURATION = 0.0
@@ -908,7 +965,7 @@ if USE_SR87:
     RED_BROADBAND_SUSERVO_MULTIPLES_END = [2.2, 2.2, 2.5, 0.5]
     RED_BROADBAND_MOT_CURRENT_START = [3.0]
     RED_BROADBAND_MOT_CURRENT_END = [10.0]
-    RED_BROADBAND_DURATION = 120e-3
+    RED_BROADBAND_DURATION = 220e-3
 else:
     RED_BROADBAND_SUSERVO_MULTIPLES_START = [2.2, 2.2, 2.5, 0.0]
     RED_BROADBAND_SUSERVO_MULTIPLES_END = [2.2, 2.2, 2.5, 0.0]
@@ -916,14 +973,26 @@ else:
     RED_BROADBAND_MOT_CURRENT_END = [9.0]
     RED_BROADBAND_DURATION = 100e-3
 
-# Narrowband field to load top dipole trap at 10 A MOT current
+# Narrowband field to load FORWARD dipole trap at 10 A MOT current Note that
+# this is the default for normal red MOTs. One day we might want to split the
+# red MOT and the forward XODT fields, but not today.
 (
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = [a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.53])]
+) = add_field_offset(0.188, 0.057, -0.26)
 
-# Note: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
+# Narrowband field to load BACKWARD dipole trap at 10 A MOT current
+(
+    RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
+    RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
+    RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
+) = add_field_offset(0.158, 0.029, 0.155)
+RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
+
+
+# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
+# This should be confirmed and then these settings removed
 RED_BROADBAND_BIAS_FIELD_START = [
     B_FIELD_BIAS_BLUE_MOT_X,
     B_FIELD_BIAS_BLUE_MOT_Y,
@@ -974,7 +1043,8 @@ else:
 ### DIPOLE TRAP DEFAULT PARAMETERS ###
 
 # Unused in Sr88 so only one setting needed
-XODT_2ND_MOLASSES_689_STIR_DETUNING = 900e3
+XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
+XODT_MOLASSES_689_STIR_DETUNING = -33000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -983,48 +1053,61 @@ XODT_2ND_MOLASSES_689_STIR_DETUNING = 900e3
 # "suservo_aom_singlepass_689_up",
 # "suservo_aom_1064_delivery",
 # "suservo_aom_down_813"
+# "suservo_aom_singlepass_487_transparency"
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
 if USE_SR87:
     RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 3.5
-    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = [
-        a + b for a, b in zip(FIELD_COMP, [0.19, 0.05, -0.51])
-    ]
+
+    # This is optimized for loading into the HODT, not the XODT, because the 813
+    # will be turned on during the molasses phase. The molasses phase itself
+    # uses XODT_MOLASSES_BIAS_FIELD_START
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.39)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 20e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.5, 1.0, 1.0]
+    XODT_MOLASSES_DURATION = 400e-3
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [
+        0.0007,
+        0.0014,
+        0.0018,
+        0.008,
+        1.0,
+        1.0,
+        0.25,
+    ]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
+        0.0007,
+        0.0014,
+        0.0018,
+        0.008,
+        1.0,
+        0.7,
+        0.25,
+    ]
     XODT_MOLASSES_689_DETUNING_START = [
-        0e3,
+        -60e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        0e3,
+        -65e3,
     ]
-    XODT_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.188, 0.057, -0.13])
-    ]
+    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
-    XODT_MOLASSES_MOT_CURRENT = 10.0
+    XODT_MOLASSES_MOT_CURRENT = 0.0
 
-    DELAY_BETWEEN_MOLASSES = 50e-3
+    DELAY_BETWEEN_MOLASSES = 0.0001e-3
     XODT_2ND_MOLASSES_DURATION = 50e-3
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 1.05]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 1.05]
     XODT_2ND_MOLASSES_689_DETUNING_START = [
-        450e3,
+        -35e3,
     ]
     XODT_2ND_MOLASSES_689_DETUNING_END = [
-        550e3,
+        -48e3,
     ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-    ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, -0.33])
-    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 else:
     DELAY_BEFORE_MOLASSES = 0.01e-3
@@ -1033,17 +1116,15 @@ else:
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
     XODT_MOLASSES_DURATION = 120e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 1.05]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 1.05]
     XODT_MOLASSES_689_DETUNING_START = [
         100e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
         120e3,
     ]
-    XODT_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.148, 0.024, -0.58])
-    ]
+    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.148, 0.024, -0.58)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = XODT_MOLASSES_BIAS_FIELD_START
     XODT_MOLASSES_MOT_CURRENT = 6.0
@@ -1058,51 +1139,123 @@ else:
     XODT_2ND_MOLASSES_689_DETUNING_END = [
         0e3,
     ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_START = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-    ]
-    XODT_2ND_MOLASSES_BIAS_FIELD_END = [
-        a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 0.0])
-    ]
+    XODT_2ND_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
+    XODT_2ND_MOLASSES_BIAS_FIELD_END = add_field_offset(0.0, 0.0, 0.0)
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 
-OPTICAL_PUMPING_BIAS_FIELD = [a + b for a, b in zip(FIELD_COMP, [0.0, 0.5, 0.0])]
+OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
-XODT_EVAP_AND_FIELD_RAMP_DURATION = 300e-3
+XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7]
+XODT_COOL_MOLASSES_MULTIPLE_END = [1.0, 0.7]
+
+XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
+XODT_EVAP_DURATION = 1400e-3
+XODT_EVAP_2_DURATION = 1000e-3
+XODT_EVAP_3_DURATION = 1300e-3
 # SUServo order: [1064 delivery, down 813]
-XODT_EVAP_START = [1.0, 1.0]
-XODT_EVAP_END = [0.5, 1.0]
+XODT_EVAP_START = [1.0, 0.7]
+XODT_EVAP_END = [0.35, 0.7]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
-XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
-    a + b for a, b in zip(FIELD_COMP, [-1.12, 0.0, 0.0])
-]
+XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
 # XODT_EVAP_AND_FIELD_RAMP_FIELD_END = [
 #     a + b for a, b in zip(FIELD_COMP, [0.0, 0.0, 2.0])
 # ]
 
-XODT_EVAP_2_START = [0.5, 1.0]
-XODT_EVAP_2_END = [0.4, 1.0]
+XODT_EVAP_2_END = [0.21, 0.7]
 
-XODT_EVAP_3_START = [0.4, 1.0]
-XODT_EVAP_3_END = [0.3, 1.0]
+XODT_EVAP_3_END = [0.18, 0.7]
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
-XODT_SINGLE_LOADING_DURATION = 40e-3
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.05, 0.05, 0.05, 0.2, 1.0, 1.0]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.025, 0.025, 0.025, 0.1, 1.0, 1.0]
+# Single dipole trap loading phase
+# order diagonal, sigmaplus, sigmaminus, up, 1064, 813
+XODT_SINGLE_LOADING_DURATION = 100e-3
+
+
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.025, 0.02, 0.03, 0.16, 0.5, 0.5]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.001, 0.005, 0.005, 0.003, 1.0, 1.0]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
-    15e3,
-]
-XODT_SINGLE_LOADING_689_DETUNING_END = [
     0e3,
 ]
+XODT_SINGLE_LOADING_689_DETUNING_END = [
+    -5e3,
+]
 RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
-XODT_SINGLE_LOADING_STIR_DETUNING = 30e3
+XODT_SINGLE_LOADING_STIR_DETUNING = -13e3
 XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 10.0
-XODT_SINGLE_NARROWBAND_BIAS_X = 0.5
-XODT_SINGLE_NARROWBAND_BIAS_Y = 0.03
-XODT_SINGLE_NARROWBAND_BIAS_Z = -1.03
 
 TOTAL_EVAP_HOLD_TIME = 5.0
+
+# %% Second dipole trap loading phase
+# order diagonal, sigmaplus, sigmaminus, up
+
+XXODT_LOWER_LOADING_DURATION = 50e-3
+XXODT_LOWER_LOADING_WAIT_BEFORE = 3e-3
+XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = (
+    XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START[:4]
+)
+# XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = [0.025, 0.025, 0.025, 0.1]  FIXME
+XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_END = (
+    XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START
+)
+XXODT_LOWER_LOADING_689_STIR_DETUNING = XODT_SINGLE_LOADING_STIR_DETUNING
+
+
+# %% Dedrifter settings
+
+
+CAVITY_RAMP_RATE = (
+    0.052  # Hz/s based on ~9 kHz drift over 24 hours, through a frequency doubler
+)
+
+
+CAVITY_OFFSET_689 = 331.543688e6
+REFERENCE_TIME_689 = 1739450287
+CAVITY_RAMP_RATE_689 = CAVITY_RAMP_RATE
+
+# to put at the right place, move by half the detuning on the AOM (AOM double passed)
+# in thesame direction as we want to steer the detuning (AOM positively passed)
+CAVITY_OFFSET_698 = 335.95e6
+# 336.137e6  # 336.437e6  #  337.4035e6  # 673.54e6 / 2  # 336.77e6
+REFERENCE_TIME_698 = 1750511992
+CAVITY_RAMP_RATE_698 = -CAVITY_RAMP_RATE
+
+
+if not USE_SR87:  # TODO be smarter
+    # Account for isotope shifts, remembering that the output frequency is
+    # doubled and that the Sr-88 lock uses a negative sideband
+    CAVITY_RAMP_RATE_689 *= -1
+    CAVITY_OFFSET_689 = _isotope_shift_689 / 2 - CAVITY_OFFSET_689
+
+
+# Time step for dedrifting steps
+T_STEP_DEDRIFTER = 100e-6
+
+
+@dataclass
+class DedrifterInfo:
+    laser_name: str
+    channel_name: str
+    reference_frequency: float
+    reference_time: int
+    ramp_rate: float
+    attenuation = 0.0
+
+
+dedrifter_info_689 = DedrifterInfo(
+    "689",
+    "urukul0_ch0",
+    CAVITY_OFFSET_689,
+    REFERENCE_TIME_689,
+    CAVITY_RAMP_RATE_689,
+)
+dedrifter_info_698 = DedrifterInfo(
+    "698",
+    "urukul0_ch1",
+    CAVITY_OFFSET_698,
+    REFERENCE_TIME_698,
+    CAVITY_RAMP_RATE_698,
+)
+
+dedrifter_infos = [dedrifter_info_689, dedrifter_info_698]

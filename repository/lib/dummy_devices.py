@@ -8,7 +8,7 @@ build() if it's empty, and it won't do anything when called.
 from artiq.experiment import TBool
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
-from artiq.experiment import kernel
+from artiq.language import kernel
 
 
 # TODO: Use this for creating dummy classes

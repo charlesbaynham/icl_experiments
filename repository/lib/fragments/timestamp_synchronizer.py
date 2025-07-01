@@ -2,7 +2,7 @@ import logging
 import time
 
 from artiq.coredevice.core import Core
-from artiq.experiment import now_mu
+from artiq.language import now_mu
 from ndscan.experiment import *
 
 logger = logging.getLogger(__name__)
@@ -151,6 +151,21 @@ class Timestamper(Fragment):
         """
         t_now_mu = now_mu()
         return self.core.mu_to_seconds(t_now_mu) + self.artiq_utc_offset
+
+    @kernel
+    def get_offset_from_utc(self) -> float:
+        """
+        Get the offset between the Sinara RTIO clock and UTC in seconds
+
+        This is effectively the UNIX timestamp of the moment that the crate was
+        turned on.
+        """
+        if not self.artiq_utc_offset:
+            raise RuntimeError(
+                "ARTIQ UTC offset has not been set - this Fragment has not been set up correctly."
+            )
+
+        return self.artiq_utc_offset
 
     @kernel
     def mark_timestamp(self):

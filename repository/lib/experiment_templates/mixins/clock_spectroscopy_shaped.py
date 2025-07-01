@@ -1,6 +1,8 @@
 import logging
 
-from artiq.experiment import kernel
+from artiq.language import delay_mu
+from artiq.language import kernel
+from numpy import int64
 
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     CLOCK_BEAM_INFO,
@@ -46,8 +48,9 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
 
     @kernel
     def post_dipole_trap_hook(self):
-        self.post_dipole_trap_hook_default()
         self.post_dipole_trap_hook_shaped_pulses()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.post_dipole_trap_hook_default()
 
     @kernel
     def post_dipole_trap_hook_shaped_pulses(self):

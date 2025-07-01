@@ -1,7 +1,7 @@
 import time
 
 from artiq.coredevice.core import Core
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import FloatParam
