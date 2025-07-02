@@ -28,7 +28,7 @@ PORT_WAND_CONTROL = 3276
 PORT_WAND_NOTIFY = 3277
 
 
-def get_non_core_devices(simulation_mode=False, server_ip="::1"):
+def get_non_core_devices(simulation_mode=False):
     if simulation_mode:
         logger.warning("Initiating devices in simulation mode")
 
@@ -53,10 +53,11 @@ def get_non_core_devices(simulation_mode=False, server_ip="::1"):
             "best_effort": True,
             "host": "10.137.1.252",
             "port": PORT_WAND_CONTROL,
+            # TODO: find a way not to hardcode the bind address here
             "command": (
                 "bash -c '"
                 "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
-                "nix run .#wand_server -- -n icl_aion "
+                "nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind {bind} "
                 f"--port-notify {PORT_WAND_NOTIFY} "
                 f"--port-control {PORT_WAND_CONTROL}"
                 "'"
