@@ -60,6 +60,7 @@ from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +119,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
+
+        self.setattr_fragment("clock_opll", ClockOPLLController)
+        self.clock_opll: ClockOPLLController
 
         # %% Params
 

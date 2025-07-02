@@ -25,9 +25,6 @@ from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_deca
     ExponentialDecayMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
-    GlitchFreeUrukulDefaultAttenuation,
-)
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -197,14 +194,6 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
             unit="us",
         )
         self.delay_after_spectroscopy: FloatParamHandle
-
-        # Init of the clock OPLL without glitching
-        self.setattr_fragment(
-            "GlitchFreeUrukulClock",
-            GlitchFreeUrukulDefaultAttenuation,
-            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
-            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
-        )
 
     @kernel
     def do_rabi_spectroscopy(self):
