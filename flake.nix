@@ -3,9 +3,7 @@
     "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  # TODO: Go back to pyaion artiq. This is currently hard because we're getting
-  # sequence errors coming from somewhere in the red MOT sequence when we
-  # update. It's not clear why
+  # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR
   inputs.alt_artiq.url =
     "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=make-event-spreading-optional";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
