@@ -28,7 +28,7 @@ PORT_WAND_CONTROL = 3276
 PORT_WAND_NOTIFY = 3277
 
 
-def get_non_core_devices(simulation_mode=False):
+def get_non_core_devices(simulation_mode=False, server_ip="::1"):
     if simulation_mode:
         logger.warning("Initiating devices in simulation mode")
 
@@ -51,12 +51,12 @@ def get_non_core_devices(simulation_mode=False):
         "wand_server": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.252",
             "port": PORT_WAND_CONTROL,
             "command": (
                 "bash -c '"
                 "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
-                "nix run .#wand_server -- -n icl_aion --bind \\* "
+                "nix run .#wand_server -- -n icl_aion "
                 f"--port-notify {PORT_WAND_NOTIFY} "
                 f"--port-control {PORT_WAND_CONTROL}"
                 "'"
