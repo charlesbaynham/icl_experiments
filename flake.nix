@@ -243,8 +243,6 @@
             {
               commands = prev.commands // {
                 inherit backup_database backup_datasets monitor_launcher;
-                ndscan_janitor =
-                  "ndscan_dataset_janitor --timeout 7200"; # 2 hours
               };
             } // bind_settings);
         };
