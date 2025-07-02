@@ -3,9 +3,7 @@
     "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  # TODO: Go back to pyaion artiq. This is currently hard because we're getting
-  # sequence errors coming from somewhere in the red MOT sequence when we
-  # update. It's not clear why
+  # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR
   inputs.alt_artiq.url =
     "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=make-event-spreading-optional";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
@@ -84,13 +82,6 @@
           ];
         });
 
-        dashboard_launcher = (pkgs.writeShellScriptBin "icl_dashboard" ''
-          # If you want to reset the dashboard settings each time, uncomment this line
-          # export XDG_CONFIG_HOME=$(mktemp -d)
-
-          exec ${overriddenOutputs.apps.dashboard.program} -s 10.137.1.252
-        '');
-
         wand_gui_launcher =
           let config_file = "${self}/scripts/icl_aion_gui_config.pyon";
 
@@ -103,6 +94,22 @@
             cp "${config_file}" "$WAND_CONFIG_PATH"
             exec wand_gui -n icl_aion "$@"
           '');
+
+        # Configure ARTIQ services to bind to the labserver's AION IP address.
+        # This is so that the server can run other ARTIQ sessions bound to other
+        # IP addresses.
+        bind_settings = {
+          bind_command = "--no-localhost-bind --bind 10.137.1.252";
+          connection_ip = "10.137.1.252";
+        };
+
+        # Dashboard launcher for the ICL AION address
+        dashboard_launcher = (pkgs.writeShellScriptBin "icl_dashboard" ''
+          # If you want to reset the dashboard settings each time, uncomment this line
+          # export XDG_CONFIG_HOME=$(mktemp -d)
+
+          exec ${overriddenOutputs.apps.dashboard.program} -s ${bind_settings.connection_ip}
+        '');
 
       in {
         inherit (overriddenOutputs) formatter devShells;
@@ -172,7 +179,7 @@
               chmod -R u+w "$DEDRIFTER_SOURCE_DIR"
 
               # Change to the source directory
-              cd "$DEDRIFTER_SOURCE_DIR"                    
+              cd "$DEDRIFTER_SOURCE_DIR"
 
               # Add this dir to PYTHONPATH
               export PYTHONPATH="$DEDRIFTER_SOURCE_DIR:$PYTHONPATH"
@@ -201,8 +208,6 @@
             '');
           };
 
-          # Temporary hack to get the dashboard to launch with "nix run" and
-          # default to ICL's settings
           default = flake-utils.lib.mkApp { drv = dashboard_launcher; };
 
           wand = flake-utils.lib.mkApp { drv = wand_gui_launcher; };
@@ -222,28 +227,22 @@
               '');
           };
 
+          artiq = overriddenOutputs.apps.artiq.override (prev: bind_settings);
+
           full_stack = let
             backup_database = "nix run .#backup_database";
             backup_datasets = "nix run .#backup_datasets";
-
-            # This is an extra instance of ctlmgr which searches for controllers assigned to "10.137.1.252" instead of "::1"
-            # This is only relevant for moninj since we must hard-code the IP of the labserver in the moninj proxy otherwise dashboards
-            # don't know where to connect to it.
-            moninj_proxy_ctlmgr =
-              "sleep 5 && artiq_ctlmgr --bind \\* -v --host-filter 10.137.1.252 --port-control 32490";
 
             # Automatic startup of database monitors
             monitor_launcher =
               "sleep 200 && artiq_client submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
-          in overriddenOutputs.apps.full_stack.override (prev: {
-            commands = prev.commands // {
-              inherit backup_database backup_datasets moninj_proxy_ctlmgr
-                monitor_launcher;
-              ndscan_janitor =
-                "ndscan_dataset_janitor --timeout 7200"; # 2 hours
-            };
-          });
+          in overriddenOutputs.apps.full_stack.override (prev:
+            {
+              commands = prev.commands // {
+                inherit backup_database backup_datasets monitor_launcher;
+              };
+            } // bind_settings);
         };
       });
 }
