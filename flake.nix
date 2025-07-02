@@ -235,7 +235,7 @@
 
             # Automatic startup of database monitors
             monitor_launcher =
-              "sleep 200 && artiq_client submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+              "sleep 200 && artiq_client -s 10.137.1.252 submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
           in overriddenOutputs.apps.full_stack.override (prev:
             {
