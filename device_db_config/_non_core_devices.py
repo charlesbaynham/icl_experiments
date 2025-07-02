@@ -51,12 +51,13 @@ def get_non_core_devices(simulation_mode=False):
         "wand_server": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.252",
             "port": PORT_WAND_CONTROL,
+            # TODO: find a way not to hardcode the bind address here
             "command": (
                 "bash -c '"
                 "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
-                "nix run .#wand_server -- -n icl_aion --bind \\* "
+                "nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind {bind} "
                 f"--port-notify {PORT_WAND_NOTIFY} "
                 f"--port-control {PORT_WAND_CONTROL}"
                 "'"

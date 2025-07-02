@@ -3,9 +3,7 @@
     "git+https://gitlab.com/aion-physics/code/artiq/pyaion.git";
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
-  # TODO: Go back to pyaion artiq. This is currently hard because we're getting
-  # sequence errors coming from somewhere in the red MOT sequence when we
-  # update. It's not clear why
+  # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR
   inputs.alt_artiq.url =
     "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=make-event-spreading-optional";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
@@ -235,12 +233,6 @@
             backup_database = "nix run .#backup_database";
             backup_datasets = "nix run .#backup_datasets";
 
-            # This is an extra instance of ctlmgr which searches for controllers assigned to "10.137.1.252" instead of "::1"
-            # This is only relevant for moninj since we must hard-code the IP of the labserver in the moninj proxy otherwise dashboards
-            # don't know where to connect to it.
-            moninj_proxy_ctlmgr =
-              "sleep 5 && artiq_ctlmgr --bind \\* -v --host-filter 10.137.1.252 --port-control 32490";
-
             # Automatic startup of database monitors
             monitor_launcher =
               "sleep 200 && artiq_client submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
@@ -248,10 +240,7 @@
           in overriddenOutputs.apps.full_stack.override (prev:
             {
               commands = prev.commands // {
-                inherit backup_database backup_datasets moninj_proxy_ctlmgr
-                  monitor_launcher;
-                ndscan_janitor =
-                  "ndscan_dataset_janitor --timeout 7200"; # 2 hours
+                inherit backup_database backup_datasets monitor_launcher;
               };
             } // bind_settings);
         };

@@ -11,16 +11,14 @@ BEAM1 = UrukuledBeam(
     attenuation=13,
     urukul_device="urukul9912_aom_singlepass_461_imaging_switch",
 )
-BEAM2 = (
-    SUServoedBeam(
-        "beam2",
-        116e6,
-        attenuation=20,
-        initial_amplitude=0.05,
-        suservo_device="suservo_aom_singlepass_461_imaging_delivery",
-        servo_enabled=True,
-        setpoint=1.5,
-    ),
+BEAM2 = SUServoedBeam(
+    "beam2",
+    116e6,
+    attenuation=20,
+    initial_amplitude=0.05,
+    suservo_device="suservo_aom_singlepass_461_imaging_delivery",
+    servo_enabled=True,
+    setpoint=1.5,
 )
 
 
