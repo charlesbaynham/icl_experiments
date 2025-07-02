@@ -15,6 +15,7 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
+from scipy import constants as cst
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -26,8 +27,11 @@ CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 logger = logging.getLogger(__name__)
 
-CLOCL_LOW_RAMP_FREQ = 80e6  # Hz
-CLOCL_HIGH_RAMP_FREQ = 81e6  # Hz
+CLOCK_LOW_RAMP_FREQ = 80e6  # Hz
+CLOCK_HIGH_RAMP_FREQ = 81e6  # Hz
+ramp_rate = cst.g * CLOCK_LOW_RAMP_FREQ/cst.c
+
+
 
 
 class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
@@ -156,6 +160,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
         at_mu(_t_start)
 
+        #start clock frequency ramp
+        self.start_clock_frequency_ramp()
+
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()
 
@@ -183,10 +190,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         """
 
         self.clock_frequency_ramper.start_ramp(
-            self.ramp_rate,
-            self.injection_aom_static_frequency.get() + self.ramp_lower_detuning.get(),
-            self.injection_aom_static_frequency.get() + self.ramp_upper_detuning.get(),
-            self.ramp_type.get(),
+            ramp_rate,
+            CLOCK_LOW_RAMP_FREQ,
+            CLOCK_HIGH_RAMP_FREQ,
         )
 
 
