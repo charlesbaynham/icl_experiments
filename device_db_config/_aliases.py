@@ -54,7 +54,7 @@ aliases = {
     "suservo_aom_singlepass_1379_cavity_input": "suservo2_ch4",
     "urukul9910_aom_698_up_switch": "urukul2_ch2",
     "urukul9910_aom_698_down_switch": "urukul2_ch0",
-    "urukul9910_OPLL_698_clock": "urukul5_ch0",
+    "urukul9910_OPLL_698_clock": "urukul8_ch2",
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
     "suservo_aom_698_squeezing_cavity_input": "suservo0_ch1",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",

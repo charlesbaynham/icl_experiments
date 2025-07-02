@@ -113,6 +113,12 @@ URUKULED_BEAMS = [
         attenuation=9.0,
         urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
     ),
+    UrukuledBeam(
+        "698_clock_OPLL_offset",
+        frequency=80e6,
+        attenuation=0.0,
+        urukul_device="urukul9910_OPLL_698_clock",
+    ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
