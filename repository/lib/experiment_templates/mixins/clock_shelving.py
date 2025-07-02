@@ -29,9 +29,7 @@ logger = logging.getLogger(__name__)
 
 CLOCK_LOW_RAMP_FREQ = 80e6  # Hz
 CLOCK_HIGH_RAMP_FREQ = 81e6  # Hz
-ramp_rate = cst.g * CLOCK_LOW_RAMP_FREQ/cst.c
-
-
+ramp_rate = cst.g * CLOCK_LOW_RAMP_FREQ / cst.c
 
 
 class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
@@ -50,7 +48,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.setattr_fragment(
             "clock_frequency_ramper",
             AD9910Ramper,
-            "urukul9910_OPLL_698_clock",
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
         )
         self.clock_frequency_ramper: AD9910Ramper
 
@@ -160,7 +158,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
         at_mu(_t_start)
 
-        #start clock frequency ramp
+        # start clock frequency ramp
         self.start_clock_frequency_ramp()
 
         # Pulse it onto the atoms
