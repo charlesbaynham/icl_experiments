@@ -15,7 +15,6 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
-from scipy import constants as cst
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 CLOCK_LOW_RAMP_FREQ = 80e6  # Hz
 CLOCK_HIGH_RAMP_FREQ = 81e6  # Hz
-ramp_rate = cst.g * CLOCK_LOW_RAMP_FREQ / cst.c
+ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
 class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
