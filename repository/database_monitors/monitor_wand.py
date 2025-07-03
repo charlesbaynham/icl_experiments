@@ -27,7 +27,12 @@ class MonitorWAND(Calibration):
         result = CalibrationResult.OK
 
         try:
-            client = RPCClient("localhost", 3276, timeout=TIMEOUT)
+            wand_controller_config = self.get_device_db()["wand_server"]
+            client = RPCClient(
+                host=wand_controller_config["host"],
+                port=wand_controller_config["port"],
+                timeout=TIMEOUT,
+            )
             try:
                 lasers = client.get_laser_db()
                 for laser in lasers:
