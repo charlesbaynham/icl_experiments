@@ -204,5 +204,6 @@ ClockSpecFromSingleXODTEvaporatedShapedSlicing = make_fragment_scan_exp(
 )
 
 ClockInterferometryFromSingleXODTEvaporatedShapedSlicing = make_fragment_scan_exp(
-    ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag
+    ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag,
+    max_rtio_underflow_retries=0,
 )
