@@ -27,7 +27,7 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 logger = logging.getLogger(__name__)
 
 CLOCK_LOW_RAMP_FREQ = 80e6  # Hz
-CLOCK_HIGH_RAMP_FREQ = 81e6  # Hz
+CLOCK_HIGH_RAMP_FREQ = 80.7e6  # Hz
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
@@ -155,6 +155,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
+        self.clock_frequency_ramper.stop_ramp()
         at_mu(_t_start)
 
         # start clock frequency ramp
@@ -190,7 +191,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             ramp_rate,
             CLOCK_LOW_RAMP_FREQ,
             CLOCK_HIGH_RAMP_FREQ,
-            wave_type=2,
+            wave_type=0,
         )
 
 
