@@ -190,6 +190,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             ramp_rate,
             CLOCK_LOW_RAMP_FREQ,
             CLOCK_HIGH_RAMP_FREQ,
+            wave_type=2,
         )
 
 
