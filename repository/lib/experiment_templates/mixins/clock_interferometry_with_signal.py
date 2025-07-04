@@ -97,15 +97,21 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
             def device_setup(self):
                 self.device_setup_subfragments()
 
+                print("SignalInjector: device_setup")
+
                 # ...on first run
                 if self.t0_mu == 0:
                     # Initialise t0 based on the RTIO time when the experiment is started
                     self.t0_mu = self.core.get_rtio_counter_mu()
 
-                    # Calculate the period in machine units
-                    self.period_mu = self.core.seconds_to_mu(
-                        1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
-                    )
+                # Calculate the period in machine units
+                self.period_mu = self.core.seconds_to_mu(
+                    1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
+                )
+
+                # FIXME
+                print("t0_mu: ", self.t0_mu)
+                print("period_mu: ", self.period_mu)
 
                 # Every run, set the Stark shifter setpoint to the value
                 # relevant for the current time. We'll set it again closer to
