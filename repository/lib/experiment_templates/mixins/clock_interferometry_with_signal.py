@@ -27,6 +27,80 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
     """
 
     def build_fragment(self):
+        # %% Fragments
+
+        # Create a subfragment so we can avoid polluting the main namespace +
+        # have access to device_setup
+        #
+        # Do this before the super().build_fragment() call, so that this
+        # fragment is executed first in the list of subfragments, allowing it to
+        # pre-calculate values that the clock spectroscopy subfragment will use
+        class SignalInjector(Fragment):
+
+            def build_fragment(self, parent_fragment: "StarkShifterWithSignalMixin"):
+                self.setattr_device("core")
+                self.core: Core
+
+                # Store a reference to the parent fragment
+                self.parent_fragment = parent_fragment
+
+                self.setattr_fragment(
+                    "stark_shifter_suservo",
+                    LibSetSUServoStatic,
+                    constants.SUSERVOED_BEAMS[
+                        "stark_shifter_689_delivery"
+                    ].suservo_device,
+                )
+                self.stark_shifter_suservo: LibSetSUServoStatic
+
+                self.t0_mu = np.int64(0)
+                self.period_mu = np.int64(0)
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+
+                # ...on first run
+                if self.t0_mu == 0:
+                    # Initialise t0 based on the RTIO time when the experiment is started
+                    self.t0_mu = self.core.get_rtio_counter_mu()
+
+                # Calculate the period in machine units
+                self.period_mu = self.core.seconds_to_mu(
+                    1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
+                )
+
+                # Every run, set the Stark shifter setpoint to the value
+                # relevant for the current time. We'll set it again closer to
+                # the probes, but we want to let the setpoint stabilise
+                self.set_stark_shifter_setpoint()
+
+            @kernel
+            def set_stark_shifter_setpoint(self, t_pulse_mu=np.int64(0)):
+                """
+                Set the Stark shifter setpoint based on the value of
+                t_pulse, or now_mu() by default
+                """
+                amplitude = self.parent_fragment.stark_shifter_setpoint_amplitude.get()
+                frequency = self.parent_fragment.stark_shifter_setpoint_frequency.get()
+                mean = self.parent_fragment.stark_shifter_setpoint_mean.get()
+
+                if t_pulse_mu == 0:
+                    t_pulse_mu = now_mu()
+
+                # Calculate t relative to the start of the current oscillation,
+                # in integer mathematics, to avoid floating point errors for
+                # long-running experiments
+                t_mu = (t_pulse_mu - self.t0_mu) % self.period_mu
+                t = self.core.mu_to_seconds(t_mu)
+
+                new_setpoint = mean + amplitude * np.sin(2 * np.pi * frequency * t)
+
+                self.stark_shifter_suservo.set_setpoint(new_setpoint)
+
+        self.setattr_fragment("signal_injector", SignalInjector, self)
+        self.signal_injector: SignalInjector
+
         super().build_fragment()
 
         # Override the Stark shifter's setpoint in the default setter: we'll do
@@ -66,83 +140,6 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
             unit="V",
         )
         self.stark_shifter_setpoint_mean: FloatParamHandle
-
-        # %% Fragments
-
-        # Create a subfragment so we can avoid polluting the main namespace +
-        # have access to device_setup
-
-        class SignalInjector(Fragment):
-
-            def build_fragment(self, parent_fragment: "StarkShifterWithSignalMixin"):
-                self.setattr_device("core")
-                self.core: Core
-
-                # Store a reference to the parent fragment
-                self.parent_fragment = parent_fragment
-
-                self.setattr_fragment(
-                    "stark_shifter_suservo",
-                    LibSetSUServoStatic,
-                    constants.SUSERVOED_BEAMS[
-                        "stark_shifter_689_delivery"
-                    ].suservo_device,
-                )
-                self.stark_shifter_suservo: LibSetSUServoStatic
-
-                self.t0_mu = np.int64(0)
-                self.period_mu = np.int64(0)
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-
-                print("SignalInjector: device_setup")
-
-                # ...on first run
-                if self.t0_mu == 0:
-                    # Initialise t0 based on the RTIO time when the experiment is started
-                    self.t0_mu = self.core.get_rtio_counter_mu()
-
-                # Calculate the period in machine units
-                self.period_mu = self.core.seconds_to_mu(
-                    1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
-                )
-
-                # FIXME
-                print("t0_mu: ", self.t0_mu)
-                print("period_mu: ", self.period_mu)
-
-                # Every run, set the Stark shifter setpoint to the value
-                # relevant for the current time. We'll set it again closer to
-                # the probes, but we want to let the setpoint stabilise
-                self.set_stark_shifter_setpoint()
-
-            @kernel
-            def set_stark_shifter_setpoint(self, t_pulse_mu=np.int64(0)):
-                """
-                Set the Stark shifter setpoint based on the value of
-                t_pulse, or now_mu() by default
-                """
-                amplitude = self.parent_fragment.stark_shifter_setpoint_amplitude.get()
-                frequency = self.parent_fragment.stark_shifter_setpoint_frequency.get()
-                mean = self.parent_fragment.stark_shifter_setpoint_mean.get()
-
-                if t_pulse_mu == 0:
-                    t_pulse_mu = now_mu()
-
-                # Calculate t relative to the start of the current oscillation,
-                # in integer mathematics, to avoid floating point errors for
-                # long-running experiments
-                t_mu = (t_pulse_mu - self.t0_mu) % self.period_mu
-                t = self.core.mu_to_seconds(t_mu)
-
-                new_setpoint = mean + amplitude * np.sin(2 * np.pi * frequency * t)
-
-                self.stark_shifter_suservo.set_setpoint(new_setpoint)
-
-        self.setattr_fragment("signal_injector", SignalInjector, self)
-        self.signal_injector: SignalInjector
 
     @kernel
     def after_clock_delivery_setup_hook(self, t_first_pulse_mu: np.int64):
