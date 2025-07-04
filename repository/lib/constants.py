@@ -1187,7 +1187,9 @@ TOTAL_EVAP_HOLD_TIME = 5.0
 # %% Second dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up
 
-XXODT_LOWER_LOADING_DURATION = 75e-3
+XXODT_LOWER_LOADING_DURATION = (
+    100e-3  # Good when using the transparancy beam to protect the top trap
+)
 XXODT_LOWER_LOADING_WAIT_BEFORE = 3e-3
 XXODT_LOWER_LOADING_SETPOINT_MULTIPLES_START = (
     XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START[:4]
