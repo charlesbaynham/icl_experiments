@@ -73,6 +73,7 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
                 # Every run, set the Stark shifter setpoint to the value
                 # relevant for the current time. We'll set it again closer to
                 # the probes, but we want to let the setpoint stabilise
+                self.core.break_realtime()
                 self.set_stark_shifter_setpoint()
 
             @kernel
