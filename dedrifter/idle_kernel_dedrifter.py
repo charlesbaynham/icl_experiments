@@ -2,8 +2,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import EnvExperiment
-from artiq.language import delay
-from artiq.language import delay_mu
+from artiq.language import at_mu
 from artiq.language import now_mu
 from artiq.language.core import kernel
 from numpy import int32
@@ -100,7 +99,10 @@ class IdleKernel(EnvExperiment):
             # There's a tiny rounding error here: I don't care
 
         # Forever more, set the frequency of each AD9910 and update the offset
+        t_next_mu = now_mu()
         while True:
+            at_mu(t_next_mu)
+
             for i in range(len(self.infos)):
                 # Set the frequency of the AD9910
                 new_ftw = f_reference_frequencies_mu[
@@ -112,4 +114,4 @@ class IdleKernel(EnvExperiment):
                 f_offsets_wmu[i] += self.cache_info.ramp_steps_wmu[i]
 
             # Wait one timestep
-            delay_mu(t_step_mu)
+            t_next_mu += t_step_mu

@@ -17,6 +17,12 @@ These have two types:
 """
 
 import logging
+import os
+
+# Get the IP address for connecting to the ARTIQ master from the environment
+# variable ARTIQ_CONNECTION_IP.
+ARTIQ_CONNECTION_IP = os.getenv("ARTIQ_CONNECTION_IP", "::1")
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,17 +52,22 @@ def get_non_core_devices(simulation_mode=False):
             "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
-            "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
+            "command": (
+                "artiq_influxdb_schedule "
+                f"--server-master {ARTIQ_CONNECTION_IP} "
+                "--port-control {port} "
+                "--bind {bind}"
+            ),
         },
         "wand_server": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": ARTIQ_CONNECTION_IP,
             "port": PORT_WAND_CONTROL,
             "command": (
                 "bash -c '"
                 "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
-                "nix run .#wand_server -- -n icl_aion --bind \\* "
+                "nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind {bind} "
                 f"--port-notify {PORT_WAND_NOTIFY} "
                 f"--port-control {PORT_WAND_CONTROL}"
                 "'"
