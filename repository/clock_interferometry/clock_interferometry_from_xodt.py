@@ -123,6 +123,9 @@ DifferentialClockInterferometry = make_fragment_scan_exp(
 DifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
     DifferentialClockInterferometryWithNoiseFrag
 )
+DifferentialClockInterferometryWithNoiseAndSignal = make_fragment_scan_exp(
+    DifferentialClockInterferometryWithNoiseAndSignalFrag, max_rtio_underflow_retries=0
+)
 AbsImagingDifferentialClockInterferometryWithNoise = make_fragment_scan_exp(
     AbsImagingDifferentialClockInterferometryWithNoiseFrag
 )
