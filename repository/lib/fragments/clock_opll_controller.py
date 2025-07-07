@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9910 import AD9910
+from pyaion.fragments.ad9910_ramper import AD9910Ramper
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import TFloat
@@ -37,6 +38,13 @@ class ClockOPLLController(Fragment):
             constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
             constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
         )
+
+        self.setattr_fragment(
+            "clock_frequency_ramper",
+            AD9910Ramper,
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
+        )
+        self.clock_frequency_ramper: AD9910Ramper
 
         self.clock_OPLL_offset: AD9910 = self.get_device(
             constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device

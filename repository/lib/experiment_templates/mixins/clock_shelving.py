@@ -9,7 +9,7 @@ from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-from pyaion.fragments.ad9910_ramper import AD9910Ramper
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -44,12 +44,8 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "clock_frequency_ramper",
-            AD9910Ramper,
-            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
-        )
-        self.clock_frequency_ramper: AD9910Ramper
+        self.setattr_fragment("clock_opll", ClockOPLLController)
+        self.clock_opll: ClockOPLLController
 
         self.setattr_param(
             "shelving_pulse_time",
@@ -155,7 +151,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
-        self.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
         at_mu(_t_start)
 
         # start clock frequency ramp
@@ -187,7 +183,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         Advances the timeline by the duration of SPI writes
         """
 
-        self.clock_frequency_ramper.start_ramp(
+        self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
             CLOCK_LOW_RAMP_FREQ,
             CLOCK_HIGH_RAMP_FREQ,
