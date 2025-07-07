@@ -117,6 +117,10 @@ class SingleXODTVerticalSloshedFrag(
     switch up the HODT depth and let it slosh, then drop and image
     """
 
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
 class SingleXODTHorizontalYSloshedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
@@ -160,6 +164,14 @@ class SingleXODTHorizontalYSloshedFrag(
             default=constants.DELAY_AFTER_OPTICAL_PUMPING,
             unit="ms",
         )
+
+    @kernel
+    def dipole_trap_optical_pumping_hook(self):
+        self.spin_polarize()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
     
 
 
