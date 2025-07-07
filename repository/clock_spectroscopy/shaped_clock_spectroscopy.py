@@ -82,6 +82,12 @@ class ShapedClockSpecFromSingleXODTFrag(
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base
+        self.post_sequence_cleanup_hook_andor
+        self.post_sequence_cleanup_hook_shaped_pulses
+
 
 class ShapedClockSpecWithSlicingFrag(
     # Clock spec:
@@ -124,6 +130,13 @@ class ShapedClockSpecWithSlicingFrag(
         self.post_dipole_trap_hook_default()
         self.post_dipole_trap_hook_shelving_and_clearout()
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base
+        self.post_sequence_cleanup_hook_andor
+        self.post_sequence_cleanup_hook_shelving
+        self.post_sequence_cleanup_hook_shaped_pulses
+
 
 class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
@@ -157,6 +170,12 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base
+        self.post_sequence_cleanup_hook_andor
+        self.post_sequence_cleanup_hook_shelving
+        self.post_dipole_trap_hook_shaped_pulses
 
 class ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag(
     ClockInterferometryDipoleTrapMixin,
@@ -190,7 +209,12 @@ class ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag(
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
-
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base
+        self.post_sequence_cleanup_hook_andor
+        self.post_sequence_cleanup_hook_shelving
+        
 ShapedClockSpecFromSingleXODT = make_fragment_scan_exp(
     ShapedClockSpecFromSingleXODTFrag, max_rtio_underflow_retries=0
 )

@@ -73,7 +73,6 @@ class _DifferentialClockInterferometry(
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 
-
 class DifferentialClockInterferometryFrag(
     _DifferentialClockInterferometry,
     _DifferentialClockInterferometryImaging,
@@ -81,6 +80,12 @@ class DifferentialClockInterferometryFrag(
     """
     Clock interferometry from a double XODT
     """
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base
+        self.post_sequence_cleanup_hook_andor
+        self.post_sequence_cleanup_hook_shelving
 
 
 class DifferentialClockInterferometryWithNoiseFrag(
@@ -92,6 +97,12 @@ class DifferentialClockInterferometryWithNoiseFrag(
     Clock interferometry from a double XODT with added noise
     """
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base
+        self.post_sequence_cleanup_hook_andor
+        self.post_sequence_cleanup_hook_shelving
+
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
@@ -102,6 +113,11 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     Absorption imaging clock interferometry from a double XODT with added noise
     """
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base
+        self.post_sequence_cleanup_hook_andor
+        self.post_sequence_cleanup_hook_shelving
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
     DifferentialClockInterferometryFrag

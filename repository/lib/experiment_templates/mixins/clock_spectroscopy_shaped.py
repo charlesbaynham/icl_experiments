@@ -67,12 +67,13 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
 
     @kernel
     def post_sequence_cleanup_hook(self):
-        self.core.break_realtime()
-        self.clock_spectroscopy_shaped_pulse.disable_ram_mode()
-
+        self.post_dipole_trap_hook_shaped_pulses
         self.post_sequence_cleanup_hook_base()
 
-
+    @kernel
+    def post_sequence_cleanup_hook_shaped_pulses(self):
+        self.core.break_realtime()
+        self.clock_spectroscopy_shaped_pulse.disable_ram_mode()
 class ShapedClockShelvingAndClearoutDipoleTrapMixin(
     ClockShelvingAndClearoutDipoleTrapMixin
 ):
