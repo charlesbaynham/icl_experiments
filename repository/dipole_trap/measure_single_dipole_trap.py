@@ -20,9 +20,12 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
+from repository.lib import constants
+
 from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import MolassesInXODT
+from repository.lib.experiment_templates.mixins.optical_pumping import OpticalPumpingBase
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +116,51 @@ class SingleXODTVerticalSloshedFrag(
     Make Single XODT, decrease HODT depth to displace the atoms under gravity,
     switch up the HODT depth and let it slosh, then drop and image
     """
+
+class SingleXODTHorizontalYSloshedFrag(
+    FLIRMeasurementMixin,
+    BGCorrectedAndorImageSingleXODT,
+    LoadSingleXODTMixin,
+    MolassesInXODT,
+    OpticalPumpingBase,
+    
+):
+    """
+    Horizontally slosh a single XODT
+
+    Use a spinpol beam to displace the atoms horizontally
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param_rebind(
+            "delay_before_horizontal_pulse",
+            OpticalPumpingBase,
+            "delay_before_spinpol_pulse",
+            description = "Delay before horizontal pulse",
+            default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
+            unit="ms",
+        )
+
+        self.setattr_param_rebind(
+            "duration_horizontal_pulse",
+            OpticalPumpingBase,
+            "duration_spinpol_pulse",
+            description = "Duration of the horizontal pulse",
+            default=constants.DURATION_OF_SPIN_POL,
+            unit="ms",
+        )
+
+        self.setattr_param_rebind(
+            "delay_after_horizontal_pulse",
+            OpticalPumpingBase,
+            "delay_after_spinpol_pulse",
+            description = "Delay after the horizontal pulse",
+            default=constants.DELAY_AFTER_OPTICAL_PUMPING,
+            unit="ms",
+        )
+    
 
 
 class MeasureSingleXODTAbsFrag(
