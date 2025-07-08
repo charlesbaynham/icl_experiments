@@ -197,4 +197,4 @@ MeasureSingleXODTBGCorrected = make_fragment_scan_exp(MeasureSingleXODTBGCorrect
 MeasureSingleXODTAbs = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
 SingleXODTSloshed = make_fragment_scan_exp(SingleXODTSloshedFrag)
 SingleXODTVerticalSloshed = make_fragment_scan_exp(SingleXODTVerticalSloshedFrag)
-# SingleXODTHorizontalYSloshed = make_fragment_scan_exp(SingleXODTHorizontalYSloshedFrag)
+SingleXODTHorizontalYSloshed = make_fragment_scan_exp(SingleXODTHorizontalYSloshedFrag)
