@@ -142,11 +142,6 @@ class SingleXODTHorizontalYSloshedFrag(
     to desired trap depth, then use a spinpol beam to displace the atoms horizontally
     """
 
-    def build_fragment(self):
-        # override these duration since do_experiment_hook is not used
-        self.override_param("dipole_hold_time", 0)
-        self.override_param("dipole_pre_experiment_delay", 0)
-
     # FIXME: TODO: Rebind the evaporation params to a single ramp down followed by a ramp up
 
     @kernel

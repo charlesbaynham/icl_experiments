@@ -128,6 +128,10 @@ class HorizontalKickMixin(OpticalPumpingBase, DipoleTrapWithExperiment):
             unit="ms",
         )
 
+        # override these duration since do_experiment_hook is not used
+        self.override_param("dipole_hold_time", 0)
+        self.override_param("dipole_pre_experiment_delay", 0)
+
     @kernel
     def post_dipole_trap_hook(self):
         self.spin_polarize()
