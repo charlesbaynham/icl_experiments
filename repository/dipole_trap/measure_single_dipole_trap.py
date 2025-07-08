@@ -137,34 +137,34 @@ class SingleXODTHorizontalYSloshedFrag(
     Use a spinpol beam to displace the atoms horizontally
     """
 
-    def build_fragment(self):
+    # def build_fragment(self):
 
-        self.setattr_param_rebind(
-            "delay_before_horizontal_pulse",
-            OpticalPumpingBase,
-            "delay_before_spinpol_pulse",
-            description="Delay before horizontal pulse",
-            default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
-            unit="ms",
-        )
+    #     self.setattr_param_rebind(
+    #         "delay_before_horizontal_pulse",
+    #         OpticalPumpingBase,
+    #         "delay_before_spinpol_pulse",
+    #         description="Delay before horizontal pulse",
+    #         default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
+    #         unit="ms",
+    #     )
 
-        self.setattr_param_rebind(
-            "duration_horizontal_pulse",
-            OpticalPumpingBase,
-            "duration_spinpol_pulse",
-            description="Duration of the horizontal pulse",
-            default=constants.DURATION_OF_SPIN_POL,
-            unit="ms",
-        )
+    #     self.setattr_param_rebind(
+    #         "duration_horizontal_pulse",
+    #         OpticalPumpingBase,
+    #         "duration_spinpol_pulse",
+    #         description="Duration of the horizontal pulse",
+    #         default=constants.DURATION_OF_SPIN_POL,
+    #         unit="ms",
+    #     )
 
-        self.setattr_param_rebind(
-            "delay_after_horizontal_pulse",
-            OpticalPumpingBase,
-            "delay_after_spinpol_pulse",
-            description="Delay after the horizontal pulse",
-            default=constants.DELAY_AFTER_OPTICAL_PUMPING,
-            unit="ms",
-        )
+    #     self.setattr_param_rebind(
+    #         "delay_after_horizontal_pulse",
+    #         OpticalPumpingBase,
+    #         "delay_after_spinpol_pulse",
+    #         description="Delay after the horizontal pulse",
+    #         default=constants.DELAY_AFTER_OPTICAL_PUMPING,
+    #         unit="ms",
+    #     )
 
     @kernel
     def dipole_trap_optical_pumping_hook(self):
