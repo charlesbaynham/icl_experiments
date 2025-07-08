@@ -8,6 +8,9 @@ import repository.lib.constants as constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.optical_pumping import (
+    OpticalPumpingBase,
+)
 
 
 class SwitchHODT(DipoleTrapWithExperiment):
@@ -43,7 +46,6 @@ class SwitchHODT(DipoleTrapWithExperiment):
             default=50e-6,
             unit="us",
         )
-
         self.slosh_time: FloatParamHandle
 
         self.setattr_param(
@@ -75,3 +77,32 @@ class SwitchHODT(DipoleTrapWithExperiment):
         delay(self.slosh_time.get())
         self.hodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
         self.vodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+
+class HorizontalKickMixin(OpticalPumpingBase, DipoleTrapWithExperiment):
+    """
+    Use the spinpol beam to displace the atoms in the dipole trap
+    after the evaporation stage.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~post_dipole_trap_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "slosh_time",
+            FloatParam,
+            "Time to slosh the atoms for",
+            default=50e-6,
+            unit="us",
+        )
+        self.slosh_time: FloatParamHandle
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        self.spin_polarize()
+        delay(self.slosh_time.get())
+        self.dipole_beam_controller.turn_off_dipole_beams()

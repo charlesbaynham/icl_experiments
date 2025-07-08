@@ -23,8 +23,8 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.optical_pumping import (
-    OpticalPumpingBase,
+from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import (
+    HorizontalKickMixin,
 )
 from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
@@ -133,7 +133,7 @@ class SingleXODTHorizontalYSloshedFrag(
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
     EvaporationThreeRampsMixin,
-    OpticalPumpingBase,
+    HorizontalKickMixin,
 ):
     """
     Horizontally slosh a single XODT
@@ -170,10 +170,6 @@ class SingleXODTHorizontalYSloshedFrag(
     #         default=constants.DELAY_AFTER_OPTICAL_PUMPING,
     #         unit="ms",
     #     )
-
-    @kernel
-    def dipole_trap_optical_pumping_hook(self):
-        self.spin_polarize()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
