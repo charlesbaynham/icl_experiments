@@ -62,6 +62,7 @@ aliases = {
     "TTL_shutter_461_2dmot_is_it_a": "ttl9",
     "TTL_shutter_461_2dmot_is_it_b": "ttl10",
     "TTL_shutter_461_3dmot": "ttl11",
+    "ttl_clock_glitch_counter": "ttl12",
     "ttl_shutter_repump_707": "ttl16",
     "ttl_shutter_repump_679": "ttl17",
     "ttl_shutter_red_sigmaplus": "ttl18",
