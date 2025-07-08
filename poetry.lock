@@ -1164,13 +1164,13 @@ files = [
 
 [[package]]
 name = "generic-scpi-driver"
-version = "1.6"
+version = "1.6.1"
 description = "A generic template for creating python object-based drivers for SCPI hardware devices which communicate via VISA. Compatible with ARTIQ  installed with [artiq] modifier"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-    {file = "generic_scpi_driver-1.6-py3-none-any.whl", hash = "sha256:d3b9f843c27c765f141ec8c4bfe884d1dfe6c481708ab82321c1aa1d745e2e3f"},
-    {file = "generic_scpi_driver-1.6.tar.gz", hash = "sha256:dd96c14ecc3f2eac70866b08d0705f3ab91bfe0ea41785f33b765e2210517997"},
+    {file = "generic_scpi_driver-1.6.1-py3-none-any.whl", hash = "sha256:55bd48ce83d630829ea7058c4e16330753e801684e83c942d983c0450c8b3fd3"},
+    {file = "generic_scpi_driver-1.6.1.tar.gz", hash = "sha256:657b53f8138cd186ce89ec6997d933e8a4405609028226de3608b6178409e66d"},
 ]
 
 [package.dependencies]
@@ -5002,4 +5002,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "c7b22f1784fb2760911e5e981d94cad4d25b11a9373e865356a3a36dfc029daa"
+content-hash = "c00fd18df0f72db7ac0fc59b197f70798a52197df9326222bc4d4a9321842519"

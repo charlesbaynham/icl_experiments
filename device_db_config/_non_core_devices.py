@@ -168,6 +168,16 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.fragments.rigol.rigol_device",
             "mockclass": "MockRigolCounter",
         },
+        "clock_glitch_filter": {
+            "type": "local",
+            "module": "repository.lib.devices.clock_glitch_filter",
+            "class": "ClockGlitchFilter",
+            "arguments": {
+                "id": "t.b.c.",  # FIXME
+            },
+            "mockmodule": "repository.lib.devices.clock_glitch_filter",
+            "mockclass": "MockClockGlitchFilter",
+        },
         "andor_camera": {
             "type": "controller",
             "host": "labpc1.lan",
