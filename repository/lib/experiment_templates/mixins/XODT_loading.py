@@ -46,7 +46,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.mot_in_xodt: MOTInSingleXODT
 
         # Remove unused parameters
-        #self.override_param("spectroscopy_field_gradient", 0)
+        self.override_param("spectroscopy_field_gradient", 0)
 
         self.setattr_param(
             "stir_beam_detuning_mot_xodt",
