@@ -20,12 +20,8 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.optical_pumping import (
-    OpticalPumpingBase,
-)
 from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_molasses import MolassesInXODT
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +102,7 @@ class SingleXODTVerticalSloshedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
-    MolassesInXODT,
+    # MolassesInXODT,
     EvaporationSingleRampMixin,
     SwitchHODT,
 ):
@@ -122,56 +118,56 @@ class SingleXODTVerticalSloshedFrag(
         pass
 
 
-class SingleXODTHorizontalYSloshedFrag(
-    FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
-    LoadSingleXODTMixin,
-    MolassesInXODT,
-    OpticalPumpingBase,
-):
-    """
-    Horizontally slosh a single XODT
+# class SingleXODTHorizontalYSloshedFrag(
+#     FLIRMeasurementMixin,
+#     BGCorrectedAndorImageSingleXODT,
+#     LoadSingleXODTMixin,
+#     MolassesInXODT,
+#     OpticalPumpingBase,
+# ):
+#     """
+#     Horizontally slosh a single XODT
 
-    Use a spinpol beam to displace the atoms horizontally
-    """
+#     Use a spinpol beam to displace the atoms horizontally
+#     """
 
-    # def build_fragment(self):
-    #     super().build_fragment()
+#     # def build_fragment(self):
+#     #     super().build_fragment()
 
-    #     self.setattr_param_rebind(
-    #         "delay_before_horizontal_pulse",
-    #         OpticalPumpingBase,
-    #         "delay_before_spinpol_pulse",
-    #         description = "Delay before horizontal pulse",
-    #         default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
-    #         unit="ms",
-    #     )
+#     #     self.setattr_param_rebind(
+#     #         "delay_before_horizontal_pulse",
+#     #         OpticalPumpingBase,
+#     #         "delay_before_spinpol_pulse",
+#     #         description = "Delay before horizontal pulse",
+#     #         default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
+#     #         unit="ms",
+#     #     )
 
-    #     self.setattr_param_rebind(
-    #         "duration_horizontal_pulse",
-    #         OpticalPumpingBase,
-    #         "duration_spinpol_pulse",
-    #         description = "Duration of the horizontal pulse",
-    #         default=constants.DURATION_OF_SPIN_POL,
-    #         unit="ms",
-    #     )
+#     #     self.setattr_param_rebind(
+#     #         "duration_horizontal_pulse",
+#     #         OpticalPumpingBase,
+#     #         "duration_spinpol_pulse",
+#     #         description = "Duration of the horizontal pulse",
+#     #         default=constants.DURATION_OF_SPIN_POL,
+#     #         unit="ms",
+#     #     )
 
-    #     self.setattr_param_rebind(
-    #         "delay_after_horizontal_pulse",
-    #         OpticalPumpingBase,
-    #         "delay_after_spinpol_pulse",
-    #         description = "Delay after the horizontal pulse",
-    #         default=constants.DELAY_AFTER_OPTICAL_PUMPING,
-    #         unit="ms",
-    #     )
+#     #     self.setattr_param_rebind(
+#     #         "delay_after_horizontal_pulse",
+#     #         OpticalPumpingBase,
+#     #         "delay_after_spinpol_pulse",
+#     #         description = "Delay after the horizontal pulse",
+#     #         default=constants.DELAY_AFTER_OPTICAL_PUMPING,
+#     #         unit="ms",
+#     #     )
 
-    @kernel
-    def dipole_trap_optical_pumping_hook(self):
-        self.spin_polarize()
+#     @kernel
+#     def dipole_trap_optical_pumping_hook(self):
+#         self.spin_polarize()
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
+#     @kernel
+#     def do_experiment_after_dipole_trap_hook(self):
+#         pass
 
 
 class MeasureSingleXODTAbsFrag(
@@ -196,4 +192,4 @@ MeasureSingleXODTBGCorrected = make_fragment_scan_exp(MeasureSingleXODTBGCorrect
 MeasureSingleXODTAbs = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
 SingleXODTSloshed = make_fragment_scan_exp(SingleXODTSloshedFrag)
 SingleXODTVerticalSloshed = make_fragment_scan_exp(SingleXODTVerticalSloshedFrag)
-SingleXODTHorizontalYSloshed = make_fragment_scan_exp(SingleXODTHorizontalYSloshedFrag)
+# SingleXODTHorizontalYSloshed = make_fragment_scan_exp(SingleXODTHorizontalYSloshedFrag)
