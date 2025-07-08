@@ -101,6 +101,33 @@ class HorizontalKickMixin(OpticalPumpingBase, DipoleTrapWithExperiment):
         )
         self.slosh_time: FloatParamHandle
 
+        self.setattr_param_rebind(
+            "delay_before_horizontal_pulse",
+            self,
+            "delay_before_spinpol_pulse",
+            description="Delay before horizontal pulse",
+            default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
+            unit="ms",
+        )
+
+        self.setattr_param_rebind(
+            "duration_horizontal_pulse",
+            self,
+            "duration_spinpol_pulse",
+            description="Duration of the horizontal pulse",
+            default=constants.DURATION_OF_SPIN_POL,
+            unit="ms",
+        )
+
+        self.setattr_param_rebind(
+            "delay_after_horizontal_pulse",
+            self,
+            "delay_after_spinpol_pulse",
+            description="Delay after the horizontal pulse",
+            default=constants.DELAY_AFTER_OPTICAL_PUMPING,
+            unit="ms",
+        )
+
     @kernel
     def post_dipole_trap_hook(self):
         self.spin_polarize()

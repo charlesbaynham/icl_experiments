@@ -142,34 +142,12 @@ class SingleXODTHorizontalYSloshedFrag(
     to desired trap depth, then use a spinpol beam to displace the atoms horizontally
     """
 
+    def build_fragment(self):
+        # override these duration since do_experiment_hook is not used
+        self.override_param("dipole_hold_time", 0)
+        self.override_param("dipole_pre_experiment_delay", 0)
+
     # FIXME: TODO: Rebind the evaporation params to a single ramp down followed by a ramp up
-
-    #     self.setattr_param_rebind(
-    #         "delay_before_horizontal_pulse",
-    #         OpticalPumpingBase,
-    #         "delay_before_spinpol_pulse",
-    #         description="Delay before horizontal pulse",
-    #         default=constants.DELAY_BEFORE_OPTICAL_PUMPING,
-    #         unit="ms",
-    #     )
-
-    #     self.setattr_param_rebind(
-    #         "duration_horizontal_pulse",
-    #         OpticalPumpingBase,
-    #         "duration_spinpol_pulse",
-    #         description="Duration of the horizontal pulse",
-    #         default=constants.DURATION_OF_SPIN_POL,
-    #         unit="ms",
-    #     )
-
-    #     self.setattr_param_rebind(
-    #         "delay_after_horizontal_pulse",
-    #         OpticalPumpingBase,
-    #         "delay_after_spinpol_pulse",
-    #         description="Delay after the horizontal pulse",
-    #         default=constants.DELAY_AFTER_OPTICAL_PUMPING,
-    #         unit="ms",
-    #     )
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
