@@ -142,6 +142,8 @@ class SingleXODTHorizontalYSloshedFrag(
     to desired trap depth, then use a spinpol beam to displace the atoms horizontally
     """
 
+    # FIXME: TODO: Rebind the evaporation params to a single ramp down followed by a ramp up
+
     #     self.setattr_param_rebind(
     #         "delay_before_horizontal_pulse",
     #         OpticalPumpingBase,
