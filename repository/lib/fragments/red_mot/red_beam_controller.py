@@ -263,7 +263,6 @@ class RedBeamController(Fragment):
         super().host_setup()
         assert self.ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
         assert self.spinpol_ramp_type.get() in [0, 1, 2], "Ramp type must be 0, 1 or 2"
-
         if self.use_sigmaplus_spinpol.get():
             self.spinpol_toggler = self.sigmaplus_toggler
             self.spinpol_setpoint = constants.RED_SPINPOL_SETPOINT_SIGMAPLUS
