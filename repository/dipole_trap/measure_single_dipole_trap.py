@@ -17,6 +17,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationSingleRampMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
@@ -129,15 +132,15 @@ class SingleXODTHorizontalYSloshedFrag(
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
+    EvaporationThreeRampsMixin,
     OpticalPumpingBase,
 ):
     """
     Horizontally slosh a single XODT
 
-    Use a spinpol beam to displace the atoms horizontally
+    Load an XODT, use evaporation ramps to keep the coldest atoms and to ramp back up
+    to desired trap depth, then use a spinpol beam to displace the atoms horizontally
     """
-
-    # def build_fragment(self):
 
     #     self.setattr_param_rebind(
     #         "delay_before_horizontal_pulse",
