@@ -175,8 +175,8 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": (
                 "python -m repository.lib.devices.aqctl_clock_glitch_filter"
-                " --port {{port}}"
-                " --bind {{bind}}"
+                " --port {port}"
+                " --bind {bind}"
                 " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB"
             ),
         },

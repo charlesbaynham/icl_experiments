@@ -6,6 +6,7 @@ from artiq.language import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
 
+from repository.lib import constants
 from repository.lib.devices.clock_glitch_filter import ClockGlitchFilter
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
@@ -28,10 +29,10 @@ class ClockGlitchFilterFrag(Fragment):
 
         # Initiate the device with default settings
         # FIXME
-        # self.clock_glitch_filter.set_config(
-        #     glitch_threshold=constants.CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD,
-        #     gate_threshold=constants.CLOCK_GLITCH_FILTER_GATE_THRESHOLD,
-        # )
+        self.clock_glitch_filter.set_config(
+            glitch_threshold=constants.CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD,
+            gate_threshold=constants.CLOCK_GLITCH_FILTER_GATE_THRESHOLD,
+        )
 
     @kernel
     def device_setup(self):
