@@ -173,7 +173,7 @@ def get_non_core_devices(simulation_mode=False):
             "module": "repository.lib.devices.clock_glitch_filter",
             "class": "ClockGlitchFilter",
             "arguments": {
-                "id": "t.b.c.",  # FIXME
+                "id": "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AG0KOVMB-if00-port0",
             },
             "mockmodule": "repository.lib.devices.clock_glitch_filter",
             "mockclass": "MockClockGlitchFilter",
