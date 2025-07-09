@@ -57,12 +57,13 @@ ClockGlitchFilter._register_query("get_version", "*VER")
 ClockGlitchFilter._register_query("get_num_glitches", "*NUM?")
 
 
-# Parse configuration strings in the format "GLITCH: xxx.xx, GATE: xxx.xx"
+# Parse configuration strings in the format "GLITCH=xxx.xx, GATE=xxx.xx"
 def string_to_config(config_string: str):
+    logger.debug("Parsing config string: %s", config_string)
     config_dict = {}
-    parts = config_string.split(", ")
+    parts = config_string.split(",")
     for part in parts:
-        key, value = part.split(": ")
+        key, value = part.split("=")
         config_dict[key.strip()] = value.strip()
     return config_dict
 
@@ -85,6 +86,8 @@ ClockGlitchFilter._register_query(
         ),
     ],
 )
+
+ClockGlitchFilter._register_query("read_voltages", "READ?", response_parser=string_to_config)  # type: ignore
 
 
 class MockClockGlitchFilter:
