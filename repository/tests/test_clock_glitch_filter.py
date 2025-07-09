@@ -3,7 +3,7 @@ from artiq.experiment import rpc
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
-from ndscan.experiment import Fragment
+from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
@@ -11,7 +11,7 @@ from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
 )
 
 
-class TestClockGlitchFilter(Fragment):
+class TestClockGlitchFilter(ExpFragment):
 
     def build_fragment(self):
         self.setattr_device("core")

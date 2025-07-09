@@ -37,7 +37,7 @@ class _RawSerialInstance(Session):
         # so ignore the first line
         # _ = self.ser.readline()
         line = self.ser.readline()
-        rtn = line.decode()[:-2]
+        rtn = line.decode().strip()
         return rtn
 
     def read_line(self):
