@@ -168,19 +168,19 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.fragments.rigol.rigol_device",
             "mockclass": "MockRigolCounter",
         },
-        "clock_glitch_filter": {
-            "type": "controller",
-            "best_effort": True,
-            "host": "::1",
-            "port": 7777,
-            # "port": get_next_port(), # FIXME
-            "command": (
-                "python -m repository.lib.devices.aqctl_clock_glitch_filter"
-                " --port {port}"
-                " --bind {bind}"
-                " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB'"
-            ),
-        },
+        # "clock_glitch_filter": { FIXME
+        #     "type": "controller",
+        #     "best_effort": True,
+        #     "host": "::1",
+        #     "port": 7777,
+        #     # "port": get_next_port(), # FIXME
+        #     "command": (
+        #         "python -m repository.lib.devices.aqctl_clock_glitch_filter"
+        #         " --port {port}"
+        #         " --bind {bind}"
+        #         " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB'"
+        #     ),
+        # },
         "andor_camera": {
             "type": "controller",
             "host": "labpc1.lan",
