@@ -1,6 +1,6 @@
 from generic_scpi_driver import get_controller_func
 
-from .clock_glitch_filter import ClockGlitchFilter
+from repository.lib.devices.clock_glitch_filter import ClockGlitchFilter
 
 main = get_controller_func("RelockerDriver", 8888, ClockGlitchFilter)
 
