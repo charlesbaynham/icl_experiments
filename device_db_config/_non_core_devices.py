@@ -169,15 +169,16 @@ def get_non_core_devices(simulation_mode=False):
             "mockclass": "MockRigolCounter",
         },
         "clock_glitch_filter": {
-            "type": "local",
-            "module": "repository.lib.devices.clock_glitch_filter",
-            "class": "ClockGlitchFilter",
-            "arguments": {
-                # "id": "/dev/ttyUSB7",
-                "id": "USB VID:PID=0403:6001 SER=AG0KOVMB",
-            },
-            "mockmodule": "repository.lib.devices.clock_glitch_filter",
-            "mockclass": "MockClockGlitchFilter",
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": (
+                "python -m repository.lib.devices.aqctl_clock_glitch_filter"
+                " --port {{port}}"
+                " --bind {{bind}}"
+                " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB"
+            ),
         },
         "andor_camera": {
             "type": "controller",
