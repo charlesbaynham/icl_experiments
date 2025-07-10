@@ -4,7 +4,6 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
 from artiq.experiment import rpc
-from artiq.language import at_mu
 from artiq.language import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
@@ -45,13 +44,12 @@ class ClockGlitchFilterFrag(Fragment):
         self.device_setup_subfragments()
 
         # Setup the mask
-        at_mu(self.core.get_rtio_counter_mu())  # FIXME
         self.core.break_realtime()
         self.ttl_clock_glitch_counter.output()
         self.ttl_clock_glitch_counter.off()
 
         # Clear the count of glitches
-        # self.clear_glitch_count() # FIXME
+        self.clear_glitch_count()
 
     @kernel
     def start_counting_glitches(self):
