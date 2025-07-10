@@ -1,5 +1,7 @@
 from artiq.coredevice.core import Core
 from artiq.language import kernel
+from artiq.language import now_mu
+from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 
@@ -21,18 +23,17 @@ class TestClockGlitchFilter(ExpFragment):
     def run_once(self):
         print("AA...")
 
-        # FIXME
-        # self.count_glitches()
+        self.count_glitches()
 
-        # print("A...")
+        print("A...")
 
-        # self.core.break_realtime()
+        self.core.break_realtime()
 
-        # print("B...")
+        print("B...")
 
-        # self.core.wait_until_mu(now_mu())
+        self.core.wait_until_mu(now_mu())
 
-        # print("C...")
+        print("C...")
 
         # self.start_counting_glitches()
 
@@ -52,10 +53,10 @@ class TestClockGlitchFilter(ExpFragment):
     #     self.clock_glitch_filter.stop_counting_glitches()
     #     print("Stopped counting glitches.")
 
-    # @rpc(flags={"async"})
-    # def count_glitches(self):
-    #     num_glitches = self.clock_glitch_filter.get_num_glitches()
-    #     print(f"Number of glitches counted: {num_glitches}")
+    @rpc(flags={"async"})
+    def count_glitches(self):
+        num_glitches = self.clock_glitch_filter.get_num_glitches()
+        print(f"Number of glitches counted: {num_glitches}")
 
 
 TestClockGlitchFilterExp = make_fragment_scan_exp(
