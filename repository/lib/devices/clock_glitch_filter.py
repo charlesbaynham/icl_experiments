@@ -49,7 +49,9 @@ class ClockGlitchFilter(GenericDriver):
     session_factory = _RawSerialInstance
 
     def ping(self):
-        assert "ClockGlitchMonitor" in self.get_identity()
+        idn = self.get_identity()
+        logger.debug('Ping response: "%s"', idn)
+        assert "ClockGlitchMonitor" in idn
 
 
 ClockGlitchFilter._register_query("get_identity", "*IDN")
