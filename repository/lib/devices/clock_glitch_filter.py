@@ -51,7 +51,12 @@ class ClockGlitchFilter(GenericDriver):
     def ping(self):
         idn = self.get_identity()
         logger.debug('Ping response: "%s"', idn)
-        return "ClockGlitchMonitor" in idn
+        valid = "ClockGlitchMonitor" in idn
+
+        if not valid:
+            logger.critical("Invalid device ID: %s. Ping failed", idn)
+
+        return valid
 
 
 ClockGlitchFilter._register_query("get_identity", "*IDN")
