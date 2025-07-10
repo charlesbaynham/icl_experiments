@@ -55,8 +55,8 @@ class TestClockGlitchFilter(ExpFragment):
 
     @rpc
     def start_counting_glitches(self):
-        self.clock_glitch_filter.start_counting_glitches()
         print("Started counting glitches.")
+        self.clock_glitch_filter.start_counting_glitches()
 
     @rpc
     def stop_counting_glitches(self):
