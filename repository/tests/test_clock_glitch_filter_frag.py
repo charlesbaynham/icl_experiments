@@ -55,16 +55,10 @@ class TestClockGlitchFilter(ExpFragment):
 
     @kernel
     def start_counting_glitches(self):
-        print("Started counting glitches.")  # FIXME
-        self.core.break_realtime()  # FIXME
-
         self.clock_glitch_filter.start_counting_glitches()
 
     @kernel
     def stop_counting_glitches(self):
-        print("Stopped counting glitches.")  # FIXME
-        self.core.break_realtime()  # FIXME
-
         self.clock_glitch_filter.stop_counting_glitches()
 
     @rpc(flags={"async"})
