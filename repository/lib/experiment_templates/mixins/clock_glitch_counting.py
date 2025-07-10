@@ -5,8 +5,11 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
 from artiq.experiment import rpc
 from artiq.language import kernel
+from artiq.language import rpc
 from ndscan.experiment import FloatChannel
+from ndscan.experiment import FloatParam
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.devices.clock_glitch_filter import ClockGlitchFilter
@@ -28,13 +31,31 @@ class ClockGlitchFilterFrag(Fragment):
         self.setattr_device("core")
         self.core: Core
 
+        self.setattr_param(
+            "gate_threshold",
+            FloatParam,
+            description="TTL threshold for gating the clock glitch filter",
+            default=constants.CLOCK_GLITCH_FILTER_GATE_THRESHOLD,
+            unit="V",
+        )
+        self.gate_threshold: FloatParamHandle
+
+        self.setattr_param(
+            "glitch_threshold",
+            FloatParam,
+            description="Threshold for counting a glitch",
+            default=constants.CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD,
+            unit="V",
+        )
+        self.glitch_threshold: FloatParamHandle
+
     def host_setup(self):
         super().host_setup()
 
         # Initiate the device with default settings
         config = self.clock_glitch_filter.set_config(
-            glitch_threshold=constants.CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD,
-            gate_threshold=constants.CLOCK_GLITCH_FILTER_GATE_THRESHOLD,
+            glitch_threshold=self.glitch_threshold.get(),
+            gate_threshold=self.gate_threshold.get(),
         )
 
         logger.debug("Set clock glitch filter config: %s", config)
