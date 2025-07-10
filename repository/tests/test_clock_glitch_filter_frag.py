@@ -4,7 +4,9 @@ from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatParam
 from ndscan.experiment import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
     ClockGlitchFilterFrag,
@@ -20,13 +22,18 @@ class TestClockGlitchFilter(ExpFragment):
         self.setattr_fragment("clock_glitch_filter", ClockGlitchFilterFrag)
         self.clock_glitch_filter: ClockGlitchFilterFrag
 
+        self.setattr_param(
+            "count_time", FloatParam, description="Time to count", unit="s", default=2
+        )
+        self.count_time: FloatParamHandle
+
     @kernel
     def run_once(self):
         self.core.break_realtime()
 
         self.start_counting_glitches()
 
-        delay(2.0)
+        delay(self.count_time.get())
         self.stop_counting_glitches()
 
         delay(0.1)
