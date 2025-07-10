@@ -1,8 +1,5 @@
 from artiq.coredevice.core import Core
-from artiq.experiment import rpc
-from artiq.language import delay
 from artiq.language import kernel
-from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 
@@ -22,33 +19,43 @@ class TestClockGlitchFilter(ExpFragment):
 
     @kernel
     def run_once(self):
-        self.count_glitches()
+        print("AA...")
 
-        self.core.break_realtime()
-        self.core.wait_until_mu(now_mu())
+        # FIXME
+        # self.count_glitches()
 
-        self.start_counting_glitches()
+        # print("A...")
 
-        delay(2.0)
-        self.core.wait_until_mu(now_mu())
+        # self.core.break_realtime()
 
-        self.stop_counting_glitches()
-        self.count_glitches()
+        # print("B...")
 
-    @rpc
-    def start_counting_glitches(self):
-        self.clock_glitch_filter.start_counting_glitches()
-        print("Started counting glitches.")
+        # self.core.wait_until_mu(now_mu())
 
-    @rpc
-    def stop_counting_glitches(self):
-        self.clock_glitch_filter.stop_counting_glitches()
-        print("Stopped counting glitches.")
+        # print("C...")
 
-    @rpc(flags={"async"})
-    def count_glitches(self):
-        num_glitches = self.clock_glitch_filter.get_num_glitches()
-        print(f"Number of glitches counted: {num_glitches}")
+        # self.start_counting_glitches()
+
+        # delay(2.0)
+        # self.core.wait_until_mu(now_mu())
+
+        # self.stop_counting_glitches()
+        # self.count_glitches()
+
+    # @rpc
+    # def start_counting_glitches(self):
+    #     self.clock_glitch_filter.start_counting_glitches()
+    #     print("Started counting glitches.")
+
+    # @rpc
+    # def stop_counting_glitches(self):
+    #     self.clock_glitch_filter.stop_counting_glitches()
+    #     print("Stopped counting glitches.")
+
+    # @rpc(flags={"async"})
+    # def count_glitches(self):
+    #     num_glitches = self.clock_glitch_filter.get_num_glitches()
+    #     print(f"Number of glitches counted: {num_glitches}")
 
 
 TestClockGlitchFilterExp = make_fragment_scan_exp(

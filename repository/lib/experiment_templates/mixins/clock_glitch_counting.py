@@ -1,7 +1,10 @@
+import logging
+
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
 from artiq.experiment import rpc
+from artiq.language import at_mu
 from artiq.language import kernel
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
@@ -11,6 +14,8 @@ from repository.lib.devices.clock_glitch_filter import ClockGlitchFilter
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ClockGlitchFilterFrag(Fragment):
@@ -28,22 +33,25 @@ class ClockGlitchFilterFrag(Fragment):
         super().host_setup()
 
         # Initiate the device with default settings
-        self.clock_glitch_filter.set_config(
+        config = self.clock_glitch_filter.set_config(
             glitch_threshold=constants.CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD,
             gate_threshold=constants.CLOCK_GLITCH_FILTER_GATE_THRESHOLD,
         )
+
+        logger.debug("Set clock glitch filter config: %s", config)
 
     @kernel
     def device_setup(self):
         self.device_setup_subfragments()
 
         # Setup the mask
+        at_mu(self.core.get_rtio_counter_mu())  # FIXME
         self.core.break_realtime()
         self.ttl_clock_glitch_counter.output()
         self.ttl_clock_glitch_counter.off()
 
         # Clear the count of glitches
-        self.clear_glitch_count()
+        # self.clear_glitch_count() # FIXME
 
     @kernel
     def start_counting_glitches(self):
