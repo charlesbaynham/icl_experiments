@@ -28,7 +28,6 @@ class ClockGlitchFilterFrag(Fragment):
         super().host_setup()
 
         # Initiate the device with default settings
-        # FIXME
         self.clock_glitch_filter.set_config(
             glitch_threshold=constants.CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD,
             gate_threshold=constants.CLOCK_GLITCH_FILTER_GATE_THRESHOLD,
