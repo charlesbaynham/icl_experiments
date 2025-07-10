@@ -44,7 +44,7 @@ class ClockGlitchFilterFrag(Fragment):
         self.ttl_clock_glitch_counter.off()
 
         # Clear the count of glitches
-        self.clock_glitch_filter.get_num_glitches()
+        self.get_num_glitches()
 
     @kernel
     def start_counting_glitches(self):
