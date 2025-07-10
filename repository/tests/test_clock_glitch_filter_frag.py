@@ -4,6 +4,7 @@ from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatChannel
 from ndscan.experiment import FloatParam
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
@@ -26,6 +27,9 @@ class TestClockGlitchFilter(ExpFragment):
             "count_time", FloatParam, description="Time to count", unit="s", default=2
         )
         self.count_time: FloatParamHandle
+
+        self.setattr_result("num_glitches")
+        self.num_glitches: FloatChannel
 
     @kernel
     def run_once(self):
@@ -52,6 +56,8 @@ class TestClockGlitchFilter(ExpFragment):
     def count_glitches(self):
         num_glitches = self.clock_glitch_filter.get_num_glitches()
         print(f"Number of glitches counted: {num_glitches}")
+
+        self.num_glitches.push(num_glitches)
 
 
 TestClockGlitchFilterExp = make_fragment_scan_exp(
