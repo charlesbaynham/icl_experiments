@@ -44,7 +44,7 @@ class ClockGlitchFilterFrag(Fragment):
         self.ttl_clock_glitch_counter.off()
 
         # Clear the count of glitches
-        self.get_num_glitches()
+        self.clear_glitch_count()
 
     @kernel
     def start_counting_glitches(self):
@@ -59,6 +59,10 @@ class ClockGlitchFilterFrag(Fragment):
         Stop counting glitches.
         """
         self.ttl_clock_glitch_counter.off()
+
+    @rpc
+    def clear_glitch_count(self):
+        self.clock_glitch_filter.get_num_glitches()
 
     @host_only
     def get_num_glitches(self) -> int:

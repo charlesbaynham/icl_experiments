@@ -37,18 +37,21 @@ class TestClockGlitchFilter(ExpFragment):
 
     @rpc
     def start_counting_glitches(self):
-        self.clock_glitch_filter.start_counting_glitches()
-        print("Started counting glitches.")
+        return  # FIXME
+        # self.clock_glitch_filter.start_counting_glitches()
+        # print("Started counting glitches.")
 
     @rpc
     def stop_counting_glitches(self):
-        self.clock_glitch_filter.stop_counting_glitches()
-        print("Stopped counting glitches.")
+        return  # FIXME
+        # self.clock_glitch_filter.stop_counting_glitches()
+        # print("Stopped counting glitches.")
 
     @rpc(flags={"async"})
     def count_glitches(self):
-        num_glitches = self.clock_glitch_filter.get_num_glitches()
-        print(f"Number of glitches counted: {num_glitches}")
+        return  # FIXME
+        # num_glitches = self.clock_glitch_filter.get_num_glitches()
+        # print(f"Number of glitches counted: {num_glitches}")
 
 
 TestClockGlitchFilterExp = make_fragment_scan_exp(
