@@ -39,136 +39,135 @@ def get_non_core_devices(simulation_mode=False):
         logger.warning("Initiating devices in simulation mode")
 
     _non_core = {
-        # FIXME
-        # "influx_logger": {
+        "influx_logger": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "target": "influx_logger",
+            "command": "artiq_influx_generic --port {port} --bind {bind}",
+        },
+        "influx_scheduler_logger": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": (
+                "artiq_influxdb_schedule "
+                f"--server-master {ARTIQ_CONNECTION_IP} "
+                "--port-control {port} "
+                "--bind {bind}"
+            ),
+        },
+        "wand_server": {
+            "type": "controller",
+            "best_effort": True,
+            "host": ARTIQ_CONNECTION_IP,
+            "port": PORT_WAND_CONTROL,
+            "command": (
+                "bash -c '"
+                "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
+                "nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind {bind} "
+                f"--port-notify {PORT_WAND_NOTIFY} "
+                f"--port-control {PORT_WAND_CONTROL}"
+                "'"
+            ),
+        },
+        # "artiq_http": {
+        #     "type": "controller",
+        #     "host": "::1",
+        #     "port": "8000",
+        #     "command": "aqctl_artiq_http",
+        # },
+        "blue_IJD1_controller": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
+        },
+        "blue_IJD2_controller": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
+        },
+        "blue_IJD3_controller": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
+        },
+        "red_IJD1_controller": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040081'",
+        },
+        "blue_relocker": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
+        },
+        "red_relocker": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
+        },
+        "cavity_scanner": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN0'",
+        },
+        # "test_relocker": {
         #     "type": "controller",
         #     "best_effort": True,
         #     "host": "::1",
         #     "port": get_next_port(),
-        #     "target": "influx_logger",
-        #     "command": "artiq_influx_generic --port {port} --bind {bind}",
+        #     "command": f"aqctl_relocker_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN2'",
         # },
-        # "influx_scheduler_logger": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": (
-        #         "artiq_influxdb_schedule "
-        #         f"--server-master {ARTIQ_CONNECTION_IP} "
-        #         "--port-control {port} "
-        #         "--bind {bind}"
-        #     ),
-        # },
-        # "wand_server": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": ARTIQ_CONNECTION_IP,
-        #     "port": PORT_WAND_CONTROL,
-        #     "command": (
-        #         "bash -c '"
-        #         "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
-        #         "nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind {bind} "
-        #         f"--port-notify {PORT_WAND_NOTIFY} "
-        #         f"--port-control {PORT_WAND_CONTROL}"
-        #         "'"
-        #     ),
-        # },
-        # # "artiq_http": {
-        # #     "type": "controller",
-        # #     "host": "::1",
-        # #     "port": "8000",
-        # #     "command": "aqctl_artiq_http",
-        # # },
-        # "blue_IJD1_controller": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
-        # },
-        # "blue_IJD2_controller": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
-        # },
-        # "blue_IJD3_controller": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
-        # },
-        # "red_IJD1_controller": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040081'",
-        # },
-        # "blue_relocker": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
-        # },
-        # "red_relocker": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
-        # },
-        # "cavity_scanner": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN0'",
-        # },
-        # # "test_relocker": {
-        # #     "type": "controller",
-        # #     "best_effort": True,
-        # #     "host": "::1",
-        # #     "port": get_next_port(),
-        # #     "command": f"aqctl_relocker_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN2'",
-        # # },
-        # "flir_camera_ch2_horizontal": {
-        #     "type": "local",
-        #     "module": "repository.lib.fragments.cameras.flir_camera_shim",
-        #     "class": "Camera",
-        #     "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
-        #     "mockclass": "MockCamera",
-        #     "arguments": {
-        #         "name": "FLIR-Blackfly S BFS-PGE-50S5M-23476914",
-        #         "loglevel": logging.WARNING,
-        #     },
-        # },
-        # "flir_camera_ch2_vertical": {
-        #     "type": "local",
-        #     "module": "repository.lib.fragments.cameras.flir_camera_shim",
-        #     "class": "Camera",
-        #     "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
-        #     "mockclass": "MockCamera",
-        #     "arguments": {
-        #         "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
-        #         "loglevel": logging.WARNING,
-        #     },
-        # },
-        # "rigol_counter": {
-        #     "type": "local",
-        #     "module": "repository.lib.fragments.rigol.rigol_device",
-        #     "class": "RigolCounter",
-        #     "arguments": {
-        #         "rigol_ip": "rigol-dg4162-b.lan",
-        #         "gate_time": "10 s",
-        #     },
-        #     "mockmodule": "repository.lib.fragments.rigol.rigol_device",
-        #     "mockclass": "MockRigolCounter",
-        # },
+        "flir_camera_ch2_horizontal": {
+            "type": "local",
+            "module": "repository.lib.fragments.cameras.flir_camera_shim",
+            "class": "Camera",
+            "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
+            "mockclass": "MockCamera",
+            "arguments": {
+                "name": "FLIR-Blackfly S BFS-PGE-50S5M-23476914",
+                "loglevel": logging.WARNING,
+            },
+        },
+        "flir_camera_ch2_vertical": {
+            "type": "local",
+            "module": "repository.lib.fragments.cameras.flir_camera_shim",
+            "class": "Camera",
+            "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
+            "mockclass": "MockCamera",
+            "arguments": {
+                "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018872",
+                "loglevel": logging.WARNING,
+            },
+        },
+        "rigol_counter": {
+            "type": "local",
+            "module": "repository.lib.fragments.rigol.rigol_device",
+            "class": "RigolCounter",
+            "arguments": {
+                "rigol_ip": "rigol-dg4162-b.lan",
+                "gate_time": "10 s",
+            },
+            "mockmodule": "repository.lib.fragments.rigol.rigol_device",
+            "mockclass": "MockRigolCounter",
+        },
         "clock_glitch_filter": {
             "type": "controller",
             "best_effort": True,
@@ -182,160 +181,159 @@ def get_non_core_devices(simulation_mode=False):
                 " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB'"
             ),
         },
-        # FIXME
-        # "andor_camera": {
-        #     "type": "controller",
-        #     "host": "labpc1.lan",
-        #     "port": 7777,
-        #     "target": "AndorDriver",
-        #     "mockmodule": "repository.lib.fragments.cameras.andor_mock",
-        #     "mockclass": "MockAndorCamera",
-        #     "command": 'aqctl_andor_cam --port {port} --bind {bind} --id "AndorCam" --temperature -60 --fan_mode "full"',
-        # },
-        # "chamber_1_axial_coil_driver": {
-        #     "type": "local",
-        #     "module": "tenma_power_supply",
-        #     "class": "TENMAPowerSupply",
-        #     "mockmodule": "unittest.mock",
-        #     "mockclass": "MagicMock",
-        #     "arguments": {
-        #         "id": "tenma-powersupply-1.lan",
-        #         "port": 18200,
-        #         "simulation": simulation_mode,
-        #     },
-        # },
-        # "chamber_1_radial1_coil_driver": {
-        #     "type": "local",
-        #     "module": "tenma_power_supply",
-        #     "class": "TENMAPowerSupply",
-        #     "mockmodule": "unittest.mock",
-        #     "mockclass": "MagicMock",
-        #     "arguments": {
-        #         "id": "tenma-aion-ch1-1.lan",
-        #         "port": 18202,
-        #         "simulation": simulation_mode,
-        #     },
-        # },
-        # "chamber_1_radial2_coil_driver": {
-        #     "type": "local",
-        #     "module": "tenma_power_supply",
-        #     "class": "TENMAPowerSupply",
-        #     "mockmodule": "unittest.mock",
-        #     "mockclass": "MagicMock",
-        #     "arguments": {
-        #         "id": "tenma-aion-ch1-2.lan",
-        #         "port": 18203,
-        #         "simulation": simulation_mode,
-        #     },
-        # },
-        # "chamber_1_radial_coil_driver": {
-        #     "type": "local",
-        #     "module": "tti_power_supply",
-        #     "class": "TTIPowerSupplyTCP",
-        #     "arguments": {
-        #         "id": "10.137.1.28",
-        #         "simulation": simulation_mode,
-        #     },
-        # },
-        # "toptica_461": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-461-679",
-        #         "laser": "laser1",
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
-        # "toptica_679": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-461-679",
-        #         "laser": "laser2",
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
-        # "toptica_1379": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-1379-698",
-        #         "laser": "laser1",
-        #         "falc": 1,
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
-        # "toptica_698": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-1379-698",
-        #         "laser": "laser2",
-        #         "falc": 2,
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
-        # "toptica_707": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-707-689",
-        #         "laser": "laser1",
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
-        # "toptica_689": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-707-689",
-        #         "laser": "laser2",
-        #         "falc": 1,
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
-        # "toptica_487": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-487-641",
-        #         "laser": "laser1",
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
-        # "toptica_641": {
-        #     "type": "local",
-        #     "module": "toptica_wrapper.driver",
-        #     "class": "TopticaDLCPro",
-        #     "arguments": {
-        #         "ip": "toptica-487-641",
-        #         "laser": "laser2",
-        #         "simulation": simulation_mode,
-        #     },
-        #     "mockmodule": "repository.lib.mock_device",
-        #     "mockclass": "MockDevice",
-        # },
+        "andor_camera": {
+            "type": "controller",
+            "host": "labpc1.lan",
+            "port": 7777,
+            "target": "AndorDriver",
+            "mockmodule": "repository.lib.fragments.cameras.andor_mock",
+            "mockclass": "MockAndorCamera",
+            "command": 'aqctl_andor_cam --port {port} --bind {bind} --id "AndorCam" --temperature -60 --fan_mode "full"',
+        },
+        "chamber_1_axial_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-powersupply-1.lan",
+                "port": 18200,
+                "simulation": simulation_mode,
+            },
+        },
+        "chamber_1_radial1_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-1.lan",
+                "port": 18202,
+                "simulation": simulation_mode,
+            },
+        },
+        "chamber_1_radial2_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-2.lan",
+                "port": 18203,
+                "simulation": simulation_mode,
+            },
+        },
+        "chamber_1_radial_coil_driver": {
+            "type": "local",
+            "module": "tti_power_supply",
+            "class": "TTIPowerSupplyTCP",
+            "arguments": {
+                "id": "10.137.1.28",
+                "simulation": simulation_mode,
+            },
+        },
+        "toptica_461": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-461-679",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
+        "toptica_679": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-461-679",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
+        "toptica_1379": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-1379-698",
+                "laser": "laser1",
+                "falc": 1,
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
+        "toptica_698": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-1379-698",
+                "laser": "laser2",
+                "falc": 2,
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
+        "toptica_707": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-707-689",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
+        "toptica_689": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-707-689",
+                "laser": "laser2",
+                "falc": 1,
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
+        "toptica_487": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-487-641",
+                "laser": "laser1",
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
+        "toptica_641": {
+            "type": "local",
+            "module": "toptica_wrapper.driver",
+            "class": "TopticaDLCPro",
+            "arguments": {
+                "ip": "toptica-487-641",
+                "laser": "laser2",
+                "simulation": simulation_mode,
+            },
+            "mockmodule": "repository.lib.mock_device",
+            "mockclass": "MockDevice",
+        },
         # Example devices: edit to suit your lab
         # An example of a local device:
         # "SomeCurrentDriver": {

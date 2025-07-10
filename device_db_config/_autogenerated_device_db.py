@@ -15,29 +15,28 @@ device_db = {
             "satellite_cpu_targets": {},
         },
     },
-    # FIXME
-    # "core_log": {
-    #     "type": "controller",
-    #     "host": "::1",
-    #     "port": 1068,
-    #     "command": "aqctl_corelog -p {port} --bind {bind} " + core_addr,
-    # },
-    # "core_moninj": {
-    #     "type": "controller",
-    #     "host": "::1",
-    #     "port_proxy": 1383,
-    #     "port": 1384,
-    #     "command": "aqctl_moninj_proxy --port-proxy {port_proxy} --port-control {port} --bind {bind} "
-    #     + core_addr,
-    # },
-    # "core_analyzer": {
-    #     "type": "controller",
-    #     "host": "::1",
-    #     "port_proxy": 1385,
-    #     "port": 1386,
-    #     "command": "aqctl_coreanalyzer_proxy --port-proxy {port_proxy} --port-control {port} --bind {bind} "
-    #     + core_addr,
-    # },
+    "core_log": {
+        "type": "controller",
+        "host": "::1",
+        "port": 1068,
+        "command": "aqctl_corelog -p {port} --bind {bind} " + core_addr,
+    },
+    "core_moninj": {
+        "type": "controller",
+        "host": "::1",
+        "port_proxy": 1383,
+        "port": 1384,
+        "command": "aqctl_moninj_proxy --port-proxy {port_proxy} --port-control {port} --bind {bind} "
+        + core_addr,
+    },
+    "core_analyzer": {
+        "type": "controller",
+        "host": "::1",
+        "port_proxy": 1385,
+        "port": 1386,
+        "command": "aqctl_coreanalyzer_proxy --port-proxy {port_proxy} --port-control {port} --bind {bind} "
+        + core_addr,
+    },
     "core_cache": {
         "type": "local",
         "module": "artiq.coredevice.cache",
