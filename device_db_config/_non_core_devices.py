@@ -39,6 +39,7 @@ def get_non_core_devices(simulation_mode=False):
         logger.warning("Initiating devices in simulation mode")
 
     _non_core = {
+        # FIXME
         # "influx_logger": {
         #     "type": "controller",
         #     "best_effort": True,
@@ -181,6 +182,7 @@ def get_non_core_devices(simulation_mode=False):
                 " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB'"
             ),
         },
+        # FIXME
         # "andor_camera": {
         #     "type": "controller",
         #     "host": "labpc1.lan",
