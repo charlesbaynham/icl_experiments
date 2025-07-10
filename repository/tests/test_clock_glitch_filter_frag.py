@@ -22,36 +22,16 @@ class TestClockGlitchFilter(ExpFragment):
 
     @kernel
     def run_once(self):
-        print("AA...")
-
-        self.count_glitches()
-
-        print("A...")
-
         self.core.break_realtime()
-
-        print("B...")
-
-        self.core.wait_until_mu(now_mu())
-
-        print("C...")
 
         self.start_counting_glitches()
 
-        print("D...")
-
         delay(2.0)
-        self.core.wait_until_mu(now_mu())
-
-        print("E...")
-
         self.stop_counting_glitches()
 
-        print("F...")
-
+        delay(0.1)
+        self.core.wait_until_mu(now_mu())
         self.count_glitches()
-
-        print("End!")
 
     @kernel
     def start_counting_glitches(self):
