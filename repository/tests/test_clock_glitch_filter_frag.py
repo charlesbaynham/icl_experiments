@@ -38,11 +38,20 @@ class TestClockGlitchFilter(ExpFragment):
 
         self.start_counting_glitches()
 
+        print("D...")
+
         delay(2.0)
         self.core.wait_until_mu(now_mu())
 
+        print("E...")
+
         self.stop_counting_glitches()
+
+        print("F...")
+
         self.count_glitches()
+
+        print("End!")
 
     @rpc
     def start_counting_glitches(self):
