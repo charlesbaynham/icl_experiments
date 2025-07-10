@@ -27,13 +27,23 @@ class TestClockGlitchFilter(ExpFragment):
         self.core.break_realtime()
         self.core.wait_until_mu(now_mu())
 
-        self.clock_glitch_filter.start_counting_glitches()
+        self.start_counting_glitches()
 
         delay(2.0)
         self.core.wait_until_mu(now_mu())
 
-        self.clock_glitch_filter.stop_counting_glitches()
+        self.stop_counting_glitches()
         self.count_glitches()
+
+    @rpc
+    def start_counting_glitches(self):
+        self.clock_glitch_filter.start_counting_glitches()
+        print("Started counting glitches.")
+
+    @rpc
+    def stop_counting_glitches(self):
+        self.clock_glitch_filter.stop_counting_glitches()
+        print("Stopped counting glitches.")
 
     @rpc(flags={"async"})
     def count_glitches(self):
