@@ -19,6 +19,7 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from relocker_driver.driver import RelockerDriver
 
+from device_db_config import get_configuration_from_db
 from repository.lib.constants import IJD_RELOCKER_DEFAULTS
 from repository.lib.constants import SCANNER_BOARD_DEFAULTS
 from repository.lib.constants import IJDRelockerSettings
@@ -243,16 +244,27 @@ class RelockerChannelFrag(ExpFragment):
         return set_voltages
 
     def get_scan_currents(self, scan_voltages):
-        current_gain = self.controller.get_mod_gain()
+        info = get_configuration_from_db("IJD_info")[self.controller_name]
+        current_gain = info["mod_gain"]
+        input_resistance = info["input_resistance"]
+        output_resistance = info["output_resistance"]
+        voltage_ratio = input_resistance / (input_resistance + output_resistance)
         logger.info("current gain: %s", current_gain)
         current_act = self.controller.get_current_mA()
         logger.info("current act: %s", current_act)
-        return np.array([v / 2 * current_gain + current_act for v in scan_voltages])
+        return np.array(
+            [
+                v * voltage_ratio * current_gain * 1e3 + current_act
+                for v in scan_voltages
+            ]
+        )
 
     def log_results(self):
         # Log action
         results = self.get_result()
         scan_voltages = self.get_scan_voltages()[::-1]
+        scan_voltages = self.get_scan_currents(scan_voltages)
+
         # scan_currents = self.get_scan_currents(scan_voltages)
 
         read_voltages = self.get_read_voltages()
@@ -261,6 +273,8 @@ class RelockerChannelFrag(ExpFragment):
         i_start = int(results[0])
         i_end = int(results[1])
         i_lock = int(results[2])
+        if i_lock >= len(read_voltages):
+            i_lock = len(read_voltages) - 1
 
         # window_start = scan_currents[i_start]
         # window_end = scan_currents[i_end]
@@ -292,7 +306,16 @@ class RelockerChannelFrag(ExpFragment):
             broadcast=True,
             archive=False,
         )
+        window = [i_start, i_end, i_lock, read_voltages[i_lock]]
+        self.set_dataset(
+            f"{self.relocker_name}_{self.channel}_window",
+            window,
+            broadcast=True,
+            archive=False,
+        )
         cmd = f"${{artiq_applet}}plot_xy {self.relocker_name}_{self.channel}_read_voltages --x {self.relocker_name}_{self.channel}_set_voltages"
+        cmd = f"${{python}} -m repository.lib.applets.ijd_window_applet {self.relocker_name}_{self.channel}_read_voltages {self.relocker_name}_{self.channel}_set_voltages  {self.relocker_name}_{self.channel}_window --x_label 'Current (mA)'"
+
         self.ccb.issue("create_applet", f"{self.channel_name} relocker", cmd)
         logger.info("window_start: %s", i_start)
         logger.info("window_end: %s", i_end)
@@ -321,7 +344,7 @@ class RelockerChannelFrag(ExpFragment):
         self.log_results()
 
 
-class RelockerFrag(ExpFragment):
+class AllRelockersFrag(ExpFragment):
     def build_fragment(self):
         self.relocker_frags: List[RelockerChannelFrag] = []
         self.relocker_enabled: List[BoolParamHandle] = []
@@ -512,5 +535,6 @@ class ScanIJDRelockerFrag(ExpFragment):
 
 
 RunRelockerChannel = make_fragment_scan_exp(RelockerChannelFrag)
+AllRelockers = make_fragment_scan_exp(AllRelockersFrag)
 RelockerAuto = make_fragment_scan_exp(RelockerAutoFrag)
 ScanIJDRelocker = make_fragment_scan_exp(ScanIJDRelockerFrag)
