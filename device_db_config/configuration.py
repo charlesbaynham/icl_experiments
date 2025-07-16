@@ -69,8 +69,8 @@ config = {
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },
-        "red_IJD_controller": {
-            "mod_gain": 75e-3,  # A/V
+        "red_IJD1_controller": {
+            "mod_gain": 2.5e-3,  # A/V
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },
