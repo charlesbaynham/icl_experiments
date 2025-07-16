@@ -32,6 +32,8 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
         )
         self.camera_interface: DualCameraMeasurement
 
+        self.camera_interface.image_vertical_mean.display_hints["priority"] = -1
+
         self.setattr_param_rebind(
             "exposure_horiz",
             self.camera_interface,
