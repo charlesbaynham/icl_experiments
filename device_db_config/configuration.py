@@ -55,17 +55,17 @@ config = {
     },
     "IJD_info": {
         "blue_IJD1_controller": {
-            "mod_gain": 75e-3,  # A/V
+            "mod_gain": 0.75e-3,  # A/V
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },
         "blue_IJD2_controller": {
-            "mod_gain": 75e-3,  # A/V
+            "mod_gain": 0.75e-3,  # A/V
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },
         "blue_IJD3_controller": {
-            "mod_gain": 75e-3,  # A/V
+            "mod_gain": 0.75e-3,  # A/V
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },

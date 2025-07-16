@@ -370,17 +370,22 @@ class AllRelockersFrag(ExpFragment):
                 )
             )
 
-    def run_once(self) -> None:
-        for i in range(len(self.relocker_frags)):
-            relocker_frag = self.relocker_frags[i]
-            enabled = self.relocker_enabled[i]
+        self.setattr_param(
+            "write_settings",
+            BoolParam,
+            description="Write settings",
+            default=False,
+        )
+        self.write_settings: BoolParamHandle
 
-            if enabled.get():
-                if relocker_frag.write_settings:
-                    relocker_frag.set_scan_settings()
-                    relocker_frag.set_lock_settings()
-                relocker_frag.relock()
-                relocker_frag.log_results()
+        for i, relocker in enumerate(self.relocker_frags):
+            relocker.bind_param("relock_enabled", self.relocker_enabled[i])
+            relocker.bind_param("write_settings", self.write_settings)
+
+    def run_once(self) -> None:
+        for i, relocker in enumerate(self.relocker_frags):
+            if self.relocker_enabled[i].get():
+                relocker.run_once()
 
 
 class RelockerAutoFrag(ExpFragment):
