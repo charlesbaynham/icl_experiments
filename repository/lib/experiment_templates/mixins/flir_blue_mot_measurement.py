@@ -28,11 +28,12 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
         super().build_fragment()
 
         self.setattr_fragment(
-            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+            "camera_interface",
+            DualCameraMeasurement,
+            hardware_trigger=True,
+            hide_all_results=True,
         )
         self.camera_interface: DualCameraMeasurement
-
-        self.camera_interface.image_vertical_mean.display_hints["priority"] = -1
 
         self.setattr_param_rebind(
             "exposure_horiz",

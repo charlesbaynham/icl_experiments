@@ -36,7 +36,7 @@ class _DualCameraBase(Fragment):
     num_images = None
     "Number of images to take. Must be set by the subclass before host_setup is run"
 
-    def build_fragment(self, hardware_trigger=True):
+    def build_fragment(self, hardware_trigger=True, hide_all_results=False):
         self.setattr_device("core")
         self.core: Core
 
@@ -120,10 +120,11 @@ class _DualCameraBase(Fragment):
         )
         self.image_vertical_timestamp: ResultChannel
 
+        display_hints = {"priority": -2} if hide_all_results else {}
         self.setattr_result(
-            # "image_vertical_mean", FloatChannel, display_hints={"priority": -2}  # TODO without this comment the 3D MOT scripts don't work
             "image_vertical_mean",
             FloatChannel,
+            display_hints=display_hints,
         )
         self.image_vertical_mean: ResultChannel
 
