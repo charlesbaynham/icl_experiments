@@ -154,6 +154,12 @@ class IJDSettings:
     "Time to wait between relock steps / s. Default = 1.0"
     associated_beams: list = field(default_factory=lambda: [])
     "Beams from AD9910_BEAMS required for IJD to lock"
+    p_gain: float = 0.01
+    "Proportional gain for the PID controller. Default = 0.01"
+    i_gain: float = 0.00001
+    "Integral gain for the PID controller. Default = 0.00001"
+    d_gain: float = 0.0
+    "Derivative gain for the PID controller. Default = 0.0"
 
 
 IJD_DEFAULTS = {
