@@ -180,7 +180,7 @@ IJD_DEFAULTS = {
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
-        temperature=9460,
+        temperature=9380,
         window_high=174.0e-3,
         window_low=169.0e-3,
         relock_step=3e-3,
@@ -252,7 +252,7 @@ IJD_RELOCKER_DEFAULTS = {
         window_frac=0.6,
         min_diff=0.1,
         v_low_threshold=1.5,
-        v_rise_threshold=0.05,
+        v_rise_threshold=0.015,
         wait_time=1000,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
