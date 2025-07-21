@@ -154,6 +154,12 @@ class IJDSettings:
     "Time to wait between relock steps / s. Default = 1.0"
     associated_beams: list = field(default_factory=lambda: [])
     "Beams from AD9910_BEAMS required for IJD to lock"
+    p_gain: float = 0.01
+    "Proportional gain for the PID controller. Default = 0.01"
+    i_gain: float = 0.00001
+    "Integral gain for the PID controller. Default = 0.00001"
+    d_gain: float = 0.0
+    "Derivative gain for the PID controller. Default = 0.0"
 
 
 IJD_DEFAULTS = {
@@ -180,7 +186,7 @@ IJD_DEFAULTS = {
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
-        temperature=9460,
+        temperature=9380,
         window_high=174.0e-3,
         window_low=169.0e-3,
         relock_step=3e-3,
@@ -237,7 +243,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.4,
+        v_low_threshold=1.37,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -251,8 +257,8 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.4,
-        v_rise_threshold=0.05,
+        v_low_threshold=1.52,
+        v_rise_threshold=0.015,
         wait_time=1000,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
@@ -265,7 +271,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.4,
+        v_low_threshold=1.62,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -668,17 +674,17 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "down_813",
-        frequency=180e6,
+        frequency=180e6 * 813 / 780,
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=4.8,
+        setpoint=4.5,
         kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
         "up_813",
-        frequency=90e6,
+        frequency=90e6 * 813 / 780,
         attenuation=7.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
