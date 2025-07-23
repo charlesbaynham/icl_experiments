@@ -243,7 +243,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.37,
+        v_low_threshold=1.43,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -679,7 +679,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=4.5,
+        setpoint=4.0,
         kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
