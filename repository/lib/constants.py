@@ -606,7 +606,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5,
         photodiode_offset=0.018,  # 0.001,
     ),
@@ -619,7 +619,7 @@ SUSERVOED_BEAMS = [
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=0.4,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         photodiode_offset=0.016,  # 0.0032,  # 0.016,
     ),
     SUServoedBeam(
