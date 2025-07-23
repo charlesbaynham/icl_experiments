@@ -36,6 +36,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadXXODTWithTransparencyBeamMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     FieldOnlyRampInEvapMixin,
 )
@@ -142,7 +145,7 @@ class ClockSpecFromXXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
-    LoadXXODTMixin,
+    LoadXXODTWithTransparencyBeamMixin,
     # Base:
     DipoleTrapWithExperiment,
 ):
