@@ -777,6 +777,11 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
     ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=2000e6,
+        attenuation=20.0,
+    ),
 ]
 
 MIRNY_SETTINGS_88 = [
@@ -794,6 +799,11 @@ MIRNY_SETTINGS_88 = [
         device_name="mirny_eom_689_sideband",
         frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=1463.265e6,
+        attenuation=20.0,
     ),
 ]
 
