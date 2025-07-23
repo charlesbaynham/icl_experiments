@@ -83,7 +83,7 @@ aliases = {
     "mirny_eom_707_sideband_A": "mirny0_ch1",
     "mirny_eom_707_sideband_B": "mirny0_ch2",
     "mirny_eom_689_sideband": "mirny0_ch3",
-    "mirny_eom_transfer_cavity_offset": "mirny1_ch0",
+    "mirny_eom_transfer_cavity_offset": "mirny0_ch0",
     # %% Other
     "zotino_plant_room": "zotino0",
 }
