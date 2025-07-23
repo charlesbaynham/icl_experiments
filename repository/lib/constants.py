@@ -619,7 +619,7 @@ SUSERVOED_BEAMS = [
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
         setpoint=0.4,
-        initial_amplitude=0.2,
+        initial_amplitude=0.05,
         photodiode_offset=0.016,  # 0.0032,  # 0.016,
     ),
     SUServoedBeam(
@@ -630,7 +630,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
     ),
