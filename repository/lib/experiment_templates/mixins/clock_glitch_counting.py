@@ -9,7 +9,9 @@ from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import FloatParam
 from ndscan.experiment import Fragment
+from ndscan.experiment import IntParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.devices.clock_glitch_filter import ClockGlitchFilter
@@ -49,6 +51,17 @@ class ClockGlitchFilterFrag(Fragment):
         )
         self.glitch_threshold: FloatParamHandle
 
+        self.setattr_param(
+            "gate_duration",
+            IntParam,
+            description="Gate duration (microseconds)",
+            # unit="us",
+            default=constants.CLOCK_GLITCH_FILTER_GATE_DURATION,
+            min=1,
+            max=int(2**32 - 1),
+        )
+        self.gate_duration: IntParamHandle
+
     def host_setup(self):
         super().host_setup()
 
@@ -56,6 +69,7 @@ class ClockGlitchFilterFrag(Fragment):
         config = self.clock_glitch_filter.set_config(
             glitch_threshold=self.glitch_threshold.get(),
             gate_threshold=self.gate_threshold.get(),
+            gate_duration=self.gate_duration.get(),
         )
 
         logger.debug("Set clock glitch filter config: %s", config)

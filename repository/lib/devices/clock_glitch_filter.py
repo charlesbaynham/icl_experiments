@@ -71,6 +71,7 @@ def string_to_config(config_string: str):
     logger.debug("Parsing config string: %s", config_string)
     config_dict = {}
     parts = config_string.split(",")
+    logger.warning("Parts:", parts)
     for part in parts:
         key, value = part.split("=")
         config_dict[key.strip()] = value.strip()
@@ -93,6 +94,11 @@ ClockGlitchFilter._register_query(
             default=2.0,
             validator=float,
         ),
+        GenericDriver.Arg(
+            name="gate_duration",
+            default=1000,
+            validator=int,
+        ),
     ],
 )
 
@@ -108,11 +114,13 @@ class MockClockGlitchFilter:
             return_value={
                 "GLITCH": "0.2",
                 "GATE": "2.0",
+                "GATE_DURATION": "1000",
             }
         )
         self.set_config = MagicMock(
             return_value={
                 "GLITCH": "0.2",
                 "GATE": "2.0",
+                "GATE_DURATION": "1000",
             }
         )
