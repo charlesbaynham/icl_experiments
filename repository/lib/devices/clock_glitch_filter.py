@@ -71,7 +71,6 @@ def string_to_config(config_string: str):
     logger.debug("Parsing config string: %s", config_string)
     config_dict = {}
     parts = config_string.split(",")
-    logger.warning("Parts:", parts)
     for part in parts:
         key, value = part.split("=")
         config_dict[key.strip()] = value.strip()
