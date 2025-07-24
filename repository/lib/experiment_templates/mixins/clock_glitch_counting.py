@@ -69,7 +69,7 @@ class ClockGlitchFilterFrag(Fragment):
         config = self.clock_glitch_filter.set_config(
             glitch_threshold=self.glitch_threshold.get(),
             gate_threshold=self.gate_threshold.get(),
-            gate_duration=self.gate_duration.get(),
+            gate_duration=self.gate_duration.get() * 1e-6,  # Convert to seconds
         )
 
         logger.debug("Set clock glitch filter config: %s", config)
