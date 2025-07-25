@@ -271,7 +271,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.62,
+        v_low_threshold=1.64,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -882,6 +882,18 @@ def add_field_offset(x, y, z):
     )
 
 
+def calc_new_field_defaults(param_x, param_y, param_z):
+    """
+    Calculates the new field defaults based on the
+    passed parameter value
+    """
+    return (
+        param_x - FIELD_COMP_X,
+        param_y - FIELD_COMP_Y,
+        param_z - FIELD_COMP_Z,
+    )
+
+
 if USE_SR87:
     # With 6A gradient
     _B_FIELD_BIAS_LATTICE_X = 1.1  # A
@@ -993,14 +1005,15 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.26)
+) = add_field_offset(0.188, 0.057, -0.31)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
-) = add_field_offset(0.158, 0.029, 0.155)
+) = add_field_offset(0.19, 0.029, 0.030)
+
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
