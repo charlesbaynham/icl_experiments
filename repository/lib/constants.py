@@ -243,7 +243,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.43,
+        v_low_threshold=1.4,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -257,7 +257,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.52,
+        v_low_threshold=1.4,
         v_rise_threshold=0.015,
         wait_time=1000,
         auto_relock=True,
@@ -271,7 +271,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.64,
+        v_low_threshold=1.4,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -1005,7 +1005,8 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.31)
+) = add_field_offset(0.188, 0.057, -0.36)
+
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
@@ -1289,6 +1290,6 @@ DEDRIFTER_INFOS = [_DEDRIFTER_INFO_689, _DEDRIFTER_INFO_698]
 
 ## Clock glitch filter
 
-CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD = 0.2  # volts
+CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD = 0.03  # volts
 CLOCK_GLITCH_FILTER_GATE_THRESHOLD = 2.0  # volts
-CLOCK_GLITCH_FILTER_GATE_DURATION = 100e-6  # seconds
+CLOCK_GLITCH_FILTER_GATE_DURATION = 500e-6  # seconds
