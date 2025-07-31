@@ -432,3 +432,35 @@ class BlackmanShapedPulse(ShapedPulse):
         self._old_num_steps = self.num_steps.get()
 
         return return_value
+
+class PhaseStepPulse(ShapedPulse):
+    """
+    Step the phase of the pulse
+    """
+
+    def build_fragment(self, *args, **kwargs):
+        self._old_num_steps = -1
+
+        super().build_fragment(*args, **kwargs)
+
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+
+        amplitude = np.ones(n_words)
+        phase = np.zeros_like(amplitude)
+        for i in range(n_words/2, n_words):
+            phase[i] = np.pi
+        
+        return amplitude, phase
+    
+    @kernel
+    def is_recalc_needed(self) -> bool:
+        return_value = False
+
+        if self.num_steps.get() != self._old_num_steps:
+            return_value = True
+
+        self._old_num_steps = self.num_steps.get()
+
+        return return_value
+
+
