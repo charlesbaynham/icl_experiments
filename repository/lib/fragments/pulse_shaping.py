@@ -447,9 +447,9 @@ class PhaseStepPulse(ShapedPulse):
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
 
         amplitude = np.ones(n_words)
-        phase = np.zeros_like(amplitude)
-        for i in range(int(n_words / 2), n_words):
-            phase[i] = 3.14  # np.pi
+        phase = np.blackman(n_words)  # np.zeros_like(amplitude)
+        # for i in range(int(n_words / 2), n_words):
+        #     phase[i] = 3.14  # np.pi
 
         return amplitude, phase
 
