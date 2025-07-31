@@ -1,6 +1,8 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.coredevice.ad9910 import AD9910
+
 from artiq.language import delay_mu
 from artiq.language import delay
 from artiq.language import kernel
@@ -25,6 +27,9 @@ class TestPhaseShapedPulse(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
+        self.lo_dds: AD9910 = self.get_device("urukul0_ch3")
+
+
         self.setattr_fragment(
             "shaped_pulse",
             PhaseStepPulse,
@@ -40,9 +45,14 @@ class TestPhaseShapedPulse(ExpFragment):
         self.core.break_realtime()
         self.shaped_pulse.dds.init(blind=False)
         self.core.break_realtime()
-        self.shaped_pulse.dds.set(10e6)
+        self.lo_dds.init(blind=False)
+        self.core.break_realtime()
+        self.shaped_pulse.dds.set(frequency=CLOCK_BEAM_INFO.frequency)
 
         self.core.break_realtime()
+
+        self.lo_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        self.lo_dds.sw.on()
 
         delay(100e-3)
 
@@ -54,5 +64,6 @@ class TestPhaseShapedPulse(ExpFragment):
         delay(100e-3)
 
         self.shaped_pulse.disable_ram_mode()
+        self.lo_dds.sw.off()
 
 TestPhaseShapedPulseExp = make_fragment_scan_exp(TestPhaseShapedPulse)
