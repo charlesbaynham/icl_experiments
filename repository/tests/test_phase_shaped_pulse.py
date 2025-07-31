@@ -32,15 +32,6 @@ class TestPhaseShapedPulse(ExpFragment):
         )
         self.shaped_pulse: PhaseStepPulse
 
-        self.setattr_param(
-            "pulse_duration",
-            FloatParam,
-            "Duration of the shaped pulse",
-            default = 100e-3,
-            unit="ms"
-        )
-        self.pulse_duration: FloatParamHandle
-
     @kernel
     def run_once(self):
         self.core.break_realtime()

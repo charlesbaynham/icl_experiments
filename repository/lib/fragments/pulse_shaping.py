@@ -449,7 +449,7 @@ class PhaseStepPulse(ShapedPulse):
         phase = np.zeros_like(amplitude)
         # for i in range(int(round(n_words/2)), n_words):
         #     phase[i] = np.pi
-        
+                
         return amplitude, phase
     
     @kernel
