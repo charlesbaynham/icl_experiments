@@ -433,6 +433,7 @@ class BlackmanShapedPulse(ShapedPulse):
 
         return return_value
 
+
 class PhaseStepPulse(ShapedPulse):
     """
     Step the phase of the pulse
@@ -447,11 +448,11 @@ class PhaseStepPulse(ShapedPulse):
 
         amplitude = np.ones(n_words)
         phase = np.zeros_like(amplitude)
-        # for i in range(int(round(n_words/2)), n_words):
-        #     phase[i] = np.pi
-                
+        for i in range(int(round(n_words / 2)), n_words):
+            phase[i] = np.pi
+
         return amplitude, phase
-    
+
     @kernel
     def is_recalc_needed(self) -> bool:
         return_value = False
@@ -462,5 +463,3 @@ class PhaseStepPulse(ShapedPulse):
         self._old_num_steps = self.num_steps.get()
 
         return return_value
-
-
