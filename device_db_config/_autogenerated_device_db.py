@@ -250,7 +250,7 @@ device_db["eeprom_urukul2"] = {
     "type": "local",
     "module": "artiq.coredevice.kasli_i2c",
     "class": "KasliEEPROM",
-    "arguments": {"port": "EEM11"},
+    "arguments": {"port": "EEM10"},
 }
 
 device_db["spi_urukul2"] = {
@@ -311,10 +311,10 @@ device_db["urukul2_cpld"] = {
 
 device_db["urukul2_ch0"] = {
     "type": "local",
-    "module": "artiq.coredevice.ad9912",
-    "class": "AD9912",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
     "arguments": {
-        "pll_n": 8,
+        "pll_n": 32,
         "pll_en": 1,
         "chip_select": 4,
         "cpld_device": "urukul2_cpld",
@@ -324,10 +324,10 @@ device_db["urukul2_ch0"] = {
 
 device_db["urukul2_ch1"] = {
     "type": "local",
-    "module": "artiq.coredevice.ad9912",
-    "class": "AD9912",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
     "arguments": {
-        "pll_n": 8,
+        "pll_n": 32,
         "pll_en": 1,
         "chip_select": 5,
         "cpld_device": "urukul2_cpld",
@@ -337,10 +337,10 @@ device_db["urukul2_ch1"] = {
 
 device_db["urukul2_ch2"] = {
     "type": "local",
-    "module": "artiq.coredevice.ad9912",
-    "class": "AD9912",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
     "arguments": {
-        "pll_n": 8,
+        "pll_n": 32,
         "pll_en": 1,
         "chip_select": 6,
         "cpld_device": "urukul2_cpld",
@@ -350,10 +350,10 @@ device_db["urukul2_ch2"] = {
 
 device_db["urukul2_ch3"] = {
     "type": "local",
-    "module": "artiq.coredevice.ad9912",
-    "class": "AD9912",
+    "module": "artiq.coredevice.ad9910",
+    "class": "AD9910",
     "arguments": {
-        "pll_n": 8,
+        "pll_n": 32,
         "pll_en": 1,
         "chip_select": 7,
         "cpld_device": "urukul2_cpld",
@@ -871,7 +871,7 @@ device_db["eeprom_urukul8"] = {
     "type": "local",
     "module": "artiq.coredevice.kasli_i2c",
     "class": "KasliEEPROM",
-    "arguments": {"port": "EEM4"},
+    "arguments": {"port": "EEM6"},
 }
 
 device_db["spi_urukul8"] = {

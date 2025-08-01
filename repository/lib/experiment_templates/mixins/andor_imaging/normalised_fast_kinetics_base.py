@@ -1,12 +1,13 @@
 import logging
+from typing import List
 
 import numpy as np
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import rpc
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import host_only
+from artiq.language import kernel
+from artiq.language import now_mu
+from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -14,6 +15,9 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
+    fit_2d_gaussian,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
@@ -95,7 +99,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             "delay_between_imaging_pulses",
             FloatParam,
             "Time between the start of each fluorescence pulse",
-            default=2e-3,
+            default=3.5e-3,
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle
@@ -125,15 +129,16 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     def host_setup(self):
         super().host_setup()
+        default_rois = self.get_monitor_rois()
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{default_rois}'",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET}",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois}'",
         )
 
     def fast_kinetics_setup_results(self):
@@ -161,6 +166,40 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
+
+    def setup_gauss_fit_results(self):
+        self.amps: List[FloatChannel] = []
+        self.x_pos: List[FloatChannel] = []
+        self.y_pos: List[FloatChannel] = []
+        self.sigmas_x: List[FloatChannel] = []
+        self.sigmas_y: List[FloatChannel] = []
+        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+            for j in ("ground", "excited"):
+                self.amps.append(
+                    self.setattr_result(
+                        f"amp_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.x_pos.append(
+                    self.setattr_result(
+                        f"x_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.y_pos.append(
+                    self.setattr_result(
+                        f"y_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.sigmas_x.append(
+                    self.setattr_result(
+                        f"sigma_x_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
+                self.sigmas_y.append(
+                    self.setattr_result(
+                        f"sigma_y_{i}_{j}", FloatChannel, display_hints={"priority": -1}
+                    )
+                )
 
     def get_grabber_roi_defaults(self):
         return calculate_grabber_rois(
@@ -274,3 +313,49 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             persist=False,
             archive=False,
         )
+
+    @host_only
+    def do_gauss_fit_hook(self, img_array: np.ndarray):
+        ground_bg_corrected = img_array[0].astype(int) - img_array[2].astype(int)
+        excited_bg_corrected = img_array[1].astype(int) - img_array[3].astype(int)
+        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+            for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
+                grabber_idx = int(2 * i)
+
+                sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
+                    image, grabber_idx
+                )
+                popt = fit_2d_gaussian(sliced_image, offsets)
+                self.push_gauss_fit_pars(popt, int(2 * i + j))
+
+
+class NormalisedFastKineticsRepumpedMixin(NormalisedFastKineticsBase):
+    """
+    Adds repumping after the first fluorescence pulse to a
+    :class:`~.NormalisedFastKineticsBase` experiment.
+
+    This is a mixin for :class:`~.NormalisedFastKineticsBase`.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_first_pulse`
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()

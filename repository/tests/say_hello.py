@@ -4,8 +4,8 @@ import time
 import artiq
 from artiq.experiment import EnvExperiment
 from artiq.experiment import StringValue
-from artiq.experiment import kernel
-from artiq.experiment import rpc
+from artiq.language import kernel
+from artiq.language import rpc
 
 logger = logging.getLogger(__name__)
 

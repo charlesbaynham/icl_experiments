@@ -3,7 +3,7 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import urukul_sta_pll_lock
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import Fragment
 
 logger = logging.getLogger(__name__)

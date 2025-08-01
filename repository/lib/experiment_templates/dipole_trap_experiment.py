@@ -42,12 +42,10 @@ the same time::
 import abc
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
@@ -86,15 +84,12 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
-        self.dipole_beam_controller: DipoleBeamController
-
         # Hold time in dipole trap - can be negative
         self.setattr_param(
             "dipole_hold_time",
             FloatParam,
             "Time to hold final dipole trap before experiment",
-            default=0.0,
+            default=constants.DIPOLE_TRAP_HOLD_TIME,
             unit="us",
         )
         self.dipole_hold_time: FloatParamHandle
@@ -110,27 +105,17 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
 
         # %% Fragments
 
-        self.setattr_fragment(
-            "constant_dipole_traps_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[
-                    constants.SUSERVOED_BEAMS["down_813"],
-                    constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
-                ],
-                urukul_beam_infos=[
-                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"]
-                ],
-                use_automatic_setup=False,
-            ),
-        )
-        self.constant_dipole_traps_setter: SetBeamsToDefaults
+        self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
+        self.dipole_beam_controller: DipoleBeamController
 
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
     @kernel
     def do_experiment_after_red_mot_hook(self):
+        self.dipole_trap_loading_hook()
         self.dipole_trap_molasses_hook()
+        self.do_clearout_pulse_hook()
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
@@ -139,11 +124,23 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.do_experiment_after_dipole_trap_hook()
 
     @kernel
+    def dipole_trap_loading_hook(self):
+        """
+        Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
+        """
+        self.dipole_beam_controller.turn_on_dipole_beams()
+
+    @kernel
     def dipole_trap_molasses_hook(self):
         """
-        Hook for implementation of stages after the dipole trap molasses stage. By default, turn on the dipole trap beams.
+        Hook for implementation of stages in the dipole trap molasses stage. By default, do nothing
         """
-        self.constant_dipole_traps_setter.turn_on_all()
+
+    @kernel
+    def do_clearout_pulse_hook(self):
+        """
+        Hook for implementation of a clearout pulse with 689. By default, do nothing
+        """
 
     @kernel
     def dipole_trap_optical_pumping_hook(self):
@@ -154,7 +151,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def dipole_trap_evaporation_hook(self):
         """
-        Hook for implementation of stages after the dipole trap evaporation stage. By default, do nothing.
+        Hook for implementation of evaporation in the dipole trap.
+
+        By default, turn off all the red beams to allow holding in dipole trap before experiment
         """
         self.dipole_trap_evaporation_hook_default()
 
@@ -178,7 +177,9 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def dipole_trap_evaporation_hook_default(self):
         """
-        By default, turn off all the red beams to allow holding in dipole trap before experiment
+        Turn off all the red beams to allow holding in dipole trap before experiment
+
+        Advances the timeline by a few coarse cycles
         """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
@@ -191,6 +192,3 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         completed.
         """
         raise NotImplementedError
-
-
-# %%

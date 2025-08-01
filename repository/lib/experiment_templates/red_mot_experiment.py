@@ -43,23 +43,20 @@ import abc
 import logging
 
 from artiq.coredevice.core import Core
-from artiq.experiment import at_mu
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
-from artiq.experiment import parallel
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import kernel
+from artiq.language import now_mu
+from artiq.language import parallel
+from artiq.language import sequential
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
-from pyaion.fragments.suservo import LibSetSUServoStatic
 
-from repository.lib.constants import DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
-from repository.lib.constants import SUSERVOED_BEAMS
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
@@ -102,10 +99,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_device("core")
         self.core: Core
 
+        self.setattr_device("led0")
+        self.setattr_device("led1")
+
         # %% Fragments
 
         self.setattr_fragment("timestamper", Timestamper, automatic_timestamp=False)
         self.timestamper: Timestamper
+
+        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
+        self.relock_checker: CheckForRelocksFrag
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
@@ -115,13 +118,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.setattr_fragment("fluorescence_pulse", ToggleableFluorescencePulse)
         self.fluorescence_pulse: ToggleableFluorescencePulse
-
-        self.setattr_fragment(
-            "clock_delivery_beam_suservo",
-            LibSetSUServoStatic,
-            SUSERVOED_BEAMS["clock_delivery"].suservo_device,
-        )
-        self.clock_delivery_beam_suservo: LibSetSUServoStatic
 
         # %% Params
 
@@ -185,18 +181,24 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             "bias_field_z_start", self.blue_3d_mot.chamber_2_bias_z
         )
 
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_x_end", self.red_mot.narrowband_bias_x
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_y_end", self.red_mot.narrowband_bias_y
+        )
+        self.red_mot.broadband_red_phase.bind_param(
+            "bias_field_z_end", self.red_mot.narrowband_bias_z
+        )
+
         self.hook_setup_andor()
+
+        self._first_run = True
 
     @kernel
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        self.core.break_realtime()
-
-        # Boost the clock delivery SUServo's gain
-        self.clock_delivery_beam_suservo.set_iir_params(
-            ki=DEFAULT_CLOCK_DELIVERY_SUSERVO_PID_I
-        )
         self.core.break_realtime()
 
         self.DMA_initialization_hook()
@@ -233,22 +235,55 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             self.blue_3d_mot.load_mot(clearout=True)
         self.end_of_blue_3d_mot_loading_hook()
 
+        # The ordering here looks odd because we're working around lane
+        # constraints. The blue transfer MOT phase will queue lots of events
+        # into the RTIO lanes, filling them completely. If lane spreading were
+        # enabled, that would prevent us going backwards in time. Since we often
+        # go back in time in our code, we run with lane spreading disabled.
+        # However that means that the processor must wait for the lane to empty
+        # out before more events can be queued, causing an underflow. To avoid
+        # this, we first schedule the start of the red MOT (which is light on
+        # lane usage), then go back in time to schedule the blue MOT transfer.
+        # This is heavy on lane usage and consumes a new lane, but that's fine.
+
+        t_start_blue_rampdown_mu = now_mu()
+        t_end_blue_rampdown_mu = t_start_blue_rampdown_mu + self.core.seconds_to_mu(
+            self.blue_3d_mot.blue_transfer_MOT.get_duration()
+        )
+
+        # Keep the blue light on for a short time while turning on the red beams
+        at_mu(t_end_blue_rampdown_mu)
+        with parallel:
+            # Start the red MOT
+            with sequential:
+                # Turn on the red beams and start ramping them
+                self.red_mot.prepare_for_broadband_phase()
+                # Hook for mixins to use - default nothing
+                self.start_of_red_broadband_hook()
+                # Save the time now so we can come back to it
+                t_red_light_on = now_mu()
+            # Turn off the blue beams, a little after the red MOT starts
+            with sequential:
+                delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
+                self.blue_3d_mot.turn_off_all_beams()
+
+        # Go back to the start of the blue MOT rampdown, before all the red beam stuff above
+        at_mu(t_start_blue_rampdown_mu)
+
+        # Ramp down the blue MOT
         self.blue_3d_mot.do_blue_transfer_mot()
-        delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
-        self.blue_3d_mot.turn_off_3d_and_2d_beams_nopush()
-        # Note: this is a simple way to delay, but will probably fill an extra lane (greater risk of underflow)
-        delay(-self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
-        self.red_mot.prepare_for_broadband_phase()
+
+        # Continue the broadband phase as a GenericRampingPhase, for
+        # compatibility with the rest of the sequence
+        at_mu(t_red_light_on)
         self.red_mot.broadband_red_phase.do_phase()
-        delay(-self.red_mot.broadband_red_phase.duration.get())
-        self.start_of_red_broadband_hook()
-        delay(+self.red_mot.broadband_red_phase.duration.get())
+
         self.end_of_broadband_mot_hook()
-        self.blue_3d_mot.turn_off_repumpers()
-        delay_mu(int64(self.core.ref_multiplier))
+
         self.red_mot.terminate_broadband_mot()
         self.set_narrowband_fields_hook()
         self.red_mot.do_narrowband_red_mot()
+
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
@@ -378,10 +413,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         Executed as the broadband MOT stage starts.
 
-        This hook is called after the broadband MOT phase has already been
-        queued into the RTIO, so write here will consume new lanes.
-
-        TODO: Move this hook so that new lanes aren't needed
+        This hook is just before the broadband MOT starts. It should take
+        negligible duration (i.e. just a few coarse RTIO cycles) otherwise
+        assumptions about the broadband MOT duration will be wrong
         """
 
     @kernel
@@ -476,8 +510,18 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     @kernel
     def host_functions_after_experiment_hook(self):
         """
-        Hook for doing any extra functions at the end of the experiment. Default implementation does nothing.
+        Hook for doing any extra functions at the end of the experiment.
         """
+        self.host_functions_after_experiment_hook_default()
+
+    @kernel
+    def host_functions_after_experiment_hook_default(self):
+        """
+        Default implementation of the host functions after experiment hook
+        """
+        self.relock_checker.check_and_log_relocks()
+        # if relocks != 0:
+        #     raise TransitoryError
 
 
 # %%

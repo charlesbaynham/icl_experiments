@@ -1,6 +1,6 @@
 import logging
 
-from artiq.experiment import kernel
+from artiq.language import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -8,9 +8,6 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
-)
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
@@ -19,14 +16,14 @@ from repository.lib.utils import GaussianRandom
 logger = logging.getLogger(__name__)
 
 
-class _ClockInterferometryWithNoise(ClockInterferometryBase):
+class ClockInterferometryWithNoiseDipoleTrapMixin(ClockInterferometryBase):
     """
     Customizes ClockInterferometryBase for pi/2 - pi - pi/2 clock interferometry
     with noise added as a random phase step between pulses 1/2 and 2/3
 
-    Kernel hooks used (not including wherever the interferometry is done - needs
-    customization):
+    Kernel hooks used (multiple mixins cannot use the same hooks):
 
+    * :meth:`~do_experiment_after_dipole_trap_hook`
     * :meth:`~before_start_hook`
     * :meth:`~do_first_pulse`
     """
@@ -114,17 +111,31 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
         self.phase_rng: GaussianNoisePhase
 
         # Expose params here
-        self.setattr_param_rebind("phase_step_one_std", self.phase_rng)
-        self.setattr_param_rebind("phase_step_two_std", self.phase_rng)
         self.setattr_param_rebind("phase_step_one_mean", self.phase_rng)
         self.setattr_param_rebind("phase_step_two_mean", self.phase_rng)
 
+        # For now, bind the std. dev. of the phase steps together
+        self.setattr_param_like(
+            "phase_step_std",
+            self.phase_rng,
+            original_name="phase_step_one_std",
+            description="Std. dev. of both phase steps in turns",
+        )
+        self.phase_rng.bind_param("phase_step_one_std", self.phase_step_std)
+        self.phase_rng.bind_param("phase_step_two_std", self.phase_step_std)
+        # self.setattr_param_rebind("phase_step_one_std", self.phase_rng)
+        # self.setattr_param_rebind("phase_step_two_std", self.phase_rng)
+
         # Make output channels to record the phases we generate for convenience
         # (we could regenerate them from the seed but this is easier)
-        self.setattr_result("random_phase_one", FloatChannel)
+        self.setattr_result(
+            "random_phase_one", FloatChannel, display_hints={"priority": -1}
+        )
         self.random_phase_one: FloatChannel
 
-        self.setattr_result("random_phase_two", FloatChannel)
+        self.setattr_result(
+            "random_phase_two", FloatChannel, display_hints={"priority": -1}
+        )
         self.random_phase_two: FloatChannel
 
     @kernel
@@ -142,20 +153,6 @@ class _ClockInterferometryWithNoise(ClockInterferometryBase):
         random_phase_two = self.phase_rng.get_random_phases()[1]
         self.random_phase_two.push(random_phase_two)
         return self.phase_constant + 4.0 * self.phase_step.get() + random_phase_two
-
-
-class ClockInterferometryWithNoiseDipoleTrapMixin(
-    _ClockInterferometryWithNoise, DipoleTrapWithExperiment
-):
-    """
-    Implements clock interferometry after the dipole trap with added noisy phase steps between pulses
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_dipole_trap_hook`
-    * :meth:`~do_first_pulse`
-    """
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

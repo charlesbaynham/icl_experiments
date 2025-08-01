@@ -1,8 +1,8 @@
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
@@ -10,6 +10,9 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperiment,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
@@ -74,8 +77,6 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
     """
 
     def build_fragment(self):
-        super().build_fragment()
-
         for idx, c in enumerate("xyz"):
             self.setattr_param(
                 f"bias_{c}_for_pumping",
@@ -87,6 +88,8 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         self.bias_x_for_pumping: FloatParamHandle
         self.bias_y_for_pumping: FloatParamHandle
         self.bias_z_for_pumping: FloatParamHandle
+
+        super().build_fragment()
 
     @kernel
     def set_fields_for_optical_pumping(self):
@@ -106,7 +109,9 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
         )
 
 
-class OpticalPumpingWithFieldSettingDipoleTrapMixin(OpticalPumpingWithFieldSettingBase):
+class OpticalPumpingWithFieldSettingDipoleTrapMixin(
+    OpticalPumpingWithFieldSettingBase, DipoleTrapWithExperiment
+):
     """
     Mixin for optical pumping in a dipole trap
 
@@ -212,6 +217,9 @@ class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
 
     @kernel
     def device_setup(self) -> None:
+        # TODO: This won't work, it overrides the device_setup in
+        # red_mot_experiment, clashing with all the other mixins
+        raise RuntimeError
         self.core.break_realtime()
         self.lattice_setter.turn_on_all()
 

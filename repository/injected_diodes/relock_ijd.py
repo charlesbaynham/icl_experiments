@@ -10,8 +10,8 @@ from typing import Tuple
 
 from artiq.coredevice.core import Core
 from artiq.experiment import TList
-from artiq.experiment import kernel
-from artiq.experiment import portable
+from artiq.language import kernel
+from artiq.language import portable
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
 from koheron_ctl200_laser_driver import CTL200
@@ -122,6 +122,7 @@ class RelockIJDFrag(ExpFragment):
             f"frag_koheron_{controller_name}",
             SetKoheronFrag,
             controller_name=controller_name,
+            analysis_fn=self.find_lock_point,
         )
         for k, v in IJD_RELOCKER_DEFAULTS.items():
             if v.associated_controller == controller_name:
@@ -157,7 +158,9 @@ class RelockIJDFrag(ExpFragment):
         self.beam_setter = self.setattr_fragment(
             "beam_setter",
             make_set_beams_to_default(
-                urukul_beam_infos=beam_infos, use_automatic_setup=True
+                urukul_beam_infos=beam_infos,
+                use_automatic_setup=True,
+                use_automatic_turnon=True,
             ),
         )
 
@@ -175,7 +178,7 @@ class RelockIJDFrag(ExpFragment):
         self.device_setup()
         self.relock()
 
-    def relock(self) -> None:
+    def relock(self, enable_auto_relock=False) -> None:
         auto_relocking = self.relocker_frag.get_auto_relock()
         if auto_relocking:
             self.relocker_frag.set_auto_relock(False)
@@ -241,7 +244,7 @@ class RelockIJDFrag(ExpFragment):
                 "v_window": v_window_start,
             },
         )
-        if auto_relocking:
+        if enable_auto_relock or auto_relocking:
             self.relocker_frag.set_auto_relock(True)
 
     @portable
@@ -339,6 +342,14 @@ class RelockAllIJDsFrag(ExpFragment):
             default=prev_default.frequency + constants.RED_IJD_RELOCK_FREQUENCY_BOOST,
         )
 
+        self.setattr_param(
+            "enable_auto_relocking",
+            BoolParam,
+            "Enable relocker board autorelocking",
+            default=True,
+        )
+        self.enable_auto_relocking: BoolParamHandle
+
     def run_once(self) -> None:
         # Manually call the device_setup, since this is not a kernel function
         self.device_setup()
@@ -349,8 +360,11 @@ class RelockAllIJDsFrag(ExpFragment):
             enabled = self.ijd_controller_enabled[i]
 
             if enabled.get():
-                ijd_relock_frag.relock()
+                ijd_relock_frag.relock(self.enable_auto_relocking.get())
+
+    def get_default_analyses(self):
+        return super().get_default_analyses()
 
 
-RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
+# RelockSingleIJD = make_fragment_scan_exp(RelockIJDFrag)
 RelockAllIJDs = make_fragment_scan_exp(RelockAllIJDsFrag)

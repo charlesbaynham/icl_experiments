@@ -2,7 +2,6 @@ import logging
 import re
 from telnetlib import Telnet
 
-from ndscan.experiment import StringParam
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
@@ -12,31 +11,30 @@ COMMAND_PRESSURE = b"spc 0b 1\r\n"
 COMMAND_CURRENT = b"spc 0a 1\r\n"
 
 
-class MonitorIonPump(Calibration):
+class _MonitorIonPumpBase(Calibration):
     """
     Monitor the current and pressure of an ion pump
     """
 
-    def build_calibration(self):
-        self.setattr_param(
-            "ip", StringParam, "IP of the ion pump", default='"10.137.1.8"'
-        )
-        self.setattr_param(
-            "description",
-            StringParam,
-            "Description of the ion pump",
-            default='"chamber1"',
-        )
+    ip = None
+    description = None
 
+    def build_calibration(self):
         self.set_timeout(30)
 
+        if self.ip is None:
+            raise TypeError("IP address of ion pump not set")
+
+        if self.description is None:
+            raise TypeError("Description of ion pump not set")
+
     def check_own_state(self):
-        with Telnet(self.ip.get(), 23) as tn:
-            logger.debug("Connected to ion pump at %s", self.ip.get())
+        with Telnet(self.ip, 23) as tn:
+            logger.debug("Connected to ion pump at %s", self.ip)
 
             tn.read_until(b">", timeout=1)
 
-            logger.debug("Querying ion pump pressure at %s", self.ip.get())
+            logger.debug("Querying ion pump pressure at %s", self.ip)
 
             tn.write(COMMAND_PRESSURE)
             response = tn.read_until(b">", 1)
@@ -47,7 +45,7 @@ class MonitorIonPump(Calibration):
                 re.match(r"OK 00 ([\d\.E-]{7}) MBA.*", response.decode())[1]
             )
 
-            logger.debug("Querying ion pump current at %s", self.ip.get())
+            logger.debug("Querying ion pump current at %s", self.ip)
 
             tn.write(COMMAND_CURRENT)
             response = tn.read_until(b">", 1)
@@ -65,6 +63,16 @@ class MonitorIonPump(Calibration):
             )
 
             return CalibrationResult.OK, {
-                "tags": {"sensor": self.description.get()},
+                "tags": {"sensor": self.description, "type": "pressure"},
                 "fields": {"pressure": pressure, "current": current},
             }
+
+
+class MonitorAIONCh1IonPump(_MonitorIonPumpBase):
+    ip = "10.137.1.8"
+    description = "chamber1"
+
+
+class MonitorAIONCh2IonPump(_MonitorIonPumpBase):
+    ip = "10.137.1.16"
+    description = "chamber2"

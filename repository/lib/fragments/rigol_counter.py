@@ -1,19 +1,18 @@
+import logging
+
 from artiq.language import host_only
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import Fragment
 
-from repository.lib.fragments.rigol.rigol_device import GATE_TIMES_TO_IDX, RigolCounter
-
 from repository.lib.constants import CLOCK_LASER_BEATNOTE_FREQUENCY
-
-import logging
+from repository.lib.fragments.rigol.rigol_device import RigolCounter
 
 logger = logging.getLogger(__name__)
 
 
 class RigolCounterFrag(Fragment):
-    def build_fragment(self, rigol_ip=None):
+    def build_fragment(self):
         self.rigol_counter: RigolCounter = self.get_device("rigol_counter")
         self.rigol_counter_frequency = self.setattr_result(
             "rigol_counter_frequency",
@@ -36,4 +35,4 @@ class RigolCounterFrag(Fragment):
                 CLOCK_LASER_BEATNOTE_FREQUENCY,
             )
 
-        self.rigol_counter_frequency.push(CLOCK_LASER_BEATNOTE_FREQUENCY - frequency)
+        self.rigol_counter_frequency.push(frequency)

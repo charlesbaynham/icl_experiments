@@ -17,6 +17,12 @@ These have two types:
 """
 
 import logging
+import os
+
+# Get the IP address for connecting to the ARTIQ master from the environment
+# variable ARTIQ_CONNECTION_IP.
+ARTIQ_CONNECTION_IP = os.getenv("ARTIQ_CONNECTION_IP", "::1")
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,17 +52,22 @@ def get_non_core_devices(simulation_mode=False):
             "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
-            "command": "artiq_influxdb_schedule --port-control {port} --bind {bind}",
+            "command": (
+                "artiq_influxdb_schedule "
+                f"--server-master {ARTIQ_CONNECTION_IP} "
+                "--port-control {port} "
+                "--bind {bind}"
+            ),
         },
         "wand_server": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": ARTIQ_CONNECTION_IP,
             "port": PORT_WAND_CONTROL,
             "command": (
                 "bash -c '"
                 "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
-                "nix run .#wand_server -- -n icl_aion --bind \\* "
+                "nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind {bind} "
                 f"--port-notify {PORT_WAND_NOTIFY} "
                 f"--port-control {PORT_WAND_CONTROL}"
                 "'"
@@ -101,7 +112,7 @@ def get_non_core_devices(simulation_mode=False):
             "best_effort": True,
             "host": "::1",
             "port": get_next_port(),
-            "command": f"aqctl_relocker_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
+            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
         },
         "red_relocker": {
             "type": "controller",
@@ -110,13 +121,13 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
         },
-        # "red_scanner": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_relocker_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
-        # },
+        "cavity_scanner": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN0'",
+        },
         # "test_relocker": {
         #     "type": "controller",
         #     "best_effort": True,
@@ -131,7 +142,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.fragments.cameras.flir_camera_shim",
             "mockclass": "MockCamera",
             "arguments": {
-                "name": "FLIR-Blackfly S BFS-PGE-50S5M-22018873",
+                "name": "FLIR-Blackfly S BFS-PGE-50S5M-23476914",
                 "loglevel": logging.WARNING,
             },
         },
@@ -178,6 +189,30 @@ def get_non_core_devices(simulation_mode=False):
                 "simulation": simulation_mode,
             },
         },
+        "chamber_1_radial1_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-1.lan",
+                "port": 18202,
+                "simulation": simulation_mode,
+            },
+        },
+        "chamber_1_radial2_coil_driver": {
+            "type": "local",
+            "module": "tenma_power_supply",
+            "class": "TENMAPowerSupply",
+            "mockmodule": "unittest.mock",
+            "mockclass": "MagicMock",
+            "arguments": {
+                "id": "tenma-aion-ch1-2.lan",
+                "port": 18203,
+                "simulation": simulation_mode,
+            },
+        },
         "chamber_1_radial_coil_driver": {
             "type": "local",
             "module": "tti_power_supply",
@@ -189,7 +224,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_461": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-461-679",
@@ -201,7 +236,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_679": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-461-679",
@@ -213,7 +248,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_1379": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-1379-698",
@@ -226,7 +261,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_698": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-1379-698",
@@ -239,7 +274,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_707": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-707-689",
@@ -251,7 +286,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_689": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-707-689",
@@ -264,7 +299,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_487": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-487-641",
@@ -276,7 +311,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "toptica_641": {
             "type": "local",
-            "module": "toptica_wrapper",
+            "module": "toptica_wrapper.driver",
             "class": "TopticaDLCPro",
             "arguments": {
                 "ip": "toptica-487-641",

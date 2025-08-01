@@ -11,8 +11,8 @@ from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 from artiq.experiment import TFloat
 from artiq.experiment import TInt32
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from numpy import ceil
 from numpy import int32
 

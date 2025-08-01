@@ -2,8 +2,8 @@ import logging
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.suservo import Channel as SUServoChannel
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment import OnlineFit
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam

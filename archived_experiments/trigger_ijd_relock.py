@@ -6,7 +6,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import kernel
+from artiq.language import kernel
 from artiq.language.core import delay
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp

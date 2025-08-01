@@ -9,11 +9,11 @@ from typing import Type
 
 import numpy as np
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import portable
-from artiq.experiment import rpc
+from artiq.language import delay
+from artiq.language import host_only
+from artiq.language import kernel
+from artiq.language import portable
+from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
@@ -173,7 +173,8 @@ class CameraFrag(Fragment):
         return super().host_setup()
 
     def host_cleanup(self):
-        self.cam.shutdown()
+        if hasattr(self, "cam"):
+            self.cam.shutdown()
 
         super().host_cleanup()
 

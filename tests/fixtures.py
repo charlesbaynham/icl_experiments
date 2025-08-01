@@ -15,8 +15,8 @@ from unittest.mock import Mock
 import numpy
 from artiq.coredevice.core import Core
 from artiq.experiment import EnvExperiment
-from artiq.experiment import host_only
-from artiq.experiment import rpc
+from artiq.language import host_only
+from artiq.language import rpc
 from artiq.language.environment import ProcessArgumentManager
 from artiq.master.worker_db import DatasetManager
 from artiq.master.worker_db import DeviceManager

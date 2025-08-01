@@ -1,6 +1,7 @@
 import logging
 
-from artiq.experiment import kernel
+from artiq.language import host_only
+from artiq.language import kernel
 from ndscan.experiment import FloatChannel
 
 from repository.lib import constants
@@ -12,6 +13,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedXXODTFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
@@ -104,23 +108,33 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
     def bg_imaging_make_result_channel(self):
         self.setattr_result("andor_sum_fwd_corrected", FloatChannel)
         self.setattr_result("andor_sum_bkd_corrected", FloatChannel)
+        self.setattr_result("andor_sum_imbalance", FloatChannel)
+        self.setattr_result("andor_sum_total", FloatChannel)
         self.andor_sum_fwd_corrected: FloatChannel
         self.andor_sum_bkd_corrected: FloatChannel
+        self.andor_sum_imbalance: FloatChannel
+        self.andor_sum_total: FloatChannel
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
-        self.andor_sum_fwd_corrected.push(sums[0] - sums[2])
-        self.andor_sum_bkd_corrected.push(sums[1] - sums[3])
+        atom_number_fwd = sums[0] - sums[2]
+        atom_number_bwd = sums[1] - sums[3]
+
+        total = atom_number_fwd + atom_number_bwd
+        imbalance = (atom_number_fwd - atom_number_bwd) / total
+
+        self.andor_sum_fwd_corrected.push(atom_number_fwd)
+        self.andor_sum_bkd_corrected.push(atom_number_bwd)
+        self.andor_sum_imbalance.push(imbalance)
+        self.andor_sum_total.push(total)
 
 
-class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
+class DoubleTrapImagingRepumpedNormalised(
+    NormalisedXXODTFastKineticsMixin, NormalisedFastKineticsRepumpedMixin
+):
     """
     Image two traps with three pulses of light, imaging the ground, excited and
-    background.
-
-    Reumping is not handled here, but you can override e.g.
-    :meth:`~do_first_pulse` to add it if required. See e.g.
-    :class:`~ClockRabiSpectroscopyRedMotMixin`.
+    background, with 707 repumping after the first pulse.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -130,10 +144,6 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
     * :meth:`~do_imaging_hook_andor`
     """
 
-    # num_andor_images = 3
-    # num_grabber_readouts = 1
-    # num_grabber_rois = 6
-
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
         self.setattr_result("atom_number_forward", FloatChannel)
@@ -141,47 +151,30 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
         self.setattr_result("excitation_fraction_backward", FloatChannel)
         self.setattr_result("atom_number_backward", FloatChannel)
 
+        self.setattr_result("atom_number_imbalance", FloatChannel)
+
         self.excitation_fraction_forward: FloatChannel
         self.atom_number_forward: FloatChannel
         self.excitation_fraction_backward: FloatChannel
         self.atom_number_backward: FloatChannel
+        self.atom_number_imbalance: FloatChannel
 
-    # def hook_setup_andor(self):
-    #     """
-    #     Setup the Andor camera to use 6x ROIs
+    def host_setup(self):
+        super().host_setup()
 
-    #     We're using fast kinetics mode. The first three ROIs are for the forward
-    #     trap, the last three are for the backwards trap.
-    #     """
+        self.launch_ellipse_applet()
 
-    #     roi_defaults = calculate_grabber_rois(
-    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-    #         num_images=3,
-    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
-    #     ) + calculate_grabber_rois(
-    #         fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP,
-    #         fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP,
-    #         num_images=3,
-    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
-    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
-    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
-    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
-    #     )
+    @host_only
+    def launch_ellipse_applet(self):
+        # Reconstruct the ndscan dataset path
+        # This is a bit fragile, and ought to be based on NDScan functions
+        self.setattr_device("scheduler")
+        self.setattr_device("ccb")
+        dataset_path_x = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_forward"
+        dataset_path_y = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_backward"
 
-    #     self.setattr_fragment(
-    #         "andor_camera_control",
-    #         AndorCameraControl,
-    #         roi_defaults=roi_defaults,
-    #         add_pre_trigger_delay=True,
-    #         fast_kinetics_num_shots=3,
-    #     )
-    #     self.andor_camera_control: AndorCameraControl
-
-    #     self.hook_setup_andor_results()
+        cmd = f"${{artiq_applet}}plot_xy {dataset_path_y} --x {dataset_path_x}"
+        self.ccb.issue("create_applet", "Excitation Lissajous plot", cmd)
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
@@ -212,5 +205,10 @@ class DoubleTrapImagingNormalised(NormalisedXXODTFastKineticsMixin):
                 (sum_excited_bwd - sum_background_bwd_excited) / atom_number_bwd
             )
 
+        imbalance = (atom_number_fwd - atom_number_bwd) / (
+            atom_number_fwd + atom_number_bwd
+        )
+
         self.atom_number_forward.push(atom_number_fwd)
         self.atom_number_backward.push(atom_number_bwd)
+        self.atom_number_imbalance.push(imbalance)

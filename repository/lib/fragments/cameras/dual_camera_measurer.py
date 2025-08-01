@@ -2,10 +2,10 @@ import logging
 
 import numpy as np
 from artiq.coredevice.core import Core
-from artiq.experiment import host_only
-from artiq.experiment import kernel
-from artiq.experiment import parallel
-from artiq.experiment import rpc
+from artiq.language import host_only
+from artiq.language import kernel
+from artiq.language import parallel
+from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment import ResultChannel
 from ndscan.experiment.parameters import BoolParam
@@ -36,7 +36,7 @@ class _DualCameraBase(Fragment):
     num_images = None
     "Number of images to take. Must be set by the subclass before host_setup is run"
 
-    def build_fragment(self, hardware_trigger=True):
+    def build_fragment(self, hardware_trigger=True, hide_all_results=False):
         self.setattr_device("core")
         self.core: Core
 
@@ -106,19 +106,26 @@ class _DualCameraBase(Fragment):
         self.image_vertical: ResultChannel
 
         self.setattr_result(
-            "image_horizontal_timestamp", IntChannel, display_hints={"priority": -1}
+            "image_horizontal_timestamp", IntChannel, display_hints={"priority": -3}
         )
         self.image_horizontal_timestamp: ResultChannel
 
-        self.setattr_result("image_horizontal_mean", FloatChannel)
+        self.setattr_result(
+            "image_horizontal_mean", FloatChannel, display_hints={"priority": -2}
+        )
         self.image_horizontal_mean: ResultChannel
 
         self.setattr_result(
-            "image_vertical_timestamp", IntChannel, display_hints={"priority": -1}
+            "image_vertical_timestamp", IntChannel, display_hints={"priority": -3}
         )
         self.image_vertical_timestamp: ResultChannel
 
-        self.setattr_result("image_vertical_mean", FloatChannel)
+        display_hints = {"priority": -2} if hide_all_results else {}
+        self.setattr_result(
+            "image_vertical_mean",
+            FloatChannel,
+            display_hints=display_hints,
+        )
         self.image_vertical_mean: ResultChannel
 
         # %% Kernel attributes

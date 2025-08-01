@@ -2,9 +2,9 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.sampler import Sampler
-from artiq.experiment import delay
-from artiq.experiment import kernel
 from artiq.experiment import ms
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel

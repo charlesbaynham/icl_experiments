@@ -3,8 +3,8 @@ from typing import *
 
 from artiq.coredevice.core import Core
 from artiq.experiment import *
-from artiq.experiment import kernel
-from artiq.experiment import now_mu
+from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -31,7 +31,7 @@ class GeneralRampingPhaseNoGeneral(GeneralRampingPhase):
 
     urukuls = [
         "urukul9910_aom_doublepass_689_red_injection",
-        "urukul9910_aom_doublepass_461_injection",
+        "urukul9910_aom_doublepass_461_master_to_ijd1",
     ]
     default_urukul_nominal_frequencies = [340e6, 200e6]
     default_urukul_detunings_start = [1e6, 0.0]
@@ -60,7 +60,7 @@ class GeneralRampingPhaseNoSUServo(GeneralRampingPhase):
 
     urukuls = [
         "urukul9910_aom_doublepass_689_red_injection",
-        "urukul9910_aom_doublepass_461_injection",
+        "urukul9910_aom_doublepass_461_master_to_ijd1",
     ]
     default_urukul_nominal_frequencies = [340e6, 200e6]
     default_urukul_detunings_start = [1e6, 0.0]

@@ -4,8 +4,8 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
+from artiq.language import delay_mu
+from artiq.language import kernel
 from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam

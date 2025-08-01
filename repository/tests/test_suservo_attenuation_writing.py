@@ -6,7 +6,7 @@ from artiq.coredevice.suservo import SUServo
 from artiq.coredevice.urukul import *
 from artiq.experiment import EnvExperiment
 from artiq.experiment import StringValue
-from artiq.experiment import kernel
+from artiq.language import kernel
 
 logger = logging.getLogger(__name__)
 

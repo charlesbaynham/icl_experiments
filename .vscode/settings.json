@@ -20,6 +20,9 @@
     "todo-tree.filtering.excludeGlobs": [
         "**/node_modules/*/**",
         "**/nix/aravis/**",
-        "**/flake.nix"
-    ]
+        "**/flake.nix",
+        "**/.git/**"
+    ],
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
 }

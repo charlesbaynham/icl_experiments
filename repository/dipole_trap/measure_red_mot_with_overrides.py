@@ -2,6 +2,7 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+import repository.lib.constants as constants
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
@@ -34,14 +35,25 @@ def make_experiment(
         def build_fragment(self):
             super().build_fragment()
 
+            # Rename the "expansion_time" since the dipole trap is left on so
+            # the atoms are not expanding
             self.setattr_param_rebind(
-                "chamber_2_bias_x", self.blue_3d_mot, default=chamber_2_bias_x
+                "dipole_hold_time",
+                self,
+                "expansion_time",
+                description="Time to hold the dipole trap for",
+                default=constants.DIPOLE_TRAP_HOLD_TIME,
+                unit="ms",
+            )
+
+            self.setattr_param_rebind(
+                "narrowband_bias_x", self.red_mot, default=chamber_2_bias_x
             )
             self.setattr_param_rebind(
-                "chamber_2_bias_y", self.blue_3d_mot, default=chamber_2_bias_y
+                "narrowband_bias_y", self.red_mot, default=chamber_2_bias_y
             )
             self.setattr_param_rebind(
-                "chamber_2_bias_z", self.blue_3d_mot, default=chamber_2_bias_z
+                "narrowband_bias_z", self.red_mot, default=chamber_2_bias_z
             )
 
             self.setattr_param_rebind(
@@ -79,47 +91,32 @@ def make_experiment(
     Exp.__name__ = name
     Exp.__qualname__ = name
 
-    return make_fragment_scan_exp(Exp)
+    return make_fragment_scan_exp(Exp, max_rtio_underflow_retries=0)
 
 
 LoadBackwardDipoleTrap = make_experiment(
     "LoadBackwardDipoleTrap",
-    chamber_2_bias_x=0.29,
-    chamber_2_bias_y=0.02,
-    chamber_2_bias_z=-1.14,
-    chamber_2_mot_current_start=3,
-    chamber_2_mot_current_end=3,
-    roi_0_x0=130,
-    roi_0_x1=280,
-    roi_0_y0=330,
-    roi_0_y1=375,
+    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
+    chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
+    chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
+    chamber_2_mot_current_start=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
+    chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
+    roi_0_x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+    roi_0_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+    roi_0_y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+    roi_0_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
 )
 
 
 LoadForwardDipoleTrap = make_experiment(
     "LoadForwardDipoleTrap",
-    chamber_2_bias_x=0.4,
-    chamber_2_bias_y=0.02,
-    chamber_2_bias_z=-1.015,
-    chamber_2_mot_current_start=3,
-    chamber_2_mot_current_end=3,
-    roi_0_x0=130,
-    roi_0_x1=280,
-    roi_0_y0=275,
-    roi_0_y1=325,
-)
-
-
-LoadBothDipoleTraps = make_experiment(
-    "LoadBothDipoleTraps",
-    roi_0_x0=130,
-    roi_0_x1=280,
-    roi_0_y0=275,
-    roi_0_y1=375,
-    # TODO: These param are not right! They need choosing.
-    chamber_2_bias_x=0.4,
-    chamber_2_bias_y=0.02,
-    chamber_2_bias_z=-1.015,
-    chamber_2_mot_current_start=3,
-    chamber_2_mot_current_end=3,
+    chamber_2_bias_x=constants.RED_NARROWBAND_BIAS_FIELD_X,
+    chamber_2_bias_y=constants.RED_NARROWBAND_BIAS_FIELD_Y,
+    chamber_2_bias_z=constants.RED_NARROWBAND_BIAS_FIELD_Z,
+    chamber_2_mot_current_start=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
+    chamber_2_mot_current_end=constants.XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT,
+    roi_0_x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+    roi_0_x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+    roi_0_y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+    roi_0_y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
 )

@@ -3,15 +3,16 @@ import logging
 from artiq.compiler.builtins import TFloat
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import delay
-from artiq.experiment import delay_mu
-from artiq.experiment import kernel
-from artiq.experiment import parallel
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
+from artiq.language import parallel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.fragments.magnetic_fields import SetMagneticFieldsQuick
@@ -154,17 +155,18 @@ class RedMOTThreePhaseFrag(Fragment):
         Does not turn off blue beams - you should do this elsewhere.
 
         Advances the timeline by the duration of SPI writes. The timeline is
-        left pointing at the moment that the beams turn on.
+        left pointing at the moment that the beams turn on. Writes into the past
+        for shutter opening.
         """
 
         self.red_beam_controller.start_ramping_red()
-        delay_mu(8)
+        delay_mu(int64(self.core.ref_multiplier))
         self.red_beam_controller.turn_on_mot_beams()
 
     @kernel
     def terminate_broadband_mot(self):
         """
-        Disable the broadband MOT, in preparation for a narrband MOT
+        Disable the broadband MOT, in preparation for a narrowband MOT
 
         Advances the timeline by the duration of a few SPI writes.
         """

@@ -1,12 +1,14 @@
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from artiq.language.core import kernel, rpc, host_only
-from ndscan.experiment.result_channels import IntChannel
-from ndscan.experiment.fragment import Fragment
-from repository.lib.constants import IJD_RELOCKER_DEFAULTS
-from relocker_driver.driver import RelockerDriver
+import logging
 from typing import List
 
-import logging
+import numpy as np
+from artiq.language.core import host_only
+from artiq.language.core import rpc
+from ndscan.experiment.fragment import Fragment
+from ndscan.experiment.result_channels import IntChannel
+from relocker_driver.driver import RelockerDriver
+
+from repository.lib.constants import IJD_RELOCKER_DEFAULTS
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,6 @@ class CheckForRelocksFrag(Fragment):
     """
 
     def build_fragment(self, reset_at_start: bool = True):
-
         self.reset_at_start = reset_at_start
 
         self.relockers: List[RelockerDriver] = []
@@ -53,8 +54,9 @@ class CheckForRelocksFrag(Fragment):
             n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
         return n_relocks
 
-    @rpc(flags={"async"})
-    def check_and_log_relocks(self):
+    @rpc
+    def check_and_log_relocks(self) -> np.int32:
+        relocks_total = 0
         num_relolocks = self.check_for_relocks()
         for i, n in enumerate(num_relolocks):
             if n:
@@ -64,18 +66,5 @@ class CheckForRelocksFrag(Fragment):
                     n,
                 )
             self.num_relock_channels[i].push(n)
-
-
-class CheckForRelocksMixin(RedMOTWithExperiment):
-    """
-    Mixin for checking if the IJD relockers relocked during the experiment.
-    """
-
-    def build_fragment(self):
-        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
-        self.relock_checker: CheckForRelocksFrag
-        super().build_fragment()
-
-    @kernel
-    def host_functions_after_experiment_hook(self):
-        self.relock_checker.check_and_log_relocks()
+            relocks_total += n
+        return int(sum(num_relolocks))

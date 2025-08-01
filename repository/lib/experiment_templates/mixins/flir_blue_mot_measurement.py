@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
@@ -28,7 +28,10 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
         super().build_fragment()
 
         self.setattr_fragment(
-            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+            "camera_interface",
+            DualCameraMeasurement,
+            hardware_trigger=True,
+            hide_all_results=True,
         )
         self.camera_interface: DualCameraMeasurement
 

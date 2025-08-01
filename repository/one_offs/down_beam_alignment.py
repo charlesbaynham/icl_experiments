@@ -1,7 +1,7 @@
 import logging
 
-from artiq.experiment import delay
-from artiq.experiment import kernel
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -72,7 +72,6 @@ class DownBeamAlignmentFrag(
     def before_start_hook(self):
         self.core.break_realtime()
         delay(1e-3)
-        self.before_start_hook_xodt_molasses()
 
         # Configure the down beam but leave it off
         self.core.break_realtime()
