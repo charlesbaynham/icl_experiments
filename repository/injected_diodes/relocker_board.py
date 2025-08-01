@@ -403,9 +403,10 @@ class AllRelockersFrag(ExpFragment):
         for i, relocker in enumerate(self.relocker_frags):
             if self.relocker_enabled[i].get():
                 relocker.run_once()
-            else:
-                if self.log_results.get():
-                    relocker.log_results()
+            # else:
+            #     if self.log_results.get():
+            #         relocker.log_results()
+            #         time.sleep(0.1)
 
 
 class RelockerAutoFrag(ExpFragment):
