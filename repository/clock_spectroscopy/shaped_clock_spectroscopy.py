@@ -90,6 +90,7 @@ class ShapedClockSpecWithSlicingFrag(
     FieldOnlyRampInEvapMixin,
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
+    NormalisedFastKineticsRepumpedMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
