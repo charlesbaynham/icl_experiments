@@ -142,12 +142,14 @@ class ShapedPulse(Fragment, abc.ABC):
         pulse_turns = pulse_phases / (2 * np.pi)
 
         # Convert to ram words
-        ram_data = [np.int32(0x00)] * self.num_steps.get()
+        # FIXME this is a test and might not work
+        ram_data_u32 = [np.uint32(0x00)] * self.num_steps.get()
         self.dds.turns_amplitude_to_ram(
-            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data
+            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data_u32
         )
+        ram_data_i32 = np.int32(ram_data_u32 & 0xFFFFFFFF)
 
-        return ram_data
+        return ram_data_i32
 
     @kernel
     def device_setup(self):
@@ -476,9 +478,8 @@ class PhaseRampPulse(ShapedPulse):
 
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(n_words)
-        phase = np.zeros_like(amplitude)
-        for i in range(n_words):
-            phase[i] = 6.28 / n_words
+        phase = np.linspace(0, 6.28, n_words)
+        
 
         return amplitude, phase
 
