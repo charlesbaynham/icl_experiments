@@ -478,9 +478,8 @@ class PhaseRampPulse(ShapedPulse):
 
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(n_words)
-        phase = np.zeros_like(amplitude)
-        for i in range(n_words):
-            phase[i] = np.float64(i*10e-4 / n_words)
+        phase = np.linspace(0, 6.28, n_words)
+        
 
         return amplitude, phase
 
