@@ -12,7 +12,7 @@ from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment import ExpFragment
-from repository.lib.fragments.pulse_shaping import PhaseStepPulse
+from repository.lib.fragments.pulse_shaping import PhaseStepPulse, PhaseRampPulse
 
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     CLOCK_BEAM_INFO,
@@ -32,10 +32,10 @@ class TestPhaseShapedPulse(ExpFragment):
 
         self.setattr_fragment(
             "shaped_pulse",
-            PhaseStepPulse,
+            PhaseRampPulse,
             ad9910_name=CLOCK_BEAM_INFO.urukul_device,
         )
-        self.shaped_pulse: PhaseStepPulse
+        self.shaped_pulse: PhaseRampPulse
 
     @kernel
     def run_once(self):
