@@ -191,9 +191,6 @@ class RelockerChannelFrag(ExpFragment):
 
         self.controller_name = defaults.associated_controller
         self.controller: CTL200 = self.get_device(self.controller_name)
-        logger.info("channel_name: %s", self.channel_name)
-        logger.info("channel: %s", self.channel)
-        logger.info("relocker_name: %s", self.relocker_name)
 
         return super().host_setup()
 
@@ -339,12 +336,6 @@ class RelockerChannelFrag(ExpFragment):
         # )
 
     def run_once(self):
-        logger.info("channel_name: %s", self.channel_name)
-        logger.info("channel: %s", self.channel)
-        logger.info("relocker_name: %s", self.relocker_name)
-        for _ in range(10):
-            rtn = self.relocker.blank_line()
-            logger.info(rtn)
         if self.write_settings.get():
             self.set_scan_settings()
             self.set_lock_settings()
@@ -390,7 +381,7 @@ class AllRelockersFrag(ExpFragment):
         self.setattr_param(
             "log_results",
             BoolParam,
-            description="Get results if no relock",
+            description="Log if no relock",
             default=False,
         )
         self.log_results: BoolParamHandle
@@ -403,10 +394,9 @@ class AllRelockersFrag(ExpFragment):
         for i, relocker in enumerate(self.relocker_frags):
             if self.relocker_enabled[i].get():
                 relocker.run_once()
-            # else:
-            #     if self.log_results.get():
-            #         relocker.log_results()
-            #         time.sleep(0.1)
+            else:
+                if self.log_results.get():
+                    relocker.log_results()
 
 
 class RelockerAutoFrag(ExpFragment):
