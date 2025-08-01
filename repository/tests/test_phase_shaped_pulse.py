@@ -20,7 +20,7 @@ class TestPhaseShapedPulse(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.lo_dds: AD9910 = self.get_device("urukul2_ch3")
+        self.lo_dds: AD9910 = self.get_device("")
 
         self.setattr_fragment(
             "shaped_pulse",
