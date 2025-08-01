@@ -25,6 +25,9 @@ from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_deca
     ExponentialDecayMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
+    GlitchFreeUrukulDefaultAttenuation,
+)
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -82,6 +85,14 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+
+        # Init of the clock OPLL without glitching
+        self.setattr_fragment(
+            "GlitchFreeUrukulClock",
+            GlitchFreeUrukulDefaultAttenuation,
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
+        )
 
         # Ensure the clock beam is set up
         # %% Fragments

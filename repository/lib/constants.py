@@ -113,6 +113,12 @@ URUKULED_BEAMS = [
         attenuation=9.0,
         urukul_device="urukul9912_aom_singlepass_689_stark_shifter_switch",
     ),
+    UrukuledBeam(
+        "698_clock_OPLL_offset",
+        frequency=80e6,
+        attenuation=0.0,
+        urukul_device="urukul9910_OPLL_698_clock",
+    ),
 ]
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
@@ -1188,7 +1194,7 @@ RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
 XODT_SINGLE_LOADING_STIR_DETUNING = +13e3
 XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 10.0
 
-TOTAL_EVAP_HOLD_TIME = 5.0
+TOTAL_EVAP_HOLD_TIME = 0.01
 
 # %% Second dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up

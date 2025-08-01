@@ -9,6 +9,7 @@ from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -25,6 +26,10 @@ CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 logger = logging.getLogger(__name__)
 
+CLOCK_LOW_RAMP_FREQ = 80e6  # Hz
+CLOCK_HIGH_RAMP_FREQ = 80.7e6  # Hz
+ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+
 
 class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     """
@@ -34,10 +39,14 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment("clock_opll", ClockOPLLController)
+        self.clock_opll: ClockOPLLController
 
         self.setattr_param(
             "shelving_pulse_time",
@@ -145,6 +154,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
         at_mu(_t_start)
 
+        # start clock frequency ramp
+        self.start_clock_frequency_ramp()
+
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()
 
@@ -163,6 +175,31 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         delay(self.shelving_pulse_time.get())
         self.clock_dds.sw.off()
 
+    @kernel
+    def start_clock_frequency_ramp(self):
+        """
+        Start modulation of the clock OPLL DDS as configured
+
+        Advances the timeline by the duration of SPI writes
+        """
+
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            CLOCK_LOW_RAMP_FREQ,
+            CLOCK_HIGH_RAMP_FREQ,
+            wave_type=0,
+        )
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_shelving()
+
+    @kernel
+    def post_sequence_cleanup_hook_shelving(self):
+        #stop the clock laser ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
     """
@@ -172,6 +209,7 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     @kernel
@@ -191,6 +229,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     * :meth:`~before_start_hook`
     * :meth:`~post_dipole_trap_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     @kernel
