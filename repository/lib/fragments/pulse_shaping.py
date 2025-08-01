@@ -20,6 +20,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.urukul_init import make_urukul_init
+
 from repository.lib.jesse_pulse import *
 
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ class ShapedPulse(Fragment, abc.ABC):
             "num_steps",
             IntParam,
             description="Number of steps in the shaped pulse",
-            default=1024,
+            default=500,
             min=1,
             max=self._max_num_steps,
         )
@@ -493,6 +494,7 @@ class PhaseRampPulse(ShapedPulse):
         self._old_num_steps = self.num_steps.get()
 
         return return_value
+
 
 class JessePulse(ShapedPulse):
     "Jesse's velocity selection pulse (phase only)"
