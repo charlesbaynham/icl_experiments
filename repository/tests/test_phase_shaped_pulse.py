@@ -10,7 +10,7 @@ from ndscan.experiment import *
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     CLOCK_BEAM_INFO,
 )
-from repository.lib.fragments.pulse_shaping import PhaseRampPulse
+from repository.lib.fragments.pulse_shaping import JessePulse
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,10 @@ class TestPhaseShapedPulse(ExpFragment):
 
         self.setattr_fragment(
             "shaped_pulse",
-            PhaseRampPulse,
+            JessePulse,
             ad9910_name=CLOCK_BEAM_INFO.urukul_device,
         )
-        self.shaped_pulse: PhaseRampPulse
+        self.shaped_pulse: JessePulse
 
     @kernel
     def run_once(self):
