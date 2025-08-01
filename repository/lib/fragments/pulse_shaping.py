@@ -445,7 +445,6 @@ class PhaseStepPulse(ShapedPulse):
         super().build_fragment(*args, **kwargs)
 
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
-
         amplitude = np.ones(n_words)
         phase = np.zeros_like(amplitude)
         for i in range(int(n_words / 2), n_words):
@@ -464,6 +463,7 @@ class PhaseStepPulse(ShapedPulse):
 
         return return_value
 
+
 class PhaseRampPulse(ShapedPulse):
     """
     Step the phase of the pulse
@@ -475,9 +475,10 @@ class PhaseRampPulse(ShapedPulse):
         super().build_fragment(*args, **kwargs)
 
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
-
         amplitude = np.ones(n_words)
-        phase = np.linspace(0, 6.28, n_words)
+        phase = np.zeros_like(amplitude)
+        # for i in range(n_words):
+        #     phase[i] = i #*6.28/n_words
 
         return amplitude, phase
 
