@@ -20,6 +20,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.urukul_init import make_urukul_init
+from repository.lib.jesse_pulse import *
 
 logger = logging.getLogger(__name__)
 
@@ -468,7 +469,7 @@ class PhaseStepPulse(ShapedPulse):
 
 class PhaseRampPulse(ShapedPulse):
     """
-    Step the phase of the pulse
+    Ramp the phase of the pulse
     """
 
     def build_fragment(self, *args, **kwargs):
@@ -479,6 +480,31 @@ class PhaseRampPulse(ShapedPulse):
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(n_words)
         phase = np.linspace(0, 6.28, n_words)
+
+        return amplitude, phase
+
+    @kernel
+    def is_recalc_needed(self) -> bool:
+        return_value = False
+
+        if self.num_steps.get() != self._old_num_steps:
+            return_value = True
+
+        self._old_num_steps = self.num_steps.get()
+
+        return return_value
+
+class JessePulse(ShapedPulse):
+    "Jesse's velocity selection pulse (phase only)"
+
+    def build_fragment(self, *args, **kwargs):
+        self._old_num_steps = -1
+
+        super().build_fragment(*args, **kwargs)
+
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+        amplitude = np.ones(n_words)
+        phase = phase_values_rad
 
         return amplitude, phase
 
