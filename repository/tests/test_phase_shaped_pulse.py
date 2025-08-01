@@ -10,6 +10,7 @@ from ndscan.experiment import *
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     CLOCK_BEAM_INFO,
 )
+from repository.lib.fragments.pulse_shaping import PhaseRampPulse
 
 logger = logging.getLogger(__name__)
 
