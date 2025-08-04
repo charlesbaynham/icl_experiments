@@ -66,12 +66,12 @@ class _DifferentialClockInterferometry(
     # Base:
     DipoleTrapWithExperiment,
 ):
-
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
+
 
 class DifferentialClockInterferometryFrag(
     _DifferentialClockInterferometry,
@@ -83,9 +83,9 @@ class DifferentialClockInterferometryFrag(
 
     @kernel
     def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base
-        self.post_sequence_cleanup_hook_andor
-        self.post_sequence_cleanup_hook_shelving
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 class DifferentialClockInterferometryWithNoiseFrag(
@@ -99,9 +99,9 @@ class DifferentialClockInterferometryWithNoiseFrag(
 
     @kernel
     def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base
-        self.post_sequence_cleanup_hook_andor
-        self.post_sequence_cleanup_hook_shelving
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
@@ -115,9 +115,10 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
 
     @kernel
     def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base
-        self.post_sequence_cleanup_hook_andor
-        self.post_sequence_cleanup_hook_shelving
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
     DifferentialClockInterferometryFrag

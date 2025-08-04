@@ -50,9 +50,9 @@ class ClockSpecMidwayImagingFrag(
 
     @kernel
     def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base
-        self.post_sequence_cleanup_hook_andor
-        self.post_sequence_cleanup_hook_shelving
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 ClockSpecMidwayImaging = make_fragment_scan_exp(ClockSpecMidwayImagingFrag)

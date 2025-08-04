@@ -9,7 +9,6 @@ from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
@@ -21,6 +20,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -197,8 +197,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
     @kernel
     def post_sequence_cleanup_hook_shelving(self):
-        #stop the clock laser ramp
+        # stop the clock laser ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
+        print("ramp stopped")
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
