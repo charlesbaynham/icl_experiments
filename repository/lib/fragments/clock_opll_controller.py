@@ -41,7 +41,7 @@ class ClockOPLLController(Fragment):
         self.clock_OPLL_offset: AD9910 = self.get_device(
             constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device
         )
-        # self.kernel_invariants.add("clock_opll_offset")
+        self.kernel_invariants.add("clock_OPLL_offset")
 
     @kernel
     def device_setup(self):
