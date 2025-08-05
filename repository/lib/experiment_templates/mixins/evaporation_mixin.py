@@ -242,3 +242,77 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
                 delay(hold_time - duration_1 - duration_2 - duration_3)
         else:
             self.dipole_trap_evaporation_hook_default()
+
+
+class EvaporationThreeRampsWithFieldRampMixin(EvapAndFieldRampBase):
+    """
+    Loads atoms into a dipole trap after the narrowband red MOT, and implements a
+    three stages of ramping dipole trap power, with a field ramp during evaporation.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "field_only_ramp",
+            EvapFieldRamp,
+        )
+        self.field_only_ramp: EvapFieldRamp
+
+        self.setattr_fragment(
+            "linear_evap_ramp_2",
+            XODTWithLinearRamp_2,
+            enforce_binding_to_defaults=False,
+        )
+        self.linear_evap_ramp_2: XODTWithLinearRamp_2
+
+        self.setattr_fragment(
+            "linear_evap_ramp_3",
+            XODTWithLinearRamp_3,
+            enforce_binding_to_defaults=False,
+        )
+        self.linear_evap_ramp_3: XODTWithLinearRamp_3
+
+        self.linear_evap_ramp_2.daisy_chain_with_previous_phase(
+            self.ramp_during_evap_phase, suservos=SUSERVOS_XODT
+        )
+
+        self.linear_evap_ramp_3.daisy_chain_with_previous_phase(
+            self.linear_evap_ramp_2, suservos=SUSERVOS_XODT
+        )
+
+        self.setattr_param(
+            "evap_bool",
+            BoolParam,
+            "Do evaporation?",
+            default=True,
+        )
+        self.evap_bool: BoolParamHandle
+
+    @kernel
+    def DMA_initialization_hook_evap_with_field_ramp(self):
+        self.ramp_during_evap_phase.precalculate_dma_handle()
+        self.linear_evap_ramp_2.precalculate_dma_handle()
+        self.linear_evap_ramp_3.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_evap_with_field_ramp(self)
+
+    @kernel
+    def dipole_trap_evaporation_hook(self):
+        if self.evap_bool.get():
+            self.dipole_trap_evaporation_hook_default()
+            self.ramp_during_evap_phase.do_phase()
+            self.linear_evap_ramp_2.do_phase()
+            self.linear_evap_ramp_3.do_phase()
+
+        else:
+            self.dipole_trap_evaporation_hook_default()
+            self.field_only_ramp.do_phase()
