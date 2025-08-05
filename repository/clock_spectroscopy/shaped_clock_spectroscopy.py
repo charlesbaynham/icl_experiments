@@ -34,6 +34,9 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsWithFieldRampMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
@@ -147,7 +150,7 @@ class ShapedClockSpecWithSlicingFrag(
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,  # FIXME: rotate the fields
+    EvaporationThreeRampsWithFieldRampMixin,
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
@@ -284,4 +287,8 @@ ClockSpecFromSingleXODTEvaporatedShapedSlicing = make_fragment_scan_exp(
 ClockInterferometryFromSingleXODTEvaporatedShapedSlicing = make_fragment_scan_exp(
     ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag,
     max_rtio_underflow_retries=0,
+)
+
+ShapedClockSpecWithSlicing = make_fragment_scan_exp(
+    ShapedClockSpecWithSlicingFrag, max_rtio_underflow_retries=0
 )
