@@ -93,6 +93,13 @@ class EvapAndFieldRampBase(_RampDuringEvapHookBase):
     Exposes the evaporation and field ramping phase for use in evaporation Mixins
     """
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.ramp_during_evap_phase.bind_suservo_setpoint_params_to_default_beam_setter(
+            [self.dipole_beam_controller.all_beam_default_setter]
+        )
+
     def _define_evap_phase_ramp(self):
         self.setattr_fragment(
             "ramp_during_evap_phase",
