@@ -24,6 +24,9 @@ from repository.lib.experiment_templates.mixins.clock_interferometry_with_noise 
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    FieldOnlyRampInEvapMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -33,9 +36,6 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 from repository.lib.experiment_templates.mixins.rigol_counter import RigolCounterMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    FieldOnlyRampInEvapMixin,
 )
 
 logger = logging.getLogger(__name__)
