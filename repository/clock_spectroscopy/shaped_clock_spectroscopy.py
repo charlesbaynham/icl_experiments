@@ -142,7 +142,7 @@ class ShapedClockSpecWithSlicingFrag(
         self.post_sequence_cleanup_hook_shaped_pulses()
 
 
-class ShapedClockSpecWithSlicingFrag(
+class ShapedClockSpecWithEvapAndSlicingFrag(
     # Clock spec:
     ShapedRabiSpectroscopyDipoleTrapMixin,
     # Velocity slicing:
@@ -289,6 +289,6 @@ ClockInterferometryFromSingleXODTEvaporatedShapedSlicing = make_fragment_scan_ex
     max_rtio_underflow_retries=0,
 )
 
-ShapedClockSpecWithSlicing = make_fragment_scan_exp(
-    ShapedClockSpecWithSlicingFrag, max_rtio_underflow_retries=0
+ShapedClockSpecWithEvapAndSlicing = make_fragment_scan_exp(
+    ShapedClockSpecWithEvapAndSlicingFrag, max_rtio_underflow_retries=0
 )
