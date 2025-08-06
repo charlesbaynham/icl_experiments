@@ -304,6 +304,7 @@ class EvaporationThreeRampsWithFieldRampMixin(EvapAndFieldRampBase):
     @kernel
     def DMA_initialization_hook_evap_with_field_ramp(self):
         self.ramp_during_evap_phase.precalculate_dma_handle()
+        self.field_only_ramp.precalculate_dma_handle()
         self.linear_evap_ramp_2.precalculate_dma_handle()
         self.linear_evap_ramp_3.precalculate_dma_handle()
 
