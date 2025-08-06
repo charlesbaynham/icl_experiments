@@ -143,7 +143,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             "increased_stir_power_duration",
             FloatParam,
             "Time to have an increased stir power for",
-            default=4.0,
+            default=6.0e-3,
             unit="ms",
         )
         self.increased_stir_power_duration: FloatParamHandle
@@ -278,30 +278,34 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
                 self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_attenuation(
                     self.stir_att_in_bb_mot.get()
                 )
+                print(self.stir_att_in_bb_mot.get())
                 # Hook for mixins to use - default nothing
                 self.start_of_red_broadband_hook()
                 # Save the time now so we can come back to it
                 t_red_light_on = now_mu()
+
             # Turn off the blue beams, a little after the red MOT starts
             with sequential:
                 delay(self.blue_3d_mot.delay_into_red_mot_for_blue_beam_switchoff.get())
                 self.blue_3d_mot.turn_off_all_beams()
-            # Set the attenuation of stir beam back down
+
+                # Set the attenuation of stir beam back down
             with sequential:
                 delay(self.increased_stir_power_duration.get())
-                stir_index = self.blue_3d_mot.mirny_eom_sidebands.index_of_stir_beam
-                mirny_settings_stir = (
-                    self.blue_3d_mot.mirny_eom_sidebands.mirny_settings[stir_index]
-                )
-                attenuation_handle = (
-                    self.blue_3d_mot.mirny_eom_sidebands.attenuation_handles[stir_index]
-                )
-                attenuation = attenuation_handle.get()
-                if attenuation < 0:
-                    attenuation = mirny_settings_stir.attenuation
+                # stir_index = self.blue_3d_mot.mirny_eom_sidebands.index_of_stir_beam
+                # mirny_settings_stir = (
+                #     self.blue_3d_mot.mirny_eom_sidebands.mirny_settings[stir_index]
+                # )
+                # attenuation_handle = (
+                #     self.blue_3d_mot.mirny_eom_sidebands.attenuation_handles[stir_index]
+                # )
+                # attenuation = attenuation_handle.get()
+                # if attenuation < 0:
+                #     attenuation = mirny_settings_stir.attenuation
                 self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_attenuation(
-                    attenuation
+                    30.0
                 )
+                print("attenuation back to 30.0")
 
         # Go back to the start of the blue MOT rampdown, before all the red beam stuff above
         at_mu(t_start_blue_rampdown_mu)

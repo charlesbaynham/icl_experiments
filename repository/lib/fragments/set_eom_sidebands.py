@@ -188,6 +188,7 @@ class SetEOMSidebandsFrag(Fragment):
         self.mirny_channels[self.index_of_stir_beam].set_frequency(
             nominal_frequency + detuning
         )
+        print(nominal_frequency + detuning)
 
     @kernel
     def set_689_stir_sideband_attenuation(self, attenuation: float):
