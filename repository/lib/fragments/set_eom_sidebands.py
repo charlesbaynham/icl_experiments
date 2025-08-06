@@ -189,6 +189,15 @@ class SetEOMSidebandsFrag(Fragment):
             nominal_frequency + detuning
         )
 
+    @kernel
+    def set_689_stir_sideband_attenuation(self, attenuation: float):
+        """
+        Set the 689 stir sideband amplitude
+
+        Advances the timeline by the duration of SPI writes
+        """
+        self.mirny_channels[self.index_of_stir_beam].set_att(attenuation)
+
 
 class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
     mirny_settings_87 = MIRNY_SETTINGS_87
