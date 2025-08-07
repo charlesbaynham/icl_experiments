@@ -746,9 +746,10 @@ _default_461 = (
     + 10e6
     # 2024-11-18
     - 10e6
+    - 20e6  # 2025-08-07
 )
-_default_707 = 423_913_478e6
-_default_679 = 441_332_627e6
+_default_707 = 423_913_478e6 - 5e6  # 2025-08-07
+_default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6  # Measured empirically
 _clock_laser_offset = -80e6
