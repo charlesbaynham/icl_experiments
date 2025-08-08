@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import host_only
@@ -20,7 +21,8 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
 
 logger = logging.getLogger(__name__)
 
-GLITCH_MONITOR_DATASET = "clock_glitch_filter_num_glitches"
+GLITCH_MONITOR_DATASET = "clock_glitch_filter_num_glitches_raw"
+GLITCH_MONITOR_DATASET_PROCESSED = "clock_glitch_filter_num_glitches_processed"
 
 
 class ClockGlitchFilterFrag(Fragment):
@@ -33,9 +35,6 @@ class ClockGlitchFilterFrag(Fragment):
 
         self.setattr_device("core")
         self.core: Core
-
-        self.setattr_device("ccb")
-        self.ccb: CCB
 
         self.setattr_param(
             "gate_threshold",
@@ -151,7 +150,7 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
         )
         self.clock_glitch_filter_num_glitches: FloatChannel
 
-        self.set_dataset(GLITCH_MONITOR_DATASET, [], broadcast=True)
+        self.set_dataset(GLITCH_MONITOR_DATASET, [], broadcast=False)
 
     def host_setup(self):
         super().host_setup()
@@ -161,7 +160,7 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
         ccb.issue(
             "create_applet",
             "Clock glitchs",
-            f'${{artiq_applet}}plot_hist {GLITCH_MONITOR_DATASET} --title "Clock glitches"',
+            f'${{artiq_applet}}plot_hist {GLITCH_MONITOR_DATASET_PROCESSED} --title "Clock glitches"',
         )
 
     @kernel
@@ -188,3 +187,8 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
 
         # Also save in the monitor dataset for plotting
         self.append_to_dataset(GLITCH_MONITOR_DATASET, num_glitches)
+        self.set_dataset(
+            GLITCH_MONITOR_DATASET_PROCESSED,
+            np.histogram(self.get_dataset(GLITCH_MONITOR_DATASET)),
+            broadcast=True,
+        )
