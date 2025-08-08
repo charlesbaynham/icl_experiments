@@ -22,7 +22,8 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
 logger = logging.getLogger(__name__)
 
 GLITCH_MONITOR_DATASET = "clock_glitch_filter_num_glitches_raw"
-GLITCH_MONITOR_DATASET_PROCESSED = "clock_glitch_filter_num_glitches_processed"
+GLITCH_MONITOR_DATASET_COUNTS = "clock_glitch_filter_num_glitches_counts"
+GLITCH_MONITOR_DATASET_BINS = "clock_glitch_filter_num_glitches_bins"
 
 
 class ClockGlitchFilterFrag(Fragment):
@@ -160,7 +161,7 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
         ccb.issue(
             "create_applet",
             "Clock glitchs",
-            f'${{artiq_applet}}plot_hist {GLITCH_MONITOR_DATASET_PROCESSED} --title "Clock glitches"',
+            f'${{artiq_applet}}plot_hist {GLITCH_MONITOR_DATASET_COUNTS} --x {GLITCH_MONITOR_DATASET_BINS} --title "Clock glitches"',
         )
 
     @kernel
@@ -187,8 +188,15 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
 
         # Also save in the monitor dataset for plotting
         self.append_to_dataset(GLITCH_MONITOR_DATASET, num_glitches)
+
+        counts, bins = np.histogram(self.get_dataset(GLITCH_MONITOR_DATASET))
         self.set_dataset(
-            GLITCH_MONITOR_DATASET_PROCESSED,
-            np.histogram(self.get_dataset(GLITCH_MONITOR_DATASET)),
+            GLITCH_MONITOR_DATASET_COUNTS,
+            counts,
+            broadcast=True,
+        )
+        self.set_dataset(
+            GLITCH_MONITOR_DATASET_BINS,
+            bins,
             broadcast=True,
         )
