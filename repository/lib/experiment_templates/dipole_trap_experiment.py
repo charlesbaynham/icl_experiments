@@ -119,6 +119,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
+        self.delta_kick_cooling_hook()
         self.post_dipole_trap_hook()
         delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
@@ -156,6 +157,12 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         By default, turn off all the red beams to allow holding in dipole trap before experiment
         """
         self.dipole_trap_evaporation_hook_default()
+
+    @kernel
+    def delta_kick_cooling_hook(self):
+        """
+        Hook for implementation the delta kick cooling stage. By default, do nothing.
+        """
 
     @kernel
     def post_dipole_trap_hook(self):
