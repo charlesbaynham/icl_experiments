@@ -246,7 +246,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.37,
+        v_low_threshold=1.45,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -260,7 +260,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.52,
+        v_low_threshold=1.4,
         v_rise_threshold=0.015,
         wait_time=1000,
         auto_relock=True,
@@ -274,7 +274,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.62,
+        v_low_threshold=1.36,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -590,7 +590,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.2,
+        setpoint=0.3,
         servo_enabled=True,
     ),
     ### RED ###
@@ -614,7 +614,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5,
         photodiode_offset=0.018,  # 0.001,
     ),
@@ -638,7 +638,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
     ),
@@ -687,7 +687,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=4.5,
+        setpoint=4.0,
         kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
@@ -786,6 +786,11 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
     ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=2000e6,
+        attenuation=20.0,
+    ),
 ]
 
 MIRNY_SETTINGS_88 = [
@@ -803,6 +808,11 @@ MIRNY_SETTINGS_88 = [
         device_name="mirny_eom_689_sideband",
         frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=1463.265e6,
+        attenuation=20.0,
     ),
 ]
 
@@ -878,6 +888,18 @@ def add_field_offset(x, y, z):
         x + FIELD_COMP_X,
         y + FIELD_COMP_Y,
         z + FIELD_COMP_Z,
+    )
+
+
+def calc_new_field_defaults(param_x, param_y, param_z):
+    """
+    Calculates the new field defaults based on the
+    passed parameter value
+    """
+    return (
+        param_x - FIELD_COMP_X,
+        param_y - FIELD_COMP_Y,
+        param_z - FIELD_COMP_Z,
     )
 
 
@@ -1274,3 +1296,9 @@ _DEDRIFTER_INFO_698 = DedrifterInfo(
 )
 
 DEDRIFTER_INFOS = [_DEDRIFTER_INFO_689, _DEDRIFTER_INFO_698]
+
+## Clock glitch filter
+
+CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD = 0.03  # volts
+CLOCK_GLITCH_FILTER_GATE_THRESHOLD = 2.0  # volts
+CLOCK_GLITCH_FILTER_GATE_DURATION = 500e-6  # seconds

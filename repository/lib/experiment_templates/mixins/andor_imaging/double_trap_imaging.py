@@ -121,7 +121,10 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
         atom_number_bwd = sums[1] - sums[3]
 
         total = atom_number_fwd + atom_number_bwd
-        imbalance = (atom_number_fwd - atom_number_bwd) / total
+        if total == 0:
+            imbalance = 0.0
+        else:
+            imbalance = (atom_number_fwd - atom_number_bwd) / total
 
         self.andor_sum_fwd_corrected.push(atom_number_fwd)
         self.andor_sum_bkd_corrected.push(atom_number_bwd)
@@ -204,10 +207,11 @@ class DoubleTrapImagingRepumpedNormalised(
             self.excitation_fraction_backward.push(
                 (sum_excited_bwd - sum_background_bwd_excited) / atom_number_bwd
             )
-
-        imbalance = (atom_number_fwd - atom_number_bwd) / (
-            atom_number_fwd + atom_number_bwd
-        )
+        total = atom_number_fwd + atom_number_bwd
+        if total == 0:
+            imbalance = 0.0
+        else:
+            imbalance = (atom_number_fwd - atom_number_bwd) / total
 
         self.atom_number_forward.push(atom_number_fwd)
         self.atom_number_backward.push(atom_number_bwd)

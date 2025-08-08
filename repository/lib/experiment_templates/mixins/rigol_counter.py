@@ -13,4 +13,8 @@ class RigolCounterMixin(RedMOTWithExperiment):
     @kernel
     def host_functions_after_experiment_hook(self):
         self.host_functions_after_experiment_hook_default()
+        self.host_functions_after_experiment_hook_rigol()
+
+    @kernel
+    def host_functions_after_experiment_hook_rigol(self):
         self.rigol.check_counter_rpc()

@@ -1,5 +1,7 @@
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.fragments.set_eom_sidebands import SetAllEOMSidebandsFrag
+from repository.lib.fragments.set_eom_sidebands import SetCavityEOMSidebands
 
 SetEOMSidebands = make_fragment_scan_exp(SetAllEOMSidebandsFrag)
+TransferCavityLocker = make_fragment_scan_exp(SetCavityEOMSidebands)
