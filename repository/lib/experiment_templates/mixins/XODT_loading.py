@@ -134,9 +134,10 @@ class LoadSingleXODTWithRampUpMixin(LoadSingleXODTMixin):
 
         self.setattr_fragment("dipole_ramp_up", DipoleRamp1064)
         self.dipole_ramp_up: DipoleRamp1064
+        
 
         self.dipole_ramp_up.daisy_chain_with_previous_phase(
-            self.mot_in_xodt, suservos="suservo_aom_1064_delivery"
+            self.mot_in_xodt
         )
 
     @kernel
