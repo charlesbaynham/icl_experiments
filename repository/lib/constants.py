@@ -444,9 +444,21 @@ FAST_KINETICS_DELAY_BETWEEN_PULSES = (
     3.5e-3  # Time enough for the ground-state atoms to exit
 )
 SLACK_FOR_GRAVITY = 20
+
+_distance_between_dipole_traps = abs(
+    _ANDOR_DIPOLE_TRAP_FORWARD_Y - _ANDOR_DIPOLE_TRAP_BACKWARD_Y
+)
+
+
+if _distance_between_dipole_traps < ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP:
+    raise ValueError(
+        "Distance between dipole traps is smaller than the height of the fast kinetics ROI."
+        "\n\n"
+        "The next line will not work as expected."
+    )
+
 ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = (
-    2 * ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
-    + abs(_ANDOR_DIPOLE_TRAP_FORWARD_Y - _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+    2 * ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP + _distance_between_dipole_traps
 )
 ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = (
     min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
