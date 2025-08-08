@@ -445,26 +445,14 @@ FAST_KINETICS_DELAY_BETWEEN_PULSES = (
 )
 SLACK_FOR_GRAVITY = 20
 
-_distance_between_dipole_traps = abs(
-    _ANDOR_DIPOLE_TRAP_FORWARD_Y - _ANDOR_DIPOLE_TRAP_BACKWARD_Y
-)
 
+_y_top_trap = max(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_bottom_trap = min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_top_of_frame = _y_top_trap + height / 2
+_y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
 
-if _distance_between_dipole_traps < ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP:
-    raise ValueError(
-        "Distance between dipole traps is smaller than the height of the fast kinetics ROI."
-        "\n\n"
-        "The next line will not work as expected."
-    )
-
-ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = (
-    2 * ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP + _distance_between_dipole_traps
-)
-ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = (
-    min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
-    - ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP / 2
-    - SLACK_FOR_GRAVITY
-)
+ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = _y_top_of_frame - _y_bottom_of_frame
+ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = _y_bottom_of_frame
 
 # %% 689 spectroscopy defaults
 
