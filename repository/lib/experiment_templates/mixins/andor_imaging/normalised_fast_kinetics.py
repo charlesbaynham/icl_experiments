@@ -97,6 +97,12 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
     def get_grabber_roi_defaults(self):
+        if self.num_images_per_series != 2:
+            raise ValueError(
+                "NormalisedXXODTFastKineticsMixin requires exactly 2 images per series - ground + excited"
+            )
+
+        # Calculate ROIs assuming that the clouds do not drop
         forward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
@@ -115,6 +121,40 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
+
+        # Compensate for the drop under gravity in the excited cloud relative to
+        # the ground cloud.
+        #
+        # TODO: This logic uses values from constants but these are defaults and
+        # might be overridden by the user. If they do this, this calculation
+        # will be wrong. It does this because this fragment is configured in
+        # build_fragment where parameter values are not yet set. This ought to
+        # be updated.
+
+        time_dropped_before_first_pulse = (
+            constants.SHELVING_PULSE_CLEAROUT_DURATION
+            + constants.CLOCK_SHELVING_PULSE_TIME
+            + 2 * constants.CLOCK_PI_TIME
+            + 2 * constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES
+        )
+        velocity_at_first_pulse = (
+            constants.scipy_constants.g * time_dropped_before_first_pulse
+        )
+        distance_fallen_between_pulses = (
+            velocity_at_first_pulse * constants.FAST_KINETICS_DELAY_BETWEEN_PULSES
+            + 0.5
+            * constants.scipy_constants.g
+            * constants.FAST_KINETICS_DELAY_BETWEEN_PULSES**2
+        )
+        pixels_dropped_between_pulses = (
+            distance_fallen_between_pulses / constants.ANDOR_CAMERA_FACTS["pixel_size"]
+        )
+
+        forward_rois[1][1] += pixels_dropped_between_pulses  # y0 of the second image
+        forward_rois[1][3] += pixels_dropped_between_pulses  # y1 of the second image
+        backward_rois[1][1] += pixels_dropped_between_pulses  # y0 of the second image
+        backward_rois[1][3] += pixels_dropped_between_pulses  # y1 of the second image
+
         return forward_rois + backward_rois
 
     def get_monitor_rois(self):
