@@ -166,6 +166,49 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
 
         return forward_rois + backward_rois
 
+    def host_setup(self):
+        super().host_setup()
+
+        # Add checks to catch varied parameters which would cause the above
+        # gravity calculations to fail. This is horrible code because it a)
+        # relies on classes that this one does not inherit from and b) it should
+        # just calculate this properly, not throw error when it's wrong. I'm so
+        # sorry, time is just too short to do this properly right now.
+        handles_and_default_vals = [
+            (
+                "shelving_pulse_clearout_duration",
+                constants.SHELVING_PULSE_CLEAROUT_DURATION,
+            ),
+            ("shelving_pulse_time", constants.CLOCK_SHELVING_PULSE_TIME),
+            ("spectroscopy_pulse_time", constants.CLOCK_PI_TIME),
+            (
+                "delay_between_interferometry_pulses",
+                constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES,
+            ),
+        ]
+
+        for handle_name, default_val in handles_and_default_vals:
+            if not hasattr(self, handle_name):
+                logger.warning(
+                    "NormaliseXXODT readout is applying gravity corrections assuming that you're doing "
+                    "slicing but you're not, so the gravity corrections will be wrong. "
+                    "Specifically the %s parameter is not present.",
+                    handle_name,
+                )
+            else:
+                val = getattr(self, handle_name).get()
+
+                diff = val - default_val
+                if abs(diff) / default_val > 1e-6:
+                    logger.warning(
+                        "NormaliseXXODT readout is applying gravity corrections based on the "
+                        "default parameter value of %s = %s, but you have set it to %s so the "
+                        "excited state ROI will be in the wrong place.",
+                        handle_name,
+                        default_val,
+                        val,
+                    )
+
     def get_monitor_rois(self):
         default_rois = []
         fwd_roi = self.andor_camera_control.get_roi_i(0)
