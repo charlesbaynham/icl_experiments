@@ -20,9 +20,9 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
+from scipy import constants as scipy_constants
 
 DELAY_BETWEEN_RTIO_EVENTS = 4e-9
 
@@ -30,6 +30,7 @@ SR_FACTS = {
     "FREQUENCIES": {
         "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
+        "698": 429_228_004_229_872.99,  # BIPM SRS April 2022
     },
     "WAVELENGTHS": {"461_88": 460.86e-9},
 }
@@ -39,7 +40,9 @@ ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
 
-GRAVITY_DOPPLER_PER_SEC_CLOCK = 429.229e12 * 9.81 / 3e8
+GRAVITY_DOPPLER_PER_SEC_CLOCK = (
+    SR_FACTS["FREQUENCIES"]["698"] * scipy_constants.g / scipy_constants.c
+)
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
@@ -395,6 +398,12 @@ _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
 _ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
 _ANDOR_ROI_DIPOLE_WIDTH = 32
 
+
+FAST_KINETICS_DELAY_BETWEEN_PULSES = (
+    3.5e-3  # Time enough for the ground-state atoms to exit
+)
+SLACK_FOR_GRAVITY = 20
+
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
 _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
@@ -402,6 +411,7 @@ _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
 _ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
+
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -440,19 +450,14 @@ ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_Y - height / 2
 )
 
-FAST_KINETICS_DELAY_BETWEEN_PULSES = (
-    3.5e-3  # Time enough for the ground-state atoms to exit
-)
-SLACK_FOR_GRAVITY = 20
-ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = (
-    2 * ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
-    + abs(_ANDOR_DIPOLE_TRAP_FORWARD_Y - _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
-)
-ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = (
-    min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
-    - ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP / 2
-    - SLACK_FOR_GRAVITY
-)
+
+_y_top_trap = max(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_bottom_trap = min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_top_of_frame = _y_top_trap + height / 2
+_y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
+
+ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
+ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
 # %% 689 spectroscopy defaults
 
