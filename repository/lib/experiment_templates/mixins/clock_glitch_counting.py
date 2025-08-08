@@ -115,7 +115,7 @@ class ClockGlitchFilterFrag(Fragment):
 
         Must be called from the host (i.e. via an RPC).
         """
-        return self.clock_glitch_filter.get_num_glitches()
+        return int(self.clock_glitch_filter.get_num_glitches())
 
 
 class ClockGlitchCounterMixin(ClockInterferometryBase):
