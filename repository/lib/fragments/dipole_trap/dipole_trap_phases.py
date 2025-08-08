@@ -317,10 +317,10 @@ class DipoleRamp1064(GeneralRampingPhaseWithBinding):
     duration_default = 50e-3
     time_step_default = 1e-3
 
-    #suservos = "suservo_aom_1064_delivery"
+    suservos = SUSERVOS_XODT + SUSERVOS_RED
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVOS_RED)
+    default_suservo_nominal_setpoints = [0.0] * len(suservos)
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END
