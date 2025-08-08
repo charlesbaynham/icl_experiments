@@ -30,7 +30,7 @@ from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import (
 from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin, LoadSingleXODTWithRampUpMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesMixin,
+    XODTSingleMolassesMixin, ClearOut689Mixin
 )
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,10 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTWithRampUpMixin,
+    ClearOut689Mixin
 ):
     """
-    Make Single XODT, image twice for BG subtraction
+    Make Single XODT, clearout side atoms and image twice for BG subtraction
     """
 
     @kernel

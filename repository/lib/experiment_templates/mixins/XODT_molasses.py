@@ -540,11 +540,22 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         )
         self.clearout_pulse_aom_amplitude: FloatParamHandle
 
+        self.setattr_param(
+            "setpoint_487_during_clearout",
+            FloatParam,
+            "Setpoint for the 487 during the 689 clearout pulse",
+            default=0.2,
+        )
+        self.setpoint_487_during_clearout: FloatParamHandle
+
         super().build_fragment()
 
     @kernel
     def do_clearout_pulse_hook(self):
-        self.transparency_setter_clearout.turn_on_all()
+        self.transparency_suservo_clearout.set_suservo(
+            freq=constants.SUSERVOED_BEAMS["blue_transparency_beam"].frequency,
+            setpoint_v=self.setpoint_487_during_clearout.get(), rf_switch_state=True
+            )
         delay_mu(8)
         self.up_beam_suservo.set_pgia_gain_mu(0)
         delay_mu(8)
