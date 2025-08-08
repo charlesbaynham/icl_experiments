@@ -199,7 +199,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     def post_sequence_cleanup_hook_shelving(self):
         # stop the clock laser ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
-        print("ramp stopped")
 
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):

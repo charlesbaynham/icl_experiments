@@ -5,4 +5,3 @@ phase_values_deg = [103.1386,106.6768,305.5767,281.1771,215.544,80.717,86.2484,8
 phase_values_rad = np.zeros(len(phase_values_deg))
 for i in range(len(phase_values_deg)):
     phase_values_rad[i] = phase_values_deg[i]*2*np.pi/360
-print(phase_values_rad)
