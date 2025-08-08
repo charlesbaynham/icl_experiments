@@ -456,8 +456,8 @@ _y_bottom_trap = min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y
 _y_top_of_frame = _y_top_trap + height / 2
 _y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
 
-ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = _y_top_of_frame - _y_bottom_of_frame
-ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = _y_bottom_of_frame
+ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
+ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
 # %% 689 spectroscopy defaults
 

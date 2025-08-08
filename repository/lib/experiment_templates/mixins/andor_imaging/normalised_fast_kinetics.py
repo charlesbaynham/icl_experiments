@@ -146,14 +146,23 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
             * constants.scipy_constants.g
             * constants.FAST_KINETICS_DELAY_BETWEEN_PULSES**2
         )
-        pixels_dropped_between_pulses = (
+        pixels_dropped_between_pulses = round(
             distance_fallen_between_pulses / constants.ANDOR_CAMERA_FACTS["pixel_size"]
         )
+
+        logger.info(
+            "Compensating gravity drop with an offset of %s pixels",
+            pixels_dropped_between_pulses,
+        )
+
+        logger.info("Before: %s", forward_rois + backward_rois)
 
         forward_rois[1][1] += pixels_dropped_between_pulses  # y0 of the second image
         forward_rois[1][3] += pixels_dropped_between_pulses  # y1 of the second image
         backward_rois[1][1] += pixels_dropped_between_pulses  # y0 of the second image
         backward_rois[1][3] += pixels_dropped_between_pulses  # y1 of the second image
+
+        logger.info("After: %s", forward_rois + backward_rois)
 
         return forward_rois + backward_rois
 
