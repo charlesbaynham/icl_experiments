@@ -24,7 +24,7 @@ from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 from scipy import constants as scipy_constants
 
-DELAY_BETWEEN_RTIO_EVENTS = 4e-9
+DELAY_BETWEEN_RTIO_EVENTS = 4e-9  # TODO get rid of this - it's easy
 
 SR_FACTS = {
     "FREQUENCIES": {
