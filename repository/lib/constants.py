@@ -939,7 +939,7 @@ SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    34.5e3  # Chosen to match the current slicing pulse parameters
+    34.3e3  # Chosen to match the current slicing pulse parameters
 )
 
 # %% Dipole trap settings
