@@ -157,10 +157,10 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
 
         logger.info("Before: %s", forward_rois + backward_rois)
 
-        forward_rois[1][1] += pixels_dropped_between_pulses  # y0 of the second image
-        forward_rois[1][3] += pixels_dropped_between_pulses  # y1 of the second image
-        backward_rois[1][1] += pixels_dropped_between_pulses  # y0 of the second image
-        backward_rois[1][3] += pixels_dropped_between_pulses  # y1 of the second image
+        forward_rois[1][1] -= pixels_dropped_between_pulses  # y0 of the second image
+        forward_rois[1][3] -= pixels_dropped_between_pulses  # y1 of the second image
+        backward_rois[1][1] -= pixels_dropped_between_pulses  # y0 of the second image
+        backward_rois[1][3] -= pixels_dropped_between_pulses  # y1 of the second image
 
         logger.info("After: %s", forward_rois + backward_rois)
 
