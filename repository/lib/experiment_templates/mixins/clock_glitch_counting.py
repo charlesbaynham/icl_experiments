@@ -6,6 +6,7 @@ from artiq.experiment import host_only
 from artiq.experiment import rpc
 from artiq.language import kernel
 from artiq.language import rpc
+from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import FloatParam
 from ndscan.experiment import Fragment
@@ -19,6 +20,8 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
 
 logger = logging.getLogger(__name__)
 
+GLITCH_MONITOR_DATASET = "clock_glitch_filter_num_glitches"
+
 
 class ClockGlitchFilterFrag(Fragment):
     def build_fragment(self, *args, **kwargs) -> None:
@@ -30,6 +33,9 @@ class ClockGlitchFilterFrag(Fragment):
 
         self.setattr_device("core")
         self.core: Core
+
+        self.setattr_device("ccb")
+        self.ccb: CCB
 
         self.setattr_param(
             "gate_threshold",
@@ -145,6 +151,19 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
         )
         self.clock_glitch_filter_num_glitches: FloatChannel
 
+        self.set_dataset(GLITCH_MONITOR_DATASET, [], broadcast=True)
+
+    def host_setup(self):
+        super().host_setup()
+
+        # Start a histogram monitor for the glitches
+        ccb: CCB = self.get_device("ccb")
+        ccb.issue(
+            "create_applet",
+            "Clock glitchs",
+            f'${{artiq_applet}}plot_hist {GLITCH_MONITOR_DATASET} --title "Clock glitches"',
+        )
+
     @kernel
     def start_interferometry_hook(self):
         self.clock_glitch_filter.start_counting_glitches()
@@ -166,3 +185,6 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
     def count_glitches(self):
         num_glitches = self.clock_glitch_filter.get_num_glitches()
         self.clock_glitch_filter_num_glitches.push(num_glitches)
+
+        # Also save in the monitor dataset for plotting
+        self.append_to_dataset(GLITCH_MONITOR_DATASET, num_glitches)
