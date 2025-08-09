@@ -189,7 +189,9 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
         # Also save in the monitor dataset for plotting
         self.append_to_dataset(GLITCH_MONITOR_DATASET, num_glitches)
 
-        counts, bins = np.histogram(self.get_dataset(GLITCH_MONITOR_DATASET))
+        raw_num_glitches = self.get_dataset(GLITCH_MONITOR_DATASET)
+        # Make sure that there's a bin for every integer value seen (i.e. that "0" gets its own bin)
+        counts, bins = np.histogram(raw_num_glitches, bins=np.max(raw_num_glitches) + 1)
         self.set_dataset(
             GLITCH_MONITOR_DATASET_COUNTS,
             counts,
