@@ -151,12 +151,12 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
         )
         self.clock_glitch_filter_num_glitches: FloatChannel
 
-        self.set_dataset(GLITCH_MONITOR_DATASET, [], broadcast=False)
-
     def host_setup(self):
         super().host_setup()
 
         # Start a histogram monitor for the glitches
+        self.set_dataset(GLITCH_MONITOR_DATASET, [], broadcast=False)
+
         ccb: CCB = self.get_device("ccb")
         ccb.issue(
             "create_applet",
