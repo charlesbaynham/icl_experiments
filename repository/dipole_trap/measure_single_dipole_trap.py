@@ -32,6 +32,7 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadSingleXODTWithRampUpMixin,
 )
+from repository.lib.experiment_templates.mixins.XODT_molasses import ClearOut689Mixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
 )
@@ -43,7 +44,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTWithRampUpMixin,
-    # ClearOut689Mixin
+    ClearOut689Mixin,
 ):
     """
     Make Single XODT, clearout side atoms and image twice for BG subtraction
