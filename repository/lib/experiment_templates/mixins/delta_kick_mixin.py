@@ -1,3 +1,6 @@
+import logging
+
+from artiq.coredevice.ad9910 import AD9910
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import BoolParam
@@ -9,6 +12,14 @@ import repository.lib.constants as constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.models import UrukuledBeam
+
+
+CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+
 
 class DeltaKickCoolingMixin(DipoleTrapWithExperiment):
     """
@@ -21,3 +32,22 @@ class DeltaKickCoolingMixin(DipoleTrapWithExperiment):
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment(
+            "clock_down_default_setter",
+            make_set_beams_to_default(
+                urukul_beam_infos=[
+                    CLOCK_DOWN_BEAM_INFO,
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
+            ),
+        )
+        self.clock_down_default_setter: SetBeamsToDefaults
+
+        self.clock_down: AD9910 = self.get_device(CLOCK_DOWN_BEAM_INFO.urukul_device)
+
+    @kernel
+    def delta_kick_cooling_hook(self):
+
+        self.clock_down.sw.on()
