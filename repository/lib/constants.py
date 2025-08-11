@@ -546,7 +546,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_3dmot_radial",
         150e6,
-        20,
+        21,
         "suservo_aom_singlepass_461_3DMOT_radial",
         "TTL_shutter_461_3dmot",
         shutter_delay=SRS_SHUTTER_DELAY,
@@ -989,7 +989,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.26)
+) = add_field_offset(0.188, 0.057, -0.27)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
@@ -1073,7 +1073,7 @@ if USE_SR87:
     # This is optimized for loading into the HODT, not the XODT, because the 813
     # will be turned on during the molasses phase. The molasses phase itself
     # uses XODT_MOLASSES_BIAS_FIELD_START
-    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.39)
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.27)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
     XODT_MOLASSES_DURATION = 400e-3
