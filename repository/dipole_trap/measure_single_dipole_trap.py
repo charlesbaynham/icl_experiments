@@ -42,7 +42,6 @@ logger = logging.getLogger(__name__)
 class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
-    LoadSingleXODTMixin,
     LoadSingleXODTWithRampUpMixin,
     # ClearOut689Mixin
 ):
