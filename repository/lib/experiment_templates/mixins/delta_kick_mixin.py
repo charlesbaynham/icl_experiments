@@ -34,20 +34,33 @@ class DeltaKickCoolingMixin(DipoleTrapWithExperiment):
         super().build_fragment()
 
         self.setattr_fragment(
-            "clock_down_default_setter",
+            "up_813_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["up_813"].suservo_device,
+        )
+        self.up_813_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "up_813_setter",
             make_set_beams_to_default(
-                urukul_beam_infos=[
-                    CLOCK_DOWN_BEAM_INFO,
-                ],
-                use_automatic_setup=True,
-                use_automatic_turnon=False,
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["up_813"]]
             ),
         )
-        self.clock_down_default_setter: SetBeamsToDefaults
+        self.up_813_setter: SetBeamsToDefaults
 
-        self.clock_down: AD9910 = self.get_device(CLOCK_DOWN_BEAM_INFO.urukul_device)
+        self.setattr_param(
+        "up_813_duration",
+            FloatParam,
+        "Time to spend in the up beam",
+        default = 3e-3,
+        unit= "ms"
+        )
 
     @kernel
     def delta_kick_cooling_hook(self):
 
-        self.clock_down.sw.on()
+        self.up_813_setter.turn_on_all()
+
+        self.up_813_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
