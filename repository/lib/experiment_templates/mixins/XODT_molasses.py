@@ -23,6 +23,8 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXO
 
 logger = logging.getLogger(__name__)
 
+TRANSPARENCY_AOM_FREQ = constants.SUSERVOED_BEAMS["blue_transparency_beam"].frequency
+
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     """
@@ -553,9 +555,12 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
     @kernel
     def do_clearout_pulse_hook(self):
         self.transparency_suservo_clearout.set_suservo(
-            freq=constants.SUSERVOED_BEAMS["blue_transparency_beam"].frequency,
-            setpoint_v=self.setpoint_487_during_clearout.get(), rf_switch_state=True
-            )
+            freq=TRANSPARENCY_AOM_FREQ,
+            amplitude=1.0,
+            attenuation=0.0,
+            setpoint_v=self.setpoint_487_during_clearout.get(),
+            rf_switch_state=True,
+        )
         delay_mu(8)
         self.up_beam_suservo.set_pgia_gain_mu(0)
         delay_mu(8)
