@@ -15,8 +15,9 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import DipoleRamp1064
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInBottomXODT
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT, DipoleRamp1064
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 
 logger = logging.getLogger(__name__)
 
@@ -110,10 +111,11 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
         self.mot_in_xodt.do_phase()
 
+
 class LoadSingleXODTWithRampUpMixin(LoadSingleXODTMixin):
     """
-    Loads atoms in a single XODT after the narrowband red MOT, then 
-    turns off MOT beams and ramps up dipole trap beam for the atoms to stay in a deeper trap. 
+    Loads atoms in a single XODT after the narrowband red MOT, then
+    turns off MOT beams and ramps up dipole trap beam for the atoms to stay in a deeper trap.
 
     Ramps the dipole trap beams on at the start of a stage of ramping MOT beams.
 
@@ -134,10 +136,9 @@ class LoadSingleXODTWithRampUpMixin(LoadSingleXODTMixin):
 
         self.setattr_fragment("dipole_ramp_up", DipoleRamp1064)
         self.dipole_ramp_up: DipoleRamp1064
-        
 
         self.dipole_ramp_up.daisy_chain_with_previous_phase(
-            self.mot_in_xodt
+            self.mot_in_xodt, suservos=["suservo_aom_1064_delivery"]
         )
 
     @kernel
@@ -162,7 +163,7 @@ class LoadSingleXODTWithRampUpMixin(LoadSingleXODTMixin):
     @kernel
     def dipole_trap_loading_hook_single_xodt_with_ramp_up(self):
         """
-        Turn the dipole beams on and do the xodt loading ramping phase, then turn 
+        Turn the dipole beams on and do the xodt loading ramping phase, then turn
         off the MOT beams and continue to ramp up the 1064
         """
         self.dipole_beam_controller.turn_on_dipole_beams()
@@ -174,13 +175,14 @@ class LoadSingleXODTWithRampUpMixin(LoadSingleXODTMixin):
 
         self.mot_in_xodt.do_phase()
 
-        #turn off the mot beams
+        # turn off the mot beams
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
-                ignore_shutters=True
-            )
-        
-        #ramp up 1064
+            ignore_shutters=True
+        )
+
+        # ramp up 1064
         self.dipole_ramp_up.do_phase()
+
 
 class LoadXXODTMixin(LoadSingleXODTMixin):
     """
@@ -200,8 +202,6 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
 
     def build_fragment(self):
         super().build_fragment()
-
-
 
     def build_fragment(self):
         super().build_fragment()
