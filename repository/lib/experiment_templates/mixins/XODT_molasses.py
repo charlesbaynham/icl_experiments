@@ -497,6 +497,11 @@ class FieldOnlyRampInEvapMixin(_RampDuringEvapHookBase):
     """
     Ramps the magnetic field during the evaporation phase, but with no actual
     evaporation
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
     """
 
     def _define_evap_phase_ramp(self):
