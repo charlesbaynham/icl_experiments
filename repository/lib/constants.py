@@ -548,7 +548,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_3dmot_radial",
         150e6,
-        20,
+        21,
         "suservo_aom_singlepass_461_3DMOT_radial",
         "TTL_shutter_461_3dmot",
         shutter_delay=SRS_SHUTTER_DELAY,
