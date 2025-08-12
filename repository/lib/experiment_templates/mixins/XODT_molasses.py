@@ -559,6 +559,7 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
             FloatParam,
             "Setpoint for the 487 during the 689 clearout pulse",
             default=0.2,
+            unit="V",
         )
         self.setpoint_487_during_clearout: FloatParamHandle
 
@@ -566,12 +567,16 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
 
     @kernel
     def do_clearout_pulse_hook(self):
+        self.transparency_suservo_clearout.set_setpoint(
+            self.setpoint_487_during_clearout.get()
+        )
         self.transparency_suservo_clearout.set_suservo(
             amplitude=1.0,
-            freq=TRANSPARENCY_AOM_FREQ,
+            freq=80e6,
             rf_switch_state=True,
             enable_iir=True,
             setpoint_v=self.setpoint_487_during_clearout.get(),
+            attenuation=0.0,
         )
         delay_mu(8)
         self.up_beam_suservo.set_pgia_gain_mu(0)
@@ -587,9 +592,9 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
 
         delay_mu(8)
         # turn off transparency suservo
-        self.transparency_suservo_clearout.set_channel_state(
-            rf_switch_state=False, enable_iir=False
-        )
         # self.transparency_suservo_clearout.set_channel_state(
         #     rf_switch_state=False, enable_iir=False
         # )
+        self.transparency_suservo_clearout.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )

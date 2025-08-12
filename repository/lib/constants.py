@@ -588,7 +588,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.2,
+        setpoint=0.7,
         servo_enabled=True,
     ),
     ### RED ###
@@ -1084,7 +1084,7 @@ if USE_SR87:
         0.008,
         1.0,
         1.0,
-        0.25,
+        0.07,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1093,7 +1093,7 @@ if USE_SR87:
         0.008,
         1.0,
         0.7,
-        0.25,
+        0.07,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         -60e3,
@@ -1107,8 +1107,8 @@ if USE_SR87:
 
     DELAY_BETWEEN_MOLASSES = 0.0001e-3
     XODT_2ND_MOLASSES_DURATION = 50e-3
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 1.05]
-    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 1.05]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.3]
+    XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END = [0.0, 0.0, 0.0, 0.3, 1.0, 1.0, 0.3]
     XODT_2ND_MOLASSES_689_DETUNING_START = [
         -35e3,
     ]
@@ -1125,8 +1125,8 @@ else:
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
     XODT_MOLASSES_DURATION = 120e-3
-    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 1.05]
-    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 1.05]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_START = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.3]
+    XODT_MOLASSES_SETPOINT_MULTIPLES_END = [0.02, 0.02, 0.02, 0.0, 1.0, 1.0, 0.3]
     XODT_MOLASSES_689_DETUNING_START = [
         100e3,
     ]
