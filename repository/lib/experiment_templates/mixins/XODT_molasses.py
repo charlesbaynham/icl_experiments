@@ -16,6 +16,10 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvapAndFieldRampBase,
 )
+from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
+from repository.lib.fragments.beams.toggling_beam_setter import (
+    make_toggle_list_of_beams,
+)
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesDipoleRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
@@ -509,19 +513,27 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         self.up_beam_suservo: LibSetSUServoStatic
 
         self.setattr_fragment(
+            "transparency_toggler",
+            make_toggle_list_of_beams(
+                [constants.SUSERVOED_BEAMS["blue_transparency_beam"]],
+            ),
+        )
+        self.transparency_toggler: ToggleListOfBeams
+
+        self.setattr_fragment(
             "transparency_suservo_clearout",
             LibSetSUServoStatic,
             constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
         )
         self.transparency_suservo_clearout: LibSetSUServoStatic
 
-        self.setattr_fragment(
-            "transparency_setter_clearout",
-            make_set_beams_to_default(
-                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
-            ),
-        )
-        self.transparency_setter_clearout: SetBeamsToDefaults
+        # self.setattr_fragment(
+        #     "transparency_setter_clearout",
+        #     make_set_beams_to_default(
+        #         suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+        #     ),
+        # )
+        # self.transparency_setter_clearout: SetBeamsToDefaults
 
         self.setattr_param(
             "clearout_pulse_time",
@@ -555,11 +567,11 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
     @kernel
     def do_clearout_pulse_hook(self):
         self.transparency_suservo_clearout.set_suservo(
-            freq=TRANSPARENCY_AOM_FREQ,
             amplitude=1.0,
-            attenuation=0.0,
-            setpoint_v=self.setpoint_487_during_clearout.get(),
+            freq=TRANSPARENCY_AOM_FREQ,
             rf_switch_state=True,
+            enable_iir=True,
+            setpoint_v=self.setpoint_487_during_clearout.get(),
         )
         delay_mu(8)
         self.up_beam_suservo.set_pgia_gain_mu(0)
@@ -574,7 +586,10 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
         delay_mu(8)
-
+        # turn off transparency suservo
         self.transparency_suservo_clearout.set_channel_state(
             rf_switch_state=False, enable_iir=False
         )
+        # self.transparency_suservo_clearout.set_channel_state(
+        #     rf_switch_state=False, enable_iir=False
+        # )
