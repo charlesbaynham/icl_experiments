@@ -128,10 +128,6 @@ class SingleXODTVerticalSloshedFrag(
     switch up the HODT depth and let it slosh, then drop and image
     """
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
 
 class SingleXODTHorizontalYSloshedFrag(
     FLIRMeasurementMixin,
