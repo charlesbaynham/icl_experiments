@@ -20,16 +20,17 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
+from scipy import constants as scipy_constants
 
-DELAY_BETWEEN_RTIO_EVENTS = 4e-9
+DELAY_BETWEEN_RTIO_EVENTS = 4e-9  # TODO get rid of this - it's easy
 
 SR_FACTS = {
     "FREQUENCIES": {
         "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
+        "698": 429_228_004_229_872.99,  # BIPM SRS April 2022
     },
     "WAVELENGTHS": {"461_88": 460.86e-9},
 }
@@ -39,7 +40,9 @@ ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
 
-GRAVITY_DOPPLER_PER_SEC_CLOCK = 429.229e12 * 9.81 / 3e8
+GRAVITY_DOPPLER_PER_SEC_CLOCK = (
+    SR_FACTS["FREQUENCIES"]["698"] * scipy_constants.g / scipy_constants.c
+)
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
@@ -154,13 +157,19 @@ class IJDSettings:
     "Time to wait between relock steps / s. Default = 1.0"
     associated_beams: list = field(default_factory=lambda: [])
     "Beams from AD9910_BEAMS required for IJD to lock"
+    p_gain: float = 0.01
+    "Proportional gain for the PID controller. Default = 0.01"
+    i_gain: float = 0.00001
+    "Integral gain for the PID controller. Default = 0.00001"
+    d_gain: float = 0.0
+    "Derivative gain for the PID controller. Default = 0.0"
 
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         temperature=8600,
         window_high=362e-3,
-        window_low=352e-3,
+        window_low=355e-3,
         relock_step=3e-3,
         # IJD1 does not actually need the blue_singlepass_injection AOM, but
         # IJDs 2 and 3 do. Rather than adding it to one of IJD2 and 3, or both,
@@ -176,11 +185,11 @@ IJD_DEFAULTS = {
     "blue_IJD3_controller": IJDSettings(
         temperature=8850,
         window_high=365e-3,
-        window_low=355e-3,
+        window_low=358e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
-        temperature=9460,
+        temperature=9380,
         window_high=174.0e-3,
         window_low=169.0e-3,
         relock_step=3e-3,
@@ -237,7 +246,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.4,
+        v_low_threshold=1.45,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -252,7 +261,7 @@ IJD_RELOCKER_DEFAULTS = {
         window_frac=0.6,
         min_diff=0.1,
         v_low_threshold=1.4,
-        v_rise_threshold=0.05,
+        v_rise_threshold=0.015,
         wait_time=1000,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
@@ -265,7 +274,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.6,
         min_diff=0.1,
-        v_low_threshold=1.4,
+        v_low_threshold=1.36,
         v_rise_threshold=0.05,
         wait_time=1000,
         auto_relock=True,
@@ -389,6 +398,12 @@ _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
 _ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
 _ANDOR_ROI_DIPOLE_WIDTH = 32
 
+
+FAST_KINETICS_DELAY_BETWEEN_PULSES = (
+    3.5e-3  # Time enough for the ground-state atoms to exit
+)
+SLACK_FOR_GRAVITY = 20
+
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
 _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
@@ -396,6 +411,7 @@ _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
 _ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
+
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -434,16 +450,14 @@ ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_Y - height / 2
 )
 
-SLACK_FOR_GRAVITY = 20
-ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = (
-    2 * ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
-    + abs(_ANDOR_DIPOLE_TRAP_FORWARD_Y - _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
-)
-ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = (
-    min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
-    - ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP / 2
-    - SLACK_FOR_GRAVITY
-)
+
+_y_top_trap = max(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_bottom_trap = min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_top_of_frame = _y_top_trap + height / 2
+_y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
+
+ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
+ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
 # %% 689 spectroscopy defaults
 
@@ -534,7 +548,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_3dmot_radial",
         150e6,
-        20,
+        21,
         "suservo_aom_singlepass_461_3DMOT_radial",
         "TTL_shutter_461_3dmot",
         shutter_delay=SRS_SHUTTER_DELAY,
@@ -576,7 +590,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.2,
+        setpoint=0.3,
         servo_enabled=True,
     ),
     ### RED ###
@@ -600,7 +614,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5,
         photodiode_offset=0.018,  # 0.001,
     ),
@@ -624,7 +638,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
     ),
@@ -651,7 +665,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        100e6,
+        99.9410e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -668,17 +682,17 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "down_813",
-        frequency=180e6,
+        frequency=180e6 * 813 / 780,
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=4.8,
+        setpoint=4.0,
         kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
         "up_813",
-        frequency=90e6,
+        frequency=90e6 * 813 / 780,
         attenuation=7.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
@@ -740,9 +754,10 @@ _default_461 = (
     + 10e6
     # 2024-11-18
     - 10e6
+    - 20e6  # 2025-08-07
 )
-_default_707 = 423_913_478e6
-_default_679 = 441_332_627e6
+_default_707 = 423_913_478e6 - 5e6  # 2025-08-07
+_default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6  # Measured empirically
 _clock_laser_offset = -80e6
@@ -771,6 +786,11 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
     ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=2000e6,
+        attenuation=20.0,
+    ),
 ]
 
 MIRNY_SETTINGS_88 = [
@@ -788,6 +808,11 @@ MIRNY_SETTINGS_88 = [
         device_name="mirny_eom_689_sideband",
         frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
+    ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=1463.265e6,
+        attenuation=20.0,
     ),
 ]
 
@@ -866,6 +891,18 @@ def add_field_offset(x, y, z):
     )
 
 
+def calc_new_field_defaults(param_x, param_y, param_z):
+    """
+    Calculates the new field defaults based on the
+    passed parameter value
+    """
+    return (
+        param_x - FIELD_COMP_X,
+        param_y - FIELD_COMP_Y,
+        param_z - FIELD_COMP_Z,
+    )
+
+
 if USE_SR87:
     # With 6A gradient
     _B_FIELD_BIAS_LATTICE_X = 1.1  # A
@@ -917,13 +954,15 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # Clock stuff
 
-CLOCK_PI_TIME = 44e-6
+CLOCK_PI_TIME = 50e-6
 CLOCK_SHELVING_PULSE_TIME = 200e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.12
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
-DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
-CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = 34.5e3
+DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
+CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
+    34.3e3  # Chosen to match the current slicing pulse parameters
+)
 
 # %% Dipole trap settings
 
@@ -977,14 +1016,14 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.26)
+) = add_field_offset(0.188, 0.057, -0.29)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
-) = add_field_offset(0.158, 0.029, 0.155)
+) = add_field_offset(0.158, 0.029, 0.146)
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
@@ -1257,3 +1296,9 @@ _DEDRIFTER_INFO_698 = DedrifterInfo(
 )
 
 DEDRIFTER_INFOS = [_DEDRIFTER_INFO_689, _DEDRIFTER_INFO_698]
+
+## Clock glitch filter
+
+CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD = 0.03  # volts
+CLOCK_GLITCH_FILTER_GATE_THRESHOLD = 2.0  # volts
+CLOCK_GLITCH_FILTER_GATE_DURATION = 500e-6  # seconds

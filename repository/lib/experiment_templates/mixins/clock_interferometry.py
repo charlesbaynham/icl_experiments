@@ -114,7 +114,17 @@ class ClockInterferometryBase(
         return self.phase_constant + 4.0 * self.phase_step.get()
 
     @kernel
+    def start_interferometry_hook(self):
+        pass
+
+    @kernel
+    def end_interferometry_hook(self):
+        pass
+
+    @kernel
     def do_clock_interferometry(self):
+        self.start_interferometry_hook()
+
         t_pi_pulse = self.spectroscopy_pulse_time.get()
 
         self.prepare_clock_delivery_aom()
@@ -168,6 +178,8 @@ class ClockInterferometryBase(
         self.clock_dds.sw.on()
         delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
+
+        self.end_interferometry_hook()
 
 
 class ClockInterferometryRedMOTMixin(ClockInterferometryBase):

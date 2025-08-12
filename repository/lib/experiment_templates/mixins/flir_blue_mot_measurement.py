@@ -28,7 +28,10 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
         super().build_fragment()
 
         self.setattr_fragment(
-            "camera_interface", DualCameraMeasurement, hardware_trigger=True
+            "camera_interface",
+            DualCameraMeasurement,
+            hardware_trigger=True,
+            hide_all_results=True,
         )
         self.camera_interface: DualCameraMeasurement
 

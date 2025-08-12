@@ -1164,13 +1164,13 @@ files = [
 
 [[package]]
 name = "generic-scpi-driver"
-version = "1.6"
+version = "1.6.2"
 description = "A generic template for creating python object-based drivers for SCPI hardware devices which communicate via VISA. Compatible with ARTIQ  installed with [artiq] modifier"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-    {file = "generic_scpi_driver-1.6-py3-none-any.whl", hash = "sha256:d3b9f843c27c765f141ec8c4bfe884d1dfe6c481708ab82321c1aa1d745e2e3f"},
-    {file = "generic_scpi_driver-1.6.tar.gz", hash = "sha256:dd96c14ecc3f2eac70866b08d0705f3ab91bfe0ea41785f33b765e2210517997"},
+    {file = "generic_scpi_driver-1.6.2-py3-none-any.whl", hash = "sha256:9700cec668bb44b69ff5bf38247115a00879e980fbf5ad8e131eed7b05ca22a9"},
+    {file = "generic_scpi_driver-1.6.2.tar.gz", hash = "sha256:d1b2345dd67034cb6ed1b33b887fd44ad2e772637b090ae299abd6905f56a62f"},
 ]
 
 [package.dependencies]
@@ -1789,7 +1789,7 @@ files = [
 
 [[package]]
 name = "koheron-ctl200-laser-driver"
-version = "1.0"
+version = "1.0.1"
 description = "A python, ARTIQ-compatible driver for the Koheron CTL200 laser diode controller"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -1797,7 +1797,7 @@ files = []
 develop = false
 
 [package.dependencies]
-generic-scpi-driver = {version = "^1.5", extras = ["artiq"]}
+generic-scpi-driver = {version = "^1.6.2", extras = ["artiq"]}
 numpy = "^1.26.1"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
@@ -1805,7 +1805,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
 reference = "HEAD"
-resolved_reference = "0dc7121963e5dcad1779bb18cbfc0d34dfaa6b09"
+resolved_reference = "000209b1af05929094ad734a1e3ed9dbfb735c0f"
 
 [[package]]
 name = "levenshtein"
@@ -5001,4 +5001,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "c7b22f1784fb2760911e5e981d94cad4d25b11a9373e865356a3a36dfc029daa"
+content-hash = "c00fd18df0f72db7ac0fc59b197f70798a52197df9326222bc4d4a9321842519"

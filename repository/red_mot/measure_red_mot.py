@@ -26,7 +26,7 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 logger = logging.getLogger(__name__)
 
 
-class _MeasureNarrowbandMOTFrag(ConstantBeamsMixin, RedMOTWithExperiment):
+class _MeasureNarrowbandMOTFrag(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
@@ -44,6 +44,7 @@ class MeasureNarrowbandMOTFrag(
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
     SingleAndorImage,
+    ConstantBeamsMixin,
     _MeasureNarrowbandMOTFrag,
 ):
     """
@@ -55,6 +56,7 @@ class MeasureNarrowbandMOTNoAndorFrag(
     FLIRMeasurementMixin,
     SingleAndorImage,
     ExponentialDecayMixin,
+    ConstantBeamsMixin,
     _MeasureNarrowbandMOTFrag,
 ):
     """
@@ -64,13 +66,24 @@ class MeasureNarrowbandMOTNoAndorFrag(
     keep_andor_shutter_closed = True
 
 
+class MeasureNarrowbandMOTBGCorrectedWithTrapsFrag(
+    BGCorrectedAndorImage,
+    FLIRMeasurementMixin,
+    ConstantBeamsMixin,
+    _MeasureNarrowbandMOTFrag,
+):
+    """
+    Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
+    """
+
+
 class MeasureNarrowbandMOTBGCorrectedFrag(
     BGCorrectedAndorImage,
     FLIRMeasurementMixin,
     _MeasureNarrowbandMOTFrag,
 ):
     """
-    Make a narrowband MOT, image twice for BG subtraction with the ANDOR and leave lattice light on
+    Make a narrowband MOT, image twice for BG subtraction with the ANDOR
     """
 
 
@@ -88,6 +101,9 @@ MeasureNarrowbandRedMOT = make_fragment_scan_exp(MeasureNarrowbandMOTFrag)
 
 MeasureNarrowbandRedMOTBGCorrected = make_fragment_scan_exp(
     MeasureNarrowbandMOTBGCorrectedFrag
+)
+MeasureNarrowbandRedMOTBGCorrectedWithTrap = make_fragment_scan_exp(
+    MeasureNarrowbandMOTBGCorrectedWithTrapsFrag
 )
 
 MeasureNarrowbandMOTAbs = make_fragment_scan_exp(MeasureNarrowbandMOTAbsFrag)

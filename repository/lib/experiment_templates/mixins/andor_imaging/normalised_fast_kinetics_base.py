@@ -99,7 +99,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             "delay_between_imaging_pulses",
             FloatParam,
             "Time between the start of each fluorescence pulse",
-            default=3.5e-3,
+            default=constants.FAST_KINETICS_DELAY_BETWEEN_PULSES,
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle
@@ -129,16 +129,31 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     def host_setup(self):
         super().host_setup()
-        default_rois = self.get_monitor_rois()
+
+        default_rois_ground = [
+            self.andor_camera_control.get_roi_i(0),
+            self.andor_camera_control.get_roi_i(2),
+        ]
+        default_rois_excited = [
+            self.andor_camera_control.get_roi_i(1),
+            self.andor_camera_control.get_roi_i(3),
+        ]
+
+        # Subtract the fast kinetics height from the y coordinates of the
+        # excited state ROIs
+        for roi in default_rois_excited:
+            roi[1] -= self.fast_kinetics_height_default
+            roi[3] -= self.fast_kinetics_height_default
+
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{default_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{default_rois_ground}'",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois_excited}'",
         )
 
     def fast_kinetics_setup_results(self):

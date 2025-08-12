@@ -258,19 +258,25 @@ class AndorImagingBase(RedMOTWithExperiment):
     def host_setup(self):
         super().host_setup()
         if self.use_andor_driver.get():
-            default_rois = self.get_monitor_rois()
+            monitor_rois = self.get_monitor_rois()
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[default_rois[0]]}' --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[monitor_rois[0]]}' --dataset_prefix 'andor_monitor'",
             )
 
+            # Also make an applet for every image. Don't include the ROIs on
+            # here because they might vary per image, and we would have to deal
+            # with fast kinetics offsets (if fast kinetics is being used). This
+            # is very possible, but the only place this matters at the moment is
+            # in normalised readout, and that already shows ROIs in the ground /
+            # excited state images.
             for i in range(self.num_andor_images):
                 dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
                 self.ccb.issue(
                     "create_applet",
                     f"Andor image {i}",
-                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --default_rois '{default_rois}' --dataset_prefix 'andor_img_{i}'",
+                    f"${{python}} -m custom_artiq_applets.full_img_applet {dataset_name} --dataset_prefix 'andor_img_{i}'",
                 )
         self.image_store = []
 

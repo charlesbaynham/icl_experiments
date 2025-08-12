@@ -15,6 +15,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.count_convert impo
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingRepumpedNormalised,
 )
+from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
+    ClockGlitchCounterMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
@@ -33,7 +36,6 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.rigol_counter import RigolCounterMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
@@ -63,7 +65,7 @@ class _DifferentialClockInterferometry(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     # Extra monitoring:
-    RigolCounterMixin,
+    ClockGlitchCounterMixin,
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
