@@ -1096,7 +1096,7 @@ if USE_SR87:
         0.07,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        26e3,
+        260e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
         235e3,
