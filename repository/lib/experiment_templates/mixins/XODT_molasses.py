@@ -130,13 +130,13 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.stir_beam_detuning_molasses_1: FloatParamHandle
 
-        #put MOT light away from transition during molasses
+        # put MOT light away from transition during molasses
         self.setattr_param(
             "injection_aom_molasses_detuning",
             FloatParam,
             "Detuning of the 689 injection AOM during molasses",
-            default = 100e3,
-            unit = "kHz"
+            default=100e3,
+            unit="kHz",
         )
         self.injection_aom_molasses_detuning: FloatParamHandle
 
@@ -219,10 +219,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.transparency_setter.turn_on_all()
 
-        #step the 689 injection AOM frequency
-        self.red_mot.red_beam_controller.injection_aom.set(
-            self.red_mot.injection_aom_static_frequency.get() + self.injection_aom_molasses_detuning.get()
-            )
+        # step the 689 injection AOM frequency
+        # self.red_mot.red_beam_controller.injection_aom.set(
+        #     self.red_mot.injection_aom_static_frequency.get()
+        #     + self.injection_aom_molasses_detuning.get()
+        # )
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
@@ -240,10 +241,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             ignore_shutters=True
         )
 
-        #set red back to right frequency
+        # set red back to right frequency
         self.red_mot.red_beam_controller.injection_aom.set(
             self.red_mot.injection_aom_static_frequency.get()
         )
+
 
 class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
     """
