@@ -176,9 +176,7 @@ class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBias
     )
 
     default_urukul_detunings_start = constants.XODT_MOLASSES_689_DETUNING_START
-    default_urukul_detunings_end = [
-        default_urukul_detunings_start[0] - 5e3
-    ]  # constants.XODT_MOLASSES_689_DETUNING_END
+    default_urukul_detunings_end = constants.XODT_MOLASSES_689_DETUNING_END
 
     # Chamber 2 bias coils in amps
     general_setter_default_starts = constants.XODT_MOLASSES_BIAS_FIELD_START

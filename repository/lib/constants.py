@@ -1053,7 +1053,7 @@ else:
 
 # Unused in Sr88 so only one setting needed
 XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
-XODT_MOLASSES_689_STIR_DETUNING = -55000.0
+XODT_MOLASSES_689_STIR_DETUNING = 575000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -1096,10 +1096,10 @@ if USE_SR87:
         0.07,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        -60e3,
+        26e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        -65e3,
+        235e3,
     ]
     XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
