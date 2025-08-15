@@ -253,7 +253,7 @@ class MolassesDipoleRamp(GeneralRampingPhaseWithBinding):
     A phase with linear ramps for 1064 and 813 nm XODT
     """
 
-    duration_default = 0.01e-3
+    duration_default = 1400e-3
     time_step_default = 1e-3
 
     suservos = SUSERVOS_XODT
