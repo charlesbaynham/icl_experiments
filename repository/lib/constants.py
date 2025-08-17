@@ -588,7 +588,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_transparency_beam",
         80e6,
-        20,
+        23,
         "suservo_aom_singlepass_487_transparency",
         setpoint=0.3,
         servo_enabled=True,
