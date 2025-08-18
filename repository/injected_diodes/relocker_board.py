@@ -378,14 +378,6 @@ class AllRelockersFrag(ExpFragment):
         )
         self.write_settings: BoolParamHandle
 
-        self.setattr_param(
-            "log_results",
-            BoolParam,
-            description="Log if no relock",
-            default=False,
-        )
-        self.log_results: BoolParamHandle
-
         for i, relocker in enumerate(self.relocker_frags):
             relocker.bind_param("relock_enabled", self.relocker_enabled[i])
             relocker.bind_param("write_settings", self.write_settings)
@@ -394,9 +386,6 @@ class AllRelockersFrag(ExpFragment):
         for i, relocker in enumerate(self.relocker_frags):
             if self.relocker_enabled[i].get():
                 relocker.run_once()
-            else:
-                if self.log_results.get():
-                    relocker.log_results()
 
 
 class RelockerAutoFrag(ExpFragment):
