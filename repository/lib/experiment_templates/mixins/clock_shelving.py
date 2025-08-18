@@ -131,12 +131,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
     @kernel
     def clock_shelving(self):
-
-        # FIXME: Instead of shelving, just put delays for the same amount of time
-        delay(self.shelving_pulse_time.get())
-        delay(self.shelving_pulse_clearout_duration.get())
-        return
-
         # Prepare the clock beam
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
