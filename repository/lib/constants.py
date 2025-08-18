@@ -168,8 +168,8 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         temperature=8600,
-        window_high=362e-3,
-        window_low=355e-3,
+        window_high=361e-3,
+        window_low=357e-3,
         relock_step=3e-3,
         # IJD1 does not actually need the blue_singlepass_injection AOM, but
         # IJDs 2 and 3 do. Rather than adding it to one of IJD2 and 3, or both,
@@ -178,19 +178,19 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
-        window_high=373e-3,
-        window_low=368e-3,
+        window_high=372e-3,
+        window_low=369e-3,
         relock_step=3e-3,
     ),
     "blue_IJD3_controller": IJDSettings(
         temperature=8850,
-        window_high=365e-3,
+        window_high=363e-3,
         window_low=358e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
         temperature=9380,
-        window_high=174.0e-3,
+        window_high=173.0e-3,
         window_low=169.0e-3,
         relock_step=3e-3,
         associated_beams=["red_doublepass_injection"],
