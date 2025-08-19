@@ -1101,7 +1101,7 @@ if USE_SR87:
     XODT_MOLASSES_689_DETUNING_END = [
         235e3,
     ]
-    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(-0.06, -0.04, 0.0)
+    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(-0.06, -0.03, 0.0)
     XODT_MOLASSES_BIAS_FIELD_END = add_field_offset(-0.06, 0.0, 0.0)
     XODT_MOLASSES_MOT_CURRENT = 0.0
 
