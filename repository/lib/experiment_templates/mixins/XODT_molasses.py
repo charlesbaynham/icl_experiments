@@ -29,6 +29,11 @@ logger = logging.getLogger(__name__)
 
 TRANSPARENCY_AOM_FREQ = constants.SUSERVOED_BEAMS["blue_transparency_beam"].frequency
 
+SUSERVOS_XODT = [
+    "suservo_aom_1064_delivery",
+    "suservo_aom_down_813",
+]
+
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     """
@@ -254,13 +259,13 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
         )
         self.cool_molasses: MolassesDipoleRamp
 
-        self.cool_molasses.bind_suservo_setpoint_params_to_default_beam_setter(
-            [self.dipole_beam_controller.all_beam_default_setter]
-        )
-
-        # self.cool_molasses.daisy_chain_with_previous_phase(
-        #     self.molasses_xodt_1, suservos=suservos_XODT
+        # self.cool_molasses.bind_suservo_setpoint_params_to_default_beam_setter(
+        #     [self.dipole_beam_controller.all_beam_default_setter]
         # )
+
+        self.cool_molasses.daisy_chain_with_previous_phase(
+            self.molasses_xodt_1, SUSERVOS_XODT
+        )
 
     @kernel
     def DMA_initialization_hook(self):
