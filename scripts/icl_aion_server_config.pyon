@@ -120,8 +120,9 @@
             "locked": false,
             "locked_at": 0,
             "host": "",
-            "target": "USB VID:PID=0403:6001 SER=AG0KOVMA",
-            "type": "GAIO"
+            "target": "",
+            "id": "USB VID:PID=0403:6001 SER=AG0KOVMA",
+            "type": "gaio",
         },
         "698": {
             "auto_exposure": true,
