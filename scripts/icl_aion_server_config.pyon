@@ -98,7 +98,7 @@
             "target": "laser2",
             "v_pzt_max": 125,
         },
-        "689_IJD": {
+        "688": {
             "auto_exposure": true,
             "channel": 2,
             "display_colour": "blue",
@@ -111,7 +111,7 @@
             "fast_mode": false,
             "fast_mode_set_at": 1683033888.1694472,
             "lock_capture_range": 3000000000.0,
-            "lock_gain": 1e-10,
+            "lock_gain": 1e-11,
             "lock_owner": "",
             "lock_poll_time": 20.0,
             "lock_ready": true,
@@ -120,7 +120,8 @@
             "locked": false,
             "locked_at": 0,
             "host": "",
-            "target": "",
+            "target": "USB VID:PID=0403:6001 SER=AG0KOVMA",
+            "type": "GAIO"
         },
         "698": {
             "auto_exposure": true,
