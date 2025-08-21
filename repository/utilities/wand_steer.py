@@ -17,7 +17,9 @@ class WANDSteerFrag(ExpFragment):
 
         self.setattr_argument(
             "laser",
-            EnumerationValue(["461", "689", "707", "679", "698", "487"], default="461"),
+            EnumerationValue(
+                ["461", "689", "707", "679", "698", "487", "688"], default="461"
+            ),
         )
         self.laser: str
 
