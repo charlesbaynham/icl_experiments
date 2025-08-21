@@ -119,7 +119,7 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "",
+            "host": "USB",
             "target": "",
             "id": "USB VID:PID=0403:6001 SER=AG0KOVMA",
             "type": "gaio",

@@ -4776,7 +4776,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
 reference = "gaio-control"
-resolved_reference = "2f509b94258c0c25e8f36e309729d57c7682e7e5"
+resolved_reference = "79dd17604ef5063c2480ffd378e6ff311f78da30"
 
 [[package]]
 name = "wcwidth"
