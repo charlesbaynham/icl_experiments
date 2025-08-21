@@ -123,6 +123,8 @@
             "target": "",
             "id": "USB VID:PID=0403:6001 SER=AG0KOVMA",
             "type": "gaio",
+            "v_pzt_min": 0.0,
+            "v_pzt_max": 4.0,
         },
         "698": {
             "auto_exposure": true,
