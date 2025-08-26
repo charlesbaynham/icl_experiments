@@ -1,12 +1,14 @@
+from artiq.coredevice.core import Core
+from artiq.language import delay
+from artiq.language import now_mu
 from ndscan.experiment import *
+from ndscan.experiment.entry_point import make_fragment_scan_exp
+
+from repository.lib import constants
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
-from repository.lib import constants
-from artiq.language import at_mu, now_mu, delay
-from artiq.coredevice.core import Core
-
 
 
 class TestClockRamper(ExpFragment):
@@ -32,21 +34,17 @@ class TestClockRamper(ExpFragment):
 
         start_time = now_mu()
 
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            700e3,
-            80e6,
-            80.7e6,
-            type = 1
-        )
+        self.clock_opll.clock_frequency_ramper.start_ramp(700e3, 80e6, 80.7e6, type=1)
 
         delay(0.5)
 
         self.clock_opll.clock_frequency_ramper.stop_ramp()
-        
+
         end_time = now_mu()
 
-        new_freq = 700e3 * self.core.mu_to_seconds(end_time-start_time)
+        new_freq = 700e3 * self.core.mu_to_seconds(end_time - start_time)
 
         self.clock_opll.clock_OPLL_offset.set(new_freq)
 
 
+TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
