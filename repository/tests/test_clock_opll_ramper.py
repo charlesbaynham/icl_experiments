@@ -34,7 +34,7 @@ class TestClockRamper(ExpFragment):
 
         start_time = now_mu()
 
-        self.clock_opll.clock_frequency_ramper.start_ramp(1e6, 80e6, 81e6, 1)
+        self.clock_opll.clock_frequency_ramper.start_ramp(1e6, 80e6, 82e6, 1)
 
         delay(1.0)
 
