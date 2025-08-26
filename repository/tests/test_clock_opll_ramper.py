@@ -52,6 +52,7 @@ class TestClockRamper(ExpFragment):
 
         delay(1.0)
         self.clock_opll.clock_frequency_ramper.stop_ramp()
+        delay(1.0)
 
 
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
