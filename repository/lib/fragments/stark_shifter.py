@@ -64,7 +64,7 @@ class StarkShifter(Fragment):
             "stark_pulse_duration",
             FloatParam,
             "Duration of Stark shifting pulse",
-            default=30e-6,
+            default=constants.DURATION_OF_STARK_PULSE,
             unit="us",
         )
         self.stark_pulse_duration: FloatParamHandle

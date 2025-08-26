@@ -168,8 +168,8 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         temperature=8600,
-        window_high=362e-3,
-        window_low=355e-3,
+        window_high=361e-3,
+        window_low=357e-3,
         relock_step=3e-3,
         # IJD1 does not actually need the blue_singlepass_injection AOM, but
         # IJDs 2 and 3 do. Rather than adding it to one of IJD2 and 3, or both,
@@ -178,19 +178,19 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
-        window_high=373e-3,
-        window_low=368e-3,
+        window_high=372e-3,
+        window_low=369e-3,
         relock_step=3e-3,
     ),
     "blue_IJD3_controller": IJDSettings(
         temperature=8850,
-        window_high=365e-3,
+        window_high=363e-3,
         window_low=358e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
         temperature=9380,
-        window_high=174.0e-3,
+        window_high=173.0e-3,
         window_low=169.0e-3,
         relock_step=3e-3,
         associated_beams=["red_doublepass_injection"],
@@ -588,7 +588,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_transparency_beam",
         80e6,
-        20,
+        23,
         "suservo_aom_singlepass_487_transparency",
         setpoint=0.3,
         servo_enabled=True,
@@ -835,10 +835,11 @@ WAND_SETPOINTS_88 = {
     "679": (_default_679, True),
     "487": (_default_487, True),
     "689": (_default_689, False),
-    "689_IJD": (
-        _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
-        False,
-    ),
+    # Removed since we're using that channel for 688 now
+    # "689_IJD": (
+    #     _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
+    #     False,
+    # ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698 + _clock_laser_offset, False),
@@ -851,12 +852,13 @@ WAND_SETPOINTS_87 = {
     "679": (_default_679 - 2430e6, True),
     "487": (_default_487, True),
     "689": (_default_689 - _isotope_shift_689, False),
-    "689_IJD": (
-        _default_689
-        - _isotope_shift_689
-        - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
-        False,
-    ),
+    # Removed since we're using that channel for 688 now
+    # "689_IJD": (
+    #     _default_689
+    #     - _isotope_shift_689
+    #     - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
+    #     False,
+    # ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698 + _clock_laser_offset, False),
@@ -955,14 +957,15 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 # Clock stuff
 
 CLOCK_PI_TIME = 50e-6
-CLOCK_SHELVING_PULSE_TIME = 200e-6
-CLOCK_SHELVING_PULSE_SETPOINT = 0.12
+CLOCK_SHELVING_PULSE_TIME = 300e-6
+CLOCK_SHELVING_PULSE_SETPOINT = 0.08
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
-DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
+DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    34.3e3  # Chosen to match the current slicing pulse parameters
+    36.5e3 - 140  # Chosen to match the current slicing pulse parameters
 )
+DURATION_OF_STARK_PULSE = 20e-6
 
 # %% Dipole trap settings
 

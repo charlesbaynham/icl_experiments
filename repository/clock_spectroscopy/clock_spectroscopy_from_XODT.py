@@ -179,7 +179,7 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
-    LoadXXODTMixin,
+    LoadXXODTWithTransparencyBeamMixin,
     # Base:
     DipoleTrapWithExperiment,
 ):
