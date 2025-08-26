@@ -42,7 +42,7 @@ class TestClockRamper(ExpFragment):
 
         end_time = now_mu()
 
-        new_freq = 700e3 * self.core.mu_to_seconds(end_time - start_time)
+        new_freq = 1e6 * self.core.mu_to_seconds(end_time - start_time)
 
         self.clock_opll.clock_OPLL_offset.set(80e6 + new_freq)
 
