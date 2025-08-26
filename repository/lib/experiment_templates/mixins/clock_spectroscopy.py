@@ -42,7 +42,6 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
@@ -182,7 +181,6 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
@@ -227,7 +225,6 @@ class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
     """
 
     @kernel
@@ -245,7 +242,6 @@ class ClockRabiSpectroscopyDipoleTrapMixin(
 
     * :meth:`~before_start_hook`
     * :meth:`~do_experiment_after_dipole_trap_hook`
-    * :meth:`~do_first_pulse`
     """
 
     @kernel
