@@ -44,7 +44,7 @@ class TestClockRamper(ExpFragment):
 
         new_freq = 700e3 * self.core.mu_to_seconds(end_time - start_time)
 
-        self.clock_opll.clock_OPLL_offset.set(new_freq)
+        self.clock_opll.clock_OPLL_offset.set(80e6 + new_freq)
 
         delay(1.0)
 
