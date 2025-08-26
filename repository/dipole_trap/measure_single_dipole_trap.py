@@ -5,6 +5,8 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
@@ -34,6 +36,20 @@ class MeasureSingleXODTBGCorrectedFrag(
     """
     Make Single XODT, image twice for BG subtraction
     """
+
+    def build_fragment(self):
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[
+                    constants.SUSERVOED_BEAMS["blue_transparency_beam"]
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=True,
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
+        super().build_fragment()
 
     @kernel
     def DMA_initialization_hook(self):
