@@ -42,11 +42,13 @@ class TestClockRamper(ExpFragment):
 
         end_time = now_mu()
 
-        new_freq = 1e6 * self.core.mu_to_seconds(end_time - start_time + 1)
+        new_freq = 80e6 + 1e6 * self.core.mu_to_seconds(end_time - start_time + 1)
 
-        self.clock_opll.clock_OPLL_offset.set(80e6 + new_freq)
+        self.clock_opll.clock_OPLL_offset.set(new_freq)
 
         delay(1.0)
+
+        self.clock_opll.clock_frequency_ramper.start_ramp(1e6, 80e6, new_freq, 2)
 
 
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
