@@ -215,7 +215,7 @@ class LMTLaunchMixin(LMTLaunchBase):
             default=50e-6,
             unit="us",
         )
-        self.lmt_pulse_duration: FloatParamHandle
+        self.lmt_pulses_duration: FloatParamHandle
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -251,7 +251,7 @@ class LMTLaunchMixin(LMTLaunchBase):
             )
             # pulse the up beam
             self.clock_up_dds.sw.on()
-            delay(self.lmt_pulse_duration.get())
+            delay(self.lmt_pulses_duration.get())
             self.clock_up_dds.sw.off()
 
         if ramp_type == 1:
@@ -264,7 +264,7 @@ class LMTLaunchMixin(LMTLaunchBase):
             )
             # pulse the down beam
             self.clock_down_dds.sw.on()
-            delay(self.lmt_pulse_duration.get())
+            delay(self.lmt_pulses_duration.get())
             self.clock_down_dds.sw.off()
 
         # stop the ramp
