@@ -202,7 +202,7 @@ class LMTLaunchMixin(LMTLaunchBase):
         self.setattr_param(
             "lmt_pulses_number",
             IntParam,
-            "Number of pairs of  pulses for LMT launch",
+            "Number of pulses for LMT launch",
             default=10,
         )
         self.lmt_pulses_number: IntParamHandle
