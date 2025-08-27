@@ -47,6 +47,7 @@ class LMTLaunchBase(DipoleTrapWithExperiment):
     """
 
     def build_fragment(self):
+        super().build_fragment()
 
         self.setattr_fragment("clock_opll", ClockOPLLController)
         self.clock_opll: ClockOPLLController
