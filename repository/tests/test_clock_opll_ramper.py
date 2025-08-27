@@ -92,10 +92,6 @@ class TestLaunchFromXODTFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
 
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
-
 
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
 TestLaunchFromXODTFExp = make_fragment_scan_exp(TestLaunchFromXODTFrag)
