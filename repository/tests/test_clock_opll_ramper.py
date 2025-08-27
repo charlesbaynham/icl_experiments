@@ -94,3 +94,4 @@ class TestLaunchFromXODTFrag(
 
 
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
+TestLaunchFromXODTFExp = make_fragment_scan_exp(TestLaunchFromXODTFrag)
