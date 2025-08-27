@@ -71,7 +71,7 @@ class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
         )
 
 
-class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
+class NormalisedXXODTFastKineticsBase(NormalisedFastKineticsBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
@@ -95,6 +95,35 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
 
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
+
+    def get_monitor_rois(self):
+        default_rois = []
+        fwd_roi = self.andor_camera_control.get_roi_i(0)
+        bwd_roi = self.andor_camera_control.get_roi_i(2)
+        default_rois.append(fwd_roi)
+        default_rois.append(bwd_roi)
+        return default_rois
+
+
+class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):
+    """
+    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    experiment
+
+    This mixin base uses the Andor camera to two fast kinetics series with two images each and create
+    ResultChannels for normalised state readout. The first series contains atoms that starts in (i)
+    the ground state, and (ii) the excited state. The second series reproduces the conditions of the first,
+    with a long delay to clear out atoms.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    * :meth:`~process_andor_data_hook`
+    * :meth:`~update_andor_monitor_hook`
+    """
 
     def get_grabber_roi_defaults(self):
         if self.num_images_per_series != 2:
@@ -209,16 +238,8 @@ class NormalisedXXODTFastKineticsMixin(NormalisedFastKineticsBase):
                         val,
                     )
 
-    def get_monitor_rois(self):
-        default_rois = []
-        fwd_roi = self.andor_camera_control.get_roi_i(0)
-        bwd_roi = self.andor_camera_control.get_roi_i(2)
-        default_rois.append(fwd_roi)
-        default_rois.append(bwd_roi)
-        return default_rois
 
-
-class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsMixin):
+class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
