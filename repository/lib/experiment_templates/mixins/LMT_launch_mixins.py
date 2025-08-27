@@ -211,7 +211,7 @@ class LMTLaunchMixin(LMTLaunchBase):
             "lmt_pulses_duration",
             FloatParam,
             "Duration of an LMT launch pulse",
-            default=50,
+            default=50e-6,
             unit="us",
         )
         self.lmt_pulse_duration: FloatParamHandle
