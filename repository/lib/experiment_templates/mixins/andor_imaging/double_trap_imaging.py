@@ -14,6 +14,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedXXODTFastKineticsMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
+    NormalisedXXODTSpectroscopyFastKineticsMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
@@ -132,9 +135,7 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
         self.andor_sum_total.push(total)
 
 
-class DoubleTrapImagingRepumpedNormalised(
-    NormalisedXXODTFastKineticsMixin, NormalisedFastKineticsRepumpedMixin
-):
+class DoubleTrapImagingRepumpedNormalisedBase(NormalisedFastKineticsRepumpedMixin):
     """
     Image two traps with three pulses of light, imaging the ground, excited and
     background, with 707 repumping after the first pulse.
@@ -216,3 +217,36 @@ class DoubleTrapImagingRepumpedNormalised(
         self.atom_number_forward.push(atom_number_fwd)
         self.atom_number_backward.push(atom_number_bwd)
         self.atom_number_imbalance.push(imbalance)
+
+
+class DoubleTrapImagingRepumpedNormalised(
+    NormalisedXXODTFastKineticsMixin, DoubleTrapImagingRepumpedNormalisedBase
+):
+    """
+    Image two traps with three pulses of light, imaging the ground, excited and
+    background, with 707 repumping after the first pulse.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+
+class DoubleTrapImagingSpectroscopyRepumpedNormalised(
+    NormalisedXXODTSpectroscopyFastKineticsMixin,
+    DoubleTrapImagingRepumpedNormalisedBase,
+):
+    """
+    Image two traps with three pulses of light, imaging the ground, excited and
+    background, with 707 repumping after the first pulse.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    """
