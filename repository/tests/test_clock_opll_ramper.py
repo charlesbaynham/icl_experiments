@@ -8,6 +8,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -74,6 +75,7 @@ class TestLaunchFromXODTFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
+    EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     DipoleTrapWithExperiment,
