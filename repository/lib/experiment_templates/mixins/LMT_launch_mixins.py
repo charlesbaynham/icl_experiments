@@ -221,9 +221,9 @@ class LMTLaunchMixin(LMTLaunchBase):
 
         total_ramp_time = 0.0
 
+        t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
-            t_start_pulse = now_mu()
             #calculate the start frequency of the ramp
             f_i = start_opll_offset + (-1)**(i+1) * total_ramp_time * ramp_rate
             #calculate the ramp type
@@ -231,10 +231,13 @@ class LMTLaunchMixin(LMTLaunchBase):
             #fire the pulse
             self.fire_lmt_pulse(f_i, type)
             t_end_pulse = now_mu()
-            total_ramp_time += self.core.mu_to_seconds(t_end_pulse - t_start_pulse)
+            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def fire_lmt_pulse(self, start_freq, ramp_type):
+
+        #set the offset frequency
+        self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if ramp_type == 2:
             #ramp the offset downwards
@@ -262,6 +265,8 @@ class LMTLaunchMixin(LMTLaunchBase):
             delay(self.lmt_pulse_duration.get())
             self.clock_down_dds.sw.off()
 
+        #stop the ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
 
 
         
