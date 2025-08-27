@@ -1,12 +1,11 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.language import at_mu
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
-import numpy as np
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -15,8 +14,6 @@ from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
-
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -24,10 +21,10 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -35,9 +32,10 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 start_opll_offset = 80e6
-hbar_k = 1.05457182e-34 * 2*np.pi * constants._default_698 / 3e8
+hbar_k = 1.05457182e-34 * 2 * np.pi * constants._default_698 / 3e8
 
 logger = logging.getLogger(__name__)
+
 
 class LMTLaunchBase(DipoleTrapWithExperiment):
     """
@@ -49,7 +47,7 @@ class LMTLaunchBase(DipoleTrapWithExperiment):
     """
 
     def build_fragment(self):
-        
+
         self.setattr_fragment("clock_opll", ClockOPLLController)
         self.clock_opll: ClockOPLLController
 
@@ -90,7 +88,9 @@ class LMTLaunchBase(DipoleTrapWithExperiment):
         self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_up_dds: AD9910 = self.get_device(CLOCK_UP_BEAM_INFO.urukul_device)
-        self.clock_down_dds: AD9910 = self.get_device(CLOCK_DOWN_BEAM_INFO.urukul_device)
+        self.clock_down_dds: AD9910 = self.get_device(
+            CLOCK_DOWN_BEAM_INFO.urukul_device
+        )
 
         # Init of the clock OPLL without glitching
         self.setattr_fragment(
@@ -133,7 +133,7 @@ class LMTLaunchBase(DipoleTrapWithExperiment):
             self.spectroscopy_clock_delivery_setpoint,
         )
 
-        #separate fragment because up beam alone is created in other mixins
+        # separate fragment because up beam alone is created in other mixins
         self.setattr_fragment(
             "clock_down_default_setter",
             make_set_beams_to_default(
@@ -186,6 +186,7 @@ class LMTLaunchBase(DipoleTrapWithExperiment):
         )
         at_mu(_t_start)
 
+
 class LMTLaunchMixin(LMTLaunchBase):
     """
     Implements LMT launch after the dipole trap
@@ -197,12 +198,12 @@ class LMTLaunchMixin(LMTLaunchBase):
 
     def build_fragment(self):
         super().build_fragment()
-        
+
         self.setattr_param(
             "lmt_pulses_number",
             IntParam,
             "Number of pairs of  pulses for LMT launch",
-            default = 10,
+            default=10,
         )
         self.lmt_pulses_number: IntParamHandle
 
@@ -210,13 +211,13 @@ class LMTLaunchMixin(LMTLaunchBase):
             "lmt_pulses_duration",
             FloatParam,
             "Duration of an LMT launch pulse",
-            default = 50,
-            unit = "us"
+            default=50,
+            unit="us",
         )
         self.lmt_pulse_duration: FloatParamHandle
 
     @kernel
-    def lmt_launch(self):
+    def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
 
         total_ramp_time = 0.0
@@ -224,11 +225,11 @@ class LMTLaunchMixin(LMTLaunchBase):
         t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
-            #calculate the start frequency of the ramp
-            f_i = start_opll_offset + (-1)**(i+1) * total_ramp_time * ramp_rate
-            #calculate the ramp type
-            type = int(1.5 + 0.5*(-1)**i)
-            #fire the pulse
+            # calculate the start frequency of the ramp
+            f_i = start_opll_offset + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+            # calculate the ramp type
+            type = int(1.5 + 0.5 * (-1) ** i)
+            # fire the pulse
             self.fire_lmt_pulse(f_i, type)
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
@@ -236,40 +237,34 @@ class LMTLaunchMixin(LMTLaunchBase):
     @kernel
     def fire_lmt_pulse(self, start_freq, ramp_type):
 
-        #set the offset frequency
+        # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if ramp_type == 2:
-            #ramp the offset downwards
+            # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
-            ramp_rate,
-            start_freq - 1e6,
-            start_freq,
-            wave_type=ramp_type,
-        )
-            #pulse the up beam
+                ramp_rate,
+                start_freq - 1e6,
+                start_freq,
+                wave_type=ramp_type,
+            )
+            # pulse the up beam
             self.clock_up_dds.sw.on()
             delay(self.lmt_pulse_duration.get())
             self.clock_up_dds.sw.off()
 
         if ramp_type == 1:
-            #ramp the offset downwards
+            # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
-            ramp_rate,
-            start_freq,
-            start_freq + 1e6,
-            wave_type=ramp_type,
-        )
-            #pulse the down beam
+                ramp_rate,
+                start_freq,
+                start_freq + 1e6,
+                wave_type=ramp_type,
+            )
+            # pulse the down beam
             self.clock_down_dds.sw.on()
             delay(self.lmt_pulse_duration.get())
             self.clock_down_dds.sw.off()
 
-        #stop the ramp
+        # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
-
-
-        
-
-
-
