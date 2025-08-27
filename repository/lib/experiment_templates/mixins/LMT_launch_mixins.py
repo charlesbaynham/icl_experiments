@@ -80,6 +80,15 @@ class LMTLaunchBase(DipoleTrapWithExperiment):
         )
         self.lmt_pulse_aom_detuning: FloatParamHandle
 
+        self.setattr_param(
+            "clearout_duration",
+            FloatParam,
+            "Duration of 461 clearout pulse after LMT pulse",
+            default=constants.SHELVING_PULSE_CLEAROUT_DURATION,
+            unit="us",
+        )
+        self.shelving_pulse_clearout_duration: FloatParamHandle
+
         if not hasattr(self, "clock_delivery_setter"):
             self.setattr_fragment(
                 "clock_delivery_setter",
@@ -232,6 +241,11 @@ class LMTLaunchMixin(LMTLaunchBase):
             type = int(1.5 + 0.5 * (-1) ** i)
             # fire the pulse
             self.fire_lmt_pulse(f_i, type)
+            # Clear out the ground state
+            self.fluorescence_pulse.do_imaging_pulse(
+                duration=self.clearout_duration.get(),
+                ignore_final_shutters=True,
+            )
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
