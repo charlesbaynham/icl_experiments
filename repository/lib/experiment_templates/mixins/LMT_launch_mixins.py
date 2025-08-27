@@ -34,6 +34,7 @@ CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+start_opll_offset = 80e6
 hbar_k = 1.05457182e-34 * 2*np.pi * constants._default_698 / 3e8
 
 logger = logging.getLogger(__name__)
@@ -200,7 +201,7 @@ class LMTLaunchMixin(LMTLaunchBase):
         self.setattr_param(
             "lmt_pulses_number",
             IntParam,
-            "Number of pulses for LMT launch",
+            "Number of pairs of  pulses for LMT launch",
             default = 10,
         )
         self.lmt_pulses_number: IntParamHandle
@@ -217,47 +218,49 @@ class LMTLaunchMixin(LMTLaunchBase):
     @kernel
     def lmt_launch(self):
         self.prepare_clock_delivery_aom()
-        self.fire_lmt_pulses_pair()
+
+        total_ramp_time = 0.0
+
+        for i in range(self.lmt_pulses_number.get()):
+
+            t_start_pulse = now_mu()
+            #calculate the start frequency of the ramp
+            f_i = start_opll_offset + (-1)**(i+1) * total_ramp_time * ramp_rate
+            #calculate the ramp type
+            type = int(1.5 + 0.5*(-1)**i)
+            #fire the pulse
+            self.fire_lmt_pulse(f_i, type)
+            t_end_pulse = now_mu()
+            total_ramp_time += self.core.mu_to_seconds(t_end_pulse - t_start_pulse)
 
     @kernel
-    def fire_lmt_pulses_pair(self):
+    def fire_lmt_pulse(self, start_freq, ramp_type):
 
-        #start ramp up
-        start_ramp_time = now_mu()
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        if ramp_type == 2:
+            #ramp the offset downwards
+            self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
-            80e6,
-            80.7e6,
-            wave_type=0,
+            start_freq - 1e6,
+            start_freq,
+            wave_type=ramp_type,
         )
+            #pulse the up beam
+            self.clock_up_dds.sw.on()
+            delay(self.lmt_pulse_duration.get())
+            self.clock_up_dds.sw.off()
 
-        #up beam pulse
-        self.clock_up_dds.sw.on()
-        delay(self.lmt_pulse_duration.get())
-        self.clock_up_dds.sw.off()
-
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        end_ramp_time = now_mu()
-
-        #calculate where to start the ramp down
-        up_ramp_time = self.core.mu_to_seconds(end_ramp_time-start_ramp_time)
-        end_frequency = ramp_rate*up_ramp_time
-
-        self.clock_opll.clock_OPLL_offset.set(end_frequency + hbar_k)
-
-        #start the ramp down
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        if ramp_type == 1:
+            #ramp the offset downwards
+            self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
-            80e6,
-            end_frequency + hbar_k,
-            wave_type=2,
+            start_freq,
+            start_freq + 1e6,
+            wave_type=ramp_type,
         )
-
-        self.clock_up_dds.sw.on()
-        delay(self.lmt_pulse_duration.get())
-        self.clock_up_dds.sw.off()
-
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+            #pulse the down beam
+            self.clock_down_dds.sw.on()
+            delay(self.lmt_pulse_duration.get())
+            self.clock_down_dds.sw.off()
 
 
 
