@@ -237,8 +237,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        pass
-        # self.prepare_clock_delivery_aom()
+        self.prepare_clock_delivery_aom()
 
         # total_ramp_time = 0.0
 
