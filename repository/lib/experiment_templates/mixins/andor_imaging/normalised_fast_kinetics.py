@@ -298,6 +298,7 @@ class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsBa
             constants.SHELVING_PULSE_CLEAROUT_DURATION
             + constants.CLOCK_SHELVING_PULSE_TIME
             + constants.CLOCK_PI_TIME
+            + constants.DELAY_AFTER_CLOCK_SPECTROSCOPY
         )
         velocity_at_first_pulse = (
             constants.scipy_constants.g * time_dropped_before_first_pulse
@@ -343,6 +344,7 @@ class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsBa
             ),
             ("shelving_pulse_time", constants.CLOCK_SHELVING_PULSE_TIME),
             ("spectroscopy_pulse_time", constants.CLOCK_PI_TIME),
+            ("delay_after_spectroscopy", constants.DELAY_AFTER_CLOCK_SPECTROSCOPY),
         ]
 
         for handle_name, default_val in handles_and_default_vals:

@@ -203,7 +203,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
             "delay_after_spectroscopy",
             FloatParam,
             "Delay after spectroscopy before imaging",
-            default=100e-6,
+            default=constants.DELAY_AFTER_CLOCK_SPECTROSCOPY,
             unit="us",
         )
         self.delay_after_spectroscopy: FloatParamHandle
