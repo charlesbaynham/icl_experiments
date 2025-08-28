@@ -75,7 +75,7 @@ class TestClockRamper(ExpFragment):
 
 
 class TestLaunchFromXODTFrag(
-    # LMTLaunchMixin,
+    LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
