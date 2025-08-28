@@ -236,9 +236,9 @@ class LMTLaunchMixin(LMTLaunchBase):
         for i in range(self.lmt_pulses_number.get()):
 
             # calculate the start frequency of the ramp
-            f_i = start_opll_offset + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+            f_i = start_opll_offset + (-1) ** i * total_ramp_time * ramp_rate
             # calculate the ramp type
-            type = int(1.5 + 0.5 * (-1) ** i)
+            type = int(1.5 + 0.5 * (-1) ** (i + 1))
             # fire the pulse
             self.fire_lmt_pulse(f_i, type)
             # Clear out the ground state
@@ -264,23 +264,23 @@ class LMTLaunchMixin(LMTLaunchBase):
                 start_freq,
                 wave_type=ramp_type,
             )
-            # pulse the up beam
-            self.clock_up_dds.sw.on()
+            # pulse the down beam
+            self.clock_down_dds.sw.on()
             delay(self.lmt_pulses_duration.get())
-            self.clock_up_dds.sw.off()
+            self.clock_down_dds.sw.off()
 
         if ramp_type == 1:
-            # ramp the offset downwards
+            # ramp the offset upwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
                 start_freq,
                 start_freq + 1e6,
                 wave_type=ramp_type,
             )
-            # pulse the down beam
-            self.clock_down_dds.sw.on()
+            # pulse the up beam
+            self.clock_up_dds.sw.on()
             delay(self.lmt_pulses_duration.get())
-            self.clock_down_dds.sw.off()
+            self.clock_up_dds.sw.off()
 
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
