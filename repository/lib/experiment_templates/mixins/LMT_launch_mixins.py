@@ -241,18 +241,21 @@ class LMTLaunchMixin(LMTLaunchBase):
             type = int(1.5 + 0.5 * (-1) ** (i + 1))
             # fire the pulse
             self.fire_lmt_pulse(f_i, type)
+
             # Clear out the ground state
-            if type == 2:
-                self.fluorescence_pulse.do_imaging_pulse(
-                    duration=self.clearout_duration.get(),
-                    ignore_final_shutters=True,
-                )
+            # if type == 1:
+            #     self.fluorescence_pulse.do_imaging_pulse(
+            #         duration=self.clearout_duration.get(),
+            #         ignore_final_shutters=True,
+            #     )
+
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def fire_lmt_pulse(self, start_freq, ramp_type):
-
+        # stop the ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
@@ -274,13 +277,11 @@ class LMTLaunchMixin(LMTLaunchBase):
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
                 start_freq,
-                start_freq + 1e6,
-                wave_type=ramp_type,
+                start_freq + 2e6,
+                wave_type=0,
             )
+
             # pulse the up beam
             self.clock_up_dds.sw.on()
             delay(self.lmt_pulses_duration.get())
             self.clock_up_dds.sw.off()
-
-        # stop the ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()

@@ -16,6 +16,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
+from repository.lib.experiment_templates.mixins.clock_shelving import (
+    ClockShelvingAndClearoutDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -79,6 +82,7 @@ class TestLaunchFromXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
     """
