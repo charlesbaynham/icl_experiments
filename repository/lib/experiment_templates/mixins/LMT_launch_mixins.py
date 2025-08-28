@@ -132,7 +132,7 @@ class LMTLaunchBase(RedMOTWithExperiment):
                     CLOCK_BEAM_DELIVERY_INFO.name
                 ][1]
             )
-            # self.kernel_invariants.add("clock_delivery_handles")
+            self.kernel_invariants.add("clock_delivery_handles")
 
         # Bind the default setter's setpoint to this fragment's parameters, for
         # ease of use
