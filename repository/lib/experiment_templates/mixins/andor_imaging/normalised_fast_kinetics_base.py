@@ -11,6 +11,7 @@ from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy.typing import NDArray
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -310,7 +311,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.atom_number.push(atom_number)
 
     @host_only
-    def process_andor_image_hook(self, images: np.array):
+    def process_andor_image_hook(self, images: NDArray):
         super().process_andor_image_hook(images)
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
         excited_bg_corrected = images[1].astype(int) - images[3].astype(int)
