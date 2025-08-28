@@ -99,6 +99,12 @@ class TestLaunchFromXODTFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+
 
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
 TestLaunchFromXODTFExp = make_fragment_scan_exp(TestLaunchFromXODTFrag)
