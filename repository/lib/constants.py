@@ -712,13 +712,11 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "stark_shifter_689_delivery",
         frequency=80e6,
-        # Not maximum diffraction efficiency, but chosen so that we can't heat
-        # the AOM too much. Achieves ~0.44V which is more than we need unless we move to very short pulses:
         attenuation=12.0,
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=0.28,  # Photodiode is now set to 30dB (changed 2024-12-02 from 20dB)
+        setpoint=1.0,
     ),
     SUServoedBeam(
         "down_689",
