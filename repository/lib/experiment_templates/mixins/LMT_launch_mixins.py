@@ -21,6 +21,7 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
@@ -37,7 +38,7 @@ hbar_k = 1.05457182e-34 * 2 * np.pi * constants._default_698 / 3e8
 logger = logging.getLogger(__name__)
 
 
-class LMTLaunchBase(DipoleTrapWithExperiment):
+class LMTLaunchBase(RedMOTWithExperiment):
     """
     Implements LMT launch after the dipole trap
 
@@ -198,7 +199,7 @@ class LMTLaunchBase(DipoleTrapWithExperiment):
         at_mu(_t_start)
 
 
-class LMTLaunchMixin(LMTLaunchBase):
+class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
     """
     Implements LMT launch after the dipole trap
 
