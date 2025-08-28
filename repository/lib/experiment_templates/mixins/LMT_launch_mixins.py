@@ -50,18 +50,14 @@ class LMTLaunchBase(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
-
         self.setattr_param(
-            "clock_delivery_preempt_time",
+            "lmt_pulse_aom_detuning",
             FloatParam,
-            "Preempt time before LMT pulses",
-            default=constants.CLOCK_DELIVERY_PREEMPT_TIME,
-            unit="us",
+            "Frequency detuning of delivery AOM during clock lmt pulse",
+            default=0,
+            unit="kHz",
         )
-        self.clock_delivery_preempt_time: FloatParamHandle
+        self.lmt_pulse_aom_detuning: FloatParamHandle
 
         self.setattr_param(
             "spectroscopy_clock_delivery_setpoint",
@@ -74,13 +70,13 @@ class LMTLaunchBase(RedMOTWithExperiment):
         self.spectroscopy_clock_delivery_setpoint: FloatParamHandle
 
         self.setattr_param(
-            "lmt_pulse_aom_detuning",
+            "clock_delivery_preempt_time",
             FloatParam,
-            "Frequency detuning of delivery AOM during clock lmt pulse",
-            default=0,
-            unit="kHz",
+            "Preempt time before LMT pulses",
+            default=constants.CLOCK_DELIVERY_PREEMPT_TIME,
+            unit="us",
         )
-        self.lmt_pulse_aom_detuning: FloatParamHandle
+        self.clock_delivery_preempt_time: FloatParamHandle
 
         self.setattr_param(
             "clearout_duration",
@@ -112,7 +108,7 @@ class LMTLaunchBase(RedMOTWithExperiment):
             constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
         )
 
-        # Ensure the clock up beam is set up
+        # %% Fragments
         if not hasattr(self, "clock_default_setter"):
             # Create the default setter for the clock beam
             # if it has not already been created
@@ -145,20 +141,6 @@ class LMTLaunchBase(RedMOTWithExperiment):
             self.spectroscopy_clock_delivery_setpoint,
         )
 
-        # separate fragment because up beam alone is created in other mixins
-        self.setattr_fragment(
-            "clock_down_default_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[],
-                urukul_beam_infos=[
-                    CLOCK_DOWN_BEAM_INFO,
-                ],
-                use_automatic_setup=True,
-                use_automatic_turnon=False,
-            ),
-        )
-        self.clock_down_default_setter: SetBeamsToDefaults
-
         # Turn the clock delivery AOM on at the start of each shot. This might
         # get overridden by e.g. slicing so we must do it again, but we want the
         # duty cycle to be 100% so the AOM settles
@@ -178,6 +160,31 @@ class LMTLaunchBase(RedMOTWithExperiment):
         self.setattr_fragment(
             "turn_on_clock_delivery_aom", TurnOnClockDeliveryAOM, self
         )
+
+        if not hasattr(self, "clock_opll"):
+            self.setattr_fragment("clock_opll", ClockOPLLController)
+            self.clock_opll: ClockOPLLController
+
+        # separate fragment because up beam alone is created in other mixins
+        self.setattr_fragment(
+            "clock_down_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[],
+                urukul_beam_infos=[
+                    CLOCK_DOWN_BEAM_INFO,
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
+            ),
+        )
+        self.clock_down_default_setter: SetBeamsToDefaults
+
+    def get_always_shown_params(self):
+        # Expose the clock base frequency for convenience
+        param_handles = super().get_always_shown_params()
+        if self.clock_delivery_handles.frequency_handle not in param_handles:
+            param_handles.append(self.clock_delivery_handles.frequency_handle)
+        return param_handles
 
     @kernel
     def prepare_clock_delivery_aom(self):
