@@ -229,29 +229,30 @@ class LMTLaunchMixin(LMTLaunchBase):
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.prepare_clock_delivery_aom()
+        pass
+        # self.prepare_clock_delivery_aom()
 
-        total_ramp_time = 0.0
+        # total_ramp_time = 0.0
 
-        t_start_ramp = now_mu()
-        for i in range(self.lmt_pulses_number.get()):
+        # t_start_ramp = now_mu()
+        # for i in range(self.lmt_pulses_number.get()):
 
-            # calculate the start frequency of the ramp
-            f_i = start_opll_offset + (-1) ** i * total_ramp_time * ramp_rate
-            # calculate the ramp type
-            type = int(1.5 + 0.5 * (-1) ** (i + 1))
-            # fire the pulse
-            self.fire_lmt_pulse(f_i, type)
+        #     # calculate the start frequency of the ramp
+        #     f_i = start_opll_offset + (-1) ** i * total_ramp_time * ramp_rate
+        #     # calculate the ramp type
+        #     type = int(1.5 + 0.5 * (-1) ** (i + 1))
+        #     # fire the pulse
+        #     self.fire_lmt_pulse(f_i, type)
 
-            # Clear out the ground state
-            # if type == 1:
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
+        #     # Clear out the ground state
+        #     # if type == 1:
+        #     #     self.fluorescence_pulse.do_imaging_pulse(
+        #     #         duration=self.clearout_duration.get(),
+        #     #         ignore_final_shutters=True,
+        #     #     )
 
-            t_end_pulse = now_mu()
-            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
+        #     t_end_pulse = now_mu()
+        #     total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def fire_lmt_pulse(self, start_freq, ramp_type):
