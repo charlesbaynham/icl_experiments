@@ -716,7 +716,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=1.0,
+        setpoint=2.0,
     ),
     SUServoedBeam(
         "down_689",
