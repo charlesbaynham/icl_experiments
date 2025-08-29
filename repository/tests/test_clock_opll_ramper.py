@@ -22,6 +22,7 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaunchMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
@@ -75,7 +76,7 @@ class TestClockRamper(ExpFragment):
 
 
 class TestLaunchFromXODTFrag(
-    # LMTLaunchMixin,
+    LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
@@ -103,10 +104,6 @@ class TestLaunchFromXODTFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
-
-    @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        pass
 
 
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
