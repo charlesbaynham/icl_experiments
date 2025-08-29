@@ -400,7 +400,7 @@ _ANDOR_ROI_DIPOLE_WIDTH = 60
 
 
 FAST_KINETICS_DELAY_BETWEEN_PULSES = (
-    2e-3  # Time enough for the ground-state atoms to exit
+    3.5e-3  # Time enough for the ground-state atoms to exit
 )
 SLACK_FOR_GRAVITY = 20
 
