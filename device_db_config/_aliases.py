@@ -36,8 +36,7 @@ aliases = {
     "suservo_aom_singlepass_689_up": "suservo2_ch5",
     "suservo_aom_singlepass_689_red_mot_sigmaplus": "suservo2_ch6",
     "suservo_aom_singlepass_689_red_mot_sigmaminus": "suservo2_ch7",
-    "suservo_aom_singlepass_689_stark_shifter": "suservo2_ch3",  # Note that this is the same as the down beam! We're physically moving the cable between experiments
-    "suservo_aom_singlepass_689_down_beam": "suservo2_ch3",  # Note that this is the same as the stark shifter! We're physically moving the cable between experiments
+    "suservo_aom_singlepass_689_stark_shifter": "suservo2_ch3",
     "urukul9912_aom_singlepass_689_stark_shifter_switch": "urukul2_ch0",
     # 1064
     "suservo_aom_1064_delivery": "suservo0_ch3",

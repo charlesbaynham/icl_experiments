@@ -718,15 +718,6 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.3,
         setpoint=3.0,
     ),
-    SUServoedBeam(
-        "down_689",
-        frequency=80e6,  # TODO: Change back to 100 MHz before trying SWAP again
-        attenuation=12.0,
-        suservo_device="suservo_aom_singlepass_689_down_beam",
-        servo_enabled=True,
-        initial_amplitude=0.3,
-        setpoint=0.28,
-    ),
 ]
 
 # Convert to dict for ease of use
@@ -964,7 +955,7 @@ DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
     34.7e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
-DURATION_OF_STARK_PULSE = 20e-6
+DURATION_OF_STARK_PULSE = 30e-6
 
 # %% Dipole trap settings
 
