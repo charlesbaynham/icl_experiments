@@ -400,17 +400,17 @@ _ANDOR_ROI_DIPOLE_WIDTH = 32
 
 
 FAST_KINETICS_DELAY_BETWEEN_PULSES = (
-    3.5e-3  # Time enough for the ground-state atoms to exit
+    2e-3  # Time enough for the ground-state atoms to exit
 )
 SLACK_FOR_GRAVITY = 20
 
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
+_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 246
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
 
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
