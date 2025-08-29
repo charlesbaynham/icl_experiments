@@ -147,7 +147,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             freq=self.clock_delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_INFO.attenuation,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
