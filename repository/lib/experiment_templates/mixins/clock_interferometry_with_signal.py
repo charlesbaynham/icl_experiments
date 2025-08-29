@@ -119,7 +119,7 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
             "stark_shifter_setpoint_amplitude",
             FloatParam,
             "Amplitude of the Stark shifter sinusoid",
-            default=0.003,
+            default=0.03,
             unit="V",
         )
         self.stark_shifter_setpoint_amplitude: FloatParamHandle
