@@ -19,10 +19,16 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    FieldOnlyRampInEvapMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaunchMixin
+from repository.lib.experiment_templates.mixins.optical_pumping import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
@@ -77,6 +83,8 @@ class TestClockRamper(ExpFragment):
 
 class TestLaunchFromXODTFrag(
     LMTLaunchMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
