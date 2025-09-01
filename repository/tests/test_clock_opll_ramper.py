@@ -116,8 +116,7 @@ class TestLaunchFromXODTFrag(
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
-
-    #  self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_shelving()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
