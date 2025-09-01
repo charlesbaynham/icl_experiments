@@ -86,14 +86,14 @@ class TestClockRamper(ExpFragment):
 
 class TestLaunchFromXODTFrag(
     LMTLaunchMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampInEvapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
