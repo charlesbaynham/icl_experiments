@@ -25,6 +25,7 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaunchMixin
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
@@ -84,7 +85,7 @@ class TestClockRamper(ExpFragment):
 
 
 class TestLaunchFromXODTFrag(
-    # LMTLaunchMixin,
+    LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
