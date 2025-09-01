@@ -16,16 +16,12 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutDipoleTrapMixin,
-)
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaunchMixin
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
@@ -85,7 +81,7 @@ class TestClockRamper(ExpFragment):
 
 
 class TestLaunchFromXODTFrag(
-    LMTLaunchMixin,
+    # LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
@@ -94,7 +90,7 @@ class TestLaunchFromXODTFrag(
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
+    # ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -117,7 +113,12 @@ class TestLaunchFromXODTFrag(
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+
+    #  self.post_sequence_cleanup_hook_shelving()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
 
 
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
