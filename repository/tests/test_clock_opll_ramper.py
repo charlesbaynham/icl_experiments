@@ -110,6 +110,8 @@ class TestLaunchFromXODTFrag(
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
 
     @kernel
     def post_sequence_cleanup_hook(self):
