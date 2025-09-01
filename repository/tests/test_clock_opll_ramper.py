@@ -30,6 +30,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesPlusDipoleRampMixin,
+)
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
@@ -90,6 +93,7 @@ class TestLaunchFromXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
