@@ -31,7 +31,7 @@ CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
-ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+ramp_rate = 0.01  # constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 start_opll_offset = 80e6
 hbar_k = 1.05457182e-34 * 2 * np.pi * constants._default_698 / 3e8
 
