@@ -235,6 +235,15 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         )
         self.lmt_pulses_duration: FloatParamHandle
 
+        self.setattr_param(
+            "down_clock_detuning",
+            FloatParam,
+            "Frequency detunig of down clock beam",
+            default=0.0,
+            unit="kHz",
+        )
+        self.down_clock_detuning: FloatParamHandle
+
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
@@ -269,11 +278,12 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if ramp_type == 2:
+            self.clock_opll.clock_OPLL_offset.set(self.down_clock_detuning.get())
             # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
-                start_freq - 1e6,
-                start_freq,
+                self.down_clock_detuning.get() - 1e6,
+                self.down_clock_detuning.get(),
                 wave_type=ramp_type,
             )
             # pulse the down beam
@@ -287,7 +297,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
                 ramp_rate,
                 start_freq,
                 start_freq + 2e6,
-                wave_type=0,
+                wave_type=1,
             )
 
             # pulse the up beam
