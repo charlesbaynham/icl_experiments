@@ -54,7 +54,7 @@ class LMTLaunchBase(RedMOTWithExperiment):
             "lmt_pulse_aom_detuning",
             FloatParam,
             "Frequency detuning of delivery AOM during clock lmt pulse",
-            default=-43e3,
+            default=0,
             unit="kHz",
         )
         self.lmt_pulse_aom_detuning: FloatParamHandle

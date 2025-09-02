@@ -61,7 +61,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             "shelving_pulse_aom_detuning",
             FloatParam,
             "Frequency detuning of AOM during clock shelving pulse",
-            default=-80.0e3,
+            default=0,
             unit="kHz",
         )
         self.shelving_pulse_aom_detuning: FloatParamHandle
