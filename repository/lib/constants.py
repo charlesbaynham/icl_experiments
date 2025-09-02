@@ -102,12 +102,6 @@ URUKULED_BEAMS = [
     #     urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
     # ),
     UrukuledBeam(
-        "dipole_trap_1064_freespace_AOM",
-        frequency=110e6,
-        attenuation=3.0,
-        urukul_device="urukul_aom_1064_switch",
-    ),
-    UrukuledBeam(
         "stark_shifter_689_switch",
         frequency=100e6,
         attenuation=9.0,
