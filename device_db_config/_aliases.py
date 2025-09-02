@@ -40,7 +40,6 @@ aliases = {
     "urukul9912_aom_singlepass_689_stark_shifter_switch": "urukul2_ch0",
     # 1064
     "suservo_aom_1064_delivery": "suservo0_ch3",
-    "urukul_aom_1064_switch": "urukul2_ch1",
     # Other 1064 channels
     "suservo_aom_1064_painted_delivery": "suservo0_ch4",
     "suservo_aom4_1064": "suservo0_ch5",
@@ -52,7 +51,8 @@ aliases = {
     "suservo_aom_singlepass_679": "suservo2_ch1",
     "suservo_aom_singlepass_1379_cavity_input": "suservo2_ch4",
     "urukul9910_aom_698_up_switch": "urukul2_ch2",
-    "urukul9910_aom_698_down_switch": "urukul2_ch0",
+    "urukul9910_aom_698_down_switch": "urukul2_ch1",
+    "urukul9910_OPLL_698_clock": "urukul8_ch2",
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
     "suservo_aom_698_squeezing_cavity_input": "suservo0_ch1",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
