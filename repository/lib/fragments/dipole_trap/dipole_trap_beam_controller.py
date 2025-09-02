@@ -22,7 +22,7 @@ DIPOLE_SUSERVO_INFOS = [
     ]
 ]
 DIPOLE_URUKUL_INFOS = [
-    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
+    # constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
 ]
 
 
