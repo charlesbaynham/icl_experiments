@@ -1,6 +1,8 @@
 from artiq.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -35,13 +37,16 @@ class WANDSteerFrag(ExpFragment):
         self.setattr_fragment("wand_steering", WandSteering)
         self.wand_steering: WandSteering
 
+        self.setattr_param("leave_locked", BoolParam, "Leave locked?", default=False)
+        self.leave_locked: BoolParamHandle
+
     def run_once(self):
         self.wand_steering.steer_wand(
             self.laser,
             offset=self.offset.get(),
             timeout=20.0,
             required_accuracy=2e6,
-            leave_locked=True,
+            leave_locked=self.leave_locked.get(),
         )
 
 

@@ -3,7 +3,7 @@ from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 from wand.server import ControlInterface as WandServer
 
-LASERS = ["461", "689", "707", "679"]
+LASERS = ["461", "689", "707", "679", "688"]
 
 
 def _laser_name_to_enabled_param(laser):
