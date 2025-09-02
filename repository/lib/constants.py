@@ -835,10 +835,11 @@ WAND_SETPOINTS_88 = {
     "679": (_default_679, True),
     "487": (_default_487, True),
     "689": (_default_689, False),
-    "689_IJD": (
-        _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
-        False,
-    ),
+    # Removed since we're using that channel for 688 now
+    # "689_IJD": (
+    #     _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
+    #     False,
+    # ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698 + _clock_laser_offset, False),
