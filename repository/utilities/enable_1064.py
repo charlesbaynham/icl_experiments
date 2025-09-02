@@ -9,7 +9,6 @@ class TurnOn1064Temporary(EnvExperiment):
 
     def build(self):
         self.setattr_device("urukul_aom_1064_delivery")
-        self.setattr_device("urukul_aom_1064_switch")
 
         self.setattr_argument(
             "frequency_delivery", NumberValue(default=110e6, unit="MHz")
@@ -26,7 +25,6 @@ class TurnOn1064Temporary(EnvExperiment):
         )
 
         self.channel_delivery: AD9912 = self.urukul_aom_1064_delivery
-        self.channel_switch: AD9912 = self.urukul_aom_1064_switch
         self.setattr_device("core")
 
     @kernel
