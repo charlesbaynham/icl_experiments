@@ -33,7 +33,6 @@ class SpectroscopyBeam(Enum):
     sigmaminus = "red_mot_sigmaminus"
     sigmaplus = "red_mot_sigmaplus"
     up = "red_up"
-    down = "down_689"
 
 
 class _RedSpectroscopyBase(
