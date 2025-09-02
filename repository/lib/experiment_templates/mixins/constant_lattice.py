@@ -43,7 +43,6 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
                     constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"],
                 ],
                 urukul_beam_infos=[
-                    constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
                     # constants.URUKULED_BEAMS["clock_up"],
                 ],
                 use_automatic_setup=True,
