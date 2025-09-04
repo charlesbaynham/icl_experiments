@@ -1,6 +1,5 @@
 import logging
 
-import numpy as np
 from artiq.coredevice.ad9910 import AD9910
 from artiq.language import at_mu
 from artiq.language import delay
@@ -33,7 +32,7 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 start_opll_offset = 80e6
-hbar_k = 1.05457182e-34 * 2 * np.pi * constants._default_698 / 3e8
+hbar_k = 6000.0  # 1.05457182e-34 * 2 * np.pi * constants._default_698 / 3e8
 
 logger = logging.getLogger(__name__)
 
@@ -227,22 +226,31 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         self.lmt_pulses_number: IntParamHandle
 
         self.setattr_param(
-            "lmt_pulses_duration",
+            "up_pulses_duration",
             FloatParam,
-            "Duration of an LMT launch pulse",
+            "Duration of an up beam launch pulse",
             default=50e-6,
             unit="us",
         )
-        self.lmt_pulses_duration: FloatParamHandle
+        self.up_pulses_duration: FloatParamHandle
 
         self.setattr_param(
-            "down_clock_detuning",
+            "down_pulses_duration",
             FloatParam,
-            "Frequency detunig of down clock beam",
+            "Duration of a down beam launch pulse",
+            default=38e-6,
+            unit="us",
+        )
+        self.down_pulses_duration: FloatParamHandle
+
+        self.setattr_param(
+            "momentum_kick",
+            FloatParam,
+            "Momentum kick",
             default=0.0,
             unit="kHz",
         )
-        self.down_clock_detuning: FloatParamHandle
+        self.momentum_kick: FloatParamHandle
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -254,7 +262,11 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         for i in range(self.lmt_pulses_number.get()):
 
             # calculate the start frequency of the ramp
-            f_i = start_opll_offset + (-1) ** i * total_ramp_time * ramp_rate
+            f_i = (
+                start_opll_offset
+                + (-1) ** i * total_ramp_time * ramp_rate
+                + i * self.momentum_kick.get()
+            )
             # calculate the ramp type
             type = int(1.5 + 0.5 * (-1) ** (i + 1))
             # fire the pulse
@@ -278,19 +290,16 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if ramp_type == 2:
-            self.clock_opll.clock_OPLL_offset.set(
-                start_opll_offset + self.down_clock_detuning.get()
-            )
             # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
-                start_opll_offset + self.down_clock_detuning.get() - 1e6,
-                start_opll_offset + self.down_clock_detuning.get(),
+                start_freq - 1e6,
+                start_freq,
                 wave_type=ramp_type,
             )
             # pulse the down beam
             self.clock_down_dds.sw.on()
-            delay(self.lmt_pulses_duration.get())
+            delay(self.down_pulses_duration.get())
             self.clock_down_dds.sw.off()
 
         if ramp_type == 1:
@@ -304,5 +313,5 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
 
             # pulse the up beam
             self.clock_up_dds.sw.on()
-            delay(self.lmt_pulses_duration.get())
+            delay(self.up_pulses_duration.get())
             self.clock_up_dds.sw.off()
