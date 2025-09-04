@@ -256,9 +256,9 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             # calculate the start frequency of the ramp
             f_i = start_opll_offset + (-1) ** i * total_ramp_time * ramp_rate
             # calculate the ramp type
-            int(1.5 + 0.5 * (-1) ** (i + 1))
+            type = int(1.5 + 0.5 * (-1) ** (i + 1))
             # fire the pulse
-            self.fire_lmt_pulse(f_i, 2)
+            self.fire_lmt_pulse(f_i, type)
 
             # Clear out the ground state
             # if type == 1:
