@@ -256,9 +256,9 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             # calculate the start frequency of the ramp
             f_i = start_opll_offset + (-1) ** i * total_ramp_time * ramp_rate
             # calculate the ramp type
-            type = int(1.5 + 0.5 * (-1) ** (i + 1))
+            int(1.5 + 0.5 * (-1) ** (i + 1))
             # fire the pulse
-            self.fire_lmt_pulse(f_i, type)
+            self.fire_lmt_pulse(f_i, 2)
 
             # Clear out the ground state
             # if type == 1:
@@ -278,12 +278,14 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if ramp_type == 2:
-            self.clock_opll.clock_OPLL_offset.set(self.down_clock_detuning.get())
+            self.clock_opll.clock_OPLL_offset.set(
+                start_opll_offset + self.down_clock_detuning.get()
+            )
             # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
-                self.down_clock_detuning.get() - 1e6,
-                self.down_clock_detuning.get(),
+                start_opll_offset + self.down_clock_detuning.get() - 1e6,
+                start_opll_offset + self.down_clock_detuning.get(),
                 wave_type=ramp_type,
             )
             # pulse the down beam
