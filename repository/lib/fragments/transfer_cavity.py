@@ -5,6 +5,7 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.mirny import Mirny
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -136,3 +137,5 @@ class TransferCavityFrag(Fragment):
         delay(self.delay_relock.get())
 
         self.previous_freq = new_freq
+
+        self.core.wait_until_mu(now_mu())
