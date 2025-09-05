@@ -60,6 +60,15 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         )
         self.toptica_current: FloatParamHandle
 
+        self.setattr_param(
+            "cutoff_detuning",
+            FloatParam,
+            default=-1,
+            description="Max detuning to record (-1 = no cutoff)",
+            unit="MHz",
+        )
+        self.cutoff_detuning: FloatParamHandle
+
         self.setattr_result(
             "frequency",
             FloatChannel,
@@ -109,9 +118,14 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
 
     def get_frequency(self):
         _, freq, _ = self.wand_server.get_freq(TOPTICA_TO_WAND_NAMES[self.laser_name])
+        detuning = freq - self.nominal_setpoint
+
+        if self.cutoff_detuning.get() > 0:
+            if abs(detuning) > self.cutoff_detuning.get():
+                detuning = float("nan")
 
         self.frequency.push(freq)
-        self.detuning.push(freq - self.nominal_setpoint)
+        self.detuning.push(detuning)
 
     def set_toptica(self, new_voltage, new_current):
         if new_voltage > 0:
