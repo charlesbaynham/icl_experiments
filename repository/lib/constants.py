@@ -754,7 +754,6 @@ _clock_laser_offset = -80e6
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
 _isotope_shift_689 = 1241.4e6
-_ISOTOPE_SHIFT_461 = -60e6
 
 
 # The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
@@ -768,6 +767,7 @@ _default_689 = (
 
 
 _MIRNY_FREQ_461_TRANSFER_CAVITY = 184e6
+_ISOTOPE_SHIFT_461 = -60e6
 
 MIRNY_SETTINGS_87 = [
     MirnySettings(
