@@ -106,6 +106,10 @@ class TransferCavityFrag(Fragment):
         if self.first_run:
             self.first_run = False
 
+            # Assume that the frequency has not been changed from the nominal
+            # for now: once the relocker is more reliable we should not do this
+            self.previous_freq = self.mirny_settings.frequency
+
             # Initiate the channel and CPLD on the first run if the PLL is not
             # already locked
             self.core.break_realtime()
@@ -122,9 +126,7 @@ class TransferCavityFrag(Fragment):
                 self.set_offset_and_wait_for_relock(new_freq)
 
         else:
-            # If it changed since last time, update it. We will make the
-            # assumption that the frequency will start at the nominal frequency
-            # so that we don't change it at the start of every scan
+            # If it changed since last time, update it.
             if new_freq != self.previous_freq:
                 self.core.break_realtime()
                 self.set_offset_and_wait_for_relock(new_freq)
