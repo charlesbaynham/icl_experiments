@@ -100,7 +100,7 @@
         },
         "688": {
             "auto_exposure": true,
-            "channel": 2,
+            "channel": 3,
             "display_colour": "blue",
             "exposure": [
                 5,
@@ -129,7 +129,7 @@
         },
         "698": {
             "auto_exposure": true,
-            "channel": 3,
+            "channel": 2,
             "display_colour": "red",
             "exposure": [
                 70,
