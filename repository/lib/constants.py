@@ -754,6 +754,8 @@ _clock_laser_offset = -80e6
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
 _isotope_shift_689 = 1241.4e6
+_ISOTOPE_SHIFT_461 = -60e6
+
 
 # The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
 # the absolute frequency and the value of the AOMs between the wavemeter pickoff
@@ -764,6 +766,8 @@ _default_689 = (
     + SUSERVOED_BEAMS["red_mot_diagonal"].frequency
 )
 
+
+_MIRNY_FREQ_461_TRANSFER_CAVITY = 184e6
 
 MIRNY_SETTINGS_87 = [
     MirnySettings(
@@ -777,8 +781,8 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_transfer_cavity_offset",
-        frequency=2000e6,
-        attenuation=20.0,
+        frequency=_MIRNY_FREQ_461_TRANSFER_CAVITY + _ISOTOPE_SHIFT_461,
+        attenuation=27.5,
     ),
 ]
 
@@ -800,8 +804,8 @@ MIRNY_SETTINGS_88 = [
     ),
     MirnySettings(
         device_name="mirny_eom_transfer_cavity_offset",
-        frequency=1463.265e6,
-        attenuation=20.0,
+        frequency=_MIRNY_FREQ_461_TRANSFER_CAVITY,
+        attenuation=27.5,
     ),
 ]
 
@@ -836,7 +840,7 @@ WAND_SETPOINTS_88 = {
 
 
 WAND_SETPOINTS_87 = {
-    "461": (_default_461 - 60e6, True),
+    "461": (_default_461 + _ISOTOPE_SHIFT_461, True),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
     "487": (_default_487, True),
