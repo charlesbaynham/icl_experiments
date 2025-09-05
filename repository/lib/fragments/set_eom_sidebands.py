@@ -201,12 +201,16 @@ class SetAllEOMSidebandsFrag(SetEOMSidebandsFrag, ExpFragment):
 
 
 class SetEOMSidebandsExceptCavity(SetEOMSidebandsFrag):
-    mirny_settings_87 = [
-        s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
-    ]
-    mirny_settings_88 = [
-        s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
-    ]
+    # FIXME
+    # mirny_settings_87 = [
+    #     s for s in MIRNY_SETTINGS_87 if "cavity_offset" not in s.device_name
+    # ]
+    # mirny_settings_88 = [
+    #     s for s in MIRNY_SETTINGS_88 if "cavity_offset" not in s.device_name
+    # ]
+
+    mirny_settings_87 = MIRNY_SETTINGS_87
+    mirny_settings_88 = MIRNY_SETTINGS_88
 
 
 class SetCavityEOMSidebands(SetEOMSidebandsFrag, ExpFragment):
