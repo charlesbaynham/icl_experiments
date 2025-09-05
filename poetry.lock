@@ -4775,8 +4775,8 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
-reference = "adapt_for_linux"
-resolved_reference = "6a19893576c9e6b5d83be989c441d91cf973a7f7"
+reference = "gaio-control"
+resolved_reference = "01d6b73c628d6ab43793ae83b8be5da3b234705a"
 
 [[package]]
 name = "wcwidth"
@@ -5001,4 +5001,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "c00fd18df0f72db7ac0fc59b197f70798a52197df9326222bc4d4a9321842519"
+content-hash = "e1b9abb4e607885731be6bc51d718ffcf941e3006291889159942d5629c7bcef"
