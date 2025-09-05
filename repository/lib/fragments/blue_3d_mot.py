@@ -10,6 +10,7 @@ from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -28,6 +29,7 @@ from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndMOTField,
 )
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsExceptCavity
+from repository.lib.fragments.transfer_cavity import TransferCavityFrag
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +113,13 @@ class Blue3DMOTFrag(Fragment):
         )
         self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
 
+        self.setattr_fragment("transfer_cavity", TransferCavityFrag)
+        self.transfer_cavity: TransferCavityFrag
+
         self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
+        self.sr87: BoolParamHandle
+
+        self.transfer_cavity.bind_param("sr87", self.sr87)
 
         self.setattr_fragment("reset_all_beams", ResetAllICLBeams)
 
