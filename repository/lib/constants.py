@@ -847,7 +847,7 @@ WAND_SETPOINTS_87 = {
     #     - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
     #     False,
     # ),
-    "688": (435_700_000e6, True),
+    # "688": (435_700_000e6, True),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698 + _clock_laser_offset, False),
