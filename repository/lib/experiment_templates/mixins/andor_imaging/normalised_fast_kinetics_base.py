@@ -117,15 +117,6 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             self.delay_between_imaging_pulses,
         )
 
-        self.setattr_param(
-            "delay_before_bg_img",
-            FloatParam,
-            "Delay before bg image series",
-            default=400e-3,
-            unit="ms",
-        )
-        self.delay_before_bg_img: FloatParamHandle
-
         self.fast_kinetics_setup_results()
 
     def host_setup(self):
@@ -235,10 +226,9 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         etc. is completed, and should handle imaging with the Andor camera.
         """
         self.do_first_series()
-        t_post_mu = now_mu()
         self.post_first_series()  # call rpc to get images, start next acquisition
-        at_mu(t_post_mu)
-        delay(self.delay_before_bg_img.get())
+        self.core.break_realtime()
+        delay(10e-3)  # Extra slack for the fluorescence probe pre-empt time
         self.pre_second_series()
         self.do_second_series()
         self.post_second_series()  # call rpc to get images

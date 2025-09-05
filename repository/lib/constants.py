@@ -168,7 +168,7 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         temperature=8600,
-        window_high=361e-3,
+        window_high=362e-3,
         window_low=357e-3,
         relock_step=3e-3,
         # IJD1 does not actually need the blue_singlepass_injection AOM, but
@@ -178,7 +178,7 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
-        window_high=372e-3,
+        window_high=374e-3,
         window_low=369e-3,
         relock_step=3e-3,
     ),
@@ -190,7 +190,7 @@ IJD_DEFAULTS = {
     ),
     "red_IJD1_controller": IJDSettings(
         temperature=9380,
-        window_high=173.0e-3,
+        window_high=174.0e-3,
         window_low=169.0e-3,
         relock_step=3e-3,
         associated_beams=["red_doublepass_injection"],
@@ -396,7 +396,7 @@ else:
 
 _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
 _ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
-_ANDOR_ROI_DIPOLE_WIDTH = 32
+_ANDOR_ROI_DIPOLE_WIDTH = 60
 
 
 FAST_KINETICS_DELAY_BETWEEN_PULSES = (
@@ -406,11 +406,11 @@ SLACK_FOR_GRAVITY = 20
 
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
+_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 246
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
 
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
@@ -712,22 +712,11 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "stark_shifter_689_delivery",
         frequency=80e6,
-        # Not maximum diffraction efficiency, but chosen so that we can't heat
-        # the AOM too much. Achieves ~0.44V which is more than we need unless we move to very short pulses:
         attenuation=12.0,
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=0.28,  # Photodiode is now set to 30dB (changed 2024-12-02 from 20dB)
-    ),
-    SUServoedBeam(
-        "down_689",
-        frequency=80e6,  # TODO: Change back to 100 MHz before trying SWAP again
-        attenuation=12.0,
-        suservo_device="suservo_aom_singlepass_689_down_beam",
-        servo_enabled=True,
-        initial_amplitude=0.3,
-        setpoint=0.28,
+        setpoint=3.0,
     ),
 ]
 
@@ -956,16 +945,17 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # Clock stuff
 
-CLOCK_PI_TIME = 50e-6
+CLOCK_PI_TIME = 45e-6
 CLOCK_SHELVING_PULSE_TIME = 300e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.08
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
+DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    36.5e3 - 140  # Chosen to match the current slicing pulse parameters
+    34.7e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
-DURATION_OF_STARK_PULSE = 20e-6
+DURATION_OF_STARK_PULSE = 30e-6
 
 # %% Dipole trap settings
 
@@ -1026,7 +1016,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
-) = add_field_offset(0.158, 0.029, 0.146)
+) = add_field_offset(0.2, 0.03, 0.08)
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 

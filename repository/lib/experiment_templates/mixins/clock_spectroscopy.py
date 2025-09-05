@@ -8,12 +8,10 @@ from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-
-# from pyaion.models import SUServoedBeam
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -161,7 +159,21 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
+        self.after_clock_delivery_setup_hook(_t_start)
         at_mu(_t_start)
+
+    @kernel
+    def after_clock_delivery_setup_hook(self, t_first_pulse_mu: int64):
+        """
+        Hook for actions after the clock delivery AOM is prepared
+
+        Called after the clock delivery AOM is prepared, before the first
+        spectroscopy pulse is fired. This method is passed the time that the
+        first clock pulse will occur, which is in the future relative to
+        `now_mu()`.
+
+        No-op by default
+        """
 
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
@@ -191,7 +203,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
             "delay_after_spectroscopy",
             FloatParam,
             "Delay after spectroscopy before imaging",
-            default=100e-6,
+            default=constants.DELAY_AFTER_CLOCK_SPECTROSCOPY,
             unit="us",
         )
         self.delay_after_spectroscopy: FloatParamHandle

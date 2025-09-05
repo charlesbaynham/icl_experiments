@@ -85,6 +85,7 @@ class StarkShifter(Fragment):
         self.device_setup_subfragments()
 
         # Turn the Stark shift delivery AOM on and the switch AOM off
+        # FIXME are we sure this doesn't affect the dipole trap?
         self.core.break_realtime()
         self.set_defaults_delivery.turn_on_all(light_enabled=True)
         self.core.break_realtime()
