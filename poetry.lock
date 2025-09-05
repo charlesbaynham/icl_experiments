@@ -4196,7 +4196,7 @@ zeroconf = "^0.135.0"
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
 reference = "HEAD"
-resolved_reference = "cdcd43323bd5108d47e3f9a68b089533968c3aa0"
+resolved_reference = "6c24302bd7e2c19215ac25d6557c9b20fc4fb7e3"
 
 [[package]]
 name = "requests"
