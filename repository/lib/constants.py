@@ -642,6 +642,14 @@ SUSERVOED_BEAMS = [
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
     ),
+    SUServoedBeam(
+        "red_molasses",
+        100e6,
+        0.0,
+        "suservo_aom_singlepass_689_molasses",
+        setpoint=0.8,
+        servo_enabled=True,
+    ),
     ### OTHER ###
     SUServoedBeam(
         "repump_707",

@@ -22,7 +22,7 @@ aliases = {
     "urukul9910_aom_singlepass_461_ijd1_to_ijd23": "urukul5_ch2",
     "suservo_aom_singlepass_461_imaging_delivery": "suservo1_ch3",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
-    "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
+    "suservo_aom_singlepass_689_molasses": "suservo1_ch0",
     "suservo_aom_singlepass_461_2dmot_b": "suservo1_ch1",
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
