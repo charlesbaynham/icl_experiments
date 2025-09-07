@@ -23,9 +23,12 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import EvapFieldRam
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesDipoleRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesRetroed
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
     XODTWithFieldAndIntensityRamp,
 )
+
+MOLASSES_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["red_molasses"]]
 
 logger = logging.getLogger(__name__)
 
@@ -662,4 +665,165 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
 
         self.transparency_suservo_clearout.set_channel_state(
             rf_switch_state=False, enable_iir=False
+        )
+
+
+class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
+    """
+    Mixin for the molasses with the retroreflected molasses beam
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_molasses_hook`
+
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "molasses_xodt_retroed",
+            MolassesRetroed,
+        )
+        self.molasses_xodt_retroed: MolassesRetroed
+
+        self.setattr_fragment(
+            "transparency_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
+
+        # Setup of defaults for all molasses beam
+        self.setattr_fragment(
+            "molasses_beam_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=MOLASSES_SUSERVO_INFOS,
+                name="MolassesBeamSettings",
+                use_automatic_setup=True,  # Automatically configure the DDSs but do not turn the beams on
+                use_automatic_turnon=False,
+            ),
+        )
+        self.molasses_beam_default_setter: SetBeamsToDefaults
+
+        self.setattr_param(
+            "delay_before_molasses",
+            FloatParam,
+            "Time to hold in dipole trap before molasses starts",
+            default=constants.DELAY_BEFORE_MOLASSES,
+            unit="ms",
+        )
+        self.delay_before_molasses: FloatParamHandle
+
+        self.setattr_param(
+            "mot_coil_current_first_molasses",
+            FloatParam,
+            "MOT coil current during first molasses",
+            default=constants.XODT_MOLASSES_MOT_CURRENT,
+            unit="A",
+            min=0,
+            max=130,
+        )
+        self.mot_coil_current_first_molasses: FloatParamHandle
+
+        self.molasses_xodt_retroed.bind_suservo_setpoint_params_to_default_beam_setter(
+            [
+                self.dipole_beam_controller.all_beam_default_setter,
+                self.molasses_beam_default_setter,
+                self.transparency_setter,
+            ]
+        )
+
+        self.molasses_xodt_retroed.bind_ad9910_frequency_params(
+            [self.red_mot.red_beam_controller.spinpol_aom_static_frequency]
+        )
+
+    @kernel
+    def DMA_initialization_hook_xodt_molasses(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.molasses_xodt_1.precalculate_dma_handle()
+
+    @kernel
+    def post_narrowband_hook(self):
+        pass
+
+    @kernel
+    def set_postnarrowband_fields_hook(self):
+        self.set_postnarrowband_fields_hook_singlemolasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook_singlemolasses(self):
+        pass
+
+    @kernel
+    def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
+        self.dipole_trap_molasses_hook_first_xodt_molasses()
+
+    @kernel
+    def set_fields_xodt_molasses(self):
+        """
+        Turn off MOT fields and set bias fields to molasses ramp start.
+
+        Wait a settling time before starting the molasses.
+        """
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            self.mot_coil_current_first_molasses.get(),
+            self.molasses_xodt_retroed.general_setter_default_starts[0],
+            self.molasses_xodt_retroed.general_setter_default_starts[1],
+            self.molasses_xodt_retroed.general_setter_default_starts[2],
+        )
+        if self.delay_before_molasses.get() > 1e-6:
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+                ignore_shutters=True
+            )
+        delay(self.delay_before_molasses.get())
+
+    @kernel
+    def dipole_trap_molasses_hook_first_xodt_molasses(self):
+        """
+        Do the first molasses ramping phase
+        """
+
+        # turn on red beams and transparency beam
+        red_suservos = (
+            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
+        )
+        for i in range(len(red_suservos)):
+            red_suservos[i].setter.set_setpoint(0.0)
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
+            ignore_shutters=True
+        )
+        self.transparency_setter.turn_on_all()
+
+        # Step the 689 stir frequency
+        self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
+            detuning=self.stir_beam_detuning_molasses_1.get()
+        )
+
+        self.molasses_xodt_1.do_phase()
+
+        # turn off transparency beam
+        self.transparency_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
+
+        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+            ignore_shutters=True
         )
