@@ -706,6 +706,13 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         )
         self.transparency_setter: SetBeamsToDefaults
 
+        self.setattr_fragment(
+            "molasses_suservo",
+            LibSetSUServoStatic,
+            MOLASSES_SUSERVO_INFOS[0].suservo_device,
+        )
+        self.molasses_suservo: LibSetSUServoStatic
+
         # Setup of defaults for all molasses beam
         self.setattr_fragment(
             "molasses_beam_default_setter",
@@ -757,7 +764,7 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.molasses_xodt_1.precalculate_dma_handle()
+        self.molasses_xodt_retroed.precalculate_dma_handle()
 
     @kernel
     def post_narrowband_hook(self):
@@ -802,28 +809,15 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         """
 
         # turn on red beams and transparency beam
-        red_suservos = (
-            self.red_mot.red_beam_controller.all_beam_default_setter.suservo_setters_and_info
-        )
-        for i in range(len(red_suservos)):
-            red_suservos[i].setter.set_setpoint(0.0)
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_on(
-            ignore_shutters=True
-        )
+
+        self.molasses_beam_default_setter.turn_on_all()
         self.transparency_setter.turn_on_all()
 
-        # Step the 689 stir frequency
-        self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
-            detuning=self.stir_beam_detuning_molasses_1.get()
-        )
-
-        self.molasses_xodt_1.do_phase()
+        self.molasses_xodt_retroed.do_phase()
 
         # turn off transparency beam
         self.transparency_suservo.set_channel_state(
             rf_switch_state=False, enable_iir=False
         )
 
-        self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
-            ignore_shutters=True
-        )
+        self.molasses_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
