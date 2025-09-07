@@ -158,6 +158,7 @@ class MolassesRetroed(GeneralRampingPhaseWithBindingAndBiasField):
     """
 
     time_step_default = 1e-3
+    duration_default = constants.XODT_MOLASSES_DURATION
 
     urukuls = URUKULS_OPTICAL_PUMPING
     default_urukul_amplitudes_start = [1.0]
