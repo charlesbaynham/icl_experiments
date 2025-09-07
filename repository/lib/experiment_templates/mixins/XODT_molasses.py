@@ -229,6 +229,71 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
 
 
+class XODTRetroedMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
+    """
+    Loads atoms into a dipole trap after the narrowband red MOT, and implements a
+    ramping molasses followed by a ramp of the dipole trap beams.
+
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~dipole_trap_molasses_hook`
+
+    We override this to do nothing since this Mixin is now taking charge of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "cool_molasses", MolassesDipoleRamp, enforce_binding_to_defaults=False
+        )
+        self.cool_molasses: MolassesDipoleRamp
+
+        self.cool_molasses.bind_suservo_setpoint_params_to_default_beam_setter(
+            [self.dipole_beam_controller.all_beam_default_setter]
+        )
+
+        # self.cool_molasses.daisy_chain_with_previous_phase(
+        #     self.molasses_xodt_1, suservos=suservos_XODT
+        # )
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
+    def DMA_initialization_hook_xodt_molasses(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.molasses_xodt_1.precalculate_dma_handle()
+        self.cool_molasses.precalculate_dma_handle()
+
+    @kernel
+    def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
+        self.dipole_trap_molasses_hook_first_xodt_molasses()
+        self.dipole_trap_molasses_hook_cool_molasses()
+
+    @kernel
+    def dipole_trap_molasses_hook_cool_molasses(self):
+        """
+        Adiabatically cool after the molasses
+        """
+        self.cool_molasses.do_phase()
+
+
 class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, and implements a

@@ -30,6 +30,7 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
+    XODTRetroedMolassesPlusDipoleRampMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,27 @@ class MeasureEvaporatedXODTFrag(
         pass
 
 
+class MeasureXODTNewMolassesFrag(
+    FLIRMeasurementMixin,
+    BGCorrectedAndorImageSingleXODT,
+    LoadSingleXODTMixin,
+    XODTRetroedMolassesPlusDipoleRampMixin,
+):
+    """
+    Measure a Single XODT with evaporation
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
+
 class MeasureExaporatedXODTAbsFrag(
     AbsorptionDipoleTrapMixin,
     LoadSingleXODTMixin,
@@ -98,3 +120,4 @@ class MeasureExaporatedXODTAbsFrag(
 MeasureEvaporatedXODT = make_fragment_scan_exp(MeasureEvaporatedXODTFrag)
 MeasureExaporatedXODTAbs = make_fragment_scan_exp(MeasureExaporatedXODTAbsFrag)
 Evaporation = make_fragment_scan_exp(EvaporationFrag)
+MeasureXODTNewMolasses = make_fragment_scan_exp(MeasureXODTNewMolassesFrag)
