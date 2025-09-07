@@ -80,7 +80,7 @@ class MeasureXODTNewMolassesFrag(
     XODTRetroedMolassesPlusDipoleRampMixin,
 ):
     """
-    Measure a Single XODT with evaporation
+    Measure a Single XODT with retroed molasses
     """
 
     @kernel
