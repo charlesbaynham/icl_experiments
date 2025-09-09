@@ -647,7 +647,7 @@ SUSERVOED_BEAMS = [
         100e6,
         0.0,
         "suservo_aom_singlepass_689_molasses",
-        setpoint=0.8,
+        setpoint=10.0,
         servo_enabled=True,
         initial_amplitude=0.05,
     ),
