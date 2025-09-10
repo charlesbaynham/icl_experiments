@@ -115,7 +115,20 @@
         '');
 
       in {
-        inherit (overriddenOutputs) formatter devShells;
+        inherit (overriddenOutputs) formatter;
+
+        # Add a script to the shell hook that sets the DISPLAY environment variable
+        # if we are running on WSL and a Windows X server is detected
+        devShells = overriddenOutputs.devShells // {
+            default = overriddenOutputs.devShells.default.overrideAttrs (oldAttrs:
+            {
+                shellHook = ''
+                ${oldAttrs.shellHook or ""}
+
+                source ${self}/scripts/wsl_display_fix.sh
+                '';
+            });
+        };
 
         packages = overriddenOutputs.packages // {
           default = dashboard_launcher;
