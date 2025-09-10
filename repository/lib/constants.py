@@ -1086,7 +1086,7 @@ else:
 
 # Unused in Sr88 so only one setting needed
 XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
-XODT_MOLASSES_689_STIR_DETUNING = -33000.0
+XODT_MOLASSES_689_STIR_DETUNING = 550000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -1109,7 +1109,7 @@ if USE_SR87:
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.39)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 400e-3
+    XODT_MOLASSES_DURATION = 800e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [
         0.0007,
         0.0014,
@@ -1129,13 +1129,13 @@ if USE_SR87:
         0.25,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
-        -60e3,
+        -260e3,
     ]
     XODT_MOLASSES_689_DETUNING_END = [
-        -65e3,
+        -235e3,
     ]
-    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(0.0, 0.0, 0.0)
-    XODT_MOLASSES_BIAS_FIELD_END = XODT_MOLASSES_BIAS_FIELD_START
+    XODT_MOLASSES_BIAS_FIELD_START = add_field_offset(-0.06, -0.03, 0.0)
+    XODT_MOLASSES_BIAS_FIELD_END = add_field_offset(-0.06, 0.0, 0.0)
     XODT_MOLASSES_MOT_CURRENT = 0.0
 
     DELAY_BETWEEN_MOLASSES = 0.0001e-3
@@ -1227,7 +1227,7 @@ RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
 XODT_SINGLE_LOADING_STIR_DETUNING = +13e3
 XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 10.0
 
-TOTAL_EVAP_HOLD_TIME = 5.0
+TOTAL_EVAP_HOLD_TIME = 0.01
 
 # %% Second dipole trap loading phase
 # order diagonal, sigmaplus, sigmaminus, up
