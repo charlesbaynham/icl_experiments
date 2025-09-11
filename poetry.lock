@@ -130,7 +130,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/andor_windows_ndsp.git"
 reference = "HEAD"
-resolved_reference = "4483be1696e51cb014f6dec346504bb08aa6f0b5"
+resolved_reference = "3d14bef4c217b049452434002ad2e0aed00ca75b"
 
 [[package]]
 name = "anyio"
