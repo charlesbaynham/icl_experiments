@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# FIXME The detection should be part of launching the dashboard / WAND GUI, not entering the shell
+
 # This script detects if we are
 # a) Running WSL
 # b) and have an XTerm server running on the Windows host (e.g. MobaXTerm)
