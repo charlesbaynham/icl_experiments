@@ -119,7 +119,7 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
             "stark_shifter_setpoint_amplitude",
             FloatParam,
             "Amplitude of the Stark shifter sinusoid",
-            default=0.03,
+            default=constants.INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE,
             unit="V",
         )
         self.stark_shifter_setpoint_amplitude: FloatParamHandle
@@ -128,7 +128,7 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
             "stark_shifter_setpoint_frequency",
             FloatParam,
             "Frequency of the Stark shifter sinusoid",
-            default=0.5e-3,
+            default=constants.INTERFEROMETRY_SIGNAL_INJECTION_FREQUENCY,
             unit="mHz",
         )
         self.stark_shifter_setpoint_frequency: FloatParamHandle
