@@ -156,12 +156,14 @@ class DoubleTrapImagingRepumpedNormalisedBase(NormalisedFastKineticsRepumpedMixi
         self.setattr_result("atom_number_backward", FloatChannel)
 
         self.setattr_result("atom_number_imbalance", FloatChannel)
+        self.setattr_result("atom_number_total", FloatChannel)
 
         self.excitation_fraction_forward: FloatChannel
         self.atom_number_forward: FloatChannel
         self.excitation_fraction_backward: FloatChannel
         self.atom_number_backward: FloatChannel
         self.atom_number_imbalance: FloatChannel
+        self.atom_number_total: FloatChannel
 
     def host_setup(self):
         super().host_setup()
@@ -217,6 +219,7 @@ class DoubleTrapImagingRepumpedNormalisedBase(NormalisedFastKineticsRepumpedMixi
         self.atom_number_forward.push(atom_number_fwd)
         self.atom_number_backward.push(atom_number_bwd)
         self.atom_number_imbalance.push(imbalance)
+        self.atom_number_total.push(total)
 
 
 class DoubleTrapImagingRepumpedNormalised(
