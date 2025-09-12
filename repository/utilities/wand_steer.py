@@ -47,7 +47,9 @@ class WANDSteerFrag(ExpFragment):
             "reference_freq",
             FloatParam,
             "Reference frequency",
+            default=0.0,
             unit="THz",
+            scale=1e12,
         )
         self.reference_freq: FloatParamHandle
 
