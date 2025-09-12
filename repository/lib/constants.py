@@ -384,10 +384,10 @@ if USE_LATTICE_MODE:
 
 else:
     if USE_SR87:
-        x, y, width, height = 215, 273, 300, 100  # FIXME Put this back to 100 width
+        x, y, width, height = 215, 273, 100, 100
 
     else:
-        x, y, width, height = 215, 216, 300, 100  # FIXME Put this back to 100 width
+        x, y, width, height = 215, 216, 100, 100
 
     ANDOR_ROI_X0 = x - width / 2
     ANDOR_ROI_X1 = x + width / 2
