@@ -1,3 +1,5 @@
+import logging
+
 from artiq.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
@@ -7,6 +9,8 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.wand_steering import WandSteering
+
+logger = logging.getLogger(__name__)
 
 
 class WANDSteerFrag(ExpFragment):
@@ -34,6 +38,19 @@ class WANDSteerFrag(ExpFragment):
         )
         self.offset: FloatParamHandle
 
+        self.setattr_param(
+            "set_ref_freq", BoolParam, "Set reference frequency?", default=True
+        )
+        self.set_ref_freq: BoolParamHandle
+
+        self.setattr_param(
+            "reference_freq",
+            FloatParam,
+            "Reference frequency",
+            unit="THz",
+        )
+        self.reference_freq: FloatParamHandle
+
         self.setattr_fragment("wand_steering", WandSteering)
         self.wand_steering: WandSteering
 
@@ -41,6 +58,16 @@ class WANDSteerFrag(ExpFragment):
         self.leave_locked: BoolParamHandle
 
     def run_once(self):
+        if self.set_ref_freq.get():
+            logger.info(
+                "Setting laser %s reference frequency to %.0f THz",
+                self.laser,
+                self.reference_freq.get() * 1e-12,
+            )
+            self.wand_steering.wand_server.set_reference_freq(
+                laser=self.laser, f_ref=self.reference_freq.get()
+            )
+
         self.wand_steering.steer_wand(
             self.laser,
             offset=self.offset.get(),
