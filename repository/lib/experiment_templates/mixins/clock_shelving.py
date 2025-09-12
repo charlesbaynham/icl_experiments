@@ -6,12 +6,17 @@ from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import parallel
+from artiq.language import sequential
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
+    ControlBeamsWithoutCoolingAOM,
+)
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -95,6 +100,15 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
+        self.setattr_fragment(
+            "beam_toggler_707",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["repump_707"],
+            ],
+        )
+        self.beam_toggler_707: ControlBeamsWithoutCoolingAOM
+
         # Ensure the clock beam is set up
         # %% Fragments
         if not hasattr(self, "clock_default_setter"):
@@ -149,10 +163,16 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.fire_clock_shelving_pulse()
 
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.shelving_pulse_clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
+        with parallel:
+            with sequential:
+                self.beam_toggler_707.turn_beams_on()
+                delay(self.shelving_pulse_clearout_duration.get())
+                self.beam_toggler_707.turn_beams_off()
+
+            self.fluorescence_pulse.do_imaging_pulse(
+                duration=self.shelving_pulse_clearout_duration.get(),
+                ignore_final_shutters=True,
+            )
 
     @kernel
     def fire_clock_shelving_pulse(self):
