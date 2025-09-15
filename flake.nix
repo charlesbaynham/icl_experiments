@@ -237,9 +237,8 @@
             backup_datasets = "nix run .#backup_datasets";
 
             # Automatic startup of database monitors
-            # FIXME I think this is broken now
-            # monitor_launcher =
-            #    "sleep 200 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+            monitor_launcher =
+               "sleep 600 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
           in overriddenOutputs.apps.full_stack.override (prev:
             {
