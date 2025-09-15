@@ -5,7 +5,7 @@
 
   # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR
   inputs.alt_artiq.url =
-    "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=make-event-spreading-optional";
+    "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=debug-garbled-IPC";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 

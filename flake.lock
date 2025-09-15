@@ -13,16 +13,16 @@
         "src-pythonparser": "src-pythonparser"
       },
       "locked": {
-        "lastModified": 1725625423,
-        "narHash": "sha256-ScbvHw/fctscYLzQzbQx+4PqKvriNuKujiUshCPKUOU=",
-        "ref": "make-event-spreading-optional",
-        "rev": "e98dbf5adb5e60835acbfbf0dd635fd54b6c3fc4",
-        "revCount": 8886,
+        "lastModified": 1757929560,
+        "narHash": "sha256-ATCb1ef8fmduILAntuNOR2IkxQKdP4Go4LxUKWuDBWI=",
+        "ref": "debug-garbled-IPC",
+        "rev": "c14587947780cfa3b1628100d4df8518ce773bbd",
+        "revCount": 8887,
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       },
       "original": {
-        "ref": "make-event-spreading-optional",
+        "ref": "debug-garbled-IPC",
         "type": "git",
         "url": "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"
       }
