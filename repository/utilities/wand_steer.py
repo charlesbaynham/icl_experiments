@@ -39,7 +39,7 @@ class WANDSteerFrag(ExpFragment):
         self.offset: FloatParamHandle
 
         self.setattr_param(
-            "set_ref_freq", BoolParam, "Set reference frequency?", default=True
+            "set_ref_freq", BoolParam, "Set reference frequency?", default=False
         )
         self.set_ref_freq: BoolParamHandle
 
