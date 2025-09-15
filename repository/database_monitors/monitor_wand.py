@@ -42,8 +42,10 @@ class MonitorWAND(Calibration):
                 port=self.wand_controller_config["port"],
                 timeout=TIMEOUT,
             )
+
             try:
                 lasers = client.get_laser_db()
+
                 for laser in lasers:
                     meas = client.get_freq(
                         laser,
@@ -56,6 +58,9 @@ class MonitorWAND(Calibration):
                     )
                     status, freq, _ = meas
 
+                    exposure_0 = lasers[laser]["exposure"][0]
+                    exposure_1 = lasers[laser]["exposure"][1]
+
                     if status != WLMMeasurementStatus.OKAY:
                         continue
 
@@ -66,7 +71,13 @@ class MonitorWAND(Calibration):
                             "tags": {
                                 "laser": laser,
                             },
-                            "fields": {"freq": freq, "f_ref": f_ref, "detuning": delta},
+                            "fields": {
+                                "freq": freq,
+                                "f_ref": f_ref,
+                                "detuning": delta,
+                                "exposure_0": exposure_0,
+                                "exposure_1": exposure_1,
+                            },
                         }
                     )
                     logger.debug(
