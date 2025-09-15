@@ -157,8 +157,8 @@
             "channel": 7,
             "display_colour": "white",
             "exposure": [
-                2,
-                2
+                20,
+                20
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
