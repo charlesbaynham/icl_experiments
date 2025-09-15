@@ -99,11 +99,8 @@
         # This is so that the server can run other ARTIQ sessions bound to other
         # IP addresses.
         bind_settings = {
-          bind_command = "--bind \\\*";
-          connection_ip = "10.137.1.252";
-            # TODO undo this once the monitoring test is completed: see lab book entry 2025-09-09
-            #   bind_command = "--no-localhost-bind --bind 10.137.1.252";
-            #   connection_ip = "10.137.1.252";
+            bind_command = "--no-localhost-bind --bind 10.137.1.252";
+            connection_ip = "10.137.1.252";
         };
 
         # Dashboard launcher for the ICL AION address
