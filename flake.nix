@@ -240,9 +240,7 @@
           in overriddenOutputs.apps.full_stack.override (prev:
             {
               commands = prev.commands // {
-                inherit backup_database backup_datasets
-                #   monitor_launcher  FIXME removed - see above
-                ;
+                inherit backup_database backup_datasets monitor_launcher;
               };
             } // bind_settings);
         };
