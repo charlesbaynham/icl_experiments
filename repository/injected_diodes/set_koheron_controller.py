@@ -14,6 +14,7 @@ from ndscan.experiment import BoolParam
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import FloatParam
 from ndscan.experiment import ResultChannel
+from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.annotations import axis_location
 from ndscan.experiment.default_analysis import CustomAnalysis
 from ndscan.experiment.parameters import BoolParamHandle
@@ -309,4 +310,4 @@ class SetKoheronFrag(ExpFragment):
         return [new_analysis]
 
 
-# SetKoheron = make_fragment_scan_exp(SetKoheronFrag)
+SetKoheron = make_fragment_scan_exp(SetKoheronFrag)
