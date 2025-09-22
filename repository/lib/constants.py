@@ -719,6 +719,16 @@ SUSERVOED_BEAMS = [
         kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
+        "dipole_trap_painted_1064_delivery",
+        frequency=105e6,
+        attenuation=2.0,
+        suservo_device="suservo_aom_1064_painted_delivery",
+        servo_enabled=True,
+        initial_amplitude=0.0,
+        setpoint=4.7,
+        kI_loop_constant=-1000.0,
+    ),
+    SUServoedBeam(
         "stark_shifter_689_delivery",
         frequency=80e6,
         attenuation=12.0,

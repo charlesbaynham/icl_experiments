@@ -42,7 +42,7 @@ aliases = {
     "suservo_aom_1064_delivery": "suservo0_ch3",
     "urukul_aom_1064_switch": "urukul2_ch1",
     # Other 1064 channels
-    "suservo_aom3_1064": "suservo0_ch4",
+    "suservo_aom_1064_painted_delivery": "suservo0_ch4",
     "suservo_aom4_1064": "suservo0_ch5",
     # 813 channels
     "suservo_aom_down_813": "suservo0_ch7",
