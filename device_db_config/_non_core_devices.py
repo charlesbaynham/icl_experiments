@@ -168,6 +168,7 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.fragments.rigol.rigol_device",
             "mockclass": "MockRigolCounter",
         },
+        # FIXME: For now, the glitch filter is disabled because the USB cable was needed elsewhere!
         "clock_glitch_filter": {
             "type": "controller",
             "best_effort": True,
