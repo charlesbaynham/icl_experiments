@@ -5,6 +5,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsDoubleTrapBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     calculate_grabber_rois,
 )
 
@@ -71,7 +74,7 @@ class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
         )
 
 
-class NormalisedXXODTFastKineticsBase(NormalisedFastKineticsBase):
+class NormalisedXXODTFastKineticsBase(NormalisedFastKineticsDoubleTrapBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
     experiment
