@@ -252,20 +252,33 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         )
         self.momentum_kick: FloatParamHandle
 
+        self.setattr_param(
+            "final_detuning",
+            FloatParam,
+            "Detuning on final pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.final_detuning: FloatParamHandle
+
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
 
         total_ramp_time = 0.0
+        det_final = 0.0
 
         t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
             # calculate the start frequency of the ramp
+            if i == self.lmt_pulses_number.get() - 1:
+                det_final = self.final_detuning.get()
             f_i = (
                 start_opll_offset
                 + (-1) ** i * total_ramp_time * ramp_rate
                 + i * (-1) ** (i + 1) * self.momentum_kick.get()
+                + det_final
             )
             # calculate the ramp type
             type = int(1.5 + 0.5 * (-1) ** (i + 1))
