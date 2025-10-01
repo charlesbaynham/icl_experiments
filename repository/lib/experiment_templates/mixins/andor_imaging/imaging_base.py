@@ -483,6 +483,11 @@ class AndorImagingBase(RedMOTWithExperiment):
             if self.use_andor_driver.get():
                 profile_x, profile_y = AndorImagingBase.get_projections(img_array)
 
+                # Save space by converting these to int32s instead of int64s
+                profile_x = profile_x.astype(np.int32)
+                profile_y = profile_y.astype(np.int32)
+                img_array = img_array.astype(np.int32)
+
                 # Write them to the result channels
                 andor_profile_x.push(profile_x)
                 andor_profile_y.push(profile_y)
