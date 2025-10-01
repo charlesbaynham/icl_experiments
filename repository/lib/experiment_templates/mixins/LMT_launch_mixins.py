@@ -265,7 +265,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             f_i = (
                 start_opll_offset
                 + (-1) ** i * total_ramp_time * ramp_rate
-                + i * self.momentum_kick.get()
+                + i * (-1) ** (i + 1) * self.momentum_kick.get()
             )
             # calculate the ramp type
             type = int(1.5 + 0.5 * (-1) ** (i + 1))
