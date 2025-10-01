@@ -273,11 +273,11 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             self.fire_lmt_pulse(f_i, type)
 
             # Clear out the ground state
-            # if type == 1:
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
+            if type == 2:
+                self.fluorescence_pulse.do_imaging_pulse(
+                    duration=self.clearout_duration.get(),
+                    ignore_final_shutters=True,
+                )
 
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
