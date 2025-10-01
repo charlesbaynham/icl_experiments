@@ -1078,7 +1078,7 @@ if USE_SR87:
         0.008,
         1.0,
         1.0,
-        0.07,
+        0.6,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1087,7 +1087,7 @@ if USE_SR87:
         0.008,
         1.0,
         0.7,
-        0.07,
+        0.6,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         260e3,
