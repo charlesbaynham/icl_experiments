@@ -1047,7 +1047,7 @@ else:
 
 # Unused in Sr88 so only one setting needed
 XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
-XODT_MOLASSES_689_STIR_DETUNING = 550000.0
+XODT_MOLASSES_689_STIR_DETUNING = 540000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -1070,7 +1070,7 @@ if USE_SR87:
     BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.27)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
-    XODT_MOLASSES_DURATION = 800e-3
+    XODT_MOLASSES_DURATION = 700e-3
     XODT_MOLASSES_SETPOINT_MULTIPLES_START = [
         0.0007,
         0.0014,
