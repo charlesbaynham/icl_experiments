@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# FIXME The detection should be part of launching the dashboard / WAND GUI, not entering the shell
+# TODO The detection should be part of launching the dashboard / WAND GUI, not entering the shell
 
 # This script detects if we are
 # a) Running WSL
