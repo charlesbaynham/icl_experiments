@@ -56,7 +56,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
@@ -107,8 +106,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_fragment("timestamper", Timestamper, automatic_timestamp=False)
         self.timestamper: Timestamper
 
-        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
-        self.relock_checker: CheckForRelocksFrag
+        # FIXME: Temporarily disable relock checking until we sort it out
+        # self.setattr_fragment("relock_checker", CheckForRelocksFrag)
+        # self.relock_checker: CheckForRelocksFrag
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
