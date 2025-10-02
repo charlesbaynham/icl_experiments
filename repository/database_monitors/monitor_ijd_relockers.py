@@ -9,72 +9,62 @@ AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD = 0.01  # k
 logger = logging.getLogger(__name__)
 
 
-class MonitorIJDRelockers(Calibration):
+class _MonitorIJDRelocker(Calibration):
+    channel = None
+    relocker_name = None
 
     def build_calibration(self):
-        self.relocker: RelockerDriver = self.get_device("blue_relocker")
+        if self.relocker_name is None or self.channel is None:
+            raise ValueError("relocker_name and channel must be set in subclasses")
+
+        self.relocker: RelockerDriver = self.get_device(self.relocker_name)
         self.set_timeout(10)
 
     def check_own_state(self):
-        out = {}
+        fields = {}
 
         try:
-            self.relocker.get
+            lock_results = self.relocker.get_result_labelled(self.channel)
+            # lock_settings = self.relocker.get_settings_labelled(self.channel)
 
-            out["temperature_actual"] = (
-                self.controller.get_temperature_actual() - 273.15
-            )
-            out["temperature_setpoint"] = (
-                self.controller.get_temperature_setpoint() - 273.15
-            )
+            fields["v_low"] = lock_results.v_low
+            fields["v_set_lock"] = lock_results.v_set_lock
+            fields["v_read_lock"] = lock_results.v_read_lock
 
-            out["resistance_actual"] = self.controller.get_resistance_actual()
-            out["resistance_setpoint"] = self.controller.get_resistance_setpoint()
+            locked = lock_results.relock_success
+            fields["status"] = "LOCKED" if locked else "UNLOCKED"
 
-            out["current"] = 1e-3 * self.controller.get_current_mA()
-            out["voltage"] = self.controller.get_voltage()
-
-            laser_is_on = self.controller.status()
-            if not laser_is_on:
-                out["status"] = "OFF"
-                out["current"] = 0.0
-            elif (
-                abs(out["temperature_actual"] - out["temperature_setpoint"])
-                > AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD
-            ):
-                out["status"] = "SETTLING"
-            else:
-                out["status"] = "ON"
-
-            result = (
-                CalibrationResult.OK if out["status"] else CalibrationResult.BAD_DATA
-            )
+            result = CalibrationResult.OK if locked else CalibrationResult.BAD_DATA
 
         except AttributeError:
             # The connection to the controller failed
-            out["status"] = "ERROR"
             result = CalibrationResult.BAD_DATA
+            fields["status"] = "ERROR"
 
         return result, {
             "tags": {
-                "device": self.controller_name,
-                "parent": _MonitorKoheron.__name__,
+                "relocker_name": self.relocker_name,
+                "relocker_channel": self.channel,
             },
-            "fields": out,
+            "fields": fields,
         }
 
 
-class MonitorBlueIJD1(_MonitorKoheron):
-    controller_name = "blue_IJD1_controller"
+class MonitorBlueIJDRelocker0(_MonitorIJDRelocker):
+    relocker_name = "blue_relocker"
+    channel = 0
 
 
-class MonitorBlueIJD2(_MonitorKoheron):
-    controller_name = "blue_IJD2_controller"
+class MonitorBlueIJDRelocker1(_MonitorIJDRelocker):
+    relocker_name = "blue_relocker"
+    channel = 1
 
 
-class MonitorBlueIJD3(_MonitorKoheron):
-    controller_name = "blue_IJD3_controller"
+class MonitorBlueIJDRelocker2(_MonitorIJDRelocker):
+    relocker_name = "blue_relocker"
+    channel = 2
 
 
-class MonitorRedIJD1(_MonitorKoheron):
-    controller_name = "red_IJD1_controller"
+class MonitorRedIJDRelocker0(_MonitorIJDRelocker):
+    relocker_name = "red_relocker"
+    channel = 0
