@@ -36,9 +36,12 @@ class _MonitorIJDRelocker(Calibration):
 
             result = CalibrationResult.OK if locked else CalibrationResult.BAD_DATA
 
-        except AttributeError:
+        except AttributeError as e:
             # The connection to the controller failed
             result = CalibrationResult.BAD_DATA
+            logger.debug(
+                f"Failed to get lock results from {self.relocker_name} channel {self.channel}: {e}"
+            )
             fields["status"] = "ERROR"
 
         return result, {
