@@ -1,3 +1,24 @@
+"""
+TODO: Remove duplication in normalised imaging code. Details:
+
+- We have a seperate module for the "base" and the mixins code. We shouldn't
+  need this, if we need a base class it should only be used privately within the
+  mixin module.
+- We mix mixins and "base" classes between the two modules
+- The `NormalisedFastKineticsBase` and `NormalisedFastKineticsDoubleTrapBase`
+  classes are almost identical, except for the way they set up the ROIs in
+  `host_setup`.
+- We should be able to separate the concept of "doing clock repumping" from
+  "imaging two traps" to avoid code duplication.
+- Our inheritance structure is wild. Take `DoubleTrapImagingSpectroscopyRepumpedNormalised` for example: this goes
+        `DoubleTrapImagingSpectroscopyRepumpedNormalised` ->
+        NormalisedXXODTSpectroscopyFastKineticsMixin + DoubleTrapImagingRepumpedNormalisedBase ->
+        NormalisedFastKineticsDoubleTrapRepumpedMixin ->
+        NormalisedFastKineticsDoubleTrapBase ->
+        AndorImagingBase
+    We should be able to simplify this a lot, it's bewildering.
+"""
+
 import logging
 from typing import List
 
