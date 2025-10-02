@@ -243,23 +243,23 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         )
         self.down_pulses_duration: FloatParamHandle
 
-        self.setattr_param(
-            "momentum_kick",
-            FloatParam,
-            "Momentum kick",
-            default=0.0,
-            unit="kHz",
-        )
-        self.momentum_kick: FloatParamHandle
+        # self.setattr_param(
+        #     "momentum_kick",
+        #     FloatParam,
+        #     "Momentum kick",
+        #     default=0.0,
+        #     unit="kHz",
+        # )
+        # self.momentum_kick: FloatParamHandle
 
-        self.setattr_param(
-            "final_detuning",
-            FloatParam,
-            "Detuning on final pulse",
-            default=0.0,
-            unit="kHz",
-        )
-        self.final_detuning: FloatParamHandle
+        # self.setattr_param(
+        #     "final_detuning",
+        #     FloatParam,
+        #     "Detuning on final pulse",
+        #     default=0.0,
+        #     unit="kHz",
+        # )
+        # self.final_detuning: FloatParamHandle
 
         # temporary for sorting out frequencies
         self.setattr_param(
