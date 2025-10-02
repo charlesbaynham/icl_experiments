@@ -24,6 +24,7 @@ class _MonitorIJDRelocker(Calibration):
         fields = {}
 
         try:
+            # FIXME: This won't work because the custom types are not pyon serialisable. I can call sipyco's new register function if I get the new version
             lock_results = self.relocker.get_result_labelled(self.channel)
             # lock_settings = self.relocker.get_settings_labelled(self.channel)
 
