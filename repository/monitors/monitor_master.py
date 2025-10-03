@@ -3,33 +3,34 @@ import logging
 from artiq_influx_generic import InfluxController
 from qbutler.monitoring import make_monitor_controller
 
-from repository.database_monitors.monitor_heartbeat import MonitorHeartbeat
+# from repository.database_monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker0
 from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker1
 from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker2
 from repository.database_monitors.monitor_ijd_relockers import MonitorRedIJDRelocker0
-from repository.database_monitors.monitor_ijds import MonitorBlueIJD1
-from repository.database_monitors.monitor_ijds import MonitorBlueIJD2
-from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
-from repository.database_monitors.monitor_ijds import MonitorRedIJD1
-from repository.database_monitors.monitor_ion_pump import MonitorAIONCh1IonPump
-from repository.database_monitors.monitor_ion_pump import MonitorAIONCh2IonPump
-from repository.database_monitors.monitor_lab_temperature import (
-    MonitorTemperatureDencoIn,
-)
-from repository.database_monitors.monitor_lab_temperature import (
-    MonitorTemperatureDencoOut,
-)
-from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
-from repository.database_monitors.monitor_lab_temperature import (
-    MonitorTemperatureSidearm,
-)
-from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
-from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
-from repository.database_monitors.monitor_topticas import *
+
+# from repository.database_monitors.monitor_ijds import MonitorBlueIJD1
+# from repository.database_monitors.monitor_ijds import MonitorBlueIJD2
+# from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
+# from repository.database_monitors.monitor_ijds import MonitorRedIJD1
+# from repository.database_monitors.monitor_ion_pump import MonitorAIONCh1IonPump
+# from repository.database_monitors.monitor_ion_pump import MonitorAIONCh2IonPump
+# from repository.database_monitors.monitor_lab_temperature import (
+#     MonitorTemperatureDencoIn,
+# )
+# from repository.database_monitors.monitor_lab_temperature import (
+#     MonitorTemperatureDencoOut,
+# )
+# from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
+# from repository.database_monitors.monitor_lab_temperature import (
+#     MonitorTemperatureSidearm,
+# )
+# from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
+# from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
+# from repository.database_monitors.monitor_topticas import *
 
 # from repository.database_monitors.monitor_wand import MonitorWAND  # FIXME
-from repository.database_monitors.monitor_weather import MonitorWeather
+# from repository.database_monitors.monitor_weather import MonitorWeather
 
 logger = logging.getLogger(__name__)
 
@@ -74,30 +75,30 @@ def my_db_logger(self, name, state, data_list):
 MonitorMaster = make_monitor_controller(
     "MonitorMaster",
     monitors={
-        "weather": MonitorWeather,
-        "temperature_sidearm": MonitorTemperatureSidearm,
-        "temperature_denco_in": MonitorTemperatureDencoIn,
-        "temperature_denco_out": MonitorTemperatureDencoOut,
-        "temperature_PCW": MonitorTemperaturePCW,
-        "ion_pump": MonitorAIONCh1IonPump,  # Keep legacy naming from when we only imagined one experiment
-        "ion_pump_cham2": MonitorAIONCh2IonPump,
-        "ion_pump_clock_ch1": MonitorClockCh1IonPump,
-        "ion_pump_clock_ch2": MonitorClockCh2IonPump,
-        "heartbeat": MonitorHeartbeat,
+        # "weather": MonitorWeather,
+        # "temperature_sidearm": MonitorTemperatureSidearm,
+        # "temperature_denco_in": MonitorTemperatureDencoIn,
+        # "temperature_denco_out": MonitorTemperatureDencoOut,
+        # "temperature_PCW": MonitorTemperaturePCW,
+        # "ion_pump": MonitorAIONCh1IonPump,  # Keep legacy naming from when we only imagined one experiment
+        # "ion_pump_cham2": MonitorAIONCh2IonPump,
+        # "ion_pump_clock_ch1": MonitorClockCh1IonPump,
+        # "ion_pump_clock_ch2": MonitorClockCh2IonPump,
+        # "heartbeat": MonitorHeartbeat,
         # "turbopump": MonitorTurbo,
-        "blue_ijd1": MonitorBlueIJD1,
-        "blue_ijd2": MonitorBlueIJD2,
-        "blue_ijd3": MonitorBlueIJD3,
-        "red_ijd1": MonitorRedIJD1,
+        # "blue_ijd1": MonitorBlueIJD1,
+        # "blue_ijd2": MonitorBlueIJD2,
+        # "blue_ijd3": MonitorBlueIJD3,
+        # "red_ijd1": MonitorRedIJD1,
         # "wand": MonitorWAND,  # FIXME
-        "toptica_461": MonitorToptica461,
-        "toptica_487": MonitorToptica487,
-        "toptica_641": MonitorToptica641,
-        "toptica_679": MonitorToptica679,
-        "toptica_689": MonitorToptica689,
-        "toptica_698": MonitorToptica698,
-        "toptica_707": MonitorToptica707,
-        "toptica_1379": MonitorToptica1379,
+        # "toptica_461": MonitorToptica461,
+        # "toptica_487": MonitorToptica487,
+        # "toptica_641": MonitorToptica641,
+        # "toptica_679": MonitorToptica679,
+        # "toptica_689": MonitorToptica689,
+        # "toptica_698": MonitorToptica698,
+        # "toptica_707": MonitorToptica707,
+        # "toptica_1379": MonitorToptica1379,
         "blue_ijd_relocker_0": MonitorBlueIJDRelocker0,
         "blue_ijd_relocker_1": MonitorBlueIJDRelocker1,
         "blue_ijd_relocker_2": MonitorBlueIJDRelocker2,
