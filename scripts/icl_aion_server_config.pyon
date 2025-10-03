@@ -23,7 +23,7 @@
             "locked": false,
             "locked_at": 0,
             "host": "10.137.1.7",
-            "target": "laser1",
+            "target": "laser1"
         },
         "707": {
             "auto_exposure": true,
@@ -47,7 +47,7 @@
             "locked": false,
             "locked_at": 0,
             "host": "10.137.1.5",
-            "target": "laser1",
+            "target": "laser1"
         },
         "679": {
             "auto_exposure": true,
@@ -71,7 +71,7 @@
             "locked": false,
             "locked_at": 0,
             "host": "10.137.1.7",
-            "target": "laser2",
+            "target": "laser2"
         },
         "689": {
             "auto_exposure": true,
@@ -96,7 +96,7 @@
             "locked_at": 0,
             "host": "10.137.1.5",
             "target": "laser2",
-            "v_pzt_max": 125,
+            "v_pzt_max": 125
         },
         "688": {
             "auto_exposure": true,
@@ -150,7 +150,7 @@
             "locked_at": 0,
             "host": "10.137.1.11",
             "target": "laser2",
-            "v_pzt_min": 5,
+            "v_pzt_min": 5
         },
         "Sirah": {
             "auto_exposure": true,
@@ -172,7 +172,7 @@
             "lock_set_point": 0,
             "lock_timeout": null,
             "locked": false,
-            "locked_at": 0,
+            "locked_at": 0
         },
         "487": {
             "auto_exposure": true,
@@ -196,13 +196,13 @@
             "locked": false,
             "locked_at": 0,
             "host": "10.137.1.12",
-            "target": "laser1",
-        },
+            "target": "laser1"
+        }
     },
     "name": "icl_aion",
     "poll_time": 5,
     "switch": {
         "dead_time": 0.012,
         "type": "internal"
-    },
+    }
 }
