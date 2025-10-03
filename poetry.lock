@@ -3865,7 +3865,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"
 reference = "HEAD"
-resolved_reference = "f162c5eeece55aad9efdb5008e1b90cc4ae5db6f"
+resolved_reference = "11e951efcad2633167074fa48da7d7f3654ea7b0"
 
 [[package]]
 name = "rapidfuzz"
@@ -4116,7 +4116,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
 reference = "merge-codebases"
-resolved_reference = "0e7fbad9eb8a1410a344e4dd95336daa21c4f91c"
+resolved_reference = "1fcd57512a4172a6285b6aa806b69bfe3362c0af"
 
 [[package]]
 name = "requests"
