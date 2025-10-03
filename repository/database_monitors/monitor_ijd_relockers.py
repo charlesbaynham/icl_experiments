@@ -4,8 +4,6 @@ from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 from relocker_driver.driver import RelockerDriver
 
-AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD = 0.01  # k
-
 logger = logging.getLogger(__name__)
 
 
