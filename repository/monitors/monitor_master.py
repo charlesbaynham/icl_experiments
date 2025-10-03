@@ -27,7 +27,8 @@ from repository.database_monitors.monitor_lab_temperature import (
 from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
 from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
 from repository.database_monitors.monitor_topticas import *
-from repository.database_monitors.monitor_wand import MonitorWAND
+
+# from repository.database_monitors.monitor_wand import MonitorWAND  # FIXME
 from repository.database_monitors.monitor_weather import MonitorWeather
 
 logger = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ MonitorMaster = make_monitor_controller(
         "blue_ijd2": MonitorBlueIJD2,
         "blue_ijd3": MonitorBlueIJD3,
         "red_ijd1": MonitorRedIJD1,
-        "wand": MonitorWAND,
+        # "wand": MonitorWAND,  # FIXME
         "toptica_461": MonitorToptica461,
         "toptica_487": MonitorToptica487,
         "toptica_641": MonitorToptica641,
