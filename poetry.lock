@@ -4765,11 +4765,12 @@ name = "wand"
 version = "0.1.0"
 description = "Wavelength Analysis 'Nd Display"
 optional = false
-python-versions = "^3.9"
+python-versions = ">=3.9,<3.13"
 files = []
 develop = false
 
 [package.dependencies]
+generic-scpi-driver = "^1.6.2"
 numpy = "^1.23.5"
 pyqt5 = "^5.15.4"
 pyqtgraph = ">=0.12.0"
@@ -4781,7 +4782,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
 reference = "gaio-control"
-resolved_reference = "f13c13cbdaa8a97f39b75159384a146c4753447d"
+resolved_reference = "9e18e7c2e428289a9287745b169f1ce9fbd854d3"
 
 [[package]]
 name = "wcwidth"
