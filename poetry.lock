@@ -4117,7 +4117,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
 reference = "merge-codebases"
-resolved_reference = "be3b40218760f18272b9a0870b9f5fd9db514f87"
+resolved_reference = "c02a10339884f7d7bd58e9328160f3677296b9e0"
 
 [[package]]
 name = "requests"
