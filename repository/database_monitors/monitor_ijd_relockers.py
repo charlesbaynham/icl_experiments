@@ -44,6 +44,7 @@ class _MonitorIJDRelocker(Calibration):
 
         return result, {
             "tags": {
+                "type": "ijd_relocker",
                 "relocker_name": self.relocker_name,
                 "relocker_channel": self.channel,
             },
