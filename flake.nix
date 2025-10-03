@@ -24,7 +24,7 @@
           extra-build-requirements = {
             artiq-http = [ "setuptools" ];
             koheron-ctl200-laser-driver = [ "poetry-core" ];
-            qbutler = [ "setuptools" ];
+            qbutler = [ "poetry-core" ];
             aravis = [ "setuptools" ];
             pygobject = [ "setuptools" ];
             pyft232 = [ "setuptools" ];
