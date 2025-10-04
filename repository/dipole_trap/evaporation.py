@@ -29,8 +29,10 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesPlusDipoleRampMixin,
     XODTRetroedMolassesPlusDipoleRampMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesPlusDipoleRampMixin,
 )
 
 logger = logging.getLogger(__name__)
