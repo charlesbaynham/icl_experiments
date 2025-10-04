@@ -8,67 +8,71 @@ logger = logging.getLogger(__name__)
 
 
 class _MonitorIJDRelocker(Calibration):
-    channel = None
+    channels = None
     relocker_name = None
 
     def build_calibration(self):
-        if self.relocker_name is None or self.channel is None:
-            raise ValueError("relocker_name and channel must be set in subclasses")
+        if self.relocker_name is None or self.channels is None:
+            raise ValueError("relocker_name and channels must be set in subclasses")
 
         self.relocker: RelockerDriver = self.get_device(self.relocker_name)
         self.set_timeout(10)
 
     def check_own_state(self):
-        fields = {}
+        data = []
+        results = []
 
-        try:
-            lock_results = self.relocker.get_result_labelled(self.channel)
-            v_current, v_rolling_low = self.relocker.get_levels(self.channel)
+        for channel in self.channels:
+            fields = {}
+            try:
+                lock_results = self.relocker.get_result_labelled(channel)
+                v_current, v_rolling_low = self.relocker.get_levels(channel)
 
-            fields["v_scan_low"] = lock_results.v_low
-            fields["v_set_lock"] = lock_results.v_set_lock
-            fields["v_read_lock"] = lock_results.v_read_lock
-            fields["v_current"] = v_current
-            fields["v_rolling_low"] = v_rolling_low
+                fields["v_scan_low"] = lock_results.v_low
+                fields["v_set_lock"] = lock_results.v_set_lock
+                fields["v_read_lock"] = lock_results.v_read_lock
+                fields["v_current"] = v_current
+                fields["v_rolling_low"] = v_rolling_low
 
-            locked = lock_results.relock_success
-            fields["status"] = "LOCKED" if locked else "UNLOCKED"
+                locked = lock_results.relock_success
+                fields["status"] = "LOCKED" if locked else "UNLOCKED"
 
-            result = CalibrationResult.OK if locked else CalibrationResult.BAD_DATA
+                result = CalibrationResult.OK if locked else CalibrationResult.BAD_DATA
 
-        except AttributeError as e:
-            # The connection to the controller failed
-            result = CalibrationResult.BAD_DATA
-            logger.debug(
-                f"Failed to get lock results from {self.relocker_name} channel {self.channel}: {e}"
+            except AttributeError as e:
+                # The connection to the controller failed
+                result = CalibrationResult.BAD_DATA
+                logger.debug(
+                    f"Failed to get lock results from {self.relocker_name} channel {channel}: {e}"
+                )
+                fields["status"] = "ERROR"
+
+            data.append(
+                {
+                    "tags": {
+                        "type": "ijd_relocker",
+                        "relocker_name": self.relocker_name,
+                        "relocker_channel": channel,
+                    },
+                    "fields": fields,
+                }
             )
-            fields["status"] = "ERROR"
+            results.append(result)
 
-        return result, {
-            "tags": {
-                "type": "ijd_relocker",
-                "relocker_name": self.relocker_name,
-                "relocker_channel": self.channel,
-            },
-            "fields": fields,
-        }
+        total_result = (
+            CalibrationResult.OK
+            if all(r == CalibrationResult.OK for r in results)
+            else CalibrationResult.BAD_DATA
+        )
+
+        return total_result, data
 
 
-class MonitorBlueIJDRelocker0(_MonitorIJDRelocker):
+class MonitorBlueIJDRelocker(_MonitorIJDRelocker):
     relocker_name = "blue_relocker"
-    channel = 0
+    channels = [0, 1, 2]
 
 
-class MonitorBlueIJDRelocker1(_MonitorIJDRelocker):
-    relocker_name = "blue_relocker"
-    channel = 1
-
-
-class MonitorBlueIJDRelocker2(_MonitorIJDRelocker):
-    relocker_name = "blue_relocker"
-    channel = 2
-
-
-class MonitorRedIJDRelocker0(_MonitorIJDRelocker):
+class MonitorRedIJDRelocker(_MonitorIJDRelocker):
     relocker_name = "red_relocker"
-    channel = 0
+    channels = [0]
