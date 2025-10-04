@@ -20,7 +20,7 @@ koheron-ctl200-laser-driver = { git = "https://gitlab.com/aion-physics/code/arti
 qbutler = { git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git" }
 wand = { git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "gaio-control" }
 toptica-wrapper = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/topticadlcpro.git" }
-relocker-driver = { git = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git", rev = "merge-codebases" }
+relocker-driver = { git = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git" }
 andor-artiq-ndsp = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/andor_windows_ndsp.git" }
 imperial-artiq-applets = {git = "https://gitlab.com/imperial-sr/programming/imperial-artiq-applets.git"}
 
