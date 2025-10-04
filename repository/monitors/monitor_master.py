@@ -4,10 +4,8 @@ from artiq_influx_generic import InfluxController
 from qbutler.monitoring import make_monitor_controller
 
 from repository.database_monitors.monitor_heartbeat import MonitorHeartbeat
-from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker0
-from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker1
-from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker2
-from repository.database_monitors.monitor_ijd_relockers import MonitorRedIJDRelocker0
+from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker
+from repository.database_monitors.monitor_ijd_relockers import MonitorRedIJDRelocker
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD1
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD2
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
@@ -97,10 +95,8 @@ MonitorMaster = make_monitor_controller(
         "toptica_698": MonitorToptica698,
         "toptica_707": MonitorToptica707,
         "toptica_1379": MonitorToptica1379,
-        "blue_ijd_relocker_0": MonitorBlueIJDRelocker0,
-        "blue_ijd_relocker_1": MonitorBlueIJDRelocker1,
-        "blue_ijd_relocker_2": MonitorBlueIJDRelocker2,
-        "red_ijd_relocker_0": MonitorRedIJDRelocker0,
+        "blue_ijd_relocker": MonitorBlueIJDRelocker,
+        "red_ijd_relocker": MonitorRedIJDRelocker,
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
