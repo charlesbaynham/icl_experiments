@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Charles Baynham <c.baynham@imperial.ac.uk>"]
 readme = "readme.rst"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
