@@ -202,10 +202,14 @@ class IJDRelockerSettings:
     "Name of relocker board in device_db"
     channel: int
     "Channel on relocker board"
-    v_min: float
-    "Lowest voltage/start of scan"
-    v_max: float
-    "Highest voltage/end of scan"
+
+    i_min: float
+    "Lowest current"
+    i_max: float
+    "Highest current"
+    voltage_to_current_gain: float
+    "Voltage to current conversion factor"
+
     n_steps: float
     "Number of scan steps. cannot be >128"
 
@@ -230,49 +234,68 @@ class IJDRelockerSettings:
         if self.n_steps > 128:
             raise ValueError("n_steps cannot be >128")
 
+        # Calculate voltages from requested currents
+        self.v_min = self.i_min / self.voltage_to_current_gain
+        self.v_max = self.i_max / self.voltage_to_current_gain
+
+        # Ensure that the voltages are within the safe limits for the Koheron board
+        max_voltage = 1.0
+        if abs(self.v_min) > max_voltage or abs(self.v_max) > max_voltage:
+            raise ValueError(
+                f"Calculated voltages ({self.v_min}, {self.v_max}) exceed safe limits of +/- {max_voltage} V. Reduce i_min and/or i_max."
+            )
+
+
+# The blue Koheron boards are set to "M" which has 7.5mA/V modulation depth. The GAO
+# board has 50 Ohm output impedence, combined with the 50 Ohm input of the
+# Koheron boards => divide by two.
+BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 7.5e-3 / 2
 
 IJD_RELOCKER_DEFAULTS = {
     "blue_IJD1_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=0,
-        v_min=-2,
-        v_max=2,
-        n_steps=100,
-        window_frac=0.6,
+        i_min=-5e-3,
+        i_max=5e-3,
+        n_steps=128,
+        window_frac=0.5,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
-        wait_time=1000,
+        wait_time=100,
         auto_relock=True,
         associated_controller="blue_IJD1_controller",
+        voltage_to_current_gain=BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN,
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=1,
-        v_min=-2,
-        v_max=2,
-        n_steps=100,
-        window_frac=0.6,
+        i_min=-5e-3,
+        i_max=5e-3,
+        n_steps=128,
+        window_frac=0.5,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
-        wait_time=1000,
+        wait_time=100,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
+        voltage_to_current_gain=BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN,
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=2,
-        v_min=-2,
-        v_max=2,
-        n_steps=100,
-        window_frac=0.6,
+        i_min=-5e-3,
+        i_max=5e-3,
+        n_steps=128,
+        window_frac=0.5,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
-        wait_time=1000,
+        wait_time=100,
         auto_relock=True,
         associated_controller="blue_IJD3_controller",
+        voltage_to_current_gain=BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN,
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
