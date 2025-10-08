@@ -70,9 +70,9 @@ config = {
             "output_resistance": 50,  # Ohm
         },
         "red_IJD1_controller": {
-            "mod_gain": 5.0e-3,  # A/V
+            "mod_gain": 2.5e-3,  # A/V
             "input_resistance": 50,  # Ohm
-            "output_resistance": 0,  # Ohm
+            "output_resistance": 50,  # Ohm
         },
     },
     "chamber_2_coil_x": VoltageControlledCurrentSupply("zotino_plant_room", 26, -2.0),

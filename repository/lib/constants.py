@@ -267,6 +267,13 @@ def _calculate_max_safe_voltage(IJD_name: str) -> float:
     return 1.0 * (Ri + Ro) / Ri  # V
 
 
+def _calculate_effective_voltage_to_current_gain(IJD_name: str) -> float:
+    nominal_gain = get_configuration_from_db("IJD_info")[IJD_name]["mod_gain"]
+    Ri = get_configuration_from_db("IJD_info")[IJD_name]["input_resistance"]
+    Ro = get_configuration_from_db("IJD_info")[IJD_name]["output_resistance"]
+    return nominal_gain * Ri / (Ri + Ro)  # A/V
+
+
 IJD_RELOCKER_DEFAULTS = {
     "blue_IJD1_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -281,9 +288,9 @@ IJD_RELOCKER_DEFAULTS = {
         wait_time=100e-3,
         auto_relock=True,
         associated_controller="blue_IJD1_controller",
-        voltage_to_current_gain=get_configuration_from_db("IJD_info")[
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD1_controller"
-        ]["mod_gain"],
+        ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD1_controller"),
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
@@ -299,9 +306,9 @@ IJD_RELOCKER_DEFAULTS = {
         wait_time=100e-3,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
-        voltage_to_current_gain=get_configuration_from_db("IJD_info")[
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD2_controller"
-        ]["mod_gain"],
+        ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD2_controller"),
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
@@ -317,16 +324,16 @@ IJD_RELOCKER_DEFAULTS = {
         wait_time=100e-3,
         auto_relock=True,
         associated_controller="blue_IJD3_controller",
-        voltage_to_current_gain=get_configuration_from_db("IJD_info")[
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD3_controller"
-        ]["mod_gain"],
+        ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD3_controller"),
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
         channel=0,
-        i_min=-3e-3,
-        i_max=3e-3,
+        i_min=-2e-3,
+        i_max=2e-3,
         n_steps=128,
         window_frac=0.5,
         min_diff=0.1,
@@ -335,9 +342,9 @@ IJD_RELOCKER_DEFAULTS = {
         wait_time=1000e-3,
         auto_relock=True,
         associated_controller="red_IJD1_controller",
-        voltage_to_current_gain=get_configuration_from_db("IJD_info")[
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "red_IJD1_controller"
-        ]["mod_gain"],
+        ),
         max_safe_voltage=_calculate_max_safe_voltage("red_IJD1_controller"),
     ),
 }
