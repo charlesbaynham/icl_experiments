@@ -255,6 +255,10 @@ class IJDRelockerSettings:
 # Koheron boards => divide by two.
 BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 7.5e-3 / 2
 
+# The red CTL-200 is in "H" mode but the GAO board's output impedance is 5kOhms,
+# resulting in a division by 200.
+RED_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 75e-3 / 200
+
 IJD_RELOCKER_DEFAULTS = {
     "blue_IJD1_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -304,9 +308,9 @@ IJD_RELOCKER_DEFAULTS = {
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
         channel=0,
-        v_min=-2,
-        v_max=2,
-        n_steps=100,
+        i_min=-3e-3,
+        i_max=3e-3,
+        n_steps=128,
         window_frac=0.5,
         min_diff=0.1,
         v_low_threshold=1.3,
@@ -314,6 +318,7 @@ IJD_RELOCKER_DEFAULTS = {
         wait_time=1000,
         auto_relock=True,
         associated_controller="red_IJD1_controller",
+        voltage_to_current_gain=RED_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN,
     ),
 }
 "Settings for IJD relocker board channels"
