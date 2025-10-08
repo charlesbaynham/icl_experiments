@@ -238,8 +238,12 @@ class IJDRelockerSettings:
         self.v_min = self.i_min / self.voltage_to_current_gain
         self.v_max = self.i_max / self.voltage_to_current_gain
 
-        # Ensure that the voltages are within the safe limits for the Koheron board
-        max_voltage = 1.0
+        # Ensure that the voltages are within the safe limits for the Koheron
+        # board. The datasheet says +/-1V but we are driving it with 50 Ohm
+        # output impedances which, combined with the 50 Ohm input impedance of
+        # the Koheron gives a division by two. So we can output up to +-2V
+        # safely.
+        max_voltage = 2.0
         if abs(self.v_min) > max_voltage or abs(self.v_max) > max_voltage:
             raise ValueError(
                 f"Calculated voltages ({self.v_min}, {self.v_max}) exceed safe limits of +/- {max_voltage} V. Reduce i_min and/or i_max."
