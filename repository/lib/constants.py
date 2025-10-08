@@ -207,7 +207,7 @@ class IJDRelockerSettings:
     v_max: float
     "Highest voltage/end of scan"
     n_steps: float
-    "Number of scan steps. cannot be >100"
+    "Number of scan steps. cannot be >128"
 
     window_frac: float
     "Fraction of the way along the detected window to set the lock point"
@@ -227,8 +227,8 @@ class IJDRelockerSettings:
     "Koheron controller associated with the channel"
 
     def __post_init__(self):
-        if self.n_steps > 100:
-            self.n_steps = 100
+        if self.n_steps > 128:
+            raise ValueError("n_steps cannot be >128")
 
 
 IJD_RELOCKER_DEFAULTS = {
