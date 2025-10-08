@@ -173,6 +173,17 @@ class RelockerChannelFrag(ExpFragment):
         )
         self.auto_relock: BoolParamHandle
 
+        self.setattr_param(
+            "v_relock_step_up",
+            FloatParam,
+            description="voltage step up on relock",
+            default=defaults.v_relock_step_up,
+            min=0.0,
+            max=5.0,
+            unit="V",
+        )
+        self.v_relock_step_up: FloatParamHandle
+
         # And define a results channel as output
         self.setattr_result("read_voltages", OpaqueChannel)
         self.read_voltages: OpaqueChannel
@@ -211,6 +222,7 @@ class RelockerChannelFrag(ExpFragment):
             self.v_rise_threshold.get(),
             self.wait_time.get(),
             self.auto_relock.get(),
+            self.v_relock_step_up.get(),
         )
 
     def get_read_voltages(self):

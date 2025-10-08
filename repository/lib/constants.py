@@ -230,6 +230,9 @@ class IJDRelockerSettings:
     associated_controller: Optional[str] = None
     "Koheron controller associated with the channel"
 
+    i_relock_step_up: float = 1.0e-3
+    "Current step to make above lockpoint for relocking / mA. Default = 1.0"
+
     max_safe_voltage: float = 1.0
     "Maximum safe voltage for the Koheron board"
 
@@ -240,6 +243,8 @@ class IJDRelockerSettings:
         # Calculate voltages from requested currents
         self.v_min = self.i_min / self.voltage_to_current_gain
         self.v_max = self.i_max / self.voltage_to_current_gain
+
+        self.v_relock_step_up = self.i_relock_step_up / self.voltage_to_current_gain
 
         # Ensure that the voltages are within the safe limits for the Koheron
         # board
