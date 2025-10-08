@@ -107,13 +107,13 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040081'",
         },
-        # "blue_relocker": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": f"aqctl_relocker_driver  --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
-        # },
+        "blue_relocker": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": f"aqctl_relocker_driver  --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
+        },
         "red_relocker": {
             "type": "controller",
             "best_effort": True,
