@@ -332,8 +332,8 @@ IJD_RELOCKER_DEFAULTS = {
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
         channel=0,
-        i_min=-2e-3,
-        i_max=2e-3,
+        i_min=-2.5e-3,
+        i_max=2.5e-3,
         n_steps=128,
         window_frac=0.5,
         min_diff=0.1,
