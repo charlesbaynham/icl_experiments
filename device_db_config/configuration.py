@@ -55,24 +55,24 @@ config = {
     },
     "IJD_info": {
         "blue_IJD1_controller": {
-            "mod_gain": 0.75e-3,  # A/V
+            "mod_gain": 7.5e-3,  # A/V
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },
         "blue_IJD2_controller": {
-            "mod_gain": 0.75e-3,  # A/V
+            "mod_gain": 7.5e-3,  # A/V
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },
         "blue_IJD3_controller": {
-            "mod_gain": 0.75e-3,  # A/V
+            "mod_gain": 7.5e-3,  # A/V
             "input_resistance": 50,  # Ohm
             "output_resistance": 50,  # Ohm
         },
         "red_IJD1_controller": {
-            "mod_gain": 2.5e-3,  # A/V
+            "mod_gain": 5.0e-3,  # A/V
             "input_resistance": 50,  # Ohm
-            "output_resistance": 50,  # Ohm
+            "output_resistance": 0,  # Ohm
         },
     },
     "chamber_2_coil_x": VoltageControlledCurrentSupply("zotino_plant_room", 26, -2.0),
