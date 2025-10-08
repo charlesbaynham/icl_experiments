@@ -161,7 +161,8 @@ class RelockerChannelFrag(ExpFragment):
             description="v set wait time",
             default=defaults.wait_time,
             min=0,
-            max=100000,
+            max=100,
+            unit="s",
         )
         self.wait_time: IntParamHandle
 
@@ -220,7 +221,7 @@ class RelockerChannelFrag(ExpFragment):
             self.min_diff.get(),
             self.v_low_threshold.get(),
             self.v_rise_threshold.get(),
-            self.wait_time.get(),
+            1000 * self.wait_time.get(),
             self.auto_relock.get(),
             self.v_relock_step_up.get(),
         )
