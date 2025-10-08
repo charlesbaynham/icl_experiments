@@ -103,7 +103,7 @@ class RelockerChannelFrag(ExpFragment):
             description="n steps",
             default=defaults.n_steps,
             min=10,
-            max=100,
+            max=128,
         )
         self.n_steps: IntParamHandle
 
