@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 RAM_PROFILE = urukul.DEFAULT_PROFILE
 
 
-class ShapedPulse(Fragment, abc.ABC):
+class _ShapedPulse(Fragment, abc.ABC):
     """
     Use an AD9910 channel to generate a shaped pulse
 
@@ -47,14 +47,17 @@ class ShapedPulse(Fragment, abc.ABC):
 
     ad9910_name: str = None
 
-    @abc.abstractmethod
-    def generate_amplitudes_and_phases(self, n_words) -> tuple[np.ndarray, np.ndarray]:
-        """
-        This function must be defined by the user to define their pulse shape.
-        It must return a tuple of numpy arrays:
-            * amplitude: array of length n_words, coerced to 0-1
-            * phase: array of length n_words, coerced to 0-2*pi
-        """
+    ram_modulation_mode = None
+    "The type of RAM modulation to be applied. Frequency, amplitude, phase, or phase+amplitude (phasor)"
+
+    ram_ramp_mode = ad9910.RAM_MODE_RAMPUP
+    "RAM playback mode - see AD9910 datasheet for details. Default to a repeating ramp upwards through RAM addresses"
+
+    def __init__(self, *args, **kwargs):
+        if self.ram_modulation_mode is None:
+            raise ValueError("ram_modulation_mode must be set in subclass")
+
+        super().__init__(*args, **kwargs)
 
     @abc.abstractmethod
     def is_recalc_needed(self) -> bool:
@@ -124,30 +127,12 @@ class ShapedPulse(Fragment, abc.ABC):
         self._step_mu = 0
         self._step_duration = 0.0
 
-    @rpc
+    @abc.abstractmethod
     def _get_ram_words(self) -> TList(TInt32):
         """
-        Call the user-provided function to generate a new pulse shape of the
-        given length, and return this to the core device as RAM tuning words.
+        Subclasses must implement this method as a synchronous RPC. It must
+        return a list of int32s, n_words long, that will be written into RAM.
         """
-        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps.get())
-
-        assert len(amplitude) == len(phases) == self.num_steps.get()
-
-        # Coerce to 0-1 and 0-2pi
-        pulse_amplitudes = np.clip(amplitude, 0, 1)
-        pulse_phases = np.clip(phases, 0, 2 * np.pi)
-
-        # Convert phases to turns
-        pulse_turns = pulse_phases / (2 * np.pi)
-
-        # Convert to ram words
-        ram_data = [np.int32(0x00)] * self.num_steps.get()
-        self.dds.turns_amplitude_to_ram(
-            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data
-        )
-
-        return ram_data
 
     @kernel
     def device_setup(self):
@@ -238,14 +223,14 @@ class ShapedPulse(Fragment, abc.ABC):
         self.dds.set_frequency(frequency=frequency)
 
         # Disable RAM mode while changing profile
-        self.dds.set_cfr1(ram_enable=0, ram_destination=ad9910.RAM_DEST_POWASF)
+        self.dds.set_cfr1(ram_enable=0, ram_destination=self.ram_modulation_mode)
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
         self.dds.set_profile_ram(
             start=0x00,
             end=self.num_steps.get() - 1,
             step=self._step_mu,
-            mode=ad9910.RAM_MODE_RAMPUP,
+            mode=self.ram_ramp_mode,
             profile=RAM_PROFILE,
         )
 
@@ -254,7 +239,7 @@ class ShapedPulse(Fragment, abc.ABC):
         assert RAM_PROFILE == urukul.DEFAULT_PROFILE
 
         # Enable RAM mode - the next IO_UPDATE will start playback
-        self.dds.set_cfr1(ram_enable=1, ram_destination=ad9910.RAM_DEST_POWASF)
+        self.dds.set_cfr1(ram_enable=1, ram_destination=self.ram_modulation_mode)
 
     @kernel
     def trigger_pulse(self):
@@ -400,7 +385,45 @@ class ShapedPulse(Fragment, abc.ABC):
         delay(2000e-3)
 
 
-class BlackmanShapedPulse(ShapedPulse):
+class PhasorShapedPulse(_ShapedPulse):
+    ram_modulation_mode = ad9910.RAM_DEST_POWASF
+
+    @abc.abstractmethod
+    def generate_amplitudes_and_phases(self, n_words) -> tuple[np.ndarray, np.ndarray]:
+        """
+        This function must be defined by the user to define their pulse shape.
+        It must return a tuple of numpy arrays:
+            * amplitude: array of length n_words, coerced to 0-1
+            * phase: array of length n_words, coerced to 0-2*pi
+        """
+
+    @rpc
+    def _get_ram_words(self) -> TList(TInt32):
+        """
+        Call the user-provided function to generate a new pulse shape of the
+        given length, and return this to the core device as RAM tuning words.
+        """
+        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps.get())
+
+        assert len(amplitude) == len(phases) == self.num_steps.get()
+
+        # Coerce to 0-1 and 0-2pi
+        pulse_amplitudes = np.clip(amplitude, 0, 1)
+        pulse_phases = np.clip(phases, 0, 2 * np.pi)
+
+        # Convert phases to turns
+        pulse_turns = pulse_phases / (2 * np.pi)
+
+        # Convert to ram words
+        ram_data = [np.int32(0x00)] * self.num_steps.get()
+        self.dds.turns_amplitude_to_ram(
+            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data
+        )
+
+        return ram_data
+
+
+class BlackmanShapedPulse(PhasorShapedPulse):
     """
     Blackman shaped pulses (amplitude only)
     """

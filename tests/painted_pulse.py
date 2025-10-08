@@ -1,23 +1,19 @@
 import numpy as np
-from scipy.optimize import root_scalar
-from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
-from artiq.language import delay
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from scipy.stats import beta
 
-from repository.lib.fragments.pulse_shaping import ShapedPulse
+from repository.lib.fragments.pulse_shaping import PhasorShapedPulse
 
-class DiffractionCompensatedQuadratic(ShapedPulse):
+
+class DiffractionCompensatedQuadratic(PhasorShapedPulse):
     def build_fragment(self, *args, **kwargs):
         self.setattr_param(
             "epsilon",
             FloatParam,
             description="Efficiency of the AOM at the edge of the pulse",
             default=0.8,
-            min=0.,
+            min=0.0,
             max=0.999,
         )
 
@@ -28,8 +24,8 @@ class DiffractionCompensatedQuadratic(ShapedPulse):
             FloatParam,
             description="Modulation depth of the scan",
             default=1,
-            min=1.,
-            max=20.,
+            min=1.0,
+            max=20.0,
         )
 
         self.mod_depth: FloatParamHandle
@@ -49,7 +45,11 @@ class DiffractionCompensatedQuadratic(ShapedPulse):
 
         m = np.sqrt(1 - self.epsilon.get())
         a = self.mod_depth.get()
-        relation = lambda f, v : lambda t: a * (m**2 - 1) * np.arctanh(m * f / a) + m * f - m**3 * v * t
+        relation = (
+            lambda f, v: lambda t: a * (m**2 - 1) * np.arctanh(m * f / a)
+            + m * f
+            - m**3 * v * t
+        )
         t
 
         t = np.linspace(0, 1, n_words)
@@ -60,7 +60,6 @@ class DiffractionCompensatedQuadratic(ShapedPulse):
         phase = np.zeros_like(amplitude)
 
         return amplitude, phase
-
 
     @kernel
     def is_recalc_needed(self) -> bool:
