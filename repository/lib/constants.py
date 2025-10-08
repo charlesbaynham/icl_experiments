@@ -270,7 +270,7 @@ BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 7.5e-3 / 2
 BLUE_IJD_RELOCKER_MAX_SAFE_VOLTAGE = 2.0
 
 
-# The red CTL-200 is in "H" mode but the GAO board's output impedance is 0 Ohms (!),
+# The red CTL-200 is in "M" mode but the GAO board's output impedance is 0 Ohms (!),
 # resulting in a division by 1.
 RED_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 7.5e-3 / 1
 
