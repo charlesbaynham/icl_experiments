@@ -204,7 +204,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         self.dds.read_ram(read_data)
 
     @kernel
-    def prepare_pulse(self, frequency: float):
+    def _enter_RAM_mode(self):
         """
         Prepare for playback of the sequence recorded in RAM
 
@@ -213,15 +213,7 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         You should call `trigger_pulse` after this to actually play the
         sequence, and call `disable_ram_mode` afterwards to clean up.
-
-        Args:
-            frequency (float): Centre frequency to be modulated by the RAM data.
         """
-
-        # We must set the FTW of the DDS - this is distinct from the usual
-        # frequency which is stored in a single-tone profile
-        self.dds.set_frequency(frequency=frequency)
-
         # Disable RAM mode while changing profile
         self.dds.set_cfr1(ram_enable=0, ram_destination=self.ram_modulation_mode)
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
@@ -385,6 +377,61 @@ class _ShapedPulse(Fragment, abc.ABC):
         delay(2000e-3)
 
 
+class FrequencyShapedPulse(_ShapedPulse):
+    ram_modulation_mode = ad9910.RAM_DEST_FTW
+
+    def build_fragment(
+        self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
+    ):
+        """
+        Requires you to pass a FloatParamHandle representing a parameter that
+        the pulse's centre frequency will be bound to.
+        """
+        super().build_fragment(ad9910_name)
+
+        self.centre_frequency = centre_frequency_param_handle
+
+    @abc.abstractmethod
+    def generate_frequencies(self, n_words) -> np.ndarray:
+        """
+        This function must be defined by the user to define their pulse shape.
+        It must return a numpy array:
+            * detuning_frequency: array of length n_words, coerced to 0-1
+        """
+
+    @rpc
+    def _get_ram_words(self) -> TList(TInt32):
+        """
+        Call the user-provided function to generate a new pulse shape of the
+        given length, and return this to the core device as RAM tuning words.
+        """
+        detuning_frequency = self.generate_frequencies(self.num_steps.get())
+
+        assert len(detuning_frequency) == self.num_steps.get()
+
+        absolute_frequency = self.centre_frequency.get() + detuning_frequency
+        # Need to ensure that we don't have frequencies out of the bound
+
+        # Convert to ram words
+        ram_data = [np.int32(0x00)] * self.num_steps.get()
+        self.dds.frequency_to_ram(frequency=absolute_frequency, ram=ram_data)
+
+        return ram_data
+
+    @kernel
+    def prepare_pulse(self):
+        """
+        Prepare for playback of the sequence recorded in RAM
+
+        This will enable RAM mode for this DDS - you cannot use it as a normal
+        DDS until you call `disable_ram_mode`.
+
+        You should call `trigger_pulse` after this to actually play the
+        sequence, and call `disable_ram_mode` afterwards to clean up.
+        """
+        self._enter_RAM_mode()
+
+
 class PhasorShapedPulse(_ShapedPulse):
     ram_modulation_mode = ad9910.RAM_DEST_POWASF
 
@@ -422,6 +469,26 @@ class PhasorShapedPulse(_ShapedPulse):
 
         return ram_data
 
+    @kernel
+    def prepare_pulse(self, frequency: float):
+        """
+        Prepare for playback of the sequence recorded in RAM
+
+        This will enable RAM mode for this DDS - you cannot use it as a normal
+        DDS until you call `disable_ram_mode`.
+
+        You should call `trigger_pulse` after this to actually play the
+        sequence, and call `disable_ram_mode` afterwards to clean up.
+
+        Args:
+            frequency (float): Centre frequency to be modulated by the RAM data.
+        """
+        # We must set the FTW of the DDS - this is distinct from the usual
+        # frequency which is stored in a single-tone profile
+        self.dds.set_frequency(frequency=frequency)
+
+        self._enter_RAM_mode()
+
 
 class BlackmanShapedPulse(PhasorShapedPulse):
     """
@@ -455,3 +522,41 @@ class BlackmanShapedPulse(PhasorShapedPulse):
         self._old_num_steps = self.num_steps.get()
 
         return return_value
+
+
+class MyExperiment(Fragment):
+    def build_fragment(self):
+        self.setattr_fragment(
+            "shaped_pulse", FrequencyShapedPulse, ad9910_name="urukul0_ch0"
+        )
+        self.shaped_pulse: FrequencyShapedPulse
+
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_param(
+            "pulse_frequency",
+            FloatParam,
+            description="Frequency of the shaped pulse",
+            default=100e6,
+            min=1.0,
+            max=300e6,
+        )
+        self.pulse_frequency: FloatParamHandle
+
+        self.shaped_pulse.bind_param("centre_frequency", self.pulse_frequency)
+
+    @kernel
+    def run_once(self):
+        self.core.break_realtime()
+
+        delay(100e-3)
+
+        self.shaped_pulse.prepare_pulse(frequency=10e6)
+
+        delay(100e-3)
+
+        self.shaped_pulse.trigger_pulse()
+        delay(100e-3)
+
+        self.shaped_pulse.disable_ram_mode()
