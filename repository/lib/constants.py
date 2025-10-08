@@ -230,6 +230,9 @@ class IJDRelockerSettings:
     associated_controller: Optional[str] = None
     "Koheron controller associated with the channel"
 
+    max_safe_voltage: float = 1.0
+    "Maximum safe voltage for the Koheron board"
+
     def __post_init__(self):
         if self.n_steps > 128:
             raise ValueError("n_steps cannot be >128")
@@ -239,14 +242,13 @@ class IJDRelockerSettings:
         self.v_max = self.i_max / self.voltage_to_current_gain
 
         # Ensure that the voltages are within the safe limits for the Koheron
-        # board. The datasheet says +/-1V but we are driving it with 50 Ohm
-        # output impedances which, combined with the 50 Ohm input impedance of
-        # the Koheron gives a division by two. So we can output up to +-2V
-        # safely.
-        max_voltage = 2.0
-        if abs(self.v_min) > max_voltage or abs(self.v_max) > max_voltage:
+        # board
+        if (
+            abs(self.v_min) > self.max_safe_voltage
+            or abs(self.v_max) > self.max_safe_voltage
+        ):
             raise ValueError(
-                f"Calculated voltages ({self.v_min}, {self.v_max}) exceed safe limits of +/- {max_voltage} V. Reduce i_min and/or i_max."
+                f"Calculated voltages ({self.v_min}, {self.v_max}) exceed safe limits of +/- {self.max_safe_voltage} V. Reduce i_min and/or i_max."
             )
 
 
@@ -255,9 +257,17 @@ class IJDRelockerSettings:
 # Koheron boards => divide by two.
 BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 7.5e-3 / 2
 
-# The red CTL-200 is in "H" mode but the GAO board's output impedance is 5kOhms,
-# resulting in a division by 200.
-RED_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 75e-3 / 200
+
+# For the blue controllers, the datasheet says not to exceed +/-1V but we usually drive it with 50 Ohm
+# output impedances which, combined with the 50 Ohm input impedance of
+# the Koheron gives a division by two. So we can output up to +-2V
+# safely
+BLUE_IJD_RELOCKER_MAX_SAFE_VOLTAGE = 2.0
+
+
+# The red CTL-200 is in "H" mode but the GAO board's output impedance is 0 Ohms (!),
+# resulting in a division by 1.
+RED_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN = 7.5e-3 / 1
 
 IJD_RELOCKER_DEFAULTS = {
     "blue_IJD1_relocker": IJDRelockerSettings(
@@ -274,6 +284,7 @@ IJD_RELOCKER_DEFAULTS = {
         auto_relock=True,
         associated_controller="blue_IJD1_controller",
         voltage_to_current_gain=BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN,
+        max_safe_voltage=BLUE_IJD_RELOCKER_MAX_SAFE_VOLTAGE,
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -289,6 +300,7 @@ IJD_RELOCKER_DEFAULTS = {
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
         voltage_to_current_gain=BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN,
+        max_safe_voltage=BLUE_IJD_RELOCKER_MAX_SAFE_VOLTAGE,
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -304,6 +316,7 @@ IJD_RELOCKER_DEFAULTS = {
         auto_relock=True,
         associated_controller="blue_IJD3_controller",
         voltage_to_current_gain=BLUE_IJD_RELOCKER_VOLTAGE_TO_CURRENT_GAIN,
+        max_safe_voltage=BLUE_IJD_RELOCKER_MAX_SAFE_VOLTAGE,
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
