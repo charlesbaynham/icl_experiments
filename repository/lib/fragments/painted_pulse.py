@@ -16,7 +16,6 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             min=0.0,
             max=0.999,
         )
-
         self.epsilon: FloatParamHandle
 
         self.setattr_param(
@@ -27,19 +26,7 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             min=1.0,
             max=1e5,
         )
-
         self.mod_depth: FloatParamHandle
-
-        self.setattr_param(
-            "mod_frequency",
-            FloatParam,
-            description="Modulation frequency of the scan",
-            default=1e5,
-            min=1.0,
-            max=1e8,
-        )
-
-        self.mod_frequency: FloatParamHandle
 
         self.setattr_param(
             "centre_frequency",
@@ -49,7 +36,6 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             min=0.0,
             max=4e8,
         )
-
         self.centre_frequency: FloatParamHandle
 
         # Kernel params
@@ -57,7 +43,9 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
         self._old_depth = -1.0
         self._old_epsilon = -1.0
 
-        return super().build_fragment(self.centre_frequency, *args, **kwargs)
+        return super().build_fragment(
+            centre_frequency_param_handle=self.centre_frequency
+        )
 
     def generate_frequencies(self, n_words) -> np.ndarray:
         """
@@ -97,13 +85,11 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
         return_value = False
 
         if (
-            self.mod_frequency.get() != self._old_frequency
-            or self.mod_depth.get() != self._old_depth
+            self.mod_depth.get() != self._old_depth
             or self.epsilon.get() != self._old_epsilon
         ):
             return_value = True
 
-        self._old_frequency = self.mod_frequency.get()
         self._old_depth = self.mod_depth.get()
         self._old_epsilon = self.epsilon.get()
 
