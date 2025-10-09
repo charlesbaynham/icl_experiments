@@ -224,6 +224,8 @@ class _ShapedPulse(Fragment, abc.ABC):
             step=self._step_mu,
             mode=self.ram_ramp_mode,
             profile=RAM_PROFILE,
+            # nodwell_high=0  # FIXME this will pause at the top currently. We
+            # should break out access to nodwell_high like we did for ram_ramp_mode
         )
 
         # This is a no-op since we are already on the right profile unless the
