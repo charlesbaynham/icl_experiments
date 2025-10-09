@@ -37,7 +37,7 @@ class Recentre461Frag(ExpFragment):
 
         # Steer the 461 back to its nominal setpoint
         self.wand_steering.steer_wand(
-            self.laser,
+            "461",
             offset=0,
             timeout=20.0,
             required_accuracy=2e6,
