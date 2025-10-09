@@ -11,6 +11,7 @@ from artiq.coredevice.urukul import CPLD
 from artiq.language import TInt32
 from artiq.language import TList
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import portable
 from artiq.language import rpc
@@ -19,6 +20,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from numpy import int64
 from pyaion.fragments.urukul_init import make_urukul_init
 
 logger = logging.getLogger(__name__)
@@ -236,17 +238,33 @@ class _ShapedPulse(Fragment, abc.ABC):
         self.dds.set_cfr1(ram_enable=1, ram_destination=self.ram_modulation_mode)
 
     @kernel
+    def start_output(self):
+        """
+        Start playback of the configured shape. This should be called after
+        `prepare_playback`.
+
+        This will turn on the RF switch and trigger the RAM playback. Whether it
+        loops forever or only fires only once depends on the choice of NODWELL mode.
+        """
+        self.dds.sw.on()
+        self.cpld.io_update.pulse_mu(delay_mu(int64(self.core.ref_multiplier)))
+
+    @kernel
     def trigger_pulse(self):
         """
         Fire the configured pulse. This should be called after `prepare_playback`.
 
         Advances the timeline by the duration of the pulse
         """
-        self.dds.sw.on()
-        self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
-
+        self.start_output()
         delay(self._step_duration * self.num_steps.get())
+        self.stop_output()
 
+    @kernel
+    def stop_output(self):
+        """
+        Stop playback of the configured shape. This should be called after `start_output`.
+        """
         self.dds.sw.off()
 
     @kernel

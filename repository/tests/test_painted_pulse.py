@@ -1,7 +1,9 @@
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from ndscan.experiment import *
+from artiq.language import delay
+from ndscan.experiment import ExpFragment
+from ndscan.experiment import make_fragment_scan_exp
 from pyaion.fragments.urukul_init import make_urukul_init
 
 from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadratic
@@ -9,7 +11,7 @@ from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadrat
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 
 
-class TestDiffractionCompensatedQuadratic(ExpFragment):
+class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
@@ -37,7 +39,11 @@ class TestDiffractionCompensatedQuadratic(ExpFragment):
         self.core.break_realtime()
         self.painter.trigger_pulse()
 
-        # FIXME THese functions need to exist
         self.painter.start_output()
         delay(1.0)
         self.painter.stop_output()
+
+
+TestDiffractionCompensatedQuadratic = make_fragment_scan_exp(
+    TestDiffractionCompensatedQuadraticFrag
+)
