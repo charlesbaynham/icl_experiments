@@ -68,10 +68,13 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
 
         m = np.sqrt(1 - self.epsilon.get())
 
+        if (n_words % 2) != 0:
+            raise ValueError("n_words must be even")
+
         # Generate a numpy array of the correct size
-        n_half = 50
+        n_half = n_words // 2
         relation = lambda t: lambda f: (m**2 - 1) * np.arctanh(m * f) + m * f - t
-        # This is a bit of a hack, we want to find the maximum value of t, so we can rearange the above equation for t and f = 1.
+        # This is a bit of a hack, we want to find the maximum value of t, so we can rearrange the above equation for t and f = 1.
         # This expression is essentially the same but without the t component!
         t_max = relation(0)(1)
         calc_ts = np.linspace(-t_max, t_max, n_half)
