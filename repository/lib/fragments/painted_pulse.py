@@ -44,7 +44,7 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
         self._old_epsilon = -1.0
 
         return super().build_fragment(
-            centre_frequency_param_handle=self.centre_frequency
+            centre_frequency_param_handle=self.centre_frequency, *args, **kwargs
         )
 
     def generate_frequencies(self, n_words) -> np.ndarray:

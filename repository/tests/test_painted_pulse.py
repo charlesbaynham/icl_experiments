@@ -22,10 +22,14 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         self.dds: AD9910 = self.get_device(PAINTING_URUKUL_CHANNEL)
 
-        self.setattr_fragment("painter", DiffractionCompensatedQuadratic)
+        self.setattr_fragment(
+            "painter",
+            DiffractionCompensatedQuadratic,
+            ad9910_name=PAINTING_URUKUL_CHANNEL,
+        )
         self.painter: DiffractionCompensatedQuadratic
 
-        self.ttl_trigger: TTLOut = self.get_device("ttl_shutter_debugging_trigger")
+        self.ttl_trigger: TTLOut = self.get_device("ttl_debugging")
 
     def run_once(self) -> None:
         self.core.break_realtime()
