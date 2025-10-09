@@ -1,9 +1,13 @@
+import logging
+
 import numpy as np
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from scipy.optimize import root_scalar
 
 from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
+
+logger = logging.getLogger(__name__)
 
 
 class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
@@ -66,13 +70,20 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
         # This expression is essentially the same but without the t component!
         t_max = relation(0)(1)
         calc_ts = np.linspace(-t_max, t_max, n_half)
-        roots = list(
-            map(lambda t: root_scalar(relation(t), method="newton", x0=0).root, calc_ts)
+        roots = np.array(
+            list(
+                map(
+                    lambda t: root_scalar(relation(t), method="newton", x0=0).root,
+                    calc_ts,
+                )
+            )
         )
         detunings = np.zeros(2 * n_half)
         detunings[:n_half] = roots
         detunings[n_half:] = -1 * roots
         detunings *= self.mod_depth.get()
+
+        logger.warning(detunings)
 
         return detunings
 

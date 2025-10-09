@@ -431,7 +431,7 @@ class FrequencyShapedPulse(_ShapedPulse):
 
         absolute_frequency = self.centre_frequency.get() + detuning_frequency
         # Need to ensure that we don't have frequencies out of the bound
-
+        logger.warning(absolute_frequency)
         assert np.all(
             absolute_frequency < self.dds.ftw_to_frequency(0xFFFFFFFF)
         ), "Frequency too high"
