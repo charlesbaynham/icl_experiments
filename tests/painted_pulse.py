@@ -41,12 +41,23 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
 
         self.mod_frequency: FloatParamHandle
 
+        self.setattr_param(
+            "centre_frequency",
+            FloatParam,
+            description="Centre frequency of the shaped pulse",
+            default=100E6,
+            min=0.0,
+            max=4E8,
+        )
+
+        self.centre_frequency: FloatParamHandle
+
         # Kernel params
         self._old_frequency = -1.0
         self._old_depth = -1.0
         self._old_epsilon = -1.0
 
-        return super().build_fragment(*args, **kwargs)
+        return super().build_fragment(self.centre_frequency, *args, **kwargs)
 
     def generate_frequencies(self, n_words) -> np.ndarray:
         """
