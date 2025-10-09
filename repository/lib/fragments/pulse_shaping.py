@@ -11,6 +11,7 @@ from artiq.coredevice.urukul import CPLD
 from artiq.language import TInt32
 from artiq.language import TList
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import portable
 from artiq.language import rpc
@@ -19,6 +20,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from numpy import int64
 from pyaion.fragments.urukul_init import make_urukul_init
 
 logger = logging.getLogger(__name__)
@@ -224,6 +226,8 @@ class _ShapedPulse(Fragment, abc.ABC):
             step=self._step_mu,
             mode=self.ram_ramp_mode,
             profile=RAM_PROFILE,
+            # nodwell_high=0  # FIXME this will pause at the top currently. We
+            # should break out access to nodwell_high like we did for ram_ramp_mode
         )
 
         # This is a no-op since we are already on the right profile unless the
@@ -234,17 +238,33 @@ class _ShapedPulse(Fragment, abc.ABC):
         self.dds.set_cfr1(ram_enable=1, ram_destination=self.ram_modulation_mode)
 
     @kernel
+    def start_output(self):
+        """
+        Start playback of the configured shape. This should be called after
+        `prepare_playback`.
+
+        This will turn on the RF switch and trigger the RAM playback. Whether it
+        loops forever or only fires only once depends on the choice of NODWELL mode.
+        """
+        self.dds.sw.on()
+        self.cpld.io_update.pulse_mu(delay_mu(int64(self.core.ref_multiplier)))
+
+    @kernel
     def trigger_pulse(self):
         """
         Fire the configured pulse. This should be called after `prepare_playback`.
 
         Advances the timeline by the duration of the pulse
         """
-        self.dds.sw.on()
-        self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
-
+        self.start_output()
         delay(self._step_duration * self.num_steps.get())
+        self.stop_output()
 
+    @kernel
+    def stop_output(self):
+        """
+        Stop playback of the configured shape. This should be called after `start_output`.
+        """
         self.dds.sw.off()
 
     @kernel
@@ -412,9 +432,10 @@ class FrequencyShapedPulse(_ShapedPulse):
         absolute_frequency = self.centre_frequency.get() + detuning_frequency
         # Need to ensure that we don't have frequencies out of the bound
 
-        assert np.all(absolute_frequency < 400e6)
-
-        assert np.all(absolute_frequency > 0)
+        assert np.all(
+            absolute_frequency < self.dds.ftw_to_frequency(0xFFFFFFFF)
+        ), "Frequency too high"
+        assert np.all(absolute_frequency > 0), "Frequency too low"
 
         # Convert to ram words
         ram_data = [np.int32(0x00)] * self.num_steps.get()
@@ -526,41 +547,3 @@ class BlackmanShapedPulse(PhasorShapedPulse):
         self._old_num_steps = self.num_steps.get()
 
         return return_value
-
-
-class MyExperiment(Fragment):
-    def build_fragment(self):
-        self.setattr_fragment(
-            "shaped_pulse", FrequencyShapedPulse, ad9910_name="urukul0_ch0"
-        )
-        self.shaped_pulse: FrequencyShapedPulse
-
-        self.setattr_device("core")
-        self.core: Core
-
-        self.setattr_param(
-            "pulse_frequency",
-            FloatParam,
-            description="Frequency of the shaped pulse",
-            default=100e6,
-            min=1.0,
-            max=300e6,
-        )
-        self.pulse_frequency: FloatParamHandle
-
-        self.shaped_pulse.bind_param("centre_frequency", self.pulse_frequency)
-
-    @kernel
-    def run_once(self):
-        self.core.break_realtime()
-
-        delay(100e-3)
-
-        self.shaped_pulse.prepare_pulse(frequency=10e6)
-
-        delay(100e-3)
-
-        self.shaped_pulse.trigger_pulse()
-        delay(100e-3)
-
-        self.shaped_pulse.disable_ram_mode()
