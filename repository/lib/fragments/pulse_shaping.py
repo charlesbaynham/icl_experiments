@@ -412,9 +412,10 @@ class FrequencyShapedPulse(_ShapedPulse):
         absolute_frequency = self.centre_frequency.get() + detuning_frequency
         # Need to ensure that we don't have frequencies out of the bound
 
-        assert np.all(absolute_frequency < 400e6)
-
-        assert np.all(absolute_frequency > 0)
+        assert np.all(
+            absolute_frequency < self.dds.ftw_to_frequency(0xFFFFFFFF)
+        ), "Frequency too high"
+        assert np.all(absolute_frequency > 0), "Frequency too low"
 
         # Convert to ram words
         ram_data = [np.int32(0x00)] * self.num_steps.get()
