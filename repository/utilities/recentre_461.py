@@ -21,10 +21,11 @@ class Recentre461Frag(ExpFragment):
         self.wand_steering: WandSteering
 
         self.toptica_461: TopticaDLCPro = self.get_device("toptica_461")
-        self.raw_dlcpro = self.toptica_461.get_dlcpro()
 
     def host_setup(self):
         super().host_setup()
+
+        self.raw_dlcpro = self.toptica_461.get_dlcpro()
 
         # Open a connection
         self.raw_dlcpro.open()
