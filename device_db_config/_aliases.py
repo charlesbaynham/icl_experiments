@@ -20,6 +20,7 @@ aliases = {
     # Blue
     "urukul9910_aom_doublepass_461_master_to_ijd1": "urukul5_ch3",
     "urukul9910_aom_singlepass_461_ijd1_to_ijd23": "urukul5_ch2",
+    "urukul9910_aom_doublepass_461_to_xfer_cavity": "urukul5_ch1",
     "suservo_aom_singlepass_461_imaging_delivery": "suservo1_ch3",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
     "suservo_aom_singlepass_689_molasses": "suservo1_ch0",
@@ -42,6 +43,7 @@ aliases = {
     "suservo_aom_1064_delivery": "suservo0_ch3",
     # Other 1064 channels
     "suservo_aom_1064_painted_delivery": "suservo0_ch4",
+    "urukul9910_aom_1064_painting": "urukul5_ch0",
     "suservo_aom4_1064": "suservo0_ch5",
     # 813 channels
     "suservo_aom_down_813": "suservo0_ch7",
