@@ -396,7 +396,7 @@ class FrequencyShapedPulse(_ShapedPulse):
         """
         This function must be defined by the user to define their pulse shape.
         It must return a numpy array:
-            * detuning_frequency: array of length n_words, coerced to 0-1
+            * detuning_frequency: array of length n_words
         """
 
     @rpc

@@ -1,12 +1,12 @@
 import numpy as np
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
-from scipy.stats import beta
+from scipy.optimize import root_scalar
 
-from repository.lib.fragments.pulse_shaping import PhasorShapedPulse
+from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
 
 
-class DiffractionCompensatedQuadratic(PhasorShapedPulse):
+class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
     def build_fragment(self, *args, **kwargs):
         self.setattr_param(
             "epsilon",
@@ -23,20 +23,32 @@ class DiffractionCompensatedQuadratic(PhasorShapedPulse):
             "mod_depth",
             FloatParam,
             description="Modulation depth of the scan",
-            default=1,
+            default=1E3,
             min=1.0,
-            max=20.0,
+            max=1E5,
         )
 
         self.mod_depth: FloatParamHandle
 
+        self.__setattr__param(
+            "mod_frequency",
+            FloatParam,
+            description="Modulation frequency of the scan",
+            default=1E5,
+            min=1.0,
+            max=1E8,
+        )
+
+        self.mod_frequency: FloatParamHandle
+
         # Kernel params
-        self._old_alpha = -1.0
-        self._old_beta = -1.0
+        self._old_frequency = -1.0
+        self._old_depth = -1.0
+        self._old_epsilon = -1.0
 
         return super().build_fragment(*args, **kwargs)
 
-    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+    def generate_frequencies(self, n_words) -> np.ndarray:
         """
         Generate the diffraction compensated frequency modulated pulse.
 
@@ -44,38 +56,39 @@ class DiffractionCompensatedQuadratic(PhasorShapedPulse):
         """
 
         m = np.sqrt(1 - self.epsilon.get())
-        a = self.mod_depth.get()
-        relation = (
-            lambda f, v: lambda t: a * (m**2 - 1) * np.arctanh(m * f / a)
-            + m * f
-            - m**3 * v * t
-        )
-        t
 
-        t = np.linspace(0, 1, n_words)
-        amplitude = beta(self.alpha.get(), self.beta_param.get()).pdf(t)
+        # Generate a numpy array of the correct size
+        n_half = 50
+        relation = lambda t : lambda f: (m**2 - 1) * np.arctanh(m * f) + m * f - t
+        # This is a bit of a hack, we want to find the maximum value of t, so we can rearange the above equation for t and f = 1. 
+        # This expression is essentially the same but without the t component!
+        t_max = relation(0)(1)
+        calc_ts = np.linspace(-t_max, t_max, n_half)
+        roots = list(map(lambda t : root_scalar(relation(t), method = "newton", x0 = 0).root, calc_ts))
+        detunings = np.zeros(2*n_half)
+        detunings[:n_half] = roots
+        detunings[n_half:] = -1 * roots
+        detunings *= self.mod_depth.get()
 
-        amplitude /= max(amplitude)
-
-        phase = np.zeros_like(amplitude)
-
-        return amplitude, phase
+        return detunings
 
     @kernel
     def is_recalc_needed(self) -> bool:
         """
-        Check if the alpha or beta parameters have changed.
+        Check if any of the parameters have changed.
         """
 
         return_value = False
 
         if (
-            self.alpha.get() != self._old_alpha
-            or self.beta_param.get() != self._old_beta
+            self.mod_frequency.get() != self._old_frequency
+            or self.mod_depth.get() != self._old_depth
+            or self.epsilon.get() != self._old_epsilon
         ):
             return_value = True
 
-        self._old_alpha = self.alpha.get()
-        self._old_beta = self.beta_param.get()
+        self._old_frequency = self.mod_frequency.get()
+        self._old_depth = self.mod_depth.get()
+        self._old_epsilon = self.epsilon.get()
 
         return return_value
