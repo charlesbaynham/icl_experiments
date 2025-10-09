@@ -27,18 +27,13 @@ class Recentre461Frag(ExpFragment):
 
         self.raw_dlcpro = self.toptica_461.get_dlcpro()
 
-        # Open a connection
-        self.raw_dlcpro.open()
-        self.laser = self.dlcpro.get_laser()
-
     def run_once(self):
-
         # Open a connection
         self.raw_dlcpro.open()
-        self.laser = self.dlcpro.get_laser()
+        self.laser = self.toptica_461.get_laser()
 
         # Disable ARC
-        self.laser.dl.pc.external_input.set(False)
+        self.laser.dl.pc.external_input.enabled.set(False)
 
         # Steer the 461 back to its nominal setpoint
         self.wand_steering.steer_wand(
@@ -50,7 +45,7 @@ class Recentre461Frag(ExpFragment):
         )
 
         # Reenable ARC
-        self.laser.dl.pc.external_input.set(True)
+        self.laser.dl.pc.external_input.enabled.set(True)
 
 
 Recentre461 = make_fragment_scan_exp(Recentre461Frag)
