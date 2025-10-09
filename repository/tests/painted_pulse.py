@@ -19,24 +19,24 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
 
         self.epsilon: FloatParamHandle
 
-        self.__setattr__param(
+        self.setattr_param(
             "mod_depth",
             FloatParam,
             description="Modulation depth of the scan",
-            default=1E3,
+            default=1e3,
             min=1.0,
-            max=1E5,
+            max=1e5,
         )
 
         self.mod_depth: FloatParamHandle
 
-        self.__setattr__param(
+        self.setattr_param(
             "mod_frequency",
             FloatParam,
             description="Modulation frequency of the scan",
-            default=1E5,
+            default=1e5,
             min=1.0,
-            max=1E8,
+            max=1e8,
         )
 
         self.mod_frequency: FloatParamHandle
@@ -45,9 +45,9 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             "centre_frequency",
             FloatParam,
             description="Centre frequency of the shaped pulse",
-            default=100E6,
+            default=100e6,
             min=0.0,
-            max=4E8,
+            max=4e8,
         )
 
         self.centre_frequency: FloatParamHandle
@@ -70,13 +70,15 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
 
         # Generate a numpy array of the correct size
         n_half = 50
-        relation = lambda t : lambda f: (m**2 - 1) * np.arctanh(m * f) + m * f - t
-        # This is a bit of a hack, we want to find the maximum value of t, so we can rearange the above equation for t and f = 1. 
+        relation = lambda t: lambda f: (m**2 - 1) * np.arctanh(m * f) + m * f - t
+        # This is a bit of a hack, we want to find the maximum value of t, so we can rearange the above equation for t and f = 1.
         # This expression is essentially the same but without the t component!
         t_max = relation(0)(1)
         calc_ts = np.linspace(-t_max, t_max, n_half)
-        roots = list(map(lambda t : root_scalar(relation(t), method = "newton", x0 = 0).root, calc_ts))
-        detunings = np.zeros(2*n_half)
+        roots = list(
+            map(lambda t: root_scalar(relation(t), method="newton", x0=0).root, calc_ts)
+        )
+        detunings = np.zeros(2 * n_half)
         detunings[:n_half] = roots
         detunings[n_half:] = -1 * roots
         detunings *= self.mod_depth.get()
