@@ -27,6 +27,8 @@ class WandSteering(Fragment):
 
         initial_laser_db = self.wand_server.get_laser_db()
 
+        logger.info("Laser config: %s", initial_laser_db[laser])
+
         # Save initial settings so we can restore them at the end
         initial_gain = initial_laser_db[laser]["lock_gain"]
         initial_poll_time = initial_laser_db[laser]["lock_poll_time"]
