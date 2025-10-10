@@ -458,8 +458,11 @@ class FrequencyShapedPulse(_ShapedPulse):
         self.dds.set_profile_ram(
             start=0x00,
             end=self.num_steps.get() - 1,
+            step=self._step_mu,
+            mode=self.ram_ramp_mode,
+            profile=RAM_PROFILE,
             nodwell_high=1
-            )
+        )
 
 
 class PhasorShapedPulse(_ShapedPulse):
