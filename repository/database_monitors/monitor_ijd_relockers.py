@@ -26,13 +26,18 @@ class _MonitorIJDRelocker(Calibration):
             fields = {}
             try:
                 lock_results = self.relocker.get_result_labelled(channel)
-                v_current, v_rolling_low = self.relocker.get_levels(channel)
+                levels = self.relocker.get_levels_labelled(channel)
+
+                v_current = levels.avg_level
+                v_rolling_low = levels.window_level
+                v_immediate = levels.most_recent
 
                 fields["v_scan_low"] = lock_results.v_low
                 fields["v_set_lock"] = lock_results.v_set_lock
                 fields["v_read_lock"] = lock_results.v_read_lock
                 fields["v_current"] = v_current
                 fields["v_rolling_low"] = v_rolling_low
+                fields["v_immediate"] = v_immediate
 
                 locked = lock_results.relock_success
                 fields["status"] = "LOCKED" if locked else "UNLOCKED"
