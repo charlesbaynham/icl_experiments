@@ -40,7 +40,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         self.dds.sw.off()
 
         # This is an arbitrary frequency - it will be overwritten by the pulse
-        self.dds.set(frequency=100e6, amplitude=1.0)
+        self.dds.set(frequency=100e6, amplitude=3.0)
 
         self.core.break_realtime()
         self.painter.prepare_pulse()
