@@ -455,6 +455,11 @@ class FrequencyShapedPulse(_ShapedPulse):
         sequence, and call `disable_ram_mode` afterwards to clean up.
         """
         self._enter_RAM_mode()
+        self.dds.set_profile_ram(
+            start=0x00,
+            end=self.num_steps.get() - 1,
+            nodwell_high=1
+            )
 
 
 class PhasorShapedPulse(_ShapedPulse):
