@@ -27,18 +27,20 @@ class _MonitorToptica(Calibration):
         super().host_setup()
 
         self.dlcpro: TopticaDLCPro = self.get_device(self.laser_name)
-        self.raw_dlcpro = self.dlcpro.get_dlcpro()
-
         self.laser = None
 
     def host_cleanup(self):
-        self.raw_dlcpro.close()
+        try:
+            self.raw_dlcpro.close()
+        except ConnectionError:
+            pass
 
         super().host_cleanup()
 
     def check_own_state(self):
         if not self.laser:
             # Open a connection
+            self.raw_dlcpro = self.dlcpro.get_dlcpro()
             self.raw_dlcpro.open()
 
             # Save the laser
