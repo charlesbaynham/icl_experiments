@@ -4,6 +4,7 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from toptica_wrapper.driver import TopticaDLCPro
 
+from repository.lib import constants
 from repository.lib.fragments.wand_steering import WandSteering
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,10 @@ class Recentre461Frag(ExpFragment):
         )
 
         # Reenable ARC
+        self.laser.dl.pc.external_input.signal.set(
+            constants.TRANSFER_CAVITY_461_CHANNEL
+        )
+        self.laser.dl.pc.external_input.factor.set(constants.TRANSFER_CAVITY_461_GAIN)
         self.laser.dl.pc.external_input.enabled.set(True)
 
 

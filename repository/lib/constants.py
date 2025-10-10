@@ -887,6 +887,9 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
 
+TRANSFER_CAVITY_461_CHANNEL = 2
+TRANSFER_CAVITY_461_GAIN = 1.0
+
 
 WAND_SHUTTERS_DELAY = 50e-3
 "Shutter closing delay before WAND measurements of the 689 and 1379"
