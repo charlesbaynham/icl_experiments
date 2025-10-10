@@ -47,5 +47,5 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
 
 TestDiffractionCompensatedQuadratic = make_fragment_scan_exp(
-    TestDiffractionCompensatedQuadraticFrag
+    TestDiffractionCompensatedQuadraticFrag, max_rtio_underflow_retries=0
 )
