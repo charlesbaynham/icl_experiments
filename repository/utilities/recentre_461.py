@@ -52,5 +52,9 @@ class Recentre461Frag(ExpFragment):
         self.laser.dl.pc.external_input.factor.set(constants.TRANSFER_CAVITY_461_GAIN)
         self.laser.dl.pc.external_input.enabled.set(True)
 
+        fac = self.laser.dl.pc.external_input.factor.get()
+        channel = self.laser.dl.pc.external_input.signal.get()
+        logger.warning(f"Reenabled ARC on 461 with channel {channel} and gain {fac}")
+
 
 Recentre461 = make_fragment_scan_exp(Recentre461Frag)
