@@ -163,7 +163,7 @@ class IJDSettings:
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
-        temperature=8600,
+        temperature=7700,
         window_high=362e-3,
         window_low=357e-3,
         relock_step=3e-3,
