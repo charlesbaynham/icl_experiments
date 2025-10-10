@@ -1,12 +1,14 @@
+import logging
+
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.language import delay, now_mu
+from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from pyaion.fragments.urukul_init import make_urukul_init
-import logging
 
 from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadratic
 
@@ -41,7 +43,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         # This is an arbitrary frequency - it will be overwritten by the pulse
         self.dds.set(frequency=100e6, amplitude=1.0)
-        self.dds.set_att(10.)
+        self.dds.set_att(10.0)
 
         self.core.break_realtime()
         self.painter.prepare_pulse()
@@ -49,7 +51,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         self.core.break_realtime()
         self.painter.start_output()
         logger.warning("Hey I'm starting minute")
-        delay(60.0)
+        delay(10.0)
         self.painter.stop_output()
 
         self.core.wait_until_mu(now_mu())
