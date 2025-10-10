@@ -28,7 +28,7 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             description="Modulation depth of the scan",
             default=1e3,
             min=1.0,
-            max=1e5,
+            max=200e6,
         )
         self.mod_depth: FloatParamHandle
 
