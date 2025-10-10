@@ -55,6 +55,10 @@ class _ShapedPulse(Fragment, abc.ABC):
     ram_ramp_mode = ad9910.RAM_MODE_RAMPUP
     "RAM playback mode - see AD9910 datasheet for details. Default to a repeating ramp upwards through RAM addresses"
 
+    ram_nodwell_mode = 0
+    "NODWELL mode. 0 means wait at the top of the ramp through RAM, 1 means loop back"
+
+
     def __init__(self, *args, **kwargs):
         if self.ram_modulation_mode is None:
             raise ValueError("ram_modulation_mode must be set in subclass")
@@ -135,6 +139,10 @@ class _ShapedPulse(Fragment, abc.ABC):
         Subclasses must implement this method as a synchronous RPC. It must
         return a list of int32s, n_words long, that will be written into RAM.
         """
+
+    @abc.abstractmethod
+    def prepare_pulse(self):
+        pass
 
     @kernel
     def device_setup(self):
@@ -226,8 +234,7 @@ class _ShapedPulse(Fragment, abc.ABC):
             step=self._step_mu,
             mode=self.ram_ramp_mode,
             profile=RAM_PROFILE,
-            # nodwell_high=0  # FIXME this will pause at the top currently. We
-            # should break out access to nodwell_high like we did for ram_ramp_mode
+            nodwell_high=self.ram_nodwell_mode
         )
 
         # This is a no-op since we are already on the right profile unless the
@@ -399,6 +406,10 @@ class _ShapedPulse(Fragment, abc.ABC):
 
 class FrequencyShapedPulse(_ShapedPulse):
     ram_modulation_mode = ad9910.RAM_DEST_FTW
+    ram_nodwell_mode = 1
+    # Have it ramp up and down
+    
+    
 
     def build_fragment(
         self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
@@ -455,15 +466,7 @@ class FrequencyShapedPulse(_ShapedPulse):
         sequence, and call `disable_ram_mode` afterwards to clean up.
         """
         self._enter_RAM_mode()
-        self.dds.set_profile_ram(
-            start=0x00,
-            end=self.num_steps.get() - 1,
-            step=self._step_mu,
-            mode=self.ram_ramp_mode,
-            profile=RAM_PROFILE,
-            nodwell_high=1
-        )
-
+        
 
 class PhasorShapedPulse(_ShapedPulse):
     ram_modulation_mode = ad9910.RAM_DEST_POWASF
