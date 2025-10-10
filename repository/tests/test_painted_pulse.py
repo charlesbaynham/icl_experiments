@@ -1,7 +1,7 @@
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.language import delay
+from artiq.language import delay, now_mu
 from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
@@ -49,8 +49,10 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         self.painter.start_output()
         logger.warning("Hey I'm starting minute")
         delay(60.0)
-        logger.warning("Hey it's been a minute")
         self.painter.stop_output()
+
+        self.core.wait_until_mu(now_mu())
+        logger.warning("Hey it's been a minute")
 
 
 TestDiffractionCompensatedQuadratic = make_fragment_scan_exp(
