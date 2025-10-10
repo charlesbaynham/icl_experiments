@@ -45,7 +45,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         self.core.break_realtime()
         self.painter.start_output()
-        delay(1.0)
+        delay(10.0)
         self.painter.stop_output()
 
 
