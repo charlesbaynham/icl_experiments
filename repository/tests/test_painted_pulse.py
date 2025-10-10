@@ -1,6 +1,8 @@
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
+from artiq.language import delay
+from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from pyaion.fragments.urukul_init import make_urukul_init
@@ -30,20 +32,21 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         self.ttl_trigger: TTLOut = self.get_device("ttl_debugging")
 
+    @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
         self.dds.sw.off()
-        # FIXME
-        # # This is an arbitrary frequency - it will be overwritten by the pulse
-        # self.dds.set(frequency=100e6, amplitude=1.0)
 
-        # self.core.break_realtime()
-        # self.painter.prepare_pulse()
+        # This is an arbitrary frequency - it will be overwritten by the pulse
+        self.dds.set(frequency=100e6, amplitude=1.0)
 
-        # self.core.break_realtime()
-        # self.painter.start_output()
-        # delay(1.0)
-        # self.painter.stop_output()
+        self.core.break_realtime()
+        self.painter.prepare_pulse()
+
+        self.core.break_realtime()
+        self.painter.start_output()
+        delay(1.0)
+        self.painter.stop_output()
 
 
 TestDiffractionCompensatedQuadratic = make_fragment_scan_exp(
