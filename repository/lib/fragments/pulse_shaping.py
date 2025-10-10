@@ -247,7 +247,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         loops forever or only fires only once depends on the choice of NODWELL mode.
         """
         self.dds.sw.on()
-        self.cpld.io_update.pulse_mu(delay_mu(int64(self.core.ref_multiplier)))
+        self.cpld.io_update.pulse_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def trigger_pulse(self):
