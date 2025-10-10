@@ -6,10 +6,12 @@ from artiq.language import kernel
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from pyaion.fragments.urukul_init import make_urukul_init
+import logging
 
 from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadratic
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
+logger = logging.getLogger(__name__)
 
 
 class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
@@ -45,7 +47,9 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         self.core.break_realtime()
         self.painter.start_output()
-        delay(10.0)
+        logger.warning("Hey I'm starting minute")
+        delay(60.0)
+        logger.warning("Hey it's been a minute")
         self.painter.stop_output()
 
 
