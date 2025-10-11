@@ -1,0 +1,338 @@
+# ICL ARTIQ Experiments Repository
+
+## Project Overview
+
+This is the Imperial College London (ICL) ARTIQ experiments repository for controlling quantum physics experiments. ARTIQ (Advanced Real-Time Infrastructure for Quantum physics) is a leading-edge control system for quantum information experiments.
+
+## Technology Stack
+
+### Core Technologies
+- **ARTIQ**: Quantum experiment control system with real-time capabilities
+- **Python**: Version 3.10-3.11 (strict constraint)
+- **Nix/NixOS**: Reproducible build environment and package management
+- **Poetry**: Python dependency management (via poetry2nix)
+- **ndscan**: Experiment scanning framework from Oxford Ion Trap Group
+
+### Key Dependencies
+- **PyAION**: AION Physics ARTIQ utilities and base functionality
+- **sipyco**: Simple Python Communications library for ARTIQ
+- **Wand**: Graphical experiment control interface
+- **InfluxDB**: Time-series database for experiment data
+- **Grafana**: Data visualization and monitoring
+
+### Hardware Drivers
+- Aravis (camera control via GigE Vision)
+- Koheron CTL200 laser driver
+- Toptica laser control
+- Relocker board driver
+- Andor cameras
+- Various power supplies (Tenma, TTi)
+- VXI-11 instruments
+
+## Project Structure
+
+```
+repository/          # Main experiment code (importable as "repository")
+├── lib/            # Shared library code and utilities
+├── monitors/       # Database monitoring experiments
+├── utilities/      # Helper experiments and tools
+├── 689_spectroscopy/
+├── blue_mot/
+├── clock_interferometry/
+├── clock_spectroscopy/
+├── dipole_trap/
+├── injected_diodes/
+├── red_mot/
+└── tests/
+
+device_db_config/    # Hardware device definitions
+├── devices.py      # Device configurations
+├── _aliases.py     # Device aliases
+└── configuration.py
+
+dedrifter/          # Laser drift compensation system
+tests/              # Unit tests (pytest)
+docs/               # Sphinx documentation
+scripts/            # Launch scripts and utilities
+```
+
+### Experiment structure
+TODO: Describe how hooks and mixins are used with the main experiments.
+
+## Development Guidelines
+
+### Import Conventions
+- Use **absolute imports** from the repository root: `from repository.lib import MyClass`
+- This works because of our ARTIQ fork with PR #1805 merged
+- Enables IDE autocomplete and better code navigation
+
+### Code Style
+- Use **Black** formatter (version 24.8.0)
+- Run `pre-commit run --all` to format code
+- Use `pre-commit install` for automatic formatting on commits
+- All style rules are enforced by CI
+
+### ARTIQ-Specific Patterns
+
+#### Experiment Classes
+- Inherit from `artiq.experiment.EnvExperiment` or PyAION base classes
+- Use `@kernel` decorator for real-time hardware control code
+- Use `@rpc` for Python-side operations
+- Be mindful of kernel/host boundary - only simple types cross it
+
+#### Device Access
+- Access hardware via `self.get_device()` in `build()` method
+- Device definitions come from `device_db_config`
+- Use descriptive device names and aliases
+
+### Testing
+- Write unit tests in `tests/` directory
+- Use `pytest` as the test runner
+- Tests run in parallel (`-n 16` by default)
+- Mark expected failures with `@pytest.mark.xfail`
+- Test non-kernel utility functions (kernel testing is difficult)
+
+### Documentation
+- Use **Google-style docstrings** for Sphinx autodoc
+- Documentation auto-generates from experiment files
+- Build docs locally: `nix run .#docs`
+- Documentation deploys to GitLab Pages on master branch
+
+### TODO/FIXME Convention
+- Use `TODO` for planned improvements
+- Use `FIXME` for temporary bodges that must be removed
+- **FIXME markers will fail CI** - they are not allowed in committed code on the master branch
+- Search for these using TodoTree extension or similar
+
+## Nix Environment
+
+### Key Commands
+- `nix develop` - Enter development shell with all dependencies
+- `nix run .#full_stack` - Launch complete ARTIQ stack (master, controllers, DB, Grafana)
+- `nix run .#dashboard` - Launch ARTIQ dashboard
+- `nix run .#wand` - Launch Wand GUI
+- `nix run .#update` - Update PyAION and ARTIQ versions
+
+### Python Packages
+
+#### Adding Dependencies
+```bash
+poetry add --lock package-name
+nix develop -c true
+```
+This automatically updates both `pyproject.toml` and the Nix lock file. Do not
+attempt to use poetry to build a python virtual environment - this is done with
+Nix, but uses the poetry lock file.
+
+#### Updating dependencies
+```bash
+poetry update --lock package-name
+nix develop -c true
+```
+
+### System Packages
+Edit `flake.nix` to add system dependencies or override package builds.
+
+### Build Configuration
+- Uses **poetry2nix** for Python package resolution
+- First build can take ~30 minutes locally
+- Use Cachix for pre-built binaries: `cachix use aion-physics`
+- Binary cache populated by GitLab CI
+
+## Special Considerations
+
+### Network Configuration
+- Server binds to `10.137.1.252` (ICL AION lab server IP)
+- This allows multiple ARTIQ sessions on different IPs
+
+### WSL Support
+- Includes automatic DISPLAY environment variable setup for WSL
+- X server detection via `scripts/wsl_display_fix.sh`
+
+### Qt Applications
+- Some drivers (relocker, pylablib, andor) need `dontWrapQtApps = true`
+- Wand GUI needs special Qt wrapping in Nix
+
+### ARTIQ Fork
+- Uses custom ARTIQ fork with minimal changes from the m-labs upstream version
+
+## Common Patterns
+
+### Creating a basic Experiment
+```python
+from artiq.experiment import *
+
+class MyExperiment(EnvExperiment):
+    def build(self):
+        self.setattr_device("core")
+        # Get other devices here
+
+    @kernel
+    def run(self):
+        self.core.reset()
+        # Real-time code here
+```
+
+### Using ndscan
+- Almost all experiments are generated from ndscan ExpFragments instead of raw ARTIQ EnvExperiments
+- These should support ndscan parameters for scanning
+- Parameters are added with self.setattr_param
+- ResultChannels are added with self.setattr_result
+- Every ResultChannel must be pushed to exactly once for every run of `run_once`, i.e. every point in an ndscan scan
+- Allows complex multi-dimensional scans without code changes
+
+### Hardware Device Interaction
+
+- Define devices in `device_db_config/`
+- Access via `self.get_device("device_name")`
+- Use type hints for IDE support
+
+## Contributing
+
+### Preference for PyAION
+
+- Implement **common functionality in PyAION**, not locally
+- Implement reusable code as ndscan Fragments
+- This allows sharing improvements across institutions
+
+### Code Review
+
+- All changes should pass CI (linting, tests, docs build)
+- No FIXME markers allowed in commits on the master branch
+- Document new experiments thoroughly
+
+### AI commits
+
+- When commiting code authored by AI assistants, prefix commits with "[AI]"
+
+### Type annotation
+
+- ARTIQ and ndscan make heavy use of `setattr_xxxxxx` methods. These follow the convention that `self.setattr_xxxxx("name", ObjectType)` will make an object of type `ObjectType` and save it as `self.name`.
+- This confuses IDEs, so after every `setattr_xxx` call, use python type annotation to annotate the attribute that was just created.
+- Example:
+
+```python
+from artiq.coredevice.core import Core
+
+...
+
+self.setattr_device("core")
+self.core: Core
+```
+
+- One exception to this rule is ndscan parameters. These are called as e.g. `self.setattr_param("my_param", FloatParam, [...])` but create attrubtes of type `FloatParamHandle`, i.e. they make handles to the params. Example:
+
+```python
+self.setattr_param("my_param", FloatParam, description="My parameter", default=0.0)
+
+self.my_param: FloatParamHandle  # CORRECT
+self.my_param: FloatParam  # INCORRECT
+```
+
+- The "ccb" virtual device is hard to annotate. The correct way is like this:
+
+```python
+from artiq.master.worker_impl import CCB
+
+...
+
+    self.setattr_device("ccb")
+    self.ccb: CCB
+```
+
+### Logging
+
+- Use the python `logging` library, making a `logger = logging.getLogger(__name__)` in every module
+- Use positional markers rather than f-string in logging calls. Example:
+
+  ```python
+  logger.info("The number is %f", number)  # CORRECT
+  logger.info(f"The number is {number}")  # INCORRECT
+  ```
+
+### Units Convention
+
+- All physical quantities are always in base SI units internally.
+
+1. **Parameter Definitions (ndscan)**:
+
+   ```python
+   # CORRECT - default is in base SI units (Amperes), unit= is only for display
+   self.setattr_param(
+       "current",
+       FloatParam,
+       default=80.0e-3,  # 80 mA in Amperes (base SI unit)
+       unit="mA"         # Display to user in milliamps
+   )
+   ```
+
+   ```python
+   # INCORRECT - default is already in mA, not in base SI
+   self.setattr_param(
+       "current",
+       FloatParam,
+       default=80.0,     # Wrong! This is 80 A, not 80 mA
+       unit="mA"
+   )
+   ```
+
+   ```python
+   # INCORRECT - this is a unitless quantity so the "unit" keyword argument should not be provided
+   self.setattr_param(
+       "fraction_through_window",
+       FloatParam,
+       default=0.5,
+       unit=""
+   )
+   ```
+
+2. **Key Principles**:
+   - The `default=` parameter is ALWAYS in base SI units (Hz, V, A, m, s, etc.)
+   - The `unit=` parameter is ONLY for display/UI purposes
+   - This ensures consistency: all code operates in base SI regardless of display units
+   - Where appropriate, sensible "max" and "min" values should be added when making new parameters
+
+3. **External Libraries**:
+   - Where external libraries require non-base units (e.g. a laser library that takes current in "mA", do the conversion as close as possible to the call to the external library
+   - Example:
+     ```python
+     current = self.current_param.get()  # Get in Amperes (base SI)
+     laser.set_current_ma(current_A * 1e3)    # Convert to mA for library
+     ```
+
+4. **Common Base SI Units**:
+   - Frequency: Hz (not kHz, MHz, GHz)
+   - Current: A (not mA, μA)
+   - Voltage: V (not mV)
+   - Time: s (not ms, μs, ns)
+   - Length: m (not mm, μm, nm)
+   - Power: W (not mW, μW)
+
+5. **Variable names for physical quantities**
+    - There is no need to specify the unit in the variable name, since it is always the base unit for that quantity
+    - Example:
+    ```python
+    current = 15e-3  # CORRECT: current is 15mA
+    logger.info("Current: %f mA", 1e3 * current)  # CORRECT: conversion is done for display only
+
+    current_A = 1.0  # INCORRECT: we already know current is always in A, so no need to specify
+    ```
+
+## Best Practices
+
+1. **Keep kernel code simple** - complex logic should be in host code
+2. **Test extensively** - experiments control expensive equipment
+3. **Document hardware configurations** - include calibration values in docstrings
+4. **Use version control** - git hash is embedded in all datasets
+5. **Monitor performance** - use monitors for long-term system health
+6. **Backup regularly** - use provided backup scripts for datasets and database
+7. **Update cautiously** - coordinate updates with other lab users
+8. **Be cautious about break_realtime** - this will solve many RTIOUnderflow
+   errors, but at the often unacceptable cost of losing real-time determinism
+
+## Resources
+
+- [PyAION Documentation](https://aion-physics.gitlab.io/code/artiq/pyaion/)
+- [ARTIQ Manual](https://m-labs.hk/artiq/manual/)
+- [ndscan GitHub](https://github.com/OxfordIonTrapGroup/ndscan)
+- Local docs: `nix run .#docs`

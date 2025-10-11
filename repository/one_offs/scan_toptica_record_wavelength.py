@@ -15,15 +15,6 @@ from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
-TOPTICA_TO_WAND_NAMES = {
-    "toptica_461": "461",
-    "toptica_679": "679",
-    "toptica_707": "707",
-    "toptica_689": "689",
-    "toptica_698": "698",
-    "toptica_487": "487",
-}
-
 
 class ScanTopticaWithWavemeterFrag(ExpFragment):
     """
@@ -38,7 +29,7 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
-        toptica_lasers = list(TOPTICA_TO_WAND_NAMES.keys())
+        toptica_lasers = list(constants.TOPTICA_TO_WAND_NAMES.keys())
 
         if self.laser_name is None:
             # Allow the user to choose the laser by subclassing this Fragment if
@@ -120,7 +111,7 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
 
         # Get the laser's nominal setpoint
         self.nominal_setpoint = constants.WAND_SETPOINTS_87[
-            TOPTICA_TO_WAND_NAMES[self.laser_name]
+            constants.TOPTICA_TO_WAND_NAMES[self.laser_name]
         ][0]
 
         # Make sure that the slew rate protection is on
@@ -155,7 +146,9 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         self.get_frequency()
 
     def get_frequency(self):
-        _, freq, _ = self.wand_server.get_freq(TOPTICA_TO_WAND_NAMES[self.laser_name])
+        _, freq, _ = self.wand_server.get_freq(
+            constants.TOPTICA_TO_WAND_NAMES[self.laser_name]
+        )
         detuning = freq - self.nominal_setpoint
 
         if self.cutoff_detuning.get() > 0:
