@@ -1,6 +1,8 @@
 from artiq.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
@@ -70,6 +72,22 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         )
         self.cutoff_detuning: FloatParamHandle
 
+        self.setattr_param(
+            "disable_feedforward",
+            BoolParam,
+            default=False,
+            description="Disable laser feedforward during scan",
+        )
+        self.disable_feedforward: BoolParamHandle
+
+        self.setattr_param(
+            "restore_settings",
+            BoolParam,
+            default=False,
+            description="Restore initial settings after scan",
+        )
+        self.restore_settings: BoolParamHandle
+
         self.setattr_result(
             "frequency",
             FloatChannel,
@@ -111,7 +129,22 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
                 "Please enable it in the Toptica GUI and set a save value."
             )
 
+        # Record the initial current and voltage
+        self.initial_piezo_voltage = self.laser.dl.pc.voltage_set.get()
+        self.initial_current = self.laser.dl.cc.current_set.get()
+
+        # Disable feedforward if requested
+        if self.disable_feedforward.get():
+            self.initial_feedforward = self.get_feedforward()
+            self.set_feedforward(False)
+
         return super().host_setup()
+
+    def set_feedforward(self, enabled: bool):
+        self.laser.dl.cc.feedforward_enabled.set(enabled)
+
+    def get_feedforward(self):
+        return bool(self.laser.dl.cc.feedforward_enabled.get())
 
     def run_once(self):
         self.set_toptica(self.toptica_voltage.get(), self.toptica_current.get())
@@ -134,6 +167,18 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
 
         if new_current > 0:
             self.laser.dl.cc.current_set.set(1e3 * new_current)
+
+    def host_cleanup(self):
+        super().host_cleanup()
+
+        if self.restore_settings.get():
+            # Restore initial voltage and current
+            self.laser.dl.pc.voltage_set.set(self.initial_piezo_voltage)
+            self.laser.dl.cc.current_set.set(self.initial_current)
+
+            # Turn feedforward back on if we turned it off
+            if self.disable_feedforward.get():
+                self.set_feedforward(self.initial_feedforward)
 
 
 ScanTopticaWithWavemeter = make_fragment_scan_exp(ScanTopticaWithWavemeterFrag)
