@@ -36,9 +36,8 @@ class _MonitorIJDRelocker(Calibration):
                 auto_mode = int(lock_settings.auto_relock)
                 v_low_threshold = lock_settings.v_low_threshold
 
-                fields["v_scan_low"] = lock_results.v_low
                 fields["v_set_lock"] = lock_results.v_set_lock
-                fields["v_read_lock"] = lock_results.v_read_lock
+
                 fields["v_current"] = v_current
                 fields["v_rolling_low"] = v_rolling_low
                 fields["v_immediate"] = v_immediate
@@ -47,7 +46,16 @@ class _MonitorIJDRelocker(Calibration):
                 fields["v_low_threshold"] = v_low_threshold
 
                 locked = lock_results.relock_success
-                fields["status"] = "LOCKED" if locked else "UNLOCKED"
+
+                if auto_mode:
+                    if locked:
+                        status = "LOCKED"
+                    else:
+                        status = "UNLOCKED"
+                else:
+                    status = "IDLE"
+
+                fields["status"] = status
 
                 result = CalibrationResult.OK if locked else CalibrationResult.BAD_DATA
 
