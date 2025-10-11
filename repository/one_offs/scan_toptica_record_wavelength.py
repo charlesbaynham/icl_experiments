@@ -83,7 +83,7 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         self.setattr_param(
             "restore_settings",
             BoolParam,
-            default=False,
+            default=True,
             description="Restore initial settings after scan",
         )
         self.restore_settings: BoolParamHandle
