@@ -187,9 +187,9 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
             self.laser.dl.pc.voltage_set.set(self.initial_piezo_voltage)
             self.laser.dl.cc.current_set.set(self.initial_current)
 
-            # Turn feedforward back on if we turned it off
-            if self.disable_feedforward.get():
-                self.set_feedforward(self.initial_feedforward)
+        # Turn feedforward back on if we turned it off
+        if self.disable_feedforward.get():
+            self.set_feedforward(self.initial_feedforward)
 
 
 ScanTopticaWithWavemeter = make_fragment_scan_exp(ScanTopticaWithWavemeterFrag)
