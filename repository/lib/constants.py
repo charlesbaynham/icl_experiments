@@ -891,6 +891,16 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 ], "Please ensure both lists are in the same order"
 
 
+TOPTICA_TO_WAND_NAMES = {
+    "toptica_461": "461",
+    "toptica_679": "679",
+    "toptica_707": "707",
+    "toptica_689": "689",
+    "toptica_698": "698",
+    "toptica_487": "487",
+}
+
+
 WAND_SHUTTERS_DELAY = 50e-3
 "Shutter closing delay before WAND measurements of the 689 and 1379"
 
