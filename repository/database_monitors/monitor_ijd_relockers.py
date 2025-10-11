@@ -28,6 +28,7 @@ class _MonitorIJDRelocker(Calibration):
                 lock_results = self.relocker.get_result_labelled(channel)
                 lock_settings = self.relocker.get_settings_labelled(channel)
                 levels = self.relocker.get_levels_labelled(channel)
+                locked = self.relocker.get_locked()
 
                 v_current = levels.avg_level
                 v_rolling_low = levels.window_level
@@ -44,8 +45,6 @@ class _MonitorIJDRelocker(Calibration):
 
                 fields["auto_mode"] = auto_mode
                 fields["v_low_threshold"] = v_low_threshold
-
-                locked = lock_results.relock_success
 
                 if auto_mode:
                     if locked:
