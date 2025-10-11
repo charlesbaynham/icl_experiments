@@ -43,7 +43,7 @@ class TurnOffIJDs(EnvExperiment):
             relocker: RelockerDriver = self.get_device(relocker_name)
             logger.info("Turning off relocker %s", relocker_name)
 
-            for channel in list(range(0, 4)):
+            for channel in list(range(0, 3)):
                 logger.info(
                     "Turning off auto-relock on relocker %s, channel %d",
                     relocker_name,
