@@ -1,3 +1,5 @@
+import logging
+
 from artiq.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
@@ -10,6 +12,8 @@ from toptica_wrapper import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 
 from repository.lib import constants
+
+logger = logging.getLogger(__name__)
 
 TOPTICA_TO_WAND_NAMES = {
     "toptica_461": "461",
@@ -172,6 +176,13 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         super().host_cleanup()
 
         if self.restore_settings.get():
+            logger.info(
+                "Restoring initial laser settings: "
+                f"voltage={self.initial_piezo_voltage} V, "
+                f"current={self.initial_current} mA, "
+                f"feedforward={'on' if self.initial_feedforward else 'off'}"
+            )
+
             # Restore initial voltage and current
             self.laser.dl.pc.voltage_set.set(self.initial_piezo_voltage)
             self.laser.dl.cc.current_set.set(self.initial_current)
