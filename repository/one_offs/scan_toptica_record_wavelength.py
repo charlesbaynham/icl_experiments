@@ -138,8 +138,8 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         self.initial_current = self.laser.dl.cc.current_set.get()
 
         # Disable feedforward if requested
+        self.initial_feedforward = self.get_feedforward()
         if self.disable_feedforward.get():
-            self.initial_feedforward = self.get_feedforward()
             self.set_feedforward(False)
 
         return super().host_setup()
