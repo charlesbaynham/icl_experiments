@@ -176,10 +176,10 @@ class ScanTopticaWithWavemeterFrag(ExpFragment):
         super().host_cleanup()
 
         if self.restore_settings.get():
-            logger.info(
-                "Restoring initial laser settings: "
-                f"voltage={self.initial_piezo_voltage} V, "
-                f"current={self.initial_current} mA, "
+            logger.warning(
+                "Restoring initial laser settings:\n"
+                f"voltage={self.initial_piezo_voltage} V,\n"
+                f"current={self.initial_current} mA,\n"
                 f"feedforward={'on' if self.initial_feedforward else 'off'}"
             )
 
