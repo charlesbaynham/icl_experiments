@@ -4,6 +4,7 @@ import time
 from artiq.experiment import EnumerationValue
 from artiq.master.scheduler import Scheduler
 from artiq.master.worker_impl import CCB
+from artiq_influx_generic import InfluxController
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -71,6 +72,9 @@ class CentreTopticaModeFrag(ExpFragment):
 
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
+
+        self.setattr_device("influx_logger")
+        self.influx_logger: InfluxController
 
         # Parameter for target detuning from WAND reference
         self.setattr_param(
@@ -591,6 +595,28 @@ class CentreTopticaModeFrag(ExpFragment):
 
                 if current_drift <= max_allowed_drift:
                     logger.info("Mode successfully centered!")
+
+                    # Log success to InfluxDB
+                    self.influx_logger.write(  # type: ignore[arg-type]
+                        tags={
+                            "type": "CentreTopticaMode",
+                            "laser": self.laser_name,
+                            "rid": self.scheduler.rid,
+                        },
+                        fields={
+                            "i_bottom": i_bottom,
+                            "i_top": i_top,
+                            "i_target": i_target,
+                            "i_final": i_final,
+                            "mode_hop_free_range": mode_hop_free_range,
+                            "v_initial": v_start,
+                            "v_final": self.get_voltage(),
+                            "target_detuning": target_detuning,
+                            "final_detuning": self.get_current_detuning(),
+                            "iterations": iteration + 1,
+                        },
+                    )
+
                     succeeded = True
                     break
 
