@@ -8,6 +8,7 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from toptica_wrapper.driver import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 from wand.tools import WLMMeasurementStatus
 
@@ -165,8 +166,9 @@ class CentreTopticaModeFrag(ExpFragment):
     def host_setup(self):
         super().host_setup()
 
-        self.raw_dlcpro = self.toptica_461.get_dlcpro()
-        self.laser = self.toptica_461.get_laser()
+        self.toptica: TopticaDLCPro = self.get_device(self.laser_name)
+        self.raw_dlcpro = self.toptica.get_dlcpro()
+        self.laser = self.toptica.get_laser()
 
         # Open a connection to the Toptica
         self.raw_dlcpro.open()
