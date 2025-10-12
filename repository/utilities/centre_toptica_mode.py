@@ -1,13 +1,13 @@
 import logging
 import time
 
+from artiq.experiment import EnumerationValue
 from artiq.master.scheduler import Scheduler
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from toptica_wrapper.driver import TopticaDLCPro
 from wand.server import ControlInterface as WANDControlInterface
 from wand.tools import WLMMeasurementStatus
 
@@ -43,16 +43,24 @@ class CentreTopticaModeFrag(ExpFragment):
         13. Re-enable ARC if it was originally enabled
     """
 
-    laser_name = "toptica_461"
+    laser_name = None
 
     def build_fragment(self):
         self.set_default_scheduling(pipeline_name="wand")
 
+        toptica_lasers = list(constants.TOPTICA_TO_WAND_NAMES.keys())
+
+        if self.laser_name is None:
+            # Allow the user to choose the laser by subclassing this Fragment if
+            # they want. Otherwise make an argument
+            self.setattr_argument(
+                "laser_name",
+                EnumerationValue(toptica_lasers, default=toptica_lasers[0]),
+            )
+            self.laser_name: str
+
         self.setattr_fragment("wand_steering", WandSteering)
         self.wand_steering: WandSteering
-
-        # Hard-code the 461 toptica for now
-        self.toptica_461: TopticaDLCPro = self.get_device("toptica_461")
 
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
