@@ -384,6 +384,17 @@ class CentreTopticaModeFrag(ExpFragment):
         """
         return bool(self.laser.dl.pc.external_input.enabled.get())
 
+    def set_FALC(self, main=False, unlim=False):
+        logger.info("Setting FALC: main=%s, unlim=%s", main, unlim)
+        falc = self.toptica.get_falc()
+
+        falc.main.enabled.set(main)
+        falc.unlim.enabled.set(unlim)
+
+    def get_FALC(self):
+        falc = self.toptica.get_falc()
+        return bool(falc.main.enabled.get()), bool(falc.unlim.enabled.get())
+
     def run_once(self):
         """Execute the mode centring algorithm."""
         # Create applets for real-time plotting
@@ -408,6 +419,18 @@ class CentreTopticaModeFrag(ExpFragment):
         if initial_arc_enabled:
             logger.info("Disabling ARC for mode centering")
             self.set_arc_state(False)
+
+        # Check initial FALC state (if present)
+        initial_falc_state = None
+        try:
+            initial_falc_state = self.get_FALC()
+            logger.info(
+                "Initial FALC state - main: %s, unlim: %s",
+                initial_falc_state[0],
+                initial_falc_state[1],
+            )
+        except TypeError:
+            logger.info("No FALC present for this laser")
 
         # Record initial state to be restored later
         initial_feedforward = self.get_feedforward_enabled()
@@ -595,6 +618,15 @@ class CentreTopticaModeFrag(ExpFragment):
 
             logger.info("Restoring initial feed-forward state: %s", initial_feedforward)
             self.set_feedforward(initial_feedforward)
+
+            # Restore initial FALC state if it was present
+            if initial_falc_state is not None:
+                logger.info(
+                    "Restoring FALC state - main: %s, unlim: %s",
+                    initial_falc_state[0],
+                    initial_falc_state[1],
+                )
+                self.set_FALC(main=initial_falc_state[0], unlim=initial_falc_state[1])
 
             # Restore original current and voltage if we failed
             if not succeeded:
