@@ -94,7 +94,7 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "min_safe_current",
             FloatParam,
-            default=80.0e-3,
+            default=0.0,
             description="Minimum safe laser diode current",
             unit="mA",
             min=0.0,
