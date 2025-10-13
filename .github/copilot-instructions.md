@@ -97,6 +97,7 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Documentation auto-generates from experiment files
 - Build docs locally: `nix run .#docs`
 - Documentation deploys to GitLab Pages on master branch
+- Use UK English spelling throughout
 
 ### TODO/FIXME Convention
 - Use `TODO` for planned improvements

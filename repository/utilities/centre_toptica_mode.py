@@ -45,21 +45,23 @@ class CentreTopticaModeFrag(ExpFragment):
         13. Re-enable ARC if it was originally enabled
     """
 
-    laser_name = None
+    laser_name: str = None  # type: ignore[assignment]
 
-    def build_fragment(self):
+    def build_fragment(self, laser_name: str | None = None):
         self.set_default_scheduling(pipeline_name="wand")
 
         toptica_lasers = list(constants.TOPTICA_TO_WAND_NAMES.keys())
+
+        if laser_name is not None:
+            self.laser_name = laser_name
 
         if self.laser_name is None:
             # Allow the user to choose the laser by subclassing this Fragment if
             # they want. Otherwise make an argument
             self.setattr_argument(
                 "laser_name",
-                EnumerationValue(toptica_lasers, default=toptica_lasers[0]),
+                EnumerationValue(toptica_lasers, default=toptica_lasers[0]),  # type: ignore[arg-type]
             )
-            self.laser_name: str
 
         self.setattr_fragment("wand_steering", WandSteering)
         self.wand_steering: WandSteering
@@ -421,7 +423,7 @@ class CentreTopticaModeFrag(ExpFragment):
         # -1. Disable ARC if it is enabled to prevent external steering
         initial_arc_enabled = self.get_arc_state()
         if initial_arc_enabled:
-            logger.info("Disabling ARC for mode centering")
+            logger.info("Disabling ARC for mode centring")
             self.set_arc_state(False)
 
         # Check initial FALC state (if present)
@@ -452,8 +454,8 @@ class CentreTopticaModeFrag(ExpFragment):
 
             max_iterations = 10
             for iteration in range(max_iterations):
-                self.scheduler.pause()
-                logger.info("Starting mode centering iteration %d", iteration + 1)
+                self.scheduler.pause()  # type: ignore[attr-defined]
+                logger.info("Starting mode centring iteration %d", iteration + 1)
 
                 # 1. Record the starting voltage and current
                 i_start = self.get_current()
@@ -475,7 +477,7 @@ class CentreTopticaModeFrag(ExpFragment):
                 i_top = i_start
 
                 while True:
-                    self.scheduler.pause()
+                    self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current += current_step
 
                     self.check_current_within_limits(i_current)
@@ -510,7 +512,7 @@ class CentreTopticaModeFrag(ExpFragment):
                 i_bottom = i_start
 
                 while True:
-                    self.scheduler.pause()
+                    self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current -= current_step
 
                     self.check_current_within_limits(i_current)
@@ -594,14 +596,14 @@ class CentreTopticaModeFrag(ExpFragment):
                 )
 
                 if current_drift <= max_allowed_drift:
-                    logger.info("Mode successfully centered!")
+                    logger.info("Mode successfully centred!")
 
                     # Log success to InfluxDB
                     self.influx_logger.write(  # type: ignore[arg-type]
                         tags={
                             "type": "CentreTopticaMode",
                             "laser": self.laser_name,
-                            "rid": self.scheduler.rid,
+                            "rid": self.scheduler.rid,  # type: ignore[attr-defined]
                         },
                         fields={
                             "i_bottom": i_bottom,
@@ -629,7 +631,7 @@ class CentreTopticaModeFrag(ExpFragment):
             else:
                 # Loop completed without break (max iterations reached)
                 logger.warning(
-                    "Mode centering did not converge after %d iterations",
+                    "Mode centring did not converge after %d iterations",
                     max_iterations,
                 )
                 raise RuntimeError(
@@ -664,4 +666,32 @@ class CentreTopticaModeFrag(ExpFragment):
             self.raw_dlcpro.close()
 
 
+class CentreAllTopticaModesFrag(ExpFragment):
+    """Centre all Toptica laser modes within their mode-hop free ranges.
+
+    This experiment iterates through all Toptica lasers defined in
+    TOPTICA_TO_WAND_NAMES and centres each one by creating a subfragment
+    for each laser and running the centring algorithm.
+    """
+
+    def build_fragment(self):
+        self.set_default_scheduling(pipeline_name="wand")
+
+        # Create a subfragment for each Toptica laser
+        self.laser_fragments: dict[str, CentreTopticaModeFrag] = {}
+        for laser_name in constants.TOPTICA_TO_WAND_NAMES.keys():
+            fragment_attr_name = f"centre_{laser_name}"
+            self.laser_fragments[laser_name] = self.setattr_fragment(  # type: ignore
+                fragment_attr_name, CentreTopticaModeFrag, laser_name=laser_name
+            )
+
+    def run_once(self):
+        """Centre each Toptica laser in sequence."""
+        for laser_name, fragment in self.laser_fragments.items():
+            logger.info("Centring laser: %s", laser_name)
+            fragment.run_once()
+            logger.info("Completed centring laser: %s", laser_name)
+
+
 CentreTopticaMode = make_fragment_scan_exp(CentreTopticaModeFrag)
+CentreAllTopticaModes = make_fragment_scan_exp(CentreAllTopticaModesFrag)
