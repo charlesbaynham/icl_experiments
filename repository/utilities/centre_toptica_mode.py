@@ -614,7 +614,7 @@ class CentreTopticaModeFrag(ExpFragment):
                     # Log success to InfluxDB
                     self.influx_logger.write(  # type: ignore[arg-type]
                         tags={
-                            "type": CentreTopticaMode.__name__,
+                            "type": "CentreTopticaMode",
                             "laser": self.laser_name,
                             "rid": self.scheduler.rid,  # type: ignore[attr-defined]
                         },
