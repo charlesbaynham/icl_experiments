@@ -327,7 +327,7 @@ class CentreTopticaModeFrag(ExpFragment):
             True if successfully restored, False if failed after max_attempts
         """
         jump_size = self.restore_jump_size.get()
-        settle_time = 5.0
+        settle_time = 3.0
 
         for attempt in range(1, max_attempts + 1):
             if self.is_on_correct_mode():
@@ -338,7 +338,7 @@ class CentreTopticaModeFrag(ExpFragment):
 
             # Jump current down
             self.set_current(target_current + jump_size)
-            time.sleep(0.1)
+            time.sleep(1.0)
 
             # Jump back to target
             self.set_current(target_current)
