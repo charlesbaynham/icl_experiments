@@ -164,8 +164,8 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         temperature=7700,
-        window_high=362e-3,
-        window_low=357e-3,
+        window_high=365e-3,
+        window_low=355e-3,
         relock_step=3e-3,
         # IJD1 does not actually need the blue_singlepass_injection AOM, but
         # IJDs 2 and 3 do. Rather than adding it to one of IJD2 and 3, or both,
@@ -174,14 +174,14 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
-        window_high=374e-3,
-        window_low=369e-3,
+        window_high=375e-3,
+        window_low=365e-3,
         relock_step=3e-3,
     ),
     "blue_IJD3_controller": IJDSettings(
         temperature=8200,
-        window_high=362e-3,
-        window_low=368e-3,
+        window_high=370e-3,
+        window_low=360e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
@@ -237,6 +237,9 @@ class IJDRelockerSettings:
 
     max_safe_voltage: float = 1.0
     "Maximum safe voltage for the Koheron board"
+
+    alpha_per_second: float = 1 / 1000.0
+    "Exponential moving average parameter for the relocker, normalised per second"
 
     def __post_init__(self):
         if self.n_steps > 128:
@@ -889,6 +892,16 @@ assert [s.device_name for s in MIRNY_SETTINGS_87] == [
 
 TRANSFER_CAVITY_461_CHANNEL = 2
 TRANSFER_CAVITY_461_GAIN = 1.0
+
+
+TOPTICA_TO_WAND_NAMES = {
+    "toptica_461": "461",
+    "toptica_679": "679",
+    "toptica_707": "707",
+    "toptica_689": "689",
+    "toptica_698": "698",
+    "toptica_487": "487",
+}
 
 
 WAND_SHUTTERS_DELAY = 50e-3
