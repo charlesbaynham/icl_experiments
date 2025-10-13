@@ -421,6 +421,8 @@ class CentreTopticaModeFrag(ExpFragment):
         current_step = self.current_step.get()
         mode_hop_threshold = self.mode_hop_threshold.get()
 
+        logger.info("Starting mode centring for laser: %s", self.laser_name)
+
         # -1. Disable ARC if it is enabled to prevent external steering
         initial_arc_enabled = self.get_arc_state()
         if initial_arc_enabled:
