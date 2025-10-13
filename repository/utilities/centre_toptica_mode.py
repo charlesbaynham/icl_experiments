@@ -634,7 +634,7 @@ class CentreTopticaModeFrag(ExpFragment):
 
                 # 12. Check if we need to iterate
                 i_final = self.get_current()
-                current_drift = abs(i_final - i_start)
+                current_drift = abs(i_final - i_target)
                 max_allowed_drift = self.current_tolerance.get() * mode_hop_free_range
 
                 logger.info(
