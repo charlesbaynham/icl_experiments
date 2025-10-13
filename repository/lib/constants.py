@@ -903,6 +903,39 @@ TOPTICA_TO_WAND_NAMES = {
     "toptica_487": "487",
 }
 
+## Modehop-tuning settings
+
+
+@dataclass
+class ModeCentringSettings:
+    """Settings for the mode centring algorithm
+
+    Only the settings that vary between lasers are recorded here
+    """
+
+    max_current: float = 150e-3  # Maximum current / A
+    current_step: float = 0.1e-3  # Current step for scanning / A
+    restore_jump_size: float = -2e-3  # Current jump size for mode restoration / A
+    mode_check_tolerance: float = (
+        5e9  # Frequency threshold for detecting if we are on the right mode / Hz
+    )
+    target_position: float = 0.5  # Target position in mode-hop-free range (0-1)
+
+
+# For every laser in TOPTICA_TO_WAND_NAMES, define default mode centring settings
+DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
+    k: ModeCentringSettings() for k in TOPTICA_TO_WAND_NAMES.keys()
+}
+
+# Add overrides for picky lasers
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(max_current=245e-3)
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
+    mode_check_tolerance=2e9,
+    target_position=0.33,
+    restore_jump_size=+2e-3,
+)
+
 
 WAND_SHUTTERS_DELAY = 50e-3
 "Shutter closing delay before WAND measurements of the 689 and 1379"

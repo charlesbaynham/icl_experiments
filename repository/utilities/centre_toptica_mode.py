@@ -1,6 +1,5 @@
 import logging
 import time
-from dataclasses import dataclass
 
 from artiq.experiment import EnumerationValue
 from artiq.master.scheduler import Scheduler
@@ -20,37 +19,6 @@ from repository.lib import constants
 from repository.lib.fragments.wand_steering import WandSteering
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ModeCentringSettings:
-    """Settings for the mode centring algorithm
-
-    Only the settings that vary between lasers are recorded here
-    """
-
-    max_current: float = 150e-3  # Maximum current / A
-    current_step: float = 0.1e-3  # Current step for scanning / A
-    restore_jump_size: float = -2e-3  # Current jump size for mode restoration / A
-    mode_check_tolerance: float = (
-        5e9  # Frequency threshold for detecting if we are on the right mode / Hz
-    )
-    target_position: float = 0.5  # Target position in mode-hop-free range (0-1)
-
-
-# For every laser in TOPTICA_TO_WAND_NAMES, define default mode centring settings
-DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
-    k: ModeCentringSettings() for k in constants.TOPTICA_TO_WAND_NAMES.keys()
-}
-
-# Add overrides for picky lasers
-DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(max_current=245e-3)
-DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
-DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
-    mode_check_tolerance=2e9,
-    target_position=0.33,
-    restore_jump_size=+2e-3,
-)
 
 
 class CentreTopticaModeFrag(ExpFragment):
@@ -129,7 +97,7 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "mode_check_tolerance",
             FloatParam,
-            default=DEFAULT_MODE_CENTRING_SETTINGS[
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
                 self.laser_name
             ].mode_check_tolerance,
             description="Tolerance for correct mode detection",
@@ -152,7 +120,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "max_safe_current",
             FloatParam,
-            default=DEFAULT_MODE_CENTRING_SETTINGS[self.laser_name].max_current,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].max_current,
             description="Maximum safe laser diode current",
             unit="mA",
             min=0.0,
@@ -172,7 +142,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "current_step",
             FloatParam,
-            default=DEFAULT_MODE_CENTRING_SETTINGS[self.laser_name].current_step,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].current_step,
             description="Current increment for scanning to find mode boundaries",
             unit="mA",
             min=0.01e-3,
@@ -182,7 +154,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "restore_jump_size",
             FloatParam,
-            default=DEFAULT_MODE_CENTRING_SETTINGS[self.laser_name].restore_jump_size,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].restore_jump_size,
             description="Current jump size for mode restoration (negative to jump down)",
             unit="mA",
         )
@@ -201,7 +175,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "mode_position_fraction",
             FloatParam,
-            default=DEFAULT_MODE_CENTRING_SETTINGS[self.laser_name].target_position,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].target_position,
             description="Target position within mode-hop-free range (0=bottom, 1=top)",
             min=0.0,
             max=1.0,
