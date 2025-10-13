@@ -90,6 +90,17 @@ class CentreTopticaModeFrag(ExpFragment):
         )
         self.target_detuning: FloatParamHandle
 
+        # Tolerance for determining whether the laser is on the correct mode
+        self.setattr_param(
+            "mode_check_tolerance",
+            FloatParam,
+            default=15e9,
+            description="Tolerance for correct mode detection",
+            unit="GHz",
+            min=0.0,
+        )
+        self.mode_check_tolerance: FloatParamHandle
+
         # Safety parameters for current scanning
         self.setattr_param(
             "min_safe_current",
@@ -234,7 +245,7 @@ class CentreTopticaModeFrag(ExpFragment):
         Returns:
             True if within 15 GHz of target, False otherwise
         """
-        tolerance = 15e9
+        tolerance = self.mode_check_tolerance.get()
         current_detuning = self.get_current_detuning()
         target = self.target_detuning.get()
         return abs(current_detuning - target) < tolerance
