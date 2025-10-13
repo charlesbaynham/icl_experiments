@@ -94,6 +94,9 @@ class CentreTopticaModeFrag(ExpFragment):
                 "laser_name",
                 EnumerationValue(toptica_lasers, default=toptica_lasers[0]),  # type: ignore[arg-type]
             )
+            if self.laser_name is None:
+                # We are in build()
+                self.laser_name = toptica_lasers[0]
 
         self.setattr_fragment("wand_steering", WandSteering)
         self.wand_steering: WandSteering
