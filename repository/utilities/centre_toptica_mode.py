@@ -7,6 +7,8 @@ from artiq.master.worker_impl import CCB
 from artiq_influx_generic import InfluxController
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from toptica_wrapper.driver import TopticaDLCPro
@@ -175,17 +177,6 @@ class CentreTopticaModeFrag(ExpFragment):
         self.toptica: TopticaDLCPro = self.get_device(self.laser_name)
         self.raw_dlcpro = self.toptica.get_dlcpro()
         self.laser = self.toptica.get_laser()
-
-        # Open a connection to the Toptica
-        self.raw_dlcpro.open()
-
-        # Initialize datasets for debugging
-        self.set_dataset("current_history", [], broadcast=True)
-        self.set_dataset("frequency_history", [], broadcast=True)
-        self.set_dataset("timestamp_history", [], broadcast=True)
-
-        # Store start time for relative timestamps
-        self.start_time = time.time()
 
     def record_measurement(self, current: float, frequency: float):
         """Record current and frequency measurement to datasets for debugging.
@@ -403,7 +394,17 @@ class CentreTopticaModeFrag(ExpFragment):
 
     def run_once(self):
         """Execute the mode centring algorithm."""
+
+        # Open a connection to the Toptica
+        self.raw_dlcpro.open()
+
+        # Store start time for relative timestamps
+        self.start_time = time.time()
+
         # Create applets for real-time plotting
+        self.set_dataset("current_history", [], broadcast=True)
+        self.set_dataset("frequency_history", [], broadcast=True)
+        self.set_dataset("timestamp_history", [], broadcast=True)
         cmd_current = (
             "${artiq_applet}plot_xy current_history --x timestamp_history "
             "--title 'Toptica Current vs Time'"
@@ -679,18 +680,31 @@ class CentreAllTopticaModesFrag(ExpFragment):
 
         # Create a subfragment for each Toptica laser
         self.laser_fragments: dict[str, CentreTopticaModeFrag] = {}
+        self.laser_enabled_handles: dict[str, BoolParamHandle] = {}
         for laser_name in constants.TOPTICA_TO_WAND_NAMES.keys():
             fragment_attr_name = f"centre_{laser_name}"
             self.laser_fragments[laser_name] = self.setattr_fragment(  # type: ignore
                 fragment_attr_name, CentreTopticaModeFrag, laser_name=laser_name
             )
 
+            # Add an enable parameter for each laser
+            param_attr_name = f"enable_{laser_name}"
+            self.laser_enabled_handles[laser_name] = self.setattr_param(  # type: ignore
+                param_attr_name,
+                BoolParam,
+                default=True,
+                description=f"Enable centring for {laser_name}",
+            )
+
     def run_once(self):
         """Centre each Toptica laser in sequence."""
         for laser_name, fragment in self.laser_fragments.items():
-            logger.info("Centring laser: %s", laser_name)
-            fragment.run_once()
-            logger.info("Completed centring laser: %s", laser_name)
+            enabled = self.laser_enabled_handles[laser_name].get()
+
+            if enabled:
+                logger.info("Centring laser: %s", laser_name)
+                fragment.run_once()
+                logger.info("Completed centring laser: %s", laser_name)
 
 
 CentreTopticaMode = make_fragment_scan_exp(CentreTopticaModeFrag)
