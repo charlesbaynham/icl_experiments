@@ -932,7 +932,7 @@ DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(max_current
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
     mode_check_tolerance=2e9,
-    target_position=0.33,
+    target_position=0.66,
     restore_jump_size=+2e-3,
 )
 
