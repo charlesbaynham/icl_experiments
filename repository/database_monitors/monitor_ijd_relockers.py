@@ -18,6 +18,8 @@ class _MonitorIJDRelocker(Calibration):
         self.relocker: RelockerDriver = self.get_device(self.relocker_name)
         self.set_timeout(10)
 
+        self.last_unlock_count = None
+
     def check_own_state(self):
         data = []
         results = []
@@ -29,6 +31,17 @@ class _MonitorIJDRelocker(Calibration):
                 lock_settings = self.relocker.get_settings_labelled(channel)
                 levels = self.relocker.get_levels_labelled(channel)
                 locked = self.relocker.get_locked(channel)
+
+                unlock_count = self.relocker.get_unlock_count(channel)
+                if self.last_unlock_count is None:
+                    self.last_unlock_count = unlock_count
+                num_new_unlocks = unlock_count - self.last_unlock_count
+                self.last_unlock_count = unlock_count
+                if num_new_unlocks >= 0:
+                    # The count of relocks will reset to zero when it rolls over
+                    # a 32-bit integer or when the board is rebooted. Ignore
+                    # these cases
+                    fields["unlock_count"] = num_new_unlocks
 
                 v_current = levels.avg_level
                 v_rolling_low = levels.window_level
