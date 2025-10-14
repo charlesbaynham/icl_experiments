@@ -238,8 +238,8 @@ class IJDRelockerSettings:
     max_safe_voltage: float = 1.0
     "Maximum safe voltage for the Koheron board"
 
-    alpha_per_second: float = 1 / 1000.0
-    "Exponential moving average parameter for the relocker, normalised per second"
+    alpha_denominator: int = 1000000
+    "Exponential moving average parameter for the relocker, inverted"
 
     def __post_init__(self):
         if self.n_steps > 128:

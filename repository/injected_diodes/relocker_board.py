@@ -186,14 +186,14 @@ class RelockerChannelFrag(ExpFragment):
         self.v_relock_step_up: FloatParamHandle
 
         self.setattr_param(
-            "alpha_per_second",
-            FloatParam,
-            description="Moving average alpha per second",
-            default=defaults.alpha_per_second,
-            min=0.0,
-            max=1.0,
+            "alpha_denominator",
+            IntParam,
+            description="Smoothing factor for averaging. Bigger = more smoothing",
+            default=defaults.alpha_denominator,
+            min=0,
+            max=2**15,
         )
-        self.alpha_per_second: FloatParamHandle
+        self.alpha_denominator: IntParamHandle
 
         # And define a results channel as output
         self.setattr_result("read_voltages", OpaqueChannel)
@@ -234,7 +234,7 @@ class RelockerChannelFrag(ExpFragment):
             1000 * self.wait_time.get(),
             self.auto_relock.get(),
             self.v_relock_step_up.get(),
-            self.alpha_per_second.get(),
+            self.alpha_denominator.get(),
         )
 
     def get_read_voltages(self):
