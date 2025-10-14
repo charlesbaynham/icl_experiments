@@ -37,9 +37,10 @@ class _MonitorIJDRelocker(Calibration):
                     self.last_unlock_count = unlock_count
                 num_new_unlocks = unlock_count - self.last_unlock_count
                 logger.info(
-                    "Raw unlock_count=%d, num_new_unlocks=%d",
+                    "Raw unlock_count=%d, num_new_unlocks=%d, last_unlock_count=%d",
                     unlock_count,
                     num_new_unlocks,
+                    self.last_unlock_count,
                 )
                 self.last_unlock_count = unlock_count
                 if num_new_unlocks >= 0:
