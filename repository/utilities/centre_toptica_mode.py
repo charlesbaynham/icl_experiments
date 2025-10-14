@@ -252,16 +252,16 @@ class CentreTopticaModeFrag(ExpFragment):
             status,
         )
 
-    def is_on_correct_mode(self) -> bool:
+    def is_on_correct_mode(self, target_detuning) -> bool:
         """Check if the laser is on the correct mode.
 
         Returns:
-            True if within 15 GHz of target, False otherwise
+            True if within `mode_check_tolerance` GHz of target, False otherwise
         """
         tolerance = self.mode_check_tolerance.get()
         current_detuning = self.get_current_detuning()
-        target = self.target_detuning.get()
-        return abs(current_detuning - target) < tolerance
+
+        return abs(current_detuning - target_detuning) < tolerance
 
     def get_current(self) -> float:
         """Get the current laser diode current in A.
@@ -328,13 +328,17 @@ class CentreTopticaModeFrag(ExpFragment):
         return abs(current_detuning - previous_detuning) > threshold
 
     def restore_correct_mode(
-        self, target_current: float, max_attempts: int = 10
+        self,
+        target_current: float,
+        target_detuning: float,
+        max_attempts: int = 10,
     ) -> bool:
         """Restore the laser to the correct mode by jumping current down and back up.
 
         Args:
             target_current: The target current to return to in A
             max_attempts: Maximum number of restore attempts
+            target_detuning: The target detuning.
 
         Returns:
             True if successfully restored, False if failed after max_attempts
@@ -343,7 +347,7 @@ class CentreTopticaModeFrag(ExpFragment):
         settle_time = 3.0
 
         for attempt in range(1, max_attempts + 1):
-            if self.is_on_correct_mode():
+            if self.is_on_correct_mode(target_detuning=target_detuning):
                 logger.info("Mode restored successfully on attempt %d", attempt)
                 return True
 
@@ -472,7 +476,7 @@ class CentreTopticaModeFrag(ExpFragment):
 
         try:
             # 0. Confirm that the laser is on the correct mode
-            if not self.is_on_correct_mode():
+            if not self.is_on_correct_mode(target_detuning=self.target_detuning.get()):
                 raise RuntimeError(
                     "Laser is not on the correct mode. Please manually set the laser "
                     "to the correct mode before running this experiment."
@@ -483,13 +487,15 @@ class CentreTopticaModeFrag(ExpFragment):
                 self.scheduler.pause()  # type: ignore[attr-defined]
                 logger.info("Starting mode centring iteration %d", iteration + 1)
 
-                # 1. Record the starting voltage and current
+                # 1. Record the starting voltage, current and detuning
                 i_start = self.get_current()
                 v_start = self.get_voltage()
+                f_start = self.get_current_detuning()
                 logger.info(
-                    "Starting current: %.3f mA, voltage: %.3f V",
+                    "Starting current: %.3f mA, voltage: %.3f V, detuning: %.3f MHz",
                     1e3 * i_start,
                     v_start,
+                    1e-6 * f_start,
                 )
 
                 # 2. Turn off feed-forward
@@ -526,7 +532,7 @@ class CentreTopticaModeFrag(ExpFragment):
                 self.set_current(i_start)
                 time.sleep(1.0)
 
-                if not self.restore_correct_mode(i_start):
+                if not self.restore_correct_mode(i_start, f_start):
                     raise RuntimeError(
                         "Failed to restore correct mode after upward scan"
                     )
@@ -567,12 +573,22 @@ class CentreTopticaModeFrag(ExpFragment):
                     1e3 * i_target,
                 )
 
-                # 9. Jump to target current and restore mode if necessary
+                # 9.1. Jump to original current and restore mode if necessary
+                logger.info("Setting current to initial: %.3f mA", 1e3 * i_start)
+                self.set_current(i_start)
+                time.sleep(1.0)
+
+                if not self.restore_correct_mode(i_start, f_start):
+                    raise RuntimeError(
+                        "Failed to restore correct mode at start current"
+                    )
+
+                # 9.2. Jump to target current and restore mode if necessary
                 logger.info("Setting current to target: %.3f mA", 1e3 * i_target)
                 self.set_current(i_target)
                 time.sleep(1.0)
 
-                if not self.restore_correct_mode(i_target):
+                if not self.restore_correct_mode(i_target, f_start):
                     raise RuntimeError(
                         "Failed to restore correct mode at target current"
                     )
