@@ -191,7 +191,7 @@ class RelockerChannelFrag(ExpFragment):
             description="Smoothing factor for averaging. Bigger = more smoothing",
             default=defaults.alpha_denominator,
             min=0,
-            max=2**15,
+            max=2**31,
         )
         self.alpha_denominator: IntParamHandle
 
