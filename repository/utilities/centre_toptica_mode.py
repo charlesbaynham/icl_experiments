@@ -157,7 +157,7 @@ class CentreTopticaModeFrag(ExpFragment):
             default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
                 self.laser_name
             ].restore_jump_size,
-            description="Current jump size for mode restoration (negative to jump down)",
+            description="Current jump size for mode restoration. Both directions will be tried",
             unit="mA",
         )
         self.restore_jump_size: FloatParamHandle
@@ -343,8 +343,9 @@ class CentreTopticaModeFrag(ExpFragment):
         Returns:
             True if successfully restored, False if failed after max_attempts
         """
-        jump_size = self.restore_jump_size.get()
         settle_time = 3.0
+
+        next_jump = self.restore_jump_size.get()
 
         for attempt in range(1, max_attempts + 1):
             if self.is_on_correct_mode(target_detuning=target_detuning):
@@ -354,12 +355,15 @@ class CentreTopticaModeFrag(ExpFragment):
             logger.warning("Mode restore attempt %d/%d", attempt, max_attempts)
 
             # Jump current down
-            self.set_current(target_current + jump_size)
+            self.set_current(target_current + next_jump)
             time.sleep(1.0)
 
             # Jump back to target
             self.set_current(target_current)
             time.sleep(settle_time)
+
+            # Flip the sign of the jump
+            next_jump = -next_jump
 
         logger.error("Failed to restore mode after %d attempts", max_attempts)
         return False
