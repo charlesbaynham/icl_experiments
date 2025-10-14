@@ -238,8 +238,8 @@ class IJDRelockerSettings:
     max_safe_voltage: float = 1.0
     "Maximum safe voltage for the Koheron board"
 
-    alpha_per_second: float = 1 / 1000.0
-    "Exponential moving average parameter for the relocker, normalised per second"
+    alpha_denominator: int = 1000000
+    "Exponential moving average parameter for the relocker, inverted"
 
     def __post_init__(self):
         if self.n_steps > 128:
@@ -281,10 +281,10 @@ IJD_RELOCKER_DEFAULTS = {
     "blue_IJD1_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=0,
-        i_min=-5e-3,
-        i_max=5e-3,
-        n_steps=128,
-        window_frac=0.5,
+        i_min=-2.0e-3,
+        i_max=3e-3,
+        n_steps=100,
+        window_frac=0.25,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
@@ -299,10 +299,10 @@ IJD_RELOCKER_DEFAULTS = {
     "blue_IJD2_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=1,
-        i_min=-5e-3,
-        i_max=5e-3,
-        n_steps=128,
-        window_frac=0.5,
+        i_min=-2.0e-3,
+        i_max=3e-3,
+        n_steps=100,
+        window_frac=0.25,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
@@ -317,10 +317,10 @@ IJD_RELOCKER_DEFAULTS = {
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=2,
-        i_min=-5e-3,
-        i_max=5e-3,
-        n_steps=128,
-        window_frac=0.5,
+        i_min=-2.0e-3,
+        i_max=3e-3,
+        n_steps=100,
+        window_frac=0.25,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
@@ -337,7 +337,7 @@ IJD_RELOCKER_DEFAULTS = {
         channel=0,
         i_min=-2.5e-3,
         i_max=2.5e-3,
-        n_steps=128,
+        n_steps=100,
         window_frac=0.5,
         min_diff=0.1,
         v_low_threshold=1.3,
