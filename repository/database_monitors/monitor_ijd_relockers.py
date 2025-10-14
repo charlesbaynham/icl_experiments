@@ -36,6 +36,11 @@ class _MonitorIJDRelocker(Calibration):
                 if self.last_unlock_count is None:
                     self.last_unlock_count = unlock_count
                 num_new_unlocks = unlock_count - self.last_unlock_count
+                logger.info(
+                    "Raw unlock_count=%d, num_new_unlocks=%d",
+                    unlock_count,
+                    num_new_unlocks,
+                )
                 self.last_unlock_count = unlock_count
                 if num_new_unlocks >= 0:
                     # The count of relocks will reset to zero when it rolls over
