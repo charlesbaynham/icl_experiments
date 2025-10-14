@@ -935,6 +935,9 @@ DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
     target_position=0.66,
     restore_jump_size=+2e-3,
 )
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_698"] = ModeCentringSettings(
+    mode_check_tolerance=1.5e9,
+)
 
 
 WAND_SHUTTERS_DELAY = 50e-3
