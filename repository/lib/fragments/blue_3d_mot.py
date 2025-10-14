@@ -29,7 +29,6 @@ from repository.lib.fragments.ramping_phase_bound import (
     GeneralRampingPhaseWithBindingAndMOTField,
 )
 from repository.lib.fragments.set_eom_sidebands import SetEOMSidebandsExceptCavity
-from repository.lib.fragments.transfer_cavity import TransferCavityFrag
 
 logger = logging.getLogger(__name__)
 
@@ -113,13 +112,8 @@ class Blue3DMOTFrag(Fragment):
         )
         self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
 
-        self.setattr_fragment("transfer_cavity", TransferCavityFrag)
-        self.transfer_cavity: TransferCavityFrag
-
         self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
         self.sr87: BoolParamHandle
-
-        self.transfer_cavity.bind_param("sr87", self.sr87)
 
         self.setattr_fragment("reset_all_beams", ResetAllICLBeams)
 
