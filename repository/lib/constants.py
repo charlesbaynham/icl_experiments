@@ -729,7 +729,8 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_repump_679",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=0.33,
+        # Note: the diagonal red MOT beams leak onto the 679 photodiode so you must turn them off to measure this properly, otherwise you'll think there's more power available than there is
+        setpoint=0.15,
     ),
     SUServoedBeam(
         "clock_delivery",
