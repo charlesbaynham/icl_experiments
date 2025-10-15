@@ -67,7 +67,10 @@ class _MonitorIJDRelocker(Calibration):
 
                 if auto_mode:
                     if locked:
-                        status = "LOCKED"
+                        if num_new_unlocks > 0:
+                            status = "UNSTABLE"
+                        else:
+                            status = "LOCKED"
                     else:
                         status = "UNLOCKED"
                 else:
