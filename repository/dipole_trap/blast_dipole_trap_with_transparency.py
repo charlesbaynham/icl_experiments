@@ -1,5 +1,6 @@
 import logging
 
+from artiq.coredevice.ttl import TTLOut
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -101,6 +102,11 @@ class BlastSingleDipoleWithTransparencyFrag(
         )
         self.red_mot_sigmaplus_toggler: ToggleListOfBeams
 
+        # %% Devices
+
+        self.setattr_device("ttl_shutter_red_axial_mot")
+        self.ttl_shutter_red_axial_mot: TTLOut
+
         super().build_fragment()
 
         # Rebind the evaporation ramp's final setpoint handle
@@ -130,8 +136,13 @@ class BlastSingleDipoleWithTransparencyFrag(
         delay(5e-3)  # Wait for the transparency beam to stabilise
 
         # Blast the atoms with the red MOT sigma+ beam
+        delay(-constants.SRS_SHUTTER_DELAY)
+        self.ttl_shutter_red_axial_mot.on()
+        delay(constants.SRS_SHUTTER_DELAY)
+
         self.sigmaplus_setter.set_setpoint(self.sigmaplus_setpoint.get())
         self.red_mot_sigmaplus_toggler.turn_on_beams()
+
         delay(self.blast_duration.get())
         self.red_mot_sigmaplus_toggler.turn_off_beams()
 
