@@ -108,6 +108,7 @@ class BlastSingleDipoleWithTransparencyFrag(
             "final_dipole_trap_setpoint_multiple",
             self.linear_evap_ramp,
             "setpoint_global_multiple_end",
+            description="Final setpoint multiple of the XODT after ramp",
         )
 
     @kernel
