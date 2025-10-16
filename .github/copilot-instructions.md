@@ -323,6 +323,7 @@ from artiq.master.worker_impl import CCB
    - This ensures consistency: all code operates in base SI regardless of display units
    - Where appropriate, sensible "max" and "min" values should be added when making new parameters
 
+
 3. **External Libraries**:
    - Where external libraries require non-base units (e.g. a laser library that takes current in "mA", do the conversion as close as possible to the call to the external library
    - Example:
@@ -348,6 +349,16 @@ from artiq.master.worker_impl import CCB
 
     current_A = 1.0  # INCORRECT: we already know current is always in A, so no need to specify
     ```
+
+#### ARTIQ units
+
+- As a style choice, do not use the ARTIQ `ms`, `MHz` etc constants to multiply values. Just use normal floating point numbers
+- Example:
+
+```python
+delay(10e-3)  # CORRECT: 10 ms in seconds (base SI unit)
+delay(10 * ms)  # INCORRECT: do not use ms
+```
 
 ## Best Practices
 
