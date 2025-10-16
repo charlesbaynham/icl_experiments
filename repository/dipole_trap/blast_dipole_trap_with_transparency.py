@@ -62,6 +62,8 @@ class BlastSingleDipoleWithTransparencyFrag(
         )
         self.sigmaplus_setpoint: FloatParamHandle
 
+        # %% Fragments
+
         self.setattr_fragment(
             "transparency_setter",
             make_set_beams_to_default(
@@ -114,9 +116,16 @@ class BlastSingleDipoleWithTransparencyFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
+    def post_dipole_trap_hook(self):
+        # Do nothing, preventing the dipole trap beams from being turned off
+        pass
+
+    @kernel
     def do_experiment_after_dipole_trap_hook(self):
         # Turn on the transparency beam to protect the atoms in the dipole trap
         self.transparency_toggler.turn_on_beams()
+
+        delay(5e-3)  # Wait for the transparency beam to stabilise
 
         # Blast the atoms with the red MOT sigma+ beam
         self.sigmaplus_setter.set_setpoint(self.sigmaplus_setpoint.get())
