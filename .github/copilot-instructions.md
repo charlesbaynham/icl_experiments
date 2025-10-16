@@ -196,6 +196,36 @@ class MyExperiment(EnvExperiment):
 - Implement reusable code as ndscan Fragments
 - This allows sharing improvements across institutions
 
+### Use of Fragments
+
+- Use ndscan Fragments for modular experiment components
+- Where functionality is possible to implement with existing Fragment, do so
+
+### Common imports overview
+
+#### `pyaion.models.SUServoedBeam`
+
+- Description of a beam, i.e. the AOM it requires, the AOM's frequency and amplitude, whether it has an assoviated shutter, etc.
+- Often referred to as "beam info"
+
+#### `repository.lib.constants.SUSERVOED_BEAMS`
+
+- A dictionary of `SUServoedBeam` beam infos for all beams in the lab
+
+#### `repository.lib.fragments.beams.toggling_beam_setter.ToggleListOfBeams`
+
+- Turn a list of beams on/off quickly.
+- Handle shutters, AOMs etc as defined in the beam's beam info definition.
+- Often referred to as a "beam setter".
+- Needs to be constructed using the factory function `repository.lib.fragments.beams.toggling_beam_setter.make_toggle_list_of_beams`.
+
+#### `repository.lib.fragments.default_beam_setter.SetBeamsToDefaults`
+
+- Set all beams to their default values (as defined in the beam info definition).
+- Slow, but necessary for initial setup.
+- Can optionally initialise beams automatically. If this is not done, `turn_on_all(light_enabled=True)` must be called manually. - `light_enabled` is often left so that beams can subsequently be turned on/off quickly using a `ToggleListOfBeams` beam setter.
+- Must be constructed with the factory function `pyaion.fragments.default_beam_setter.make_set_beams_to_default`.
+
 ### Code Review
 
 - All changes should pass CI (linting, tests, docs build)
