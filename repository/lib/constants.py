@@ -319,7 +319,7 @@ IJD_RELOCKER_DEFAULTS = {
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=2,
-        i_min=-2.0e-3,
+        i_min=-3.0e-3,
         i_max=3e-3,
         i_relock_step_up=3e-3,
         n_steps=100,
