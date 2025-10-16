@@ -45,15 +45,6 @@ class BlastSingleDipoleWithTransparencyFrag(
         self.blast_duration: FloatParamHandle
 
         self.setattr_param(
-            "transparency_setpoint",
-            FloatParam,
-            "Setpoint for the transparency beam",
-            default=constants.SUSERVOED_BEAMS["blue_transparency_beam"].setpoint,
-            unit="V",
-        )
-        self.transparency_setpoint: FloatParamHandle
-
-        self.setattr_param(
             "sigmaplus_setpoint",
             FloatParam,
             "Setpoint for the red MOT sigma+ beam during blast",
