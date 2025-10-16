@@ -108,6 +108,7 @@
           # If you want to reset the dashboard settings each time, uncomment this line
           # export XDG_CONFIG_HOME=$(mktemp -d)
 
+          export PYTHONPATH=${self}:$PYTHONPATH
           exec ${overriddenOutputs.apps.dashboard.program} -s ${bind_settings.connection_ip}
         '');
 
