@@ -1088,7 +1088,7 @@ CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    34.7e3  # Will need fine-tuning whenever velocity-selection pulse is changed
+    35.3e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
 DURATION_OF_STARK_PULSE = 30e-6
 
