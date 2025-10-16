@@ -40,7 +40,7 @@ class BlastSingleDipoleWithTransparencyFrag(
             "blast_duration",
             FloatParam,
             "Duration of the red MOT sigma+ blast",
-            default=10e-3,
+            default=200e-3,
             unit="ms",
         )
         self.blast_duration: FloatParamHandle
