@@ -14,9 +14,6 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageSingleXODT,
 )
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationSingleRampMixin,
-)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
@@ -32,7 +29,6 @@ logger = logging.getLogger(__name__)
 class BlastSingleDipoleWithTransparencyFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
-    EvaporationSingleRampMixin,
     LoadSingleXODTMixin,
 ):
     """
@@ -108,20 +104,6 @@ class BlastSingleDipoleWithTransparencyFrag(
         self.ttl_shutter_red_axial_mot: TTLOut
 
         super().build_fragment()
-
-        # Rebind the evaporation ramp's final setpoint handle
-        self.setattr_param_rebind(
-            "final_dipole_trap_setpoint_multiple",
-            self.linear_evap_ramp,
-            "setpoint_global_multiple_end",
-            description="Final setpoint multiple of the XODT after ramp",
-        )
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_linear_evap()
 
     @kernel
     def post_dipole_trap_hook(self):
