@@ -7,6 +7,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
@@ -43,6 +44,24 @@ class BlastSingleDipoleWithTransparencyFrag(
         )
         self.blast_duration: FloatParamHandle
 
+        self.setattr_param(
+            "transparency_setpoint",
+            FloatParam,
+            "Setpoint for the transparency beam",
+            default=constants.SUSERVOED_BEAMS["blue_transparency_beam"].setpoint,
+            unit="V",
+        )
+        self.transparency_setpoint: FloatParamHandle
+
+        self.setattr_param(
+            "sigmaplus_setpoint",
+            FloatParam,
+            "Setpoint for the red MOT sigma+ beam during blast",
+            default=3.0,
+            unit="V",
+        )
+        self.sigmaplus_setpoint: FloatParamHandle
+
         self.setattr_fragment(
             "transparency_setter",
             make_set_beams_to_default(
@@ -54,6 +73,22 @@ class BlastSingleDipoleWithTransparencyFrag(
             ),
         )
         self.transparency_setter: SetBeamsToDefaults
+
+        # Rebind the beam setter's setpoint handle
+        self.setattr_param_rebind(
+            "transparency_setpoint",
+            self.transparency_setter,
+            f"setpoint_{constants.SUSERVOED_BEAMS['blue_transparency_beam'].name}",
+        )
+
+        self.setattr_fragment(
+            "sigmaplus_setter",
+            LibSetSUServoStatic(
+                self,
+                beam_info=constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
+            ),
+        )
+        self.sigmaplus_setter: LibSetSUServoStatic
 
         self.setattr_fragment(
             "transparency_toggler",
@@ -84,6 +119,7 @@ class BlastSingleDipoleWithTransparencyFrag(
         self.transparency_toggler.turn_on_beams()
 
         # Blast the atoms with the red MOT sigma+ beam
+        self.sigmaplus_setter.set_setpoint(self.sigmaplus_setpoint.get())
         self.red_mot_sigmaplus_toggler.turn_on_beams()
         delay(self.blast_duration.get())
         self.red_mot_sigmaplus_toggler.turn_off_beams()

@@ -226,6 +226,12 @@ class MyExperiment(EnvExperiment):
 - Can optionally initialise beams automatically. If this is not done, `turn_on_all(light_enabled=True)` must be called manually. - `light_enabled` is often left so that beams can subsequently be turned on/off quickly using a `ToggleListOfBeams` beam setter.
 - Must be constructed with the factory function `pyaion.fragments.default_beam_setter.make_set_beams_to_default`.
 
+#### `pyaion.fragments.suservo.LibSetSUServoStatic`
+
+- Used for low-level control of a SUServo device.
+- Can set frequency, amplitude, setpoint, gains, and turn on/off the RF output.
+- Commonly referred to as a "SUServo setter".
+
 ### Code Review
 
 - All changes should pass CI (linting, tests, docs build)
