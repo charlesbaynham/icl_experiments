@@ -76,17 +76,15 @@ class BlastSingleDipoleWithTransparencyFrag(
 
         self.setattr_fragment(
             "sigmaplus_setter",
-            LibSetSUServoStatic(
-                self,
-                beam_info=constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
-            ),
+            LibSetSUServoStatic,
+            channel=constants.SUSERVOED_BEAMS["red_mot_sigmaplus"].suservo_device,
         )
         self.sigmaplus_setter: LibSetSUServoStatic
 
         self.setattr_fragment(
             "transparency_toggler",
             make_toggle_list_of_beams(
-                beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
             ),
         )
         self.transparency_toggler: ToggleListOfBeams
@@ -94,7 +92,7 @@ class BlastSingleDipoleWithTransparencyFrag(
         self.setattr_fragment(
             "red_mot_sigmaplus_toggler",
             make_toggle_list_of_beams(
-                beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]]
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["red_mot_sigmaplus"]]
             ),
         )
         self.red_mot_sigmaplus_toggler: ToggleListOfBeams

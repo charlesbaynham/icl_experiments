@@ -200,6 +200,55 @@ class MyExperiment(EnvExperiment):
 
 - Use ndscan Fragments for modular experiment components
 - Where functionality is possible to implement with existing Fragment, do so
+- Subfragments are added to fragments using ndscan's `setattr_fragment` function. This takes the *class* of the fragment as its first argument, followed by any arguments required to construct the fragment which will be passed to the subfragment's `build_fragment` function. Note that it does not take an instance of the Fragment: it will construct the Fragment itself.
+
+#### Common Fragment Mistakes
+
+1. **NEVER instantiate Fragments yourself when using `setattr_fragment`**:
+   ```python
+   # INCORRECT - passing an instance
+   self.setattr_fragment(
+       "sigmaplus_setter",
+       LibSetSUServoStatic(
+           self,
+           beam_info=constants.SUSERVOED_BEAMS["red_mot_sigmaplus"],
+       ),
+   )
+
+   # CORRECT - passing the class and constructor arguments
+   self.setattr_fragment(
+       "sigmaplus_setter",
+       LibSetSUServoStatic,
+       channel=constants.SUSERVOED_BEAMS["red_mot_sigmaplus"].suservo_device,
+   )
+   ```
+   - `setattr_fragment` expects the Fragment **class**, not an instance
+   - Additional arguments are passed as keyword arguments to `setattr_fragment` itself
+   - These arguments are forwarded to the Fragment's `build_fragment()` method
+   - Never pass `self` to the Fragment constructor
+
+2. **Use correct parameter names for factory functions**:
+   ```python
+   # INCORRECT - wrong parameter name
+   self.setattr_fragment(
+       "transparency_toggler",
+       make_toggle_list_of_beams(
+           beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+       ),
+   )
+
+   # CORRECT - correct parameter name
+   self.setattr_fragment(
+       "transparency_toggler",
+       make_toggle_list_of_beams(
+           suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+       ),
+   )
+   ```
+   - Factory functions like `make_toggle_list_of_beams` return Fragment classes
+   - Check the factory function signature for correct parameter names
+   - `make_toggle_list_of_beams` uses `suservo_beam_infos=`, not `beam_infos=`
+   - `make_set_beams_to_default` also uses `suservo_beam_infos=`
 
 ### Common imports overview
 
