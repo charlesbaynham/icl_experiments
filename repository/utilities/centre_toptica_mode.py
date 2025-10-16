@@ -690,8 +690,8 @@ class CentreTopticaModeFrag(ExpFragment):
                 logger.info("Re-enabling ARC")
                 self.set_arc_state(True)
 
-            logger.info("Restoring initial feed-forward state: %s", initial_feedforward)
-            self.set_feedforward(initial_feedforward)
+            logger.info("Leaving feed-forward on, regardless of original state")
+            self.set_feedforward(True)
 
             # Restore initial FALC state if it was present
             if initial_falc_state is not None:
