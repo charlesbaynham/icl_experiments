@@ -26,6 +26,9 @@ class DopplerCompensationForInterferometryMixin(
 
     I.e. a poor-man's chirp.
 
+    TODO: This uses the clock switch AOM instead of the SUServo AOM for
+    convenience of coding. This would better be done with the SUServo AOM.
+
     Kernel hooks used:
 
     * :meth:`~calculate_frequency_for_first_pi_by_2_pulse`
