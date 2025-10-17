@@ -53,6 +53,7 @@ class DopplerCompensationForInterferometryMixin(
         # Disable the detuning of the spectroscopy pulse via a parameter - we'll
         # handle it here instead
         self.override_param("spectroscopy_pulse_aom_detuning", 0.0)
+        self.override_param("shelving_pulse_aom_detuning", 0.0)
 
     @kernel
     def __calculate_chirp_required(self, t_drop: float):
