@@ -50,6 +50,10 @@ class DopplerCompensationForInterferometryMixin(
 
         self.t_velocity_slicing_pulse_centre_mu: int64
 
+        # Disable the detuning of the spectroscopy pulse via a parameter - we'll
+        # handle it here instead
+        self.override_param("spectroscopy_pulse_aom_detuning", 0.0)
+
     @kernel
     def __calculate_chirp_required(self, t_drop: float):
         return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
