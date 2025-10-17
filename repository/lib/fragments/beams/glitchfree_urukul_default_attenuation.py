@@ -17,8 +17,8 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
     This is useful when you need to avoid glitches on AOMs (e.g. for injection /
     cavity locks), but need the attenuation to be set up.
 
-    Note that reading the attenuation out from the Urukul is not a solution:
-    the read involves clocking zeros into the attenuator shift register then
+    Note that reading the attenuation out from the Urukul is not a solution: the
+    read involves clocking zeros into the attenuator shift register then
     clocking the correct value back in. This is followed by an update which
     doesn't change the value, but still causes a brief glitch.
 
@@ -34,7 +34,11 @@ class GlitchFreeUrukulDefaultAttenuation(Fragment):
     TODO: This could be improved by e.g. writing the current attenuation into
     the Urukul's phase register and reading it back from there. This obviously
     breaks any code which actually uses the phase register, but would be more
-    reliable than just hoping for the best.
+    reliable than just hoping for the best. Actually we could use the FTW
+    register if we wanted: the AD9910s are controlled through single-tone
+    profiles so never actually use the phase register unless we're doing pulse
+    shaping, and we can just make sure not to mix and match pulse shaping with
+    this Fragment.
     """
 
     def build_fragment(self, urukul_channel: str, default_attenuation: float):
