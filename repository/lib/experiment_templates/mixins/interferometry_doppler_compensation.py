@@ -51,7 +51,7 @@ class DopplerCompensationForInterferometryMixin(
         self.override_param("shelving_pulse_aom_detuning", 0.0)
 
     @kernel
-    def __calculate_chirp_required(self, t_drop: float):
+    def _calculate_chirp_required(self, t_drop: float):
         return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
     @kernel
@@ -66,7 +66,7 @@ class DopplerCompensationForInterferometryMixin(
         )
         return (
             self.clock_switch_frequency_handle.get()
-            + self.__calculate_chirp_required(t_drop)
+            + self._calculate_chirp_required(t_drop)
         )
 
     @kernel
@@ -81,7 +81,7 @@ class DopplerCompensationForInterferometryMixin(
         )
         return (
             self.clock_switch_frequency_handle.get()
-            + self.__calculate_chirp_required(t_drop)
+            + self._calculate_chirp_required(t_drop)
         )
 
     @kernel
@@ -96,5 +96,5 @@ class DopplerCompensationForInterferometryMixin(
         )
         return (
             self.clock_switch_frequency_handle.get()
-            + self.__calculate_chirp_required(t_drop)
+            + self._calculate_chirp_required(t_drop)
         )
