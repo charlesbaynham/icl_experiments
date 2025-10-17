@@ -8,6 +8,7 @@ from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import Fragment
 from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
@@ -122,6 +123,15 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             )
             self.kernel_invariants.add("clock_delivery_handles")
 
+        # Kernel variable to record the moment of the velocity slicing pulse so
+        # that other pulses can be relative to it
+        self.t_velocity_slicing_pulse_centre_mu = int64(0)
+
+        # Ensure that the time of the slicing pulse is always reset
+        class _ResetSlicingTime(Fragment):
+            def build_fragment(self, ref_to_outer_self):
+                self.outer = ref_to_outer_self
+
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
         param_handles = super().get_always_shown_params()
@@ -144,6 +154,11 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             enable_iir=True,
         )
         at_mu(_t_start)
+
+        # Record the time of the centre of the shelving pulse
+        self.t_velocity_slicing_pulse_centre_mu = _t_start + self.core.seconds_to_mu(
+            self.shelving_pulse_time.get()
+        )
 
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()

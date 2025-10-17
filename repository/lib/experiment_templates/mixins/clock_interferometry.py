@@ -8,8 +8,6 @@ from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
-
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
@@ -44,6 +42,9 @@ class ClockInterferometryBase(
     * :meth:`~calculate_phase_for_first_pi_by_2_pulse`
     * :meth:`~calculate_phase_for_pi_pulse`
     * :meth:`~calculate_phase_for_second_pi_by_2_pulse`
+    * :meth:`~calculate_frequency_for_first_pi_by_2_pulse`
+    * :meth:`~calculate_frequency_for_pi_pulse`
+    * :meth:`~calculate_frequency_for_second_pi_by_2_pulse`
     * :meth:`~do_clock_interferometry`
     """
 
@@ -102,6 +103,24 @@ class ClockInterferometryBase(
         )
 
     @kernel
+    def calculate_frequency_for_first_pi_by_2_pulse(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        return self.clock_switch_frequency_handle.get()
+
+    @kernel
+    def calculate_frequency_for_pi_pulse(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        return self.clock_switch_frequency_handle.get()
+
+    @kernel
+    def calculate_frequency_for_second_pi_by_2_pulse(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        return self.clock_switch_frequency_handle.get()
+
+    @kernel
     def calculate_phase_for_first_pi_by_2_pulse(self) -> float:
         return self.phase_constant
 
@@ -129,13 +148,19 @@ class ClockInterferometryBase(
 
         self.prepare_clock_delivery_aom()
 
+        t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
+            1e-6
+        )  # Add a tiny delay to give us enough time to write to the DDS
         self.clock_dds.set(
-            frequency=self.clock_switch_frequency_handle.get(),
+            frequency=self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_pulse
+            ),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
 
         # PI/2 PULSE
+        at_mu(t_start_first_pulse_mu)
         self.clock_dds.sw.on()
         delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
@@ -146,35 +171,39 @@ class ClockInterferometryBase(
         self.stark_shifter.do_stark_pulse()
 
         # Phase step
+        t_start_pi_pulse_mu = t_end_pi_by_2_mu + self.core.seconds_to_mu(
+            self.delay_between_interferometry_pulses.get()
+        )
+
         self.clock_dds.set(
-            frequency=self.clock_switch_frequency_handle.get(),
+            frequency=self.calculate_frequency_for_pi_pulse(
+                t_pulse_start_mu=t_start_pi_pulse_mu, t_pi_pulse=t_pi_pulse
+            ),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_pi_pulse(),
         )
 
         # PI PULSE
-        at_mu(
-            t_end_pi_by_2_mu
-            + self.core.seconds_to_mu(self.delay_between_interferometry_pulses.get())
-        )
-
+        at_mu(t_start_pi_pulse_mu)
         self.clock_dds.sw.on()
         delay(t_pi_pulse)
         self.clock_dds.sw.off()
 
         # Phase step
         t_end_pi_mu = now_mu()
+        t_start_final_pulse_mu = t_end_pi_mu + self.core.seconds_to_mu(
+            self.delay_between_interferometry_pulses.get()
+        )
         self.clock_dds.set(
-            frequency=self.clock_switch_frequency_handle.get(),
+            frequency=self.calculate_frequency_for_second_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_final_pulse_mu, t_pi_pulse=t_pi_pulse
+            ),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
 
         # PI/2 PULSE
-        at_mu(
-            t_end_pi_mu
-            + self.core.seconds_to_mu(self.delay_between_interferometry_pulses.get())
-        )
+        at_mu(t_start_final_pulse_mu)
         self.clock_dds.sw.on()
         delay(t_pi_pulse / 2)
         self.clock_dds.sw.off()
