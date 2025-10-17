@@ -33,6 +33,9 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.interferometry_doppler_compensation import (
+    DopplerCompensationForInterferometryMixin,
+)
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
@@ -92,6 +95,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
     _DifferentialClockInterferometryImaging,
     ClockInterferometryWithNoiseDipoleTrapMixin,
+    DopplerCompensationForInterferometryMixin,
 ):
     """
     Clock interferometry from a double XODT with added noise
@@ -103,6 +107,7 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
     _DifferentialClockInterferometryImaging,
     StarkShifterWithSignalMixin,
     ClockInterferometryWithNoiseDipoleTrapMixin,
+    DopplerCompensationForInterferometryMixin,
 ):
     """
     Clock interferometry from a double XODT with signal and noise
@@ -113,6 +118,7 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
     AbsorptionDoubleDipoleTrapMixin,
     ClockInterferometryWithNoiseDipoleTrapMixin,
+    DopplerCompensationForInterferometryMixin,
 ):
     """
     Absorption imaging clock interferometry from a double XODT with added noise
