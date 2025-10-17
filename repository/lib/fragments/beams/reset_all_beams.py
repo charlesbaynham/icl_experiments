@@ -129,7 +129,6 @@ class ResetAllBeams(Fragment):
 
         kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants = kernel_invariants | {
-            "beam_infos",
             "suservo_channels",
             "all_ttls",
         }
