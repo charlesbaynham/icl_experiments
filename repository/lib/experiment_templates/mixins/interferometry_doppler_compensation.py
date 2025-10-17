@@ -45,22 +45,10 @@ class DopplerCompensationForInterferometryMixin(
 
         self.core: Core
 
-        self.t_velocity_slicing_pulse_centre_mu: int64
-
         # Disable the detuning of the spectroscopy pulse via a parameter - we'll
         # handle it here instead
         self.override_param("spectroscopy_pulse_aom_detuning", 0.0)
         self.override_param("shelving_pulse_aom_detuning", 0.0)
-
-    def host_setup(self):
-        super().host_setup()
-
-        if not hasattr(self, "t_velocity_slicing_pulse_centre_mu"):
-            raise AttributeError(
-                "DopplerCompensationForInterferometryMixin requires "
-                "the attribute t_velocity_slicing_pulse_centre_mu to be defined. "
-                "This is usually provided by ClockShelvingAndClearoutBase."
-            )
 
     @kernel
     def __calculate_chirp_required(self, t_drop: float):
