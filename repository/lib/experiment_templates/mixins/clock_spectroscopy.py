@@ -211,8 +211,17 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     @kernel
     def do_rabi_spectroscopy(self):
         self.prepare_clock_delivery_aom()
+        self.before_clock_spec_pulse_hook()
         self.fire_clock_spec_pulse()
         delay(self.delay_after_spectroscopy.get())
+
+    @kernel
+    def before_clock_spec_pulse_hook(self):
+        """
+        Hook for actions before the clock spectroscopy pulse is fired
+
+        No-op by default
+        """
 
     @kernel
     def fire_clock_spec_pulse(self):

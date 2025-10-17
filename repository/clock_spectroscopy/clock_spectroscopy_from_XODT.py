@@ -28,6 +28,9 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForClockSpecMixin,
+)
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsMixin,
 )
@@ -109,6 +112,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
     EMGain,
@@ -172,6 +176,7 @@ class ClockSpecFromXXODTFrag(
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
@@ -206,6 +211,7 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
