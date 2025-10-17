@@ -15,6 +15,9 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutBase,
 )
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -133,10 +136,10 @@ class DopplerCompensationForInterferometryMixin(
 
 class DopplerCompensationForClockSpecMixin(
     _DopplerCompensationBase,
-    ClockInterferometryBase,
+    ClockSpectroscopyBase,
 ):
     """
-    Adds detunings to the interferometry pulses to compensate for Doppler shifts
+    Adds detunings to the spectroscopy pulses to compensate for Doppler shifts
     accrued while the atoms fall.
 
     I.e. a poor-man's chirp.
