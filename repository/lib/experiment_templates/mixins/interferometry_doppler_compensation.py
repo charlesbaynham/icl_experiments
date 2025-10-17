@@ -9,6 +9,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
+from repository.lib.experiment_templates.mixins.clock_shelving import (
+    ClockShelvingAndClearoutBase,
+)
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -18,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class DopplerCompensationForInterferometryMixin(
+    ClockShelvingAndClearoutBase,
     ClockInterferometryBase,
 ):
     """
