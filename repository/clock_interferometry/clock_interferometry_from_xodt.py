@@ -30,11 +30,11 @@ from repository.lib.experiment_templates.mixins.clock_interferometry_with_signal
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForInterferometryMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
-)
-from repository.lib.experiment_templates.mixins.interferometry_doppler_compensation import (
-    DopplerCompensationForInterferometryMixin,
 )
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
