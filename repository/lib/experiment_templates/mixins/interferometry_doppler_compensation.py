@@ -1,9 +1,8 @@
 import logging
 
+from artiq.coredevice.core import Core
 from artiq.language import kernel
 from numpy import int64
-
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
@@ -22,7 +21,8 @@ class DopplerCompensationForInterferometryMixin(
     ClockInterferometryBase,
 ):
     """
-    Adds detunings to the interferometry pulses to compensate for Doppler shifts accrued while the atoms fall.
+    Adds detunings to the interferometry pulses to compensate for Doppler shifts
+    accrued while the atoms fall.
 
     I.e. a poor-man's chirp.
 
@@ -33,20 +33,65 @@ class DopplerCompensationForInterferometryMixin(
     * :meth:`~calculate_frequency_for_second_pi_by_2_pulse`
     """
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.core: Core
+
+        if not hasattr(self, "t_velocity_slicing_pulse_centre_mu"):
+            raise AttributeError(
+                "DopplerCompensationForInterferometryMixin requires "
+                "the attribute t_velocity_slicing_pulse_centre_mu to be defined. "
+                "This is usually provided by ClockShelvingAndClearoutBase."
+            )
+
+        self.t_velocity_slicing_pulse_centre_mu: int64
+
+    @kernel
+    def __calculate_chirp_required(self, t_drop: float):
+        return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+
     @kernel
     def calculate_frequency_for_first_pi_by_2_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
-        return self.clock_switch_frequency_handle.get()
+        t_drop = (
+            self.core.mu_to_seconds(
+                t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
+            )
+            + t_pi_pulse / 2
+        )
+        return (
+            self.clock_switch_frequency_handle.get()
+            + self.__calculate_chirp_required(t_drop)
+        )
 
     @kernel
     def calculate_frequency_for_pi_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
-        return self.clock_switch_frequency_handle.get()
+        t_drop = (
+            self.core.mu_to_seconds(
+                t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
+            )
+            + t_pi_pulse
+        )
+        return (
+            self.clock_switch_frequency_handle.get()
+            + self.__calculate_chirp_required(t_drop)
+        )
 
     @kernel
     def calculate_frequency_for_second_pi_by_2_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
-        return self.clock_switch_frequency_handle.get()
+        t_drop = (
+            self.core.mu_to_seconds(
+                t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
+            )
+            + t_pi_pulse / 2
+        )
+        return (
+            self.clock_switch_frequency_handle.get()
+            + self.__calculate_chirp_required(t_drop)
+        )
