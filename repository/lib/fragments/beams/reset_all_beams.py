@@ -111,6 +111,30 @@ class ResetAllBeams(Fragment):
         self.setattr_device("core")
         self.core: Core
 
+        # Build SUServo channel controllers
+        self.suservo_channels: List[LibSetSUServoStatic] = []
+        for beam in self.suservo_beam_infos:
+            f = self.setattr_fragment(
+                f"suservo_{beam.name}", LibSetSUServoStatic, beam.suservo_device
+            )
+            self.suservo_channels.append(f)  # type: ignore
+
+        self.setattr_param(
+            "enabled", BoolParam, description="Enable beam reset", default=True
+        )
+        self.enabled: BoolParamHandle
+
+        # %% Kernel invariants and variables
+        self.first_run = True
+
+        kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants = kernel_invariants | {
+            "beam_infos",
+            "suservo_channels",
+            "all_ttls",
+        }
+
+    def host_setup(self):
         # Collect shutters from SUServo beams
         suservo_shutter_ttls: List[TTLOut] = []
         for beam in self.suservo_beam_infos:
@@ -133,40 +157,11 @@ class ResetAllBeams(Fragment):
         # Store all TTLs
         self.all_ttls = suservo_shutter_ttls
 
-        # Build SUServo channel controllers
-        self.suservo_channels: List[LibSetSUServoStatic] = []
-        for beam in self.suservo_beam_infos:
-            f = self.setattr_fragment(
-                f"suservo_{beam.name}", LibSetSUServoStatic, beam.suservo_device
-            )
-            self.suservo_channels.append(f)  # type: ignore
-
-        self.setattr_param(
-            "enabled", BoolParam, description="Enable beam reset", default=True
-        )
-        self.enabled: BoolParamHandle
-
-        # %% Kernel invariants and variables
-        self.first_run = True
-
-        kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants = kernel_invariants | {
-            "beam_infos",
-            "suservo_channels",
-            "suservo_ttls",
-            "urukul_ttls",
-            "urukul_rf_switches",
-            "enabled_kernel",
-        }
-
-    def host_setup(self):
-        self.enabled_kernel = self.enabled.get()
-
         return super().host_setup()
 
     @kernel
     def device_setup(self) -> None:
-        if self.enabled_kernel and self.first_run:
+        if self.enabled.get() and self.first_run:
             self.first_run = False
             self.core.break_realtime()
 
