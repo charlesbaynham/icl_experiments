@@ -2,6 +2,8 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.language import kernel
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 from pyaion.models import SUServoedBeam
 
@@ -45,6 +47,15 @@ class DopplerCompensationForInterferometryMixin(
 
         self.core: Core
 
+        self.setattr_param(
+            "extra_clock_detuning",
+            FloatParam,
+            description="Extra clock detuning after Doppler correction",
+            default=0.0,
+            unit="kHz",
+        )
+        self.extra_clock_detuning: FloatParamHandle
+
         # Disable the detuning of the spectroscopy pulse via a parameter - we'll
         # handle it here instead
         self.override_param("spectroscopy_pulse_aom_detuning", 0.0)
@@ -66,6 +77,7 @@ class DopplerCompensationForInterferometryMixin(
         )
         return (
             self.clock_switch_frequency_handle.get()
+            + self.extra_clock_detuning.get()
             + self._calculate_chirp_required(t_drop)
         )
 
@@ -81,6 +93,7 @@ class DopplerCompensationForInterferometryMixin(
         )
         return (
             self.clock_switch_frequency_handle.get()
+            + self.extra_clock_detuning.get()
             + self._calculate_chirp_required(t_drop)
         )
 
@@ -96,5 +109,6 @@ class DopplerCompensationForInterferometryMixin(
         )
         return (
             self.clock_switch_frequency_handle.get()
+            + self.extra_clock_detuning.get()
             + self._calculate_chirp_required(t_drop)
         )
