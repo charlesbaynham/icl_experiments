@@ -140,7 +140,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
                 self.device_setup_subfragments()
                 self.outer.t_velocity_slicing_pulse_centre_mu = int64(0)
 
-        self.setattr_fragment("reset_slicing_time", _ResetSlicingTime)
+        self.setattr_fragment("reset_slicing_time", _ResetSlicingTime, self)
 
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
