@@ -652,6 +652,7 @@ class CentreTopticaModeFrag(ExpFragment):
                             "rid": self.scheduler.rid,  # type: ignore[attr-defined]
                         },
                         fields={
+                            "i_start": initial_current,
                             "i_bottom": i_bottom,
                             "i_top": i_top,
                             "i_target": i_target,
