@@ -933,7 +933,9 @@ DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
 
 # Add overrides for picky lasers
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
-    max_current=245e-3, restore_jump_size=5e-3
+    max_current=245e-3,
+    restore_jump_size=5e-3,
+    target_position=0.515,  # See lab book entry 2025-10-18
 )
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
