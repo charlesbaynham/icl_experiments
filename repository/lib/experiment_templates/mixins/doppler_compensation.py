@@ -2,7 +2,6 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.language import kernel
-from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -155,16 +154,15 @@ class DopplerCompensationForClockSpecMixin(
     """
 
     @kernel
-    def before_clock_spec_pulse_hook(self):
-        logger.error("Hello world")  # FIXME
+    def calculate_clock_delivery_freq(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+
         t_drop = self.core.mu_to_seconds(
-            now_mu() - self.t_velocity_slicing_pulse_centre_mu
-        ) + (self.spectroscopy_pulse_time.get() / 2)
+            t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
+        ) + (t_pi_pulse / 2)
         total_detuning = (
             self.extra_clock_detuning.get() + self._calculate_chirp_required(t_drop)
         )
 
-        self.clock_dds.set(
-            frequency=self.clock_switch_frequency_handle.get() + total_detuning,
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
+        return self.clock_delivery_handles.frequency_handle.get() + total_detuning

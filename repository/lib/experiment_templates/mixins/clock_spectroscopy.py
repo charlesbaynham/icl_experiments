@@ -143,6 +143,21 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         return param_handles
 
     @kernel
+    def calculate_clock_delivery_freq(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        """
+        Calculate the clock delivery AOM frequency for the spectroscopy pulse
+
+        Returns:
+            Frequency in Hz
+        """
+        return (
+            self.clock_delivery_handles.frequency_handle.get()
+            + self.spectroscopy_pulse_aom_detuning.get()
+        )
+
+    @kernel
     def prepare_clock_delivery_aom(self):
         """
         Ensure's the clock delivery AOM is on, configured and settled. Does not
@@ -151,8 +166,9 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get()
-            + self.spectroscopy_pulse_aom_detuning.get(),
+            freq=self.calculate_clock_delivery_freq(
+                _t_start, self.spectroscopy_pulse_time.get()
+            ),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
