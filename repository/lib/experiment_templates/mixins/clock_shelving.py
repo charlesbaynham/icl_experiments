@@ -167,7 +167,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         # Record the time of the centre of the shelving pulse
         self.t_velocity_slicing_pulse_centre_mu = _t_start + self.core.seconds_to_mu(
-            self.shelving_pulse_time.get()
+            self.shelving_pulse_time.get() / 2
         )
 
         # Pulse it onto the atoms
