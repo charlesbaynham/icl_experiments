@@ -16,7 +16,7 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutBase,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyBase,
+    ClockRabiSpectroscopyBase,
 )
 
 CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
@@ -136,7 +136,7 @@ class DopplerCompensationForInterferometryMixin(
 
 class DopplerCompensationForClockSpecMixin(
     _DopplerCompensationBase,
-    ClockSpectroscopyBase,
+    ClockRabiSpectroscopyBase,
 ):
     """
     Adds detunings to the spectroscopy pulses to compensate for Doppler shifts
@@ -156,6 +156,7 @@ class DopplerCompensationForClockSpecMixin(
 
     @kernel
     def before_clock_spec_pulse_hook(self):
+        logger.error("Hello world")  # FIXME
         t_drop = self.core.mu_to_seconds(
             now_mu() - self.t_velocity_slicing_pulse_centre_mu
         ) + (self.spectroscopy_pulse_time.get() / 2)
