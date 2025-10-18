@@ -55,6 +55,7 @@ class _MonitorIJDRelocker(Calibration):
 
                 auto_mode = int(lock_settings.auto_relock)
                 v_low_threshold = lock_settings.v_low_threshold
+                v_rise_threshold = lock_settings.v_rise_threshold
 
                 fields["v_set_lock"] = lock_results.v_set_lock
 
@@ -64,6 +65,7 @@ class _MonitorIJDRelocker(Calibration):
 
                 fields["auto_mode"] = auto_mode
                 fields["v_low_threshold"] = v_low_threshold
+                fields["v_rise_threshold"] = v_rise_threshold
 
                 if auto_mode:
                     if locked:
