@@ -924,6 +924,9 @@ class ModeCentringSettings:
         5e9  # Frequency threshold for detecting if we are on the right mode / Hz
     )
     target_position: float = 0.5  # Target position in mode-hop-free range (0-1)
+    fractional_current_tolerance: float = (
+        0.1  # Tolerance for final position within window as fraction of window size
+    )
 
 
 # For every laser in TOPTICA_TO_WAND_NAMES, define default mode centring settings
@@ -936,6 +939,7 @@ DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     max_current=245e-3,
     restore_jump_size=5e-3,
     target_position=0.515,  # See lab book entry 2025-10-18
+    fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
 )
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(

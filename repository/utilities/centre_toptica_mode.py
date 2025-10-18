@@ -165,7 +165,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "current_tolerance",
             FloatParam,
-            default=0.1,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].fractional_current_tolerance,
             description="Maximum allowed current drift as fraction of mode-hop-free range",
             min=0.01,
             max=0.5,
