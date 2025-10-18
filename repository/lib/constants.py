@@ -409,7 +409,7 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
 
-DEFAULT_IMAGING_PULSE = 50e-6
+DEFAULT_IMAGING_PULSE = 200e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
