@@ -1250,7 +1250,7 @@ files = [
 
 [[package]]
 name = "imperial-artiq-applets"
-version = "0.3.2"
+version = "0.3.4"
 description = "Custom artiq applets"
 optional = false
 python-versions = ">=3.10, <3.12"
@@ -1258,8 +1258,8 @@ files = []
 develop = false
 
 [package.dependencies]
+artiq = {git = "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"}
 matplotlib = "^3.8.2"
-pyaion = {git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"}
 pyqt5 = "5.15.9"
 pyqt5-qt5 = "5.15.2"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
@@ -1268,7 +1268,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/imperial-artiq-applets.git"
 reference = "HEAD"
-resolved_reference = "aefd95e1c9102773302480cb3e79a4b5ae78489d"
+resolved_reference = "22819b8538f7d5bd88593ec1bdbd3db9d298c1c9"
 
 [[package]]
 name = "iniconfig"
