@@ -2,6 +2,8 @@ import logging
 
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from toptica_wrapper.driver import TopticaDLCPro
 
 from repository.lib import constants
@@ -20,6 +22,14 @@ class Recentre461Frag(ExpFragment):
 
         self.setattr_fragment("wand_steering", WandSteering)
         self.wand_steering: WandSteering
+
+        self.setattr_fragment(
+            "set_beams_to_default",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_xfer_offset"]]
+            ),
+        )
+        self.set_beams_to_default: SetBeamsToDefaults
 
         self.toptica_461: TopticaDLCPro = self.get_device("toptica_461")
 
