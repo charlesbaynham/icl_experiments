@@ -65,6 +65,7 @@ class _MonitorIJDRelocker(Calibration):
 
                 fields["auto_mode"] = auto_mode
                 fields["v_low_threshold"] = v_low_threshold
+                fields["v_rise_threshold"] = v_rise_threshold
 
                 fields["v_trigger_threshold"] = v_rolling_low + v_rise_threshold
 
