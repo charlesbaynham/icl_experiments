@@ -26,7 +26,9 @@ class Recentre461Frag(ExpFragment):
         self.setattr_fragment(
             "set_beams_to_default",
             make_set_beams_to_default(
-                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_xfer_offset"]]
+                urukul_beam_infos=[constants.URUKULED_BEAMS["blue_xfer_offset"]],
+                use_automatic_setup=True,
+                use_automatic_turnon=True,
             ),
         )
         self.set_beams_to_default: SetBeamsToDefaults
