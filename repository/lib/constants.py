@@ -774,7 +774,7 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
         servo_enabled=True,
-        initial_amplitude=0.0,
+        initial_amplitude=0.1,
         setpoint=4.7,
         kI_loop_constant=-1000.0,
     ),
@@ -784,7 +784,7 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_painted_delivery",
         servo_enabled=True,
-        initial_amplitude=0.0,
+        initial_amplitude=0.1,
         setpoint=4.7,
         kI_loop_constant=-1000.0,
     ),
@@ -938,7 +938,7 @@ DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     max_current=245e-3,
     restore_jump_size=5e-3,
-    target_position=0.515,  # See lab book entry 2025-10-18
+    target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
     fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
 )
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
