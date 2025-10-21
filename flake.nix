@@ -113,6 +113,7 @@
         '');
 
       in {
+        inherit bind_settings;
         inherit (overriddenOutputs) formatter;
 
         # Add a script to the shell hook that sets the DISPLAY environment variable
