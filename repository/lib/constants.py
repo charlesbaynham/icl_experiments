@@ -164,7 +164,7 @@ class IJDSettings:
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
         temperature=7700,
-        window_high=365e-3,
+        window_high=363e-3,
         window_low=355e-3,
         relock_step=3e-3,
         # IJD1 does not actually need the blue_singlepass_injection AOM, but
