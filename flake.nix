@@ -10,7 +10,15 @@
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
   outputs = { self, nixpkgs, flake-utils, pyaion, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
+    let
+      # Configure ARTIQ services to bind to the labserver's AION IP address.
+      # This is so that the server can run other ARTIQ sessions bound to other
+      # IP addresses.
+      bind_settings = {
+        bind_command = "--no-localhost-bind --bind 10.137.1.252";
+        connection_ip = "10.137.1.252";
+      };
+    in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         callPackage = pyaion.lib.${system}.callPackage;
@@ -95,14 +103,6 @@
             exec wand_gui -n icl_aion "$@"
           '');
 
-        # Configure ARTIQ services to bind to the labserver's AION IP address.
-        # This is so that the server can run other ARTIQ sessions bound to other
-        # IP addresses.
-        bind_settings = {
-            bind_command = "--no-localhost-bind --bind 10.137.1.252";
-            connection_ip = "10.137.1.252";
-        };
-
         # Dashboard launcher for the ICL AION address
         dashboard_launcher = (pkgs.writeShellScriptBin "icl_dashboard" ''
           # If you want to reset the dashboard settings each time, uncomment this line
@@ -118,13 +118,13 @@
         # Add a script to the shell hook that sets the DISPLAY environment variable
         # if we are running on WSL and a Windows X server is detected
         devShells = overriddenOutputs.devShells // {
-            default = overriddenOutputs.devShells.default.overrideAttrs (oldAttrs:
-            {
-                shellHook = ''
+          default = overriddenOutputs.devShells.default.overrideAttrs
+            (oldAttrs: {
+              shellHook = ''
                 ${oldAttrs.shellHook or ""}
 
                 source ${self}/scripts/wsl_display_fix.sh
-                '';
+              '';
             });
         };
 
@@ -249,7 +249,7 @@
 
             # Automatic startup of database monitors
             monitor_launcher =
-               "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+              "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
           in overriddenOutputs.apps.full_stack.override (prev:
             {
@@ -258,5 +258,7 @@
               };
             } // bind_settings);
         };
-      });
+      }) // {
+        inherit bind_settings;
+      };
 }

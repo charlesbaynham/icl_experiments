@@ -31,5 +31,8 @@
         "**/.git/**"
     ],
     "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[nix]": {
+        "editor.defaultFormatter": "jnoortheen.nix-ide"
+    }
 }
