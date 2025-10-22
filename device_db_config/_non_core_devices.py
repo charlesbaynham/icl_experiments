@@ -338,7 +338,7 @@ def get_non_core_devices(simulation_mode=False):
             "type": "controller",
             "host": "10.137.1.20",  # This is the raspberry pi running the TV by the door
             "port": 4321,
-            "command": "aqctl_quotes --id 1234 -v",
+            "command": "aqctl_quotes --id 1234 -vv",
         },
         # Example devices: edit to suit your lab
         # An example of a local device:
