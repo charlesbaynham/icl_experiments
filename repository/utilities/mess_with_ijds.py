@@ -1,9 +1,9 @@
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment import ExpFragment
-from ndscan.experiment import FloatParam
 from ndscan.experiment import make_fragment_scan_exp
-from ndscan.params import ParamHandle as FloatParamHandle
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
