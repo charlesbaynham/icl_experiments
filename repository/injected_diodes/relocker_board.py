@@ -155,13 +155,13 @@ class RelockerChannelFrag(ExpFragment):
 
         self.setattr_param(
             "wait_time",
-            IntParam,
+            FloatParam,
             description="v set wait time",
             default=defaults.wait_time,
-            min=0,
+            min=0.0,
             unit="s",
         )
-        self.wait_time: IntParamHandle
+        self.wait_time: FloatParamHandle
 
         self.setattr_param(
             "auto_relock",
