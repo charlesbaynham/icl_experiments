@@ -229,7 +229,7 @@ class RelockerChannelFrag(ExpFragment):
             self.min_diff.get(),
             self.v_low_threshold.get(),
             self.v_rise_threshold.get(),
-            1000 * self.wait_time.get(),
+            int(1000 * self.wait_time.get()),
             self.auto_relock.get(),
             self.v_relock_step_up.get(),
             self.alpha_denominator.get(),
