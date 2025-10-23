@@ -1,5 +1,7 @@
+from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -20,6 +22,9 @@ class MessWithIJDsFrag(ExpFragment):
     """
 
     def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
         self.setattr_param(
             "ijd1_off_delay",
             FloatParam,
@@ -102,6 +107,8 @@ class MessWithIJDsFrag(ExpFragment):
 
     @kernel
     def run_once(self) -> None:
+        self.core.break_realtime()
+
         # Turn off IJD1's AOM
         self.blue_doublepass_toggler.turn_off_beams()
         delay(self.ijd1_off_delay.get())
@@ -113,6 +120,8 @@ class MessWithIJDsFrag(ExpFragment):
         delay(self.ijd23_off_delay.get())
         self.blue_singlepass_toggler.turn_on_beams()
         delay(self.ijd23_on_delay.get())
+
+        self.core.wait_until_mu(now_mu())
 
 
 MessWithIJDs = make_fragment_scan_exp(MessWithIJDsFrag)
