@@ -395,7 +395,7 @@ class AllRelockersFrag(ExpFragment):
             "write_settings",
             BoolParam,
             description="Write settings",
-            default=False,
+            default=True,
         )
         self.write_settings: BoolParamHandle
 
