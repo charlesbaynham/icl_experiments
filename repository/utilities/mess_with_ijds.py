@@ -32,7 +32,6 @@ class MessWithIJDsFrag(ExpFragment):
             default=1.0,
             unit="s",
             min=0.0,
-            max=100.0,
         )
         self.ijd1_off_delay: FloatParamHandle
 
@@ -43,7 +42,6 @@ class MessWithIJDsFrag(ExpFragment):
             default=10.0,
             unit="s",
             min=0.0,
-            max=100.0,
         )
         self.ijd1_on_delay: FloatParamHandle
 
@@ -54,7 +52,6 @@ class MessWithIJDsFrag(ExpFragment):
             default=1.0,
             unit="s",
             min=0.0,
-            max=100.0,
         )
         self.ijd23_off_delay: FloatParamHandle
 
@@ -65,7 +62,6 @@ class MessWithIJDsFrag(ExpFragment):
             default=10.0,
             unit="s",
             min=0.0,
-            max=100.0,
         )
         self.ijd23_on_delay: FloatParamHandle
 
