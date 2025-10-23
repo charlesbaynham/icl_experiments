@@ -112,8 +112,6 @@ class RelockerChannelFrag(ExpFragment):
             FloatParam,
             description="window fraction",
             default=defaults.window_frac,
-            min=0.0,
-            max=1.0,
             scale=1,
             step=0.01,
         )
