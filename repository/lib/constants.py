@@ -116,7 +116,7 @@ URUKULED_BEAMS = [
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
 # Convert to dict for ease of use
-URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
+URUKULED_BEAMS: dict[str, UrukuledBeam] = {beam.name: beam for beam in URUKULED_BEAMS}
 
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
