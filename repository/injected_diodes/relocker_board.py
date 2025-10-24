@@ -164,6 +164,16 @@ class RelockerChannelFrag(ExpFragment):
         self.wait_time: FloatParamHandle
 
         self.setattr_param(
+            "wait_time_per_scan_step",
+            FloatParam,
+            description="wait time per scan step",
+            default=0.001,
+            min=0.0,
+            unit="s",
+        )
+        self.wait_time_per_scan_step: FloatParamHandle
+
+        self.setattr_param(
             "auto_relock",
             BoolParam,
             description="Enable auto relock",
@@ -232,6 +242,7 @@ class RelockerChannelFrag(ExpFragment):
             self.auto_relock.get(),
             self.v_relock_step_up.get(),
             self.alpha_denominator.get(),
+            scan_step_delay=self.wait_time_per_scan_step.get(),
         )
 
     def get_read_voltages(self):
