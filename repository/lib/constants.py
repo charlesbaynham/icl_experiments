@@ -241,6 +241,9 @@ class IJDRelockerSettings:
     alpha_denominator: int = 1000000
     "Exponential moving average parameter for the relocker, inverted"
 
+    wait_time_per_scan_step: float = 1e-3
+    "Time to wait between current steps in a relock scan"
+
     def __post_init__(self):
         if self.n_steps > 128:
             raise ValueError("n_steps cannot be >128")
@@ -352,6 +355,7 @@ IJD_RELOCKER_DEFAULTS = {
             "red_IJD1_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("red_IJD1_controller"),
+        wait_time_per_scan_step=2e-6,
     ),
 }
 "Settings for IJD relocker board channels"
