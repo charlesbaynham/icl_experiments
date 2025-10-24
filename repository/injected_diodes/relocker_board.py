@@ -394,9 +394,13 @@ class AllRelockersFrag(ExpFragment):
             IJD_RELOCKER_DEFAULTS[ijd_name]
             fragment_name = f"frag_relocker_{ijd_name}"
 
+            # Make each frag a new class to avoid ndscan complaints about parameters with different default values
+            class _RelockerChannelFrag(RelockerChannelFrag):
+                pass
+
             frag = self.setattr_fragment(
                 fragment_name,
-                RelockerChannelFrag,
+                _RelockerChannelFrag,
                 ijd_name,
             )
 
