@@ -456,6 +456,9 @@ class CentreTopticaModeFrag(ExpFragment):
 
         logger.info("Starting mode centring for laser: %s", self.laser_name)
 
+        # -2. Disable WAND locking to prevent interference
+        self.wand_server.unlock(wand_laser_name, name="")
+
         # -1. Disable ARC if it is enabled to prevent external steering
         initial_arc_enabled = self.get_arc_state()
         if initial_arc_enabled:
