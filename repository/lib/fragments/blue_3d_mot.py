@@ -63,6 +63,9 @@ BLUE_DOUBLEPASS_INJECTION_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS[
 BLUE_SINGLEPASS_INJECTION_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS[
     "blue_singlepass_injection"
 ]
+BLUE_DOUBLEPASS_XFER_CAVITY_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS[
+    "blue_xfer_offset"
+]
 
 
 class BlueRampingPhaseWithFields(GeneralRampingPhaseWithBindingAndMOTField):
@@ -123,6 +126,10 @@ class Blue3DMOTFrag(Fragment):
 
         self.singlepass_injection_aom: AD9912 = self.get_device(
             BLUE_SINGLEPASS_INJECTION_BEAM_INFO.urukul_device
+        )
+
+        self.doublepass_xfer_cavity_aom: AD9912 = self.get_device(
+            BLUE_DOUBLEPASS_XFER_CAVITY_BEAM_INFO.urukul_device
         )
 
         self.setattr_fragment("all_beam_default_setter", BlueBeamSetter)
@@ -325,6 +332,16 @@ class Blue3DMOTFrag(Fragment):
             min=0,
         )
         self.loading_time: FloatParamHandle
+
+        self.setattr_param(
+            "blue_xfer_cavity_detuning_jump",
+            FloatParam,
+            "Detuning jump of blue xfer cavity AOM from nominal",
+            default=0,
+            unit="MHz",
+            min=0,
+        )
+        self.blue_xfer_cavity_detuning_jump: FloatParamHandle
 
         self.debug_mode = logger.isEnabledFor(logging.DEBUG)
         self.manual_init = manual_init
@@ -531,4 +548,13 @@ class Blue3DMOTFrag(Fragment):
         """
         self.turn_off_push_beam()
         delay_mu(int64(self.core.ref_multiplier))
+        self.doublepass_xfer_cavity_aom.set(
+            frequency=BLUE_DOUBLEPASS_XFER_CAVITY_BEAM_INFO.frequency
+            + self.blue_xfer_cavity_detuning_jump.get()
+        )
+        delay_mu(int64(self.core.ref_multiplier))
         self.blue_transfer_MOT.do_phase()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.doublepass_xfer_cavity_aom.set(
+            frequency=BLUE_DOUBLEPASS_XFER_CAVITY_BEAM_INFO.frequency
+        )
