@@ -168,7 +168,7 @@ class RelockerChannelFrag(ExpFragment):
             "wait_time_per_scan_step",
             FloatParam,
             description="wait time per scan step",
-            default=0.001,
+            default=defaults.wait_time_per_scan_step,
             min=0.0,
             unit="us",
         )
