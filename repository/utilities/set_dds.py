@@ -28,17 +28,20 @@ class SetDDS(EnvExperiment):
         self.channel: AD9912 = self.get_device(self.device_name)
         self.setattr_device("core")
 
+    def prepare(self):
+        self.cpld: CPLD = self.channel.cpld
+
     @kernel
     def run(self):
-        cpld: CPLD = self.channel.cpld
-
         self.core.break_realtime()
 
-        cpld.init()
+        self.cpld.init()
         self.channel.init()
 
         # Load the attenuator settings for all channels
-        cpld.get_att_mu()
+        self.cpld.get_att_mu()
+
+        self.core.break_realtime()
 
         self.channel.sw.set_o(self.switch)
         self.channel.set(self.frequency)
