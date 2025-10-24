@@ -288,17 +288,18 @@ IJD_RELOCKER_DEFAULTS = {
         i_max=3e-3,
         i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.5,
+        window_frac=0.4,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
-        wait_time=100e-3,
+        wait_time=200e-3,
         auto_relock=True,
         associated_controller="blue_IJD1_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD1_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD1_controller"),
+        wait_time_per_scan_step=2e-3,
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -307,17 +308,18 @@ IJD_RELOCKER_DEFAULTS = {
         i_max=3e-3,
         i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.5,
+        window_frac=0.4,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
-        wait_time=100e-3,
+        wait_time=200e-3,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD2_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD2_controller"),
+        wait_time_per_scan_step=2e-3,
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -326,17 +328,18 @@ IJD_RELOCKER_DEFAULTS = {
         i_max=3e-3,
         i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.5,
+        window_frac=0.4,
         min_diff=0.1,
         v_low_threshold=1.6,
         v_rise_threshold=0.015,
-        wait_time=100e-3,
+        wait_time=200e-3,
         auto_relock=True,
         associated_controller="blue_IJD3_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD3_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD3_controller"),
+        wait_time_per_scan_step=2e-3,
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
@@ -348,14 +351,14 @@ IJD_RELOCKER_DEFAULTS = {
         min_diff=0.1,
         v_low_threshold=1.3,
         v_rise_threshold=0.05,
-        wait_time=1000e-3,
+        wait_time=200e-3,
         auto_relock=True,
         associated_controller="red_IJD1_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "red_IJD1_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("red_IJD1_controller"),
-        wait_time_per_scan_step=2e-6,
+        wait_time_per_scan_step=2e-3,
     ),
 }
 "Settings for IJD relocker board channels"
