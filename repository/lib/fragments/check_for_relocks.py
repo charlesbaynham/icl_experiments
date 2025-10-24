@@ -58,7 +58,12 @@ class CheckForRelocksFrag(Fragment):
             defaults = IJD_RELOCKER_DEFAULTS[channel_name]
             channel = defaults.channel
             relocker = self.relockers[i]
-            n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
+            try:
+                n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
+            except (
+                ValueError
+            ):  # Work around bug in IJD comms for now, but this should be fixed elsewhere
+                n_relocks.append(1)
         return n_relocks
 
     @rpc
