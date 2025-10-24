@@ -116,7 +116,7 @@ URUKULED_BEAMS = [
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
 # Convert to dict for ease of use
-URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
+URUKULED_BEAMS: dict[str, UrukuledBeam] = {beam.name: beam for beam in URUKULED_BEAMS}
 
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
@@ -940,6 +940,7 @@ DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     restore_jump_size=5e-3,
     target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
     fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
+    mode_check_tolerance=10e9,
 )
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(

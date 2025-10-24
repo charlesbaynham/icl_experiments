@@ -112,8 +112,6 @@ class RelockerChannelFrag(ExpFragment):
             FloatParam,
             description="window fraction",
             default=defaults.window_frac,
-            min=0.0,
-            max=1.0,
             scale=1,
             step=0.01,
         )
@@ -157,14 +155,13 @@ class RelockerChannelFrag(ExpFragment):
 
         self.setattr_param(
             "wait_time",
-            IntParam,
+            FloatParam,
             description="v set wait time",
             default=defaults.wait_time,
-            min=0,
-            max=100,
+            min=0.0,
             unit="s",
         )
-        self.wait_time: IntParamHandle
+        self.wait_time: FloatParamHandle
 
         self.setattr_param(
             "auto_relock",
@@ -231,7 +228,7 @@ class RelockerChannelFrag(ExpFragment):
             self.min_diff.get(),
             self.v_low_threshold.get(),
             self.v_rise_threshold.get(),
-            1000 * self.wait_time.get(),
+            self.wait_time.get(),
             self.auto_relock.get(),
             self.v_relock_step_up.get(),
             self.alpha_denominator.get(),
@@ -398,7 +395,7 @@ class AllRelockersFrag(ExpFragment):
             "write_settings",
             BoolParam,
             description="Write settings",
-            default=False,
+            default=True,
         )
         self.write_settings: BoolParamHandle
 
