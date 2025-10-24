@@ -300,6 +300,7 @@ IJD_RELOCKER_DEFAULTS = {
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD1_controller"),
         wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -320,6 +321,7 @@ IJD_RELOCKER_DEFAULTS = {
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD2_controller"),
         wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -340,6 +342,7 @@ IJD_RELOCKER_DEFAULTS = {
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD3_controller"),
         wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
