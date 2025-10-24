@@ -213,10 +213,10 @@ class RelockerChannelFrag(ExpFragment):
         self.setattr_result("result", OpaqueChannel)
         self.result: OpaqueChannel
 
-        self.setattr_result("i_biggest_diff", FloatChannel)
+        self.setattr_result("i_biggest_diff", FloatChannel, unit="mA")
         self.i_biggest_diff: FloatChannel
 
-        self.setattr_result("i_rise", FloatChannel)
+        self.setattr_result("i_rise", FloatChannel, unit="mA")
         self.i_rise: FloatChannel
 
     def host_setup(self):
@@ -305,8 +305,8 @@ class RelockerChannelFrag(ExpFragment):
         scan_voltages = self.get_scan_voltages()[::-1]
         scan_voltages = self.get_scan_currents(scan_voltages)
 
-        self.i_rise.push(result_labelled.i_rise)
-        self.i_biggest_diff.push(result_labelled.i_biggest_diff)
+        self.i_rise.push(1e-3 * scan_voltages[result_labelled.i_rise])
+        self.i_biggest_diff.push(1e-3 * scan_voltages[result_labelled.i_biggest_diff])
 
         read_voltages = self.get_read_voltages()
         logger.info(results)
