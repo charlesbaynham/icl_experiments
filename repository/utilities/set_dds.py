@@ -1,5 +1,6 @@
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9912 import AD9912
+from artiq.coredevice.urukul import CPLD
 from artiq.experiment import *
 from pyaion.lib.utils import get_local_devices
 
@@ -29,10 +30,15 @@ class SetDDS(EnvExperiment):
 
     @kernel
     def run(self):
+        cpld: CPLD = self.channel.cpld
+
         self.core.break_realtime()
 
-        self.channel.cpld.init()
+        cpld.init()
         self.channel.init()
+
+        # Load the attenuator settings for all channels
+        cpld.get_att_mu()
 
         self.channel.sw.set_o(self.switch)
         self.channel.set(self.frequency)
