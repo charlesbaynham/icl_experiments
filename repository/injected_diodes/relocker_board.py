@@ -10,6 +10,7 @@ from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import BoolParam
 from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatChannel
 from ndscan.experiment import FloatParam
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -212,6 +213,12 @@ class RelockerChannelFrag(ExpFragment):
         self.setattr_result("result", OpaqueChannel)
         self.result: OpaqueChannel
 
+        self.setattr_result("i_biggest_diff", FloatChannel)
+        self.i_biggest_diff: FloatChannel
+
+        self.setattr_result("i_rise", FloatChannel)
+        self.i_rise: FloatChannel
+
     def host_setup(self):
         defaults = IJD_RELOCKER_DEFAULTS[self.channel_name]
         self.channel = defaults.channel
@@ -294,10 +301,12 @@ class RelockerChannelFrag(ExpFragment):
     def log_results(self):
         # Log action
         results = self.get_result()
+        result_labelled = self.relocker.get_result_labelled(self.channel)
         scan_voltages = self.get_scan_voltages()[::-1]
         scan_voltages = self.get_scan_currents(scan_voltages)
 
-        # scan_currents = self.get_scan_currents(scan_voltages)
+        self.i_rise.push(result_labelled.i_rise)
+        self.i_biggest_diff.push(result_labelled.i_biggest_diff)
 
         read_voltages = self.get_read_voltages()
         logger.info(results)
