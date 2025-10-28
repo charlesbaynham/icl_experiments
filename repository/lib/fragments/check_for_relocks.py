@@ -59,10 +59,18 @@ class CheckForRelocksFrag(Fragment):
             channel = defaults.channel
             relocker = self.relockers[i]
             try:
-                n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
+                result = relocker.get_auto_relock_stats(channel)
+
+                if result is None:
+                    # Connection error
+                    logger.error("Could not get relock stats for %s", channel_name)
+                    n_relocks.append(1)
+                else:
+                    n_relocks.append(result[0])
             except (
                 ValueError,
                 TypeError,
+                EOFError,
             ):  # Work around bug in IJD comms for now, but this should be fixed elsewhere
                 n_relocks.append(1)
         return n_relocks
