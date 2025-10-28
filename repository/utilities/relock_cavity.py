@@ -6,6 +6,11 @@ from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language.core import delay
+from artiq.language.core import delay_mu
+from artiq.language.core import kernel
+from artiq.language.core import now_mu
+from artiq.language.core import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
@@ -86,12 +91,21 @@ class Relock689Frag(_RelockerWith689Shutters, ExpFragment):
     laser_name_wand = "689"
     laser_name_devicedb = "toptica_689"
 
-    def run_once(self) -> None:
+    @rpc(flags={"sync"})
+    def relock(self):
+        """Convert the relock method to an RPC"""
+        return super().relock()
+
+    @kernel
+    def relock_from_core(self) -> None:
         self.set_shutters(open_689=True, open_1379=False)
         try:
             self.relock()
         finally:
             self.set_shutters(open_689=True, open_1379=True)
+
+    def run_once(self) -> None:
+        self.relock_from_core()
 
 
 class Relock1379Frag(_RelockerWith689Shutters, ExpFragment):
