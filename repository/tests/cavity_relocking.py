@@ -25,4 +25,4 @@ class TestCavityRelockingFrag(
         pass
 
 
-TestTripleImagingTestCavityRelocking = make_fragment_scan_exp(TestCavityRelockingFrag)
+TestCavityRelocking = make_fragment_scan_exp(TestCavityRelockingFrag)
