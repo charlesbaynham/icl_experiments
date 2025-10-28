@@ -63,6 +63,7 @@ class CheckForRelocksFrag(Fragment):
             except (
                 ValueError,
                 TypeError,
+                EOFError,
             ):  # Work around bug in IJD comms for now, but this should be fixed elsewhere
                 n_relocks.append(1)
         return n_relocks
