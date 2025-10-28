@@ -61,7 +61,8 @@ class CheckForRelocksFrag(Fragment):
             try:
                 n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
             except (
-                ValueError
+                ValueError,
+                TypeError,
             ):  # Work around bug in IJD comms for now, but this should be fixed elsewhere
                 n_relocks.append(1)
         return n_relocks
