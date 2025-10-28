@@ -190,8 +190,8 @@ class Timestamper(Fragment):
             )
 
         self._called_previous_point = True
-        self.push_timestamp()
+        self._push_timestamp(self._get_utc_timestamp_from_mu())
 
     @rpc(flags={"async"})
-    def push_timestamp(self):
-        self.timestamp_utc.push(self._get_utc_timestamp_from_mu())
+    def _push_timestamp(self, timestamp: float):
+        self.timestamp_utc.push(timestamp)
