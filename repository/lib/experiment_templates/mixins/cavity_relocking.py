@@ -2,6 +2,8 @@ import logging
 
 from artiq.language import kernel
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.relock_689_and_698 import Relock689Frag
@@ -32,15 +34,37 @@ class MonitorAndRelock689and698Mixin(RedMOTWithExperiment):
                 self.setattr_fragment("relock_698_frag", Relock698Frag)
                 self.relock_698_frag: Relock698Frag
 
+                self.setattr_param(
+                    "relock_689_enabled",
+                    BoolParam,
+                    default=True,
+                    description="Enable 689 ECDL automatic relocking",
+                )
+                self.relock_689_enabled: BoolParamHandle
+
+                self.setattr_param(
+                    "relock_698_enabled",
+                    BoolParam,
+                    default=True,
+                    description="Enable 698 ECDL automatic relocking",
+                )
+                self.relock_698_enabled: BoolParamHandle
+
             @kernel
             def device_setup(self):
                 self.device_setup_subfragments()
 
-                if not self.relock_689_frag.is_cavity_locked():
+                if (
+                    self.relock_689_enabled.get()
+                    and not self.relock_689_frag.is_cavity_locked(accept_old=True)
+                ):
                     logger.warning("689 cavity unlocked, attempting relock")
                     self.relock_689_frag.relock()
 
-                if not self.relock_698_frag.is_cavity_locked():
+                if (
+                    self.relock_698_enabled.get()
+                    and not self.relock_698_frag.is_cavity_locked(accept_old=True)
+                ):
                     logger.warning("698 cavity unlocked, attempting relock")
                     self.relock_698_frag.relock()
 
