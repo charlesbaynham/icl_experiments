@@ -134,6 +134,8 @@ class RelockFALCWithWavemeterFrag(Fragment):
             self.laser_name_devicedb
         )
 
+        self.warning_sent = False
+
     def host_setup(self):
         self.toptica_controller.open()
         return super().host_setup()
@@ -202,9 +204,11 @@ class RelockFALCWithWavemeterFrag(Fragment):
         accept_old : bool
             If True, accept most-recent wavemeter reading. If False, force a new reading
         """
-        logger.warning(
-            "Cavity transmission detection not implemented yet! Using the wavemeter instead"
-        )
+        if not self.warning_sent:
+            logger.warning(
+                "Cavity transmission detection not implemented yet! Using the wavemeter instead"
+            )
+            self.warning_sent = True
 
         max_measurement_age = 1 if not accept_old else 60
         meas = self.wand_server.get_freq(
