@@ -87,15 +87,17 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
                 # If there was no dataset defining a starting time, choose now and make a dataset
                 if self.t0.get() == 0:
                     self.t0_val = time.time()
-                    self.set_dataset(
-                        NAME_OF_DATASET_T0,
-                        self.t0_val,
-                        broadcast=True,
-                        persist=True,
-                        archive=True,
-                    )
                 else:
                     self.t0_val = self.t0.get()
+
+                # Store the t0 chosen so that future datasets can retrieve it
+                self.set_dataset(
+                    NAME_OF_DATASET_T0,
+                    self.t0_val,
+                    broadcast=True,
+                    persist=True,
+                    archive=True,
+                )
 
             @kernel
             def device_setup(self):
