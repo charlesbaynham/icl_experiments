@@ -26,6 +26,8 @@ class MonitorAndRelock689and698Mixin(RedMOTWithExperiment):
 
         class MonitorLocksInDeviceSetup(Fragment):
             def build_fragment(self):
+                self.setattr_device("core")
+
                 self.setattr_fragment("relock_689_frag", Relock689Frag)
                 self.relock_689_frag: Relock689Frag
 
