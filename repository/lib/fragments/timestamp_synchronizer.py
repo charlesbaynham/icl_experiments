@@ -48,10 +48,10 @@ class Timestamper(Fragment):
     a) establish a link between the "machine units" timestamps running on the
     ARTIQ core, and real UTC time as known by the hosting PC
 
-    b) record timestamps for each point in an NDScan scan
+    b) if built with "record_timestamps=True", record timestamps for each point in an NDScan scan
     """
 
-    def build_fragment(self, automatic_timestamp=False):
+    def build_fragment(self, automatic_timestamp=False, record_timestamps=True):
         self.setattr_device("core")
         self.core: Core
 
@@ -59,19 +59,22 @@ class Timestamper(Fragment):
             "ntp_repeats", IntParam, "Number of NTP repeats", default=10
         )
 
-        self.timestamp_utc = self.setattr_result(
-            "timestamp_utc",
-            FloatChannel,
-            display_hints={"priority": -1},
-        )
+        if record_timestamps:
+            self.timestamp_utc = self.setattr_result(
+                "timestamp_utc",
+                FloatChannel,
+                display_hints={"priority": -1},
+            )
 
         # Offset between ARTIQ seconds and UTC seconds. Calibrated using basic
         # version of the NTP protocol on the first shot
         self.artiq_utc_offset = float(0)
 
         self.automatic_timestamp = automatic_timestamp
+        self.record_timestamps = record_timestamps
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("automatic_timestamp")
+        self.kernel_invariants.add("record_timestamps")
 
         self._called_previous_point = True
 
@@ -181,5 +184,14 @@ class Timestamper(Fragment):
         if self._called_previous_point:
             logger.error("mark_timestamp() was called more than once!")
 
+        if not self.record_timestamps:
+            raise RuntimeError(
+                "mark_timestamp() was called, but this Fragment was built with record_timestamps=False"
+            )
+
         self._called_previous_point = True
+        self.push_timestamp()
+
+    @rpc(flags={"async"})
+    def push_timestamp(self):
         self.timestamp_utc.push(self._get_utc_timestamp_from_mu())
