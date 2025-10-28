@@ -193,7 +193,7 @@ class RelockFALCWithWavemeterFrag(Fragment):
         falc.main.enabled.set(main)
         falc.unlim.enabled.set(unlim)
 
-    def is_cavity_locked(self, accept_old=False):
+    def is_cavity_locked(self, accept_old=False) -> bool:
         """
         Check if the cavity is locked by looking at the wavemeter offset
 
