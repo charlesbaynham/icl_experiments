@@ -193,13 +193,22 @@ class RelockFALCWithWavemeterFrag(Fragment):
         falc.main.enabled.set(main)
         falc.unlim.enabled.set(unlim)
 
-    def is_cavity_locked(self):
+    def is_cavity_locked(self, accept_old=False):
+        """
+        Check if the cavity is locked by looking at the wavemeter offset
+
+        Parameters
+        ----------
+        accept_old : bool
+            If True, accept most-recent wavemeter reading. If False, force a new reading
+        """
         logger.warning(
             "Cavity transmission detection not implemented yet! Using the wavemeter instead"
         )
 
+        max_measurement_age = 1 if not accept_old else 60
         meas = self.wand_server.get_freq(
-            laser=self.laser_name_wand, offset_mode=True, age=1
+            laser=self.laser_name_wand, offset_mode=True, age=max_measurement_age
         )
         status, actual_offset, _ = meas
 
