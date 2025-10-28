@@ -82,7 +82,7 @@ class Timestamper(Fragment):
     def device_setup(self):
         self.device_setup_subfragments()
 
-        if not self._called_previous_point:
+        if self.record_timestamps and not self._called_previous_point:
             logger.error(
                 "Timestamp's mark_timestamp() must be called exactly once per scan point. "
                 "Use automatic_timestamp==True if you don't care about precise timing"
