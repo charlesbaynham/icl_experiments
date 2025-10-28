@@ -12,6 +12,7 @@ from artiq.language.core import kernel
 from artiq.language.core import now_mu
 from artiq.language.core import rpc
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import Fragment
 from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -39,7 +40,7 @@ class Relock698Frag(RelockFALCWithWavemeterFrag, ExpFragment):
         self.relock()
 
 
-class _RelockerWith689Shutters(RelockFALCWithWavemeterFrag):
+class Control689Shutters(Fragment):
     """
     Provide a method for using the 689 vs. 1379 wavemeter multiplexing shutters
     """
@@ -54,8 +55,6 @@ class _RelockerWith689Shutters(RelockFALCWithWavemeterFrag):
 
         self.setattr_device("core")
         self.core: Core
-
-        return super().build_fragment()
 
     @kernel
     def set_shutters(self, open_689: bool = True, open_1379: bool = True) -> None:
@@ -79,7 +78,7 @@ class _RelockerWith689Shutters(RelockFALCWithWavemeterFrag):
         self.core.wait_until_mu(now_mu())
 
 
-class Relock689Frag(_RelockerWith689Shutters, ExpFragment):
+class Relock689Frag(RelockFALCWithWavemeterFrag, ExpFragment):
     """
     Relock the 689 master to the laser stabilization cavity
 
@@ -91,24 +90,39 @@ class Relock689Frag(_RelockerWith689Shutters, ExpFragment):
     laser_name_wand = "689"
     laser_name_devicedb = "toptica_689"
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Add control of the shutters for the 689 / 1379 wavemeter
+        self.setattr_fragment("shutter_control", Control689Shutters)
+        self.shutter_control: Control689Shutters
+
+        # The shutters are controlled through the core, so we'll need kernels
+        self.setattr_device("core")
+        self.core: Core
+
     @rpc(flags={"sync"})
-    def relock(self):
-        """Convert the relock method to an RPC"""
+    def relock_RPC(self):
+        """Call the original relock() method on the host, via an RPC"""
         return super().relock()
 
     @kernel
-    def relock_from_core(self) -> None:
-        self.set_shutters(open_689=True, open_1379=False)
+    def relock(self) -> None:
+        """
+        Redefine relock() so that it's now a kernel method that calls the host relock via RPC
+        """
+        self.shutter_control.set_shutters(open_689=True, open_1379=False)
         try:
-            self.relock()
+            self.relock_RPC()
         finally:
-            self.set_shutters(open_689=True, open_1379=True)
+            self.shutter_control.set_shutters(open_689=True, open_1379=True)
 
+    @kernel
     def run_once(self) -> None:
-        self.relock_from_core()
+        self.relock()
 
 
-class Relock1379Frag(_RelockerWith689Shutters, ExpFragment):
+class Relock1379Frag(Control689Shutters, ExpFragment):
     """
     Relock the 1379  to the doubled 689 PLL
 
