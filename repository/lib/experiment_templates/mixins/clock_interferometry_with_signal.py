@@ -69,6 +69,7 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
 
                 self.t0_mu = np.int64(0)
                 self.period_mu = np.int64(0)
+                self.this_stark_shifter_setpoint = 0.0
 
                 # Save a t0 timestamp from which the signals will be calculated.
                 # Default to retrieving this from a dataset which will be
@@ -150,9 +151,13 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
                 new_setpoint = mean + amplitude * np.sin(2 * np.pi * frequency * t)
 
                 # Save the setpoint for debugging
-                self.stark_shifter_setpoint.push(new_setpoint)
+                self.this_stark_shifter_setpoint = new_setpoint
 
                 self.stark_shifter_suservo.set_setpoint(new_setpoint)
+
+            @kernel
+            def save_to_ndscan(self):
+                self.stark_shifter_setpoint.push(self.this_stark_shifter_setpoint)
 
         self.setattr_fragment("signal_injector", SignalInjector, self)
         self.signal_injector: SignalInjector
@@ -210,3 +215,12 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
         """
 
         self.signal_injector.set_stark_shifter_setpoint(t_pulse_mu=t_first_pulse_mu)
+
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        self.host_functions_after_experiment_hook_default()
+        self.host_functions_after_experiment_hook_signal_injection()
+
+    @kernel
+    def host_functions_after_experiment_hook_signal_injection(self):
+        self.signal_injector.save_to_ndscan()

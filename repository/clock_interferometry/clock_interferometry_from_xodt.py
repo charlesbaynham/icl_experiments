@@ -117,6 +117,12 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
     Clock interferometry from a double XODT with signal and noise
     """
 
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        self.host_functions_after_experiment_hook_default()
+        self.host_functions_after_experiment_hook_signal_injection()
+        self.host_functions_after_experiment_hook_glitch_counter()
+
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
