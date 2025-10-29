@@ -838,7 +838,7 @@ _default_461 = (
 _default_707 = 423_913_478e6 - 5e6  # 2025-08-07
 _default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
-_default_698 = 429_228_387.3e6  # Measured empirically
+_default_698 = 429_228_387.3e6 - 4.0e6  # Measured empirically
 _clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
