@@ -183,7 +183,11 @@ class ClockGlitchCounterMixin(ClockInterferometryBase):
 
     @rpc(flags={"async"})
     def count_glitches(self):
-        num_glitches = self.clock_glitch_filter.get_num_glitches()
+        try:
+            num_glitches = self.clock_glitch_filter.get_num_glitches()
+        except Exception:
+            logger.error("Clock glitch monitor comunication failed - assuming error")
+            num_glitches = 1
         self.clock_glitch_filter_num_glitches.push(num_glitches)
 
         # Also save in the monitor dataset for plotting
