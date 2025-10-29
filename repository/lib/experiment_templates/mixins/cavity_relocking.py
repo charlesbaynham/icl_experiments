@@ -61,8 +61,8 @@ class MonitorAndRelock689and698Mixin(RedMOTWithExperiment):
                     logger.warning("689 cavity unlocked, attempting relock")
                     try:
                         self.relock_689_frag.relock()
-                    except RuntimeError as e:
-                        logger.error(f"Failed to relock 689 cavity: {e}")
+                    except RuntimeError:
+                        logger.error("Failed to relock 689 cavity")
 
                 if (
                     self.relock_698_enabled.get()
@@ -71,8 +71,8 @@ class MonitorAndRelock689and698Mixin(RedMOTWithExperiment):
                     logger.warning("698 cavity unlocked, attempting relock")
                     try:
                         self.relock_698_frag.relock()
-                    except RuntimeError as e:
-                        logger.error(f"Failed to relock 698 cavity: {e}")
+                    except RuntimeError:
+                        logger.error("Failed to relock 698 cavity")
 
         self.setattr_fragment(
             "monitor_locks_in_device_setup", MonitorLocksInDeviceSetup
