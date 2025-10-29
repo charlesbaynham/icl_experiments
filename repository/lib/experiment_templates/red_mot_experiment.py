@@ -229,6 +229,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.timestamper.mark_timestamp()
 
+        self.before_blue_mot_hook()
+
         if self.magnetic_trap_loading_bool.get():
             self.blue_3d_mot.load_magnetic_trap()
         else:
@@ -352,6 +354,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         with parallel:
             self.do_imaging_hook_andor()
             self.do_imaging_hook_flir()
+
+    @kernel
+    def before_blue_mot_hook(self):
+        pass
 
     @kernel
     def do_imaging_hook_andor(self):
