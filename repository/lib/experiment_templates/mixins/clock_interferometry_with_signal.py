@@ -5,6 +5,7 @@ import numpy as np
 from artiq.coredevice.core import Core
 from artiq.language import kernel
 from artiq.language import now_mu
+from ndscan.experiment import FloatChannel
 from ndscan.experiment.fragment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -81,6 +82,10 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
                 )
                 self.t0: FloatParamHandle
 
+                # Save the calculated setpoint for debugging
+                self.setattr_result("stark_shifter_setpoint", FloatChannel, unit="V")
+                self.stark_shifter_setpoint: FloatChannel
+
             def host_setup(self):
                 super().host_setup()
 
@@ -143,6 +148,9 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
                 t = self.core.mu_to_seconds(t_mu)
 
                 new_setpoint = mean + amplitude * np.sin(2 * np.pi * frequency * t)
+
+                # Save the setpoint for debugging
+                self.stark_shifter_setpoint.push(new_setpoint)
 
                 self.stark_shifter_suservo.set_setpoint(new_setpoint)
 
