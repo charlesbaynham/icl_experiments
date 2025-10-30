@@ -11,10 +11,20 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.red_mot.red_beam_controller import RED_SUSERVO_INFOS
 from repository.lib.fragments.red_mot.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
+
+
+RED_SUSERVO_INFOS = [
+    constants.SUSERVOED_BEAMS[beam]
+    for beam in [
+        "red_mot_diagonal",
+        "red_mot_sigmaplus",
+        "red_mot_sigmaminus",
+        # "red_up",
+    ]
+]
 
 
 class ShelveInBlueMOTMixin(RedMOTWithExperiment):
