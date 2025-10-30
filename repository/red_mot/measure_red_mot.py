@@ -21,6 +21,9 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
+from repository.lib.experiment_templates.mixins.shelving_in_blue_mot import (
+    ShelveInBlueMOTMixin,
+)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
 logger = logging.getLogger(__name__)
@@ -87,7 +90,14 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
     """
 
 
-# TODO: This is disabled because it was failing unit tests on master
+class MeasureNarrowbandMOTBGCorrectedShelvedFrag(
+    ShelveInBlueMOTMixin, MeasureNarrowbandMOTBGCorrectedFrag
+):
+    """
+    Make a narrowband MOT with blue-MOT shelving
+    """
+
+
 class MeasureNarrowbandMOTAbsFrag(
     AbsorptionRedMOTMixin,
     _MeasureNarrowbandMOTFrag,
@@ -107,5 +117,7 @@ MeasureNarrowbandRedMOTBGCorrectedWithTrap = make_fragment_scan_exp(
 )
 
 MeasureNarrowbandMOTAbs = make_fragment_scan_exp(MeasureNarrowbandMOTAbsFrag)
-
+MeasureNarrowbandMOTBGCorrectedShelved = make_fragment_scan_exp(
+    MeasureNarrowbandMOTBGCorrectedShelvedFrag
+)
 MeasureNarrowbandRedMOTNoAndor = make_fragment_scan_exp(MeasureNarrowbandMOTNoAndorFrag)
