@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.core import Core
+from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
@@ -121,4 +122,5 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
 
     @kernel
     def before_blue_mot_hook(self):
+        delay(1e-3)
         self.shelving_frag.before_blue_mot_hook()
