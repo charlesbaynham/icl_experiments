@@ -1164,13 +1164,13 @@ files = [
 
 [[package]]
 name = "generic-scpi-driver"
-version = "1.6.2"
+version = "1.8"
 description = "A generic template for creating python object-based drivers for SCPI hardware devices which communicate via VISA. Compatible with ARTIQ  installed with [artiq] modifier"
 optional = false
-python-versions = "<3.13,>=3.8"
+python-versions = "<4.0,>=3.10"
 files = [
-    {file = "generic_scpi_driver-1.6.2-py3-none-any.whl", hash = "sha256:9700cec668bb44b69ff5bf38247115a00879e980fbf5ad8e131eed7b05ca22a9"},
-    {file = "generic_scpi_driver-1.6.2.tar.gz", hash = "sha256:d1b2345dd67034cb6ed1b33b887fd44ad2e772637b090ae299abd6905f56a62f"},
+    {file = "generic_scpi_driver-1.8-py3-none-any.whl", hash = "sha256:ebd6623dbd8cbf4a067391988fa114f24048f82d4df47e3be2f0674d5c462853"},
+    {file = "generic_scpi_driver-1.8.tar.gz", hash = "sha256:9cd84bb4def1837a1d1a8d48dc15b98563b5d562585d6aab8c2a8bd6ec4365d8"},
 ]
 
 [package.dependencies]
@@ -4101,7 +4101,7 @@ files = [
 
 [[package]]
 name = "relocker-driver"
-version = "4.1.2"
+version = "4.2"
 description = "ARTIQ driver for relocker boards"
 optional = false
 python-versions = ">=3.10, <3.13"
@@ -4109,14 +4109,14 @@ files = []
 develop = false
 
 [package.dependencies]
-generic-scpi-driver = {version = "^1.6", extras = ["artiq"]}
+generic-scpi-driver = {version = "^1.8", extras = ["artiq"]}
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
 [package.source]
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
-reference = "fix-relockers"
-resolved_reference = "aaae3eca33e10258a5b4cd2f994c23dfa85d2e36"
+reference = "HEAD"
+resolved_reference = "ad977558f429ff6f3e356c0d89bc3f135deb243b"
 
 [[package]]
 name = "requests"
@@ -4927,4 +4927,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "94afb19f4b7fdc791c3ee97a9ef62ad3b91b0760ea69bed3ffb64fe22de45250"
+content-hash = "c1a4d01230e563825f9a53c05a95f76c6d1576e106c69d82bcec44008b02cfd2"

@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=365.0e6,
+        frequency=364.937e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -116,7 +116,7 @@ URUKULED_BEAMS = [
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
 # Convert to dict for ease of use
-URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
+URUKULED_BEAMS: dict[str, UrukuledBeam] = {beam.name: beam for beam in URUKULED_BEAMS}
 
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
@@ -241,6 +241,9 @@ class IJDRelockerSettings:
     alpha_denominator: int = 1000000
     "Exponential moving average parameter for the relocker, inverted"
 
+    wait_time_per_scan_step: float = 1e-3
+    "Time to wait between current steps in a relock scan"
+
     def __post_init__(self):
         if self.n_steps > 128:
             raise ValueError("n_steps cannot be >128")
@@ -285,17 +288,19 @@ IJD_RELOCKER_DEFAULTS = {
         i_max=3e-3,
         i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.5,
+        window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.6,
+        v_low_threshold=1.45,
         v_rise_threshold=0.015,
-        wait_time=100e-3,
+        wait_time=300e-3,
         auto_relock=True,
         associated_controller="blue_IJD1_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD1_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD1_controller"),
+        wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -304,17 +309,19 @@ IJD_RELOCKER_DEFAULTS = {
         i_max=3e-3,
         i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.5,
+        window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.6,
+        v_low_threshold=1.45,
         v_rise_threshold=0.015,
-        wait_time=100e-3,
+        wait_time=300e-3,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD2_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD2_controller"),
+        wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
@@ -323,17 +330,19 @@ IJD_RELOCKER_DEFAULTS = {
         i_max=3e-3,
         i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.5,
+        window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.6,
+        v_low_threshold=1.45,
         v_rise_threshold=0.015,
-        wait_time=100e-3,
+        wait_time=500e-3,
         auto_relock=True,
         associated_controller="blue_IJD3_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "blue_IJD3_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("blue_IJD3_controller"),
+        wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
@@ -345,13 +354,14 @@ IJD_RELOCKER_DEFAULTS = {
         min_diff=0.1,
         v_low_threshold=1.3,
         v_rise_threshold=0.05,
-        wait_time=1000e-3,
+        wait_time=200e-3,
         auto_relock=True,
         associated_controller="red_IJD1_controller",
         voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
             "red_IJD1_controller"
         ),
         max_safe_voltage=_calculate_max_safe_voltage("red_IJD1_controller"),
+        wait_time_per_scan_step=2e-3,
     ),
 }
 "Settings for IJD relocker board channels"
@@ -828,7 +838,7 @@ _default_461 = (
 _default_707 = 423_913_478e6 - 5e6  # 2025-08-07
 _default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
-_default_698 = 429_228_387.3e6  # Measured empirically
+_default_698 = 429_228_387.3e6 - 4.0e6  # Measured empirically
 _clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
@@ -1066,7 +1076,7 @@ if USE_LATTICE_MODE:
 B_FIELD_GRADIENT = 90.0  # A
 
 
-BLUE_LOADING_TIME = 500e-3
+BLUE_LOADING_TIME = 1500e-3
 "Default blue MOT loading time"
 
 RED_BROADBAND_RAMP_LOWER_LIMIT = -0.1e6
@@ -1093,7 +1103,7 @@ CLOCK_SHELVING_PULSE_SETPOINT = 0.05
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
-DELAY_BETWEEN_INTERFEROMETRY_PULSES = 250e-6
+DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
     35.3e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )

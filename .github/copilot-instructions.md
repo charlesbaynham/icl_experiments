@@ -182,6 +182,57 @@ class MyExperiment(EnvExperiment):
 - Every ResultChannel must be pushed to exactly once for every run of `run_once`, i.e. every point in an ndscan scan
 - Allows complex multi-dimensional scans without code changes
 
+#### Creating ndscan ExpFragments vs ARTIQ EnvExperiments
+
+When creating an ndscan `ExpFragment`:
+
+1. **Always use `build_fragment()` instead of `build()`** - ExpFragments use `build_fragment()`, not `build()`
+2. **Always add `make_fragment_scan_exp` at the end of the file** - This creates the scannable experiment class:
+   ```python
+   from ndscan.experiment.entry_point import make_fragment_scan_exp, ExpFragment
+
+   class MyExperimentFrag(ExpFragment):
+       def build_fragment(self):
+           # ... setup code ...
+
+       def run_once(self):
+           # ... experiment code ...
+
+   # CRITICAL: Always add this line at the end!
+   MyExperiment = make_fragment_scan_exp(MyExperimentFrag)
+   ```
+3. **Naming convention**: The `ExpFragment` class should be named `MyExperimentFrag`, and the scannable experiment class created by `make_fragment_scan_exp` should be named `MyExperiment` (i.e. without the "Frag" suffix).
+4. **This is required** for the experiment to appear in the ARTIQ dashboard and be scannable
+
+#### Converting ARTIQ arguments to ndscan parameters
+
+When converting from ARTIQ `setattr_argument` to ndscan `setattr_param`:
+
+```python
+# OLD ARTIQ style
+self.setattr_argument("frequency", NumberValue(default=100e6, unit="MHz"))
+
+# NEW ndscan style
+self.setattr_param(
+    "frequency",
+    FloatParam,
+    description="DDS frequency",  # Add description
+    default=100e6,  # In base SI units (Hz)
+    unit="MHz",  # Display unit only
+)
+self.frequency: FloatParamHandle  # Add type annotation
+```
+
+Key differences:
+- Use `FloatParam` instead of `NumberValue`
+- Use `BoolParam` instead of `BooleanValue`
+- Use `StringParam` instead of `EnumerationValue` (when appropriate)
+- Always add a `description` parameter
+- Always add type annotation with corresponding `*ParamHandle` type
+- Parameter values must be accessed with `.get()` in `run_once()` and `prepare()`
+- Device retrieval should typically move to `prepare()` method if it depends on parameter values
+
+
 ### Hardware Device Interaction
 
 - Define devices in `device_db_config/`
@@ -272,8 +323,24 @@ class MyExperiment(EnvExperiment):
 
 - Set all beams to their default values (as defined in the beam info definition).
 - Slow, but necessary for initial setup.
-- Can optionally initialise beams automatically. If this is not done, `turn_on_all(light_enabled=True)` must be called manually. - `light_enabled` is often left so that beams can subsequently be turned on/off quickly using a `ToggleListOfBeams` beam setter.
 - Must be constructed with the factory function `pyaion.fragments.default_beam_setter.make_set_beams_to_default`.
+- **Factory function parameters**:
+  - `suservo_beam_infos`: List of SUServo beam infos to control
+  - `urukul_beam_infos`: List of Urukul beam infos to control
+  - `use_automatic_setup` (bool): If `True`, automatically calls `device_setup()` during the fragment's `device_setup()` phase. **Usually set to `True`**.
+  - `use_automatic_turnon` (bool): If `True`, automatically turns on all beams with `turn_on_all(light_enabled=True)` during `device_setup()`. If `False`, you must manually call `turn_on_all(light_enabled=True)` in your code. **Application-dependent**: use `True` when you want beams on immediately, `False` when you need manual control (e.g., for quick toggling with `ToggleListOfBeams`).
+- Example:
+  ```python
+  self.setattr_fragment(
+      "beam_setter",
+      make_set_beams_to_default(
+          suservo_beam_infos=[constants.SUSERVOED_BEAMS["red_mot_diagonal"]],
+          urukul_beam_infos=[],
+          use_automatic_setup=True,
+          use_automatic_turnon=True,  # Beams turn on automatically
+      ),
+  )
+  ```
 
 #### `pyaion.fragments.suservo.LibSetSUServoStatic`
 
