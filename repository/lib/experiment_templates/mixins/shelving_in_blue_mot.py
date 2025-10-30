@@ -12,6 +12,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.red_mot.red_beam_controller import RED_SUSERVO_INFOS
+from repository.lib.fragments.red_mot.red_beam_controller import RedBeamController
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +26,18 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
         super().build_fragment()
 
         class ShelvingFrag(Fragment):
-            def build_fragment(self, frequency_handle: FloatParamHandle):
+            def build_fragment(
+                self,
+                red_beam_controller: RedBeamController,
+            ):
                 self.setattr_device("core")
                 self.core: Core
 
-                self.injection_aom_static_frequency = frequency_handle
+                self.red_beam_controller = red_beam_controller
+
+                self.injection_aom_static_frequency = (
+                    red_beam_controller.injection_aom_static_frequency
+                )
 
                 # Fast ramping of the AD9910 controlling the injection AOM
                 self.setattr_fragment(
@@ -104,21 +112,23 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
                         * self.suservo_default_setpoints[ind_beam]
                     )
 
-                self.injection_aom_ramper.start_ramp(
-                    self.ramp_rate,
-                    self.injection_aom_static_frequency.get()
-                    + self.ramp_lower_detuning.get(),
-                    self.injection_aom_static_frequency.get()
-                    + self.ramp_upper_detuning.get(),
-                    2,  # negative saw
-                )
+                # self.injection_aom_ramper.start_ramp(
+                #     self.ramp_rate,
+                #     self.injection_aom_static_frequency.get()
+                #     + self.ramp_lower_detuning.get(),
+                #     self.injection_aom_static_frequency.get()
+                #     + self.ramp_upper_detuning.get(),
+                #     2,  # negative saw
+                # )
 
-                delay(10.0)  # FIXME
+                # delay(10.0)  # FIXME
+
+                self.red_beam_controller.start_ramping_red()  # FIXME
 
         self.setattr_fragment(
             "shelving_frag",
             ShelvingFrag,
-            frequency_handle=self.red_mot.injection_aom_static_frequency,
+            red_beam_controller=self.red_mot.red_beam_controller,
         )
         self.shelving_frag: ShelvingFrag
 
