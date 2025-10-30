@@ -134,5 +134,5 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
 
     @kernel
     def before_blue_mot_hook(self):
-        delay(1e-3)  # FIXME
+        delay(constants.SRS_SHUTTER_DELAY + 1e-3)
         self.shelving_frag.before_blue_mot_hook()
