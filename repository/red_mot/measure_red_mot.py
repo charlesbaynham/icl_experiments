@@ -91,7 +91,10 @@ class MeasureNarrowbandMOTBGCorrectedFrag(
 
 
 class MeasureNarrowbandMOTBGCorrectedShelvedFrag(
-    ShelveInBlueMOTMixin, MeasureNarrowbandMOTBGCorrectedFrag
+    ShelveInBlueMOTMixin,
+    BGCorrectedAndorImage,
+    FLIRMeasurementMixin,
+    _MeasureNarrowbandMOTFrag,
 ):
     """
     Make a narrowband MOT with blue-MOT shelving
