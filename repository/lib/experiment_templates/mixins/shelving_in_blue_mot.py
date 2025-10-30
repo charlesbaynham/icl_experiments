@@ -113,6 +113,8 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
                     2,  # negative saw
                 )
 
+                delay(10.0)  # FIXME
+
         self.setattr_fragment(
             "shelving_frag",
             ShelvingFrag,
