@@ -98,6 +98,8 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
 
             @kernel
             def device_setup(self) -> None:
+                self.device_setup_subfragments()
+
                 # Precalculate the ramp rate required to get the requested modulation frequency
                 self.ramp_rate = abs(
                     (self.ramp_lower_detuning.get() - self.ramp_upper_detuning.get())
@@ -106,24 +108,22 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
 
             @kernel
             def before_blue_mot_hook(self):
+                self.red_beam_controller.turn_on_mot_beams()
+
                 for ind_beam in range(len(self.suservo_setters)):
                     self.suservo_setters[ind_beam].set_setpoint(
                         self.global_setpoint_multiple.get()
                         * self.suservo_default_setpoints[ind_beam]
                     )
 
-                # self.injection_aom_ramper.start_ramp(
-                #     self.ramp_rate,
-                #     self.injection_aom_static_frequency.get()
-                #     + self.ramp_lower_detuning.get(),
-                #     self.injection_aom_static_frequency.get()
-                #     + self.ramp_upper_detuning.get(),
-                #     2,  # negative saw
-                # )
-
-                # delay(10.0)  # FIXME
-
-                self.red_beam_controller.start_ramping_red()  # FIXME
+                self.injection_aom_ramper.start_ramp(
+                    self.ramp_rate,
+                    self.injection_aom_static_frequency.get()
+                    + self.ramp_lower_detuning.get(),
+                    self.injection_aom_static_frequency.get()
+                    + self.ramp_upper_detuning.get(),
+                    2,  # negative saw
+                )
 
         self.setattr_fragment(
             "shelving_frag",
@@ -134,5 +134,5 @@ class ShelveInBlueMOTMixin(RedMOTWithExperiment):
 
     @kernel
     def before_blue_mot_hook(self):
-        delay(1e-3)
+        delay(1e-3)  # FIXME
         self.shelving_frag.before_blue_mot_hook()
