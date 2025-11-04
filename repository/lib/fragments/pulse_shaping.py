@@ -11,7 +11,6 @@ from artiq.coredevice.urukul import CPLD
 from artiq.language import TInt32
 from artiq.language import TList
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import portable
 from artiq.language import rpc
@@ -57,7 +56,6 @@ class _ShapedPulse(Fragment, abc.ABC):
 
     ram_nodwell_mode = 0
     "NODWELL mode. 0 means wait at the top of the ramp through RAM, 1 means loop back"
-
 
     def __init__(self, *args, **kwargs):
         if self.ram_modulation_mode is None:
@@ -234,7 +232,7 @@ class _ShapedPulse(Fragment, abc.ABC):
             step=self._step_mu,
             mode=self.ram_ramp_mode,
             profile=RAM_PROFILE,
-            nodwell_high=self.ram_nodwell_mode
+            nodwell_high=self.ram_nodwell_mode,
         )
 
         # This is a no-op since we are already on the right profile unless the
@@ -406,11 +404,9 @@ class _ShapedPulse(Fragment, abc.ABC):
 
 class FrequencyShapedPulse(_ShapedPulse):
     ram_modulation_mode = ad9910.RAM_DEST_FTW
-    ram_nodwell_mode = 1
+    ram_nodwell_mode = 1  # This might be ignored... acording to the datasheet
     ram_ramp_mode = ad9910.RAM_MODE_CONT_BIDIR_RAMP
     # Have it ramp up and down
-    
-    
 
     def build_fragment(
         self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
@@ -467,7 +463,7 @@ class FrequencyShapedPulse(_ShapedPulse):
         sequence, and call `disable_ram_mode` afterwards to clean up.
         """
         self._enter_RAM_mode()
-        
+
 
 class PhasorShapedPulse(_ShapedPulse):
     ram_modulation_mode = ad9910.RAM_DEST_POWASF

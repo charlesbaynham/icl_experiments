@@ -50,6 +50,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         self.core.break_realtime()
         self.painter.start_output()
+        logger.warning("The pulse duration: ", self.painter.pulse_duration)
         logger.warning("Hey I'm starting minute")
         delay(10.0)
         self.painter.stop_output()
