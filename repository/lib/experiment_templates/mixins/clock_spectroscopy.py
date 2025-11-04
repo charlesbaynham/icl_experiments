@@ -8,12 +8,10 @@ from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
-
-# from pyaion.models import SUServoedBeam
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -155,6 +153,21 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         return param_handles
 
     @kernel
+    def calculate_clock_delivery_freq(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        """
+        Calculate the clock delivery AOM frequency for the spectroscopy pulse
+
+        Returns:
+            Frequency in Hz
+        """
+        return (
+            self.clock_delivery_handles.frequency_handle.get()
+            + self.spectroscopy_pulse_aom_detuning.get()
+        )
+
+    @kernel
     def prepare_clock_delivery_aom(self):
         """
         Ensure's the clock delivery AOM is on, configured and settled. Does not
@@ -163,15 +176,30 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get()
-            + self.spectroscopy_pulse_aom_detuning.get(),
+            freq=self.calculate_clock_delivery_freq(
+                _t_start, self.spectroscopy_pulse_time.get()
+            ),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
+        self.after_clock_delivery_setup_hook(_t_start)
         at_mu(_t_start)
+
+    @kernel
+    def after_clock_delivery_setup_hook(self, t_first_pulse_mu: int64):
+        """
+        Hook for actions after the clock delivery AOM is prepared
+
+        Called after the clock delivery AOM is prepared, before the first
+        spectroscopy pulse is fired. This method is passed the time that the
+        first clock pulse will occur, which is in the future relative to
+        `now_mu()`.
+
+        No-op by default
+        """
 
 
 class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
@@ -186,11 +214,12 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     def build_fragment(self):
         super().build_fragment()
 
+        # TODO: Why is spectroscopy_pulse_time defined seperately in ClockInterferometryBase? This should be in ClockSpectroscopyBase
         self.setattr_param(
             "spectroscopy_pulse_time",
             FloatParam,
             "Length of spectroscopy pulse",
-            default=50e-6,
+            default=constants.CLOCK_PI_TIME,
             unit="us",
         )
         self.spectroscopy_pulse_time: FloatParamHandle
@@ -199,7 +228,7 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
             "delay_after_spectroscopy",
             FloatParam,
             "Delay after spectroscopy before imaging",
-            default=100e-6,
+            default=constants.DELAY_AFTER_CLOCK_SPECTROSCOPY,
             unit="us",
         )
         self.delay_after_spectroscopy: FloatParamHandle
@@ -207,8 +236,17 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     @kernel
     def do_rabi_spectroscopy(self):
         self.prepare_clock_delivery_aom()
+        self.before_clock_spec_pulse_hook()
         self.fire_clock_spec_pulse()
         delay(self.delay_after_spectroscopy.get())
+
+    @kernel
+    def before_clock_spec_pulse_hook(self):
+        """
+        Hook for actions before the clock spectroscopy pulse is fired
+
+        No-op by default
+        """
 
     @kernel
     def fire_clock_spec_pulse(self):

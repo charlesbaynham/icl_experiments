@@ -12,6 +12,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingRepumpedNormalised,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingSpectroscopyRepumpedNormalised,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
@@ -24,6 +27,9 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForClockSpecMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsMixin,
@@ -39,6 +45,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadXXODTWithTransparencyBeamMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
@@ -103,6 +112,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
     EMGain,
@@ -148,7 +158,7 @@ class ClockSpecFromXXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
-    LoadXXODTMixin,
+    LoadXXODTWithTransparencyBeamMixin,
     # Base:
     DipoleTrapWithExperiment,
 ):
@@ -172,17 +182,18 @@ class ClockSpecFromXXODTFrag(
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     # Shelving and clearout:
     ClockShelvingAndClearoutDipoleTrapMixin,
     # Imaging:
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingSpectroscopyRepumpedNormalised,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
-    LoadXXODTMixin,
+    LoadXXODTWithTransparencyBeamMixin,
     # Base:
     DipoleTrapWithExperiment,
 ):
@@ -212,6 +223,7 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,

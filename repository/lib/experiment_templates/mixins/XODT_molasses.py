@@ -24,6 +24,12 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XOD
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesDipoleRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesRetroed
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
+    XODTWithFieldAndIntensityRamp,
+)
+
+MOLASSES_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["red_molasses"]]
 
 logger = logging.getLogger(__name__)
 
@@ -422,6 +428,101 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.do_phase()
 
 
+class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
+    """
+    Framework for implementing a ramping phase during the evaporation phase
+
+    This is generalised so that we can have either evaporation + field ramping, or only field ramping
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
+    """
+
+    ramp_during_evap_phase: GeneralRampingPhase
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self._define_evap_phase_ramp()
+
+        # If we have a spin pol stage, bind the field start values to the end of
+        # the spin pol stage
+        if isinstance(self, OpticalPumpingWithFieldSettingBase):
+            for l in "xyz":
+                # This code is fragile because it relies on strings, but it
+                # should break with an error if the strings change so the unit
+                # tests will catch it:
+                self.ramp_during_evap_phase.bind_param(
+                    param_name=f"bias_field_{l}_start",
+                    source=getattr(self, f"bias_{l}_for_pumping"),
+                )
+
+    @abc.abstractmethod
+    def _define_evap_phase_ramp(self):
+        pass
+
+    @kernel
+    def DMA_initialization_hook_evap_with_field_ramp(self):
+        self.ramp_during_evap_phase.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        raise NotImplementedError(
+            "All the DMA handle calculations must be combined into one \
+                DMA_initialization_hook() method after Mixins are combined"
+        )
+
+    @kernel
+    def dipole_trap_evaporation_hook_ramper(self):
+        """
+        Do the evap / field ramp phase
+        """
+        self.ramp_during_evap_phase.do_phase()
+
+    @kernel
+    def dipole_trap_evaporation_hook(self):
+        # Default hook turns off red beams - good!
+        self.dipole_trap_evaporation_hook_default()
+        self.dipole_trap_evaporation_hook_ramper()
+
+
+class EvapAndFieldRampBase(_RampDuringEvapHookBase):
+    """
+    Exposes the evaporation and field ramping phase for use in evaporation Mixins
+    """
+
+    def _define_evap_phase_ramp(self):
+        self.setattr_fragment(
+            "ramp_during_evap_phase",
+            XODTWithFieldAndIntensityRamp,
+        )
+        self.ramp_during_evap_phase: XODTWithFieldAndIntensityRamp
+
+
+class FieldOnlyRampInEvapMixin(_RampDuringEvapHookBase):
+    """
+    Ramps the magnetic field during the evaporation phase, but with no actual
+    evaporation
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_evaporation_hook`
+    """
+
+    def _define_evap_phase_ramp(self):
+        self.setattr_fragment(
+            "ramp_during_evap_phase",
+            EvapFieldRamp,
+        )
+        self.ramp_during_evap_phase: EvapFieldRamp
+
+
 class XODTDoubleMolassesPlusFieldRampMixin(
     XODTDoubleMolassesMixin, EvapAndFieldRampBase
 ):
@@ -603,3 +704,223 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         self.transparency_suservo_clearout.set_channel_state(
             rf_switch_state=False, enable_iir=False
         )
+
+
+class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
+    """
+    Mixin for the molasses with the retroreflected molasses beam
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~dipole_trap_molasses_hook`
+
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "molasses_xodt_retroed",
+            MolassesRetroed,
+        )
+        self.molasses_xodt_retroed: MolassesRetroed
+
+        self.setattr_fragment(
+            "transparency_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
+        )
+        self.transparency_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "transparency_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+            ),
+        )
+        self.transparency_setter: SetBeamsToDefaults
+
+        self.setattr_fragment(
+            "molasses_suservo",
+            LibSetSUServoStatic,
+            MOLASSES_SUSERVO_INFOS[0].suservo_device,
+        )
+        self.molasses_suservo: LibSetSUServoStatic
+
+        # Setup of defaults for all molasses beam
+        self.setattr_fragment(
+            "molasses_beam_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=MOLASSES_SUSERVO_INFOS,
+                name="MolassesBeamSettings",
+                use_automatic_setup=True,  # Automatically configure the DDSs but do not turn the beams on
+                use_automatic_turnon=False,
+            ),
+        )
+        self.molasses_beam_default_setter: SetBeamsToDefaults
+
+        self.setattr_param(
+            "delay_before_molasses",
+            FloatParam,
+            "Time to hold in dipole trap before molasses starts",
+            default=constants.DELAY_BEFORE_MOLASSES,
+            unit="ms",
+        )
+        self.delay_before_molasses: FloatParamHandle
+
+        self.setattr_param(
+            "mot_coil_current_first_molasses",
+            FloatParam,
+            "MOT coil current during first molasses",
+            default=constants.XODT_MOLASSES_MOT_CURRENT,
+            unit="A",
+            min=0,
+            max=130,
+        )
+        self.mot_coil_current_first_molasses: FloatParamHandle
+
+        self.molasses_xodt_retroed.bind_suservo_setpoint_params_to_default_beam_setter(
+            [
+                self.dipole_beam_controller.all_beam_default_setter,
+                self.molasses_beam_default_setter,
+                self.transparency_setter,
+            ]
+        )
+
+        self.molasses_xodt_retroed.bind_ad9910_frequency_params(
+            [self.red_mot.red_beam_controller.spinpol_aom_static_frequency]
+        )
+
+    @kernel
+    def DMA_initialization_hook_xodt_molasses(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.molasses_xodt_retroed.precalculate_dma_handle()
+
+    @kernel
+    def post_narrowband_hook(self):
+        pass
+
+    @kernel
+    def set_postnarrowband_fields_hook(self):
+        self.set_postnarrowband_fields_hook_singlemolasses()
+
+    @kernel
+    def set_postnarrowband_fields_hook_singlemolasses(self):
+        pass
+
+    @kernel
+    def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
+        self.dipole_trap_molasses_hook_first_xodt_molasses()
+
+    @kernel
+    def set_fields_xodt_molasses(self):
+        """
+        Turn off MOT fields and set bias fields to molasses ramp start.
+
+        Wait a settling time before starting the molasses.
+        """
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            self.mot_coil_current_first_molasses.get(),
+            self.molasses_xodt_retroed.general_setter_default_starts[0],
+            self.molasses_xodt_retroed.general_setter_default_starts[1],
+            self.molasses_xodt_retroed.general_setter_default_starts[2],
+        )
+        if self.delay_before_molasses.get() > 1e-6:
+            self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
+                ignore_shutters=True
+            )
+        delay(self.delay_before_molasses.get())
+
+    @kernel
+    def dipole_trap_molasses_hook_first_xodt_molasses(self):
+        """
+        Do the first molasses ramping phase
+        """
+
+        # turn on red beams and transparency beam
+
+        self.molasses_beam_default_setter.turn_on_all()
+        self.transparency_setter.turn_on_all()
+
+        self.molasses_xodt_retroed.do_phase()
+
+        # turn off transparency beam
+        self.transparency_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
+
+        self.molasses_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+
+class XODTRetroedMolassesPlusDipoleRampMixin(MolassesRetroedBeamMixin):
+    """
+    Loads atoms into a dipole trap after the narrowband red MOT, and implements a
+    ramping molasses followed by a ramp of the dipole trap beams.
+
+
+    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~dipole_trap_molasses_hook`
+
+    We override this to do nothing since this Mixin is now taking charge of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "cool_molasses", MolassesDipoleRamp, enforce_binding_to_defaults=False
+        )
+        self.cool_molasses: MolassesDipoleRamp
+
+        self.cool_molasses.bind_suservo_setpoint_params_to_default_beam_setter(
+            [self.dipole_beam_controller.all_beam_default_setter]
+        )
+
+        # self.cool_molasses.daisy_chain_with_previous_phase(
+        #     self.molasses_xodt_1, suservos=suservos_XODT
+        # )
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
+    def DMA_initialization_hook_xodt_molasses(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.molasses_xodt_retroed.precalculate_dma_handle()
+        self.cool_molasses.precalculate_dma_handle()
+
+    @kernel
+    def dipole_trap_molasses_hook(self):
+        self.set_fields_xodt_molasses()
+        self.dipole_trap_molasses_hook_first_xodt_molasses()
+        self.dipole_trap_molasses_hook_cool_molasses()
+
+    @kernel
+    def dipole_trap_molasses_hook_cool_molasses(self):
+        """
+        Adiabatically cool after the molasses
+        """
+        self.cool_molasses.do_phase()

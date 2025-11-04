@@ -1,4 +1,6 @@
-from artiq.experiment import *
+import time
+
+from artiq.experiment import EnvExperiment
 
 
 class TestEcho(EnvExperiment):
@@ -6,4 +8,6 @@ class TestEcho(EnvExperiment):
         pass
 
     def run(self):
-        print("Hello, I'm on the master branch")
+        print("Hello, I'm an experiment!")
+
+        time.sleep(3)

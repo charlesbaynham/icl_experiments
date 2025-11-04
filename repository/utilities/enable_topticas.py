@@ -1,7 +1,7 @@
 import logging
 from typing import *
 
-import toptica_wrapper
+import toptica_wrapper.driver as toptica_wrapper
 from artiq.experiment import *
 from toptica_wrapper.driver import TopticaDLCPro
 

@@ -121,13 +121,14 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
         },
-        "cavity_scanner": {
-            "type": "controller",
-            "best_effort": True,
-            "host": "::1",
-            "port": get_next_port(),
-            "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN0'",
-        },
+        # Removed: this has changed its firmware and no longer need to be run in ARTIQ (I should put back control of it though)
+        # "cavity_scanner": {
+        #     "type": "controller",
+        #     "best_effort": True,
+        #     "host": "::1",
+        #     "port": get_next_port(),
+        #     "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRN0'",
+        # },
         # "test_relocker": {
         #     "type": "controller",
         #     "best_effort": True,
@@ -167,6 +168,18 @@ def get_non_core_devices(simulation_mode=False):
             },
             "mockmodule": "repository.lib.fragments.rigol.rigol_device",
             "mockclass": "MockRigolCounter",
+        },
+        "clock_glitch_filter": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": get_next_port(),
+            "command": (
+                "python -m repository.lib.devices.aqctl_clock_glitch_filter"
+                " --port {port}"
+                " --bind {bind}"
+                " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB'"
+            ),
         },
         "andor_camera": {
             "type": "controller",
@@ -320,6 +333,12 @@ def get_non_core_devices(simulation_mode=False):
             },
             "mockmodule": "repository.lib.mock_device",
             "mockclass": "MockDevice",
+        },
+        "random_quotes": {
+            "type": "controller",
+            "host": "10.137.1.20",  # This is the raspberry pi running the TV by the door
+            "port": 4321,
+            "command": "aqctl_quotes --id 1234 --port {port} --bind {bind} -v",
         },
         # Example devices: edit to suit your lab
         # An example of a local device:

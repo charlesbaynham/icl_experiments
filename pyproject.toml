@@ -10,10 +10,15 @@ python = ">=3.10,<3.12"
 
 pyaion = { git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git" }
 
+# Specify sipyco even though it's already in pyaion, since we want a specific
+# version here. It would be nice if we could specify versions and get it from
+# PyPI, but this still hasn't been added
+sipyco = { git = "https://github.com/m-labs/sipyco.git" }
+
 artiq-http = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git" }
 koheron-ctl200-laser-driver = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git" }
 qbutler = { git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git" }
-wand = { git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "adapt_for_linux" }
+wand = { git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "gaio-control" }
 toptica-wrapper = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/topticadlcpro.git" }
 relocker-driver = { git = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git" }
 andor-artiq-ndsp = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/andor_windows_ndsp.git" }
@@ -38,6 +43,7 @@ tti-power-supply = "^1.0.2"
 matplotlib = "^3.8.2"
 rsinstrument = "^1.82.1"
 python-vxi11 = "^0"
+generic-scpi-driver = "^1.6.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
@@ -55,4 +61,4 @@ build-backend = "poetry.core.masonry.api"
 xfail_strict = true
 testpaths = "tests"
 pythonpath = "."
-addopts = "-n auto"
+addopts = "-n 16"

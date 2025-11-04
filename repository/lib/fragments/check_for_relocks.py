@@ -25,6 +25,13 @@ class CheckForRelocksFrag(Fragment):
         self.num_relock_channels: List[IntChannel] = []
         self.channel_names = list(IJD_RELOCKER_DEFAULTS.keys())
 
+        self.total_relocks = self.setattr_result(
+            "total_num_relocks",
+            IntChannel,
+            display_hints={"priority": -1},
+        )
+        self.total_relocks: IntChannel
+
         for channel_name in self.channel_names:
             defaults = IJD_RELOCKER_DEFAULTS[channel_name]
             board_name = defaults.board_name
@@ -51,7 +58,20 @@ class CheckForRelocksFrag(Fragment):
             defaults = IJD_RELOCKER_DEFAULTS[channel_name]
             channel = defaults.channel
             relocker = self.relockers[i]
-            n_relocks.append(relocker.get_auto_relock_stats(channel)[0])
+            try:
+                result = relocker.get_auto_relock_stats(channel)
+
+            # Work around bug in IJD comms for now, but this should be fixed elsewhere
+            except Exception:
+                result = None
+
+            if result is None:
+                # Connection error
+                logger.error("Could not get relock stats for %s", channel_name)
+                n_relocks.append(1)
+            else:
+                n_relocks.append(result[0])
+
         return n_relocks
 
     @rpc
@@ -60,11 +80,16 @@ class CheckForRelocksFrag(Fragment):
         num_relolocks = self.check_for_relocks()
         for i, n in enumerate(num_relolocks):
             if n:
-                logger.warning(
+                logger.info(
                     "%s relocker relocked %d times during the experiment",
                     self.channel_names[i],
                     n,
                 )
             self.num_relock_channels[i].push(n)
             relocks_total += n
+        self.total_relocks.push(relocks_total)
+        if relocks_total > 0:
+            logger.warning(
+                "Total number of ijd relocks during the experiment: %d", relocks_total
+            )
         return int(sum(num_relolocks))

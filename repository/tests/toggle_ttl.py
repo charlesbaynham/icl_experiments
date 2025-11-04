@@ -5,7 +5,7 @@ from artiq.experiment import EnvExperiment
 from artiq.experiment import StringValue
 from artiq.language import delay
 from artiq.language import kernel
-from artiq.language import now_mu
+from artiq.master.scheduler import Scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,9 @@ class ToggleTTL(EnvExperiment):
         self.core: Core
 
         self.setattr_argument("ttl_device", StringValue())
+
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
 
     def run(self):
         self.ttl = self.get_device(self.ttl_device)
@@ -29,10 +32,11 @@ class ToggleTTL(EnvExperiment):
     @kernel
     def toggle(self):
         self.core.reset()
-        for _ in range(20):
-            self.ttl.on()
-            delay(1.0)
-            self.ttl.off()
-            delay(1.0)
+        state = False
 
-        self.core.wait_until_mu(now_mu())
+        while True:
+            self.ttl.set_o(state)
+            state = not state
+            delay(1.0)
+            if self.scheduler.check_pause():
+                return

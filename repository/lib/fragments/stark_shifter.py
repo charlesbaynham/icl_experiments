@@ -64,7 +64,7 @@ class StarkShifter(Fragment):
             "stark_pulse_duration",
             FloatParam,
             "Duration of Stark shifting pulse",
-            default=30e-6,
+            default=constants.DURATION_OF_STARK_PULSE,
             unit="us",
         )
         self.stark_pulse_duration: FloatParamHandle
@@ -85,6 +85,7 @@ class StarkShifter(Fragment):
         self.device_setup_subfragments()
 
         # Turn the Stark shift delivery AOM on and the switch AOM off
+        # TODO are we sure this doesn't affect the dipole trap?
         self.core.break_realtime()
         self.set_defaults_delivery.turn_on_all(light_enabled=True)
         self.core.break_realtime()

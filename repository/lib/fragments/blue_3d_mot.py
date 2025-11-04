@@ -10,6 +10,7 @@ from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -112,6 +113,7 @@ class Blue3DMOTFrag(Fragment):
         self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
 
         self.setattr_param_rebind("sr87", self.mirny_eom_sidebands)
+        self.sr87: BoolParamHandle
 
         self.setattr_fragment("reset_all_beams", ResetAllICLBeams)
 

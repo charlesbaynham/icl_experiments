@@ -1,11 +1,13 @@
 import logging
 
 from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.core import Core
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -130,6 +132,24 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
                 ][1]
             )
             self.kernel_invariants.add("clock_delivery_handles")
+
+        # Kernel variable to record the moment of the velocity slicing pulse so
+        # that other pulses can be relative to it
+        self.t_velocity_slicing_pulse_centre_mu = int64(0)
+
+        # Ensure that the time of the slicing pulse is always reset
+        class _ResetSlicingTime(Fragment):
+            def build_fragment(self, ref_to_outer_self: "ClockShelvingAndClearoutBase"):
+                self.setattr_device("core")
+                self.core: Core
+                self.outer = ref_to_outer_self
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+                self.outer.t_velocity_slicing_pulse_centre_mu = int64(0)
+
+        self.setattr_fragment("reset_slicing_time", _ResetSlicingTime, self)
 
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience

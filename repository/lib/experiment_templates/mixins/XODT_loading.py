@@ -357,6 +357,9 @@ class LoadXXODTWithTransparencyBeamMixin(LoadXXODTMixin):
     def dipole_trap_loading_hook(self):
         self.dipole_trap_loading_hook_single_xodt_mot()
 
+        # Repump the atoms throughout loading to avoid shelving into the
+        # metastable states
+        self.blue_3d_mot.turn_on_repumpers()
         self.transparency_toggler.turn_on_beams()
 
         self.dipole_trap_loading_hook_second_xodt_mot()
@@ -367,3 +370,4 @@ class LoadXXODTWithTransparencyBeamMixin(LoadXXODTMixin):
         # do we use the "evaporation stage" to turn off our red beams? Legacy code,
         # innit.
         self.transparency_toggler.turn_off_beams()
+        self.blue_3d_mot.turn_off_repumpers()

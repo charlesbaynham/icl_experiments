@@ -20,9 +20,10 @@ aliases = {
     # Blue
     "urukul9910_aom_doublepass_461_master_to_ijd1": "urukul5_ch3",
     "urukul9910_aom_singlepass_461_ijd1_to_ijd23": "urukul5_ch2",
+    "urukul9910_aom_doublepass_461_to_xfer_cavity": "urukul5_ch1",
     "suservo_aom_singlepass_461_imaging_delivery": "suservo1_ch3",
     "suservo_aom_singlepass_461_pushbeam": "suservo1_ch2",
-    "suservo_aom_singlepass_461_2dmot_a": "suservo1_ch0",
+    "suservo_aom_singlepass_689_molasses": "suservo1_ch0",
     "suservo_aom_singlepass_461_2dmot_b": "suservo1_ch1",
     "suservo_aom_singlepass_461_3DMOT_radial": "suservo1_ch4",
     "suservo_aom_singlepass_461_3DMOT_axialminus": "suservo1_ch5",
@@ -36,13 +37,13 @@ aliases = {
     "suservo_aom_singlepass_689_up": "suservo2_ch5",
     "suservo_aom_singlepass_689_red_mot_sigmaplus": "suservo2_ch6",
     "suservo_aom_singlepass_689_red_mot_sigmaminus": "suservo2_ch7",
-    "suservo_aom_singlepass_689_stark_shifter": "suservo2_ch3",  # Note that this is the same as the down beam! We're physically moving the cable between experiments
-    "suservo_aom_singlepass_689_down_beam": "suservo2_ch3",  # Note that this is the same as the stark shifter! We're physically moving the cable between experiments
+    "suservo_aom_singlepass_689_stark_shifter": "suservo2_ch3",
     "urukul9912_aom_singlepass_689_stark_shifter_switch": "urukul2_ch0",
     # 1064
     "suservo_aom_1064_delivery": "suservo0_ch3",
     # Other 1064 channels
-    "suservo_aom3_1064": "suservo0_ch4",
+    "suservo_aom_1064_painted_delivery": "suservo0_ch4",
+    "urukul9910_aom_1064_painting": "urukul5_ch0",
     "suservo_aom4_1064": "suservo0_ch5",
     # 813 channels
     "suservo_aom_down_813": "suservo0_ch7",
@@ -62,6 +63,7 @@ aliases = {
     "TTL_shutter_461_2dmot_is_it_a": "ttl9",
     "TTL_shutter_461_2dmot_is_it_b": "ttl10",
     "TTL_shutter_461_3dmot": "ttl11",
+    "ttl_clock_glitch_counter": "ttl12",
     "ttl_shutter_repump_707": "ttl16",
     "ttl_shutter_repump_679": "ttl17",
     "ttl_shutter_red_sigmaplus": "ttl18",
@@ -77,11 +79,13 @@ aliases = {
     "ttl_camera_trigger_andor": "ttl4",
     "ttl_camera_trigger_horizontal": "ttl6",
     "ttl_camera_trigger_vertical": "ttl7",
+    "ttl_698_opll_enable": "ttl14",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch0",
     "mirny_eom_707_sideband_A": "mirny0_ch1",
     "mirny_eom_707_sideband_B": "mirny0_ch2",
     "mirny_eom_689_sideband": "mirny0_ch3",
+    "mirny_eom_transfer_cavity_offset": "mirny1_ch0",
     # %% Other
     "zotino_plant_room": "zotino0",
 }

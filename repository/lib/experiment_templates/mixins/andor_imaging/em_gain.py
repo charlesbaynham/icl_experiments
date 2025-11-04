@@ -51,7 +51,7 @@ class EMGain(AndorImagingBase):
             description="EM gain level. Ignored if not enabled",
             default=30,
             min=0,
-            max=30,
+            max=100,
         )
         self.em_gain: FloatParamHandle
 

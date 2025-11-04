@@ -20,16 +20,19 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
-# from pyaion.models import SUServoedBeam
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
+from scipy import constants as scipy_constants
 
-DELAY_BETWEEN_RTIO_EVENTS = 4e-9
+from device_db_config import get_configuration_from_db
+
+DELAY_BETWEEN_RTIO_EVENTS = 4e-9  # TODO get rid of this - it's easy
 
 SR_FACTS = {
     "FREQUENCIES": {
         "689_88": 434_829_121_311e3,  # 10.1103/PhysRevLett.91.243002
         "689_88_1s": 10e3,  # 10.1103/PhysRevLett.91.243002
+        "698": 429_228_004_229_872.99,  # BIPM SRS April 2022
     },
     "WAVELENGTHS": {"461_88": 460.86e-9},
 }
@@ -39,7 +42,9 @@ ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
 
-GRAVITY_DOPPLER_PER_SEC_CLOCK = 429.229e12 * 9.81 / 3e8
+GRAVITY_DOPPLER_PER_SEC_CLOCK = (
+    SR_FACTS["FREQUENCIES"]["698"] * scipy_constants.g / scipy_constants.c
+)
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
@@ -51,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=365.0e6,
+        frequency=364.937e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -95,12 +100,12 @@ URUKULED_BEAMS = [
         attenuation=13,
         urukul_device="urukul9912_aom_singlepass_461_imaging_switch",
     ),
-    # UrukuledBeam(  # On 20250603 this was not plugged in, it must have been like that for a while
-    #     "blue_USOC_delivery",
-    #     frequency=70e6,
-    #     attenuation=20.0,
-    #     urukul_device="urukul9910_aom_doublepass_461_USOC_delivery",
-    # ),
+    UrukuledBeam(
+        "blue_xfer_offset",
+        frequency=64e6,
+        attenuation=26.0,
+        urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
+    ),
     UrukuledBeam(
         "stark_shifter_689_switch",
         frequency=100e6,
@@ -117,7 +122,7 @@ URUKULED_BEAMS = [
 "Urukul outputs (name, freq, amplitude, attenuation) required for non-suservo ad9910 aoms"
 
 # Convert to dict for ease of use
-URUKULED_BEAMS = {beam.name: beam for beam in URUKULED_BEAMS}
+URUKULED_BEAMS: dict[str, UrukuledBeam] = {beam.name: beam for beam in URUKULED_BEAMS}
 
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
@@ -164,9 +169,9 @@ class IJDSettings:
 
 IJD_DEFAULTS = {
     "blue_IJD1_controller": IJDSettings(
-        temperature=8600,
+        temperature=7700,
         window_high=362e-3,
-        window_low=352e-3,
+        window_low=357e-3,
         relock_step=3e-3,
         # IJD1 does not actually need the blue_singlepass_injection AOM, but
         # IJDs 2 and 3 do. Rather than adding it to one of IJD2 and 3, or both,
@@ -176,13 +181,13 @@ IJD_DEFAULTS = {
     "blue_IJD2_controller": IJDSettings(
         temperature=8900,
         window_high=373e-3,
-        window_low=368e-3,
+        window_low=367e-3,
         relock_step=3e-3,
     ),
     "blue_IJD3_controller": IJDSettings(
-        temperature=8850,
-        window_high=365e-3,
-        window_low=355e-3,
+        temperature=8200,
+        window_high=369e-3,
+        window_low=363e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
@@ -205,12 +210,16 @@ class IJDRelockerSettings:
     "Name of relocker board in device_db"
     channel: int
     "Channel on relocker board"
-    v_min: float
-    "Lowest voltage/start of scan"
-    v_max: float
-    "Highest voltage/end of scan"
+
+    i_min: float
+    "Lowest current"
+    i_max: float
+    "Highest current"
+    voltage_to_current_gain: float
+    "Voltage to current conversion factor"
+
     n_steps: float
-    "Number of scan steps. cannot be >100"
+    "Number of scan steps. cannot be >128"
 
     window_frac: float
     "Fraction of the way along the detected window to set the lock point"
@@ -229,67 +238,136 @@ class IJDRelockerSettings:
     associated_controller: Optional[str] = None
     "Koheron controller associated with the channel"
 
+    i_relock_step_up: float = 1.0e-3
+    "Current step to make above lockpoint for relocking / mA. Default = 1.0"
+
+    max_safe_voltage: float = 1.0
+    "Maximum safe voltage for the Koheron board"
+
+    alpha_denominator: int = 1000000
+    "Exponential moving average parameter for the relocker, inverted"
+
+    wait_time_per_scan_step: float = 1e-3
+    "Time to wait between current steps in a relock scan"
+
     def __post_init__(self):
-        if self.n_steps > 100:
-            self.n_steps = 100
+        if self.n_steps > 128:
+            raise ValueError("n_steps cannot be >128")
+
+        # Calculate voltages from requested currents
+        self.v_min = self.i_min / self.voltage_to_current_gain
+        self.v_max = self.i_max / self.voltage_to_current_gain
+
+        self.v_relock_step_up = self.i_relock_step_up / self.voltage_to_current_gain
+
+        # Ensure that the voltages are within the safe limits for the Koheron
+        # board
+        if (
+            abs(self.v_min) > self.max_safe_voltage
+            or abs(self.v_max) > self.max_safe_voltage
+        ):
+            raise ValueError(
+                f"Calculated voltages ({self.v_min}, {self.v_max}) exceed safe limits of +/- {self.max_safe_voltage} V. Reduce i_min and/or i_max."
+            )
+
+
+# Calculate the maximum safe voltage for the IJD controllers given the Koheron's
+# max voltage of +-1V and the output impedance of the drivers
+def _calculate_max_safe_voltage(IJD_name: str) -> float:
+    Ri = get_configuration_from_db("IJD_info")[IJD_name]["input_resistance"]
+    Ro = get_configuration_from_db("IJD_info")[IJD_name]["output_resistance"]
+    return 1.0 * (Ri + Ro) / Ri  # V
+
+
+def _calculate_effective_voltage_to_current_gain(IJD_name: str) -> float:
+    nominal_gain = get_configuration_from_db("IJD_info")[IJD_name]["mod_gain"]
+    Ri = get_configuration_from_db("IJD_info")[IJD_name]["input_resistance"]
+    Ro = get_configuration_from_db("IJD_info")[IJD_name]["output_resistance"]
+    return nominal_gain * Ri / (Ri + Ro)  # A/V
 
 
 IJD_RELOCKER_DEFAULTS = {
     "blue_IJD1_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=0,
-        v_min=-4,
-        v_max=4,
+        i_min=-2.0e-3,
+        i_max=3e-3,
+        i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.6,
+        window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.37,
+        v_low_threshold=1.45,
         v_rise_threshold=0.015,
-        wait_time=1000,
+        wait_time=300e-3,
         auto_relock=True,
         associated_controller="blue_IJD1_controller",
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
+            "blue_IJD1_controller"
+        ),
+        max_safe_voltage=_calculate_max_safe_voltage("blue_IJD1_controller"),
+        wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "blue_IJD2_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=1,
-        v_min=-4,
-        v_max=4,
+        i_min=-2.0e-3,
+        i_max=3e-3,
+        i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.6,
+        window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.52,
+        v_low_threshold=1.45,
         v_rise_threshold=0.015,
-        wait_time=1000,
+        wait_time=300e-3,
         auto_relock=True,
         associated_controller="blue_IJD2_controller",
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
+            "blue_IJD2_controller"
+        ),
+        max_safe_voltage=_calculate_max_safe_voltage("blue_IJD2_controller"),
+        wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "blue_IJD3_relocker": IJDRelockerSettings(
         board_name="blue_relocker",
         channel=2,
-        v_min=-4,
-        v_max=4,
+        i_min=-3.0e-3,
+        i_max=3e-3,
+        i_relock_step_up=3e-3,
         n_steps=100,
-        window_frac=0.6,
+        window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.62,
+        v_low_threshold=1.45,
         v_rise_threshold=0.015,
-        wait_time=1000,
+        wait_time=500e-3,
         auto_relock=True,
         associated_controller="blue_IJD3_controller",
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
+            "blue_IJD3_controller"
+        ),
+        max_safe_voltage=_calculate_max_safe_voltage("blue_IJD3_controller"),
+        wait_time_per_scan_step=2e-3,
+        alpha_denominator=10000,
     ),
     "red_IJD1_relocker": IJDRelockerSettings(
         board_name="red_relocker",
         channel=0,
-        v_min=-2,
-        v_max=2,
+        i_min=-2.5e-3,
+        i_max=2.5e-3,
         n_steps=100,
         window_frac=0.5,
         min_diff=0.1,
-        v_low_threshold=1.15,
+        v_low_threshold=1.3,
         v_rise_threshold=0.05,
-        wait_time=1000,
+        wait_time=200e-3,
         auto_relock=True,
         associated_controller="red_IJD1_controller",
+        voltage_to_current_gain=_calculate_effective_voltage_to_current_gain(
+            "red_IJD1_controller"
+        ),
+        max_safe_voltage=_calculate_max_safe_voltage("red_IJD1_controller"),
+        wait_time_per_scan_step=2e-3,
     ),
 }
 "Settings for IJD relocker board channels"
@@ -347,7 +425,7 @@ CHAMBER_2_VERTICAL_CAMERA_DEFAULTS = OrderedDict(
 )
 "Chamber 2 vertical camera settings. Must be valid Features (see http://softwareservices.flir.com/BFS-PGE-50S5/latest/Model/public/index.html)"
 
-DEFAULT_IMAGING_PULSE = 50e-6
+DEFAULT_IMAGING_PULSE = 200e-6
 "Default length of an imaging pulse of 461nm light. Usually overriden by purpose."
 
 DEFAULT_DELIVERY_SETTLING_DURATION = 100e-6
@@ -393,15 +471,22 @@ else:
 
 _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
 _ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
-_ANDOR_ROI_DIPOLE_WIDTH = 32
+_ANDOR_ROI_DIPOLE_WIDTH = 60
+
+
+FAST_KINETICS_DELAY_BETWEEN_PULSES = (
+    3.5e-3  # Time enough for the ground-state atoms to exit
+)
+SLACK_FOR_GRAVITY = 20
 
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 245
+_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 246
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
+
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -440,16 +525,14 @@ ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_Y - height / 2
 )
 
-SLACK_FOR_GRAVITY = 20
-ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = (
-    2 * ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
-    + abs(_ANDOR_DIPOLE_TRAP_FORWARD_Y - _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
-)
-ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = (
-    min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
-    - ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP / 2
-    - SLACK_FOR_GRAVITY
-)
+
+_y_top_trap = max(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_bottom_trap = min(_ANDOR_DIPOLE_TRAP_FORWARD_Y, _ANDOR_DIPOLE_TRAP_BACKWARD_Y)
+_y_top_of_frame = _y_top_trap + height / 2
+_y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
+
+ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
+ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
 # %% 689 spectroscopy defaults
 
@@ -580,8 +663,9 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_transparency_beam",
         80e6,
-        20,
+        23,
         "suservo_aom_singlepass_487_transparency",
+        setpoint=0.3,
         setpoint=0.7,
         servo_enabled=True,
     ),
@@ -606,7 +690,7 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaminus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5,
         photodiode_offset=0.018,  # 0.001,
     ),
@@ -630,9 +714,18 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_red_sigmaplus",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        initial_amplitude=0.05,
+        initial_amplitude=0.2,
         setpoint=1.5 if not USE_SR87 else 3.0,  # 3 V for Sr87
         photodiode_offset=0.0131,  # 0.0027,  # 0.0108,
+    ),
+    SUServoedBeam(
+        "red_molasses",
+        100e6,
+        0.0,
+        "suservo_aom_singlepass_689_molasses",
+        setpoint=10.0,
+        servo_enabled=True,
+        initial_amplitude=0.05,
     ),
     ### OTHER ###
     SUServoedBeam(
@@ -653,15 +746,16 @@ SUSERVOED_BEAMS = [
         shutter_device="ttl_shutter_repump_679",
         shutter_delay=SRS_SHUTTER_DELAY,
         servo_enabled=True,
-        setpoint=0.33,
+        # Note: the diagonal red MOT beams leak onto the 679 photodiode so you must turn them off to measure this properly, otherwise you'll think there's more power available than there is
+        setpoint=0.15,
     ),
     SUServoedBeam(
         "clock_delivery",
-        100e6,
+        99.859e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
-        setpoint=3.5,
+        setpoint=2.6,
         kI_loop_constant=-100000.0,
     ),
     SUServoedBeam(
@@ -679,7 +773,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=4.5,
+        setpoint=4.0,
         kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
@@ -697,29 +791,28 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
         servo_enabled=True,
-        initial_amplitude=0.0,
+        initial_amplitude=0.1,
+        setpoint=4.7,
+        kI_loop_constant=-1000.0,
+    ),
+    SUServoedBeam(
+        "dipole_trap_painted_1064_delivery",
+        frequency=105e6,
+        attenuation=2.0,
+        suservo_device="suservo_aom_1064_painted_delivery",
+        servo_enabled=True,
+        initial_amplitude=0.1,
         setpoint=4.7,
         kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
         "stark_shifter_689_delivery",
         frequency=80e6,
-        # Not maximum diffraction efficiency, but chosen so that we can't heat
-        # the AOM too much. Achieves ~0.44V which is more than we need unless we move to very short pulses:
         attenuation=12.0,
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=0.28,  # Photodiode is now set to 30dB (changed 2024-12-02 from 20dB)
-    ),
-    SUServoedBeam(
-        "down_689",
-        frequency=80e6,  # TODO: Change back to 100 MHz before trying SWAP again
-        attenuation=12.0,
-        suservo_device="suservo_aom_singlepass_689_down_beam",
-        servo_enabled=True,
-        initial_amplitude=0.3,
-        setpoint=0.28,
+        setpoint=3.0,
     ),
 ]
 
@@ -746,16 +839,19 @@ _default_461 = (
     + 10e6
     # 2024-11-18
     - 10e6
+    - 20e6  # 2025-08-07
+    + 10e6  # 2025-09-15
 )
-_default_707 = 423_913_478e6
-_default_679 = 441_332_627e6
+_default_707 = 423_913_478e6 - 5e6  # 2025-08-07
+_default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
-_default_698 = 429_228_387.3e6  # Measured empirically
+_default_698 = 429_228_387.3e6 - 4.0e6  # Measured empirically
 _clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
 # for some reason
 _isotope_shift_689 = 1241.4e6
+
 
 # The Wavemeter is calibrated relative to the Sr 88 689nm transition, so we use
 # the absolute frequency and the value of the AOMs between the wavemeter pickoff
@@ -767,6 +863,9 @@ _default_689 = (
 )
 
 
+_MIRNY_FREQ_461_TRANSFER_CAVITY = 184e6
+_ISOTOPE_SHIFT_461 = -60e6
+
 MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_707_sideband_A", frequency=585e6, attenuation=20.0
@@ -776,6 +875,11 @@ MIRNY_SETTINGS_87 = [
     ),
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
+    ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=_MIRNY_FREQ_461_TRANSFER_CAVITY + _ISOTOPE_SHIFT_461,
+        attenuation=27.5,
     ),
 ]
 
@@ -795,12 +899,75 @@ MIRNY_SETTINGS_88 = [
         frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
     ),
+    MirnySettings(
+        device_name="mirny_eom_transfer_cavity_offset",
+        frequency=_MIRNY_FREQ_461_TRANSFER_CAVITY,
+        attenuation=27.5,
+    ),
 ]
 
 
 assert [s.device_name for s in MIRNY_SETTINGS_87] == [
     s.device_name for s in MIRNY_SETTINGS_88
 ], "Please ensure both lists are in the same order"
+
+TRANSFER_CAVITY_461_CHANNEL = 2
+TRANSFER_CAVITY_461_GAIN = 1.0
+
+
+TOPTICA_TO_WAND_NAMES = {
+    "toptica_461": "461",
+    "toptica_679": "679",
+    "toptica_707": "707",
+    "toptica_689": "689",
+    "toptica_698": "698",
+    "toptica_487": "487",
+}
+
+## Modehop-tuning settings
+
+
+@dataclass
+class ModeCentringSettings:
+    """Settings for the mode centring algorithm
+
+    Only the settings that vary between lasers are recorded here
+    """
+
+    max_current: float = 150e-3  # Maximum current / A
+    current_step: float = 0.1e-3  # Current step for scanning / A
+    restore_jump_size: float = -2e-3  # Current jump size for mode restoration / A
+    mode_check_tolerance: float = (
+        5e9  # Frequency threshold for detecting if we are on the right mode / Hz
+    )
+    target_position: float = 0.5  # Target position in mode-hop-free range (0-1)
+    fractional_current_tolerance: float = (
+        0.1  # Tolerance for final position within window as fraction of window size
+    )
+
+
+# For every laser in TOPTICA_TO_WAND_NAMES, define default mode centring settings
+DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
+    k: ModeCentringSettings() for k in TOPTICA_TO_WAND_NAMES.keys()
+}
+
+# Add overrides for picky lasers
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
+    max_current=245e-3,
+    restore_jump_size=5e-3,
+    target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
+    fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
+    mode_check_tolerance=10e9,
+)
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current=152e-3)
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
+    mode_check_tolerance=2e9,
+    target_position=0.66,
+    restore_jump_size=+2e-3,
+)
+DEFAULT_MODE_CENTRING_SETTINGS["toptica_698"] = ModeCentringSettings(
+    mode_check_tolerance=1.5e9,
+)
 
 
 WAND_SHUTTERS_DELAY = 50e-3
@@ -816,10 +983,11 @@ WAND_SETPOINTS_88 = {
     "679": (_default_679, True),
     "487": (_default_487, True),
     "689": (_default_689, False),
-    "689_IJD": (
-        _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
-        False,
-    ),
+    # Removed since we're using that channel for 688 now
+    # "689_IJD": (
+    #     _default_689 - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
+    #     False,
+    # ),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698 + _clock_laser_offset, False),
@@ -827,17 +995,18 @@ WAND_SETPOINTS_88 = {
 
 
 WAND_SETPOINTS_87 = {
-    "461": (_default_461 - 60e6, True),
+    "461": (_default_461 + _ISOTOPE_SHIFT_461, True),
     "707": (_default_707 + 27e6, True),
     "679": (_default_679 - 2430e6, True),
     "487": (_default_487, True),
     "689": (_default_689 - _isotope_shift_689, False),
-    "689_IJD": (
-        _default_689
-        - _isotope_shift_689
-        - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
-        False,
-    ),
+    # "689_IJD": (
+    #     _default_689
+    #     - _isotope_shift_689
+    #     - 2 * URUKULED_BEAMS["red_doublepass_injection"].frequency,
+    #     False,
+    # ),
+    "688": (435_731_700e6, False),
     # "689_doubled1379": (_default_689, False),
     "698": (_default_698, False),
     "Sirah": (_default_698 + _clock_laser_offset, False),
@@ -872,6 +1041,18 @@ def add_field_offset(x, y, z):
     )
 
 
+def calc_new_field_defaults(param_x, param_y, param_z):
+    """
+    Calculates the new field defaults based on the
+    passed parameter value
+    """
+    return (
+        param_x - FIELD_COMP_X,
+        param_y - FIELD_COMP_Y,
+        param_z - FIELD_COMP_Z,
+    )
+
+
 if USE_SR87:
     # With 6A gradient
     _B_FIELD_BIAS_LATTICE_X = 1.1  # A
@@ -902,7 +1083,7 @@ if USE_LATTICE_MODE:
 B_FIELD_GRADIENT = 90.0  # A
 
 
-BLUE_LOADING_TIME = 500e-3
+BLUE_LOADING_TIME = 1500e-3
 "Default blue MOT loading time"
 
 RED_BROADBAND_RAMP_LOWER_LIMIT = -0.1e6
@@ -924,12 +1105,16 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 # Clock stuff
 
 CLOCK_PI_TIME = 44e-6
-CLOCK_SHELVING_PULSE_TIME = 200e-6
-CLOCK_SHELVING_PULSE_SETPOINT = 0.12
+CLOCK_SHELVING_PULSE_TIME = 300e-6
+CLOCK_SHELVING_PULSE_SETPOINT = 0.05
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
-DELAY_BETWEEN_INTERFEROMETRY_PULSES = 100e-6
-CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = 10e3
+DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
+DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
+CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
+    35.3e3  # Will need fine-tuning whenever velocity-selection pulse is changed
+)
+DURATION_OF_STARK_PULSE = 30e-6
 
 # %% Dipole trap settings
 
@@ -983,14 +1168,14 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.27)
+) = add_field_offset(0.188, 0.057, -0.29)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
-) = add_field_offset(0.158, 0.029, 0.155)
+) = add_field_offset(0.2, 0.03, 0.08)
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
@@ -1263,3 +1448,15 @@ _DEDRIFTER_INFO_698 = DedrifterInfo(
 )
 
 DEDRIFTER_INFOS = [_DEDRIFTER_INFO_689, _DEDRIFTER_INFO_698]
+
+## Clock glitch filter
+
+CLOCK_GLITCH_FILTER_GLITCH_THRESHOLD = 0.03  # volts
+CLOCK_GLITCH_FILTER_GATE_THRESHOLD = 2.0  # volts
+CLOCK_GLITCH_FILTER_GATE_DURATION = 500e-6  # seconds
+
+
+## Interferometry signal injection
+
+INTERFEROMETRY_SIGNAL_INJECTION_FREQUENCY = 0.5e-3  # Hz
+INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts

@@ -10,7 +10,15 @@
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
   outputs = { self, nixpkgs, flake-utils, pyaion, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
+    let
+      # Configure ARTIQ services to bind to the labserver's AION IP address.
+      # This is so that the server can run other ARTIQ sessions bound to other
+      # IP addresses.
+      bind_settings = {
+        bind_command = "--no-localhost-bind --bind 10.137.1.252";
+        connection_ip = "10.137.1.252";
+      };
+    in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         callPackage = pyaion.lib.${system}.callPackage;
@@ -24,7 +32,7 @@
           extra-build-requirements = {
             artiq-http = [ "setuptools" ];
             koheron-ctl200-laser-driver = [ "poetry-core" ];
-            qbutler = [ "setuptools" ];
+            qbutler = [ "poetry-core" ];
             aravis = [ "setuptools" ];
             pygobject = [ "setuptools" ];
             pyft232 = [ "setuptools" ];
@@ -95,24 +103,30 @@
             exec wand_gui -n icl_aion "$@"
           '');
 
-        # Configure ARTIQ services to bind to the labserver's AION IP address.
-        # This is so that the server can run other ARTIQ sessions bound to other
-        # IP addresses.
-        bind_settings = {
-          bind_command = "--no-localhost-bind --bind 10.137.1.252";
-          connection_ip = "10.137.1.252";
-        };
-
         # Dashboard launcher for the ICL AION address
         dashboard_launcher = (pkgs.writeShellScriptBin "icl_dashboard" ''
           # If you want to reset the dashboard settings each time, uncomment this line
           # export XDG_CONFIG_HOME=$(mktemp -d)
 
+          export PYTHONPATH=${self}:$PYTHONPATH
           exec ${overriddenOutputs.apps.dashboard.program} -s ${bind_settings.connection_ip}
         '');
 
       in {
-        inherit (overriddenOutputs) formatter devShells;
+        inherit (overriddenOutputs) formatter;
+
+        # Add a script to the shell hook that sets the DISPLAY environment variable
+        # if we are running on WSL and a Windows X server is detected
+        devShells = overriddenOutputs.devShells // {
+          default = overriddenOutputs.devShells.default.overrideAttrs
+            (oldAttrs: {
+              shellHook = ''
+                ${oldAttrs.shellHook or ""}
+
+                source ${self}/scripts/wsl_display_fix.sh
+              '';
+            });
+        };
 
         packages = overriddenOutputs.packages // {
           default = dashboard_launcher;
@@ -234,18 +248,17 @@
             backup_datasets = "nix run .#backup_datasets";
 
             # Automatic startup of database monitors
-            # FIXME I think this is broken now
-            # monitor_launcher =
-            #    "sleep 200 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
+            monitor_launcher =
+              "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
 
           in overriddenOutputs.apps.full_stack.override (prev:
             {
               commands = prev.commands // {
-                inherit backup_database backup_datasets
-                #   monitor_launcher  FIXME removed - see above
-                ;
+                inherit backup_database backup_datasets monitor_launcher;
               };
             } // bind_settings);
         };
-      });
+      }) // {
+        inherit bind_settings;
+      };
 }

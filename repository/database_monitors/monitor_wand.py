@@ -21,20 +21,31 @@ class MonitorWAND(Calibration):
     def build_calibration(self):
         self.set_timeout(10)
 
+    def host_setup(self):
+        # TODO: This is risky! It might clash with IPC on the main thread which
+        # would cause a crash. It's less likely than before though since it only
+        # happens once on startup. A better solution would be to merge
+        # https://gitlab.com/aion-physics/code/artiq/qbutler/-/merge_requests/22
+        self.wand_controller_config = self.get_device_db()["wand_server"]
+
+        super().host_setup()
+
     def check_own_state(self):
         measurements = []
 
         result = CalibrationResult.OK
 
         try:
-            wand_controller_config = self.get_device_db()["wand_server"]
+
             client = RPCClient(
-                host=wand_controller_config["host"],
-                port=wand_controller_config["port"],
+                host=self.wand_controller_config["host"],
+                port=self.wand_controller_config["port"],
                 timeout=TIMEOUT,
             )
+
             try:
                 lasers = client.get_laser_db()
+
                 for laser in lasers:
                     meas = client.get_freq(
                         laser,
@@ -47,6 +58,9 @@ class MonitorWAND(Calibration):
                     )
                     status, freq, _ = meas
 
+                    exposure_0 = lasers[laser]["exposure"][0]
+                    exposure_1 = lasers[laser]["exposure"][1]
+
                     if status != WLMMeasurementStatus.OKAY:
                         continue
 
@@ -57,7 +71,13 @@ class MonitorWAND(Calibration):
                             "tags": {
                                 "laser": laser,
                             },
-                            "fields": {"freq": freq, "f_ref": f_ref, "detuning": delta},
+                            "fields": {
+                                "freq": freq,
+                                "f_ref": f_ref,
+                                "detuning": delta,
+                                "exposure_0": exposure_0,
+                                "exposure_1": exposure_1,
+                            },
                         }
                     )
                     logger.debug(

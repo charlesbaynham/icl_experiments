@@ -4,6 +4,8 @@ from artiq_influx_generic import InfluxController
 from qbutler.monitoring import make_monitor_controller
 
 from repository.database_monitors.monitor_heartbeat import MonitorHeartbeat
+from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker
+from repository.database_monitors.monitor_ijd_relockers import MonitorRedIJDRelocker
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD1
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD2
 from repository.database_monitors.monitor_ijds import MonitorBlueIJD3
@@ -17,12 +19,8 @@ from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureDencoOut,
 )
 from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
-from repository.database_monitors.monitor_lab_temperature import (
-    MonitorTemperatureSidearm,
-)
-from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
-from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
 from repository.database_monitors.monitor_topticas import *
+from repository.database_monitors.monitor_turbopump import MonitorTurbo
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
 
@@ -70,16 +68,16 @@ MonitorMaster = make_monitor_controller(
     "MonitorMaster",
     monitors={
         "weather": MonitorWeather,
-        "temperature_sidearm": MonitorTemperatureSidearm,
+        # "temperature_sidearm": MonitorTemperatureSidearm,  # TODO fix broken sidearm temperature sensor
         "temperature_denco_in": MonitorTemperatureDencoIn,
         "temperature_denco_out": MonitorTemperatureDencoOut,
         "temperature_PCW": MonitorTemperaturePCW,
         "ion_pump": MonitorAIONCh1IonPump,  # Keep legacy naming from when we only imagined one experiment
         "ion_pump_cham2": MonitorAIONCh2IonPump,
-        "ion_pump_clock_ch1": MonitorClockCh1IonPump,
-        "ion_pump_clock_ch2": MonitorClockCh2IonPump,
+        # "ion_pump_clock_ch1": MonitorClockCh1IonPump, # Not using these atm while flipping chamber
+        # "ion_pump_clock_ch2": MonitorClockCh2IonPump,
         "heartbeat": MonitorHeartbeat,
-        # "turbopump": MonitorTurbo,
+        "turbopump": MonitorTurbo,
         "blue_ijd1": MonitorBlueIJD1,
         "blue_ijd2": MonitorBlueIJD2,
         "blue_ijd3": MonitorBlueIJD3,
@@ -93,6 +91,8 @@ MonitorMaster = make_monitor_controller(
         "toptica_698": MonitorToptica698,
         "toptica_707": MonitorToptica707,
         "toptica_1379": MonitorToptica1379,
+        "blue_ijd_relocker": MonitorBlueIJDRelocker,
+        "red_ijd_relocker": MonitorRedIJDRelocker,
     },
     devices=["influx_logger"],
     data_logger=my_db_logger,
