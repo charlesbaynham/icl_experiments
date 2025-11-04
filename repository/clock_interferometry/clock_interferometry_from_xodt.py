@@ -46,6 +46,10 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
 
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    FieldOnlyRampInEvapMixin,
+)
+
 logger = logging.getLogger(__name__)
 
 
