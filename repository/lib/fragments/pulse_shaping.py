@@ -405,7 +405,7 @@ class _ShapedPulse(Fragment, abc.ABC):
 class FrequencyShapedPulse(_ShapedPulse):
     ram_modulation_mode = ad9910.RAM_DEST_FTW
     ram_nodwell_mode = 1  # This might be ignored... acording to the datasheet
-    ram_ramp_mode = ad9910.RAM_MODE_CONT_BIDIR_RAMP
+    ram_ramp_mode = ad9910.RAM_MODE_CONT_RAMPUP
     # Have it ramp up and down
 
     def build_fragment(
