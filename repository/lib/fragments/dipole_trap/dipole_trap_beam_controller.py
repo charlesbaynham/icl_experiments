@@ -5,6 +5,7 @@ from artiq.language import kernel
 from ndscan.experiment import Fragment
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
+from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
@@ -21,6 +22,9 @@ DIPOLE_SUSERVO_INFOS = [
         "dipole_trap_1064_delivery",
     ]
 ]
+
+PAINTED_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["suservo_aom_1064_painted_delivery"]]
+
 DIPOLE_URUKUL_INFOS = [
     # constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
 ]
@@ -39,7 +43,7 @@ class DipoleBeamController(Fragment):
         self.setattr_fragment(
             "all_beam_default_setter",
             make_set_beams_to_default(
-                suservo_beam_infos=DIPOLE_SUSERVO_INFOS,
+                suservo_beam_infos=DIPOLE_SUSERVO_INFOS + PAINTED_SUSERVO_INFOS,
                 urukul_beam_infos=DIPOLE_URUKUL_INFOS,
                 name="DipoleBeamSettings",
                 use_automatic_setup=True,  # Automatically configure the DDSs but do not turn the beams on
@@ -58,6 +62,14 @@ class DipoleBeamController(Fragment):
             ),
         )
         self.dipole_beam_toggler: ToggleListOfBeams
+
+        self.setattr_fragment(
+            "painter_suservo",
+            LibSetSUServoStatic,
+            constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"].suservo_device
+        )
+
+        self.painter_suservo: LibSetSUServoStatic
 
     @kernel
     def turn_off_dipole_beams(self):
