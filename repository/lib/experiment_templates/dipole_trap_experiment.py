@@ -129,6 +129,11 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
         """
         self.dipole_beam_controller.turn_on_dipole_beams()
+        # Switch the painter on
+        self.dipole_beam_controller.painter_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
+
 
     @kernel
     def dipole_trap_molasses_hook(self):
