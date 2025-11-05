@@ -102,7 +102,7 @@ class SetTopticaAnalogFrag(ExpFragment):
 
     @kernel
     def frequency_to_voltage(self, freq: float) -> float:
-        voltage = freq / (TOPTICA_461_ANALOG_SCALE)
+        voltage = freq / (TOPTICA_461_ANALOG_SCALE * self.arc_factor)
         if not self.check_voltage_lim(voltage):
             raise ValueError("Voltage out of range")
         return voltage
