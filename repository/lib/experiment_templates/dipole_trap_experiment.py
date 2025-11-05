@@ -188,6 +188,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
+        self.dipole_beam_controller.painter_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
     @abc.abstractmethod
     def do_experiment_after_dipole_trap_hook(self):
