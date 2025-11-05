@@ -131,7 +131,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_beam_controller.turn_on_dipole_beams()
         # Switch the painter on
         self.dipole_beam_controller.painter_suservo.set_channel_state(
-            rf_switch_state=False, enable_iir=False
+            rf_switch_state=True, enable_iir=False
         )
 
 
