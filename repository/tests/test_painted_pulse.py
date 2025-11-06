@@ -45,7 +45,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         self.dds.set(frequency=100e6, amplitude=1.0)
         self.dds.set_att(10.0)
         self.core.break_realtime()
-        self.prepare_pulse()
+        self.painter.prepare_pulse()
         self.core.break_realtime()
         self.painter.start_output()
         logger.warning("The pulse duration: ", self.dds.read64(0x15))
