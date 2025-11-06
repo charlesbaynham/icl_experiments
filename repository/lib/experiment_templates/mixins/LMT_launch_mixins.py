@@ -243,136 +243,128 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         )
         self.down_pulses_duration: FloatParamHandle
 
-        # self.setattr_param(
-        #     "momentum_kick",
-        #     FloatParam,
-        #     "Momentum kick",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.momentum_kick: FloatParamHandle
-
-        # self.setattr_param(
-        #     "final_detuning",
-        #     FloatParam,
-        #     "Detuning on final pulse",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.final_detuning: FloatParamHandle
+        self.setattr_param(
+            "momentum_kick",
+            FloatParam,
+            "Momentum kick",
+            default=9.402,
+            unit="kHz",
+        )
+        self.momentum_kick: FloatParamHandle
 
         # temporary for sorting out frequencies
-        self.setattr_param(
-            "detuning_pulse_1",
-            FloatParam,
-            "Detuning 1st pulse (up)",
-            default=0.0,
-            unit="kHz",
-        )
-        self.detuning_pulse_1: FloatParamHandle
+        # self.setattr_param(
+        #     "detuning_pulse_1",
+        #     FloatParam,
+        #     "Detuning 1st pulse (up)",
+        #     default=0.0,
+        #     unit="kHz",
+        # )
+        # self.detuning_pulse_1: FloatParamHandle
 
-        self.setattr_param(
-            "detuning_pulse_2",
-            FloatParam,
-            "Detuning 2nd pulse (up)",
-            default=0.0,
-            unit="kHz",
-        )
-        self.detuning_pulse_2: FloatParamHandle
+        # self.setattr_param(
+        #     "detuning_pulse_2",
+        #     FloatParam,
+        #     "Detuning 2nd pulse (up)",
+        #     default=0.0,
+        #     unit="kHz",
+        # )
+        # self.detuning_pulse_2: FloatParamHandle
 
-        self.setattr_param(
-            "detuning_pulse_3",
-            FloatParam,
-            "Detuning 3rd pulse (up)",
-            default=0.0,
-            unit="kHz",
-        )
-        self.detuning_pulse_3: FloatParamHandle
+        # self.setattr_param(
+        #     "detuning_pulse_3",
+        #     FloatParam,
+        #     "Detuning 3rd pulse (up)",
+        #     default=0.0,
+        #     unit="kHz",
+        # )
+        # self.detuning_pulse_3: FloatParamHandle
 
-        self.setattr_param(
-            "detuning_pulse_4",
-            FloatParam,
-            "Detuning 4rd pulse (up)",
-            default=0.0,
-            unit="kHz",
-        )
-        self.detuning_pulse_4: FloatParamHandle
+        # self.setattr_param(
+        #     "detuning_pulse_4",
+        #     FloatParam,
+        #     "Detuning 4rd pulse (up)",
+        #     default=0.0,
+        #     unit="kHz",
+        # )
+        # self.detuning_pulse_4: FloatParamHandle
 
-        self.setattr_param(
-            "detuning_pulse_5",
-            FloatParam,
-            "Detuning 5th pulse (up)",
-            default=0.0,
-            unit="kHz",
-        )
-        self.detuning_pulse_5: FloatParamHandle
+        # self.setattr_param(
+        #     "detuning_pulse_5",
+        #     FloatParam,
+        #     "Detuning 5th pulse (up)",
+        #     default=0.0,
+        #     unit="kHz",
+        # )
+        # self.detuning_pulse_5: FloatParamHandle
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
 
         detuning = 0.0
+        total_ramp_time = 0.0
 
         t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
             # calculate the start frequency of the ramp
-            if i == 0:
-                detuning = self.detuning_pulse_1.get()
-            elif i == 1:
-                detuning = self.detuning_pulse_2.get()
-            elif i == 2:
-                detuning = self.detuning_pulse_3.get()
-            elif i == 3:
-                detuning = self.detuning_pulse_4.get()
-            elif i == 4:
-                detuning = self.detuning_pulse_5.get()
-            f_i = start_opll_offset + detuning
-            # if i == self.lmt_pulses_number.get() - 1:
-            #     det_final = self.final_detuning.get()
-            # f_i = (
-            #     start_opll_offset
-            #     + (-1) ** i * total_ramp_time * ramp_rate
-            #     + i * (-1) ** (i + 1) * self.momentum_kick.get()
-            #     + det_final
-            # )
-            # print(det_final, f_i / 1e6)
-            # calculate the ramp type
-            type = int(1.5 + 0.5 * (-1) ** (i + 1))
+            # if i == 0:
+            #     detuning = self.detuning_pulse_1.get()
+            # elif i == 1:
+            #     detuning = self.detuning_pulse_2.get()
+            # elif i == 2:
+            #     detuning = self.detuning_pulse_3.get()
+            # elif i == 3:
+            #     detuning = self.detuning_pulse_4.get()
+            # elif i == 4:
+            #     detuning = self.detuning_pulse_5.get()
+            # f_i = start_opll_offset + detuning
+            f_i = (
+                start_opll_offset
+                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i) * self.momentum_kick.get()
+            )
+            print(f_i - start_opll_offset)
+            # start with down pulse
+            if i % 2 == 0:
+                pulse_type = "down"
+            else:
+                pulse_type = "up"
             # fire the pulse
-            self.fire_lmt_pulse(f_i, type)
+            self.fire_lmt_pulse(f_i, pulse_type)
 
             # Clear out the ground state
-            if type == 2:
+            if pulse_type == "up":
                 self.fluorescence_pulse.do_imaging_pulse(
                     duration=self.clearout_duration.get(),
                     ignore_final_shutters=True,
                 )
 
             t_end_pulse = now_mu()
-            self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
+            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
-    def fire_lmt_pulse(self, start_freq, ramp_type):
+    def fire_lmt_pulse(self, start_freq, type):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
-        if ramp_type == 2:
+        if type == "down":
             # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
                 start_freq - 1e6,
                 start_freq,
-                wave_type=ramp_type,
+                wave_type=2,
             )
             # pulse the down beam
             self.clock_down_dds.sw.on()
             delay(self.down_pulses_duration.get())
             self.clock_down_dds.sw.off()
 
-        if ramp_type == 1:
+        if type == "up":
             # ramp the offset upwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
