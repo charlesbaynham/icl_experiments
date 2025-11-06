@@ -12,6 +12,7 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
+from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadratic
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,8 @@ DIPOLE_SUSERVO_INFOS = [
 ]
 
 PAINTED_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["suservo_aom_1064_painted_delivery"]]
+
+PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 
 DIPOLE_URUKUL_INFOS = [
     # constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
@@ -70,6 +73,14 @@ class DipoleBeamController(Fragment):
         )
 
         self.painter_suservo: LibSetSUServoStatic
+
+        self.setattr_fragment(
+            "painter",
+            DiffractionCompensatedQuadratic,
+            ad9910_name=PAINTING_URUKUL_CHANNEL
+        )
+
+        self.painter: DiffractionCompensatedQuadratic 
 
     @kernel
     def turn_off_dipole_beams(self):
