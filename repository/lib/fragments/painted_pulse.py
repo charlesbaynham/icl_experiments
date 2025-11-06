@@ -57,6 +57,7 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
     def device_setup(self):
         # Rewrite the device setup
         self.device_setup_base()
+        self.core.break_realtime()
         self.prepare_pulse()
 
     def generate_frequencies(self, n_words) -> np.ndarray:
