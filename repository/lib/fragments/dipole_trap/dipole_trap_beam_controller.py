@@ -83,6 +83,25 @@ class DipoleBeamController(Fragment):
         self.painter: DiffractionCompensatedQuadratic 
 
     @kernel
+    def turn_on_painter_suservo(self):
+        """
+        Turns on the painter by switching the SUServo on.
+        """
+        # Hmmm does the iir need to be enabled?
+        self.painter_suservo.set_channel_state(
+            rf_switch_state=True, enable_iir=False
+        )
+
+    @kernel
+    def turn_off_painter_suservo(self):
+        """
+        Turns off the painter by switching the SUServo off.
+        """
+        self.painter_suservo.set_channel_state(
+            rf_switch_state=False, enable_iir=False
+        )
+
+    @kernel
     def turn_off_dipole_beams(self):
         """
         Turns off all dipole beams
