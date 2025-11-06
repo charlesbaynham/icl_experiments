@@ -142,7 +142,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
         """
         self.dipole_beam_controller.turn_on_dipole_beams()
-        self.dipole_beam_controller.turn_on_painter_suservo()
 
 
     @kernel
@@ -184,9 +183,8 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     def matterwave_collimate_hook(self):
         """
         Hook for matterwave collimation of the atoms to decrease the momentum uncertatinty.
-        By default, switch it on.
+        By default, do nothing.
         """
-        self.matterwave_collimate_hook_default()
 
     @kernel
     def matterwave_collimate_hook_default(self):

@@ -89,7 +89,7 @@ class DipoleBeamController(Fragment):
         """
         # Hmmm does the iir need to be enabled?
         self.painter_suservo.set_channel_state(
-            rf_switch_state=True, enable_iir=False
+            rf_switch_state=True, enable_iir=True
         )
 
     @kernel
