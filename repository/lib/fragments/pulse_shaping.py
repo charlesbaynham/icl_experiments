@@ -169,7 +169,7 @@ class _ShapedPulse(Fragment, abc.ABC):
 
     @kernel
     def device_setup(self):
-       self.device_setup_base() 
+        self.device_setup_base()
 
     @kernel
     def _store_waveform_in_ram(self):
@@ -408,7 +408,7 @@ class _ShapedPulse(Fragment, abc.ABC):
 
 class FrequencyShapedPulse(_ShapedPulse):
     ram_modulation_mode = ad9910.RAM_DEST_FTW
-    ram_nodwell_mode = 0  # This might be ignored... acording to the datasheet
+    ram_nodwell_mode = 1  # This might be ignored... acording to the datasheet
     ram_ramp_mode = ad9910.RAM_MODE_CONT_BIDIR_RAMP
     # Have it ramp up and down
 
