@@ -103,6 +103,18 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         )
         self.dipole_pre_experiment_delay: FloatParamHandle
 
+        self.setattr_param(
+            "matterwave_collimation_time",
+            FloatParam,
+            description="Holding time for matterwave collimation",
+            unit="us",
+            default=1,
+            min=0.0,
+            max=100,
+        )
+
+        self.matterwave_collimation_time : FloatParamHandle
+
         # %% Fragments
 
         self.setattr_fragment("dipole_beam_controller", DipoleBeamController)
@@ -119,6 +131,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
+        self.matterwave_collimate_hook()
         self.post_dipole_trap_hook()
         delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
@@ -129,10 +142,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
         """
         self.dipole_beam_controller.turn_on_dipole_beams()
-        # Switch the painter on
-        self.dipole_beam_controller.painter_suservo.set_channel_state(
-            rf_switch_state=True, enable_iir=False
-        )
+        self.dipole_beam_controller.turn_on_painter_suservo()
 
 
     @kernel
@@ -171,6 +181,27 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.post_dipole_trap_hook_default()
 
     @kernel
+    def matterwave_collimate_hook(self):
+        """
+        Hook for matterwave collimation of the atoms to decrease the momentum uncertatinty.
+        By default, switch it on.
+        """
+        self.matterwave_collimate_hook_default()
+
+    @kernel
+    def matterwave_collimate_hook_default(self):
+        """
+        Switch the painter on for a set amount of time, ideally a quarter of an oscillation period. 
+        """
+        self.dipole_beam_controller.turn_on_painter_suservo()
+        # Then switch off the dipole beam
+        self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(self.matterwave_collimation_time.get())
+        self.dipole_beam_controller.turn_off_painter_suservo()
+        
+    
+    
+    @kernel
     def post_dipole_trap_hook_default(self):
         """
         Turn off the dipole trap beams
@@ -188,7 +219,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
-        self.dipole_beam_controller.painter_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+        self.dipole_beam_controller.turn_off_painter_suservo()
 
     @abc.abstractmethod
     def do_experiment_after_dipole_trap_hook(self):
