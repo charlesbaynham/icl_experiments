@@ -27,6 +27,7 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             FloatParam,
             description="Modulation depth of the scan",
             default=1e3,
+            unit="KHz",
             min=1.0,
             max=200e6,
         )
@@ -37,6 +38,7 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             FloatParam,
             description="Centre frequency of the shaped pulse",
             default=100e6,
+            unit="MHz",
             min=0.0,
             max=4e8,
         )
