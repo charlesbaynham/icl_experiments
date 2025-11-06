@@ -51,7 +51,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         delay(2.0)
         self.dds.set_att(0.0)
         delay(2.0)
-        self.dds.on()
+        self.dds.sw.on()
         logger.warning("The pulse duration: ", self.dds.read64(0x15))
         logger.warning("Hey I'm starting minute")
         logger.warning("The mu: ", self.painter._step_mu)
