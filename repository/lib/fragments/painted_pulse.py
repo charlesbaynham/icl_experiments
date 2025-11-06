@@ -27,7 +27,7 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             FloatParam,
             description="Modulation depth of the scan",
             default=1e3,
-            unit="KHz",
+            unit="kHz",
             min=1.0,
             max=200e6,
         )
@@ -52,11 +52,11 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
         return super().build_fragment(
             centre_frequency_param_handle=self.centre_frequency, *args, **kwargs
         )
-    
+
     @kernel
     def device_setup(self):
         # Rewrite the device setup
-        self.device_setup_base()   
+        self.device_setup_base()
         self.prepare_pulse()
 
     def generate_frequencies(self, n_words) -> np.ndarray:
