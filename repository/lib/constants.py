@@ -663,9 +663,9 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "blue_transparency_beam",
         80e6,
-        23,
+        20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.3,
+        setpoint=0.7,
         servo_enabled=True,
     ),
     ### RED ###
@@ -1167,7 +1167,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.29)
+) = add_field_offset(0.188, 0.057, -0.27)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
