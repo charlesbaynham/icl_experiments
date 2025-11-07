@@ -331,13 +331,19 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i) * self.momentum_kick.get()
+                + i * (1) ** (i) * self.momentum_kick.get()
                 + (-1) ** i * self.lmt_offset_detuning.get()
             )
-            print(f_i - start_opll_offset)
+            print(
+                f_i - start_opll_offset,
+                (-1) ** (i + 1) * total_ramp_time * ramp_rate,
+                i * (-1) ** (i) * self.momentum_kick.get(),
+                (-1) ** i * self.lmt_offset_detuning.get(),
+            )
             # start with down pulse
             if i % 2 == 0:
                 pulse_type = "down"
+
             else:
                 pulse_type = "up"
             # fire the pulse
