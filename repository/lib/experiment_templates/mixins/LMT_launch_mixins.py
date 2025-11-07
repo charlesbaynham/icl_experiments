@@ -53,7 +53,7 @@ class LMTLaunchBase(RedMOTWithExperiment):
             "lmt_pulse_aom_detuning",
             FloatParam,
             "Frequency detuning of delivery AOM during clock lmt pulse",
-            default=-43e3,
+            default=0.0,
             unit="kHz",
         )
         self.lmt_pulse_aom_detuning: FloatParamHandle
@@ -252,6 +252,15 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         )
         self.momentum_kick: FloatParamHandle
 
+        self.setattr_param(
+            "lmt_offset_detuning",
+            FloatParam,
+            "LMT offset detuning",
+            default=-38000,
+            unit="kHz",
+        )
+        self.lmt_offset_detuning: FloatParamHandle
+
         # temporary for sorting out frequencies
         # self.setattr_param(
         #     "detuning_pulse_1",
@@ -319,14 +328,11 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             # elif i == 4:
             #     detuning = self.detuning_pulse_5.get()
             # f_i = start_opll_offset + detuning
-            offset = 0.0
-            if i > 0:
-                offset = self.lmt_pulse_aom_detuning.get()
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i) * self.momentum_kick.get()
-                + (-1) ** (i + 1) * offset
+                + (-1) ** i * self.lmt_offset_detuning.get()
             )
             print(f_i - start_opll_offset)
             # start with down pulse
