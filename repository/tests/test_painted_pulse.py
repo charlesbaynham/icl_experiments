@@ -49,12 +49,13 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         self.core.break_realtime()
         self.painter.prepare_pulse()
         self.core.break_realtime()
+        delay(5.0)
+        self.dds.set_asf(asf=0x0000)
         self.painter.start_output()
         logger.warning("The pulse duration: ", self.dds.read64(0x15))
         logger.warning("Hey I'm starting minute")
         logger.warning("The mu: ", self.painter._step_mu)
-        delay(5.0)
-        self.dds.set_asf(asf=0x0000)
+
         delay(10.0)
         self.painter.stop_output()
 
