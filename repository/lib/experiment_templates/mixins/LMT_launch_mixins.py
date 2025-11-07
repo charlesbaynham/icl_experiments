@@ -323,6 +323,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i) * self.momentum_kick.get()
+                # + (-1) ** i * self.lmt_pulse_aom_detuning.get()
             )
             print(f_i - start_opll_offset)
             # start with down pulse
@@ -339,6 +340,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
                     duration=self.clearout_duration.get(),
                     ignore_final_shutters=True,
                 )
+                delay(100e-6)
 
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
@@ -351,6 +353,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if type == "down":
+            print("down pulse")
             # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
@@ -364,6 +367,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             self.clock_down_dds.sw.off()
 
         if type == "up":
+            print("up pulse")
             # ramp the offset upwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
