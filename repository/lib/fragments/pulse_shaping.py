@@ -143,7 +143,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         pass
 
     @kernel
-    def device_setup_base(self):
+    def device_setup(self):
         self.device_setup_subfragments()
 
         if (
@@ -167,9 +167,9 @@ class _ShapedPulse(Fragment, abc.ABC):
         if self.is_recalc_needed():
             self._store_waveform_in_ram()
 
-    @kernel
-    def device_setup(self):
-        self.device_setup_base()
+    # @kernel
+    # def device_setup(self):
+    #     self.device_setup_base()
 
     @kernel
     def _store_waveform_in_ram(self):
