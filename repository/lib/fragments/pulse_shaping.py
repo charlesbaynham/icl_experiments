@@ -244,7 +244,11 @@ class _ShapedPulse(Fragment, abc.ABC):
         assert RAM_PROFILE == urukul.DEFAULT_PROFILE
 
         # Enable RAM mode - the next IO_UPDATE will start playback
-        self.dds.set_cfr1(ram_enable=1, ram_destination=self.ram_modulation_mode)
+        self.dds.set_cfr1(ram_enable=1,
+                        ram_destination=self.ram_modulation_mode,
+                        manual_osk_external=0,
+                        osk_enable=1,
+                        select_auto_osk=0)
 
     @kernel
     def start_output(self):
@@ -466,6 +470,7 @@ class FrequencyShapedPulse(_ShapedPulse):
         You should call `trigger_pulse` after this to actually play the
         sequence, and call `disable_ram_mode` afterwards to clean up.
         """
+        self.dds.set_amplitude(1)
         self._enter_RAM_mode()
 
 
