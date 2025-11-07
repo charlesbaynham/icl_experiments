@@ -103,17 +103,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         )
         self.dipole_pre_experiment_delay: FloatParamHandle
 
-        self.setattr_param(
-            "matterwave_collimation_time",
-            FloatParam,
-            description="Holding time for matterwave collimation",
-            unit="us",
-            default=1,
-            min=0.0,
-            max=100,
-        )
-
-        self.matterwave_collimation_time : FloatParamHandle
 
         # %% Fragments
 
@@ -185,19 +174,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Hook for matterwave collimation of the atoms to decrease the momentum uncertatinty.
         By default, do nothing.
         """
-
-    @kernel
-    def matterwave_collimate_hook_default(self):
-        """
-        Switch the painter on for a set amount of time, ideally a quarter of an oscillation period. 
-        """
-        self.dipole_beam_controller.turn_on_painter_suservo()
-        # Then switch off the dipole beam
-        self.dipole_beam_controller.turn_off_dipole_beams()
-        delay(self.matterwave_collimation_time.get())
-        self.dipole_beam_controller.turn_off_painter_suservo()
-        
-    
     
     @kernel
     def post_dipole_trap_hook_default(self):
