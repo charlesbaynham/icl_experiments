@@ -247,7 +247,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             "momentum_kick",
             FloatParam,
             "Momentum kick",
-            default=9.402,
+            default=9402,
             unit="kHz",
         )
         self.momentum_kick: FloatParamHandle
@@ -302,7 +302,6 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
 
-        detuning = 0.0
         total_ramp_time = 0.0
 
         t_start_ramp = now_mu()
