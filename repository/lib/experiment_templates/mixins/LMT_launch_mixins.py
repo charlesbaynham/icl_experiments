@@ -238,7 +238,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             "down_pulses_duration",
             FloatParam,
             "Duration of a down beam launch pulse",
-            default=38e-6,
+            default=36e-6,
             unit="us",
         )
         self.down_pulses_duration: FloatParamHandle
@@ -319,11 +319,14 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             # elif i == 4:
             #     detuning = self.detuning_pulse_5.get()
             # f_i = start_opll_offset + detuning
+            offset = 0.0
+            if i > 0:
+                offset = self.lmt_pulse_aom_detuning.get()
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i) * self.momentum_kick.get()
-                # + (-1) ** i * self.lmt_pulse_aom_detuning.get()
+                + (-1) ** (i + 1) * offset
             )
             print(f_i - start_opll_offset)
             # start with down pulse
