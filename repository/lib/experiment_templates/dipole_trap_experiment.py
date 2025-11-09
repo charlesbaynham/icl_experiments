@@ -171,7 +171,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     @kernel
     def matterwave_collimate_hook(self):
         """
-        Hook for matterwave collimation of the atoms to decrease the momentum uncertatinty.
+        Hook for matterwave collimation of the atoms.
         By default, do nothing.
         """
     
