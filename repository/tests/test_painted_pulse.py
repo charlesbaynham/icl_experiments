@@ -52,7 +52,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         logger.warning("Hey I'm starting minute")
         logger.warning("The mu: ", self.painter._step_mu)
 
-        delay(10.0)
+        delay(30.0)
         self.painter.stop_output()
 
         self.core.wait_until_mu(now_mu())
