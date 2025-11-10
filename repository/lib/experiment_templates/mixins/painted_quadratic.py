@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class PaintedQuadraticMixin(DipoleTrapWithExperiment):
     """
-    Mixin which switches on the painted quadratic potential during the dipole trap loading
+    Mixin which switches on the painted quadratic potential during the dipole trap loading sequence.
     """
     def build_fragment(self):
         super().build_fragment()
