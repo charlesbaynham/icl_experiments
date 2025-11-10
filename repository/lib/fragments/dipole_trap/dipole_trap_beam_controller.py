@@ -28,8 +28,6 @@ DIPOLE_SUSERVO_INFOS = [
 
 PAINTED_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["suservo_aom_1064_painted_delivery"]]
 
-PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
-
 DIPOLE_URUKUL_INFOS = [
     # constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
 ]
@@ -78,20 +76,12 @@ class DipoleBeamController(Fragment):
 
         self.painter_suservo: LibSetSUServoStatic
 
-        self.setattr_fragment(
-            "painter",
-            DiffractionCompensatedQuadraticShapedPulse,
-            ad9910_name=PAINTING_URUKUL_CHANNEL,
-        )
-
-        self.painter: DiffractionCompensatedQuadraticShapedPulse
 
     @kernel
     def turn_on_painter_suservo(self):
         """
         Turns on the painter by switching the SUServo on.
         """
-        # Hmmm does the iir need to be enabled?
         self.painter_suservo.set_channel_state(rf_switch_state=True, enable_iir=True)
 
     @kernel
