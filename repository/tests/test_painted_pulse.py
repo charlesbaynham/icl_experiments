@@ -10,7 +10,9 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from pyaion.fragments.urukul_init import make_urukul_init
 
-from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadratic
+from repository.lib.fragments.painted_pulse import (
+    DiffractionCompensatedQuadraticShapedPulse,
+)
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 logger = logging.getLogger(__name__)
@@ -29,10 +31,10 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         self.setattr_fragment(
             "painter",
-            DiffractionCompensatedQuadratic,
+            DiffractionCompensatedQuadraticShapedPulse,
             ad9910_name=PAINTING_URUKUL_CHANNEL,
         )
-        self.painter: DiffractionCompensatedQuadratic
+        self.painter: DiffractionCompensatedQuadraticShapedPulse
 
         self.ttl_trigger: TTLOut = self.get_device("ttl_debugging")
 

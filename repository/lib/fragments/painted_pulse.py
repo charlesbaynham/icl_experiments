@@ -10,7 +10,7 @@ from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
 logger = logging.getLogger(__name__)
 
 
-class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
+class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
     def build_fragment(self, *args, **kwargs):
         self.setattr_param(
             "epsilon",
@@ -53,12 +53,12 @@ class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
             centre_frequency_param_handle=self.centre_frequency, *args, **kwargs
         )
 
-    # @kernel
-    # def device_setup(self):
-    #     # Rewrite the device setup
-    #     self.device_setup_base()
-    #     self.core.break_realtime()
-    #     self.prepare_pulse()
+    @kernel
+    def device_setup(self):
+        # Rewrite the device setup
+        self.device_setup_base()
+        self.core.break_realtime()
+        self.prepare_pulse()
 
     def generate_frequencies(self, n_words) -> np.ndarray:
         """
