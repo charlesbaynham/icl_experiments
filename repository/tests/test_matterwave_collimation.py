@@ -1,25 +1,19 @@
 import logging
 
-from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
-from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
-from pyaion.fragments.urukul_init import make_urukul_init
 
-from repository.lib.experiment_templates.mixins.painted_quadratic import PaintedQuadraticMixin
-from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadratic
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    PaintedQuadraticMixin,
+)
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 logger = logging.getLogger(__name__)
 
 
-class TestMatterwaveCollimationInDipoleTrapFrag(
-    PaintedQuadraticMixin
-    ):
+class TestMatterwaveCollimationInDipoleTrapFrag(PaintedQuadraticMixin):
 
     @kernel
     def run_once(self) -> None:

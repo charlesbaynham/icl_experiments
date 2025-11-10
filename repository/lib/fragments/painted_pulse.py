@@ -10,7 +10,7 @@ from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
 logger = logging.getLogger(__name__)
 
 
-class DiffractionCompensatedQuadratic(FrequencyShapedPulse):
+class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
     def build_fragment(self, *args, **kwargs):
         self.setattr_param(
             "epsilon",

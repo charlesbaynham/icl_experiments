@@ -12,7 +12,9 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
-from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadratic
+from repository.lib.fragments.painted_pulse import (
+    DiffractionCompensatedQuadraticShapedPulse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,18 +71,20 @@ class DipoleBeamController(Fragment):
         self.setattr_fragment(
             "painter_suservo",
             LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"].suservo_device
+            constants.SUSERVOED_BEAMS[
+                "dipole_trap_painted_1064_delivery"
+            ].suservo_device,
         )
 
         self.painter_suservo: LibSetSUServoStatic
 
         self.setattr_fragment(
             "painter",
-            DiffractionCompensatedQuadratic,
-            ad9910_name=PAINTING_URUKUL_CHANNEL
+            DiffractionCompensatedQuadraticShapedPulse,
+            ad9910_name=PAINTING_URUKUL_CHANNEL,
         )
 
-        self.painter: DiffractionCompensatedQuadratic 
+        self.painter: DiffractionCompensatedQuadraticShapedPulse
 
     @kernel
     def turn_on_painter_suservo(self):
@@ -88,18 +92,14 @@ class DipoleBeamController(Fragment):
         Turns on the painter by switching the SUServo on.
         """
         # Hmmm does the iir need to be enabled?
-        self.painter_suservo.set_channel_state(
-            rf_switch_state=True, enable_iir=True
-        )
+        self.painter_suservo.set_channel_state(rf_switch_state=True, enable_iir=True)
 
     @kernel
     def turn_off_painter_suservo(self):
         """
         Turns off the painter by switching the SUServo off.
         """
-        self.painter_suservo.set_channel_state(
-            rf_switch_state=False, enable_iir=False
-        )
+        self.painter_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
     @kernel
     def turn_off_dipole_beams(self):
