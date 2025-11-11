@@ -329,24 +329,23 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
-
-        total_ramp_time = 0.0
-        kick = self.momentum_kick.get()
-        offset_det = self.lmt_offset_detuning.get()
+        delay_mu(16)
+        self.momentum_kick.get()
+        self.lmt_offset_detuning.get()
 
         t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
             if i % 2 == 0:
-                down_offset = 0.0
+                pass
             else:
-                down_offset = self.down_offset_detuning.get()
-            delay_mu(20)
+                self.down_offset_detuning.get()
+            delay_mu(200)
             f_i = (
                 start_opll_offset
-                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i) * kick
-                + (-1) ** i * (offset_det + down_offset)
+                # + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                # + i * (-1) ** (i) * kick
+                # + (-1) ** i * (offset_det + down_offset)
             )
             # start with down pulse
             if i % 2 == 0:
@@ -354,10 +353,9 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
 
             else:
                 pulse_type = "up"
-            delay_mu(20)
+
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type)
-            delay_mu(20)
 
             # Clear out the ground state
             # if pulse_type == "up":
@@ -368,43 +366,41 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             #     delay(100e-6)
 
             t_end_pulse = now_mu()
-            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
+            self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def fire_lmt_pulse(self, start_freq, type):
         # stop the ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        # self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
-        delay_mu(20)
         self.clock_opll.clock_OPLL_offset.set(start_freq)
+        delay_mu(32)
 
         if type == "down":
             # ramp the offset downwards
-            self.clock_opll.clock_frequency_ramper.start_ramp(
-                ramp_rate,
-                start_freq - 1e6,
-                start_freq,
-                wave_type=2,
-            )
+            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            #     ramp_rate,
+            #     start_freq - 1e6,
+            #     start_freq,
+            #     wave_type=2,
+            # )
             delay_mu(8)
             # pulse the down beam
             self.clock_down_dds.sw.on()
             delay(self.down_pulses_duration.get())
             self.clock_down_dds.sw.off()
-            delay_mu(20)
 
         if type == "up":
             # ramp the offset upwards
-            self.clock_opll.clock_frequency_ramper.start_ramp(
-                ramp_rate,
-                start_freq,
-                start_freq + 2e6,
-                wave_type=1,
-            )
+            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            #     ramp_rate,
+            #     start_freq,
+            #     start_freq + 2e6,
+            #     wave_type=1,
+            # )
             delay_mu(8)
 
             # pulse the up beam
             self.clock_up_dds.sw.on()
             delay(self.up_pulses_duration.get())
             self.clock_up_dds.sw.off()
-            delay_mu(20)

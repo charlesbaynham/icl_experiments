@@ -184,6 +184,8 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
