@@ -262,84 +262,91 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         self.lmt_offset_detuning: FloatParamHandle
 
         # temporary for sorting out frequencies
-        # self.setattr_param(
-        #     "detuning_pulse_1",
-        #     FloatParam,
-        #     "Detuning 1st pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_1: FloatParamHandle
+        self.setattr_param(
+            "detuning_pulse_1",
+            FloatParam,
+            "Detuning 1st pulse (down)",
+            default=0.0,
+            unit="kHz",
+        )
+        self.detuning_pulse_1: FloatParamHandle
 
-        # self.setattr_param(
-        #     "detuning_pulse_2",
-        #     FloatParam,
-        #     "Detuning 2nd pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_2: FloatParamHandle
+        self.setattr_param(
+            "detuning_pulse_2",
+            FloatParam,
+            "Detuning 2nd pulse (up)",
+            default=0.0,
+            unit="kHz",
+        )
+        self.detuning_pulse_2: FloatParamHandle
 
-        # self.setattr_param(
-        #     "detuning_pulse_3",
-        #     FloatParam,
-        #     "Detuning 3rd pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_3: FloatParamHandle
+        self.setattr_param(
+            "detuning_pulse_3",
+            FloatParam,
+            "Detuning 3rd pulse (down)",
+            default=0.0,
+            unit="kHz",
+        )
+        self.detuning_pulse_3: FloatParamHandle
 
-        # self.setattr_param(
-        #     "detuning_pulse_4",
-        #     FloatParam,
-        #     "Detuning 4rd pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_4: FloatParamHandle
+        self.setattr_param(
+            "detuning_pulse_4",
+            FloatParam,
+            "Detuning 4rd pulse (up)",
+            default=0.0,
+            unit="kHz",
+        )
+        self.detuning_pulse_4: FloatParamHandle
 
-        # self.setattr_param(
-        #     "detuning_pulse_5",
-        #     FloatParam,
-        #     "Detuning 5th pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_5: FloatParamHandle
+        self.setattr_param(
+            "detuning_pulse_5",
+            FloatParam,
+            "Detuning 5th pulse (down)",
+            default=0.0,
+            unit="kHz",
+        )
+        self.detuning_pulse_5: FloatParamHandle
+
+        self.setattr_param(
+            "detuning_pulse_6",
+            FloatParam,
+            "Detuning 6th pulse (up)",
+            default=0.0,
+            unit="kHz",
+        )
+        self.detuning_pulse_6: FloatParamHandle
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
 
-        total_ramp_time = 0.0
-
         t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
             # calculate the start frequency of the ramp
-            # if i == 0:
-            #     detuning = self.detuning_pulse_1.get()
-            # elif i == 1:
-            #     detuning = self.detuning_pulse_2.get()
-            # elif i == 2:
-            #     detuning = self.detuning_pulse_3.get()
-            # elif i == 3:
-            #     detuning = self.detuning_pulse_4.get()
-            # elif i == 4:
-            #     detuning = self.detuning_pulse_5.get()
-            # f_i = start_opll_offset + detuning
-            f_i = (
-                start_opll_offset
-                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + i * (1) ** (i) * self.momentum_kick.get()
-                + (-1) ** i * self.lmt_offset_detuning.get()
-            )
-            print(
-                f_i - start_opll_offset,
-                (-1) ** (i + 1) * total_ramp_time * ramp_rate,
-                i * (-1) ** (i) * self.momentum_kick.get(),
-                (-1) ** i * self.lmt_offset_detuning.get(),
-            )
+            if i == 0:
+                detuning = self.detuning_pulse_1.get()
+            elif i == 1:
+                detuning = self.detuning_pulse_2.get()
+            elif i == 2:
+                detuning = self.detuning_pulse_3.get()
+            elif i == 3:
+                detuning = self.detuning_pulse_4.get()
+            elif i == 4:
+                detuning = self.detuning_pulse_5.get()
+            f_i = start_opll_offset + detuning
+            # f_i = (
+            #     start_opll_offset
+            #     + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+            #     + i * (1) ** (i) * self.momentum_kick.get()
+            #     + (-1) ** i * self.lmt_offset_detuning.get()
+            # )
+            # print(
+            #     f_i - start_opll_offset,
+            #     (-1) ** (i + 1) * total_ramp_time * ramp_rate,
+            #     i * (-1) ** (i) * self.momentum_kick.get(),
+            #     (-1) ** i * self.lmt_offset_detuning.get(),
+            # )
             # start with down pulse
             if i % 2 == 0:
                 pulse_type = "down"
@@ -358,7 +365,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
                 delay(100e-6)
 
             t_end_pulse = now_mu()
-            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
+            self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def fire_lmt_pulse(self, start_freq, type):
