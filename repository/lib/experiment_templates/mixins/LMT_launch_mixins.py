@@ -3,6 +3,7 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.language import at_mu
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment import Fragment
@@ -330,34 +331,22 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         self.prepare_clock_delivery_aom()
 
         total_ramp_time = 0.0
+        kick = self.momentum_kick.get()
+        offset_det = self.lmt_offset_detuning.get()
 
         t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
-            # calculate the start frequency of the ramp
-            # if i == 0:
-            #     detuning = self.detuning_pulse_1.get()
-            # elif i == 1:
-            #     detuning = self.detuning_pulse_2.get()
-            # elif i == 2:
-            #     detuning = self.detuning_pulse_3.get()
-            # elif i == 3:
-            #     detuning = self.detuning_pulse_4.get()
-            # elif i == 4:
-            #     detuning = self.detuning_pulse_5.get()
-            # elif i == 5:
-            #     detuning = self.detuning_pulse_6.get()
-            # f_i = start_opll_offset + detuning
             if i % 2 == 0:
                 down_offset = 0.0
             else:
                 down_offset = self.down_offset_detuning.get()
-
+            delay_mu(20)
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i) * self.momentum_kick.get()
-                + (-1) ** i * (self.lmt_offset_detuning.get() + down_offset)
+                + i * (-1) ** (i) * kick
+                + (-1) ** i * (offset_det + down_offset)
             )
             # start with down pulse
             if i % 2 == 0:
@@ -365,16 +354,18 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
 
             else:
                 pulse_type = "up"
+            delay_mu(20)
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type)
+            delay_mu(20)
 
             # Clear out the ground state
-            if pulse_type == "up":
-                self.fluorescence_pulse.do_imaging_pulse(
-                    duration=self.clearout_duration.get(),
-                    ignore_final_shutters=True,
-                )
-                delay(100e-6)
+            # if pulse_type == "up":
+            #     self.fluorescence_pulse.do_imaging_pulse(
+            #         duration=self.clearout_duration.get(),
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(100e-6)
 
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
@@ -384,10 +375,10 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
+        delay_mu(20)
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if type == "down":
-            print("down pulse")
             # ramp the offset downwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
@@ -395,13 +386,14 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
                 start_freq,
                 wave_type=2,
             )
+            delay_mu(8)
             # pulse the down beam
             self.clock_down_dds.sw.on()
             delay(self.down_pulses_duration.get())
             self.clock_down_dds.sw.off()
+            delay_mu(20)
 
         if type == "up":
-            print("up pulse")
             # ramp the offset upwards
             self.clock_opll.clock_frequency_ramper.start_ramp(
                 ramp_rate,
@@ -409,8 +401,10 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
                 start_freq + 2e6,
                 wave_type=1,
             )
+            delay_mu(8)
 
             # pulse the up beam
             self.clock_up_dds.sw.on()
             delay(self.up_pulses_duration.get())
             self.clock_up_dds.sw.off()
+            delay_mu(20)

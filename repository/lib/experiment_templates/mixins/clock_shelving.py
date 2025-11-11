@@ -183,9 +183,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         )
 
         # Pulse it onto the atoms
-        t_shelving = now_mu()
         self.fire_clock_shelving_pulse()
-        print("shelving", self.core.mu_to_seconds(t_shelving))
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
@@ -262,10 +260,8 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
     @kernel
     def post_dipole_trap_hook(self):
         self.post_dipole_trap_hook_default()
-        t_beams_off = now_mu()
         delay_mu(int64(self.core.ref_multiplier))
         self.post_dipole_trap_hook_shelving_and_clearout()
-        print("beams off at", self.core.mu_to_seconds(t_beams_off))
 
     @kernel
     def post_dipole_trap_hook_shelving_and_clearout(self):
