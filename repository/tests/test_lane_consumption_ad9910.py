@@ -64,7 +64,7 @@ class TestAD9910LaneUsage(EnvExperiment):
 
 
 class TestAD9910RamperLaneUsage(ExpFragment):
-    def build(self):
+    def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
@@ -85,7 +85,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         )
 
     @kernel
-    def run(self):
+    def run_once(self):
         logger.info("Starting test")
 
         self.core.reset()
