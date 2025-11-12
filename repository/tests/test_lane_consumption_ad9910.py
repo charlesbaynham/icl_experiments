@@ -100,8 +100,8 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         self.clock_opll.clock_OPLL_offset.set(80e6)
         self.clock_opll.clock_frequency_ramper.start_ramp(10.0, 80e6, 80.01e6, 1)
 
-        self.clock_opll.clock_frequency_ramper.dds.cpld.io_update.set_o(False)
-        delay_mu(8)
+        # self.clock_opll.clock_frequency_ramper.dds.cpld.io_update.set_o(False)
+        # delay_mu(8)
 
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
