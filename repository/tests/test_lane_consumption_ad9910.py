@@ -95,10 +95,9 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         delay(1.0)  # Make loads of slack
 
-        print(now_mu() - (now_mu() & ~7))
-
         # Do an AD9910 write, consuming at least one lane, maybe more
         # self.clock_opll.clock_frequency_ramper.stop_ramp()
+        at_mu(now_mu() & ~7)
         self.clock_opll.clock_OPLL_offset.set(80e6)
         self.clock_opll.clock_frequency_ramper.start_ramp(10.0, 80e6, 80.01e6, 1)
 
@@ -107,7 +106,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
-            delay(-1e-3)
+            at_mu(now_mu() & ~7)
             self.ttl.set_o(bool(i % 2))
             print(i)
 
