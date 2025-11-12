@@ -93,7 +93,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         self.core.reset()
 
-        delay(5.0)  # Make loads of slack
+        delay(1.0)  # Make loads of slack
 
         # Do an AD9910 write, consuming at least one lane, maybe more
         # self.clock_opll.clock_frequency_ramper.stop_ramp()
@@ -110,6 +110,8 @@ class TestAD9910RamperLaneUsage(ExpFragment):
             print(i)
 
         logger.info("Test done")
+
+        self.core.wait_until_mu(now_mu())
 
 
 TestAD9910LaneUsageExp = make_fragment_scan_exp(TestAD9910RamperLaneUsage)
