@@ -64,7 +64,7 @@ class TestAD9910LaneUsage(EnvExperiment):
 
 
 class TestAD9910RamperLaneUsage(ExpFragment):
-    def build(self):
+    def build_fragment(self):
         self.setattr_device("core")
         self.core: Core
 
@@ -76,6 +76,9 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         self.setattr_fragment("clock_opll", ClockOPLLController)
         self.clock_opll: ClockOPLLController
 
+        self.setattr_device("ttl1")  # This is currently unused and is on the master
+        self.ttl: TTLOut = self.ttl1
+
         # Init of the clock OPLL without glitching
         self.setattr_fragment(
             "GlitchFreeUrukulClock",
@@ -85,7 +88,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         )
 
     @kernel
-    def run(self):
+    def run_once(self):
         logger.info("Starting test")
 
         self.core.reset()
@@ -93,8 +96,9 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         delay(500e3)  # Make loads of slack
 
         # Do an AD9910 write, consuming at least one lane, maybe more
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
-        self.clock_opll.clock_frequency_ramper.start_ramp(10, 80e6, 80.01e6, 1)
+        self.clock_opll.clock_frequency_ramper.start_ramp(10.0, 80e6, 80.01e6, 1)
 
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
@@ -105,4 +109,4 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         logger.info("Test done")
 
 
-TestAD9910LaneUsageExp = make_fragment_scan_exp(TestAD9910LaneUsage)
+TestAD9910LaneUsageExp = make_fragment_scan_exp(TestAD9910RamperLaneUsage)
