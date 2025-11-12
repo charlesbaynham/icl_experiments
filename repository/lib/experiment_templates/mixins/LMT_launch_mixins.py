@@ -330,24 +330,23 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
         delay_mu(16)
-        self.momentum_kick.get()
-        self.lmt_offset_detuning.get()
+        kick = self.momentum_kick.get()
+        offset_det = self.lmt_offset_detuning.get()
+        total_ramp_time = 0.0
 
         t_start_ramp = now_mu()
         for i in range(self.lmt_pulses_number.get()):
 
-            pass
-
             if i % 2 == 0:
-                pass
+                down_offset = 0.0
             else:
-                self.down_offset_detuning.get()
+                down_offset = self.down_offset_detuning.get()
 
             f_i = (
                 start_opll_offset
-                # + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                # + i * (-1) ** (i) * kick
-                # + (-1) ** i * (offset_det + down_offset)
+                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i) * kick
+                + (-1) ** i * (offset_det + down_offset)
             )
             # start with down pulse
             if i % 2 == 0:
@@ -368,14 +367,12 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             #     delay(100e-6)
 
             t_end_pulse = now_mu()
-            self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
-
-        delay(1e-3)
+            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def fire_lmt_pulse(self, start_freq, type):
         # stop the ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        # self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
         delay_mu(32)

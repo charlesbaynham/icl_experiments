@@ -6,6 +6,12 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import *
 from artiq.language import delay
 
+from repository.lib import constants
+from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
+    GlitchFreeUrukulDefaultAttenuation,
+)
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
+
 logger = logging.getLogger(__name__)
 
 # Hypothesis: the AD9910 code is consuming more than one lane in the latest
@@ -45,6 +51,48 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         # Do an AD9910 write, consuming at least one lane, maybe more
         self.dds.set(frequency=100e6)
+
+        for i in range(self.num):
+            # Write in backwards order to ensure that we use a new lane each time
+            delay(-1e-3)
+            self.ttl.set_o(bool(i % 2))
+            print(i)
+
+        logger.info("Test done")
+
+
+class TestAD9910RamperLaneUsage(EnvExperiment):
+    def build(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_argument(
+            "num", NumberValue(default=9, type="int", precision=0, scale=1, step=1)
+        )
+        self.num: int
+
+        self.setattr_fragment("clock_opll", ClockOPLLController)
+        self.clock_opll: ClockOPLLController
+
+        # Init of the clock OPLL without glitching
+        self.setattr_fragment(
+            "GlitchFreeUrukulClock",
+            GlitchFreeUrukulDefaultAttenuation,
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
+        )
+
+    @kernel
+    def run(self):
+        logger.info("Starting test")
+
+        self.core.reset()
+
+        delay(500e3)  # Make loads of slack
+
+        # Do an AD9910 write, consuming at least one lane, maybe more
+        self.clock_opll.clock_OPLL_offset.set(80e6)
+        self.clock_opll.clock_frequency_ramper.start_ramp(10, 80e6, 80.01e6, 1)
 
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
