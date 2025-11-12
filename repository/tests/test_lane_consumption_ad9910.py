@@ -95,6 +95,8 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         delay(1.0)  # Make loads of slack
 
+        print(self.clock_opll.clock_OPLL_offset.sysclk_per_mu * 4)
+
         # Do an AD9910 write, consuming at least one lane, maybe more
         # self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
