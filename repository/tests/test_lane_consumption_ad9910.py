@@ -93,7 +93,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         self.core.reset()
 
-        delay(5)  # Make loads of slack
+        delay(5.0)  # Make loads of slack
 
         # Do an AD9910 write, consuming at least one lane, maybe more
         self.clock_opll.clock_OPLL_offset.set(80e6)
