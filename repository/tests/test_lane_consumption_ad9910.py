@@ -5,6 +5,8 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import *
 from artiq.language import delay
+from ndscan.experiment import ExpFragment
+from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib import constants
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
@@ -61,7 +63,7 @@ class TestAD9910LaneUsage(EnvExperiment):
         logger.info("Test done")
 
 
-class TestAD9910RamperLaneUsage(EnvExperiment):
+class TestAD9910RamperLaneUsage(ExpFragment):
     def build(self):
         self.setattr_device("core")
         self.core: Core
@@ -101,3 +103,6 @@ class TestAD9910RamperLaneUsage(EnvExperiment):
             print(i)
 
         logger.info("Test done")
+
+
+TestAD9910LaneUsageExp = make_fragment_scan_exp(TestAD9910LaneUsage)
