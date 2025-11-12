@@ -372,19 +372,19 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
     @kernel
     def fire_lmt_pulse(self, start_freq, type):
         # stop the ramp
-        # self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
-        delay_mu(32)
+        delay(8e-9)
 
         if type == "down":
             # ramp the offset downwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
-            #     ramp_rate,
-            #     start_freq - 1e6,
-            #     start_freq,
-            #     wave_type=2,
-            # )
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                start_freq - 1e6,
+                start_freq,
+                wave_type=2,
+            )
             delay_mu(8)
             # pulse the down beam
             self.clock_down_dds.sw.on()
@@ -393,12 +393,12 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
 
         if type == "up":
             # ramp the offset upwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
-            #     ramp_rate,
-            #     start_freq,
-            #     start_freq + 2e6,
-            #     wave_type=1,
-            # )
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                start_freq,
+                start_freq + 2e6,
+                wave_type=1,
+            )
             delay_mu(8)
 
             # pulse the up beam
