@@ -5,7 +5,6 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.experiment import *
 from artiq.language import delay
-from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
@@ -106,8 +105,6 @@ class TestAD9910RamperLaneUsage(ExpFragment):
             delay(-1e-3)
             self.ttl.set_o(bool(i % 2))
             print(i)
-
-        self.core.wait_until_mu(now_mu())
 
         logger.info("Test done")
 
