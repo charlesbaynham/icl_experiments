@@ -105,4 +105,4 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         logger.info("Test done")
 
 
-TestAD9910LaneUsageExp = make_fragment_scan_exp(TestAD9910LaneUsage)
+TestAD9910LaneUsageExp = make_fragment_scan_exp(TestAD9910RamperLaneUsage)
