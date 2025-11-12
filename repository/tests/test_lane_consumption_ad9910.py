@@ -97,8 +97,8 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         # Do an AD9910 write, consuming at least one lane, maybe more
         # self.clock_opll.clock_frequency_ramper.stop_ramp()
-        print(now_mu(), (now_mu() & ~7))
         self.clock_opll.clock_OPLL_offset.set(80e6)
+        delay(5e-6)
         self.clock_opll.clock_frequency_ramper.start_ramp(10.0, 80e6, 80.01e6, 1)
 
         # self.clock_opll.clock_frequency_ramper.dds.cpld.io_update.set_o(False)
@@ -106,7 +106,6 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
-            print(now_mu(), (now_mu() & ~7))
             delay(-1e-3)
             self.ttl.set_o(bool(i % 2))
             print(i)
