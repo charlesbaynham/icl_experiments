@@ -94,7 +94,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
 
         # Do an AD9910 write, consuming at least one lane, maybe more
         self.clock_opll.clock_OPLL_offset.set(80e6)
-        self.clock_opll.clock_frequency_ramper.start_ramp(10, 80e6, 80.01e6, 1)
+        self.clock_opll.clock_frequency_ramper.start_ramp(10.0, 80e6, 80.01e6, 1)
 
         for i in range(self.num):
             # Write in backwards order to ensure that we use a new lane each time
