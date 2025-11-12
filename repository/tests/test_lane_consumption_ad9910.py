@@ -76,6 +76,9 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         self.setattr_fragment("clock_opll", ClockOPLLController)
         self.clock_opll: ClockOPLLController
 
+        self.setattr_device("ttl1")  # This is currently unused and is on the master
+        self.ttl: TTLOut = self.ttl1
+
         # Init of the clock OPLL without glitching
         self.setattr_fragment(
             "GlitchFreeUrukulClock",
