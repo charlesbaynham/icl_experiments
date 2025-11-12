@@ -38,7 +38,7 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         self.dds: AD9910 = self.get_device(self.urukul_channel)
 
-        self.setattr_device("ttl20")  # This is currently unused and is on the master
+        self.setattr_device("ttl1")  # This is currently unused and is on the master
         self.ttl: TTLOut = self.ttl1
 
     @kernel
@@ -76,8 +76,8 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         self.setattr_fragment("clock_opll", ClockOPLLController)
         self.clock_opll: ClockOPLLController
 
-        self.setattr_device("ttl1")  # This is currently unused and is on the master
-        self.ttl: TTLOut = self.ttl1
+        self.setattr_device("ttl20")  # This is currently unused and is on the master
+        self.ttl: TTLOut = self.ttl20
 
         # Init of the clock OPLL without glitching
         self.setattr_fragment(
