@@ -38,7 +38,7 @@ class TestAD9910LaneUsage(EnvExperiment):
 
         self.dds: AD9910 = self.get_device(self.urukul_channel)
 
-        self.setattr_device("ttl1")  # This is currently unused and is on the master
+        self.setattr_device("ttl20")  # This is currently unused and is on the master
         self.ttl: TTLOut = self.ttl1
 
     @kernel
@@ -100,10 +100,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         # self.clock_opll.clock_OPLL_offset.set(80e6)
         # self.clock_opll.clock_frequency_ramper.start_ramp(10.0, 80e6, 80.01e6, 1)
 
-        # self.clock_opll.clock_frequency_ramper.dds.cpld.io_update.set_o(False)
-        # delay_mu(8)
-
-        self.ttl.set_o(True)
+        self.clock_opll.clock_frequency_ramper.dds.cpld.io_update.set_o(False)
         delay_mu(8)
 
         for i in range(self.num):
