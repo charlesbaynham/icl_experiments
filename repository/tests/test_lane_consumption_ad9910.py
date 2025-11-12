@@ -98,7 +98,7 @@ class TestAD9910RamperLaneUsage(ExpFragment):
         # Do an AD9910 write, consuming at least one lane, maybe more
         # self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
-        delay(1e-6)
+        delay(0.5e-6)
         self.clock_opll.clock_frequency_ramper.start_ramp(10.0, 80e6, 80.01e6, 1)
 
         # self.clock_opll.clock_frequency_ramper.dds.cpld.io_update.set_o(False)
