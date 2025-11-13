@@ -230,7 +230,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             "up_pulses_duration",
             FloatParam,
             "Duration of an up beam launch pulse",
-            default=50e-6,
+            default=44e-6,
             unit="us",
         )
         self.up_pulses_duration: FloatParamHandle
