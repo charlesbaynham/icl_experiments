@@ -54,7 +54,7 @@ class LMTLaunchBase(RedMOTWithExperiment):
             "lmt_pulse_aom_detuning",
             FloatParam,
             "Frequency detuning of delivery AOM during clock lmt pulse",
-            default=-27e3,
+            default=-32e3,
             unit="kHz",
         )
         self.lmt_pulse_aom_detuning: FloatParamHandle
@@ -82,7 +82,7 @@ class LMTLaunchBase(RedMOTWithExperiment):
             "clearout_duration",
             FloatParam,
             "Duration of 461 clearout pulse after LMT pulse",
-            default=constants.SHELVING_PULSE_CLEAROUT_DURATION,
+            default=500e-6,
             unit="us",
         )
         self.shelving_pulse_clearout_duration: FloatParamHandle
@@ -257,7 +257,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             "lmt_offset_detuning",
             FloatParam,
             "LMT offset detuning",
-            default=-20000,
+            default=-16000,
             unit="kHz",
         )
         self.lmt_offset_detuning: FloatParamHandle
@@ -266,7 +266,7 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             "down_offset_detuning",
             FloatParam,
             "Extra detuning for up beam",
-            default=-11000,
+            default=-16000,
             unit="kHz",
         )
         self.down_offset_detuning: FloatParamHandle

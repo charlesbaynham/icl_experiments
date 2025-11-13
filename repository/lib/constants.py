@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.914e6,
+        frequency=364.91e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -1369,7 +1369,7 @@ XODT_SINGLE_LOADING_689_DETUNING_END = [
     -5e3,
 ]
 RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
-XODT_SINGLE_LOADING_STIR_DETUNING = +0e3
+XODT_SINGLE_LOADING_STIR_DETUNING = -8e3
 XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 10.0
 
 TOTAL_EVAP_HOLD_TIME = 0.01
