@@ -28,6 +28,7 @@ from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import
 )
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,9 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_down_dds: AD9910 = self.get_device(
+            CLOCK_DOWN_BEAM_INFO.urukul_device
+        )
 
         # Init of the clock OPLL without glitching
         self.setattr_fragment(
@@ -144,6 +148,19 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.setattr_fragment(
             "turn_on_clock_delivery_aom", TurnOnClockDeliveryAOM, self
         )
+
+        self.setattr_fragment(
+            "clock_down_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[],
+                urukul_beam_infos=[
+                    CLOCK_DOWN_BEAM_INFO,
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
+            ),
+        )
+        self.clock_down_default_setter: SetBeamsToDefaults
 
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
@@ -250,9 +267,9 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
-        self.clock_dds.sw.on()
+        self.clock_down_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
-        self.clock_dds.sw.off()
+        self.clock_down_dds.sw.off()
 
 
 class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
