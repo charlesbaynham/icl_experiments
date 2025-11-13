@@ -115,7 +115,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    DopplerCompensationForClockSpecMixin,
+    # DopplerCompensationForClockSpecMixin,
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
     EMGain,
