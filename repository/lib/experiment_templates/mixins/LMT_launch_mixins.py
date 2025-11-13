@@ -405,3 +405,4 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             self.clock_up_dds.sw.on()
             delay(self.up_pulses_duration.get())
             self.clock_up_dds.sw.off()
+        delay(25e-6)
