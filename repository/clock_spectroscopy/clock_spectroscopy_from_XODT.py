@@ -35,6 +35,9 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsWithFieldRampMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
@@ -119,7 +122,7 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,
+    EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
