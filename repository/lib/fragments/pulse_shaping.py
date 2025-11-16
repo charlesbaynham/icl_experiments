@@ -475,14 +475,11 @@ class FrequencyShapedPulse(_ShapedPulse):
         # amplitude of the pulse. Notably, the smaller the rate the smaller the amplitude.
         # See https://github.com/m-labs/artiq/issues/1554
         # The solution is outlined below...
-        self.dds.set_profile_ram(
-            start=0x00,
-            end=self.num_steps.get() - 1,
-            step=self._step_mu,
-            mode=self.ram_ramp_mode,
-            profile=RAM_PROFILE,
-            nodwell_high=self.ram_nodwell_mode,
-        )
+        self.dds.set_cfr1(ram_enable=1,
+            ram_destination=ram_modulation_mode,
+            manual_osk_external=0,
+            osk_enable=1,
+            select_auto_osk=0)
 
 
 class PhasorShapedPulse(_ShapedPulse):
