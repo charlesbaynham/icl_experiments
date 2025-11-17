@@ -124,7 +124,7 @@ class ClockSpecFromSingleXODTEvaporatedAndLensedFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped single XODT with evaporation
+    Clock spectroscopy from dropped single XODT with evaporation and matterwave lensing
 
     Load into an XODT, then use the up clock beam for spectroscopy, altering the
     (single-pass) AOM.
