@@ -577,7 +577,7 @@ class BlackmanShapedPulse(PhasorShapedPulse):
         return return_value
 
 
-class PhaseStepPulse(ShapedPulse):
+class PhaseStepPulse(PhasorShapedPulse):
     """
     Step the phase of the pulse
     """
@@ -607,7 +607,7 @@ class PhaseStepPulse(ShapedPulse):
         return return_value
 
 
-class PhaseRampPulse(ShapedPulse):
+class PhaseRampPulse(PhasorShapedPulse):
     """
     Ramp the phase of the pulse
     """
@@ -635,7 +635,7 @@ class PhaseRampPulse(ShapedPulse):
         return return_value
 
 
-class JessePulse(ShapedPulse):
+class JessePulse(PhasorShapedPulse):
     "Jesse's velocity selection pulse (phase only)"
 
     def build_fragment(self, *args, **kwargs):
