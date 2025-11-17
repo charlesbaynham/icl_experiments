@@ -1,15 +1,11 @@
 import logging
 
-import numpy as np
-from artiq.coredevice.core import Core
+from artiq.language import delay
 from artiq.language import kernel
-from artiq.language import now_mu
-from ndscan.experiment.fragment import Fragment
 from ndscan.experiment.parameters import FloatParam, FloatParamHandle
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from repository.lib.experiment_templates.dipole_trap_experiment import DipoleTrapWithExperiment
+from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadraticShapedPulse
 
-from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +26,14 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
             max=100,
         )
 
+        self.setattr_fragment(
+            "painter_driver",
+            DiffractionCompensatedQuadraticShapedPulse,
+            automatic_trigger = True
+        )
+
+        # Do we need to do the following line? Should be triggered in device setup...
+        self.painter_driver : DiffractionCompensatedQuadraticShapedPulse
         self.matterwave_collimation_time : FloatParamHandle
     
     @kernel
