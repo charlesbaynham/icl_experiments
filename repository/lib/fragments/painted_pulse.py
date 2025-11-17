@@ -65,7 +65,7 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
         self.prepare_pulse()
 
         if self.automatic_trigger is True:
-           self.trigger_pulse() 
+           self.start_output() 
 
     def generate_frequencies(self, n_words) -> np.ndarray:
         """
