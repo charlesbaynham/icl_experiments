@@ -13,7 +13,7 @@ from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
-class PaintedQuadraticMixin(DipoleTrapWithExperiment):
+class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
     """
     Mixin which switches on the painted quadratic potential during the dipole trap loading sequence.
     """
@@ -31,12 +31,6 @@ class PaintedQuadraticMixin(DipoleTrapWithExperiment):
         )
 
         self.matterwave_collimation_time : FloatParamHandle
-
-    @kernel
-    def dipole_trap_loading_hook(self):
-        # Switch on the painter and the dipole beam
-        self.dipole_beam_controller.turn_on_painter_suservo()
-        self.dipole_beam_controller.turn_on_dipole_beams()
     
     @kernel
     def matterwave_collimate_hook(self):
