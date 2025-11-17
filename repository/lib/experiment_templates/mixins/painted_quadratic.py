@@ -1,6 +1,8 @@
 import logging
 
+from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam, FloatParamHandle
 from repository.lib.experiment_templates.dipole_trap_experiment import DipoleTrapWithExperiment
@@ -39,7 +41,9 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
     @kernel
     def matterwave_collimate_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
         # Then switch off the dipole beam
         self.dipole_beam_controller.turn_off_dipole_beams()
         delay(self.matterwave_collimation_time.get())
         self.dipole_beam_controller.turn_off_painter_suservo()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
