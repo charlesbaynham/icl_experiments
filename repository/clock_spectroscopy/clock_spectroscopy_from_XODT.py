@@ -281,3 +281,7 @@ ClockSpecFromXODT = make_fragment_scan_exp(ClockSpecFromSingleXODTFrag)
 ClockSpecFromSingleXODTEvaporatedShelving = make_fragment_scan_exp(
     ClockSpecFromSingleXODTEvaporatedShelvingFrag
 )
+
+ClockSpecFromSingleXODTEvaporatedLensed = make_fragment_scan_exp(
+    ClockSpecFromSingleXODTEvaporatedAndLensedFrag
+)
