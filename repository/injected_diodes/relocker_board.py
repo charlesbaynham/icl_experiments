@@ -10,6 +10,7 @@ from koheron_ctl200_laser_driver import CTL200
 from ndscan.experiment import BoolParam
 from ndscan.experiment import EnumerationValue
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import FloatChannel
 from ndscan.experiment import FloatParam
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
@@ -112,8 +113,6 @@ class RelockerChannelFrag(ExpFragment):
             FloatParam,
             description="window fraction",
             default=defaults.window_frac,
-            min=0.0,
-            max=1.0,
             scale=1,
             step=0.01,
         )
@@ -157,14 +156,23 @@ class RelockerChannelFrag(ExpFragment):
 
         self.setattr_param(
             "wait_time",
-            IntParam,
+            FloatParam,
             description="v set wait time",
             default=defaults.wait_time,
-            min=0,
-            max=100,
+            min=0.0,
             unit="s",
         )
-        self.wait_time: IntParamHandle
+        self.wait_time: FloatParamHandle
+
+        self.setattr_param(
+            "wait_time_per_scan_step",
+            FloatParam,
+            description="wait time per scan step",
+            default=defaults.wait_time_per_scan_step,
+            min=0.0,
+            unit="us",
+        )
+        self.wait_time_per_scan_step: FloatParamHandle
 
         self.setattr_param(
             "auto_relock",
@@ -185,6 +193,16 @@ class RelockerChannelFrag(ExpFragment):
         )
         self.v_relock_step_up: FloatParamHandle
 
+        self.setattr_param(
+            "alpha_denominator",
+            IntParam,
+            description="Smoothing factor for averaging. Bigger = more smoothing",
+            default=defaults.alpha_denominator,
+            min=0,
+            max=2**31,
+        )
+        self.alpha_denominator: IntParamHandle
+
         # And define a results channel as output
         self.setattr_result("read_voltages", OpaqueChannel)
         self.read_voltages: OpaqueChannel
@@ -194,6 +212,12 @@ class RelockerChannelFrag(ExpFragment):
 
         self.setattr_result("result", OpaqueChannel)
         self.result: OpaqueChannel
+
+        self.setattr_result("i_biggest_diff", FloatChannel, unit="mA")
+        self.i_biggest_diff: FloatChannel
+
+        self.setattr_result("i_rise", FloatChannel, unit="mA")
+        self.i_rise: FloatChannel
 
     def host_setup(self):
         defaults = IJD_RELOCKER_DEFAULTS[self.channel_name]
@@ -221,9 +245,11 @@ class RelockerChannelFrag(ExpFragment):
             self.min_diff.get(),
             self.v_low_threshold.get(),
             self.v_rise_threshold.get(),
-            1000 * self.wait_time.get(),
+            self.wait_time.get(),
             self.auto_relock.get(),
             self.v_relock_step_up.get(),
+            self.alpha_denominator.get(),
+            scan_step_delay=self.wait_time_per_scan_step.get(),
         )
 
     def get_read_voltages(self):
@@ -275,10 +301,12 @@ class RelockerChannelFrag(ExpFragment):
     def log_results(self):
         # Log action
         results = self.get_result()
+        result_labelled = self.relocker.get_result_labelled(self.channel)
         scan_voltages = self.get_scan_voltages()[::-1]
         scan_voltages = self.get_scan_currents(scan_voltages)
 
-        # scan_currents = self.get_scan_currents(scan_voltages)
+        self.i_rise.push(1e-3 * scan_voltages[result_labelled.i_rise])
+        self.i_biggest_diff.push(1e-3 * scan_voltages[result_labelled.i_biggest_diff])
 
         read_voltages = self.get_read_voltages()
         logger.info(results)
@@ -366,9 +394,13 @@ class AllRelockersFrag(ExpFragment):
             IJD_RELOCKER_DEFAULTS[ijd_name]
             fragment_name = f"frag_relocker_{ijd_name}"
 
+            # Make each frag a new class to avoid ndscan complaints about parameters with different default values
+            class _RelockerChannelFrag(RelockerChannelFrag):
+                pass
+
             frag = self.setattr_fragment(
                 fragment_name,
-                RelockerChannelFrag,
+                _RelockerChannelFrag,
                 ijd_name,
             )
 
@@ -387,7 +419,7 @@ class AllRelockersFrag(ExpFragment):
             "write_settings",
             BoolParam,
             description="Write settings",
-            default=False,
+            default=True,
         )
         self.write_settings: BoolParamHandle
 

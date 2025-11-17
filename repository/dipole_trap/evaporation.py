@@ -110,7 +110,7 @@ class MeasureExaporatedXODTAbsFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        # self.DMA_initialization_hook_linear_evap()
+        self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
 

@@ -23,8 +23,12 @@ from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_deca
     ExponentialDecayMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
+    GlitchFreeUrukulDefaultAttenuation,
+)
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 logger = logging.getLogger(__name__)
@@ -37,7 +41,6 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
@@ -80,6 +83,17 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.clock_delivery_setter: LibSetSUServoStatic
 
         self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_down_dds: AD9910 = self.get_device(
+            CLOCK_DOWN_BEAM_INFO.urukul_device
+        )
+
+        # Init of the clock OPLL without glitching
+        self.setattr_fragment(
+            "GlitchFreeUrukulClock",
+            GlitchFreeUrukulDefaultAttenuation,
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
+            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
+        )
 
         # Ensure the clock beam is set up
         # %% Fragments
@@ -135,12 +149,40 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             "turn_on_clock_delivery_aom", TurnOnClockDeliveryAOM, self
         )
 
+        self.setattr_fragment(
+            "clock_down_default_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[],
+                urukul_beam_infos=[
+                    CLOCK_DOWN_BEAM_INFO,
+                ],
+                use_automatic_setup=True,
+                use_automatic_turnon=False,
+            ),
+        )
+        self.clock_down_default_setter: SetBeamsToDefaults
+
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
         param_handles = super().get_always_shown_params()
         if self.clock_delivery_handles.frequency_handle not in param_handles:
             param_handles.append(self.clock_delivery_handles.frequency_handle)
         return param_handles
+
+    @kernel
+    def calculate_clock_delivery_freq(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        """
+        Calculate the clock delivery AOM frequency for the spectroscopy pulse
+
+        Returns:
+            Frequency in Hz
+        """
+        return (
+            self.clock_delivery_handles.frequency_handle.get()
+            + self.spectroscopy_pulse_aom_detuning.get()
+        )
 
     @kernel
     def prepare_clock_delivery_aom(self):
@@ -151,8 +193,9 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
         self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get()
-            + self.spectroscopy_pulse_aom_detuning.get(),
+            freq=self.calculate_clock_delivery_freq(
+                _t_start, self.spectroscopy_pulse_time.get()
+            ),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
@@ -183,7 +226,6 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~before_start_hook`
-    * :meth:`~do_first_pulse`
     """
 
     def build_fragment(self):
@@ -211,14 +253,23 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     @kernel
     def do_rabi_spectroscopy(self):
         self.prepare_clock_delivery_aom()
+        self.before_clock_spec_pulse_hook()
         self.fire_clock_spec_pulse()
         delay(self.delay_after_spectroscopy.get())
 
     @kernel
+    def before_clock_spec_pulse_hook(self):
+        """
+        Hook for actions before the clock spectroscopy pulse is fired
+
+        No-op by default
+        """
+
+    @kernel
     def fire_clock_spec_pulse(self):
-        self.clock_dds.sw.on()
+        self.clock_down_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
-        self.clock_dds.sw.off()
+        self.clock_down_dds.sw.off()
 
 
 class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
@@ -229,7 +280,6 @@ class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
     """
 
     @kernel
@@ -247,7 +297,6 @@ class ClockRabiSpectroscopyDipoleTrapMixin(
 
     * :meth:`~before_start_hook`
     * :meth:`~do_experiment_after_dipole_trap_hook`
-    * :meth:`~do_first_pulse`
     """
 
     @kernel

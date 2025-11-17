@@ -1,4 +1,3 @@
-import abc
 import logging
 
 from artiq.language import delay
@@ -8,18 +7,20 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.ramping_phase import GeneralRampingPhase
 from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.experiment_templates.mixins.optical_pumping import (
-    OpticalPumpingWithFieldSettingBase,
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvapAndFieldRampBase,
+)
+from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
+from repository.lib.fragments.beams.toggling_beam_setter import (
+    make_toggle_list_of_beams,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import EvapFieldRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesDipoleRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2
@@ -31,6 +32,13 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
 MOLASSES_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["red_molasses"]]
 
 logger = logging.getLogger(__name__)
+
+TRANSPARENCY_AOM_FREQ = constants.SUSERVOED_BEAMS["blue_transparency_beam"].frequency
+
+SUSERVOS_XODT = [
+    "suservo_aom_1064_delivery",
+    "suservo_aom_down_813",
+]
 
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
@@ -257,13 +265,13 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
         )
         self.cool_molasses: MolassesDipoleRamp
 
-        self.cool_molasses.bind_suservo_setpoint_params_to_default_beam_setter(
-            [self.dipole_beam_controller.all_beam_default_setter]
-        )
-
-        # self.cool_molasses.daisy_chain_with_previous_phase(
-        #     self.molasses_xodt_1, suservos=suservos_XODT
+        # self.cool_molasses.bind_suservo_setpoint_params_to_default_beam_setter(
+        #     [self.dipole_beam_controller.all_beam_default_setter]
         # )
+
+        self.cool_molasses.daisy_chain_with_previous_phase(
+            self.molasses_xodt_1, SUSERVOS_XODT
+        )
 
     @kernel
     def DMA_initialization_hook(self):
@@ -420,101 +428,6 @@ class XODTDoubleMolassesMixin(XODTSingleMolassesMixin):
         self.molasses_xodt_2.do_phase()
 
 
-class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
-    """
-    Framework for implementing a ramping phase during the evaporation phase
-
-    This is generalised so that we can have either evaporation + field ramping, or only field ramping
-
-    This is a mixin - see the documentation for :mod:`~.dipole_trap_experiment` for
-    details.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~DMA_initialization_hook`
-    * :meth:`~dipole_trap_evaporation_hook`
-    """
-
-    ramp_during_evap_phase: GeneralRampingPhase
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self._define_evap_phase_ramp()
-
-        # If we have a spin pol stage, bind the field start values to the end of
-        # the spin pol stage
-        if isinstance(self, OpticalPumpingWithFieldSettingBase):
-            for l in "xyz":
-                # This code is fragile because it relies on strings, but it
-                # should break with an error if the strings change so the unit
-                # tests will catch it:
-                self.ramp_during_evap_phase.bind_param(
-                    param_name=f"bias_field_{l}_start",
-                    source=getattr(self, f"bias_{l}_for_pumping"),
-                )
-
-    @abc.abstractmethod
-    def _define_evap_phase_ramp(self):
-        pass
-
-    @kernel
-    def DMA_initialization_hook_evap_with_field_ramp(self):
-        self.ramp_during_evap_phase.precalculate_dma_handle()
-
-    @kernel
-    def DMA_initialization_hook(self):
-        raise NotImplementedError(
-            "All the DMA handle calculations must be combined into one \
-                DMA_initialization_hook() method after Mixins are combined"
-        )
-
-    @kernel
-    def dipole_trap_evaporation_hook_ramper(self):
-        """
-        Do the evap / field ramp phase
-        """
-        self.ramp_during_evap_phase.do_phase()
-
-    @kernel
-    def dipole_trap_evaporation_hook(self):
-        # Default hook turns off red beams - good!
-        self.dipole_trap_evaporation_hook_default()
-        self.dipole_trap_evaporation_hook_ramper()
-
-
-class EvapAndFieldRampBase(_RampDuringEvapHookBase):
-    """
-    Exposes the evaporation and field ramping phase for use in evaporation Mixins
-    """
-
-    def _define_evap_phase_ramp(self):
-        self.setattr_fragment(
-            "ramp_during_evap_phase",
-            XODTWithFieldAndIntensityRamp,
-        )
-        self.ramp_during_evap_phase: XODTWithFieldAndIntensityRamp
-
-
-class FieldOnlyRampInEvapMixin(_RampDuringEvapHookBase):
-    """
-    Ramps the magnetic field during the evaporation phase, but with no actual
-    evaporation
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~DMA_initialization_hook`
-    * :meth:`~dipole_trap_evaporation_hook`
-    """
-
-    def _define_evap_phase_ramp(self):
-        self.setattr_fragment(
-            "ramp_during_evap_phase",
-            EvapFieldRamp,
-        )
-        self.ramp_during_evap_phase: EvapFieldRamp
-
-
 class XODTDoubleMolassesPlusFieldRampMixin(
     XODTDoubleMolassesMixin, EvapAndFieldRampBase
 ):
@@ -611,19 +524,27 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         self.up_beam_suservo: LibSetSUServoStatic
 
         self.setattr_fragment(
+            "transparency_toggler",
+            make_toggle_list_of_beams(
+                [constants.SUSERVOED_BEAMS["blue_transparency_beam"]],
+            ),
+        )
+        self.transparency_toggler: ToggleListOfBeams
+
+        self.setattr_fragment(
             "transparency_suservo_clearout",
             LibSetSUServoStatic,
             constants.SUSERVOED_BEAMS["blue_transparency_beam"].suservo_device,
         )
         self.transparency_suservo_clearout: LibSetSUServoStatic
 
-        self.setattr_fragment(
-            "transparency_setter_clearout",
-            make_set_beams_to_default(
-                suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
-            ),
-        )
-        self.transparency_setter_clearout: SetBeamsToDefaults
+        # self.setattr_fragment(
+        #     "transparency_setter_clearout",
+        #     make_set_beams_to_default(
+        #         suservo_beam_infos=[constants.SUSERVOED_BEAMS["blue_transparency_beam"]]
+        #     ),
+        # )
+        # self.transparency_setter_clearout: SetBeamsToDefaults
 
         self.setattr_param(
             "clearout_pulse_time",
@@ -644,11 +565,30 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         )
         self.clearout_pulse_aom_amplitude: FloatParamHandle
 
+        self.setattr_param(
+            "setpoint_487_during_clearout",
+            FloatParam,
+            "Setpoint for the 487 during the 689 clearout pulse",
+            default=0.2,
+            unit="V",
+        )
+        self.setpoint_487_during_clearout: FloatParamHandle
+
         super().build_fragment()
 
     @kernel
     def do_clearout_pulse_hook(self):
-        self.transparency_setter_clearout.turn_on_all()
+        self.transparency_suservo_clearout.set_setpoint(
+            self.setpoint_487_during_clearout.get()
+        )
+        self.transparency_suservo_clearout.set_suservo(
+            amplitude=1.0,
+            freq=80e6,
+            rf_switch_state=True,
+            enable_iir=True,
+            setpoint_v=self.setpoint_487_during_clearout.get(),
+            attenuation=0.0,
+        )
         delay_mu(8)
         self.up_beam_suservo.set_pgia_gain_mu(0)
         delay_mu(8)
@@ -662,7 +602,10 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
         delay_mu(8)
-
+        # turn off transparency suservo
+        # self.transparency_suservo_clearout.set_channel_state(
+        #     rf_switch_state=False, enable_iir=False
+        # )
         self.transparency_suservo_clearout.set_channel_state(
             rf_switch_state=False, enable_iir=False
         )

@@ -58,10 +58,15 @@ class _MonitorToptica(Calibration):
 
             result = CalibrationResult.OK
 
-        except AttributeError:
+        except (AttributeError, ConnectionError):
             # The connection to the controller failed
             out["status"] = "ERROR"
             result = CalibrationResult.BAD_DATA
+
+            try:
+                self.raw_dlcpro.close()
+            finally:
+                self.laser = None
 
         return result, {
             "tags": {

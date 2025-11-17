@@ -7,11 +7,19 @@
     "cSpell.words": [
         "andor",
         "artiq",
+        "dlcpro",
+        "falc",
         "Narrowband",
         "ndscan",
+        "piezo",
         "pretrigger",
         "repump",
         "ROIs",
+        "setpoint",
+        "subfragment",
+        "timestamper",
+        "Toptica",
+        "unlim",
         "XODT",
         "XXODT"
     ],
@@ -24,5 +32,8 @@
         "**/.git/**"
     ],
     "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[nix]": {
+        "editor.defaultFormatter": "jnoortheen.nix-ide"
+    }
 }

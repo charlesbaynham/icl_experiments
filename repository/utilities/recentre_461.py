@@ -2,8 +2,11 @@ import logging
 
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
+from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
+from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from toptica_wrapper.driver import TopticaDLCPro
 
+from repository.lib import constants
 from repository.lib.fragments.wand_steering import WandSteering
 
 logger = logging.getLogger(__name__)
@@ -19,6 +22,16 @@ class Recentre461Frag(ExpFragment):
 
         self.setattr_fragment("wand_steering", WandSteering)
         self.wand_steering: WandSteering
+
+        self.setattr_fragment(
+            "set_beams_to_default",
+            make_set_beams_to_default(
+                urukul_beam_infos=[constants.URUKULED_BEAMS["blue_xfer_offset"]],
+                use_automatic_setup=True,
+                use_automatic_turnon=True,
+            ),
+        )
+        self.set_beams_to_default: SetBeamsToDefaults
 
         self.toptica_461: TopticaDLCPro = self.get_device("toptica_461")
 
@@ -45,7 +58,15 @@ class Recentre461Frag(ExpFragment):
         )
 
         # Reenable ARC
+        self.laser.dl.pc.external_input.signal.set(
+            constants.TRANSFER_CAVITY_461_CHANNEL
+        )
+        self.laser.dl.pc.external_input.factor.set(constants.TRANSFER_CAVITY_461_GAIN)
         self.laser.dl.pc.external_input.enabled.set(True)
+
+        fac = self.laser.dl.pc.external_input.factor.get()
+        channel = self.laser.dl.pc.external_input.signal.get()
+        logger.warning(f"Reenabled ARC on 461 with channel {channel} and gain {fac}")
 
 
 Recentre461 = make_fragment_scan_exp(Recentre461Frag)

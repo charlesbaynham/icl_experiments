@@ -1,11 +1,10 @@
 import logging
-import sys
 from pathlib import Path
 
 import pytest
 
-import repository
 import dedrifter
+import repository
 from repository.lib import constants
 
 logger = logging.getLogger(__name__)

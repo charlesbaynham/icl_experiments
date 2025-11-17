@@ -2,6 +2,9 @@ import logging
 
 from artiq.language import host_only
 from artiq.language import kernel
+from artiq.language import rpc
+from artiq.master.scheduler import Scheduler
+from artiq_influx_generic import InfluxController
 from ndscan.experiment import FloatChannel
 
 from repository.lib import constants
@@ -150,6 +153,15 @@ class DoubleTrapImagingRepumpedNormalisedBase(
     * :meth:`~do_imaging_hook_andor`
     """
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_device("influx_logger")
+        self.influx_logger: InfluxController
+
+        self.setattr_device("scheduler")
+        self.scheduler: Scheduler
+
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
         self.setattr_result("atom_number_forward", FloatChannel)
@@ -176,7 +188,7 @@ class DoubleTrapImagingRepumpedNormalisedBase(
     def launch_ellipse_applet(self):
         # Reconstruct the ndscan dataset path
         # This is a bit fragile, and ought to be based on NDScan functions
-        self.setattr_device("scheduler")
+
         self.setattr_device("ccb")
         dataset_path_x = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_forward"
         dataset_path_y = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_backward"
@@ -200,28 +212,67 @@ class DoubleTrapImagingRepumpedNormalisedBase(
         atom_number_bwd = sum_ground_bwd + sum_excited_bwd - sum_background_bwd
 
         if atom_number_fwd == 0:
-            self.excitation_fraction_forward.push(0.0)
+            excitation_fraction_forward = 0.0
         else:
-            self.excitation_fraction_forward.push(
-                (sum_excited_fwd - sum_background_fwd_excited) / atom_number_fwd
-            )
+            excitation_fraction_forward = (
+                sum_excited_fwd - sum_background_fwd_excited
+            ) / atom_number_fwd
 
         if atom_number_bwd == 0:
-            self.excitation_fraction_backward.push(0.0)
+            excitation_fraction_backward = 0.0
         else:
-            self.excitation_fraction_backward.push(
-                (sum_excited_bwd - sum_background_bwd_excited) / atom_number_bwd
-            )
+            excitation_fraction_backward = (
+                sum_excited_bwd - sum_background_bwd_excited
+            ) / atom_number_bwd
+
         total = atom_number_fwd + atom_number_bwd
         if total == 0:
             imbalance = 0.0
         else:
             imbalance = (atom_number_fwd - atom_number_bwd) / total
 
+        self._double_trap_imaging_log_data(
+            excitation_fraction_forward=excitation_fraction_forward,
+            excitation_fraction_backward=excitation_fraction_backward,
+            atom_number_fwd=atom_number_fwd,
+            atom_number_bwd=atom_number_bwd,
+            imbalance=imbalance,
+            total=total,
+        )
+
+    @rpc(flags={"async"})
+    def _double_trap_imaging_log_data(
+        self,
+        excitation_fraction_forward: float,
+        excitation_fraction_backward: float,
+        atom_number_fwd: float,
+        atom_number_bwd: float,
+        imbalance: float,
+        total: float,
+    ) -> None:
+        # Log to NDScan
+        self.excitation_fraction_forward.push(excitation_fraction_forward)
+        self.excitation_fraction_backward.push(excitation_fraction_backward)
         self.atom_number_forward.push(atom_number_fwd)
         self.atom_number_backward.push(atom_number_bwd)
         self.atom_number_imbalance.push(imbalance)
         self.atom_number_total.push(total)
+
+        # Log to InfluxDB
+        self.influx_logger.write(
+            tags={
+                "type": "xxodt_atom_stats",
+                "rid": self.scheduler.rid,
+            },
+            fields={
+                "excitation_fraction_forward": excitation_fraction_forward,
+                "excitation_fraction_backward": excitation_fraction_backward,
+                "atom_number_forward": atom_number_fwd,
+                "atom_number_backward": atom_number_bwd,
+                "atom_number_imbalance": imbalance,
+                "atom_number_total": total,
+            },
+        )
 
 
 class DoubleTrapImagingRepumpedNormalised(

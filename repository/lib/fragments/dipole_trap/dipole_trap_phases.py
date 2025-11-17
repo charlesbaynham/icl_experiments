@@ -291,7 +291,7 @@ class MolassesDipoleRamp(GeneralRampingPhaseWithBinding):
     A phase with linear ramps for 1064 and 813 nm XODT
     """
 
-    duration_default = 0.01e-3
+    duration_default = 1400e-3
     time_step_default = 1e-3
 
     suservos = SUSERVOS_XODT
@@ -346,3 +346,20 @@ class XODTWithLinearRamp_3(XODTWithLinearRamp):
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_3_END
 
     add_final_point = True
+
+
+class DipoleRamp1064(GeneralRampingPhaseWithBinding):
+    """
+    A phase with linear ramp for 1064
+    """
+
+    duration_default = 20e-3
+    time_step_default = 1e-3
+
+    suservos = ["suservo_aom_1064_delivery"]
+
+    # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
+    default_suservo_nominal_setpoints = [0.0]
+
+    default_suservo_setpoint_multiples_start = [0.0]
+    default_suservo_setpoint_multiples_end = [1.0]

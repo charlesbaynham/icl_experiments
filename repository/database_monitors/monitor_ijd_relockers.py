@@ -18,6 +18,8 @@ class _MonitorIJDRelocker(Calibration):
         self.relocker: RelockerDriver = self.get_device(self.relocker_name)
         self.set_timeout(10)
 
+        self.last_unlock_counts = {k: None for k in self.channels}
+
     def check_own_state(self):
         data = []
         results = []
@@ -26,16 +28,59 @@ class _MonitorIJDRelocker(Calibration):
             fields = {}
             try:
                 lock_results = self.relocker.get_result_labelled(channel)
-                v_current, v_rolling_low = self.relocker.get_levels(channel)
+                lock_settings = self.relocker.get_settings_labelled(channel)
+                levels = self.relocker.get_levels_labelled(channel)
+                locked = self.relocker.get_locked(channel)
 
-                fields["v_scan_low"] = lock_results.v_low
+                unlock_count = self.relocker.get_unlock_count(channel)
+                if self.last_unlock_counts[channel] is None:
+                    self.last_unlock_counts[channel] = unlock_count
+                num_new_unlocks = unlock_count - self.last_unlock_counts[channel]
+                logger.info(
+                    "Raw unlock_count=%d, num_new_unlocks=%d, last_unlock_count=%d",
+                    unlock_count,
+                    num_new_unlocks,
+                    self.last_unlock_counts[channel],
+                )
+                self.last_unlock_counts[channel] = unlock_count
+                if num_new_unlocks >= 0:
+                    # The count of relocks will reset to zero when it rolls over
+                    # a 32-bit integer or when the board is rebooted. Ignore
+                    # these cases
+                    fields["unlock_count"] = num_new_unlocks
+
+                v_current = levels.avg_level
+                v_rolling_low = levels.window_level
+                v_immediate = levels.most_recent
+
+                auto_mode = int(lock_settings.auto_relock)
+                v_low_threshold = lock_settings.v_low_threshold
+                v_rise_threshold = lock_settings.v_rise_threshold
+
                 fields["v_set_lock"] = lock_results.v_set_lock
-                fields["v_read_lock"] = lock_results.v_read_lock
+
                 fields["v_current"] = v_current
                 fields["v_rolling_low"] = v_rolling_low
+                fields["v_immediate"] = v_immediate
 
-                locked = lock_results.relock_success
-                fields["status"] = "LOCKED" if locked else "UNLOCKED"
+                fields["auto_mode"] = auto_mode
+                fields["v_low_threshold"] = v_low_threshold
+                fields["v_rise_threshold"] = v_rise_threshold
+
+                fields["v_trigger_threshold"] = v_rolling_low + v_rise_threshold
+
+                if auto_mode:
+                    if locked:
+                        if num_new_unlocks > 0:
+                            status = "UNSTABLE"
+                        else:
+                            status = "LOCKED"
+                    else:
+                        status = "UNLOCKED"
+                else:
+                    status = "IDLE"
+
+                fields["status"] = status
 
                 result = CalibrationResult.OK if locked else CalibrationResult.BAD_DATA
 

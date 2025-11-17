@@ -1,11 +1,13 @@
 import logging
 
 from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.core import Core
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -20,10 +22,15 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 logger = logging.getLogger(__name__)
+
+CLOCK_LOW_RAMP_FREQ = 80e6  # Hz
+CLOCK_HIGH_RAMP_FREQ = 80.7e6  # Hz
+ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
 class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
@@ -34,10 +41,14 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment("clock_opll", ClockOPLLController)
+        self.clock_opll: ClockOPLLController
 
         self.setattr_param(
             "shelving_pulse_time",
@@ -52,7 +63,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             "shelving_pulse_aom_detuning",
             FloatParam,
             "Frequency detuning of AOM during clock shelving pulse",
-            default=0,
+            default=-32e3,
             unit="kHz",
         )
         self.shelving_pulse_aom_detuning: FloatParamHandle
@@ -122,6 +133,24 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             )
             self.kernel_invariants.add("clock_delivery_handles")
 
+        # Kernel variable to record the moment of the velocity slicing pulse so
+        # that other pulses can be relative to it
+        self.t_velocity_slicing_pulse_centre_mu = int64(0)
+
+        # Ensure that the time of the slicing pulse is always reset
+        class _ResetSlicingTime(Fragment):
+            def build_fragment(self, ref_to_outer_self: "ClockShelvingAndClearoutBase"):
+                self.setattr_device("core")
+                self.core: Core
+                self.outer = ref_to_outer_self
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+                self.outer.t_velocity_slicing_pulse_centre_mu = int64(0)
+
+        self.setattr_fragment("reset_slicing_time", _ResetSlicingTime, self)
+
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
         param_handles = super().get_always_shown_params()
@@ -138,15 +167,25 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             freq=self.clock_delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_INFO.attenuation,
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
             enable_iir=True,
         )
         at_mu(_t_start)
 
+        # start clock frequency ramp
+        self.start_clock_frequency_ramp()
+
+        # Record the time of the centre of the shelving pulse
+        self.t_velocity_slicing_pulse_centre_mu = _t_start + self.core.seconds_to_mu(
+            self.shelving_pulse_time.get() / 2
+        )
+
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()
+        delay_mu(int64(self.core.ref_multiplier))
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
@@ -163,6 +202,31 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         delay(self.shelving_pulse_time.get())
         self.clock_dds.sw.off()
 
+    @kernel
+    def start_clock_frequency_ramp(self):
+        """
+        Start modulation of the clock OPLL DDS as configured
+
+        Advances the timeline by the duration of SPI writes
+        """
+
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            CLOCK_LOW_RAMP_FREQ,
+            CLOCK_HIGH_RAMP_FREQ,
+            wave_type=0,
+        )
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_shelving()
+
+    @kernel
+    def post_sequence_cleanup_hook_shelving(self):
+        # stop the clock laser ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+
 
 class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
     """
@@ -172,6 +236,7 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     @kernel
@@ -191,6 +256,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     * :meth:`~before_start_hook`
     * :meth:`~post_dipole_trap_hook`
+    * :meth:`~post_sequence_cleanup_hook`
     """
 
     @kernel

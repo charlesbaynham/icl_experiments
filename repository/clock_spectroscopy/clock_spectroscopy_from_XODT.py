@@ -28,8 +28,17 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForClockSpecMixin,
+)
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsWithFieldRampMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
@@ -41,9 +50,6 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -141,13 +147,14 @@ class ClockSpecFromSingleXODTEvaporatedAndLensedFrag(
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
+    # DopplerCompensationForClockSpecMixin,
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,
+    EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
@@ -165,8 +172,14 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_linear_evap()
+        self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 class ClockSpecFromXXODTFrag(
@@ -204,6 +217,7 @@ class ClockSpecFromXXODTFrag(
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
@@ -234,10 +248,17 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+
 
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     # Clock spec:
     ClockRabiSpectroscopyDipoleTrapMixin,
+    DopplerCompensationForClockSpecMixin,
     # Spin polarisation:
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
@@ -263,6 +284,12 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(

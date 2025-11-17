@@ -4,7 +4,7 @@ from koheron_ctl200_laser_driver import CTL200
 from qbutler.calibration import Calibration
 from qbutler.calibration import CalibrationResult
 
-AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD = 0.01  # k
+AWAY_FROM_TEMPERATURE_SETPOINT_THRESHOLD = 3e-3  # K
 
 logger = logging.getLogger(__name__)
 

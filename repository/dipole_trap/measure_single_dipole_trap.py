@@ -16,14 +16,27 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageSingleXODT,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationSingleRampMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
+from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import (
+    HorizontalKickMixin,
+)
 from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithRampUpMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesMixin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +44,11 @@ logger = logging.getLogger(__name__)
 class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
-    LoadSingleXODTMixin,
+    LoadSingleXODTWithRampUpMixin,
+    # ClearOut689Mixin,
 ):
     """
-    Make Single XODT, image twice for BG subtraction
+    Make Single XODT, clearout side atoms and image twice for BG subtraction
     """
 
     def build_fragment(self):
@@ -118,6 +132,7 @@ class SingleXODTVerticalSloshedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
+    XODTSingleMolassesMixin,
     EvaporationSingleRampMixin,
     SwitchHODT,
 ):
@@ -127,6 +142,29 @@ class SingleXODTVerticalSloshedFrag(
     Make Single XODT, decrease HODT depth to displace the atoms under gravity,
     switch up the HODT depth and let it slosh, then drop and image
     """
+
+
+class SingleXODTHorizontalYSloshedFrag(
+    FLIRMeasurementMixin,
+    BGCorrectedAndorImageSingleXODT,
+    EMGain,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesMixin,
+    EvaporationThreeRampsMixin,
+    HorizontalKickMixin,
+):
+    """
+    Horizontally slosh a single XODT
+
+    Load an XODT, use evaporation ramps to keep the coldest atoms and to ramp back up
+    to desired trap depth, then use a spinpol beam to displace the atoms horizontally
+    """
+
+    # FIXME: TODO: Rebind the evaporation params to a single ramp down followed by a ramp up
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
 
 
 class MeasureSingleXODTAbsFrag(
@@ -147,9 +185,8 @@ class MeasureSingleXODTAbsFrag(
         pass
 
 
-MeasureSingleXODTBGCorrectedFrag = make_fragment_scan_exp(
-    MeasureSingleXODTBGCorrectedFrag
-)
-MeasureSingleXODTAbsFrag = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
+MeasureSingleXODTBGCorrected = make_fragment_scan_exp(MeasureSingleXODTBGCorrectedFrag)
+MeasureSingleXODTAbs = make_fragment_scan_exp(MeasureSingleXODTAbsFrag)
 SingleXODTSloshed = make_fragment_scan_exp(SingleXODTSloshedFrag)
 SingleXODTVerticalSloshed = make_fragment_scan_exp(SingleXODTVerticalSloshedFrag)
+SingleXODTHorizontalYSloshed = make_fragment_scan_exp(SingleXODTHorizontalYSloshedFrag)

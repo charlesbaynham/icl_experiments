@@ -1164,13 +1164,13 @@ files = [
 
 [[package]]
 name = "generic-scpi-driver"
-version = "1.6.2"
+version = "1.8"
 description = "A generic template for creating python object-based drivers for SCPI hardware devices which communicate via VISA. Compatible with ARTIQ  installed with [artiq] modifier"
 optional = false
-python-versions = "<3.13,>=3.8"
+python-versions = "<4.0,>=3.10"
 files = [
-    {file = "generic_scpi_driver-1.6.2-py3-none-any.whl", hash = "sha256:9700cec668bb44b69ff5bf38247115a00879e980fbf5ad8e131eed7b05ca22a9"},
-    {file = "generic_scpi_driver-1.6.2.tar.gz", hash = "sha256:d1b2345dd67034cb6ed1b33b887fd44ad2e772637b090ae299abd6905f56a62f"},
+    {file = "generic_scpi_driver-1.8-py3-none-any.whl", hash = "sha256:ebd6623dbd8cbf4a067391988fa114f24048f82d4df47e3be2f0674d5c462853"},
+    {file = "generic_scpi_driver-1.8.tar.gz", hash = "sha256:9cd84bb4def1837a1d1a8d48dc15b98563b5d562585d6aab8c2a8bd6ec4365d8"},
 ]
 
 [package.dependencies]
@@ -1250,7 +1250,7 @@ files = [
 
 [[package]]
 name = "imperial-artiq-applets"
-version = "0.3.2"
+version = "0.3.4"
 description = "Custom artiq applets"
 optional = false
 python-versions = ">=3.10, <3.12"
@@ -1258,8 +1258,8 @@ files = []
 develop = false
 
 [package.dependencies]
+artiq = {git = "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"}
 matplotlib = "^3.8.2"
-pyaion = {git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"}
 pyqt5 = "5.15.9"
 pyqt5-qt5 = "5.15.2"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
@@ -1268,7 +1268,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/imperial-artiq-applets.git"
 reference = "HEAD"
-resolved_reference = "aefd95e1c9102773302480cb3e79a4b5ae78489d"
+resolved_reference = "22819b8538f7d5bd88593ec1bdbd3db9d298c1c9"
 
 [[package]]
 name = "iniconfig"
@@ -4101,7 +4101,7 @@ files = [
 
 [[package]]
 name = "relocker-driver"
-version = "1.2"
+version = "4.2"
 description = "ARTIQ driver for relocker boards"
 optional = false
 python-versions = ">=3.10, <3.13"
@@ -4109,14 +4109,14 @@ files = []
 develop = false
 
 [package.dependencies]
-generic-scpi-driver = {version = "^1.6", extras = ["artiq"]}
+generic-scpi-driver = {version = "^1.8", extras = ["artiq"]}
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
 [package.source]
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
 reference = "HEAD"
-resolved_reference = "b53b36999917add4261e60dfde48dbe9b02eae2b"
+resolved_reference = "ad977558f429ff6f3e356c0d89bc3f135deb243b"
 
 [[package]]
 name = "requests"
