@@ -119,7 +119,7 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
     EMGain,
-    FLIRMeasurementMixin,
+    FLIRBlueMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsWithFieldRampMixin,
