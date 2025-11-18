@@ -33,7 +33,6 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 start_opll_offset = 80e6
-hbar_k = 6000.0  # 1.05457182e-34 * 2 * np.pi * constants._default_698 / 3e8
 
 logger = logging.getLogger(__name__)
 
