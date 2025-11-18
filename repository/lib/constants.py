@@ -801,7 +801,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_1064_painted_delivery",
         servo_enabled=True,
         initial_amplitude=0.1,
-        setpoint=4.7,
+        setpoint=3.5,
         kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
