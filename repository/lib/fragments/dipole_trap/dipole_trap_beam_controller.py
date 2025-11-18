@@ -12,9 +12,6 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
-from repository.lib.fragments.painted_pulse import (
-    DiffractionCompensatedQuadraticShapedPulse,
-)
 
 logger = logging.getLogger(__name__)
 
