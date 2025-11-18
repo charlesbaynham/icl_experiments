@@ -1,10 +1,10 @@
 import logging
+from typing import Optional
 
 import numpy as np
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from scipy.optimize import root_scalar
-from typing import Optional
 
 from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
 
@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
-    def build_fragment(self, automatic_trigger: Optional[bool] = False, *args, **kwargs):
+    def build_fragment(
+        self, automatic_trigger: Optional[bool] = False, *args, **kwargs
+    ):
         self.setattr_param(
             "epsilon",
             FloatParam,
@@ -65,7 +67,7 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
         self.prepare_pulse()
 
         if self.automatic_trigger is True:
-           self.start_output() 
+            self.start_output()
 
     def generate_frequencies(self, n_words) -> np.ndarray:
         """
