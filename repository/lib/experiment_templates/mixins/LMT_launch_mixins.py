@@ -271,61 +271,6 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
         )
         self.down_offset_detuning: FloatParamHandle
 
-        # temporary for sorting out frequencies
-        # self.setattr_param(
-        #     "detuning_pulse_1",
-        #     FloatParam,
-        #     "Detuning 1st pulse (down)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_1: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_2",
-        #     FloatParam,
-        #     "Detuning 2nd pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_2: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_3",
-        #     FloatParam,
-        #     "Detuning 3rd pulse (down)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_3: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_4",
-        #     FloatParam,
-        #     "Detuning 4rd pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_4: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_5",
-        #     FloatParam,
-        #     "Detuning 5th pulse (down)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_5: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_6",
-        #     FloatParam,
-        #     "Detuning 6th pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_6: FloatParamHandle
-
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.prepare_clock_delivery_aom()
