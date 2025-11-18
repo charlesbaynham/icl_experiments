@@ -19,7 +19,7 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
             "epsilon",
             FloatParam,
             description="Efficiency of the AOM at the edge of the pulse",
-            default=0.8,
+            default=0.773,
             min=0.0,
             max=0.999,
         )
@@ -29,8 +29,8 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
             "mod_depth",
             FloatParam,
             description="Modulation depth of the scan",
-            default=1e3,
-            unit="kHz",
+            default=10e6,
+            unit="MHz",
             min=1.0,
             max=200e6,
         )
@@ -40,7 +40,7 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
             "centre_frequency",
             FloatParam,
             description="Centre frequency of the shaped pulse",
-            default=100e6,
+            default=103e6,
             unit="MHz",
             min=0.0,
             max=4e8,
