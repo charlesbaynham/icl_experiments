@@ -23,7 +23,7 @@ DIPOLE_SUSERVO_INFOS = [
     ]
 ]
 
-PAINTED_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["suservo_aom_1064_painted_delivery"]]
+PAINTED_SUSERVO_INFOS = [constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"]]
 
 DIPOLE_URUKUL_INFOS = [
     # constants.URUKULED_BEAMS["dipole_trap_1064_freespace_AOM"],
@@ -72,7 +72,6 @@ class DipoleBeamController(Fragment):
         )
 
         self.painter_suservo: LibSetSUServoStatic
-
 
     @kernel
     def turn_on_painter_suservo(self):
