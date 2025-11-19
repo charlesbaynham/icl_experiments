@@ -17,6 +17,7 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     DroppedPumpedLatticeMixin,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
