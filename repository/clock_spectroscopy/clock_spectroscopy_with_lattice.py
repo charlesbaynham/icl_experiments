@@ -60,23 +60,6 @@ class ClockSpecFromLatticeFrag(
     """
 
 
-class BasicClockSpecFromLatticeFrag(
-    ClockRabiSpectroscopyRedMotMixin,
-    DroppedPumpedLatticeMixin,
-    FLIRBlueMOTMeasurementMixin,
-    SingleAndorImage,
-):
-    """
-    Clock spectroscopy from dropped lattice - single image
-
-    Load into a lattice, pump into a stretched state, drop the atoms by ramping
-    the lattice, then use the up clock beam for spectroscopy, altering the
-    (single-pass) AOM.
-
-    Image only the ground state atoms
-    """
-
-
 class ClockSpecFromVerticalLatticeFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     ConstantBeamsMixin,
