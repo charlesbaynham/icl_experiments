@@ -51,6 +51,7 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
     def matterwave_collimate_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
+        delay(200e-6)  # Wait for the suservo to stabilise
         # Then switch off the dipole beam
         self.dipole_beam_controller.turn_off_dipole_beams()
         delay(self.matterwave_collimation_time.get())
