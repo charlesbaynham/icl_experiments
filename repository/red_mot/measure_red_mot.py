@@ -108,4 +108,4 @@ MeasureNarrowbandRedMOTBGCorrectedWithTrap = make_fragment_scan_exp(
 
 MeasureNarrowbandMOTAbs = make_fragment_scan_exp(MeasureNarrowbandMOTAbsFrag)
 
-MeasureNarrowbandRedMOTNoAndor = make_fragment_scan_exp(MeasureNarrowbandMOTNoAndorFrag)
+# MeasureNarrowbandRedMOTNoAndor = make_fragment_scan_exp(MeasureNarrowbandMOTNoAndorFrag)
