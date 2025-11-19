@@ -42,10 +42,9 @@ class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
     LoadSingleXODTMixin,
-    # ClearOut689Mixin,
 ):
     """
-    Make Single XODT, clearout side atoms and image twice for BG subtraction
+    Make Single XODT and image twice for BG subtraction
     """
 
     def build_fragment(self):
