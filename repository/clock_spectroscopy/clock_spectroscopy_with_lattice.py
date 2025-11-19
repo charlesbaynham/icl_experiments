@@ -91,5 +91,4 @@ class ClockSpecFromVerticalLatticeFrag(
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
-BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)
 ClockSpecFromVerticalLattice = make_fragment_scan_exp(ClockSpecFromVerticalLatticeFrag)
