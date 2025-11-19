@@ -40,9 +40,9 @@ aliases = {
     "suservo_aom_singlepass_689_stark_shifter": "suservo2_ch3",
     "urukul9912_aom_singlepass_689_stark_shifter_switch": "urukul2_ch0",
     # 1064
-    "suservo_aom_1064_delivery": "suservo0_ch4",  # FIXME: Change this back to correct channel with painter
+    "suservo_aom_1064_delivery": "suservo0_ch3",
     # Other 1064 channels
-    "suservo_aom_1064_painted_delivery": "suservo0_ch3",
+    "suservo_aom_1064_painted_delivery": "suservo0_ch4",
     "urukul9910_aom_1064_painting": "urukul5_ch0",
     "suservo_aom4_1064": "suservo0_ch5",
     # 813 channels
