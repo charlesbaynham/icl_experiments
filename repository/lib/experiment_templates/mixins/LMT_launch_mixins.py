@@ -37,7 +37,7 @@ start_opll_offset = 80e6
 logger = logging.getLogger(__name__)
 
 
-class LMTLaunchBase(RedMOTWithExperiment):
+class LMTBase(RedMOTWithExperiment):
     """
     Implements LMT launch after the dipole trap
 
@@ -205,7 +205,7 @@ class LMTLaunchBase(RedMOTWithExperiment):
         at_mu(_t_start)
 
 
-class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
+class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
     """
     Implements LMT launch after the dipole trap
 
