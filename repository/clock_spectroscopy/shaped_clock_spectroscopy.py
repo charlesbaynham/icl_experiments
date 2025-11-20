@@ -195,7 +195,7 @@ class ShapedClockSpecWithEvapAndSlicingFrag(
 
 
 class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
-    ClockRabiSpectroscopyDipoleTrapMixin,
+    ClockRabiSpectroscopyDownBeamDipoleTrapMixin,
     # Imaging
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
@@ -235,7 +235,7 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
 
 
 class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
-    ClockRabiSpectroscopyDownBeamDipoleTrapMixin,
+    ClockRabiSpectroscopyDipoleTrapMixin,
     # Imaging
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
