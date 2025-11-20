@@ -41,9 +41,6 @@ class LMTBase(RedMOTWithExperiment):
     """
     Base for succession of clock pulses with up and down beams
 
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_experiment_after_dipole_trap_hook`
     """
 
     def build_fragment(self):
@@ -211,7 +208,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~do_experiment_after_dipole_trap_hook`
+    * :meth:`~launch_hook`
     """
 
     def build_fragment(self):
@@ -271,7 +268,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         self.down_offset_detuning: FloatParamHandle
 
     @kernel
-    def do_experiment_after_dipole_trap_hook(self):
+    def launch_hook(self):
         self.prepare_clock_delivery_aom()
         delay_mu(16)
         kick = self.momentum_kick.get()
