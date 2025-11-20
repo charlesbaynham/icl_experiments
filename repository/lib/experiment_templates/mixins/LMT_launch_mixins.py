@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9910 import AD9910
+from numpy import int64
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
@@ -82,6 +83,24 @@ class LMTBase(RedMOTWithExperiment):
             unit="us",
         )
         self.shelving_pulse_clearout_duration: FloatParamHandle
+
+        self.setattr_param(
+            "up_pulses_duration",
+            FloatParam,
+            "Duration of an up beam launch pulse",
+            default=44e-6,
+            unit="us",
+        )
+        self.up_pulses_duration: FloatParamHandle
+
+        self.setattr_param(
+            "down_pulses_duration",
+            FloatParam,
+            "Duration of a down beam launch pulse",
+            default=36e-6,
+            unit="us",
+        )
+        self.down_pulses_duration: FloatParamHandle
 
         if not hasattr(self, "clock_delivery_setter"):
             self.setattr_fragment(
@@ -223,24 +242,6 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         self.lmt_pulses_number: IntParamHandle
 
         self.setattr_param(
-            "up_pulses_duration",
-            FloatParam,
-            "Duration of an up beam launch pulse",
-            default=44e-6,
-            unit="us",
-        )
-        self.up_pulses_duration: FloatParamHandle
-
-        self.setattr_param(
-            "down_pulses_duration",
-            FloatParam,
-            "Duration of a down beam launch pulse",
-            default=36e-6,
-            unit="us",
-        )
-        self.down_pulses_duration: FloatParamHandle
-
-        self.setattr_param(
             "momentum_kick",
             FloatParam,
             "Momentum kick",
@@ -349,7 +350,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         delay(25e-6)
 
 
-class LMTInterferometryMixin(LMTBase, DipoleTrapWithExperiment):  #
+class LMTInterferometryMixin(LMTBase, DipoleTrapWithExperiment):
     """
     Implements LMT interferometry after the launch
 
@@ -377,3 +378,20 @@ class LMTInterferometryMixin(LMTBase, DipoleTrapWithExperiment):  #
             default=0.0,
         )
         self.phase_step: FloatParamHandle
+
+    @kernel
+    def do_clock_interferometry(self):
+
+        t_pi_up = self.up_pulses_duration.get()
+        t_pi_down = self.down_pulses_duration.get()
+
+        self.prepare_clock_delivery_aom()
+
+        t_start_first_pulse_mu = now_mu()
+        # PI/2 PULSE UP BEAM
+        at_mu(t_start_first_pulse_mu)
+        self.clock_up_dds.sw.on()
+        delay(t_pi_up / 2)
+        self.clock_up_dds.sw.off()
+        t_end_pi_by_2_mu = now_mu()
+        delay_mu(int64(self.core.ref_multiplier))
