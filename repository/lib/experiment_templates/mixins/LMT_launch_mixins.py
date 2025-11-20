@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 class LMTBase(RedMOTWithExperiment):
     """
-    Implements LMT launch after the dipole trap
+    Base for succession of clock pulses with up and down beams
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
