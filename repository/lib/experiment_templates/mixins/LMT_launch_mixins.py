@@ -347,3 +347,33 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             delay(self.up_pulses_duration.get())
             self.clock_up_dds.sw.off()
         delay(25e-6)
+
+
+class LMTInterferometryMixin(LMTBase, DipoleTrapWithExperiment):  #
+    """
+    Implements LMT interferometry after the launch
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_experiment_after_dipole_trap`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_between_interferometry_pulses",
+            FloatParam,
+            "Delay between interferometry pulses",
+            default=constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES,
+            unit="us",
+        )
+        self.delay_between_interferometry_pulses: FloatParamHandle
+
+        self.setattr_param(
+            "phase_step",
+            FloatParam,
+            "Phase step in interferometry sequence",
+            default=0.0,
+        )
+        self.phase_step: FloatParamHandle
