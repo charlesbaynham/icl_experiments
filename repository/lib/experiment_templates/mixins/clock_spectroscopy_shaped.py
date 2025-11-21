@@ -13,7 +13,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
-from repository.lib.fragments.pulse_shaping import BlackmanShapedPulse
 from repository.lib.fragments.pulse_shaping import JessePulse
 
 logger = logging.getLogger(__name__)
@@ -85,10 +84,10 @@ class ShapedClockShelvingAndClearoutDipoleTrapMixin(
 
         self.setattr_fragment(
             "clock_shelving_shaped_pulse",
-            BlackmanShapedPulse,
+            JessePulse,
             ad9910_name=CLOCK_BEAM_INFO.urukul_device,
         )
-        self.clock_shelving_shaped_pulse: BlackmanShapedPulse
+        self.clock_shelving_shaped_pulse: JessePulse
 
         self.clock_shelving_shaped_pulse.bind_param(
             "pulse_duration", self.shelving_pulse_time
