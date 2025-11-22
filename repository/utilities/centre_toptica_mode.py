@@ -284,6 +284,14 @@ class CentreTopticaModeFrag(ExpFragment):
         logger.debug("Setting current to %.3f mA", current_ma)
         self.laser.dl.cc.current_set.set(current_ma)
 
+    def get_max_current(self) -> float:
+        """Get the maximum laser diode current in A.
+
+        Returns:
+            Maximum current in A
+        """
+        return self.laser.dl.cc.current_clip.get() * 1e-3
+
     def get_voltage(self) -> float:
         """Get the current piezo voltage in V.
 
@@ -348,6 +356,7 @@ class CentreTopticaModeFrag(ExpFragment):
         settle_time = 3.0
 
         next_jump = self.restore_jump_size.get()
+        max_current = self.get_max_current()
 
         for attempt in range(1, max_attempts + 1):
             if self.is_on_correct_mode(target_detuning=target_detuning):
@@ -356,8 +365,12 @@ class CentreTopticaModeFrag(ExpFragment):
 
             logger.warning("Mode restore attempt %d/%d", attempt, max_attempts)
 
-            # Jump current down
-            self.set_current(target_current + next_jump)
+            # Jump current
+            target = target_current + next_jump
+            if target > max_current:
+                target = max_current - 10e-6
+
+            self.set_current(target)
             time.sleep(1.0)
 
             # Jump back to target
