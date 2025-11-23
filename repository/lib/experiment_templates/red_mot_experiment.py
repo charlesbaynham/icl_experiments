@@ -56,6 +56,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
+from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
