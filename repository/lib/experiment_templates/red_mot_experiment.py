@@ -106,9 +106,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.setattr_fragment("timestamper", Timestamper, automatic_timestamp=False)
         self.timestamper: Timestamper
 
-        # FIXME: Temporarily disable relock checking until we sort it out
-        # self.setattr_fragment("relock_checker", CheckForRelocksFrag)
-        # self.relock_checker: CheckForRelocksFrag
+        self.setattr_fragment("relock_checker", CheckForRelocksFrag)
+        self.relock_checker: CheckForRelocksFrag
 
         self.setattr_fragment("blue_3d_mot", Blue3DMOTFrag, manual_init=False)
         self.blue_3d_mot: Blue3DMOTFrag
@@ -519,10 +518,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         Default implementation of the host functions after experiment hook
         """
-        # FIXME
-        # self.relock_checker.check_and_log_relocks()
-        # if relocks != 0:
-        #     raise TransitoryError
+        self.relock_checker.check_and_log_relocks()
+        if relocks != 0:
+            raise TransitoryError
 
 
 # %%
