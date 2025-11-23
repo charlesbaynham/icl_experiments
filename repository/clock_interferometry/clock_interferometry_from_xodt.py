@@ -103,7 +103,7 @@ class DifferentialClockInterferometryFrag(
 class DifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
     _DifferentialClockInterferometryImaging,
-    ClockInterferometryWithNoiseDipoleTrapMixin,
+    # ClockInterferometryWithNoiseDipoleTrapMixin,
     # DopplerCompensationForInterferometryMixin,
 ):
     """
