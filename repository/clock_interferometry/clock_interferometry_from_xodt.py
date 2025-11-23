@@ -104,7 +104,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
     _DifferentialClockInterferometryImaging,
     ClockInterferometryWithNoiseDipoleTrapMixin,
-    DopplerCompensationForInterferometryMixin,
+    # DopplerCompensationForInterferometryMixin,
 ):
     """
     Clock interferometry from a double XODT with added noise
