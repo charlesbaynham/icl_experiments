@@ -130,9 +130,6 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
     def build_fragment(self):
         super().build_fragment()
 
-    def build_fragment(self):
-        super().build_fragment()
-
         self.setattr_fragment("mot_in_second_xodt", MOTInBottomXODT)
         self.mot_in_second_xodt: MOTInBottomXODT
 
