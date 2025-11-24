@@ -15,14 +15,13 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_interferometry import (
-    ClockInterferometryDipoleTrapMixin,
-)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDownBeamDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
@@ -244,7 +243,7 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     # Loading and state preparation
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,
+    EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # Slicing
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
