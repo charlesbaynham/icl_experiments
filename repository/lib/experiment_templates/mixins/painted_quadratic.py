@@ -2,10 +2,10 @@ import logging
 
 from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam, FloatParamHandle
 from repository.lib.experiment_templates.dipole_trap_experiment import DipoleTrapWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.painted_pulse import DiffractionCompensatedQuadraticShapedPulse
 
 
@@ -22,7 +22,7 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
             "matterwave_collimation_time",
             FloatParam,
             description="Holding time for matterwave collimation",
-            unit="us",
+            unit="ms",
             default=1,
             min=0.0,
             max=100,
@@ -47,3 +47,11 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
         delay(self.matterwave_collimation_time.get())
         self.dipole_beam_controller.turn_off_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
+
+class LoadingWithPaintedPotentialMixing(DipoleTrapWithExperiment):
+    """
+    A mixin which uses the painted HODT to aid in loading the molasses (treacle).
+    """
+
+    @kernel
+    def 
