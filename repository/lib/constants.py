@@ -1114,7 +1114,7 @@ CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    35.3e3  # Will need fine-tuning whenever velocity-selection pulse is changed
+    -46e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
 DURATION_OF_STARK_PULSE = 30e-6
 
@@ -1170,7 +1170,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.27)
+) = add_field_offset(0.188, 0.019, -0.31)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
@@ -1234,7 +1234,7 @@ else:
 
 # Unused in Sr88 so only one setting needed
 XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
-XODT_MOLASSES_689_STIR_DETUNING = 540000.0
+XODT_MOLASSES_689_STIR_DETUNING = 555000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -1336,7 +1336,7 @@ else:
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
 XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7]
-XODT_COOL_MOLASSES_MULTIPLE_END = [0.17, 0.06]
+XODT_COOL_MOLASSES_MULTIPLE_END = [0.17, 0.2]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 1400e-3
