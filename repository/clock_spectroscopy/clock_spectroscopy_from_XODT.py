@@ -27,13 +27,12 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDownBeamDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.doppler_compensation import (
     DopplerCompensationForClockSpecMixin,
-)
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsWithFieldRampMixin,
@@ -93,7 +92,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,
+    EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
