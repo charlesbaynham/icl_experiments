@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.937e6,
+        frequency=364.927e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -744,7 +744,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.859e6,
+        99.809e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1163,14 +1163,14 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.29)
+) = add_field_offset(0.2, -0.016, -0.31)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_X,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Y,
     RED_NARROWBAND_BIAS_FIELD_BACKWARD_Z,
-) = add_field_offset(0.2, 0.03, 0.08)
+) = add_field_offset(0.19, 0.01, -0.01)
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
@@ -1365,7 +1365,7 @@ XODT_SINGLE_LOADING_689_DETUNING_END = [
     -5e3,
 ]
 RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
-XODT_SINGLE_LOADING_STIR_DETUNING = +13e3
+XODT_SINGLE_LOADING_STIR_DETUNING = +20e3
 XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 10.0
 
 TOTAL_EVAP_HOLD_TIME = 0.01
