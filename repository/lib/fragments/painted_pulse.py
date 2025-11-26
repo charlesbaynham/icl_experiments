@@ -1,11 +1,11 @@
 import logging
+from typing import Optional
 
 import numpy as np
 from numpy import log, abs, sqrt
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from scipy.optimize import root_scalar
-from typing import Optional
 
 from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
 
@@ -13,12 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
-    def build_fragment(self, automatic_trigger: Optional[bool] = False, *args, **kwargs):
+    def build_fragment(
+        self, automatic_trigger: Optional[bool] = False, *args, **kwargs
+    ):
         self.setattr_param(
             "epsilon",
             FloatParam,
             description="Efficiency of the AOM at the edge of the pulse",
-            default=0.8,
+            default=0.773,
             min=0.0,
             max=0.999,
         )
@@ -28,8 +30,8 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
             "mod_depth",
             FloatParam,
             description="Modulation depth of the scan",
-            default=1e3,
-            unit="kHz",
+            default=10e6,
+            unit="MHz",
             min=1.0,
             max=200e6,
         )
@@ -39,7 +41,7 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
             "centre_frequency",
             FloatParam,
             description="Centre frequency of the shaped pulse",
-            default=100e6,
+            default=103e6,
             unit="MHz",
             min=0.0,
             max=4e8,
@@ -66,7 +68,7 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
         self.prepare_pulse()
 
         if self.automatic_trigger is True:
-           self.start_output() 
+            self.start_output()
 
     def generate_frequencies(self, n_words) -> np.ndarray:
         """
