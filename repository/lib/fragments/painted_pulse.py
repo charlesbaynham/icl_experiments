@@ -281,6 +281,8 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         n_half = n_words // 2
 
 
+        # You might be thinking: What is this diabolical equation!?
+        # The answer is the indefinite integral of the diffraction compensated quadratic pulse solved using maxima. 
         relation = lambda x : ((t_2+(g**2-2*g+1)*k_2)*log(abs((g-1)*x**2+1)))/(2*g**3-6*g**2+6*g-2)+((t_1+(g**2-2*g+1)*k_3+(1-g)*k_1)*log(abs((2*g-2)*x-2*sqrt(1-g))/abs((2*g-2)*x+2*sqrt(1-g))))/(2*sqrt(1-g)*(g**2-2*g+1))+((3*g-3)*t_2*x**4+(4*g-4)*t_1*x**3-6*t_2*x**2+((12*g-12)*k_1-12*t_1)*x)/(12*g**2-24*g+12)
 
 
