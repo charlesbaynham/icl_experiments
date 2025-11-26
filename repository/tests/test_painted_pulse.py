@@ -12,6 +12,7 @@ from pyaion.fragments.urukul_init import make_urukul_init
 
 from repository.lib.fragments.painted_pulse import (
     DiffractionCompensatedQuadraticShapedPulse,
+    GravityAndDiffractionCompensatedQuadraticShapedPulse
 )
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
@@ -60,7 +61,52 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         self.core.wait_until_mu(now_mu())
         logger.warning("Hey it's been a minute")
 
+class TestGravityAndDiffractionCompensatedQuadraticFrag(ExpFragment):
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment(
+            "urukul_init", make_urukul_init([PAINTING_URUKUL_CHANNEL])
+        )
+
+        self.dds: AD9910 = self.get_device(PAINTING_URUKUL_CHANNEL)
+
+        self.setattr_fragment(
+            "painter",
+            GravityAndDiffractionCompensatedQuadraticShapedPulse,
+            ad9910_name=PAINTING_URUKUL_CHANNEL,
+        )
+        self.painter : GravityAndDiffractionCompensatedQuadraticShapedPulse 
+
+        self.ttl_trigger: TTLOut = self.get_device("ttl_debugging")
+
+    @kernel
+    def run_once(self) -> None:
+        self.core.break_realtime()
+        self.dds.sw.off()
+
+        # This is an arbitrary frequency - it will be overwritten by the pulse
+        self.dds.set(frequency=10e6, amplitude=0.1)
+        self.dds.set_att(8.0)
+        self.core.break_realtime()
+        self.painter.prepare_pulse()
+        self.core.break_realtime()
+        self.painter.start_output()
+        logger.warning("The pulse duration: ", self.dds.read64(0x15))
+        logger.warning("Hey I'm starting minute")
+        logger.warning("The mu: ", self.painter._step_mu)
+
+        delay(60.0)
+        self.painter.stop_output()
+
+        self.core.wait_until_mu(now_mu())
+        logger.warning("Hey it's been a minute")
 
 TestDiffractionCompensatedQuadratic = make_fragment_scan_exp(
     TestDiffractionCompensatedQuadraticFrag, max_rtio_underflow_retries=0
+)
+
+TestGravityAndDiffractionCompensatedQuadratic = make_fragment_scan_exp(
+    TestGravityAndDiffractionCompensatedQuadraticFrag, max_rtio_underflow_retries=0
 )
