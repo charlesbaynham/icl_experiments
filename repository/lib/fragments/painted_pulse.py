@@ -142,16 +142,6 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         self.epsilon: FloatParamHandle
 
         self.setattr_param(
-            "AOM_eff_shift",
-            FloatParam,
-            description="Shift of the efficiency of the centre AOM frequency",
-            default=0.,
-            min=-0.999,
-            max=0.999,
-        )
-        self.aom_shift: FloatParamHandle
-
-        self.setattr_param(
             "g",
             FloatParam,
             description="Gradient of gravity compensation",
