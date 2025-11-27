@@ -57,7 +57,7 @@ class LMTBase(RedMOTWithExperiment, ClockSpectroscopyBase):
             "clearout_duration",
             FloatParam,
             "Duration of 461 clearout pulse after LMT pulse",
-            default=500e-6,
+            default=constants.LMT_PULSE_CLEAROUT_DURATION,
             unit="us",
         )
         self.shelving_pulse_clearout_duration: FloatParamHandle
@@ -75,7 +75,7 @@ class LMTBase(RedMOTWithExperiment, ClockSpectroscopyBase):
             "down_pulses_duration",
             FloatParam,
             "Duration of a down beam launch pulse",
-            default=36e-6,
+            default=constants.DOWN_CLOCK_BEAM_PI_TIME,
             unit="us",
         )
         self.down_pulses_duration: FloatParamHandle
@@ -109,7 +109,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             "momentum_kick",
             FloatParam,
             "Momentum kick",
-            default=9402,
+            default=constants.MOMENTUM_KICK_DETUNING,
             unit="kHz",
         )
         self.momentum_kick: FloatParamHandle
@@ -118,7 +118,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             "lmt_offset_detuning",
             FloatParam,
             "LMT offset detuning",
-            default=-16000,
+            default=constants.LMT_OFFSET_DETUNING,
             unit="kHz",
         )
         self.lmt_offset_detuning: FloatParamHandle
@@ -127,7 +127,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             "down_offset_detuning",
             FloatParam,
             "Extra detuning for up beam",
-            default=-16000,
+            default=constants.LMT_DOWN_BEAM_RECOIL_SHIFT,
             unit="kHz",
         )
         self.down_offset_detuning: FloatParamHandle
