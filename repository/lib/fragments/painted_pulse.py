@@ -264,7 +264,12 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         coeff_c = 0.5 * (3 * int_k / (2 * mod_depth) - p)
 
         # Ensure that we have a negative curvature in the shape of the trap.
+        logger.warning("a")
         logger.warning(coeff_a)
+        logger.warning("p")
+        logger.warning(p)
+        logger.warning("c")
+        logger.warning(coeff_c)
         assert coeff_a <= 0
 
         return coeff_a, coeff_b, coeff_c
