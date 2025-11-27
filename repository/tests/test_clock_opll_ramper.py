@@ -33,6 +33,9 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
+from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
+    LMTInterferometryMixin,
+)
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
@@ -124,6 +127,26 @@ class TestLaunchFromXODTFrag(
         pass
 
 
+class TestLMTInterferometryFrag(
+    LMTInterferometryMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
+    NormalisedFastKineticsRepumpedMixin,
+    EMGain,
+    FLIRBlueMOTMeasurementMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Test LMT interferometry without launch
+
+    """
+
+
+TestLMTInterferometryExp = make_fragment_scan_exp(TestLMTInterferometryFrag)
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
 TestLaunchFromXODTFExp = make_fragment_scan_exp(
     TestLaunchFromXODTFrag, max_rtio_underflow_retries=0
