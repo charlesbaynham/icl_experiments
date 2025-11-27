@@ -313,25 +313,6 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             )
             / (12 * g**2 - 24 * g + 12)
         )
-        # relation = (
-        #     lambda x: ((t_2 + (g**2 - 2 * g + 1) * k_2) * log(abs((g - 1) * x**2 + 1)))
-        #     / (2 * g**3 - 6 * g**2 + 6 * g - 2)
-        #     + (
-        #         (t_1 + (g**2 - 2 * g + 1) * k_3 + (1 - g) * k_1)
-        #         * log(
-        #             abs((2 * g - 2) * x - 2 * sqrt(1 - g))
-        #             / abs((2 * g - 2) * x + 2 * sqrt(1 - g))
-        #         )
-        #     )
-        #     / (2 * sqrt(1 - g) * (g**2 - 2 * g + 1))
-        #     + (
-        #         (3 * g - 3) * t_2 * x**4
-        #         + (4 * g - 4) * t_1 * x**3
-        #         - 6 * t_2 * x**2
-        #         + ((12 * g - 12) * k_1 - 12 * t_1) * x
-        #     )
-        #     / (12 * g**2 - 24 * g + 12)
-        # )
         t_max = relation(1)
         t_min = relation(-1)
         calc_ts = np.linspace(t_min, t_max, n_half)
