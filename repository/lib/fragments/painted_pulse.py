@@ -173,7 +173,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             description="Integrated time average power",
             default=10,
             min=0.0,
-            max=1e10,
+            max=1e15,
         )
         self.int_k: FloatParamHandle
 
