@@ -12,7 +12,9 @@ from pyaion.fragments.urukul_init import make_urukul_init
 
 from repository.lib.fragments.painted_pulse import (
     DiffractionCompensatedQuadraticShapedPulse,
-    GravityAndDiffractionCompensatedQuadraticShapedPulse
+)
+from repository.lib.fragments.painted_pulse import (
+    GravityAndDiffractionCompensatedQuadraticShapedPulse,
 )
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
@@ -61,6 +63,7 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
         self.core.wait_until_mu(now_mu())
         logger.warning("Hey it's been a minute")
 
+
 class TestGravityAndDiffractionCompensatedQuadraticFrag(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
@@ -77,7 +80,7 @@ class TestGravityAndDiffractionCompensatedQuadraticFrag(ExpFragment):
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
             ad9910_name=PAINTING_URUKUL_CHANNEL,
         )
-        self.painter : GravityAndDiffractionCompensatedQuadraticShapedPulse 
+        self.painter: GravityAndDiffractionCompensatedQuadraticShapedPulse
 
         self.ttl_trigger: TTLOut = self.get_device("ttl_debugging")
 
@@ -97,11 +100,12 @@ class TestGravityAndDiffractionCompensatedQuadraticFrag(ExpFragment):
         logger.warning("Hey I'm starting minute")
         logger.warning("The mu: ", self.painter._step_mu)
 
-        delay(60.0)
+        delay(20.0)
         self.painter.stop_output()
 
         self.core.wait_until_mu(now_mu())
         logger.warning("Hey it's been a minute")
+
 
 TestDiffractionCompensatedQuadratic = make_fragment_scan_exp(
     TestDiffractionCompensatedQuadraticFrag, max_rtio_underflow_retries=0
