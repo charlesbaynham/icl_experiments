@@ -67,6 +67,15 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.spectroscopy_clock_delivery_setpoint: FloatParamHandle
 
         self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=constants.CLOCK_PI_TIME,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
+
+        self.setattr_param(
             "clock_delivery_preempt_time",
             FloatParam,
             "Preempt time before spectroscopy pulse",
@@ -233,14 +242,6 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
         super().build_fragment()
 
         # TODO: Why is spectroscopy_pulse_time defined seperately in ClockInterferometryBase? This should be in ClockSpectroscopyBase
-        self.setattr_param(
-            "spectroscopy_pulse_time",
-            FloatParam,
-            "Length of spectroscopy pulse",
-            default=constants.CLOCK_PI_TIME,
-            unit="us",
-        )
-        self.spectroscopy_pulse_time: FloatParamHandle
 
         self.setattr_param(
             "delay_after_spectroscopy",
