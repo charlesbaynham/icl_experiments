@@ -104,7 +104,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             )
         self.clock_delivery_setter: LibSetSUServoStatic
 
-        self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_up_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
 
         # Ensure the clock beam is set up
         # %% Fragments
@@ -198,9 +198,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         """
         Fire the clock shelving pulse onto the atoms.
         """
-        self.clock_dds.sw.on()
+        self.clock_up_dds.sw.on()
         delay(self.shelving_pulse_time.get())
-        self.clock_dds.sw.off()
+        self.clock_up_dds.sw.off()
 
     @kernel
     def start_clock_frequency_ramp(self):

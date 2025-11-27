@@ -84,8 +84,8 @@ class ClockInterferometryBase(
 
         # Allow negative phases up to -10
         self.phase_constant = 10.0
-        self.clock_dds_frequency_pi_pulse = 0.0
-        self.clock_dds_frequency_final_pi_by_2_pulse = 0.0
+        self.clock_up_dds_frequency_pi_pulse = 0.0
+        self.clock_up_dds_frequency_final_pi_by_2_pulse = 0.0
 
     def host_setup(self):
         super().host_setup()
@@ -151,7 +151,7 @@ class ClockInterferometryBase(
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
             1e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
-        self.clock_dds.set(
+        self.clock_up_dds.set(
             frequency=self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -161,9 +161,9 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_first_pulse_mu)
-        self.clock_dds.sw.on()
+        self.clock_up_dds.sw.on()
         delay(t_pi_pulse / 2)
-        self.clock_dds.sw.off()
+        self.clock_up_dds.sw.off()
         t_end_pi_by_2_mu = now_mu()
         delay_mu(int64(self.core.ref_multiplier))
 
@@ -175,7 +175,7 @@ class ClockInterferometryBase(
             self.delay_between_interferometry_pulses.get()
         )
 
-        self.clock_dds.set(
+        self.clock_up_dds.set(
             frequency=self.calculate_frequency_for_pi_pulse(
                 t_pulse_start_mu=t_start_pi_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -185,16 +185,16 @@ class ClockInterferometryBase(
 
         # PI PULSE
         at_mu(t_start_pi_pulse_mu)
-        self.clock_dds.sw.on()
+        self.clock_up_dds.sw.on()
         delay(t_pi_pulse)
-        self.clock_dds.sw.off()
+        self.clock_up_dds.sw.off()
 
         # Phase step
         t_end_pi_mu = now_mu()
         t_start_final_pulse_mu = t_end_pi_mu + self.core.seconds_to_mu(
             self.delay_between_interferometry_pulses.get()
         )
-        self.clock_dds.set(
+        self.clock_up_dds.set(
             frequency=self.calculate_frequency_for_second_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_final_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -204,9 +204,9 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_final_pulse_mu)
-        self.clock_dds.sw.on()
+        self.clock_up_dds.sw.on()
         delay(t_pi_pulse / 2)
-        self.clock_dds.sw.off()
+        self.clock_up_dds.sw.off()
 
         self.end_interferometry_hook()
 
