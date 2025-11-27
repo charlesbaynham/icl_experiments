@@ -2,9 +2,11 @@ import logging
 from typing import Optional
 
 import numpy as np
-from numpy import log, abs, sqrt
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import abs
+from numpy import log
+from numpy import sqrt
 from scipy.optimize import root_scalar
 
 from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
@@ -125,12 +127,16 @@ class DiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
 
         return return_value
 
+
 class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse):
     """
     A class of pulse that generates a gravity compensated quadratic pulse with diffraction correction.
- 
+
     """
-    def build_fragment(self, automatic_trigger: Optional[bool] = False, *args, **kwargs):
+
+    def build_fragment(
+        self, automatic_trigger: Optional[bool] = False, *args, **kwargs
+    ):
         self.setattr_param(
             "epsilon",
             FloatParam,
@@ -146,57 +152,57 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             FloatParam,
             description="Gradient of gravity compensation",
             default=1,
-            min = 0.0,
-            max = 1,
+            min=0.0,
+            max=1,
         )
-        self.g : FloatParamHandle
+        self.g: FloatParamHandle
 
         self.setattr_param(
             "curve_factor",
             FloatParam,
             description="Curvature of the trap",
             default=1,
-            min = 0.0,
-            max = 1,
+            min=0.0,
+            max=1,
         )
-        self.curve_factor : FloatParamHandle
+        self.curve_factor: FloatParamHandle
 
         self.setattr_param(
             "int_k",
             FloatParam,
             description="Integrated time average power",
             default=10,
-            min = 0.0,
-            max = 1000,
+            min=0.0,
+            max=1000,
         )
-        self.int_k : FloatParamHandle
+        self.int_k: FloatParamHandle
 
         self.setattr_param(
             "cubic_correction",
             FloatParam,
             description="Cubic correction term",
             default=0,
-            min = -1.0,
-            max = 1,
+            min=-1.0,
+            max=1,
         )
-        self.cubic_correction : FloatParamHandle
-        
+        self.cubic_correction: FloatParamHandle
+
         self.setattr_param(
             "quartic_correction",
             FloatParam,
             description="Quartic correction term",
             default=0,
-            min = -1.0,
-            max = 1,
+            min=-1.0,
+            max=1,
         )
-        self.quartic_correction : FloatParamHandle
+        self.quartic_correction: FloatParamHandle
 
         self.setattr_param(
             "mod_depth",
             FloatParam,
             description="Modulation depth of the scan",
-            default=1e3,
-            unit="kHz",
+            default=1e6,
+            unit="MHz",
             min=1.0,
             max=200e6,
         )
@@ -238,11 +244,11 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         self.prepare_pulse()
 
         if self.automatic_trigger is True:
-           self.start_output() 
+            self.start_output()
 
     def transform_coeffs(self):
         """
-        This method transforms the physics parameters into qudratic coefficients  
+        This method transforms the physics parameters into qudratic coefficients
         """
 
         grad = self.g.get()
@@ -250,8 +256,10 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         int_k = self.int_k.get()
         curvature = self.curve_factor.get()
 
-        p = (grad * mod_depth - int_k / (2 * mod_depth)) * curvature + int_k / (2 * mod_depth)
-        coeff_a = 3 / (2 * mod_depth**2) * (p - int_k / (2 * mod_depth)) 
+        p = (grad * mod_depth - int_k / (2 * mod_depth)) * curvature + int_k / (
+            2 * mod_depth
+        )
+        coeff_a = 3 / (2 * mod_depth**2) * (p - int_k / (2 * mod_depth))
         coeff_b = grad
         coeff_c = 0.5 * (3 * int_k / (2 * mod_depth) - p)
 
@@ -259,8 +267,6 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         assert coeff_a < 0
 
         return coeff_a, coeff_b, coeff_c
-
-        
 
     def generate_frequencies(self, n_words) -> np.ndarray:
         """
@@ -280,11 +286,27 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         # Generate a numpy array of the correct size
         n_half = n_words // 2
 
-
         # You might be thinking: What is this diabolical equation!?
-        # The answer is the indefinite integral of the diffraction compensated quadratic pulse solved using maxima. 
-        relation = lambda x : ((t_2+(g**2-2*g+1)*k_2)*log(abs((g-1)*x**2+1)))/(2*g**3-6*g**2+6*g-2)+((t_1+(g**2-2*g+1)*k_3+(1-g)*k_1)*log(abs((2*g-2)*x-2*sqrt(1-g))/abs((2*g-2)*x+2*sqrt(1-g))))/(2*sqrt(1-g)*(g**2-2*g+1))+((3*g-3)*t_2*x**4+(4*g-4)*t_1*x**3-6*t_2*x**2+((12*g-12)*k_1-12*t_1)*x)/(12*g**2-24*g+12)
-
+        # The answer is the indefinite integral of the diffraction compensated quadratic pulse solved using maxima.
+        relation = (
+            lambda x: ((t_2 + (g**2 - 2 * g + 1) * k_2) * log(abs((g - 1) * x**2 + 1)))
+            / (2 * g**3 - 6 * g**2 + 6 * g - 2)
+            + (
+                (t_1 + (g**2 - 2 * g + 1) * k_3 + (1 - g) * k_1)
+                * log(
+                    abs((2 * g - 2) * x - 2 * sqrt(1 - g))
+                    / abs((2 * g - 2) * x + 2 * sqrt(1 - g))
+                )
+            )
+            / (2 * sqrt(1 - g) * (g**2 - 2 * g + 1))
+            + (
+                (3 * g - 3) * t_2 * x**4
+                + (4 * g - 4) * t_1 * x**3
+                - 6 * t_2 * x**2
+                + ((12 * g - 12) * k_1 - 12 * t_1) * x
+            )
+            / (12 * g**2 - 24 * g + 12)
+        )
 
         # This is a bit of a hack, we want to find the maximum value of t, so we can rearrange the above equation for t and f = 1.
         # This expression is essentially the same but without the t component!
@@ -294,7 +316,9 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         roots = np.array(
             list(
                 map(
-                    lambda t: root_scalar(lambda x : relation(x) - t, method="newton", x0=0).root,
+                    lambda t: root_scalar(
+                        lambda x: relation(x) - t, method="newton", x0=0
+                    ).root,
                     calc_ts,
                 )
             )
