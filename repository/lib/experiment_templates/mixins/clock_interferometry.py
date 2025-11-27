@@ -19,7 +19,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 )
 from repository.lib.fragments.stark_shifter import StarkShifter
 
-CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_UP_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 
@@ -96,10 +96,10 @@ class ClockInterferometryBase(
         # because the fragment can't detect that it's an AD9910 because ARTIQ
         # passes it a DummyDevice. Is this a bug? Yes.
         self.clock_switch_frequency_handle: FloatParamHandle = getattr(
-            self.clock_default_setter, f"frequency_{CLOCK_BEAM_INFO.name}"
+            self.clock_default_setter, f"frequency_{CLOCK_UP_BEAM_INFO.name}"
         )
         self.clock_switch_amplitude_handle: FloatParamHandle = getattr(
-            self.clock_default_setter, f"amplitude_{CLOCK_BEAM_INFO.name}"
+            self.clock_default_setter, f"amplitude_{CLOCK_UP_BEAM_INFO.name}"
         )
 
     @kernel

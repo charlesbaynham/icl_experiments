@@ -27,7 +27,7 @@ from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import
     GlitchFreeUrukulDefaultAttenuation,
 )
 
-CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 
@@ -83,7 +83,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             )
         self.clock_delivery_setter: LibSetSUServoStatic
 
-        self.clock_up_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_up_dds: AD9910 = self.get_device(CLOCK_UP_BEAM_INFO.urukul_device)
         self.clock_down_dds: AD9910 = self.get_device(
             CLOCK_DOWN_BEAM_INFO.urukul_device
         )
@@ -108,7 +108,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
                         CLOCK_BEAM_DELIVERY_INFO,
                     ],
                     urukul_beam_infos=[
-                        CLOCK_BEAM_INFO,
+                        CLOCK_UP_BEAM_INFO,
                     ],
                     use_automatic_setup=True,
                     use_automatic_turnon=False,

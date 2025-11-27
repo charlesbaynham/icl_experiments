@@ -24,7 +24,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
-CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
             )
         self.clock_delivery_setter: LibSetSUServoStatic
 
-        self.clock_up_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_up_dds: AD9910 = self.get_device(CLOCK_UP_BEAM_INFO.urukul_device)
 
         # Ensure the clock beam is set up
         # %% Fragments
@@ -118,7 +118,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
                         CLOCK_BEAM_DELIVERY_INFO,
                     ],
                     urukul_beam_infos=[
-                        CLOCK_BEAM_INFO,
+                        CLOCK_UP_BEAM_INFO,
                     ],
                     use_automatic_setup=True,
                     use_automatic_turnon=False,
