@@ -314,8 +314,8 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         #     )
         #     / (12 * g**2 - 24 * g + 12)
         # )
-        t_max = relation(-1)
-        t_min = relation(1)
+        t_max = relation(1)
+        t_min = relation(-1)
         calc_ts = np.linspace(-t_min, t_max, n_half)
         roots = np.array(
             list(
