@@ -264,6 +264,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         coeff_c = 0.5 * (3 * int_k / (2 * mod_depth) - p)
 
         # Ensure that we have a negative curvature in the shape of the trap.
+        logger.warning(coeff_a)
         assert coeff_a <= 0
 
         return coeff_a, coeff_b, coeff_c
@@ -307,9 +308,6 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             )
             / (12 * g**2 - 24 * g + 12)
         )
-
-        # This is a bit of a hack, we want to find the maximum value of t, so we can rearrange the above equation for t and f = 1.
-        # This expression is essentially the same but without the t component!
         t_max = relation(-1)
         t_min = relation(1)
         calc_ts = np.linspace(-t_min, t_max, n_half)
