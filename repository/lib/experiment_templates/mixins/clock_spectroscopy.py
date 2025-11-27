@@ -241,8 +241,6 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
     def build_fragment(self):
         super().build_fragment()
 
-        # TODO: Why is spectroscopy_pulse_time defined seperately in ClockInterferometryBase? This should be in ClockSpectroscopyBase
-
         self.setattr_param(
             "delay_after_spectroscopy",
             FloatParam,
