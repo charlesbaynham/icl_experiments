@@ -63,6 +63,15 @@ class LMTBase(RedMOTWithExperiment, ClockSpectroscopyBase):
         self.shelving_pulse_clearout_duration: FloatParamHandle
 
         self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Duration of an up beam launch pulse",
+            default=constants.CLOCK_PI_TIME,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
+
+        self.setattr_param(
             "down_pulses_duration",
             FloatParam,
             "Duration of a down beam launch pulse",
