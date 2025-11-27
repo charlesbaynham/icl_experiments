@@ -270,6 +270,10 @@ class LMTInterferometryMixin(
         self.lower_mirror_offset_detuning: FloatParamHandle
 
     @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        self.do_clock_interferometry()
+
+    @kernel
     def do_clock_interferometry(self):
 
         N = self.lmt_pulses_number.get()
