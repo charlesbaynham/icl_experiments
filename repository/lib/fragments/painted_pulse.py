@@ -173,7 +173,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             description="Integrated time average power",
             default=10,
             min=0.0,
-            max=1e15,
+            max=1e6,
         )
         self.int_k: FloatParamHandle
 
@@ -253,7 +253,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
 
         grad = self.g.get()
         mod_depth = self.mod_depth.get()
-        int_k = self.int_k.get()
+        int_k = self.int_k.get() * mod_depth
         curvature = self.curve_factor.get()
 
         p = (grad * mod_depth - int_k / (2 * mod_depth)) * curvature + int_k / (
