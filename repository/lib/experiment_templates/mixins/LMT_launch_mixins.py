@@ -1,20 +1,14 @@
 import logging
 
-from artiq.coredevice.ad9910 import AD9910
-from numpy import int64
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
-from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -22,16 +16,13 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
-    GlitchFreeUrukulDefaultAttenuation,
-)
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -84,31 +75,6 @@ class LMTBase(
         )
         self.down_pulses_duration: FloatParamHandle
 
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
-
-
-class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
-    """
-    Implements LMT launch after the dipole trap
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~launch_hook`
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "lmt_launch_pulses_number",
-            IntParam,
-            "Number of pulses for LMT launch",
-            default=10,
-        )
-        self.lmt_launch_pulses_number: IntParamHandle
-
         self.setattr_param(
             "momentum_kick",
             FloatParam,
@@ -119,15 +85,6 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         self.momentum_kick: FloatParamHandle
 
         self.setattr_param(
-            "lmt_offset_detuning",
-            FloatParam,
-            "LMT offset detuning",
-            default=constants.LMT_OFFSET_DETUNING,
-            unit="kHz",
-        )
-        self.lmt_offset_detuning: FloatParamHandle
-
-        self.setattr_param(
             "down_offset_detuning",
             FloatParam,
             "Extra detuning for up beam",
@@ -136,13 +93,9 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         )
         self.down_offset_detuning: FloatParamHandle
 
-    @kernel
-    def launch_hook(self):
-        self.prepare_clock_delivery_aom()
-        delay_mu(16)
-        start_detuning = self.lmt_offset_detuning.get()
-        lmt_number = self.lmt_launch_pulses_number.get()
-        self.lmt_series(start_detuning, lmt_number)
+        if not hasattr(self, "clock_opll"):
+            self.setattr_fragment("clock_opll", ClockOPLLController)
+            self.clock_opll: ClockOPLLController
 
     @kernel
     def lmt_series(self, offset_det, N):
@@ -224,8 +177,46 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         delay(25e-6)
 
 
+class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
+    """
+    Implements LMT launch after the dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~launch_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "lmt_launch_pulses_number",
+            IntParam,
+            "Number of pulses for LMT launch",
+            default=10,
+        )
+        self.lmt_launch_pulses_number: IntParamHandle
+
+        self.setattr_param(
+            "lmt_lauch_offset_detuning",
+            FloatParam,
+            "LMT offset detuning",
+            default=constants.LMT_OFFSET_DETUNING,
+            unit="kHz",
+        )
+        self.lmt_launch_offset_detuning: FloatParamHandle
+
+    @kernel
+    def launch_hook(self):
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
+        start_detuning = self.lmt_launch_offset_detuning.get()
+        lmt_number = self.lmt_launch_pulses_number.get()
+        self.lmt_series(start_detuning, lmt_number)
+
+
 class LMTInterferometryMixin(
-    LMTLaunchMixin, ClockInterferometryBase, DipoleTrapWithExperiment
+    LMTBase, ClockInterferometryBase, DipoleTrapWithExperiment
 ):
     """
     Implements LMT interferometry after the launch
