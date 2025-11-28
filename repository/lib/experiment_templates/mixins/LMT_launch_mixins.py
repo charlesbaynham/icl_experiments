@@ -60,7 +60,7 @@ class LMTBase(
             self.setattr_param(
                 "spectroscopy_pulse_time",
                 FloatParam,
-                "Duration of an up beam launch pulse",
+                "Duration of an up beam pulse",
                 default=constants.CLOCK_PI_TIME,
                 unit="us",
             )
@@ -69,7 +69,7 @@ class LMTBase(
         self.setattr_param(
             "down_pulses_duration",
             FloatParam,
-            "Duration of a down beam launch pulse",
+            "Duration of a down beam pulse",
             default=constants.DOWN_CLOCK_BEAM_PI_TIME,
             unit="us",
         )
