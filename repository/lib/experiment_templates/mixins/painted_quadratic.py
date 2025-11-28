@@ -10,7 +10,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.fragments.painted_pulse import (
-    DiffractionCompensatedQuadraticShapedPulse,
+    GravityAndDiffractionCompensatedQuadraticShapedPulse
 )
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
@@ -38,13 +38,11 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
 
         self.setattr_fragment(
             "painter_driver",
-            DiffractionCompensatedQuadraticShapedPulse,
+            GravityAndDiffractionCompensatedQuadraticShapedPulse,
             ad9910_name=PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
         )
 
-        # Do we need to do the following line? Should be triggered in device setup...
-        self.painter_driver: DiffractionCompensatedQuadraticShapedPulse
         self.matterwave_collimation_time: FloatParamHandle
 
     @kernel
