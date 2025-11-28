@@ -273,6 +273,8 @@ class LMTInterferometryMixin(
 
         N = self.lmt_pulses_number.get()
         bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
+        upper_mirror_offset = self.upper_mirror_offset_detuning.get()
+        lower_mirror_offset = self.lower_mirror_offset_detuning.get()
         t_pi_up = self.spectroscopy_pulse_time.get()
 
         self.prepare_clock_delivery_aom()
@@ -284,7 +286,7 @@ class LMTInterferometryMixin(
         delay(t_pi_up / 2)
         self.clock_up_dds.sw.off()
         t_end_pi_by_2_mu = now_mu()
-        delay_mu(25e-6)
+        delay(25e-6)
 
         # LMT sequence on upper arm
         self.lmt_series(bs1_lmt_offset, (N - 1))
@@ -296,22 +298,22 @@ class LMTInterferometryMixin(
 
         # Mirror pulse upper arm
         at_mu(t_start_upper_mirror_mu)
-        self.lmt_series(self.upper_mirror_offset_detuning, N)
+        self.lmt_series(upper_mirror_offset, N)
 
-        # Mirror pulse lower arm
-        self.lmt_series(self.lower_mirror_offset_detuning, N)
+        # # Mirror pulse lower arm
+        # self.lmt_series(lower_mirror_offset, N)
 
-        # Phase step
-        t_end_pi_mu = now_mu()
-        t_start_final_bs_mu = t_end_pi_mu + self.core.seconds_to_mu(
-            self.delay_between_interferometry_pulses.get()
-        )
+        # # Phase step
+        # t_end_pi_mu = now_mu()
+        # t_start_final_bs_mu = t_end_pi_mu + self.core.seconds_to_mu(
+        #     self.delay_between_interferometry_pulses.get()
+        # )
 
-        # PI/2 PULSE
-        at_mu(t_start_final_bs_mu)
-        self.clock_up_dds.sw.on()
-        delay(t_pi_up / 2)
-        self.clock_up_dds.sw.off()
+        # # PI/2 PULSE
+        # at_mu(t_start_final_bs_mu)
+        # self.clock_up_dds.sw.on()
+        # delay(t_pi_up / 2)
+        # self.clock_up_dds.sw.off()
 
-        # LMT sequence on lower arm
-        self.lmt_series(bs1_lmt_offset, (N - 1))
+        # # LMT sequence on lower arm
+        # self.lmt_series(bs1_lmt_offset, (N - 1))
