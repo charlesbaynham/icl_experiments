@@ -44,7 +44,10 @@ start_opll_offset = 80e6
 logger = logging.getLogger(__name__)
 
 
-class LMTBase(RedMOTWithExperiment, ClockSpectroscopyBase):
+class LMTBase(
+    ClockSpectroscopyBase,
+    RedMOTWithExperiment,
+):
     """
     Base for succession of clock pulses with up and down beams
 
