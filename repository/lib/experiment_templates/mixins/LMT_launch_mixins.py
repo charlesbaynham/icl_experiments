@@ -141,7 +141,7 @@ class LMTBase(
 
     # use if we start in the ground state
     @kernel
-    def lmt_series_start_up(self, offset_det, N):
+    def lmt_series_start_up(self, offset_det, offset_down_beam, N):
         kick = self.momentum_kick.get()
         total_ramp_time = 0.0
 
@@ -153,7 +153,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
             else:
-                down_offset = self.down_offset_detuning.get()
+                down_offset = offset_down_beam
                 pulse_type = "down"
 
             f_i = (
@@ -313,6 +313,7 @@ class LMTInterferometryMixin(
         delay_mu(16)
 
         N = self.lmt_pulses_number.get()
+        down_offset = self.down_offset_detuning.get()
         bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         lower_mirror_offset = self.lower_mirror_offset_detuning.get()
@@ -327,21 +328,13 @@ class LMTInterferometryMixin(
         t_end_pi_by_2_mu = now_mu()
 
         # LMT sequence on upper arm, starting on the ground state
-        self.lmt_series_start_up(bs1_lmt_offset, (N - 1))
+        self.lmt_series_start_up(bs1_lmt_offset, -70e3, (N - 1))
 
-        # stop the ramp
-        # self.clock_opll.clock_frequency_ramper.stop_ramp()
-        # # set the offset frequency
-        # self.clock_opll.clock_OPLL_offset.set(start_opll_offset)
-
-        # # Phase step
-        # t_start_upper_mirror_mu = t_end_pi_by_2_mu + self.core.seconds_to_mu(
-        #     self.delay_between_interferometry_pulses.get()
-        # )
+        # Phase step
+        delay(self.delay_between_interferometry_pulses.get())
 
         # # Mirror pulse upper arm
-        # at_mu(t_start_upper_mirror_mu)
-        # self.lmt_series_start_up(upper_mirror_offset, 0)  # N)
+        self.lmt_series_start_up(upper_mirror_offset, down_offset, 2)  # N)
 
         # # Mirror pulse lower arm
         # self.lmt_series(lower_mirror_offset, N)
