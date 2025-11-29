@@ -179,6 +179,44 @@ class LMTBase(
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
+    def lmt_series_start_up_launch_down(self, offset_det, offset_down_beam, N):
+        kick = self.momentum_kick.get()
+        total_ramp_time = 0.0
+
+        t_start_ramp = now_mu()
+        for i in range(N):
+
+            # start with up pulse
+            if i % 2 == 0:
+                down_offset = 0.0
+                pulse_type = "up"
+            else:
+                down_offset = offset_down_beam
+                pulse_type = "down"
+
+            f_i = (
+                start_opll_offset
+                + (-1) ** (i) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i) * kick
+                + (-1) ** (i + 1) * (offset_det + down_offset)
+            )
+
+            # fire the pulse
+            self.fire_lmt_pulse(f_i, pulse_type)
+
+            # Clear out the ground state
+            # if pulse_type == "down":
+            #     self.fluorescence_pulse.do_imaging_pulse(
+            #         duration=self.clearout_duration.get(),
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
+
+            delay(100e-6)
+            t_end_pulse = now_mu()
+            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
+
+    @kernel
     def fire_lmt_pulse(self, start_freq, type):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
@@ -334,7 +372,7 @@ class LMTInterferometryMixin(
         delay(self.delay_between_interferometry_pulses.get())
 
         # # Mirror pulse upper arm
-        self.lmt_series_start_up(upper_mirror_offset, down_offset, 2)  # N)
+        self.lmt_series_start_up_launch_down(upper_mirror_offset, down_offset, 2)  # N)
 
         # # Mirror pulse lower arm
         # self.lmt_series(lower_mirror_offset, N)
