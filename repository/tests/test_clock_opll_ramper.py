@@ -159,7 +159,9 @@ class TestLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_shelving()
 
 
-TestLMTInterferometryExp = make_fragment_scan_exp(TestLMTInterferometryFrag)
+TestLMTInterferometryExp = make_fragment_scan_exp(
+    TestLMTInterferometryFrag, max_rtio_underflow_retries=0
+)
 TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
 TestLaunchFromXODTFExp = make_fragment_scan_exp(
     TestLaunchFromXODTFrag, max_rtio_underflow_retries=0
