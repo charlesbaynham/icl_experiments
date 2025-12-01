@@ -23,6 +23,3 @@ class TestCavityRelockingFrag(
     def do_experiment_after_red_mot_hook(self):
         # No spectroscopy needed - just do nothing and move straight to imaging
         pass
-
-
-TestCavityRelocking = make_fragment_scan_exp(TestCavityRelockingFrag)

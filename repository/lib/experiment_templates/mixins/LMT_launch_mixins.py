@@ -1,19 +1,14 @@
 import logging
 
-from artiq.coredevice.ad9910 import AD9910
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
-from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import make_set_beams_to_default
-from pyaion.fragments.suservo import LibSetSUServoStatic
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -21,10 +16,13 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
-    GlitchFreeUrukulDefaultAttenuation,
+from repository.lib.experiment_templates.mixins.clock_interferometry import (
+    ClockInterferometryBase,
 )
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
+from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -33,213 +31,46 @@ CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_deliv
 
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 start_opll_offset = 80e6
-hbar_k = 6000.0  # 1.05457182e-34 * 2 * np.pi * constants._default_698 / 3e8
 
 logger = logging.getLogger(__name__)
 
 
-class LMTLaunchBase(RedMOTWithExperiment):
+class LMTBase(
+    ClockSpectroscopyBase,
+    RedMOTWithExperiment,
+):
     """
-    Implements LMT launch after the dipole trap
+    Base for succession of clock pulses with up and down beams
 
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_experiment_after_dipole_trap_hook`
     """
 
     def build_fragment(self):
         super().build_fragment()
-
-        self.setattr_param(
-            "lmt_pulse_aom_detuning",
-            FloatParam,
-            "Frequency detuning of delivery AOM during clock lmt pulse",
-            default=-32e3,
-            unit="kHz",
-        )
-        self.lmt_pulse_aom_detuning: FloatParamHandle
-
-        self.setattr_param(
-            "spectroscopy_clock_delivery_setpoint",
-            FloatParam,
-            "Setpoint for clock delivery AOM",
-            default=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            min=0.0,
-            unit="V",
-        )
-        self.spectroscopy_clock_delivery_setpoint: FloatParamHandle
-
-        self.setattr_param(
-            "clock_delivery_preempt_time",
-            FloatParam,
-            "Preempt time before LMT pulses",
-            default=constants.CLOCK_DELIVERY_PREEMPT_TIME,
-            unit="us",
-        )
-        self.clock_delivery_preempt_time: FloatParamHandle
 
         self.setattr_param(
             "clearout_duration",
             FloatParam,
             "Duration of 461 clearout pulse after LMT pulse",
-            default=500e-6,
+            default=constants.LMT_PULSE_CLEAROUT_DURATION,
             unit="us",
         )
         self.shelving_pulse_clearout_duration: FloatParamHandle
 
-        if not hasattr(self, "clock_delivery_setter"):
-            self.setattr_fragment(
-                "clock_delivery_setter",
-                LibSetSUServoStatic,
-                channel=CLOCK_BEAM_DELIVERY_INFO.suservo_device,
+        if not hasattr(self, "spectroscopy_pulse_time"):
+            self.setattr_param(
+                "spectroscopy_pulse_time",
+                FloatParam,
+                "Duration of an up beam pulse",
+                default=constants.CLOCK_PI_TIME,
+                unit="us",
             )
-        self.clock_delivery_setter: LibSetSUServoStatic
-
-        self.clock_up_dds: AD9910 = self.get_device(CLOCK_UP_BEAM_INFO.urukul_device)
-        self.clock_down_dds: AD9910 = self.get_device(
-            CLOCK_DOWN_BEAM_INFO.urukul_device
-        )
-
-        # Init of the clock OPLL without glitching
-        self.setattr_fragment(
-            "GlitchFreeUrukulClock",
-            GlitchFreeUrukulDefaultAttenuation,
-            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
-            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
-        )
-
-        # %% Fragments
-        if not hasattr(self, "clock_default_setter"):
-            # Create the default setter for the clock beam
-            # if it has not already been created
-            self.setattr_fragment(
-                "clock_default_setter",
-                make_set_beams_to_default(
-                    suservo_beam_infos=[
-                        CLOCK_BEAM_DELIVERY_INFO,
-                    ],
-                    urukul_beam_infos=[
-                        CLOCK_UP_BEAM_INFO,
-                    ],
-                    use_automatic_setup=True,
-                    use_automatic_turnon=False,
-                ),
-            )
-            self.clock_default_setter: SetBeamsToDefaults
-
-            self.clock_delivery_handles = (
-                self.clock_default_setter.get_setpoints_beaminfo_setters()[
-                    CLOCK_BEAM_DELIVERY_INFO.name
-                ][1]
-            )
-            self.kernel_invariants.add("clock_delivery_handles")
-
-        # Bind the default setter's setpoint to this fragment's parameters, for
-        # ease of use
-        self.clock_default_setter.bind_param(
-            self.clock_delivery_handles.setpoint_handle.name,
-            self.spectroscopy_clock_delivery_setpoint,
-        )
-
-        # Turn the clock delivery AOM on at the start of each shot. This might
-        # get overridden by e.g. slicing so we must do it again, but we want the
-        # duty cycle to be 100% so the AOM settles
-        class TurnOnClockDeliveryAOM(Fragment):
-            def build_fragment(self, parent_frag: "LMTLaunchMixin"):
-                self.parent = parent_frag
-
-            @kernel
-            def device_setup(self):
-                self.device_setup_subfragments()
-
-                self.parent.core.break_realtime()
-                delay(self.parent.clock_delivery_preempt_time.get())
-
-                self.parent.prepare_clock_delivery_aom()
-
-        self.setattr_fragment(
-            "turn_on_clock_delivery_aom", TurnOnClockDeliveryAOM, self
-        )
-
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
-
-        # separate fragment because up beam alone is created in other mixins
-        self.setattr_fragment(
-            "clock_down_default_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=[],
-                urukul_beam_infos=[
-                    CLOCK_DOWN_BEAM_INFO,
-                ],
-                use_automatic_setup=True,
-                use_automatic_turnon=False,
-            ),
-        )
-        self.clock_down_default_setter: SetBeamsToDefaults
-
-    def get_always_shown_params(self):
-        # Expose the clock base frequency for convenience
-        param_handles = super().get_always_shown_params()
-        if self.clock_delivery_handles.frequency_handle not in param_handles:
-            param_handles.append(self.clock_delivery_handles.frequency_handle)
-        return param_handles
-
-    @kernel
-    def prepare_clock_delivery_aom(self):
-        """
-        Ensure's the clock delivery AOM is on, configured and settled. Does not
-        advance the timeline and *does* write into the past.
-        """
-        _t_start = now_mu()
-        delay(-self.clock_delivery_preempt_time.get())
-        self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get()
-            + self.lmt_pulse_aom_detuning.get(),
-            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
-            enable_iir=True,
-        )
-        at_mu(_t_start)
-
-
-class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
-    """
-    Implements LMT launch after the dipole trap
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_experiment_after_dipole_trap_hook`
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "lmt_pulses_number",
-            IntParam,
-            "Number of pulses for LMT launch",
-            default=10,
-        )
-        self.lmt_pulses_number: IntParamHandle
-
-        self.setattr_param(
-            "up_pulses_duration",
-            FloatParam,
-            "Duration of an up beam launch pulse",
-            default=44e-6,
-            unit="us",
-        )
-        self.up_pulses_duration: FloatParamHandle
+            self.spectroscopy_pulse_time: FloatParamHandle
 
         self.setattr_param(
             "down_pulses_duration",
             FloatParam,
-            "Duration of a down beam launch pulse",
-            default=36e-6,
+            "Duration of a down beam pulse",
+            default=constants.DOWN_CLOCK_BEAM_PI_TIME,
             unit="us",
         )
         self.down_pulses_duration: FloatParamHandle
@@ -248,94 +79,33 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             "momentum_kick",
             FloatParam,
             "Momentum kick",
-            default=9402,
+            default=constants.MOMENTUM_KICK_DETUNING,
             unit="kHz",
         )
         self.momentum_kick: FloatParamHandle
 
         self.setattr_param(
-            "lmt_offset_detuning",
-            FloatParam,
-            "LMT offset detuning",
-            default=-16000,
-            unit="kHz",
-        )
-        self.lmt_offset_detuning: FloatParamHandle
-
-        self.setattr_param(
             "down_offset_detuning",
             FloatParam,
             "Extra detuning for up beam",
-            default=-16000,
+            default=constants.LMT_DOWN_BEAM_RECOIL_SHIFT,
             unit="kHz",
         )
         self.down_offset_detuning: FloatParamHandle
 
-        # temporary for sorting out frequencies
-        # self.setattr_param(
-        #     "detuning_pulse_1",
-        #     FloatParam,
-        #     "Detuning 1st pulse (down)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_1: FloatParamHandle
+        if not hasattr(self, "clock_opll"):
+            self.setattr_fragment("clock_opll", ClockOPLLController)
+            self.clock_opll: ClockOPLLController
 
-        # self.setattr_param(
-        #     "detuning_pulse_2",
-        #     FloatParam,
-        #     "Detuning 2nd pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_2: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_3",
-        #     FloatParam,
-        #     "Detuning 3rd pulse (down)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_3: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_4",
-        #     FloatParam,
-        #     "Detuning 4rd pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_4: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_5",
-        #     FloatParam,
-        #     "Detuning 5th pulse (down)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_5: FloatParamHandle
-
-        # self.setattr_param(
-        #     "detuning_pulse_6",
-        #     FloatParam,
-        #     "Detuning 6th pulse (up)",
-        #     default=0.0,
-        #     unit="kHz",
-        # )
-        # self.detuning_pulse_6: FloatParamHandle
-
+    # use if we start in the excited state
     @kernel
-    def do_experiment_after_dipole_trap_hook(self):
-        self.prepare_clock_delivery_aom()
-        delay_mu(16)
+    def lmt_series(self, offset_det, N):
+
         kick = self.momentum_kick.get()
-        offset_det = self.lmt_offset_detuning.get()
         total_ramp_time = 0.0
 
         t_start_ramp = now_mu()
-        for i in range(self.lmt_pulses_number.get()):
+        for i in range(N):
 
             if i % 2 == 0:
                 down_offset = 0.0
@@ -369,13 +139,89 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
+    # use if we start in the ground state
+    @kernel
+    def lmt_series_start_up(self, offset_det, offset_down_beam, N):
+        kick = self.momentum_kick.get()
+        total_ramp_time = 0.0
+
+        t_start_ramp = now_mu()
+        for i in range(N):
+
+            # start with up pulse
+            if i % 2 == 0:
+                down_offset = 0.0
+                pulse_type = "up"
+            else:
+                down_offset = offset_down_beam
+                pulse_type = "down"
+
+            f_i = (
+                start_opll_offset
+                + (-1) ** (i) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i + 1) * kick
+                + (-1) ** (i + 1) * (offset_det + down_offset)
+            )
+
+            # fire the pulse
+            self.fire_lmt_pulse(f_i, pulse_type)
+
+            # Clear out the ground state
+            # if pulse_type == "down":
+            #     self.fluorescence_pulse.do_imaging_pulse(
+            #         duration=self.clearout_duration.get(),
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
+
+            delay(100e-6)
+            t_end_pulse = now_mu()
+            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
+
+    @kernel
+    def lmt_series_start_up_launch_down(self, offset_det, offset_down_beam, N):
+        kick = self.momentum_kick.get()
+        total_ramp_time = 0.0
+
+        t_start_ramp = now_mu()
+        for i in range(N):
+
+            # start with up pulse
+            if i % 2 == 0:
+                down_offset = 0.0
+                pulse_type = "up"
+            else:
+                down_offset = offset_down_beam
+                pulse_type = "down"
+
+            f_i = (
+                start_opll_offset
+                + (-1) ** (i) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i) * kick
+                + (-1) ** (i + 1) * (offset_det + down_offset)
+            )
+
+            # fire the pulse
+            self.fire_lmt_pulse(f_i, pulse_type)
+
+            # Clear out the ground state
+            # if pulse_type == "down":
+            #     self.fluorescence_pulse.do_imaging_pulse(
+            #         duration=self.clearout_duration.get(),
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
+
+            delay(100e-6)
+            t_end_pulse = now_mu()
+            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
+
     @kernel
     def fire_lmt_pulse(self, start_freq, type):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
-        delay(8e-9)
 
         if type == "down":
             # ramp the offset downwards
@@ -403,6 +249,145 @@ class LMTLaunchMixin(LMTLaunchBase, DipoleTrapWithExperiment):
 
             # pulse the up beam
             self.clock_up_dds.sw.on()
-            delay(self.up_pulses_duration.get())
+            delay(self.spectroscopy_pulse_time.get())
             self.clock_up_dds.sw.off()
         delay(25e-6)
+
+
+class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
+    """
+    Implements LMT launch after the dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~launch_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "lmt_launch_pulses_number",
+            IntParam,
+            "Number of pulses for LMT launch",
+            default=10,
+        )
+        self.lmt_launch_pulses_number: IntParamHandle
+
+        self.setattr_param(
+            "lmt_lauch_offset_detuning",
+            FloatParam,
+            "LMT offset detuning",
+            default=constants.LMT_OFFSET_DETUNING,
+            unit="kHz",
+        )
+        self.lmt_launch_offset_detuning: FloatParamHandle
+
+    @kernel
+    def launch_hook(self):
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
+        start_detuning = self.lmt_launch_offset_detuning.get()
+        lmt_number = self.lmt_launch_pulses_number.get()
+        self.lmt_series(start_detuning, lmt_number)
+
+
+class LMTInterferometryMixin(
+    LMTBase, ClockInterferometryBase, DipoleTrapWithExperiment
+):
+    """
+    Implements LMT interferometry after the launch
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_experiment_after_dipole_trap`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "lmt_pulses_number",
+            IntParam,
+            "Number of pulses for LMT interferometry",
+            default=10,
+        )
+        self.lmt_pulses_number: IntParamHandle
+
+        self.setattr_param(
+            "bs1_lmt_offset_detuning",
+            FloatParam,
+            "LMT detuning after 1st BS",
+            default=0.0,
+            unit="kHz",
+        )
+        self.bs1_lmt_offset_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "upper_mirror_offset_detuning",
+            FloatParam,
+            "LMT detuning for upper arm mirror",
+            default=0.0,
+            unit="kHz",
+        )
+        self.upper_mirror_offset_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "lower_mirror_offset_detuning",
+            FloatParam,
+            "LMT detuning for lower arm mirror",
+            default=0.0,
+            unit="kHz",
+        )
+        self.lower_mirror_offset_detuning: FloatParamHandle
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        self.do_clock_interferometry()
+
+    @kernel
+    def do_clock_interferometry(self):
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
+
+        N = self.lmt_pulses_number.get()
+        down_offset = self.down_offset_detuning.get()
+        bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
+        upper_mirror_offset = self.upper_mirror_offset_detuning.get()
+        lower_mirror_offset = self.lower_mirror_offset_detuning.get()
+        t_pi_up = self.spectroscopy_pulse_time.get()
+
+        t_start_first_pulse_mu = now_mu()
+        # PI/2 PULSE UP BEAM
+        at_mu(t_start_first_pulse_mu)
+        self.clock_up_dds.sw.on()
+        delay(t_pi_up / 2)  # FIXME should be t_pi_up / 2
+        self.clock_up_dds.sw.off()
+        t_end_pi_by_2_mu = now_mu()
+
+        # LMT sequence on upper arm, starting on the ground state
+        self.lmt_series_start_up(bs1_lmt_offset, -70e3, (N - 1))
+
+        # Phase step
+        delay(self.delay_between_interferometry_pulses.get())
+
+        # # Mirror pulse upper arm
+        self.lmt_series_start_up_launch_down(upper_mirror_offset, down_offset, N)
+
+        # Mirror pulse lower arm
+        self.lmt_series(lower_mirror_offset, 1)  # N)
+
+        # # Phase step
+        # t_end_pi_mu = now_mu()
+        # t_start_final_bs_mu = t_end_pi_mu + self.core.seconds_to_mu(
+        #     self.delay_between_interferometry_pulses.get()
+        # )
+
+        # # PI/2 PULSE
+        # at_mu(t_start_final_bs_mu)
+        # self.clock_up_dds.sw.on()
+        # delay(t_pi_up / 2)
+        # self.clock_up_dds.sw.off()
+
+        # # LMT sequence on lower arm
+        # self.lmt_series(bs1_lmt_offset, (N - 1))

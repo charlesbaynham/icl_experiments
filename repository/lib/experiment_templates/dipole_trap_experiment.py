@@ -97,12 +97,20 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.setattr_param(
             "dipole_pre_experiment_delay",
             FloatParam,
-            "Time to delay experiment after dipole trap",
+            "Time to delay experiment after dipole trap or launch",
             default=100e-6,
             unit="us",
         )
         self.dipole_pre_experiment_delay: FloatParamHandle
 
+        self.setattr_param(
+            "before_launch_delay",
+            FloatParam,
+            "Time to wait after launch",
+            default=100e-6,
+            unit="us",
+        )
+        self.before_launch_delay: FloatParamHandle
 
         # %% Fragments
 
@@ -122,8 +130,16 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
         self.post_dipole_trap_hook()
+        delay(self.before_launch_delay.get())
+        self.launch_hook()
         delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
+
+    @kernel
+    def launch_hook(self):
+        """
+        Hook for implementation of launching. By default, do nothing
+        """
 
     @kernel
     def dipole_trap_loading_hook(self):
@@ -131,7 +147,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Hook for implementation of stages in the dipole trap loading stage. By default, turn on the dipole trap beams.
         """
         self.dipole_beam_controller.turn_on_dipole_beams()
-
 
     @kernel
     def dipole_trap_molasses_hook(self):
@@ -174,7 +189,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Hook for matterwave collimation of the atoms.
         By default, do nothing.
         """
-    
+
     @kernel
     def post_dipole_trap_hook_default(self):
         """

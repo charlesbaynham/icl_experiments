@@ -19,7 +19,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 )
 from repository.lib.fragments.stark_shifter import StarkShifter
 
-CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_UP_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 
@@ -84,8 +84,8 @@ class ClockInterferometryBase(
 
         # Allow negative phases up to -10
         self.phase_constant = 10.0
-        self.clock_dds_frequency_pi_pulse = 0.0
-        self.clock_dds_frequency_final_pi_by_2_pulse = 0.0
+        self.clock_up_dds_frequency_pi_pulse = 0.0
+        self.clock_up_dds_frequency_final_pi_by_2_pulse = 0.0
 
     def host_setup(self):
         super().host_setup()
@@ -96,10 +96,10 @@ class ClockInterferometryBase(
         # because the fragment can't detect that it's an AD9910 because ARTIQ
         # passes it a DummyDevice. Is this a bug? Yes.
         self.clock_switch_frequency_handle: FloatParamHandle = getattr(
-            self.clock_default_setter, f"frequency_{CLOCK_BEAM_INFO.name}"
+            self.clock_default_setter, f"frequency_{CLOCK_UP_BEAM_INFO.name}"
         )
         self.clock_switch_amplitude_handle: FloatParamHandle = getattr(
-            self.clock_default_setter, f"amplitude_{CLOCK_BEAM_INFO.name}"
+            self.clock_default_setter, f"amplitude_{CLOCK_UP_BEAM_INFO.name}"
         )
 
     @kernel
@@ -151,7 +151,7 @@ class ClockInterferometryBase(
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
             1e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
-        self.clock_dds.set(
+        self.clock_up_dds.set(
             frequency=self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -161,9 +161,9 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_first_pulse_mu)
-        self.clock_dds.sw.on()
+        self.clock_up_dds.sw.on()
         delay(t_pi_pulse / 2)
-        self.clock_dds.sw.off()
+        self.clock_up_dds.sw.off()
         t_end_pi_by_2_mu = now_mu()
         delay_mu(int64(self.core.ref_multiplier))
 
@@ -175,7 +175,7 @@ class ClockInterferometryBase(
             self.delay_between_interferometry_pulses.get()
         )
 
-        self.clock_dds.set(
+        self.clock_up_dds.set(
             frequency=self.calculate_frequency_for_pi_pulse(
                 t_pulse_start_mu=t_start_pi_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -185,16 +185,16 @@ class ClockInterferometryBase(
 
         # PI PULSE
         at_mu(t_start_pi_pulse_mu)
-        self.clock_dds.sw.on()
+        self.clock_up_dds.sw.on()
         delay(t_pi_pulse)
-        self.clock_dds.sw.off()
+        self.clock_up_dds.sw.off()
 
         # Phase step
         t_end_pi_mu = now_mu()
         t_start_final_pulse_mu = t_end_pi_mu + self.core.seconds_to_mu(
             self.delay_between_interferometry_pulses.get()
         )
-        self.clock_dds.set(
+        self.clock_up_dds.set(
             frequency=self.calculate_frequency_for_second_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_final_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -204,27 +204,11 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_final_pulse_mu)
-        self.clock_dds.sw.on()
+        self.clock_up_dds.sw.on()
         delay(t_pi_pulse / 2)
-        self.clock_dds.sw.off()
+        self.clock_up_dds.sw.off()
 
         self.end_interferometry_hook()
-
-
-class ClockInterferometryRedMOTMixin(ClockInterferometryBase):
-    """
-    Implements clock interferometry after the red MOT
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~before_start_hook`
-    * :meth:`~do_experiment_after_red_mot_hook`
-    * :meth:`~do_first_pulse`
-    """
-
-    @kernel
-    def do_experiment_after_red_mot_hook(self):
-        self.do_clock_interferometry()
 
 
 class ClockInterferometryDipoleTrapMixin(

@@ -36,6 +36,9 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.doppler_compensation import (
     DopplerCompensationForInterferometryMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    FieldOnlyRampInEvapMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -44,10 +47,6 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
-)
-
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    FieldOnlyRampInEvapMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -104,12 +103,17 @@ class DifferentialClockInterferometryFrag(
 class DifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
     _DifferentialClockInterferometryImaging,
-    ClockInterferometryWithNoiseDipoleTrapMixin,
-    DopplerCompensationForInterferometryMixin,
+    # ClockInterferometryWithNoiseDipoleTrapMixin,
+    # DopplerCompensationForInterferometryMixin,
 ):
     """
     Clock interferometry from a double XODT with added noise
     """
+
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 class DifferentialClockInterferometryWithNoiseAndSignalFrag(
@@ -128,6 +132,11 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
         self.host_functions_after_experiment_hook_default()
         self.host_functions_after_experiment_hook_signal_injection()
         self.host_functions_after_experiment_hook_glitch_counter()
+
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(

@@ -27,9 +27,10 @@ from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import
     GlitchFreeUrukulDefaultAttenuation,
 )
 
-CLOCK_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
-CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
+CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
+
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +83,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
             )
         self.clock_delivery_setter: LibSetSUServoStatic
 
-        self.clock_dds: AD9910 = self.get_device(CLOCK_BEAM_INFO.urukul_device)
+        self.clock_up_dds: AD9910 = self.get_device(CLOCK_UP_BEAM_INFO.urukul_device)
         self.clock_down_dds: AD9910 = self.get_device(
             CLOCK_DOWN_BEAM_INFO.urukul_device
         )
@@ -107,7 +108,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
                         CLOCK_BEAM_DELIVERY_INFO,
                     ],
                     urukul_beam_infos=[
-                        CLOCK_BEAM_INFO,
+                        CLOCK_UP_BEAM_INFO,
                     ],
                     use_automatic_setup=True,
                     use_automatic_turnon=False,
@@ -267,6 +268,59 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
+        self.clock_up_dds.sw.on()
+        delay(self.spectroscopy_pulse_time.get())
+        self.clock_up_dds.sw.off()
+
+
+class ClockRabiSpectroscopyDownBeamBase(ClockSpectroscopyBase):
+    """
+    Customizes ClockSpectroscopyBase for Rabi spectroscopy with the down beam
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        # TODO: Why is spectroscopy_pulse_time defined seperately in ClockInterferometryBase? This should be in ClockSpectroscopyBase
+        self.setattr_param(
+            "spectroscopy_pulse_time",
+            FloatParam,
+            "Length of spectroscopy pulse",
+            default=constants.CLOCK_DOWN_PI_TIME,
+            unit="us",
+        )
+        self.spectroscopy_pulse_time: FloatParamHandle
+
+        self.setattr_param(
+            "delay_after_spectroscopy",
+            FloatParam,
+            "Delay after spectroscopy before imaging",
+            default=constants.DELAY_AFTER_CLOCK_SPECTROSCOPY,
+            unit="us",
+        )
+        self.delay_after_spectroscopy: FloatParamHandle
+
+    @kernel
+    def do_rabi_spectroscopy(self):
+        self.prepare_clock_delivery_aom()
+        self.before_clock_spec_pulse_hook()
+        self.fire_clock_spec_pulse()
+        delay(self.delay_after_spectroscopy.get())
+
+    @kernel
+    def before_clock_spec_pulse_hook(self):
+        """
+        Hook for actions before the clock spectroscopy pulse is fired
+
+        No-op by default
+        """
+
+    @kernel
+    def fire_clock_spec_pulse(self):
         self.clock_down_dds.sw.on()
         delay(self.spectroscopy_pulse_time.get())
         self.clock_down_dds.sw.off()
@@ -292,6 +346,23 @@ class ClockRabiSpectroscopyDipoleTrapMixin(
 ):
     """
     Implements clock Rabi spectroscopy after the dipole trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~before_start_hook`
+    * :meth:`~do_experiment_after_dipole_trap_hook`
+    """
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        self.do_rabi_spectroscopy()
+
+
+class ClockRabiSpectroscopyDownBeamDipoleTrapMixin(
+    ClockRabiSpectroscopyDownBeamBase, DipoleTrapWithExperiment
+):
+    """
+    Implements down beam clock Rabi spectroscopy after the dipole trap
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
