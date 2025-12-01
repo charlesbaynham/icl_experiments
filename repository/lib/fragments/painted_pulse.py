@@ -152,7 +152,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             FloatParam,
             description="Gradient of gravity compensation",
             default=1,
-            min=0.0,
+            min=-1000.0,
             max=1000,
         )
         self.g: FloatParamHandle
