@@ -35,6 +35,9 @@ from repository.lib.experiment_templates.mixins.doppler_compensation import (
     DopplerCompensationForClockSpecMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    EvaporationThreeRampsMixin,
+)
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsWithFieldRampMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
