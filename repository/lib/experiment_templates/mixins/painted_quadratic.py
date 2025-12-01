@@ -10,13 +10,14 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.fragments.painted_pulse import (
-    GravityAndDiffractionCompensatedQuadraticShapedPulse
+    GravityAndDiffractionCompensatedQuadraticShapedPulse,
 )
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
-SU_SERVO_STABILISE_TIME = 200e-6 # time for the suservo to stabilise 
+SU_SERVO_STABILISE_TIME = 200e-6  # time for the suservo to stabilise
 
 logger = logging.getLogger(__name__)
+
 
 class MattewaveLensingInBothDirection(DipoleTrapWithExperiment):
     """
@@ -31,7 +32,7 @@ class MattewaveLensingInBothDirection(DipoleTrapWithExperiment):
             FloatParam,
             description="Holding time for matterwave collimating in vertical direction",
             unit="ms",
-            default=1,
+            default=1e-3,
             min=0.0,
             max=100,
         )
@@ -41,7 +42,7 @@ class MattewaveLensingInBothDirection(DipoleTrapWithExperiment):
             FloatParam,
             description="Holding time for matterwave collimating in horizontal direction",
             unit="ms",
-            default=1,
+            default=1e-3,
             min=0.0,
             max=100,
         )
@@ -57,21 +58,26 @@ class MattewaveLensingInBothDirection(DipoleTrapWithExperiment):
         self.matterwave_collimation_time_813: FloatParamHandle
 
         # Calculate the time difference between the two pulses
-        self.delta_time = abs(self.matterwave_collimation_time_1064.get() - self.matterwave_collimation_time_813.get())
+        self.delta_time = abs(
+            self.matterwave_collimation_time_1064.get()
+            - self.matterwave_collimation_time_813.get()
+        )
 
-        # make two ordered lists, 
-        self.times = [self.matterwave_collimation_time_1064.get(),
-                       self.matterwave_collimation_time_813.get()]
-        
-        self.sequence_on = [self.dipole_beam_controller.turn_on_painter_suservo(),
-                          self.dipole_beam_controller.turn_on_vertical_up_suservo()]
+        # make two ordered lists,
+        self.times = [
+            self.matterwave_collimation_time_1064.get(),
+            self.matterwave_collimation_time_813.get(),
+        ]
+
+        self.sequence_on = [
+            self.dipole_beam_controller.turn_on_painter_suservo(),
+            self.dipole_beam_controller.turn_on_vertical_up_suservo(),
+        ]
 
         # order by longest time
         if self.times[0] < self.times[1]:
             self.times.reverse()
             self.sequence_on.reverse()
-
-            
 
     @kernel
     def matterwave_collimate_hook(self):
@@ -86,6 +92,7 @@ class MattewaveLensingInBothDirection(DipoleTrapWithExperiment):
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.dipole_beam_controller.turn_off_painter_suservo()
 
+
 class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
     """
     Mixin which switches on the painted quadratic potential during the dipole trap loading sequence.
@@ -99,7 +106,7 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
             FloatParam,
             description="Holding time for matterwave collimation",
             unit="ms",
-            default=1,
+            default=1e-3,
             min=0.0,
             max=100,
         )
