@@ -8,12 +8,12 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    CLOCK_BEAM_INFO,
+    CLOCK_UP_BEAM_INFO,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
-from repository.lib.fragments.pulse_shaping import BlackmanShapedPulse
+from repository.lib.fragments.pulse_shaping import JessePulse
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +36,10 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
 
         self.setattr_fragment(
             "clock_spectroscopy_shaped_pulse",
-            BlackmanShapedPulse,
-            ad9910_name=CLOCK_BEAM_INFO.urukul_device,
+            JessePulse,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
-        self.clock_spectroscopy_shaped_pulse: BlackmanShapedPulse
+        self.clock_spectroscopy_shaped_pulse: JessePulse
 
         self.clock_spectroscopy_shaped_pulse.bind_param(
             "pulse_duration", self.spectroscopy_pulse_time
@@ -62,30 +62,32 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
         mode
         """
         self.clock_spectroscopy_shaped_pulse.prepare_pulse(
-            frequency=CLOCK_BEAM_INFO.frequency
+            frequency=CLOCK_UP_BEAM_INFO.frequency
         )
 
     @kernel
     def post_sequence_cleanup_hook(self):
+        self.post_dipole_trap_hook_shaped_pulses()
+        self.post_sequence_cleanup_hook_base()
+
+    @kernel
+    def post_sequence_cleanup_hook_shaped_pulses(self):
         self.core.break_realtime()
         self.clock_spectroscopy_shaped_pulse.disable_ram_mode()
-
-        self.post_sequence_cleanup_hook_base()
 
 
 class ShapedClockShelvingAndClearoutDipoleTrapMixin(
     ClockShelvingAndClearoutDipoleTrapMixin
 ):
-
     def build_fragment(self):
         super().build_fragment()
 
         self.setattr_fragment(
             "clock_shelving_shaped_pulse",
-            BlackmanShapedPulse,
-            ad9910_name=CLOCK_BEAM_INFO.urukul_device,
+            JessePulse,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
-        self.clock_shelving_shaped_pulse: BlackmanShapedPulse
+        self.clock_shelving_shaped_pulse: JessePulse
 
         self.clock_shelving_shaped_pulse.bind_param(
             "pulse_duration", self.shelving_pulse_time
@@ -116,5 +118,5 @@ class ShapedClockShelvingAndClearoutDipoleTrapMixin(
         mode
         """
         self.clock_shelving_shaped_pulse.prepare_pulse(
-            frequency=CLOCK_BEAM_INFO.frequency
+            frequency=CLOCK_UP_BEAM_INFO.frequency
         )

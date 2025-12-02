@@ -1,9 +1,11 @@
 import logging
+import time
 
 import numpy as np
 from artiq.coredevice.core import Core
 from artiq.language import kernel
 from artiq.language import now_mu
+from ndscan.experiment import FloatChannel
 from ndscan.experiment.fragment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -13,8 +15,11 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
+from repository.lib.fragments.timestamp_synchronizer import Timestamper
 
 logger = logging.getLogger(__name__)
+
+NAME_OF_DATASET_T0 = "dai_signal_t0"
 
 
 class StarkShifterWithSignalMixin(ClockInterferometryBase):
@@ -53,8 +58,52 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
                 )
                 self.stark_shifter_suservo: LibSetSUServoStatic
 
+                # Get a timestamper to convert ARTIQ timestamps to UTC
+                self.setattr_fragment(
+                    "timestamper",
+                    Timestamper,
+                    automatic_timestamp=False,
+                    record_timestamps=False,
+                )
+                self.timestamper: Timestamper
+
                 self.t0_mu = np.int64(0)
                 self.period_mu = np.int64(0)
+                self.this_stark_shifter_setpoint = 0.0
+
+                # Save a t0 timestamp from which the signals will be calculated.
+                # Default to retrieving this from a dataset which will be
+                # written by host_setup so that subsequent experiments are
+                # automatically continuous with this one
+                self.setattr_param(
+                    "t0",
+                    FloatParam,
+                    "Reference time for signal injection, in UNIX timestamp",
+                    default=f"dataset('{NAME_OF_DATASET_T0}', 0)",
+                )
+                self.t0: FloatParamHandle
+
+                # Save the calculated setpoint for debugging
+                self.setattr_result("stark_shifter_setpoint", FloatChannel, unit="V")
+                self.stark_shifter_setpoint: FloatChannel
+
+            def host_setup(self):
+                super().host_setup()
+
+                # If there was no dataset defining a starting time, choose now and make a dataset
+                if self.t0.get() == 0:
+                    self.t0_val = time.time()
+                else:
+                    self.t0_val = self.t0.get()
+
+                # Store the t0 chosen so that future datasets can retrieve it
+                self.set_dataset(
+                    NAME_OF_DATASET_T0,
+                    self.t0_val,
+                    broadcast=True,
+                    persist=True,
+                    archive=True,
+                )
 
             @kernel
             def device_setup(self):
@@ -62,8 +111,12 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
 
                 # ...on first run
                 if self.t0_mu == 0:
-                    # Initialise t0 based on the RTIO time when the experiment is started
-                    self.t0_mu = self.core.get_rtio_counter_mu()
+                    # self.t0_val is in UNIX time, whereas we must work in ARTIQ
+                    # RTIO timestamps. Calculate this t0 in ARTIQ timestamp
+                    t_crate_turned_on = self.timestamper.get_offset_from_utc()
+                    self.t0_mu = self.core.seconds_to_mu(
+                        self.t0.get() - t_crate_turned_on
+                    )
 
                 # Calculate the period in machine units
                 self.period_mu = self.core.seconds_to_mu(
@@ -97,7 +150,14 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
 
                 new_setpoint = mean + amplitude * np.sin(2 * np.pi * frequency * t)
 
+                # Save the setpoint for debugging
+                self.this_stark_shifter_setpoint = new_setpoint
+
                 self.stark_shifter_suservo.set_setpoint(new_setpoint)
+
+            @kernel
+            def save_to_ndscan(self):
+                self.stark_shifter_setpoint.push(self.this_stark_shifter_setpoint)
 
         self.setattr_fragment("signal_injector", SignalInjector, self)
         self.signal_injector: SignalInjector
@@ -155,3 +215,12 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
         """
 
         self.signal_injector.set_stark_shifter_setpoint(t_pulse_mu=t_first_pulse_mu)
+
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        self.host_functions_after_experiment_hook_default()
+        self.host_functions_after_experiment_hook_signal_injection()
+
+    @kernel
+    def host_functions_after_experiment_hook_signal_injection(self):
+        self.signal_injector.save_to_ndscan()

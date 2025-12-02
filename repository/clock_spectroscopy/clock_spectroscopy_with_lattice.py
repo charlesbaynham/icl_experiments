@@ -24,6 +24,9 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    FieldOnlyRampInEvapMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -32,9 +35,6 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 
@@ -57,23 +57,6 @@ class ClockSpecFromLatticeFrag(
 
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
-    """
-
-
-class BasicClockSpecFromLatticeFrag(
-    ClockRabiSpectroscopyRedMotMixin,
-    DroppedPumpedLatticeMixin,
-    FLIRBlueMOTMeasurementMixin,
-    SingleAndorImage,
-):
-    """
-    Clock spectroscopy from dropped lattice - single image
-
-    Load into a lattice, pump into a stretched state, drop the atoms by ramping
-    the lattice, then use the up clock beam for spectroscopy, altering the
-    (single-pass) AOM.
-
-    Image only the ground state atoms
     """
 
 
@@ -108,5 +91,4 @@ class ClockSpecFromVerticalLatticeFrag(
 
 
 ClockSpecFromLattice = make_fragment_scan_exp(ClockSpecFromLatticeFrag)
-BasicClockSpecFromLattice = make_fragment_scan_exp(BasicClockSpecFromLatticeFrag)
 ClockSpecFromVerticalLattice = make_fragment_scan_exp(ClockSpecFromVerticalLatticeFrag)

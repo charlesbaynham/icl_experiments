@@ -15,6 +15,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.count_convert impo
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingRepumpedNormalised,
 )
+from repository.lib.experiment_templates.mixins.cavity_relocking import (
+    MonitorAndRelock689and698Mixin,
+)
 from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
     ClockGlitchCounterMixin,
 )
@@ -33,6 +36,9 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.doppler_compensation import (
     DopplerCompensationForInterferometryMixin,
 )
+from repository.lib.experiment_templates.mixins.evaporation_mixin import (
+    FieldOnlyRampInEvapMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -41,9 +47,6 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    FieldOnlyRampInEvapMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,7 +58,7 @@ class _DifferentialClockInterferometryImaging(
     FLIRBlueMOTMeasurementMixin,
 ):
     """
-    Seperate the imaging setup so we can also use absorption imaging
+    Separate the imaging setup so we can also use absorption imaging
     """
 
 
@@ -69,12 +72,12 @@ class _DifferentialClockInterferometry(
     FieldOnlyRampInEvapMixin,
     # Extra monitoring:
     ClockGlitchCounterMixin,
+    MonitorAndRelock689and698Mixin,
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
     DipoleTrapWithExperiment,
 ):
-
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
@@ -90,16 +93,27 @@ class DifferentialClockInterferometryFrag(
     Clock interferometry from a double XODT
     """
 
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+
 
 class DifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
     _DifferentialClockInterferometryImaging,
-    ClockInterferometryWithNoiseDipoleTrapMixin,
-    DopplerCompensationForInterferometryMixin,
+    # ClockInterferometryWithNoiseDipoleTrapMixin,
+    # DopplerCompensationForInterferometryMixin,
 ):
     """
     Clock interferometry from a double XODT with added noise
     """
+
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 class DifferentialClockInterferometryWithNoiseAndSignalFrag(
@@ -113,6 +127,17 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
     Clock interferometry from a double XODT with signal and noise
     """
 
+    @kernel
+    def host_functions_after_experiment_hook(self):
+        self.host_functions_after_experiment_hook_default()
+        self.host_functions_after_experiment_hook_signal_injection()
+        self.host_functions_after_experiment_hook_glitch_counter()
+
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
@@ -123,6 +148,12 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     """
     Absorption imaging clock interferometry from a double XODT with added noise
     """
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 DifferentialClockInterferometry = make_fragment_scan_exp(
