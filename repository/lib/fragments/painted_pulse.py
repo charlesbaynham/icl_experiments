@@ -241,7 +241,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             centre_frequency_param_handle=self.centre_frequency, *args, **kwargs
         )
 
-    def run(self):
+    def host_setup(self):
 
         x_vals = np.linspace(-1, 1, self.num_steps)
 
