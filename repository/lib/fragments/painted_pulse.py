@@ -1,5 +1,6 @@
 import logging
 from typing import Optional
+import time
 
 import numpy as np
 from ndscan.experiment import *
@@ -235,6 +236,20 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         return super().build_fragment(
             centre_frequency_param_handle=self.centre_frequency, *args, **kwargs
         )
+    
+    def run(self):
+        
+        x_vals = np.linspace(-1, 1, self.num_steps)
+
+        self.set_dataset("painted_shape_x", x_vals, broadcast=True)
+        self.set_dataset("painted_shape_y", np.full(10, np.nan), broadcast=True)
+
+        for i in range(10):
+            self.mutate_dataset("parabola_y", i, self.intensity_function(x_vals[i]))
+            time.sleep(0.5)
+
+        cmd = f"${{artiq_applet}}plot_xy painted_shape_y --x painted_shape_y"
+        self.ccb.issue("create_applet", "Painted Pulse Shape", cmd)
 
     @kernel
     def device_setup(self):
@@ -245,6 +260,15 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
 
         if self.automatic_trigger is True:
             self.start_output()
+    
+    def intensity_function(self, x):
+
+        a, b, c = self.transform_coeffs()
+        t_2 = self.cubic_correction.get()
+        t_1 = self.quartic_correction.get()
+        g = self.epsilon.get()
+
+        return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1-g) * x**2) 
 
     def transform_coeffs(self):
         """
