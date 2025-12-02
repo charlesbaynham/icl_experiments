@@ -67,6 +67,15 @@ class LMTBase(
             self.spectroscopy_pulse_time: FloatParamHandle
 
         self.setattr_param(
+            "first_lmt_duration",
+            FloatParam,
+            "Duration of the first LMT pulse",
+            default=580e-6,
+            unit="us",
+        )
+        self.first_lmt_duration: FloatParamHandle
+
+        self.setattr_param(
             "down_pulses_duration",
             FloatParam,
             "Duration of a down beam pulse",
@@ -341,6 +350,15 @@ class LMTInterferometryMixin(
         )
         self.lower_mirror_offset_detuning: FloatParamHandle
 
+        self.setattr_param(
+            "first_lmt_freq",
+            FloatParam,
+            "Detuning 1st LMT pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.first_lmt_freq: FloatParamHandle
+
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.do_clock_interferometry()
@@ -356,17 +374,36 @@ class LMTInterferometryMixin(
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         lower_mirror_offset = self.lower_mirror_offset_detuning.get()
         t_pi_up = self.spectroscopy_pulse_time.get()
-
+        t_first_pi = self.first_lmt_duration.get()
+        first_freq = self.first_lmt_freq.get()
         t_start_first_pulse_mu = now_mu()
+
         # PI/2 PULSE UP BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_up_dds.sw.on()
+        self.clock_up_dds.sw.on()  # FIXME: should be down beam
         delay(t_pi_up / 2)  # FIXME should be t_pi_up / 2
         self.clock_up_dds.sw.off()
-        t_end_pi_by_2_mu = now_mu()
+
+        # First pulse with a lower Rabi frequency
+        self.clock_up_dds.set_amplitude(0.5)
+        self.clock_opll.clock_OPLL_offset.set(first_freq)
+        # ramp the offset upwards
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            first_freq,
+            first_freq + 2e6,
+            wave_type=1,
+        )
+        delay_mu(8)
+
+        delay(1e-6)
+        self.clock_up_dds.sw.on()
+        delay(t_first_pi)
+        self.clock_up_dds.sw.off()
+        self.clock_up_dds.set_amplitude(1.0)
 
         # LMT sequence on upper arm, starting on the ground state
-        self.lmt_series_start_up(bs1_lmt_offset, -70e3, (N - 1))
+        self.lmt_series(bs1_lmt_offset, (N - 2))
 
         # Phase step
         delay(self.delay_between_interferometry_pulses.get())
