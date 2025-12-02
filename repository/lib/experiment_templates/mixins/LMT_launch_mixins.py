@@ -372,10 +372,10 @@ class LMTInterferometryMixin(
         delay(self.delay_between_interferometry_pulses.get())
 
         # # Mirror pulse upper arm
-        self.lmt_series_start_up_launch_down(upper_mirror_offset, down_offset, N)
+        self.lmt_series_start_up_launch_down(upper_mirror_offset, -70e3, N)
 
         # Mirror pulse lower arm
-        self.lmt_series(lower_mirror_offset, 1)  # N)
+        self.lmt_series_start_up(lower_mirror_offset, down_offset, 8)  # N)
 
         # # Phase step
         # t_end_pi_mu = now_mu()
