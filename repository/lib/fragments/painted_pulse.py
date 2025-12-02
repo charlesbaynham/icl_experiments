@@ -256,10 +256,15 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         curvature = self.curve_factor.get()
 
         # Transform the coefficients
-        p = (grad - int_k / 2) * curvature + int_k / 2
-        coeff_a = 1.5 * (p - int_k / 2)
+        # The |grad| allows one corner to be always at 0
+        # k > 0
+        j = 2 * abs(grad) + int_k
+
+        p = (abs(grad) - j / 2) * curvature + j / 2
+
+        coeff_a = 1.5 * (p - j / 2)
         coeff_b = grad
-        coeff_c = 0.5 * (3 * int_k / 2 - p)
+        coeff_c = 0.5 * (3 * j / 2 - p)
 
         # Ensure that we have a negative curvature in the shape of the trap.
         logger.warning("a")
