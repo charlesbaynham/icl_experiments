@@ -1107,14 +1107,14 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 CLOCK_PI_TIME = 42e-6
 CLOCK_DOWN_PI_TIME = 32e-6
-CLOCK_SHELVING_PULSE_TIME = 300e-6
-CLOCK_SHELVING_PULSE_SETPOINT = 0.05
+CLOCK_SHELVING_PULSE_TIME = 380e-6
+CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
-DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
+DELAY_BETWEEN_INTERFEROMETRY_PULSES = 50e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    -46e3  # Will need fine-tuning whenever velocity-selection pulse is changed
+    -13e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
 DURATION_OF_STARK_PULSE = 30e-6
 
@@ -1254,7 +1254,7 @@ if USE_SR87:
     # This is optimized for loading into the HODT, not the XODT, because the 813
     # will be turned on during the molasses phase. The molasses phase itself
     # uses XODT_MOLASSES_BIAS_FIELD_START
-    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.27)
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.188, 0.019, -0.31)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
     XODT_MOLASSES_DURATION = 700e-3
