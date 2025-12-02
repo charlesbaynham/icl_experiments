@@ -246,7 +246,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         x_vals = np.linspace(-1, 1, self.num_steps.get())
 
         self.set_dataset("painted_shape_x", x_vals, broadcast=True)
-        self.set_dataset("painted_shape_y", np.full(10, np.nan), broadcast=True)
+        self.set_dataset("painted_shape_y", np.zeros_like(x_vals), broadcast=True)
 
         for i in range(10):
             self.mutate_dataset(
