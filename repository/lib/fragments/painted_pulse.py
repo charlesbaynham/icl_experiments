@@ -1,8 +1,9 @@
 import logging
-from typing import Optional
 import time
+from typing import Optional
 
 import numpy as np
+from artiq.master.worker_impl import CCB
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import abs
@@ -220,6 +221,9 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         )
         self.centre_frequency: FloatParamHandle
 
+        self.setattr_device("ccb")
+        self.ccb: CCB
+
         # Kernel params
         self._old_frequency = -1.0
         self._old_depth = -1.0
@@ -236,9 +240,9 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         return super().build_fragment(
             centre_frequency_param_handle=self.centre_frequency, *args, **kwargs
         )
-    
+
     def run(self):
-        
+
         x_vals = np.linspace(-1, 1, self.num_steps)
 
         self.set_dataset("painted_shape_x", x_vals, broadcast=True)
@@ -260,7 +264,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
 
         if self.automatic_trigger is True:
             self.start_output()
-    
+
     def intensity_function(self, x):
 
         a, b, c = self.transform_coeffs()
@@ -268,7 +272,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         t_1 = self.quartic_correction.get()
         g = self.epsilon.get()
 
-        return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1-g) * x**2) 
+        return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1 - g) * x**2)
 
     def transform_coeffs(self):
         """

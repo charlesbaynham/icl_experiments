@@ -18,6 +18,7 @@ SU_SERVO_STABILISE_TIME = 200e-6  # time for the suservo to stabilise
 
 logger = logging.getLogger(__name__)
 
+
 class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
     """
     Mixin which switches on both the painted quadratic and up dipole potential during the dipole trap loading sequence to matterwave collimate them.
