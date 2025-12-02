@@ -242,6 +242,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         )
 
     def host_setup(self):
+        super().host_setup()
 
         x_vals = np.linspace(-1, 1, 100)
 
