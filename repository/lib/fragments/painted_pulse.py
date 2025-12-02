@@ -249,10 +249,12 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         self.set_dataset("painted_shape_y", np.full(10, np.nan), broadcast=True)
 
         for i in range(10):
-            self.mutate_dataset("parabola_y", i, self.intensity_function(x_vals[i]))
+            self.mutate_dataset(
+                "painted_shape_y", i, self.intensity_function(x_vals[i])
+            )
             time.sleep(0.5)
 
-        cmd = f"${{artiq_applet}}plot_xy painted_shape_y --x painted_shape_y"
+        cmd = f"${{artiq_applet}}plot_xy painted_shape_y --x painted_shape_x"
         self.ccb.issue("create_applet", "Painted Pulse Shape", cmd)
 
     @kernel
