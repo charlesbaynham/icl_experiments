@@ -374,24 +374,27 @@ class LMTInterferometryMixin(
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         lower_mirror_offset = self.lower_mirror_offset_detuning.get()
         t_pi_up = self.spectroscopy_pulse_time.get()
+        t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
         first_freq = self.first_lmt_freq.get()
         t_start_first_pulse_mu = now_mu()
 
         # PI/2 PULSE UP BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_up_dds.sw.on()  # FIXME: should be down beam
-        delay(t_pi_up / 2)  # FIXME should be t_pi_up / 2
-        self.clock_up_dds.sw.off()
+        self.clock_down_dds.sw.on()  # FIXME: should be down beam
+        delay(t_pi_down)  # / 2)
+        self.clock_down_dds.sw.off()
 
         # First pulse with a lower Rabi frequency
-        self.clock_up_dds.set_amplitude(0.5)
-        self.clock_opll.clock_OPLL_offset.set(first_freq)
+        # self.clock_up_dds.set_att(29.0)
+        self.clock_up_dds.set_amplitude(0.0)
+        delay_mu(8)
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + first_freq)
         # ramp the offset upwards
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
-            first_freq,
-            first_freq + 2e6,
+            start_opll_offset + first_freq,
+            start_opll_offset + first_freq + 2e6,
             wave_type=1,
         )
         delay_mu(8)
@@ -400,19 +403,21 @@ class LMTInterferometryMixin(
         self.clock_up_dds.sw.on()
         delay(t_first_pi)
         self.clock_up_dds.sw.off()
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_OPLL_offset.set(80e6)
         self.clock_up_dds.set_amplitude(1.0)
 
-        # LMT sequence on upper arm, starting on the ground state
-        self.lmt_series(bs1_lmt_offset, (N - 2))
+        # # LMT sequence on upper arm, starting on the ground state
+        # self.lmt_series(bs1_lmt_offset, (N - 2))
 
-        # Phase step
-        delay(self.delay_between_interferometry_pulses.get())
+        # # Phase step
+        # delay(self.delay_between_interferometry_pulses.get())
 
-        # # Mirror pulse upper arm
-        self.lmt_series_start_up_launch_down(upper_mirror_offset, -70e3, N)
+        # # # Mirror pulse upper arm
+        # self.lmt_series_start_up_launch_down(upper_mirror_offset, -70e3, N)
 
-        # Mirror pulse lower arm
-        self.lmt_series_start_up(lower_mirror_offset, down_offset, 8)  # N)
+        # # Mirror pulse lower arm
+        # self.lmt_series_start_up(lower_mirror_offset, down_offset, 8)  # N)
 
         # # Phase step
         # t_end_pi_mu = now_mu()
