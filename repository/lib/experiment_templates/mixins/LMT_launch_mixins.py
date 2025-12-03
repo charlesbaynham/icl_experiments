@@ -119,7 +119,7 @@ class LMTBase(
             if i % 2 == 0:
                 down_offset = 0.0
             else:
-                down_offset = self.down_offset_detuning.get()
+                down_offset = -58e3  # FIXME: self.down_offset_detuning.get()
 
             f_i = (
                 start_opll_offset
@@ -188,40 +188,32 @@ class LMTBase(
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
-    def lmt_series_start_up_launch_down(self, offset_det, offset_down_beam, N):
+    def lmt_series_start_down_launch_down(self, offset_det, offset_down_beam, N):
         kick = self.momentum_kick.get()
         total_ramp_time = 0.0
 
         t_start_ramp = now_mu()
         for i in range(N):
 
-            # start with up pulse
+            # start with down pulse
             if i % 2 == 0:
                 down_offset = 0.0
-                pulse_type = "up"
+                pulse_type = "down"
             else:
                 down_offset = offset_down_beam
-                pulse_type = "down"
+                pulse_type = "up"
 
             f_i = (
                 start_opll_offset
-                + (-1) ** (i) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i) * kick
-                + (-1) ** (i + 1) * (offset_det + down_offset)
+                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i + 1) * kick
+                + (-1) ** (i) * (offset_det + down_offset)
             )
 
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type)
 
-            # Clear out the ground state
-            # if pulse_type == "down":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
-
-            delay(100e-6)
+            # delay(100e-6)
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
@@ -410,14 +402,21 @@ class LMTInterferometryMixin(
         # LMT sequence on upper arm, starting on the excited state at n=2
         self.lmt_series(bs1_lmt_offset, N - 2)
 
-        # # Phase step
-        # delay(self.delay_between_interferometry_pulses.get())
+        # Phase step
+        delay(self.delay_between_interferometry_pulses.get())
 
-        # # # Mirror pulse upper arm
-        # self.lmt_series_start_up_launch_down(upper_mirror_offset, -70e3, N)
+        # # Mirror pulse upper arm
+        self.lmt_series_start_down_launch_down(upper_mirror_offset, -56e3, N)
 
-        # # Mirror pulse lower arm
-        # self.lmt_series_start_up(lower_mirror_offset, down_offset, 8)  # N)
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
+
+        # Mirror pulse lower arm
+        self.lmt_series(lower_mirror_offset, 1)  # N)
 
         # # Phase step
         # t_end_pi_mu = now_mu()
