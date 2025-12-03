@@ -138,12 +138,12 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type)
 
             # Clear out the ground state
-            if pulse_type == "up":
-                self.fluorescence_pulse.do_imaging_pulse(
-                    duration=self.clearout_duration.get(),
-                    ignore_final_shutters=True,
-                )
-                delay(8e-9)
+            # if pulse_type == "up":
+            #     self.fluorescence_pulse.do_imaging_pulse(
+            #         duration=self.clearout_duration.get(),
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
 
             t_end_pulse = now_mu()
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
@@ -381,13 +381,13 @@ class LMTInterferometryMixin(
 
         # PI/2 PULSE UP BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.on()  # FIXME: should be down beam
-        delay(t_pi_down)  # / 2)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
-        # First pulse with a lower Rabi frequency
-        # self.clock_up_dds.set_att(29.0)
-        self.clock_up_dds.set_amplitude(0.0)
+        # First pulse with a lower Rabi frequency, up beam pulse
+        self.clock_up_dds.set_att(13.0)
+
         delay_mu(8)
         self.clock_opll.clock_OPLL_offset.set(start_opll_offset + first_freq)
         # ramp the offset upwards
@@ -405,10 +405,10 @@ class LMTInterferometryMixin(
         self.clock_up_dds.sw.off()
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
-        self.clock_up_dds.set_amplitude(1.0)
+        self.clock_up_dds.set_att(0.0)
 
-        # # LMT sequence on upper arm, starting on the ground state
-        # self.lmt_series(bs1_lmt_offset, (N - 2))
+        # LMT sequence on upper arm, starting on the excited state at n=2
+        self.lmt_series(bs1_lmt_offset, N - 2)
 
         # # Phase step
         # delay(self.delay_between_interferometry_pulses.get())
