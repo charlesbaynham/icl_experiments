@@ -4515,13 +4515,13 @@ docs = ["ipykernel", "jupyter-client", "matplotlib", "nbconvert", "nbformat", "n
 
 [[package]]
 name = "tenma-power-supply"
-version = "1.2"
+version = "1.2.3"
 description = "Driver for the TENMA power supply"
 optional = false
-python-versions = ">=3.9,<3.13"
+python-versions = "<3.13,>=3.9"
 files = [
-    {file = "tenma_power_supply-1.2-py3-none-any.whl", hash = "sha256:164951fe84043617a9649596bd9ed05f9f66f0ceb52308e47a1dc1e4c6b8dd8a"},
-    {file = "tenma_power_supply-1.2.tar.gz", hash = "sha256:4a72a5e6676dc7f99264efc824b89dc53951a968e01a9f2795dd6b363271dbb1"},
+    {file = "tenma_power_supply-1.2.3-py3-none-any.whl", hash = "sha256:8e678b131b6d01327cd5f2d5b397140d4fd0b654a98e43a7bae061128f6ee1c5"},
+    {file = "tenma_power_supply-1.2.3.tar.gz", hash = "sha256:be18f17be6f3db51aec73cce3ffeed4280237c65e89c0b681e59019dc110947e"},
 ]
 
 [package.dependencies]
@@ -4927,4 +4927,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "c1a4d01230e563825f9a53c05a95f76c6d1576e106c69d82bcec44008b02cfd2"
+content-hash = "d931072771200a28091eae3f607577cf8c8b4a58f98147c4793466757aadbd89"
