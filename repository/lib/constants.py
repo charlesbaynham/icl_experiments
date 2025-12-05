@@ -744,7 +744,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.755e6,
+        99.797e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -805,7 +805,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=3.0,
+        setpoint=3.5,
     ),
 ]
 
@@ -1111,7 +1111,7 @@ DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
     35.3e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
-DURATION_OF_STARK_PULSE = 30e-6
+DURATION_OF_STARK_PULSE = 4e-6
 
 # %% Dipole trap settings
 
