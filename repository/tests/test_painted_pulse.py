@@ -91,7 +91,7 @@ class TestGravityAndDiffractionCompensatedQuadraticFrag(ExpFragment):
 
         # This is an arbitrary frequency - it will be overwritten by the pulse
         self.dds.set(frequency=10e6, amplitude=0.1)
-        self.dds.set_att(8.0)
+        self.dds.set_att(5.0)
         self.core.break_realtime()
         self.painter.prepare_pulse()
         self.core.break_realtime()
@@ -100,7 +100,7 @@ class TestGravityAndDiffractionCompensatedQuadraticFrag(ExpFragment):
         logger.warning("Hey I'm starting minute")
         logger.warning("The mu: ", self.painter._step_mu)
 
-        delay(20.0)
+        delay(30.0)
         self.painter.stop_output()
 
         self.core.wait_until_mu(now_mu())
