@@ -354,6 +354,42 @@ class LMTInterferometryMixin(
         )
         self.first_lmt_duration: FloatParamHandle
 
+        self.setattr_param(
+            "last_upper_mirror_lmt_freq",
+            FloatParam,
+            "Detuning last upper arm mirror LMT pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.last_upper_mirror_lmt_freq: FloatParamHandle
+
+        self.setattr_param(
+            "last_upper_mirror_lmt_duration",
+            FloatParam,
+            "Duration of the last upper arm mirror LMT pulse",
+            default=580e-6,
+            unit="us",
+        )
+        self.last_upper_mirror_lmt_duration: FloatParamHandle
+
+        self.setattr_param(
+            "first_lower_mirror_lmt_freq",
+            FloatParam,
+            "Detuning first lower arm mirror LMT pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.first_lower_mirror_lmt_freq: FloatParamHandle
+
+        self.setattr_param(
+            "first_lower_mirror_lmt_duration",
+            FloatParam,
+            "Duration of the first lower arm mirror LMT pulse",
+            default=580e-6,
+            unit="us",
+        )
+        self.first_lower_mirror_lmt_duration: FloatParamHandle
+
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.do_clock_interferometry()
@@ -372,6 +408,10 @@ class LMTInterferometryMixin(
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
         first_freq = self.first_lmt_freq.get()
+        last_upper_mirror_t_pi = self.last_upper_mirror_lmt_duration.get()
+        last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
+        first_lower_mirror_freq = self.first_lower_mirror_lmt_freq()
+        first_lower_mirror_t_pi = self.first_lower_mirror_lmt_duration.get()
         t_start_first_pulse_mu = now_mu()
 
         # PI/2 PULSE UP BEAM
@@ -381,7 +421,7 @@ class LMTInterferometryMixin(
         self.clock_down_dds.sw.off()
 
         # First pulse with a lower Rabi frequency, up beam pulse
-        self.do_first_lmt_pulse(self, first_freq, t_first_pi)
+        self.do_first_lmt_pulse(first_freq, t_first_pi)
 
         # LMT sequence on upper arm, starting on the excited state at n=2
         self.lmt_series(bs1_lmt_offset, N - 2)
@@ -390,7 +430,10 @@ class LMTInterferometryMixin(
         delay(self.delay_between_interferometry_pulses.get())
 
         # # Mirror pulse upper arm
-        self.lmt_series_start_down_launch_down(upper_mirror_offset, -56e3, N)
+        self.lmt_series_start_down_launch_down(upper_mirror_offset, -56e3, N - 1)
+
+        # last upper arm mirror pulse with a lower Rabi frequency, down beam pulse
+        self.do_mirror_lmt_pulse(last_upper_mirror_freq, last_upper_mirror_t_pi)
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
@@ -399,8 +442,11 @@ class LMTInterferometryMixin(
         )
         delay(8e-9)
 
-        # Mirror pulse lower arm
-        self.lmt_series(lower_mirror_offset, 1)  # N)
+        # first lower arm mirror pulse with a lower Rabi frequency, down beam pulse
+        self.do_mirror_lmt_pulse(first_lower_mirror_freq, first_lower_mirror_t_pi)
+
+        # Mirror pulse lower arm, start from second pulse, up beam
+        self.lmt_series_start_up(lower_mirror_offset, down_offset, 1)  # N-1)
 
         # # Phase step
         # t_end_pi_mu = now_mu()
@@ -439,6 +485,28 @@ class LMTInterferometryMixin(
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
         self.clock_up_dds.set_att(0.0)
+
+    @kernel
+    def do_mirror_lmt_pulse(self, freq, duration):
+        self.clock_down_dds.set_att(13.0)
+
+        delay_mu(8)
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + freq)
+        # ramp the offset downwards
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            start_opll_offset + freq,
+            start_opll_offset + freq + 2e6,
+            wave_type=2,
+        )
+
+        delay(1e-6)
+        self.clock_down_dds.sw.on()
+        delay(duration)
+        self.clock_down_dds.sw.off()
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_OPLL_offset.set(80e6)
+        self.clock_down_dds.set_att(0.0)
 
 
 class ShapedFirstPulseLMTInterferometryMixin(LMTInterferometryMixin):
