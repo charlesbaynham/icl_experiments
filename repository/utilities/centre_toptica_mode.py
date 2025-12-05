@@ -1,5 +1,6 @@
 import logging
 import time
+from math import floor
 
 from artiq.experiment import EnumerationValue
 from artiq.master.scheduler import Scheduler
@@ -152,15 +153,26 @@ class CentreTopticaModeFrag(ExpFragment):
         self.current_step: FloatParamHandle
 
         self.setattr_param(
-            "restore_jump_size",
+            "initial_restore_jump_size",
+            FloatParam,
+            default=100e-6,
+            description="Initial current jump size for mode restoration (will increase geometrically)",
+            unit="mA",
+            min=1e-6,
+        )
+        self.initial_restore_jump_size: FloatParamHandle
+
+        self.setattr_param(
+            "max_restore_jump_size",
             FloatParam,
             default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
                 self.laser_name
-            ].restore_jump_size,
-            description="Current jump size for mode restoration. Both directions will be tried",
+            ].max_restore_jump_size,
+            description="Maximum current jump size for mode restoration",
             unit="mA",
+            min=0,
         )
-        self.restore_jump_size: FloatParamHandle
+        self.max_restore_jump_size: FloatParamHandle
 
         self.setattr_param(
             "current_tolerance",
@@ -341,9 +353,12 @@ class CentreTopticaModeFrag(ExpFragment):
         self,
         target_current: float,
         target_detuning: float,
-        max_attempts: int = 10,
+        max_attempts: int = 20,
     ) -> bool:
         """Restore the laser to the correct mode by jumping current down and back up.
+
+        Uses geometric progression: starts with small jumps and doubles the magnitude
+        on each failed attempt up to the maximum jump size.
 
         Args:
             target_current: The target current to return to in A
@@ -355,20 +370,41 @@ class CentreTopticaModeFrag(ExpFragment):
         """
         settle_time = 3.0
 
-        next_jump = self.restore_jump_size.get()
+        initial_jump = self.initial_restore_jump_size.get()
+        max_jump = abs(self.max_restore_jump_size.get())
         max_current = self.get_max_current()
+
+        # Start with positive jumps
+        direction = 1
 
         for attempt in range(1, max_attempts + 1):
             if self.is_on_correct_mode(target_detuning=target_detuning):
                 logger.info("Mode restored successfully on attempt %d", attempt)
                 return True
 
-            logger.warning("Mode restore attempt %d/%d", attempt, max_attempts)
+            # Calculate jump size using geometric progression: initial * 2^(attempt-1)
+            # Clamped to max_jump
+            jump_magnitude = min(
+                initial_jump * (2 ** (floor((attempt - 1) / 2))), max_jump
+            )
+
+            # Alternate direction on each attempt
+            current_direction = direction if attempt % 2 == 1 else -direction
+            next_jump = current_direction * jump_magnitude
+
+            logger.warning(
+                "Mode restore attempt %d/%d with jump %.3f mA",
+                attempt,
+                max_attempts,
+                1e3 * next_jump,
+            )
+            logger.debug("Jump magnitude: %.3f µA", 1e6 * jump_magnitude)
 
             # Jump current
             target = target_current + next_jump
             if target > max_current:
                 target = max_current - 10e-6
+                logger.debug("Clamped jump to max current limit")
 
             self.set_current(target)
             time.sleep(1.0)
@@ -376,9 +412,6 @@ class CentreTopticaModeFrag(ExpFragment):
             # Jump back to target
             self.set_current(target_current)
             time.sleep(settle_time)
-
-            # Flip the sign of the jump
-            next_jump = -next_jump
 
         logger.error("Failed to restore mode after %d attempts", max_attempts)
         return False
