@@ -5,6 +5,7 @@ from artiq.coredevice.core import Core
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import parallel
+from ndscan.experiment.fragment import TransitoryError
 from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment import ResultChannel
@@ -249,16 +250,26 @@ class DualCameraMeasurement(_DualCameraBase):
         """
         Retrieve images from the cameras and save it to the ndscan ResultChannels
         """
-        (
-            timestamp_horiz,
-            image_horiz,
-        ) = self.mot_measurer_camera_horizontal.get_one_frame(
-            timeout=1 + self.exposure_horiz.get()
-        )
+        try:
+            (
+                timestamp_horiz,
+                image_horiz,
+            ) = self.mot_measurer_camera_horizontal.get_one_frame(
+                timeout=1 + self.exposure_horiz.get()
+            )
+        except TimeoutError:
+            logger.error("Timeout getting horizontal camera image")
+            raise TransitoryError("Timeout getting horizontal camera image")
 
-        timestamp_vert, image_vert = self.mot_measurer_camera_vertical.get_one_frame(
-            timeout=1 + self.exposure_vert.get()
-        )
+        try:
+            timestamp_vert, image_vert = (
+                self.mot_measurer_camera_vertical.get_one_frame(
+                    timeout=1 + self.exposure_vert.get()
+                )
+            )
+        except TimeoutError:
+            logger.error("Timeout getting vertical camera image")
+            raise TransitoryError("Timeout getting vertical camera image")
 
         image_horiz = np.array(image_horiz)
         image_vert = np.array(image_vert)
