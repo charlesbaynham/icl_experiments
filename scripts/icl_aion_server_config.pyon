@@ -200,7 +200,7 @@
         }
     },
     "name": "icl_aion",
-    "poll_time": 20,
+    "poll_time": 30,
     "switch": {
         "dead_time": 0.012,
         "type": "internal"
