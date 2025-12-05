@@ -9,9 +9,9 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from numpy import int64
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
-from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -26,7 +26,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulse
-
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -410,7 +409,7 @@ class LMTInterferometryMixin(
         first_freq = self.first_lmt_freq.get()
         last_upper_mirror_t_pi = self.last_upper_mirror_lmt_duration.get()
         last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
-        first_lower_mirror_freq = self.first_lower_mirror_lmt_freq()
+        first_lower_mirror_freq = self.first_lower_mirror_lmt_freq.get()
         first_lower_mirror_t_pi = self.first_lower_mirror_lmt_duration.get()
         t_start_first_pulse_mu = now_mu()
 
@@ -421,32 +420,34 @@ class LMTInterferometryMixin(
         self.clock_down_dds.sw.off()
 
         # First pulse with a lower Rabi frequency, up beam pulse
-        self.do_first_lmt_pulse(first_freq, t_first_pi)
+        if N > 1:
+            self.do_first_lmt_pulse(first_freq, t_first_pi)
 
         # LMT sequence on upper arm, starting on the excited state at n=2
-        self.lmt_series(bs1_lmt_offset, N - 2)
+        if N > 2:
+            self.lmt_series(bs1_lmt_offset, N - 2)
 
         # Phase step
         delay(self.delay_between_interferometry_pulses.get())
 
-        # # Mirror pulse upper arm
-        self.lmt_series_start_down_launch_down(upper_mirror_offset, -56e3, N - 1)
+        # # # Mirror pulse upper arm
+        # self.lmt_series_start_down_launch_down(upper_mirror_offset, -56e3, N - 1)
 
-        # last upper arm mirror pulse with a lower Rabi frequency, down beam pulse
-        self.do_mirror_lmt_pulse(last_upper_mirror_freq, last_upper_mirror_t_pi)
+        # # last upper arm mirror pulse with a lower Rabi frequency, down beam pulse
+        # self.do_mirror_lmt_pulse(last_upper_mirror_freq, last_upper_mirror_t_pi)
 
-        # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
-        delay(8e-9)
+        # # Clear out the ground state
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=self.clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
+        # delay(8e-9)
 
-        # first lower arm mirror pulse with a lower Rabi frequency, down beam pulse
-        self.do_mirror_lmt_pulse(first_lower_mirror_freq, first_lower_mirror_t_pi)
+        # # first lower arm mirror pulse with a lower Rabi frequency, down beam pulse
+        # self.do_mirror_lmt_pulse(first_lower_mirror_freq, first_lower_mirror_t_pi)
 
-        # Mirror pulse lower arm, start from second pulse, up beam
-        self.lmt_series_start_up(lower_mirror_offset, down_offset, 1)  # N-1)
+        # # Mirror pulse lower arm, start from second pulse, up beam
+        # self.lmt_series_start_up(lower_mirror_offset, down_offset, 1)  # N-1)
 
         # # Phase step
         # t_end_pi_mu = now_mu()
