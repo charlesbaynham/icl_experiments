@@ -935,7 +935,9 @@ class ModeCentringSettings:
 
     max_current: float = 150e-3  # Maximum current / A
     current_step: float = 0.1e-3  # Current step for scanning / A
-    restore_jump_size: float = -2e-3  # Current jump size for mode restoration / A
+    max_restore_jump_size: float = (
+        4e-3  # Maximum current jump size for mode restoration / A
+    )
     mode_check_tolerance: float = (
         5e9  # Frequency threshold for detecting if we are on the right mode / Hz
     )
@@ -953,7 +955,7 @@ DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
 # Add overrides for picky lasers
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     max_current=245e-3,
-    restore_jump_size=1.5e-3,
+    max_restore_jump_size=4e-3,
     target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
     fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
     mode_check_tolerance=10e9,
@@ -962,7 +964,7 @@ DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
     mode_check_tolerance=2e9,
     target_position=0.66,
-    restore_jump_size=+2e-3,
+    max_restore_jump_size=+2e-3,
 )
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_698"] = ModeCentringSettings(
     mode_check_tolerance=1.5e9,
