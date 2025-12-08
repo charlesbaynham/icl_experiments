@@ -413,7 +413,7 @@ class LMTInterferometryMixin(
         first_lower_mirror_t_pi = self.first_lower_mirror_lmt_duration.get()
         t_start_first_pulse_mu = now_mu()
 
-        # PI/2 PULSE UP BEAM
+        # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
