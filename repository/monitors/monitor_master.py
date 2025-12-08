@@ -20,7 +20,6 @@ from repository.database_monitors.monitor_lab_temperature import (
 )
 from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
 from repository.database_monitors.monitor_topticas import *
-from repository.database_monitors.monitor_turbopump import MonitorTurbo
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
 
@@ -77,7 +76,7 @@ MonitorMaster = make_monitor_controller(
         # "ion_pump_clock_ch1": MonitorClockCh1IonPump, # Not using these atm while flipping chamber
         # "ion_pump_clock_ch2": MonitorClockCh2IonPump,
         "heartbeat": MonitorHeartbeat,
-        "turbopump": MonitorTurbo,
+        # "turbopump": MonitorTurbo,
         "blue_ijd1": MonitorBlueIJD1,
         "blue_ijd2": MonitorBlueIJD2,
         "blue_ijd3": MonitorBlueIJD3,
