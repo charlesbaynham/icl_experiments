@@ -155,6 +155,10 @@ class TestLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
 
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
 
 TestLMTInterferometryExp = make_fragment_scan_exp(
     TestLMTInterferometryFrag, max_rtio_underflow_retries=0
