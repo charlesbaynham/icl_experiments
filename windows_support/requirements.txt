@@ -1,0 +1,33 @@
+artiq @ git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git@e98dbf5adb5e60835acbfbf0dd635fd54b6c3fc4
+cffi==2.0.0
+colorama==0.4.6
+h5py==3.15.1
+imperial-artiq-applets @ git+https://gitlab.com/imperial-sr/programming/imperial-artiq-applets.git@22819b8538f7d5bd88593ec1bdbd3db9d298c1c9
+Levenshtein==0.27.3
+llvmlite==0.46.0
+lmdb==1.7.5
+ndscan @ git+https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git@1f80a2a67cb99feb2bb32a9992360b2309ccd8b7
+numpy==2.3.5
+oitg @ git+https://github.com/oxfordiontrapgroup/oitg.git@f72e9de767bc2e846ec72e27d9fe5941da4ca302
+platformdirs==4.5.1
+prettytable==3.17.0
+pycparser==2.23
+pygit2==1.19.0
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.2
+PyQt5_sip==12.17.2
+PyQt6==6.10.1
+PyQt6-Qt6==6.10.1
+PyQt6_sip==13.10.3
+pyqtgraph==0.14.0
+python-dateutil==2.9.0.post0
+pythonparser==1.3
+qasync==0.28.0
+RapidFuzz==3.14.3
+regex==2025.11.3
+scipy==1.16.3
+setuptools==80.9.0
+sipyco @ git+https://github.com/m-labs/sipyco@1f1722fb309bad00f384907769fb4f54db850222
+six==1.17.0
+wand @ git+https://gitlab.com/aion-physics/code/artiq/forks/wand.git@ee87c0bdd05848d3a2630877912d76901f22f4e3
+wcwidth==0.2.14
