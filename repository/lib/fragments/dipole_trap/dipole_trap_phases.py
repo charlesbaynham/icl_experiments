@@ -54,7 +54,7 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     urukuls = URUKUL_RED_IJD
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_RED + SUSERVOS_XODT
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
