@@ -183,6 +183,8 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         Advances the timeline by a few coarse cycles
         """
         self.dipole_beam_controller.turn_off_dipole_beams()
+        # maybe add delay
+        self.dipole_beam_controller.turn_off_painter_suservo()
 
     @kernel
     def dipole_trap_evaporation_hook_default(self):
