@@ -210,6 +210,27 @@ class CentreTopticaModeFrag(ExpFragment):
         )
         self.max_steer_in_one_go: FloatParamHandle
 
+        self.setattr_param(
+            "settle_time",
+            FloatParam,
+            default=3.0,
+            description="Time to wait after current changes for laser to settle",
+            unit="s",
+            min=0.1,
+        )
+        self.settle_time: FloatParamHandle
+
+        self.setattr_param(
+            "wait_before_jump_back",
+            FloatParam,
+            default=1.0,
+            description="Time to wait before jumping current back during mode restoration",
+            unit="s",
+            min=0.1,
+            max=10.0,
+        )
+        self.wait_before_jump_back: FloatParamHandle
+
     def host_setup(self):
         super().host_setup()
 
@@ -370,7 +391,7 @@ class CentreTopticaModeFrag(ExpFragment):
         Returns:
             True if successfully restored, False if failed after max_attempts
         """
-        settle_time = 3.0
+        settle_time = self.settle_time.get()
 
         initial_jump = self.initial_restore_jump_size.get()
         max_jump = abs(self.max_restore_jump_size.get())
@@ -416,7 +437,7 @@ class CentreTopticaModeFrag(ExpFragment):
                 logger.debug("[%s] Clamped jump to max current limit", self.laser_name)
 
             self.set_current(target)
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(self.wait_before_jump_back.get())
 
             # Jump back to target
             self.set_current(target_current)
