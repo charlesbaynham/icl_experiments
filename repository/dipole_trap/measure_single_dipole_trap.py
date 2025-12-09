@@ -48,6 +48,7 @@ class MeasureSingleXODTBGCorrectedFrag(
     """
 
     def build_fragment(self):
+        logger.warning("The transparency beam is being turned on for debugging")
         self.setattr_fragment(
             "transparency_setter",
             make_set_beams_to_default(
