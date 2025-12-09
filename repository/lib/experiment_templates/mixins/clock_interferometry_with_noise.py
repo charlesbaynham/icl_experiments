@@ -8,6 +8,7 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from ndscan.experiment.result_channels import FloatChannel
 
+from repository.lib import constants
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
@@ -61,7 +62,7 @@ class ClockInterferometryWithNoiseDipoleTrapMixin(ClockInterferometryBase):
                     "phase_step_one_mean",
                     FloatParam,
                     description="Mean of phase step 1 in turns",
-                    default=0.0,
+                    default=constants.INTERFEROMETRY_PHASE_NOISE_MEAN_1,
                 )
                 self.phase_step_one_mean: FloatParamHandle
 
@@ -77,7 +78,7 @@ class ClockInterferometryWithNoiseDipoleTrapMixin(ClockInterferometryBase):
                     "phase_step_two_mean",
                     FloatParam,
                     description="Mean of phase step 2 in turns",
-                    default=0.0,
+                    default=constants.INTERFEROMETRY_PHASE_NOISE_MEAN_2,
                 )
                 self.phase_step_two_mean: FloatParamHandle
 
@@ -119,6 +120,7 @@ class ClockInterferometryWithNoiseDipoleTrapMixin(ClockInterferometryBase):
             "phase_step_std",
             self.phase_rng,
             original_name="phase_step_one_std",
+            default=constants.INTERFEROMETRY_PHASE_NOISE_STD,
             description="Std. dev. of both phase steps in turns",
         )
         self.phase_rng.bind_param("phase_step_one_std", self.phase_step_std)
