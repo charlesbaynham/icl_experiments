@@ -9,6 +9,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from numpy import int64
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -24,6 +25,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 )
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
+from repository.lib.fragments.pulse_shaping import JessePulse
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -65,15 +67,6 @@ class LMTBase(
                 unit="us",
             )
             self.spectroscopy_pulse_time: FloatParamHandle
-
-        self.setattr_param(
-            "first_lmt_duration",
-            FloatParam,
-            "Duration of the first LMT pulse",
-            default=580e-6,
-            unit="us",
-        )
-        self.first_lmt_duration: FloatParamHandle
 
         self.setattr_param(
             "down_pulses_duration",
@@ -351,6 +344,51 @@ class LMTInterferometryMixin(
         )
         self.first_lmt_freq: FloatParamHandle
 
+        self.setattr_param(
+            "first_lmt_duration",
+            FloatParam,
+            "Duration of the first LMT pulse",
+            default=580e-6,
+            unit="us",
+        )
+        self.first_lmt_duration: FloatParamHandle
+
+        self.setattr_param(
+            "last_upper_mirror_lmt_freq",
+            FloatParam,
+            "Detuning last upper arm mirror LMT pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.last_upper_mirror_lmt_freq: FloatParamHandle
+
+        self.setattr_param(
+            "last_upper_mirror_lmt_duration",
+            FloatParam,
+            "Duration of the last upper arm mirror LMT pulse",
+            default=580e-6,
+            unit="us",
+        )
+        self.last_upper_mirror_lmt_duration: FloatParamHandle
+
+        self.setattr_param(
+            "first_lower_mirror_lmt_freq",
+            FloatParam,
+            "Detuning first lower arm mirror LMT pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.first_lower_mirror_lmt_freq: FloatParamHandle
+
+        self.setattr_param(
+            "first_lower_mirror_lmt_duration",
+            FloatParam,
+            "Duration of the first lower arm mirror LMT pulse",
+            default=580e-6,
+            unit="us",
+        )
+        self.first_lower_mirror_lmt_duration: FloatParamHandle
+
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.do_clock_interferometry()
@@ -369,54 +407,47 @@ class LMTInterferometryMixin(
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
         first_freq = self.first_lmt_freq.get()
+        last_upper_mirror_t_pi = self.last_upper_mirror_lmt_duration.get()
+        last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
+        first_lower_mirror_freq = self.first_lower_mirror_lmt_freq.get()
+        first_lower_mirror_t_pi = self.first_lower_mirror_lmt_duration.get()
         t_start_first_pulse_mu = now_mu()
 
-        # PI/2 PULSE UP BEAM
+        # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
         # First pulse with a lower Rabi frequency, up beam pulse
-        self.clock_up_dds.set_att(13.0)
-
-        delay_mu(8)
-        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + first_freq)
-        # ramp the offset upwards
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            ramp_rate,
-            start_opll_offset + first_freq,
-            start_opll_offset + first_freq + 2e6,
-            wave_type=1,
-        )
-        delay_mu(8)
-
-        delay(1e-6)
-        self.clock_up_dds.sw.on()
-        delay(t_first_pi)
-        self.clock_up_dds.sw.off()
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        self.clock_opll.clock_OPLL_offset.set(80e6)
-        self.clock_up_dds.set_att(0.0)
+        if N > 1:
+            self.do_first_lmt_pulse(first_freq, t_first_pi)
 
         # LMT sequence on upper arm, starting on the excited state at n=2
-        self.lmt_series(bs1_lmt_offset, N - 2)
+        if N > 2:
+            self.lmt_series(bs1_lmt_offset, N - 2)
 
         # Phase step
         delay(self.delay_between_interferometry_pulses.get())
 
-        # # Mirror pulse upper arm
-        self.lmt_series_start_down_launch_down(upper_mirror_offset, -56e3, N)
+        # # # Mirror pulse upper arm
+        # self.lmt_series_start_down_launch_down(upper_mirror_offset, -56e3, N - 1)
 
-        # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
-        delay(8e-9)
+        # # last upper arm mirror pulse with a lower Rabi frequency, down beam pulse
+        # self.do_mirror_lmt_pulse(last_upper_mirror_freq, last_upper_mirror_t_pi)
 
-        # Mirror pulse lower arm
-        self.lmt_series(lower_mirror_offset, 1)  # N)
+        # # Clear out the ground state
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=self.clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
+        # delay(8e-9)
+
+        # # first lower arm mirror pulse with a lower Rabi frequency, down beam pulse
+        # self.do_mirror_lmt_pulse(first_lower_mirror_freq, first_lower_mirror_t_pi)
+
+        # # Mirror pulse lower arm, start from second pulse, up beam
+        # self.lmt_series_start_up(lower_mirror_offset, down_offset, 1)  # N-1)
 
         # # Phase step
         # t_end_pi_mu = now_mu()
@@ -432,3 +463,103 @@ class LMTInterferometryMixin(
 
         # # LMT sequence on lower arm
         # self.lmt_series(bs1_lmt_offset, (N - 1))
+
+    @kernel
+    def do_first_lmt_pulse(self, freq, duration):
+        self.clock_up_dds.set_att(13.0)
+
+        delay_mu(8)
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + freq)
+        # ramp the offset upwards
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            start_opll_offset + freq,
+            start_opll_offset + freq + 2e6,
+            wave_type=1,
+        )
+        delay_mu(8)
+
+        delay(1e-6)
+        self.clock_up_dds.sw.on()
+        delay(duration)
+        self.clock_up_dds.sw.off()
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_OPLL_offset.set(80e6)
+        self.clock_up_dds.set_att(0.0)
+
+    @kernel
+    def do_mirror_lmt_pulse(self, freq, duration):
+        self.clock_down_dds.set_att(13.0)
+
+        delay_mu(8)
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + freq)
+        # ramp the offset downwards
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            start_opll_offset + freq,
+            start_opll_offset + freq + 2e6,
+            wave_type=2,
+        )
+
+        delay(1e-6)
+        self.clock_down_dds.sw.on()
+        delay(duration)
+        self.clock_down_dds.sw.off()
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_OPLL_offset.set(80e6)
+        self.clock_down_dds.set_att(0.0)
+
+
+class ShapedFirstPulseLMTInterferometryMixin(LMTInterferometryMixin):
+    """
+    Implements LMT interferometry after the launch, starting with a Jesse pulse
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_experiment_after_dipole_trap`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "first_lmt_shaped_pulse",
+            JessePulse,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
+        )
+        self.first_lmt_shaped_pulse: JessePulse
+
+        self.first_lmt_shaped_pulse.bind_param(
+            "pulse_duration", self.first_lmt_duration
+        )
+
+    @kernel
+    def do_first_lmt_pulse(self, freq, duration):
+
+        # prepare ram mode
+        self.first_lmt_shaped_pulse.prepare_pulse(
+            frequency=CLOCK_UP_BEAM_INFO.frequency
+        )
+        delay_mu(int64(self.core.ref_multiplier))
+
+        # set the frequency on the opll
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + freq)
+        # ramp the offset upwards
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            start_opll_offset + freq,
+            start_opll_offset + freq + 2e6,
+            wave_type=1,
+        )
+
+        # pulse
+        self.first_lmt_shaped_pulse.trigger_pulse()
+
+        # disable ram mode after shelving and clearout
+        self.first_lmt_shaped_pulse.disable_ram_mode()
+        # re-set the AOM to default
+        self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
+
+        # stop the frequency ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_OPLL_offset.set(80e6)
