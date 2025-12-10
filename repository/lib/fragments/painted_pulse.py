@@ -246,19 +246,17 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         n = self.num_steps.get()
 
         x_vals = np.linspace(-1, 1, n)
-        y_vals = self.generate_frequencies(n)
+        y_vals = self.intensity_function(x_vals)
 
         self.set_dataset("painted_shape_x", x_vals, broadcast=True)
         self.set_dataset("painted_shape_y", y_vals, broadcast=True)
 
-        # for i in range(n):
-        #     self.mutate_dataset(
-        #         "painted_shape_y", i, self.intensity_function(x_vals[i])
-        #     )
-        #     time.sleep(0.5)
-
         cmd = f"${{artiq_applet}}plot_xy painted_shape_y --x painted_shape_x"
         self.ccb.issue("create_applet", "Painted Pulse Shape", cmd)
+
+        # x_high_res = np.linspace(-1, 1, 100*n)
+        # Gauss_points = self.generate_frequencies(n) / self.mod_depth.get()
+        # y = [np.exp]
 
     @kernel
     def device_setup(self):
