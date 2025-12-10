@@ -271,8 +271,8 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
     def intensity_function(self, x):
 
         a, b, c = self.transform_coeffs()
-        t_2 = self.cubic_correction.get()
-        t_1 = self.quartic_correction.get()
+        t_1 = self.cubic_correction.get()
+        t_2 = self.quartic_correction.get()
         eps = self.epsilon.get()
 
         return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1 - eps) * x**2)
@@ -298,12 +298,12 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         coeff_c = 0.5 * (3 * j / 2 - p)
 
         # Ensure that we have a negative curvature in the shape of the trap.
-        # logger.warning("a")
-        # logger.warning(coeff_a)
-        # logger.warning("p")
-        # logger.warning(p)
-        # logger.warning("c")
-        # logger.warning(coeff_c)
+        logger.warning("a")
+        logger.warning(coeff_a)
+        logger.warning("b")
+        logger.warning(coeff_b)
+        logger.warning("c")
+        logger.warning(coeff_c)
         assert coeff_a <= 0
 
         return coeff_a, coeff_b, coeff_c
