@@ -32,9 +32,7 @@ SUSERVOS_XODT = [
     "suservo_aom_down_813",
 ]
 
-SUSERVO_PAINTER = [
-    "suservo_aom_1064_painted_delivery"
-]
+SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
 
 SUSERVOS_TRANSPARENCY = ["suservo_aom_singlepass_487_transparency"]
 
@@ -276,8 +274,7 @@ class MolassesDipoleRamp(GeneralRampingPhaseWithBinding):
     suservos = SUSERVOS_XODT + SUSERVO_PAINTER
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    # Hmm I've changed the argument in len() from SUSERVOS_XODT -> suservos to encompass the painter, I think that's ok.
-    default_suservo_nominal_setpoints = [0.0] * len(suservos)
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVO_PAINTER)
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_COOL_MOLASSES_MULTIPLE_START
