@@ -275,9 +275,9 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         a, b, c = self.transform_coeffs()
         t_2 = self.cubic_correction.get()
         t_1 = self.quartic_correction.get()
-        g = self.epsilon.get()
+        eps = self.epsilon.get()
 
-        return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1 - g) * x**2)
+        return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1 - eps) * x**2)
 
     def transform_coeffs(self):
         """
@@ -331,7 +331,26 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         # You might be thinking: What is this diabolical equation!?
         # The answer is the indefinite integral of the diffraction compensated quadratic pulse solved using maxima.
 
-        relation = lambda x : -(((t_1+(1-eps)*k_2)*log(abs((eps-1)*x**2+1)))/(2*eps**2-4*eps+2))+((t_2+(eps**2-2*eps+1)*k_3+(1-eps)*k_1)*log(abs((2*eps-2)*x-2*sqrt(1-eps))/abs((2*eps-2)*x+2*sqrt(1-eps))))/(2*sqrt(1-eps)*(eps**2-2*eps+1))+((2*eps-2)*t_2*x**3+(3*eps-3)*t_1*x**2+((6*eps-6)*k_1-6*t_2)*x)/(6*eps**2-12*eps+6)
+        relation = (
+            lambda x: -(
+                ((t_1 + (1 - eps) * k_2) * log(abs((eps - 1) * x**2 + 1)))
+                / (2 * eps**2 - 4 * eps + 2)
+            )
+            + (
+                (t_2 + (eps**2 - 2 * eps + 1) * k_3 + (1 - eps) * k_1)
+                * log(
+                    abs((2 * eps - 2) * x - 2 * sqrt(1 - eps))
+                    / abs((2 * eps - 2) * x + 2 * sqrt(1 - eps))
+                )
+            )
+            / (2 * sqrt(1 - eps) * (eps**2 - 2 * eps + 1))
+            + (
+                (2 * eps - 2) * t_2 * x**3
+                + (3 * eps - 3) * t_1 * x**2
+                + ((6 * eps - 6) * k_1 - 6 * t_2) * x
+            )
+            / (6 * eps**2 - 12 * eps + 6)
+        )
 
         t_max = relation(1)
         t_min = relation(-1)
