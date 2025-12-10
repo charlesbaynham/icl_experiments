@@ -304,6 +304,10 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         logger.warning(coeff_b)
         logger.warning("c")
         logger.warning(coeff_c)
+        logger.warning("p")
+        logger.warning(p)
+        logger.warning("j")
+        logger.warning(j)
         assert coeff_a <= 0
 
         return coeff_a, coeff_b, coeff_c
