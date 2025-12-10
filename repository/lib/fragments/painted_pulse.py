@@ -367,7 +367,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         )
         detunings = np.zeros(2 * n_half)
         detunings[:n_half] = roots
-        detunings[n_half:] = -1 * roots
+        detunings[n_half:] = roots[::-1]
         logger.warning(detunings)
         detunings *= self.mod_depth.get()
 
