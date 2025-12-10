@@ -1111,7 +1111,7 @@ DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
     35.3e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
-DURATION_OF_STARK_PULSE = 4e-6
+DURATION_OF_STARK_PULSE = 3e-6
 
 # %% Dipole trap settings
 
