@@ -18,7 +18,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyBase,
 )
 
-CLOCK_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
+CLOCK_UP_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 

@@ -8,7 +8,7 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import *
 
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    CLOCK_BEAM_INFO,
+    CLOCK_UP_BEAM_INFO,
 )
 from repository.lib.fragments.pulse_shaping import JessePulse
 
@@ -25,7 +25,7 @@ class TestPhaseShapedPulse(ExpFragment):
         self.setattr_fragment(
             "shaped_pulse",
             JessePulse,
-            ad9910_name=CLOCK_BEAM_INFO.urukul_device,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
         self.shaped_pulse: JessePulse
 
@@ -39,16 +39,16 @@ class TestPhaseShapedPulse(ExpFragment):
         self.core.break_realtime()
         self.lo_dds.init(blind=False)
         self.core.break_realtime()
-        self.shaped_pulse.dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        self.shaped_pulse.dds.set(frequency=CLOCK_UP_BEAM_INFO.frequency)
 
         self.core.break_realtime()
 
-        self.lo_dds.set(frequency=CLOCK_BEAM_INFO.frequency)
+        self.lo_dds.set(frequency=CLOCK_UP_BEAM_INFO.frequency)
         self.lo_dds.sw.on()
 
         delay(100e-3)
 
-        self.shaped_pulse.prepare_pulse(frequency=CLOCK_BEAM_INFO.frequency)
+        self.shaped_pulse.prepare_pulse(frequency=CLOCK_UP_BEAM_INFO.frequency)
 
         delay(100e-3)
 

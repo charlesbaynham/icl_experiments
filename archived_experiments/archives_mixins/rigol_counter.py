@@ -1,7 +1,7 @@
 from artiq.language import kernel
 
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
-from repository.lib.fragments.rigol_counter import RigolCounterFrag
+from archived_experiments.archives_fragments.rigol_counter import RigolCounterFrag
 
 
 class RigolCounterMixin(RedMOTWithExperiment):

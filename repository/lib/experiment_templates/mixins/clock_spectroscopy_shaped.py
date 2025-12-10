@@ -8,12 +8,11 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    CLOCK_BEAM_INFO,
+    CLOCK_UP_BEAM_INFO,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
-from repository.lib.fragments.pulse_shaping import BlackmanShapedPulse
 from repository.lib.fragments.pulse_shaping import JessePulse
 
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
         self.setattr_fragment(
             "clock_spectroscopy_shaped_pulse",
             JessePulse,
-            ad9910_name=CLOCK_BEAM_INFO.urukul_device,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
         self.clock_spectroscopy_shaped_pulse: JessePulse
 
@@ -63,7 +62,7 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
         mode
         """
         self.clock_spectroscopy_shaped_pulse.prepare_pulse(
-            frequency=CLOCK_BEAM_INFO.frequency
+            frequency=CLOCK_UP_BEAM_INFO.frequency
         )
 
     @kernel
@@ -85,10 +84,10 @@ class ShapedClockShelvingAndClearoutDipoleTrapMixin(
 
         self.setattr_fragment(
             "clock_shelving_shaped_pulse",
-            BlackmanShapedPulse,
-            ad9910_name=CLOCK_BEAM_INFO.urukul_device,
+            JessePulse,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
-        self.clock_shelving_shaped_pulse: BlackmanShapedPulse
+        self.clock_shelving_shaped_pulse: JessePulse
 
         self.clock_shelving_shaped_pulse.bind_param(
             "pulse_duration", self.shelving_pulse_time
@@ -119,5 +118,5 @@ class ShapedClockShelvingAndClearoutDipoleTrapMixin(
         mode
         """
         self.clock_shelving_shaped_pulse.prepare_pulse(
-            frequency=CLOCK_BEAM_INFO.frequency
+            frequency=CLOCK_UP_BEAM_INFO.frequency
         )

@@ -953,7 +953,7 @@ DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
 # Add overrides for picky lasers
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     max_current=245e-3,
-    restore_jump_size=5e-3,
+    restore_jump_size=2.5e-3,
     target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
     fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
     mode_check_tolerance=10e9,
@@ -1011,7 +1011,9 @@ WAND_SETPOINTS_87 = {
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
-TOPTICA_461_ANALOG_SCALE = 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.15 V/V
+TOPTICA_461_ANALOG_SCALE = (
+    19e6 / 0.04
+)  # 210e6 / (3.05)  # MHz/V # rough value # arc factor 0.15 V/V
 
 # Default field in chamber 1
 B_FIELD_CH1_AXIAL = 0.0  # A
@@ -1103,15 +1105,16 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # Clock stuff
 
-CLOCK_PI_TIME = 44e-6
-CLOCK_SHELVING_PULSE_TIME = 440e-6
-CLOCK_SHELVING_PULSE_SETPOINT = 0.012
+CLOCK_PI_TIME = 42e-6
+CLOCK_DOWN_PI_TIME = 32e-6
+CLOCK_SHELVING_PULSE_TIME = 300e-6
+CLOCK_SHELVING_PULSE_SETPOINT = 0.05
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    35.3e3  # Will need fine-tuning whenever velocity-selection pulse is changed
+    -46e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
 DURATION_OF_STARK_PULSE = 30e-6
 
@@ -1167,7 +1170,7 @@ else:
     RED_NARROWBAND_BIAS_FIELD_X,
     RED_NARROWBAND_BIAS_FIELD_Y,
     RED_NARROWBAND_BIAS_FIELD_Z,
-) = add_field_offset(0.188, 0.057, -0.27)
+) = add_field_offset(0.188, 0.019, -0.31)
 
 # Narrowband field to load BACKWARD dipole trap at 10 A MOT current
 (
@@ -1231,7 +1234,7 @@ else:
 
 # Unused in Sr88 so only one setting needed
 XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
-XODT_MOLASSES_689_STIR_DETUNING = 540000.0
+XODT_MOLASSES_689_STIR_DETUNING = 555000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -1333,7 +1336,7 @@ else:
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
 XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7]
-XODT_COOL_MOLASSES_MULTIPLE_END = [0.17, 0.06]
+XODT_COOL_MOLASSES_MULTIPLE_END = [0.17, 0.2]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 1400e-3
@@ -1459,3 +1462,10 @@ CLOCK_GLITCH_FILTER_GATE_DURATION = 500e-6  # seconds
 
 INTERFEROMETRY_SIGNAL_INJECTION_FREQUENCY = 0.5e-3  # Hz
 INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
+
+# LMT stuff
+LMT_PULSE_CLEAROUT_DURATION = 500e-6
+DOWN_CLOCK_BEAM_PI_TIME = 35e-6
+MOMENTUM_KICK_DETUNING = 9400
+LMT_OFFSET_DETUNING = -18e3
+LMT_DOWN_BEAM_RECOIL_SHIFT = -14e3

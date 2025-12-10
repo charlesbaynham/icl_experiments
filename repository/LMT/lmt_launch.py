@@ -25,9 +25,6 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
-    LMTInterferometryMixin,
-)
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaunchMixin
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -36,58 +33,12 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
-from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
-    GlitchFreeUrukulDefaultAttenuation,
+from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
+    ShapedClockShelvingAndClearoutDipoleTrapMixin,
 )
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 
-class TestClockRamper(ExpFragment):
-
-    def build_fragment(self):
-
-        self.setattr_device("core")
-        self.core: Core
-
-        self.setattr_fragment("clock_opll", ClockOPLLController)
-        self.clock_opll: ClockOPLLController
-
-        # Init of the clock OPLL without glitching
-        self.setattr_fragment(
-            "GlitchFreeUrukulClock",
-            GlitchFreeUrukulDefaultAttenuation,
-            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
-            constants.URUKULED_BEAMS["698_clock_OPLL_offset"].attenuation,
-        )
-
-    @kernel
-    def run_once(self):
-
-        start_time = now_mu()
-
-        self.clock_opll.clock_frequency_ramper.start_ramp(1e6, 80e6, 82e6, 1)
-
-        delay(1.0)
-
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-
-        end_time = now_mu()
-
-        new_freq = 80e6 + 1e6 * self.core.mu_to_seconds(end_time - start_time + 1)
-
-        self.clock_opll.clock_OPLL_offset.set(new_freq)
-
-        delay(1.0)
-
-        self.clock_opll.clock_frequency_ramper.start_ramp(1e6, 80e6, new_freq, 2)
-
-        delay(1.0)
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        self.clock_opll.clock_OPLL_offset.set(80e6)
-        delay(1.0)
-
-
-class TestLaunchFromXODTFrag(
+class LaunchFromXODTFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
@@ -101,9 +52,9 @@ class TestLaunchFromXODTFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    Test launching from an XODT
+    Launch from XODT
 
-    Load into an XODT, then use the up clock beam for launching
+    Load into an XODT, shelve with a Jesse pulse, then use LMT for launching
 
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
@@ -127,8 +78,8 @@ class TestLaunchFromXODTFrag(
         pass
 
 
-class TestLMTInterferometryFrag(
-    LMTInterferometryMixin,
+class LaunchFromXODTShapedShelvingFrag(
+    LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
@@ -137,12 +88,16 @@ class TestLMTInterferometryFrag(
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
+    ShapedClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
     """
-    Test LMT interferometry without launch
+    Launch from XODT with shaped shelving
 
+    Load into an XODT, shelve with a Jesse pulse, then use LMT for launching
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
     """
 
     @kernel
@@ -158,11 +113,15 @@ class TestLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
 
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
 
-TestLMTInterferometryExp = make_fragment_scan_exp(
-    TestLMTInterferometryFrag, max_rtio_underflow_retries=0
+
+LaunchFromXODT = make_fragment_scan_exp(
+    LaunchFromXODTFrag, max_rtio_underflow_retries=0
 )
-TestClockRamperExp = make_fragment_scan_exp(TestClockRamper)
-TestLaunchFromXODTFExp = make_fragment_scan_exp(
-    TestLaunchFromXODTFrag, max_rtio_underflow_retries=0
+
+LaunchFromXODTShapedShelving = make_fragment_scan_exp(
+    LaunchFromXODTShapedShelvingFrag, max_rtio_underflow_retries=0
 )

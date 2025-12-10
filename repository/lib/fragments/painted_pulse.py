@@ -1,8 +1,8 @@
 import logging
 from typing import Optional
-import time
 
 import numpy as np
+from artiq.master.worker_impl import CCB
 from ndscan.experiment import *
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import abs
@@ -153,7 +153,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             FloatParam,
             description="Gradient of gravity compensation",
             default=1,
-            min=0.0,
+            min=-1000.0,
             max=1000,
         )
         self.g: FloatParamHandle
@@ -220,6 +220,9 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         )
         self.centre_frequency: FloatParamHandle
 
+        self.setattr_device("ccb")
+        self.ccb: CCB
+
         # Kernel params
         self._old_frequency = -1.0
         self._old_depth = -1.0
@@ -236,19 +239,25 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         return super().build_fragment(
             centre_frequency_param_handle=self.centre_frequency, *args, **kwargs
         )
-    
-    def run(self):
-        
-        x_vals = np.linspace(-1, 1, self.num_steps)
+
+    def host_setup(self):
+        super().host_setup()
+
+        n = self.num_steps.get()
+
+        x_vals = np.linspace(-1, 1, n)
+        y_vals = self.intensity_function(x_vals)
 
         self.set_dataset("painted_shape_x", x_vals, broadcast=True)
-        self.set_dataset("painted_shape_y", np.full(10, np.nan), broadcast=True)
+        self.set_dataset("painted_shape_y", y_vals, broadcast=True)
 
-        for i in range(10):
-            self.mutate_dataset("parabola_y", i, self.intensity_function(x_vals[i]))
-            time.sleep(0.5)
+        # for i in range(n):
+        #     self.mutate_dataset(
+        #         "painted_shape_y", i, self.intensity_function(x_vals[i])
+        #     )
+        #     time.sleep(0.5)
 
-        cmd = f"${{artiq_applet}}plot_xy painted_shape_y --x painted_shape_y"
+        cmd = f"${{artiq_applet}}plot_xy painted_shape_y --x painted_shape_x"
         self.ccb.issue("create_applet", "Painted Pulse Shape", cmd)
 
     @kernel
@@ -260,7 +269,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
 
         if self.automatic_trigger is True:
             self.start_output()
-    
+
     def intensity_function(self, x):
 
         a, b, c = self.transform_coeffs()
@@ -268,7 +277,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         t_1 = self.quartic_correction.get()
         g = self.epsilon.get()
 
-        return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1-g) * x**2) 
+        return (t_2 * x**4 + t_1 * x**3 + a * x**2 + b * x + c) / (1 - (1 - g) * x**2)
 
     def transform_coeffs(self):
         """
@@ -291,12 +300,12 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         coeff_c = 0.5 * (3 * j / 2 - p)
 
         # Ensure that we have a negative curvature in the shape of the trap.
-        logger.warning("a")
-        logger.warning(coeff_a)
-        logger.warning("p")
-        logger.warning(p)
-        logger.warning("c")
-        logger.warning(coeff_c)
+        # logger.warning("a")
+        # logger.warning(coeff_a)
+        # logger.warning("p")
+        # logger.warning(p)
+        # logger.warning("c")
+        # logger.warning(coeff_c)
         assert coeff_a <= 0
 
         return coeff_a, coeff_b, coeff_c
