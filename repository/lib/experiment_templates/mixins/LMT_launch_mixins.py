@@ -443,55 +443,55 @@ class LMTInterferometryMixin(
         delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
-        # First pulse with a lower Rabi frequency, up beam pulse
-        if N > 1:
-            self.do_selective_lmt_pulse(first_freq, t_first_pi)
+        # # First pulse with a lower Rabi frequency, up beam pulse
+        # if N > 1:
+        #     self.do_selective_lmt_pulse(first_freq, t_first_pi)
 
-        # LMT sequence on upper arm, starting on the excited state at n=2
-        if N > 2:
-            self.lmt_series(bs1_lmt_offset, N - 2)
+        # # LMT sequence on upper arm, starting on the excited state at n=2
+        # if N > 2:
+        #     self.lmt_series(bs1_lmt_offset, N - 2)
 
-        # Phase step
-        delay(self.delay_between_interferometry_pulses.get())
+        # # Phase step
+        # delay(self.delay_between_interferometry_pulses.get())
 
-        # LMT sequence on upper arm, momentum downwards
-        self.lmt_series_start_down_launch_down(upper_mirror_offset, down_offset, N - 2)
+        # # LMT sequence on upper arm, momentum downwards
+        # self.lmt_series_start_down_launch_down(upper_mirror_offset, down_offset, N - 2)
 
-        # last pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse(last_upper_mirror_freq, t_first_pi)
+        # # last pulse with a lower Rabi frequency, up beam pulse
+        # self.do_selective_lmt_pulse(last_upper_mirror_freq, t_first_pi)
 
-        # MIRROR PULSE DOWN BEAM
-        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + mirror_freq)
-        delay_mu(8)
-        self.clock_down_dds.sw.on()
-        delay(t_pi_down)
-        self.clock_down_dds.sw.off()
+        # # MIRROR PULSE DOWN BEAM
+        # self.clock_opll.clock_OPLL_offset.set(start_opll_offset + mirror_freq)
+        # delay_mu(8)
+        # self.clock_down_dds.sw.on()
+        # delay(t_pi_down)
+        # self.clock_down_dds.sw.off()
 
-        # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse(first_lower_mirror_freq, t_first_pi)
+        # # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
+        # self.do_selective_lmt_pulse(first_lower_mirror_freq, t_first_pi)
 
-        # LMT series on lower arm, start from second pulse, down beam
-        self.lmt_series(lower_mirror_offset, 1)  # N-2)
+        # # LMT series on lower arm, start from second pulse, down beam
+        # self.lmt_series(lower_mirror_offset, 1)  # N-2)
 
-        # Phase step
-        t_end_pi_mu = now_mu()
-        t_start_final_bs_mu = t_end_pi_mu + self.core.seconds_to_mu(
-            self.delay_between_interferometry_pulses.get()
-        )
+        # # Phase step
+        # t_end_pi_mu = now_mu()
+        # t_start_final_bs_mu = t_end_pi_mu + self.core.seconds_to_mu(
+        #     self.delay_between_interferometry_pulses.get()
+        # )
 
-        # LMT sequence on lower arm, momentum downwards
-        self.lmt_series_start_down_launch_down(bs_detuning_lower, down_offset, N - 2)
+        # # LMT sequence on lower arm, momentum downwards
+        # self.lmt_series_start_down_launch_down(bs_detuning_lower, down_offset, N - 2)
 
-        # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse(last_selective_lower_bs_freq, t_first_pi)
+        # # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+        # self.do_selective_lmt_pulse(last_selective_lower_bs_freq, t_first_pi)
 
-        # PI/2 PULSE
-        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + last_bs_freq)
-        delay_mu(8)
-        at_mu(t_start_final_bs_mu)
-        self.clock_up_dds.sw.on()
-        delay(t_pi_up / 2)
-        self.clock_up_dds.sw.off()
+        # # PI/2 PULSE
+        # self.clock_opll.clock_OPLL_offset.set(start_opll_offset + last_bs_freq)
+        # delay_mu(8)
+        # at_mu(t_start_final_bs_mu)
+        # self.clock_up_dds.sw.on()
+        # delay(t_pi_up / 2)
+        # self.clock_up_dds.sw.off()
 
     @kernel
     def do_selective_lmt_pulse(self, freq, duration):
