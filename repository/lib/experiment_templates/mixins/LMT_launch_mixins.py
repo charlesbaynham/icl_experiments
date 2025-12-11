@@ -509,17 +509,19 @@ class LMTInterferometryMixin(
         delay_mu(8)
         t_pulse = now_mu() + self.core.seconds_to_mu(1e-6)
 
-        self.clock_opll.clock_OPLL_offset.set(
+        opll_frequency = (
             start_opll_offset
             + self.calculate_frequency_for_first_lmt_pulse(
                 t_pulse_start_mu=t_pulse, t_pi_pulse=duration
             )
         )
+
+        self.clock_opll.clock_OPLL_offset.set(opll_frequency)
         # ramp the offset upwards
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
-            start_opll_offset + freq,
-            start_opll_offset + freq + 2e6,
+            opll_frequency,
+            opll_frequency + 2e6,
             wave_type=1,
         )
         delay_mu(8)
