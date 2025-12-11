@@ -183,7 +183,7 @@ class TestLMTInterferometryFrag(
             self.core.mu_to_seconds(
                 t_pulse_start_mu
                 - self.t_velocity_slicing_pulse_centre_mu
-                - self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
+                + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
             )
             # + t_pi_pulse / 2
         )
