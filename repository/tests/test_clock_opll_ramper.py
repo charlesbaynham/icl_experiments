@@ -185,11 +185,11 @@ class TestLMTInterferometryFrag(
             )
             + t_pi_pulse / 2
         )
-        print("setting first lmt frequency")
+        print(+self._calculate_chirp_required(t_drop) - 2 * self.momentum_kick.get())
         return (
-            # +self._calculate_chirp_required(t_drop)
-            # - 2 * self.momentum_kick.get()
-            self.first_lmt_freq.get()
+            +self._calculate_chirp_required(t_drop)
+            - 2 * self.momentum_kick.get()
+            + self.first_lmt_freq.get()
         )
 
     @kernel
