@@ -480,7 +480,7 @@ _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 252
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 188
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 299
 
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
