@@ -211,7 +211,7 @@ class LMTBase(
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
-    def fire_lmt_pulse(self, start_freq, type, velocity_selective):
+    def fire_lmt_pulse(self, start_freq, type):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
@@ -516,8 +516,8 @@ class LMTInterferometryMixin(
             )
         )
 
-        self.clock_opll.clock_OPLL_offset.set(opll_frequency)
         # ramp the offset upwards
+        at_mu(t_pulse)
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
             opll_frequency,
@@ -526,7 +526,6 @@ class LMTInterferometryMixin(
         )
         delay_mu(8)
 
-        at_mu(t_pulse)
         self.clock_up_dds.sw.on()
         delay(duration)
         self.clock_up_dds.sw.off()
