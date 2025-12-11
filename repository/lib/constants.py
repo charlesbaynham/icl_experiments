@@ -473,11 +473,11 @@ FAST_KINETICS_DELAY_BETWEEN_PULSES = (
 )
 SLACK_FOR_GRAVITY = 20
 
-_ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
+_ANDOR_DIPOLE_TRAP_BACKWARD_X = 189
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 246
+_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 252
 
-_ANDOR_DIPOLE_TRAP_FORWARD_X = 196
+_ANDOR_DIPOLE_TRAP_FORWARD_X = 188
 # ~3 pixels below the center of the dipole trap to include falling atoms
 _ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
 
