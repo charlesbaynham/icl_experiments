@@ -176,6 +176,22 @@ class TestLMTInterferometryFrag(
         )
 
     @kernel
+    def calculate_frequency_for_first_lmt_pulse(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        t_drop = (
+            self.core.mu_to_seconds(
+                t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
+            )
+            + t_pi_pulse / 2
+        )
+        return (
+            +self._calculate_chirp_required(t_drop)
+            - 2 * self.momentum_kick.get()
+            - self.first_lmt_freq.get()
+        )
+
+    @kernel
     def _calculate_chirp_required(self, t_drop: float):
         return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 

@@ -402,7 +402,7 @@ class LMTInterferometryMixin(
             "first_lmt_duration",
             FloatParam,
             "Duration of the selective LMT pulse",
-            default=580e-6,
+            default=95e-6,
             unit="us",
         )
         self.first_lmt_duration: FloatParamHandle
@@ -449,12 +449,12 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)  # / 2)
+        delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
-        # # First pulse with a lower Rabi frequency, up beam pulse
-        # if N > 1:
-        #     self.do_selective_lmt_pulse(first_freq, t_first_pi)
+        # First pulse with a lower Rabi frequency, up beam pulse
+        if N > 1:
+            self.do_selective_lmt_pulse(first_freq, t_first_pi)
 
         # # LMT sequence on upper arm, starting on the excited state at n=2
         # if N > 2:
@@ -524,6 +524,41 @@ class LMTInterferometryMixin(
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
         self.clock_up_dds.set_att(0.0)
+
+    @kernel
+    def lmt_series_first_bs(self, offset_det, N):
+
+        kick = self.momentum_kick.get()
+        total_ramp_time = 0.0
+
+        if N > 2:
+
+            t_start_ramp = now_mu()
+            for i in range(N):
+
+                if i % 2 == 0:
+                    down_offset = 0.0
+                else:
+                    down_offset = self.down_offset_detuning.get()
+
+                f_i = (
+                    start_opll_offset
+                    + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                    + i * (-1) ** (i) * kick
+                    + (-1) ** i * (offset_det + down_offset)
+                )
+                # start with down pulse
+                if i % 2 == 0:
+                    pulse_type = "down"
+
+                else:
+                    pulse_type = "up"
+
+                # fire the pulse
+                self.fire_lmt_pulse(f_i, pulse_type)
+
+                t_end_pulse = now_mu()
+                total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
 
 class ShapedFirstPulseLMTInterferometryMixin(LMTInterferometryMixin):
