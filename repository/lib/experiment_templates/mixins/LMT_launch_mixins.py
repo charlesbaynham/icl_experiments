@@ -423,8 +423,12 @@ class LMTInterferometryMixin(
         t_first_pi = self.first_lmt_duration.get()
 
         # frequencies
-        first_freq = self.first_lmt_freq.get()
-        bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
+        first_freq = (
+            self.first_lmt_freq.get()
+        )  # TODO: this is zero, need to delete the parameter
+        bs1_lmt_offset = (
+            self.bs1_lmt_offset_detuning.get()
+        )  # TODO: this is now zero after calculating the right detuning
         down_offset = self.down_offset_detuning.get()
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
@@ -449,16 +453,16 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
             self.do_selective_lmt_pulse(first_freq, t_first_pi)
 
-        # # LMT sequence on upper arm, starting on the excited state at n=2
-        # if N > 2:
-        #     self.lmt_series(bs1_lmt_offset, N - 2)
+        # LMT sequence on upper arm, starting on the excited state at n=2
+        if N > 2:
+            self.lmt_series(bs1_lmt_offset, N - 2)
 
         # # Phase step
         # delay(self.delay_between_interferometry_pulses.get())
