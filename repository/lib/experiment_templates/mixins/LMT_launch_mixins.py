@@ -507,7 +507,14 @@ class LMTInterferometryMixin(
         self.clock_up_dds.set_att(13.0)
 
         delay_mu(8)
-        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + freq)
+        t_pulse = now_mu() + self.core.seconds_to_mu(1e-6)
+
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_lmt_pulse(
+                t_pulse_start_mu=t_pulse, t_pi_pulse=duration
+            )
+        )
         # ramp the offset upwards
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
@@ -517,13 +524,19 @@ class LMTInterferometryMixin(
         )
         delay_mu(8)
 
-        delay(1e-6)
+        at_mu(t_pulse)
         self.clock_up_dds.sw.on()
         delay(duration)
         self.clock_up_dds.sw.off()
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
         self.clock_up_dds.set_att(0.0)
+
+    @kernel
+    def calculate_frequency_for_first_lmt_pulse(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        return 0.0
 
     @kernel
     def lmt_series_first_bs(self, offset_det, N):
