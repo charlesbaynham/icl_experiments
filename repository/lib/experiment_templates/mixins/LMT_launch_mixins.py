@@ -462,7 +462,7 @@ class LMTInterferometryMixin(
 
         # LMT sequence on upper arm, starting on the excited state at n=2
         if N > 2:
-            self.lmt_series(bs1_lmt_offset, N - 2)
+            self.lmt_series_first_bs(bs1_lmt_offset, N - 2)
 
         # # Phase step
         # delay(self.delay_between_interferometry_pulses.get())
@@ -544,6 +544,12 @@ class LMTInterferometryMixin(
         return 0.0
 
     @kernel
+    def calculate_frequency_for_second_lmt_pulse(
+        self, t_pulse_start_mu: int64
+    ) -> float:
+        return 0.0
+
+    @kernel
     def lmt_series_first_bs(self, offset_det, N):
 
         kick = self.momentum_kick.get()
@@ -555,22 +561,25 @@ class LMTInterferometryMixin(
             for i in range(N):
 
                 if i % 2 == 0:
+                    pulse_type = "down"
                     down_offset = 0.0
                 else:
+                    pulse_type = "up"
                     down_offset = self.down_offset_detuning.get()
 
                 f_i = (
                     start_opll_offset
                     + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                    + i * (-1) ** (i) * kick
-                    + (-1) ** i * (offset_det + down_offset)
+                    + (i) * (-1) ** (i) * kick
+                    + (-1) ** i
+                    * (
+                        offset_det
+                        + down_offset
+                        + self.calculate_frequency_for_second_lmt_pulse(
+                            t_pulse_start_mu=now_mu()
+                        )
+                    )
                 )
-                # start with down pulse
-                if i % 2 == 0:
-                    pulse_type = "down"
-
-                else:
-                    pulse_type = "up"
 
                 # fire the pulse
                 self.fire_lmt_pulse(f_i, pulse_type)
