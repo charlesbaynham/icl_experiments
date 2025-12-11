@@ -309,6 +309,15 @@ class LMTInterferometryMixin(
         self.lmt_pulses_number: IntParamHandle
 
         self.setattr_param(
+            "first_lmt_freq",
+            FloatParam,
+            "Detuning 1st LMT pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.first_lmt_freq: FloatParamHandle
+
+        self.setattr_param(
             "bs1_lmt_offset_detuning",
             FloatParam,
             "LMT detuning after 1st BS",
@@ -327,33 +336,6 @@ class LMTInterferometryMixin(
         self.upper_mirror_offset_detuning: FloatParamHandle
 
         self.setattr_param(
-            "lower_mirror_offset_detuning",
-            FloatParam,
-            "LMT detuning for lower arm mirror",
-            default=0.0,
-            unit="kHz",
-        )
-        self.lower_mirror_offset_detuning: FloatParamHandle
-
-        self.setattr_param(
-            "first_lmt_freq",
-            FloatParam,
-            "Detuning 1st LMT pulse",
-            default=0.0,
-            unit="kHz",
-        )
-        self.first_lmt_freq: FloatParamHandle
-
-        self.setattr_param(
-            "first_lmt_duration",
-            FloatParam,
-            "Duration of the first LMT pulse",
-            default=580e-6,
-            unit="us",
-        )
-        self.first_lmt_duration: FloatParamHandle
-
-        self.setattr_param(
             "last_upper_mirror_lmt_freq",
             FloatParam,
             "Detuning last upper arm mirror LMT pulse",
@@ -361,6 +343,15 @@ class LMTInterferometryMixin(
             unit="kHz",
         )
         self.last_upper_mirror_lmt_freq: FloatParamHandle
+
+        self.setattr_param(
+            "mirror_pulse_freq",
+            FloatParam,
+            "Frequency detuning for the mirror pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.mirror_pulse_freq: FloatParamHandle
 
         self.setattr_param(
             "first_lower_mirror_lmt_freq",
@@ -372,13 +363,49 @@ class LMTInterferometryMixin(
         self.first_lower_mirror_lmt_freq: FloatParamHandle
 
         self.setattr_param(
-            "first_lower_mirror_lmt_duration",
+            "lower_mirror_offset_detuning",
             FloatParam,
-            "Duration of the first lower arm mirror LMT pulse",
+            "LMT detuning for lower arm mirror",
+            default=0.0,
+            unit="kHz",
+        )
+        self.lower_mirror_offset_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "lower_arm_bs_detuning",
+            FloatParam,
+            "Detuning BS LMT series on lower arm",
+            default=0.0,
+            unit="kHz",
+        )
+        self.lower_arm_bs_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "last_selective_lower_bs_freq",
+            FloatParam,
+            "Frequency detuning for last selective lower BS",
+            default=0.0,
+            unit="kHz",
+        )
+        self.last_selective_lower_bs_freq: FloatParamHandle
+
+        self.setattr_param(
+            "last_bs_freq",
+            FloatParam,
+            "Frequency detuning for last BS",
+            default=0.0,
+            unit="kHz",
+        )
+        self.last_bs_freq: FloatParamHandle
+
+        self.setattr_param(
+            "first_lmt_duration",
+            FloatParam,
+            "Duration of the selective LMT pulse",
             default=580e-6,
             unit="us",
         )
-        self.first_lower_mirror_lmt_duration: FloatParamHandle
+        self.first_lmt_duration: FloatParamHandle
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -390,17 +417,24 @@ class LMTInterferometryMixin(
         delay_mu(16)
 
         N = self.lmt_pulses_number.get()
-        down_offset = self.down_offset_detuning.get()
-        bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
-        upper_mirror_offset = self.upper_mirror_offset_detuning.get()
-        lower_mirror_offset = self.lower_mirror_offset_detuning.get()
+
         t_pi_up = self.spectroscopy_pulse_time.get()
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
+
+        # frequencies
         first_freq = self.first_lmt_freq.get()
+        bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
+        down_offset = self.down_offset_detuning.get()
+        upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
+        mirror_freq = self.mirror_pulse_freq.get()
         first_lower_mirror_freq = self.first_lower_mirror_lmt_freq.get()
-        first_lower_mirror_t_pi = self.first_lower_mirror_lmt_duration.get()
+        lower_mirror_offset = self.lower_mirror_offset_detuning.get()
+        bs_detuning_lower = self.lower_arm_bs_detuning.get()
+        last_selective_lower_bs_freq = self.last_selective_lower_bs_freq.get()
+        last_bs_freq = self.last_bs_freq.get()
+
         t_start_first_pulse_mu = now_mu()
 
         # PI/2 PULSE DOWN BEAM
@@ -427,17 +461,17 @@ class LMTInterferometryMixin(
         self.do_selective_lmt_pulse(last_upper_mirror_freq, t_first_pi)
 
         # MIRROR PULSE DOWN BEAM
-        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + freq)
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + mirror_freq)
         delay_mu(8)
         self.clock_down_dds.sw.on()
         delay(t_pi_down)
         self.clock_down_dds.sw.off()
 
-        # first lower arm mirror pulse with a lower Rabi frequency, down beam pulse
-        self.do_mirror_lmt_pulse(first_lower_mirror_freq, first_lower_mirror_t_pi)
+        # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(first_lower_mirror_freq, t_first_pi)
 
-        # Mirror pulse lower arm, start from second pulse, up beam
-        self.lmt_series_start_up(lower_mirror_offset, down_offset, 1)  # N-1)
+        # LMT series on lower arm, start from second pulse, down beam
+        self.lmt_series(lower_mirror_offset, 1)  # N-2)
 
         # Phase step
         t_end_pi_mu = now_mu()
@@ -445,14 +479,19 @@ class LMTInterferometryMixin(
             self.delay_between_interferometry_pulses.get()
         )
 
+        # LMT sequence on lower arm, momentum downwards
+        self.lmt_series_start_down_launch_down(bs_detuning_lower, down_offset, N - 2)
+
+        # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(last_selective_lower_bs_freq, t_first_pi)
+
         # PI/2 PULSE
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + last_bs_freq)
+        delay_mu(8)
         at_mu(t_start_final_bs_mu)
         self.clock_up_dds.sw.on()
         delay(t_pi_up / 2)
         self.clock_up_dds.sw.off()
-
-        # LMT sequence on lower arm
-        self.lmt_series(bs1_lmt_offset, (N - 1))
 
     @kernel
     def do_selective_lmt_pulse(self, freq, duration):
