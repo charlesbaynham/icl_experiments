@@ -112,7 +112,7 @@ class LMTBase(
             if i % 2 == 0:
                 down_offset = 0.0
             else:
-                down_offset = self.down_offset_detuning.get()
+                down_offset = -15e3  # self.down_offset_detuning.get()
 
             f_i = (
                 start_opll_offset
@@ -321,7 +321,7 @@ class LMTInterferometryMixin(
             "bs1_lmt_offset_detuning",
             FloatParam,
             "LMT detuning after 1st BS",
-            default=0.0,
+            default=-1e3,
             unit="kHz",
         )
         self.bs1_lmt_offset_detuning: FloatParamHandle
@@ -330,7 +330,7 @@ class LMTInterferometryMixin(
             "upper_mirror_offset_detuning",
             FloatParam,
             "LMT detuning for upper arm mirror",
-            default=0.0,
+            default=29e3,
             unit="kHz",
         )
         self.upper_mirror_offset_detuning: FloatParamHandle
@@ -339,7 +339,7 @@ class LMTInterferometryMixin(
             "last_upper_mirror_lmt_freq",
             FloatParam,
             "Detuning last upper arm mirror LMT pulse",
-            default=0.0,
+            default=35.5,
             unit="kHz",
         )
         self.last_upper_mirror_lmt_freq: FloatParamHandle
@@ -348,7 +348,7 @@ class LMTInterferometryMixin(
             "mirror_pulse_freq",
             FloatParam,
             "Frequency detuning for the mirror pulse",
-            default=0.0,
+            default=-35e3,
             unit="kHz",
         )
         self.mirror_pulse_freq: FloatParamHandle
@@ -426,9 +426,7 @@ class LMTInterferometryMixin(
         first_freq = (
             self.first_lmt_freq.get()
         )  # TODO: this is zero, need to delete the parameter
-        bs1_lmt_offset = (
-            self.bs1_lmt_offset_detuning.get()
-        )  # TODO: this is now zero after calculating the right detuning
+        bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
         down_offset = self.down_offset_detuning.get()
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
@@ -458,27 +456,41 @@ class LMTInterferometryMixin(
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
-            self.do_selective_lmt_pulse(first_freq, t_first_pi)
+            self.do_first_selective_lmt_pulse(first_freq, t_first_pi)
+
+            # Clear out the ground state
+            self.fluorescence_pulse.do_imaging_pulse(
+                duration=self.clearout_duration.get(),
+                ignore_final_shutters=True,
+            )
+            delay(8e-9)
 
         # LMT sequence on upper arm, starting on the excited state at n=2
         if N > 2:
-            self.lmt_series_first_bs(bs1_lmt_offset, N - 2)
+            self.lmt_series(bs1_lmt_offset, N - 2)
 
-        # # Phase step
-        # delay(self.delay_between_interferometry_pulses.get())
+        # Phase step
+        delay(self.delay_between_interferometry_pulses.get())
 
-        # # LMT sequence on upper arm, momentum downwards
-        # self.lmt_series_start_down_launch_down(upper_mirror_offset, down_offset, N - 2)
+        # LMT sequence on upper arm, momentum downwards
+        self.lmt_series_start_down_launch_down(upper_mirror_offset, down_offset, N - 2)
 
-        # # last pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(last_upper_mirror_freq, t_first_pi)
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
 
-        # # MIRROR PULSE DOWN BEAM
-        # self.clock_opll.clock_OPLL_offset.set(start_opll_offset + mirror_freq)
-        # delay_mu(8)
-        # self.clock_down_dds.sw.on()
-        # delay(t_pi_down)
-        # self.clock_down_dds.sw.off()
+        # last pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(last_upper_mirror_freq, t_first_pi)
+
+        # MIRROR PULSE DOWN BEAM
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + mirror_freq)
+        delay_mu(8)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)
+        self.clock_down_dds.sw.off()
 
         # # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
         # self.do_selective_lmt_pulse(first_lower_mirror_freq, t_first_pi)
@@ -507,7 +519,7 @@ class LMTInterferometryMixin(
         # self.clock_up_dds.sw.off()
 
     @kernel
-    def do_selective_lmt_pulse(self, freq, duration):
+    def do_first_selective_lmt_pulse(self, freq, duration):
         self.clock_up_dds.set_att(13.0)
 
         delay_mu(8)
@@ -538,54 +550,36 @@ class LMTInterferometryMixin(
         self.clock_up_dds.set_att(0.0)
 
     @kernel
+    def do_selective_lmt_pulse(self, freq, duration):
+        self.clock_up_dds.set_att(13.0)
+
+        delay_mu(8)
+        t_pulse = now_mu() + self.core.seconds_to_mu(1e-6)
+
+        opll_frequency = start_opll_offset + freq
+
+        # ramp the offset upwards
+        at_mu(t_pulse)
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            opll_frequency,
+            opll_frequency + 2e6,
+            wave_type=1,
+        )
+        delay_mu(8)
+
+        self.clock_up_dds.sw.on()
+        delay(duration)
+        self.clock_up_dds.sw.off()
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_OPLL_offset.set(80e6)
+        self.clock_up_dds.set_att(0.0)
+
+    @kernel
     def calculate_frequency_for_first_lmt_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
         return 0.0
-
-    @kernel
-    def calculate_frequency_for_second_lmt_pulse(
-        self, t_pulse_start_mu: int64
-    ) -> float:
-        return 0.0
-
-    @kernel
-    def lmt_series_first_bs(self, offset_det, N):
-
-        kick = self.momentum_kick.get()
-        total_ramp_time = 0.0
-
-        if N > 2:
-
-            t_start_ramp = now_mu()
-            for i in range(N):
-
-                if i % 2 == 0:
-                    pulse_type = "down"
-                    down_offset = 0.0
-                else:
-                    pulse_type = "up"
-                    down_offset = self.down_offset_detuning.get()
-
-                f_i = (
-                    start_opll_offset
-                    + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                    + (i) * (-1) ** (i) * kick
-                    + (-1) ** i
-                    * (
-                        offset_det
-                        + down_offset
-                        + self.calculate_frequency_for_second_lmt_pulse(
-                            t_pulse_start_mu=now_mu()
-                        )
-                    )
-                )
-
-                # fire the pulse
-                self.fire_lmt_pulse(f_i, pulse_type)
-
-                t_end_pulse = now_mu()
-                total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
 
 class ShapedFirstPulseLMTInterferometryMixin(LMTInterferometryMixin):
