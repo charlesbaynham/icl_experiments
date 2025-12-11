@@ -348,7 +348,7 @@ class LMTInterferometryMixin(
             "mirror_pulse_freq",
             FloatParam,
             "Frequency detuning for the mirror pulse",
-            default=-35e3,
+            default=-34e3,
             unit="kHz",
         )
         self.mirror_pulse_freq: FloatParamHandle
