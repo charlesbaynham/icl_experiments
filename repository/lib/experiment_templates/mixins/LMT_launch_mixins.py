@@ -438,12 +438,12 @@ class LMTInterferometryMixin(
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
             1e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
-        self.clock_down_dds.set(
-            frequency=self.calculate_frequency_for_first_pi_by_2_pulse(
+
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_down
-            ),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+            )
         )
 
         # PI/2 PULSE DOWN BEAM

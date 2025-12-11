@@ -170,8 +170,7 @@ class TestLMTInterferometryFrag(
             + t_pi_pulse / 2
         )
         return (
-            self.clock_switch_frequency_handle.get()
-            - self._calculate_chirp_required(t_drop)
+            -self._calculate_chirp_required(t_drop)
             + self.momentum_kick.get()
             + self.down_offset_detuning.get()
         )
