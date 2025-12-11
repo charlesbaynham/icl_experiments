@@ -357,7 +357,7 @@ class LMTInterferometryMixin(
             "first_lower_mirror_lmt_freq",
             FloatParam,
             "Detuning first lower arm mirror LMT pulse",
-            default=0.0,
+            default=36e3,
             unit="kHz",
         )
         self.first_lower_mirror_lmt_freq: FloatParamHandle
@@ -366,7 +366,7 @@ class LMTInterferometryMixin(
             "lower_mirror_offset_detuning",
             FloatParam,
             "LMT detuning for lower arm mirror",
-            default=0.0,
+            default=-16e3,
             unit="kHz",
         )
         self.lower_mirror_offset_detuning: FloatParamHandle
@@ -375,7 +375,7 @@ class LMTInterferometryMixin(
             "lower_arm_bs_detuning",
             FloatParam,
             "Detuning BS LMT series on lower arm",
-            default=0.0,
+            default=16e3,
             unit="kHz",
         )
         self.lower_arm_bs_detuning: FloatParamHandle
@@ -384,7 +384,7 @@ class LMTInterferometryMixin(
             "last_selective_lower_bs_freq",
             FloatParam,
             "Frequency detuning for last selective lower BS",
-            default=0.0,
+            default=50e3,
             unit="kHz",
         )
         self.last_selective_lower_bs_freq: FloatParamHandle
@@ -447,6 +447,13 @@ class LMTInterferometryMixin(
                 t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_down
             )
         )
+        delay_mu(8)
+
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
@@ -470,6 +477,14 @@ class LMTInterferometryMixin(
             self.lmt_series(bs1_lmt_offset, N - 2)
 
         # Phase step
+        delay_mu(8)
+
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_pi_pulse(),
+        )
+
         delay(self.delay_between_interferometry_pulses.get())
 
         # LMT sequence on upper arm, momentum downwards
@@ -492,31 +507,52 @@ class LMTInterferometryMixin(
         delay(t_pi_down)
         self.clock_down_dds.sw.off()
 
-        # # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(first_lower_mirror_freq, t_first_pi)
+        # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(first_lower_mirror_freq, t_first_pi)
 
-        # # LMT series on lower arm, start from second pulse, down beam
-        # self.lmt_series(lower_mirror_offset, 1)  # N-2)
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
 
-        # # Phase step
-        # t_end_pi_mu = now_mu()
-        # t_start_final_bs_mu = t_end_pi_mu + self.core.seconds_to_mu(
-        #     self.delay_between_interferometry_pulses.get()
-        # )
+        # LMT series on lower arm, start from second pulse, down beam
+        self.lmt_series(lower_mirror_offset, N - 2)
 
-        # # LMT sequence on lower arm, momentum downwards
-        # self.lmt_series_start_down_launch_down(bs_detuning_lower, down_offset, N - 2)
+        # Phase step
+        delay_mu(8)
 
-        # # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(last_selective_lower_bs_freq, t_first_pi)
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
+        )
 
-        # # PI/2 PULSE
-        # self.clock_opll.clock_OPLL_offset.set(start_opll_offset + last_bs_freq)
-        # delay_mu(8)
-        # at_mu(t_start_final_bs_mu)
-        # self.clock_up_dds.sw.on()
-        # delay(t_pi_up / 2)
-        # self.clock_up_dds.sw.off()
+        delay(self.delay_between_interferometry_pulses.get())
+
+        # LMT sequence on lower arm, momentum downwards
+        self.lmt_series_start_down_launch_down(bs_detuning_lower, down_offset, N - 2)
+
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
+
+        # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(last_selective_lower_bs_freq, t_first_pi)
+
+        delay(8e-9)
+
+        # PI/2 PULSE
+        self.clock_opll.clock_OPLL_offset.set(start_opll_offset + last_bs_freq)
+        delay_mu(8)
+
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down / 2)
+        self.clock_down_dds.sw.off()
 
     @kernel
     def do_first_selective_lmt_pulse(self, freq, duration):
