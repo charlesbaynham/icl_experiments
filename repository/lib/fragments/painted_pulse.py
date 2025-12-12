@@ -11,6 +11,7 @@ from numpy import sqrt
 from scipy.optimize import root_scalar
 
 from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
+from repository.lib import constants
 
 logger = logging.getLogger(__name__)
 
@@ -263,6 +264,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
         # Rewrite the device setup
         self.device_setup_base()
         self.core.break_realtime()
+        self.dds.set_att(constants.PAINTED_DDS_ATT)  # Set maximum output attenuation
         self.prepare_pulse()
 
         if self.automatic_trigger is True:

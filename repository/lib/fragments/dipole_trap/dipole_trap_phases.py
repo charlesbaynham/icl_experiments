@@ -323,3 +323,35 @@ class XODTWithLinearRamp_3(XODTWithLinearRamp):
     default_suservo_setpoint_multiples_end = constants.XODT_EVAP_3_END
 
     add_final_point = True
+
+class XODTWithLinearRampAdiabaticCooling(GeneralRampingPhaseWithBinding):
+    """
+    A phase with linear ramps for 1064 and 813 nm XODT for adiabatic cooling
+    """
+
+    duration_default = constants.XODT_ADIABATIC_RAMP_DURATION
+    time_step_default = 1e-3
+
+    suservos = SUSERVOS_XODT
+
+    # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT)
+
+    default_suservo_setpoint_multiples_start = constants.XODT_ADIABATIC_START
+    default_suservo_setpoint_multiples_end = [0.0] * 2
+
+class PaintedLinearRamp(GeneralRampingPhaseWithBinding):
+    """
+    A phase with linear ramps for 1064 painted beam for adiabatic switch-on
+    """
+
+    duration_default = constants.PAINT_ADIABATIC_RAMP_DURATION
+    time_step_default = 1e-3
+
+    suservos = SUSERVO_PAINTER
+
+    # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVO_PAINTER)
+
+    default_suservo_setpoint_multiples_start = constants.PAINT_ADIABATIC_RAMP_START
+    default_suservo_setpoint_multiples_end = constants.PAINT_ADIABATIC_RAMP_END

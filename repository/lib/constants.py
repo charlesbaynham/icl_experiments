@@ -124,6 +124,7 @@ URUKULED_BEAMS = [
 # Convert to dict for ease of use
 URUKULED_BEAMS: dict[str, UrukuledBeam] = {beam.name: beam for beam in URUKULED_BEAMS}
 
+PAINTED_DDS_ATT = 5.0
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
 # polarizing beam (i.e. not their normal MOT beams)
@@ -800,7 +801,7 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_painted_delivery",
         servo_enabled=True,
-        initial_amplitude=1.0,
+        initial_amplitude=0.1,
         setpoint=4.9,
         kI_loop_constant=-10000.0,
     ),
@@ -1357,6 +1358,9 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
 XODT_EVAP_2_END = [0.21, 0.7]
 
 XODT_EVAP_3_END = [0.18, 0.7]
+PAINT_ADIABATIC_RAMP_DURATION = 50e-3
+PAINT_ADIABATIC_RAMP_START = [0.0]
+PAINT_ADIABATIC_RAMP_END = [1.0]
 
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.

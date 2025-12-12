@@ -9,8 +9,8 @@ from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.experiment_templates.mixins.evaporation_mixin import EvaporationSingleRampMixin
-
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRampAdiabaticCooling
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import PaintedLinearRamp
 from repository.lib.fragments.painted_pulse import (
     GravityAndDiffractionCompensatedQuadraticShapedPulse,
 )
@@ -133,23 +133,13 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
         self.dipole_beam_controller.turn_off_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
 
-class AdiabaticCoolingWithPaintedQuadraticMixin(EvaporationSingleRampMixin):
+class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
     """
     Mixin which adiabitically adiabatically cools the atoms from the fixed HODT into the painted HODT
     """
     
     def build_fragment(self):
         super().build_fragment()
-
-        self.setattr_param(
-            "adiabatic_cooling_time",
-            FloatParam,
-            description="Duration of the adiabatic cooling time",
-            unit="ms",
-            default=1e-3,
-            min=0.0,
-            max=100,
-        )
 
         self.setattr_fragment(
             "painter_driver",
@@ -158,14 +148,46 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(EvaporationSingleRampMixin):
             automatic_trigger=True,
         )
 
+        self.setattr_fragment(
+            "adiabatic_cooling_ramp",
+            XODTWithLinearRampAdiabaticCooling,
+            enforce_binding_to_defaults=False,
+        )
+
+        self.adiabatic_cooling_ramp: XODTWithLinearRampAdiabaticCooling
+
+        self.setattr_fragment(
+            "adiabatic_painter_ramp_on",
+            PaintedLinearRamp,
+            enforce_binding_to_defaults=False,
+        )
+
+        self.adiabatic_painter_ramp_on: PaintedLinearRamp
+
+        self.setattr_param_rebind(
+            "adiabatic_cooling_time",
+            self.adiabatic_cooling_ramp,
+            "duration",
+            description="Duration of the adiabatic cooling time",
+            unit="ms",
+            default=1e-3,
+            min=0.0,
+            max=10e-3,
+        )
+
         self.adiabatic_cooling_time: FloatParamHandle
+        self.adiabatic_cooling_ramp.bind_suservo_setpoint_params_to_default_beam_setter(self.dipole_beam_controller.all_beam_default_setter)
+
+        # Set the time to the parameter value
+
+        
 
     @kernel
     def matterwave_collimate_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
-        delay(200e-6)  # Wait for the suservo to stabilise
-        # Then switch off the dipole beam
-        self.dipole_beam_controller.turn_off_dipole_beams()
+        self.adiabatic_painter_ramp_on.do_phase()
+        # Do the ramp
+        self.adiabatic_cooling_ramp.do_phase()
         self.dipole_beam_controller.turn_off_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
