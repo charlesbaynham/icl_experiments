@@ -130,7 +130,7 @@ class ClockInterferometryBase(
 
     @kernel
     def calculate_phase_for_second_pi_by_2_pulse(self) -> float:
-        return self.phase_constant  # + 4.0 * self.phase_step.get()
+        return self.phase_constant  # + 4.0 * self.phase_step.get() #FIXME
 
     @kernel
     def start_interferometry_hook(self):
