@@ -107,7 +107,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
             "before_launch_delay",
             FloatParam,
             "Time to wait after launch",
-            default=0.0,
+            default=0.0 - 6,
             unit="us",
         )
         self.before_launch_delay: FloatParamHandle
