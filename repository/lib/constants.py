@@ -802,7 +802,7 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=1.0,
         setpoint=4.9,
-        kI_loop_constant=-1000.0,
+        kI_loop_constant=-10000.0,
     ),
     SUServoedBeam(
         "stark_shifter_689_delivery",
@@ -1342,9 +1342,11 @@ XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 1400e-3
 XODT_EVAP_2_DURATION = 1000e-3
 XODT_EVAP_3_DURATION = 1300e-3
+XODT_ADIABATIC_RAMP_DURATION = 1000e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_START = [1.0, 0.7]
 XODT_EVAP_END = [0.35, 0.7]
+XODT_ADIABATIC_START = [0.35, 0]
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
@@ -1355,6 +1357,7 @@ XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
 XODT_EVAP_2_END = [0.21, 0.7]
 
 XODT_EVAP_3_END = [0.18, 0.7]
+
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
