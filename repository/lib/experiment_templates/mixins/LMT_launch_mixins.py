@@ -393,7 +393,7 @@ class LMTInterferometryMixin(
             "last_bs_freq",
             FloatParam,
             "Frequency detuning for last BS",
-            default=-62,
+            default=-62e3,
             unit="kHz",
         )
         self.last_bs_freq: FloatParamHandle
