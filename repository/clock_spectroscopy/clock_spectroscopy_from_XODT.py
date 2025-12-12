@@ -51,6 +51,7 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
     PaintedMatterwaveLensingMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
@@ -148,6 +149,34 @@ class ClockSpecFromSingleXODTEvaporatedAndLensedFrag(
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
+class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
+    ClockRabiSpectroscopyDipoleTrapMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
+    NormalisedFastKineticsRepumpedMixin,
+    EMGain,
+    FLIRBlueMOTMeasurementMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    EvaporationThreeRampsMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Clock spectroscopy from dropped single XODT with evaporation and adiabatic cooling into painted trap 
+
+    Load into an XODT, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_linear_evap()
+        self.DMA_initialization_hook_loading_xodt_mot()
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
