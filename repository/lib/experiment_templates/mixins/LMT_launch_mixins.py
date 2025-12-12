@@ -304,7 +304,7 @@ class LMTInterferometryMixin(
             "lmt_pulses_number",
             IntParam,
             "Number of pulses for LMT interferometry",
-            default=10,
+            default=7,
         )
         self.lmt_pulses_number: IntParamHandle
 
@@ -321,7 +321,7 @@ class LMTInterferometryMixin(
             "bs1_lmt_offset_detuning",
             FloatParam,
             "LMT detuning after 1st BS",
-            default=-1e3,
+            default=-6.5e3,
             unit="kHz",
         )
         self.bs1_lmt_offset_detuning: FloatParamHandle
@@ -330,7 +330,7 @@ class LMTInterferometryMixin(
             "upper_mirror_offset_detuning",
             FloatParam,
             "LMT detuning for upper arm mirror",
-            default=29e3,
+            default=23.5e3,
             unit="kHz",
         )
         self.upper_mirror_offset_detuning: FloatParamHandle
@@ -339,7 +339,7 @@ class LMTInterferometryMixin(
             "last_upper_mirror_lmt_freq",
             FloatParam,
             "Detuning last upper arm mirror LMT pulse",
-            default=35.5,
+            default=39.5e3,
             unit="kHz",
         )
         self.last_upper_mirror_lmt_freq: FloatParamHandle
@@ -348,7 +348,7 @@ class LMTInterferometryMixin(
             "mirror_pulse_freq",
             FloatParam,
             "Frequency detuning for the mirror pulse",
-            default=-34e3,
+            default=-40e3,
             unit="kHz",
         )
         self.mirror_pulse_freq: FloatParamHandle
@@ -357,7 +357,7 @@ class LMTInterferometryMixin(
             "first_lower_mirror_lmt_freq",
             FloatParam,
             "Detuning first lower arm mirror LMT pulse",
-            default=36e3,
+            default=40.5e3,
             unit="kHz",
         )
         self.first_lower_mirror_lmt_freq: FloatParamHandle
@@ -366,7 +366,7 @@ class LMTInterferometryMixin(
             "lower_mirror_offset_detuning",
             FloatParam,
             "LMT detuning for lower arm mirror",
-            default=-16e3,
+            default=-22.5e3,
             unit="kHz",
         )
         self.lower_mirror_offset_detuning: FloatParamHandle
@@ -375,7 +375,7 @@ class LMTInterferometryMixin(
             "lower_arm_bs_detuning",
             FloatParam,
             "Detuning BS LMT series on lower arm",
-            default=16e3,
+            default=9.5e3,
             unit="kHz",
         )
         self.lower_arm_bs_detuning: FloatParamHandle
@@ -384,7 +384,7 @@ class LMTInterferometryMixin(
             "last_selective_lower_bs_freq",
             FloatParam,
             "Frequency detuning for last selective lower BS",
-            default=50e3,
+            default=55e3,
             unit="kHz",
         )
         self.last_selective_lower_bs_freq: FloatParamHandle
@@ -393,7 +393,7 @@ class LMTInterferometryMixin(
             "last_bs_freq",
             FloatParam,
             "Frequency detuning for last BS",
-            default=0.0,
+            default=-62,
             unit="kHz",
         )
         self.last_bs_freq: FloatParamHandle

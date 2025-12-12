@@ -172,6 +172,10 @@ class DopplerCompensationForLMTMixin(_DopplerCompensationBase, ClockInterferomet
     """
     Adds detunings to the LMT pulses to compensate for Doppler shifts
     accrued while the atoms fall.
+
+    Kernel hooks used:
+
+    * :meth:`~calculate_frequency_for_first_pi_by_2_pulse`
     """
 
     @kernel
