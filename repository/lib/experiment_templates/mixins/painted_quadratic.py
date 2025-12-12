@@ -172,7 +172,6 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
             unit="ms",
             default=1e-3,
             min=0.0,
-            max=10e-3,
         )
 
         self.adiabatic_cooling_time: FloatParamHandle
