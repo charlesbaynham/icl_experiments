@@ -168,7 +168,9 @@ class DopplerCompensationForClockSpecMixin(
         return self.clock_delivery_handles.frequency_handle.get() + total_detuning
 
 
-class DopplerCompensationForLMTMixin(_DopplerCompensationBase, ClockInterferometryBase):
+class DopplerCompensationForLMTMixin(
+    ClockShelvingAndClearoutBase, ClockInterferometryBase
+):
     """
     Adds detunings to the LMT pulses to compensate for Doppler shifts
     accrued while the atoms fall.
@@ -189,3 +191,7 @@ class DopplerCompensationForLMTMixin(_DopplerCompensationBase, ClockInterferomet
             + t_pi_pulse / 2
         )
         return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 9e3
+
+    @kernel
+    def _calculate_chirp_required(self, t_drop: float):
+        return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
