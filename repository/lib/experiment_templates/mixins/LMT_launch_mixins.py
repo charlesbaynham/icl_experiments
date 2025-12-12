@@ -461,7 +461,7 @@ class LMTInterferometryMixin(
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
-        delay(1e-6)
+        delay(500e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
@@ -554,7 +554,7 @@ class LMTInterferometryMixin(
             phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
 
-        delay(1e-6)
+        delay(500e-6)
 
         # PI/2 PULSE
         self.clock_opll.clock_OPLL_offset.set(start_opll_offset + last_bs_freq)
