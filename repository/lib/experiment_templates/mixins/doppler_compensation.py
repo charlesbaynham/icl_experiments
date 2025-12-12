@@ -178,12 +178,6 @@ class DopplerCompensationForLMTMixin(_DopplerCompensationBase, ClockInterferomet
     * :meth:`~calculate_frequency_for_first_pi_by_2_pulse`
     """
 
-    def build_fragment(self):
-        super().build_fragment()
-
-        # Get rid of irrelevant delay after narrowband MOT
-        self.override_param("extra_clock_detuning", 0)
-
     @kernel
     def calculate_frequency_for_first_pi_by_2_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
