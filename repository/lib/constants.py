@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.91e6,
+        frequency=364.9e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -751,7 +751,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.859e6,
+        99.786e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -936,7 +936,9 @@ class ModeCentringSettings:
 
     max_current: float = 150e-3  # Maximum current / A
     current_step: float = 0.1e-3  # Current step for scanning / A
-    restore_jump_size: float = -2e-3  # Current jump size for mode restoration / A
+    max_restore_jump_size: float = (
+        4e-3  # Maximum current jump size for mode restoration / A
+    )
     mode_check_tolerance: float = (
         5e9  # Frequency threshold for detecting if we are on the right mode / Hz
     )
@@ -954,7 +956,7 @@ DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
 # Add overrides for picky lasers
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     max_current=245e-3,
-    restore_jump_size=2.5e-3,
+    max_restore_jump_size=4e-3,
     target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
     fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
     mode_check_tolerance=10e9,
@@ -963,7 +965,7 @@ DEFAULT_MODE_CENTRING_SETTINGS["toptica_487"] = ModeCentringSettings(max_current
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_689"] = ModeCentringSettings(
     mode_check_tolerance=2e9,
     target_position=0.66,
-    restore_jump_size=+2e-3,
+    max_restore_jump_size=+2e-3,
 )
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_698"] = ModeCentringSettings(
     mode_check_tolerance=1.5e9,
@@ -1108,14 +1110,14 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 CLOCK_PI_TIME = 42e-6
 CLOCK_DOWN_PI_TIME = 32e-6
-CLOCK_SHELVING_PULSE_TIME = 300e-6
-CLOCK_SHELVING_PULSE_SETPOINT = 0.05
+CLOCK_SHELVING_PULSE_TIME = 380e-6
+CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
 CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
-DELAY_BETWEEN_INTERFEROMETRY_PULSES = 200e-6
+DELAY_BETWEEN_INTERFEROMETRY_PULSES = 50e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    -46e3  # Will need fine-tuning whenever velocity-selection pulse is changed
+    -13e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
 DURATION_OF_STARK_PULSE = 30e-6
 
@@ -1255,7 +1257,7 @@ if USE_SR87:
     # This is optimized for loading into the HODT, not the XODT, because the 813
     # will be turned on during the molasses phase. The molasses phase itself
     # uses XODT_MOLASSES_BIAS_FIELD_START
-    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.19, 0.059, -0.27)
+    BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES = add_field_offset(0.188, 0.019, -0.31)
 
     DELAY_BEFORE_MOLASSES = 11e-3  # Delay between end of red MOT and start of molasses
     XODT_MOLASSES_DURATION = 700e-3
@@ -1471,8 +1473,8 @@ INTERFEROMETRY_SIGNAL_INJECTION_FREQUENCY = 0.5e-3  # Hz
 INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 
 # LMT stuff
-LMT_PULSE_CLEAROUT_DURATION = 500e-6
-DOWN_CLOCK_BEAM_PI_TIME = 35e-6
+LMT_PULSE_CLEAROUT_DURATION = 50e-6
+DOWN_CLOCK_BEAM_PI_TIME = 33e-6
 MOMENTUM_KICK_DETUNING = 9400
 LMT_OFFSET_DETUNING = -18e3
 LMT_DOWN_BEAM_RECOIL_SHIFT = -14e3

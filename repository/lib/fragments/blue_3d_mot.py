@@ -108,7 +108,7 @@ class Blue3DMOTFrag(Fragment):
         self.core: Core
 
         self.setattr_fragment(
-            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=False
+            "mirny_eom_sidebands", SetEOMSidebandsExceptCavity, init_mirnys=True
         )
         self.mirny_eom_sidebands: SetEOMSidebandsExceptCavity
 

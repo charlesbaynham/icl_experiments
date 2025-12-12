@@ -1,5 +1,7 @@
+import asyncio
 import logging
 import time
+from math import floor
 
 from artiq.experiment import EnumerationValue
 from artiq.master.scheduler import Scheduler
@@ -152,15 +154,26 @@ class CentreTopticaModeFrag(ExpFragment):
         self.current_step: FloatParamHandle
 
         self.setattr_param(
-            "restore_jump_size",
+            "initial_restore_jump_size",
+            FloatParam,
+            default=100e-6,
+            description="Initial current jump size for mode restoration (will increase geometrically)",
+            unit="mA",
+            min=1e-6,
+        )
+        self.initial_restore_jump_size: FloatParamHandle
+
+        self.setattr_param(
+            "max_restore_jump_size",
             FloatParam,
             default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
                 self.laser_name
-            ].restore_jump_size,
-            description="Current jump size for mode restoration. Both directions will be tried",
+            ].max_restore_jump_size,
+            description="Maximum current jump size for mode restoration",
             unit="mA",
+            min=0,
         )
-        self.restore_jump_size: FloatParamHandle
+        self.max_restore_jump_size: FloatParamHandle
 
         self.setattr_param(
             "current_tolerance",
@@ -197,6 +210,27 @@ class CentreTopticaModeFrag(ExpFragment):
         )
         self.max_steer_in_one_go: FloatParamHandle
 
+        self.setattr_param(
+            "settle_time",
+            FloatParam,
+            default=3.0,
+            description="Time to wait after current changes for laser to settle",
+            unit="s",
+            min=0.1,
+        )
+        self.settle_time: FloatParamHandle
+
+        self.setattr_param(
+            "wait_before_jump_back",
+            FloatParam,
+            default=1.0,
+            description="Time to wait before jumping current back during mode restoration",
+            unit="s",
+            min=0.1,
+            max=10.0,
+        )
+        self.wait_before_jump_back: FloatParamHandle
+
     def host_setup(self):
         super().host_setup()
 
@@ -216,7 +250,7 @@ class CentreTopticaModeFrag(ExpFragment):
         self.append_to_dataset("frequency_history", frequency)
         self.append_to_dataset("timestamp_history", timestamp)
 
-    def get_current_detuning(self) -> float:
+    async def get_current_detuning(self) -> float:
         """Get the current laser detuning from WAND reference in Hz.
 
         Returns:
@@ -238,14 +272,15 @@ class CentreTopticaModeFrag(ExpFragment):
                 return detuning
 
             logger.warning(
-                "WAND measurement status: %s (attempt %d/%d)",
+                "[%s] WAND measurement status: %s (attempt %d/%d)",
+                self.laser_name,
                 status,
                 attempt,
                 max_attempts,
             )
 
             if attempt < max_attempts:
-                time.sleep(0.1)
+                await asyncio.sleep(0.1)
 
         raise RuntimeError(
             "Failed to get valid frequency measurement from WAND after %d attempts. "
@@ -254,14 +289,14 @@ class CentreTopticaModeFrag(ExpFragment):
             status,
         )
 
-    def is_on_correct_mode(self, target_detuning) -> bool:
+    async def is_on_correct_mode(self, target_detuning) -> bool:
         """Check if the laser is on the correct mode.
 
         Returns:
             True if within `mode_check_tolerance` GHz of target, False otherwise
         """
         tolerance = self.mode_check_tolerance.get()
-        current_detuning = self.get_current_detuning()
+        current_detuning = await self.get_current_detuning()
 
         return abs(current_detuning - target_detuning) < tolerance
 
@@ -324,7 +359,7 @@ class CentreTopticaModeFrag(ExpFragment):
         """
         self.laser.dl.cc.feedforward_enabled.set(enabled)
 
-    def detect_mode_hop(self, previous_detuning: float, threshold: float) -> bool:
+    async def detect_mode_hop(self, previous_detuning: float, threshold: float) -> bool:
         """Detect if a mode hop has occurred.
 
         Args:
@@ -334,16 +369,19 @@ class CentreTopticaModeFrag(ExpFragment):
         Returns:
             True if mode hop detected, False otherwise
         """
-        current_detuning = self.get_current_detuning()
+        current_detuning = await self.get_current_detuning()
         return abs(current_detuning - previous_detuning) > threshold
 
-    def restore_correct_mode(
+    async def restore_correct_mode(
         self,
         target_current: float,
         target_detuning: float,
-        max_attempts: int = 10,
+        max_attempts: int = 20,
     ) -> bool:
         """Restore the laser to the correct mode by jumping current down and back up.
+
+        Uses geometric progression: starts with small jumps and doubles the magnitude
+        on each failed attempt up to the maximum jump size.
 
         Args:
             target_current: The target current to return to in A
@@ -353,34 +391,63 @@ class CentreTopticaModeFrag(ExpFragment):
         Returns:
             True if successfully restored, False if failed after max_attempts
         """
-        settle_time = 3.0
+        settle_time = self.settle_time.get()
 
-        next_jump = self.restore_jump_size.get()
+        initial_jump = self.initial_restore_jump_size.get()
+        max_jump = abs(self.max_restore_jump_size.get())
         max_current = self.get_max_current()
 
+        # Start with positive jumps
+        direction = 1
+
         for attempt in range(1, max_attempts + 1):
-            if self.is_on_correct_mode(target_detuning=target_detuning):
-                logger.info("Mode restored successfully on attempt %d", attempt)
+            if await self.is_on_correct_mode(target_detuning=target_detuning):
+                logger.info(
+                    "[%s] Mode restored successfully on attempt %d",
+                    self.laser_name,
+                    attempt,
+                )
                 return True
 
-            logger.warning("Mode restore attempt %d/%d", attempt, max_attempts)
+            # Calculate jump size using geometric progression: initial * 2^(attempt-1)
+            # Clamped to max_jump
+            jump_magnitude = min(
+                initial_jump * (2 ** (floor((attempt - 1) / 2))), max_jump
+            )
+
+            # Alternate direction on each attempt
+            current_direction = direction if attempt % 2 == 1 else -direction
+            next_jump = current_direction * jump_magnitude
+
+            logger.warning(
+                "[%s] Mode restore attempt %d/%d with jump %.3f mA",
+                self.laser_name,
+                attempt,
+                max_attempts,
+                1e3 * next_jump,
+            )
+            logger.debug(
+                "[%s] Jump magnitude: %.3f µA", self.laser_name, 1e6 * jump_magnitude
+            )
 
             # Jump current
             target = target_current + next_jump
             if target > max_current:
                 target = max_current - 10e-6
+                logger.debug("[%s] Clamped jump to max current limit", self.laser_name)
 
             self.set_current(target)
-            time.sleep(1.0)
+            await asyncio.sleep(self.wait_before_jump_back.get())
 
             # Jump back to target
             self.set_current(target_current)
-            time.sleep(settle_time)
+            await asyncio.sleep(settle_time)
 
-            # Flip the sign of the jump
-            next_jump = -next_jump
-
-        logger.error("Failed to restore mode after %d attempts", max_attempts)
+        logger.error(
+            "[%s] Failed to restore mode after %d attempts",
+            self.laser_name,
+            max_attempts,
+        )
         return False
 
     def check_current_within_limits(self, current: float):
@@ -428,7 +495,9 @@ class CentreTopticaModeFrag(ExpFragment):
         return bool(self.laser.dl.pc.external_input.enabled.get())
 
     def set_FALC(self, main=False, unlim=False):
-        logger.info("Setting FALC: main=%s, unlim=%s", main, unlim)
+        logger.info(
+            "[%s] Setting FALC: main=%s, unlim=%s", self.laser_name, main, unlim
+        )
         falc = self.toptica.get_falc()
 
         falc.main.enabled.set(main)
@@ -440,6 +509,10 @@ class CentreTopticaModeFrag(ExpFragment):
 
     def run_once(self):
         """Execute the mode centring algorithm."""
+        asyncio.run(self._run_once_async())
+
+    async def _run_once_async(self):
+        """Execute the mode centring algorithm (async implementation)."""
 
         # Open a connection to the Toptica
         self.raw_dlcpro.open()
@@ -467,7 +540,11 @@ class CentreTopticaModeFrag(ExpFragment):
         current_step = self.current_step.get()
         mode_hop_threshold = self.mode_hop_threshold.get()
 
-        logger.info("Starting mode centring for laser: %s", self.laser_name)
+        logger.info(
+            "[%s] Starting mode centring for laser: %s",
+            self.laser_name,
+            self.laser_name,
+        )
 
         # -2. Disable WAND locking to prevent interference
         self.wand_server.unlock(wand_laser_name, name="")
@@ -475,7 +552,7 @@ class CentreTopticaModeFrag(ExpFragment):
         # -1. Disable ARC if it is enabled to prevent external steering
         initial_arc_enabled = self.get_arc_state()
         if initial_arc_enabled:
-            logger.info("Disabling ARC for mode centring")
+            logger.info("[%s] Disabling ARC for mode centring", self.laser_name)
             self.set_arc_state(False)
 
         # Check initial FALC state (if present)
@@ -483,12 +560,13 @@ class CentreTopticaModeFrag(ExpFragment):
         try:
             initial_falc_state = self.get_FALC()
             logger.info(
-                "Initial FALC state - main: %s, unlim: %s",
+                "[%s] Initial FALC state - main: %s, unlim: %s",
+                self.laser_name,
                 initial_falc_state[0],
                 initial_falc_state[1],
             )
         except TypeError:
-            logger.info("No FALC present for this laser")
+            logger.info("[%s] No FALC present for this laser", self.laser_name)
 
         # Record initial state to be restored later
         initial_feedforward = self.get_feedforward_enabled()
@@ -498,91 +576,125 @@ class CentreTopticaModeFrag(ExpFragment):
 
         try:
             # 0. Confirm that the laser is on the correct mode
-            if not self.is_on_correct_mode(target_detuning=self.target_detuning.get()):
+            if not await self.is_on_correct_mode(
+                target_detuning=self.target_detuning.get()
+            ):
                 raise RuntimeError(
-                    "Laser is not on the correct mode. Please manually set the laser "
+                    "[%s] Laser is not on the correct mode. Please manually set the laser "
                     "to the correct mode before running this experiment."
+                    % self.laser_name
                 )
 
             max_iterations = 10
             for iteration in range(max_iterations):
+                # FIXME: scheduler.pause() may not work correctly in async context
                 self.scheduler.pause()  # type: ignore[attr-defined]
-                logger.info("Starting mode centring iteration %d", iteration + 1)
+                logger.info(
+                    "[%s] Starting mode centring iteration %d",
+                    self.laser_name,
+                    iteration + 1,
+                )
 
                 # 1. Record the starting voltage, current and detuning
                 i_start = self.get_current()
                 v_start = self.get_voltage()
-                f_start = self.get_current_detuning()
+                f_start = await self.get_current_detuning()
                 logger.info(
-                    "Starting current: %.3f mA, voltage: %.3f V, detuning: %.3f MHz",
+                    "[%s] Starting current: %.3f mA, voltage: %.3f V, detuning: %.3f MHz",
+                    self.laser_name,
                     1e3 * i_start,
                     v_start,
                     1e-6 * f_start,
                 )
 
                 # 2. Turn off feed-forward
-                logger.info("Disabling feed-forward")
+                logger.info("[%s] Disabling feed-forward", self.laser_name)
                 self.set_feedforward(False)
 
                 # 3-4. Increase current until mode hop, record i_top
-                logger.info("Scanning current upward to find upper mode boundary")
+                logger.info(
+                    "[%s] Scanning current upward to find upper mode boundary",
+                    self.laser_name,
+                )
                 i_current = i_start
-                previous_detuning = self.get_current_detuning()
+                previous_detuning = await self.get_current_detuning()
                 i_top = i_start
 
                 while True:
+                    # FIXME: scheduler.pause() may not work correctly in async context
                     self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current += current_step
 
                     self.check_current_within_limits(i_current)
 
                     self.set_current(i_current)
-                    time.sleep(0.2)
+                    await asyncio.sleep(0.2)
 
-                    if self.detect_mode_hop(previous_detuning, mode_hop_threshold):
-                        logger.info("Mode hop detected at %.3f mA", 1e3 * i_current)
+                    if await self.detect_mode_hop(
+                        previous_detuning, mode_hop_threshold
+                    ):
+                        logger.info(
+                            "[%s] Mode hop detected at %.3f mA",
+                            self.laser_name,
+                            1e3 * i_current,
+                        )
                         i_top = i_current - current_step
                         break
 
-                    previous_detuning = self.get_current_detuning()
+                    previous_detuning = await self.get_current_detuning()
                     i_top = i_current
 
-                logger.info("Upper mode boundary: %.3f mA", 1e3 * i_top)
+                logger.info(
+                    "[%s] Upper mode boundary: %.3f mA", self.laser_name, 1e3 * i_top
+                )
 
                 # 5. Jump back to starting position and restore mode if necessary
-                logger.info("Returning to starting current")
+                logger.info("[%s] Returning to starting current", self.laser_name)
                 self.set_current(i_start)
-                time.sleep(1.0)
+                await asyncio.sleep(1.0)
 
-                if not self.restore_correct_mode(i_start, f_start):
+                if not await self.restore_correct_mode(i_start, f_start):
                     raise RuntimeError(
-                        "Failed to restore correct mode after upward scan"
+                        "[%s] Failed to restore correct mode after upward scan"
+                        % self.laser_name
                     )
 
                 # 6-7. Decrease current until mode hop, record i_bottom
-                logger.info("Scanning current downward to find lower mode boundary")
+                logger.info(
+                    "[%s] Scanning current downward to find lower mode boundary",
+                    self.laser_name,
+                )
                 i_current = i_start
-                previous_detuning = self.get_current_detuning()
+                previous_detuning = await self.get_current_detuning()
                 i_bottom = i_start
 
                 while True:
+                    # FIXME: scheduler.pause() may not work correctly in async context
                     self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current -= current_step
 
                     self.check_current_within_limits(i_current)
 
                     self.set_current(i_current)
-                    time.sleep(0.2)
+                    await asyncio.sleep(0.2)
 
-                    if self.detect_mode_hop(previous_detuning, mode_hop_threshold):
-                        logger.info("Mode hop detected at %.3f mA", 1e3 * i_current)
+                    if await self.detect_mode_hop(
+                        previous_detuning, mode_hop_threshold
+                    ):
+                        logger.info(
+                            "[%s] Mode hop detected at %.3f mA",
+                            self.laser_name,
+                            1e3 * i_current,
+                        )
                         i_bottom = i_current + current_step
                         break
 
-                    previous_detuning = self.get_current_detuning()
+                    previous_detuning = await self.get_current_detuning()
                     i_bottom = i_current
 
-                logger.info("Lower mode boundary: %.3f mA", 1e3 * i_bottom)
+                logger.info(
+                    "[%s] Lower mode boundary: %.3f mA", self.laser_name, 1e3 * i_bottom
+                )
 
                 # 8. Calculate the target current
                 mode_hop_free_range = i_top - i_bottom
@@ -590,40 +702,54 @@ class CentreTopticaModeFrag(ExpFragment):
                     i_bottom + self.mode_position_fraction.get() * mode_hop_free_range
                 )
                 logger.info(
-                    "Mode-hop free range: %.3f mA, target current: %.3f mA",
+                    "[%s] Mode-hop free range: %.3f mA, target current: %.3f mA",
+                    self.laser_name,
                     1e3 * mode_hop_free_range,
                     1e3 * i_target,
                 )
 
                 # 9.1. Jump to original current and restore mode if necessary
-                logger.info("Setting current to initial: %.3f mA", 1e3 * i_start)
+                logger.info(
+                    "[%s] Setting current to initial: %.3f mA",
+                    self.laser_name,
+                    1e3 * i_start,
+                )
                 self.set_current(i_start)
-                time.sleep(1.0)
+                await asyncio.sleep(1.0)
 
-                if not self.restore_correct_mode(i_start, f_start):
+                if not await self.restore_correct_mode(i_start, f_start):
                     raise RuntimeError(
-                        "Failed to restore correct mode at start current"
+                        "[%s] Failed to restore correct mode at start current"
+                        % self.laser_name
                     )
 
                 # 9.2. Jump to target current and restore mode if necessary
-                logger.info("Setting current to target: %.3f mA", 1e3 * i_target)
+                logger.info(
+                    "[%s] Setting current to target: %.3f mA",
+                    self.laser_name,
+                    1e3 * i_target,
+                )
                 self.set_current(i_target)
-                time.sleep(1.0)
+                await asyncio.sleep(1.0)
 
-                if not self.restore_correct_mode(i_target, f_start):
+                if not await self.restore_correct_mode(i_target, f_start):
                     raise RuntimeError(
-                        "Failed to restore correct mode at target current"
+                        "[%s] Failed to restore correct mode at target current"
+                        % self.laser_name
                     )
 
                 # 10. Turn on feed-forward if it was originally enabled
                 if initial_feedforward:
-                    logger.info("Enabling feed-forward")
+                    logger.info("[%s] Enabling feed-forward", self.laser_name)
                     self.set_feedforward(True)
 
                 # 11. Steer the wavelength to the frequency setpoint using WAND
-                logger.info("Steering laser to target frequency using WAND")
+                logger.info(
+                    "[%s] Steering laser to target frequency using WAND",
+                    self.laser_name,
+                )
                 target_detuning = self.target_detuning.get()
-                current_detuning = self.get_current_detuning()
+                current_detuning = await self.get_current_detuning()
                 required_steer = target_detuning - current_detuning
                 max_steer = self.max_steer_in_one_go.get()
 
@@ -632,13 +758,18 @@ class CentreTopticaModeFrag(ExpFragment):
                     clamped_steer = max_steer if required_steer > 0 else -max_steer
                     actual_target = current_detuning + clamped_steer
                     logger.info(
-                        "Steering limited: required %.3f GHz, clamping to %.3f GHz",
+                        "[%s] Steering limited: required %.3f GHz, clamping to %.3f GHz",
+                        self.laser_name,
                         1e-9 * required_steer,
                         1e-9 * clamped_steer,
                     )
                 else:
                     actual_target = target_detuning
-                    logger.info("Steering by %.3f GHz", 1e-9 * required_steer)
+                    logger.info(
+                        "[%s] Steering by %.3f GHz",
+                        self.laser_name,
+                        1e-9 * required_steer,
+                    )
 
                 self.wand_steering.steer_wand(
                     laser=wand_laser_name,
@@ -654,13 +785,14 @@ class CentreTopticaModeFrag(ExpFragment):
                 max_allowed_drift = self.current_tolerance.get() * mode_hop_free_range
 
                 logger.info(
-                    "Current drift: %.3f mA, max allowed: %.3f mA",
+                    "[%s] Current drift: %.3f mA, max allowed: %.3f mA",
+                    self.laser_name,
                     1e3 * current_drift,
                     1e3 * max_allowed_drift,
                 )
 
                 if current_drift <= max_allowed_drift:
-                    logger.info("Mode successfully centred!")
+                    logger.info("[%s] Mode successfully centred!", self.laser_name)
 
                     # Log success to InfluxDB
                     self.influx_logger.write(  # type: ignore[arg-type]
@@ -679,7 +811,7 @@ class CentreTopticaModeFrag(ExpFragment):
                             "v_initial": v_start,
                             "v_final": self.get_voltage(),
                             "target_detuning": target_detuning,
-                            "final_detuning": self.get_current_detuning(),
+                            "final_detuning": await self.get_current_detuning(),
                             "iterations": iteration + 1,
                         },
                     )
@@ -688,7 +820,8 @@ class CentreTopticaModeFrag(ExpFragment):
                     break
 
                 logger.warning(
-                    "Current drifted too much, iterating (attempt %d/%d)",
+                    "[%s] Current drifted too much, iterating (attempt %d/%d)",
+                    self.laser_name,
                     iteration + 1,
                     max_iterations,
                 )
@@ -696,26 +829,32 @@ class CentreTopticaModeFrag(ExpFragment):
             else:
                 # Loop completed without break (max iterations reached)
                 logger.warning(
-                    "Mode centring did not converge after %d iterations",
+                    "[%s] Mode centring did not converge after %d iterations",
+                    self.laser_name,
                     max_iterations,
                 )
                 raise RuntimeError(
-                    "Failed to center mode after %d iterations" % max_iterations
+                    "[%s] Failed to center mode after %d iterations"
+                    % (self.laser_name, max_iterations)
                 )
 
         finally:
             # 13. Re-enable ARC & feedforward if they were originally enabled
             if initial_arc_enabled:
-                logger.info("Re-enabling ARC")
+                logger.info("[%s] Re-enabling ARC", self.laser_name)
                 self.set_arc_state(True)
 
-            logger.info("Leaving feed-forward on, regardless of original state")
+            logger.info(
+                "[%s] Leaving feed-forward on, regardless of original state",
+                self.laser_name,
+            )
             self.set_feedforward(True)
 
             # Restore initial FALC state if it was present
             if initial_falc_state is not None:
                 logger.info(
-                    "Restoring FALC state - main: %s, unlim: %s",
+                    "[%s] Restoring FALC state - main: %s, unlim: %s",
+                    self.laser_name,
                     initial_falc_state[0],
                     initial_falc_state[1],
                 )
@@ -723,7 +862,9 @@ class CentreTopticaModeFrag(ExpFragment):
 
             # Restore original current and voltage if we failed
             if not succeeded:
-                logger.info("Restoring initial current and voltage")
+                logger.info(
+                    "[%s] Restoring initial current and voltage", self.laser_name
+                )
                 self.set_current(initial_current)
                 self.set_voltage(initial_voltage)
 
@@ -761,14 +902,48 @@ class CentreAllTopticaModesFrag(ExpFragment):
             )
 
     def run_once(self):
-        """Centre each Toptica laser in sequence."""
+        """Centre each Toptica laser in parallel."""
+        asyncio.run(self._run_once_async())
+
+    async def _run_once_async(self):
+        """Centre each Toptica laser in parallel (async implementation)."""
+        # Create tasks for all enabled lasers
+        tasks = []
+        laser_names = []
+
         for laser_name, fragment in self.laser_fragments.items():
             enabled = self.laser_enabled_handles[laser_name].get()
 
             if enabled:
-                logger.info("Centring laser: %s", laser_name)
-                fragment.run_once()
-                logger.info("Completed centring laser: %s", laser_name)
+                logger.info("[%s] Starting laser centring", laser_name)
+                laser_names.append(laser_name)
+                # Create a task that wraps the fragment's run_once in a coroutine
+                tasks.append(self._run_laser_async(fragment))
+
+        # Run all tasks in parallel, collecting exceptions
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Process results and log any exceptions
+        for laser_name, result in zip(laser_names, results):
+            if isinstance(result, Exception):
+                logger.error(
+                    "[%s] Failed to centre laser: %s",
+                    laser_name,
+                    str(result),
+                    exc_info=result,
+                )
+            else:
+                logger.info("[%s] Completed centring laser", laser_name)
+
+    async def _run_laser_async(self, fragment: CentreTopticaModeFrag):
+        """Run a single laser's centring algorithm asynchronously.
+
+        Args:
+            fragment: The fragment to run
+        """
+        # The fragment's run_once() internally uses asyncio.run(), but we're already
+        # in an async context, so we need to call the async method directly
+        await fragment._run_once_async()
 
 
 CentreTopticaMode = make_fragment_scan_exp(CentreTopticaModeFrag)
