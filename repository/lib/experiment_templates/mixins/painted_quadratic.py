@@ -179,6 +179,16 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
 
         # Set the time to the parameter value
 
+
+    @kernel
+    def DMA_initialization_hook_painting(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+        self.adiabatic_cooling_ramp.precalculate_dma_handle()
         
 
     @kernel
