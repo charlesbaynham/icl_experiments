@@ -385,3 +385,7 @@ ClockSpecFromSingleXODTEvaporatedLensed = make_fragment_scan_exp(
 ClockSpecDownFromSingleXODTEvaporatedShelving = make_fragment_scan_exp(
     ClockSpecDownFromSingleXODTEvaporatedShelvingFrag
 )
+
+ClockSpecFromSingleXODTEvaporatedAdiabaticallyCooled = make_fragment_scan_exp(
+    ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag
+)
