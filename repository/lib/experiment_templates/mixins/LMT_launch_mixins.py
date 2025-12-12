@@ -479,10 +479,18 @@ class LMTInterferometryMixin(
             self.lmt_series(bs1_lmt_offset, N - 2)
 
         delay_mu(8)
+        t_end_bs_mu = now_mu()
 
-        delay(self.delay_between_interferometry_pulses.get())
+        # Do a Stark shifting pulse in the first dark time
+        self.stark_shifter.do_stark_pulse()
+
+        # dark time
+        t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
+            self.delay_between_interferometry_pulses.get()
+        )
 
         # LMT sequence on upper arm, momentum downwards
+        at_mu(t_start_lmt_mirror_mu)
         self.lmt_series_start_down_launch_down(upper_mirror_offset, down_offset, N - 2)
 
         # Clear out the ground state
