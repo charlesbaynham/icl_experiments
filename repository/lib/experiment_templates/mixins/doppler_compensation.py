@@ -17,6 +17,7 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyBase,
 )
+from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTBase
 
 CLOCK_UP_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -168,9 +169,7 @@ class DopplerCompensationForClockSpecMixin(
         return self.clock_delivery_handles.frequency_handle.get() + total_detuning
 
 
-class DopplerCompensationForLMTMixin(
-    ClockShelvingAndClearoutBase, ClockInterferometryBase
-):
+class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
     """
     Adds detunings to the LMT pulses to compensate for Doppler shifts
     accrued while the atoms fall.
@@ -190,13 +189,12 @@ class DopplerCompensationForLMTMixin(
     def calculate_frequency_for_first_pi_by_2_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
-        t_drop = (
-            self.core.mu_to_seconds(
-                t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
-            )
-            + t_pi_pulse / 2
+        t_drop = self.core.mu_to_seconds(t_pulse_start_mu - self.t_dipole_beams_off)
+        return (
+            -self._calculate_chirp_required(t_drop)
+            + self.momentum_kick.get()
+            + self.down_offset_detuning.get()
         )
-        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 9e3
 
     @kernel
     def _calculate_chirp_required(self, t_drop: float):

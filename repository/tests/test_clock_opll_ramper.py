@@ -20,6 +20,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForLMTMixin,
+)
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
@@ -139,6 +142,7 @@ class TestLMTInterferometryFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -159,19 +163,16 @@ class TestLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
 
-    @kernel
-    def calculate_frequency_for_first_pi_by_2_pulse(
-        self, t_pulse_start_mu: int64, t_pi_pulse: float
-    ) -> float:
-        t_drop = (
-            self.core.mu_to_seconds(t_pulse_start_mu - self.t_dipole_beams_off)
-            # + t_pi_pulse / 2
-        )
-        return (
-            -self._calculate_chirp_required(t_drop)
-            + self.momentum_kick.get()
-            + self.down_offset_detuning.get()
-        )  # 9e3
+    # @kernel
+    # def calculate_frequency_for_first_pi_by_2_pulse(
+    #     self, t_pulse_start_mu: int64, t_pi_pulse: float
+    # ) -> float:
+    #     t_drop = self.core.mu_to_seconds(t_pulse_start_mu - self.t_dipole_beams_off)
+    #     return (
+    #         -self._calculate_chirp_required(t_drop)
+    #         + self.momentum_kick.get()
+    #         + self.down_offset_detuning.get()
+    #     )
 
     @kernel
     def calculate_frequency_for_first_lmt_pulse(
