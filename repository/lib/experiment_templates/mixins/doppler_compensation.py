@@ -184,11 +184,7 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
         t_drop = self.core.mu_to_seconds(t_pulse_start_mu - self.t_dipole_beams_off)
-        return (
-            -self._calculate_chirp_required(t_drop)
-            + self.momentum_kick.get()
-            + self.down_offset_detuning.get()
-        )
+        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 5e3
 
     @kernel
     def _calculate_chirp_required(self, t_drop: float):
