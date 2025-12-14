@@ -169,7 +169,11 @@ class TestLMTInterferometryFrag(
             )
             + t_pi_pulse / 2
         )
-        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 9e3
+        return (
+            -self._calculate_chirp_required(t_drop)
+            + self.momentum_kick.get()
+            + self.down_offset_detuning.get()
+        )  # 9e3
 
     @kernel
     def calculate_frequency_for_first_lmt_pulse(
