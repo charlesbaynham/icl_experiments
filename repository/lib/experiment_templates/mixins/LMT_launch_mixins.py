@@ -247,6 +247,12 @@ class LMTBase(
             self.clock_up_dds.sw.off()
         delay(25e-6)
 
+    @kernel
+    def calculate_frequency_for_first_lmt_pulse(
+        self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        return 0.0
+
 
 class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
     """
@@ -584,6 +590,7 @@ class LMTInterferometryMixin(
             + self.calculate_frequency_for_first_lmt_pulse(
                 t_pulse_start_mu=t_pulse, t_pi_pulse=duration
             )
+            + self.first_lmt_freq.get()
         )
 
         # ramp the offset upwards
@@ -628,12 +635,6 @@ class LMTInterferometryMixin(
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
         self.clock_up_dds.set_att(0.0)
-
-    @kernel
-    def calculate_frequency_for_first_lmt_pulse(
-        self, t_pulse_start_mu: int64, t_pi_pulse: float
-    ) -> float:
-        return 0.0
 
 
 class ShapedFirstPulseLMTInterferometryMixin(LMTInterferometryMixin):
