@@ -110,10 +110,10 @@ class LMTBase(
 
             if i % 2 == 0:
                 up_offset = 0.0
-                down_offset = 14e3
+                down_offset = offset_det
                 pulse_type = "down"
             else:
-                up_offset = self.down_offset_detuning.get()
+                up_offset = -3e3  # self.down_offset_detuning.get()
                 down_offset = 0.0
                 pulse_type = "up"
 
@@ -124,7 +124,7 @@ class LMTBase(
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + (i + N_previous_pulses) * (-1) ** (i) * kick
-                + (-1) ** i * (offset_det + down_offset + up_offset)
+                + (-1) ** i * (down_offset + up_offset)
             )
 
             # fire the pulse
@@ -178,34 +178,38 @@ class LMTBase(
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
-    def lmt_series_start_down_launch_down(self, offset_det, offset_down_beam, N):
+    def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
         kick = self.momentum_kick.get()
-        total_ramp_time = 0.0
+        t_drop = self.get_t_dipole_beams_off()
 
-        t_start_ramp = now_mu()
         for i in range(N):
 
             # start with down pulse
             if i % 2 == 0:
                 up_offset = 0.0
+                down_offset = offset_det
                 pulse_type = "down"
+
             else:
-                up_offset = offset_down_beam
+                up_offset = self.down_offset_detuning.get()
+                down_offset = 0.0
                 pulse_type = "up"
+
+            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            total_ramp_time = self.core.mu_to_seconds(t_start_lmt_2_pulse_mu - t_drop)
 
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i + 1) * kick
-                + (-1) ** (i) * (offset_det + up_offset)
+                + N_previous_pulses * (-1) ** (i) * kick
+                + (-1) ** (i) * (down_offset + up_offset)
             )
 
             # fire the pulse
-            self.fire_lmt_pulse(f_i, pulse_type)
+            self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
 
             # delay(100e-6)
-            t_end_pulse = now_mu()
-            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def fire_lmt_pulse(self, start_freq, type, t_start):
@@ -346,7 +350,7 @@ class LMTInterferometryMixin(
             "upper_mirror_offset_detuning",
             FloatParam,
             "LMT detuning for upper arm mirror",
-            default=23.5e3,
+            default=4e3,
             unit="kHz",
         )
         self.upper_mirror_offset_detuning: FloatParamHandle
@@ -477,7 +481,7 @@ class LMTInterferometryMixin(
         delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
-        delay(500e-6)
+        delay(1e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
@@ -494,20 +498,22 @@ class LMTInterferometryMixin(
         if N > 2:
             self.lmt_series(bs1_lmt_offset, N_previous_pulses=3, N=N - 2)
 
-        # delay_mu(8)
-        # t_end_bs_mu = now_mu()
+        delay_mu(8)
+        t_end_bs_mu = now_mu()
 
         # # Do a Stark shifting pulse in the first dark time
         # self.stark_shifter.do_stark_pulse()
 
-        # # dark time
-        # t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
-        #     self.delay_between_interferometry_pulses.get()
-        # )
+        # dark time
+        t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
+            self.delay_between_interferometry_pulses.get()
+        )
 
-        # # LMT sequence on upper arm, momentum downwards
-        # at_mu(t_start_lmt_mirror_mu)
-        # self.lmt_series_start_down_launch_down(upper_mirror_offset, up_offset, N - 2)
+        # LMT sequence on upper arm, momentum downwards
+        at_mu(t_start_lmt_mirror_mu)
+        self.lmt_series_start_down_launch_down(
+            upper_mirror_offset, N_previous_pulses=N + 1, N=4
+        )
 
         # # Clear out the ground state
         # self.fluorescence_pulse.do_imaging_pulse(
@@ -516,7 +522,7 @@ class LMTInterferometryMixin(
         # )
         # delay(8e-9)
 
-        # # last pulse with a lower Rabi frequency, up beam pulse
+        # last pulse with a lower Rabi frequency, up beam pulse
         # self.do_selective_lmt_pulse(last_upper_mirror_freq, t_first_pi)
 
         # delay(8e-9)

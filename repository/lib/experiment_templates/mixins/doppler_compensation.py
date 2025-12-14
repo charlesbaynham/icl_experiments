@@ -222,4 +222,7 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
 
     @kernel
     def get_t_dipole_beams_off(self) -> int64:
-        return self.t_dipole_beams_off
+        # return self.t_dipole_beams_off
+        return self.t_velocity_slicing_pulse_centre_mu - self.core.seconds_to_mu(
+            self.shelving_pulse_time.get() / 2
+        )
