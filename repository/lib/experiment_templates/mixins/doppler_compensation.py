@@ -183,9 +183,13 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
     def calculate_frequency_for_first_pi_by_2_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
-        t_drop = self.core.mu_to_seconds(t_pulse_start_mu - self.t_dipole_beams_off)
+        t_drop = self.core.mu_to_seconds(
+            t_pulse_start_mu
+            - self.t_velocity_slicing_pulse_centre_mu
+            + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
+        )
 
-        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 5e3
+        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 14e3
 
     @kernel
     def calculate_frequency_for_first_lmt_pulse(
@@ -218,5 +222,4 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
 
     @kernel
     def get_t_dipole_beams_off(self) -> int64:
-        print("hello")
         return self.t_dipole_beams_off

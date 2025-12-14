@@ -110,14 +110,14 @@ class LMTBase(
 
             if i % 2 == 0:
                 up_offset = 0.0
-                down_offset = 5e3
+                down_offset = 14e3
                 pulse_type = "down"
             else:
-                up_offset = self.down_offset_detuning.get()  # -15e3
+                up_offset = self.down_offset_detuning.get()
                 down_offset = 0.0
                 pulse_type = "up"
 
-            t_start_lmt_pulse_mu = now_mu() + 1e-6
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
 
             f_i = (
@@ -128,8 +128,7 @@ class LMTBase(
             )
 
             # fire the pulse
-            at_mu(t_start_lmt_pulse_mu)
-            self.fire_lmt_pulse(f_i, pulse_type)
+            self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
             # Clear out the ground state
             # if pulse_type == "up":
@@ -209,7 +208,7 @@ class LMTBase(
             total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
-    def fire_lmt_pulse(self, start_freq, type):
+    def fire_lmt_pulse(self, start_freq, type, t_start):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
@@ -225,6 +224,7 @@ class LMTBase(
             )
             delay_mu(8)
             # pulse the down beam
+            at_mu(t_start)
             self.clock_down_dds.sw.on()
             delay(self.down_pulses_duration.get())
             self.clock_down_dds.sw.off()
@@ -240,6 +240,7 @@ class LMTBase(
             delay_mu(8)
 
             # pulse the up beam
+            at_mu(t_start)
             self.clock_up_dds.sw.on()
             delay(self.spectroscopy_pulse_time.get())
             self.clock_up_dds.sw.off()
