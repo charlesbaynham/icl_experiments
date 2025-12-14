@@ -2,7 +2,6 @@ from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
-from matplotlib.pylab import int64
 from ndscan.experiment import *
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
@@ -163,17 +162,17 @@ class TestLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
 
-    @kernel
-    def calculate_frequency_for_second_lmt_pulse(
-        self, t_pulse_start_mu: int64
-    ) -> float:
-        t_drop = self.core.mu_to_seconds(
-            t_pulse_start_mu
-            - self.t_velocity_slicing_pulse_centre_mu
-            + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
-        )
+    # @kernel
+    # def calculate_frequency_for_second_lmt_pulse(
+    #     self, t_pulse_start_mu: int64
+    # ) -> float:
+    #     t_drop = self.core.mu_to_seconds(
+    #         t_pulse_start_mu
+    #         - self.t_velocity_slicing_pulse_centre_mu
+    #         + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
+    #     )
 
-        return -self._calculate_chirp_required(t_drop) + 3 * self.momentum_kick.get()
+    #     return -self._calculate_chirp_required(t_drop) + 3 * self.momentum_kick.get()
 
     @kernel
     def _calculate_chirp_required(self, t_drop: float):

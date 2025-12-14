@@ -112,13 +112,20 @@ class LMTBase(
             if i % 2 == 0:
                 down_offset = 0.0
             else:
-                down_offset = -15e3  # self.down_offset_detuning.get()
+                down_offset = self.down_offset_detuning.get()  # -15e3
 
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i) * kick
-                + (-1) ** i * (offset_det + down_offset)
+                + (-1) ** i
+                * (
+                    offset_det
+                    + down_offset
+                    + self.calculate_frequency_for_second_lmt_pulse(
+                        t_pulse_start_mu=now_mu()
+                    )
+                )
             )
             # start with down pulse
             if i % 2 == 0:
@@ -250,6 +257,13 @@ class LMTBase(
     @kernel
     def calculate_frequency_for_first_lmt_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
+    ) -> float:
+        return 0.0
+
+    @kernel
+    def calculate_frequency_for_second_lmt_pulse(
+        self,
+        t_pulse_start_mu: int64,
     ) -> float:
         return 0.0
 
@@ -464,7 +478,7 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         delay(500e-6)
@@ -473,16 +487,16 @@ class LMTInterferometryMixin(
         if N > 1:
             self.do_first_selective_lmt_pulse(first_freq, t_first_pi)
 
-        #     # Clear out the ground state
-        #     self.fluorescence_pulse.do_imaging_pulse(
-        #         duration=self.clearout_duration.get(),
-        #         ignore_final_shutters=True,
-        #     )
-        #     delay(8e-9)
+            # Clear out the ground state
+            self.fluorescence_pulse.do_imaging_pulse(
+                duration=self.clearout_duration.get(),
+                ignore_final_shutters=True,
+            )
+            delay(8e-9)
 
-        # # LMT sequence on upper arm, starting on the excited state at n=2
-        # if N > 2:
-        #     self.lmt_series(bs1_lmt_offset, N - 2)
+        # LMT sequence on upper arm, starting on the excited state at n=2
+        if N > 2:
+            self.lmt_series(bs1_lmt_offset, N - 2)
 
         # delay_mu(8)
         # t_end_bs_mu = now_mu()
