@@ -458,14 +458,14 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)  # / 2)
+        delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
-        # delay(500e-6)
+        delay(500e-6)
 
-        # # First pulse with a lower Rabi frequency, up beam pulse
-        # if N > 1:
-        #     self.do_first_selective_lmt_pulse(first_freq, t_first_pi)
+        # First pulse with a lower Rabi frequency, up beam pulse
+        if N > 1:
+            self.do_first_selective_lmt_pulse(first_freq, t_first_pi)
 
         #     # Clear out the ground state
         #     self.fluorescence_pulse.do_imaging_pulse(
