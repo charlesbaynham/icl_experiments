@@ -47,8 +47,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("clock_opll", ClockOPLLController)
-        self.clock_opll: ClockOPLLController
+        if not hasattr(self, "clock_opll"):
+            self.setattr_fragment("clock_opll", ClockOPLLController)
+            self.clock_opll: ClockOPLLController
 
         self.setattr_param(
             "shelving_pulse_time",
