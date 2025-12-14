@@ -168,6 +168,7 @@ class TestLMTInterferometryFrag(
                 t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
             )
             # + t_pi_pulse / 2
+            + self.shelving_pulse_time.get() / 2
         )
         return (
             -self._calculate_chirp_required(t_drop)

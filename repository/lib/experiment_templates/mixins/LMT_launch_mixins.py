@@ -458,7 +458,7 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         # delay(500e-6)
