@@ -164,11 +164,8 @@ class TestLMTInterferometryFrag(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
         t_drop = (
-            self.core.mu_to_seconds(
-                t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
-            )
+            self.core.mu_to_seconds(t_pulse_start_mu - self.t_dipole_beams_off)
             # + t_pi_pulse / 2
-            + self.shelving_pulse_time.get() / 2
         )
         return (
             -self._calculate_chirp_required(t_drop)

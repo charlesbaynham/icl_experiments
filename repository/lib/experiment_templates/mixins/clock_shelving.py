@@ -136,6 +136,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         # Kernel variable to record the moment of the velocity slicing pulse so
         # that other pulses can be relative to it
         self.t_velocity_slicing_pulse_centre_mu = int64(0)
+        self.t_dipole_beams_off = int64(0)
 
         # Ensure that the time of the slicing pulse is always reset
         class _ResetSlicingTime(Fragment):
@@ -243,6 +244,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     @kernel
     def post_dipole_trap_hook(self):
+        self.t_dipole_beams_off = now_mu()
         self.post_dipole_trap_hook_default()
         delay_mu(int64(self.core.ref_multiplier))
         self.post_dipole_trap_hook_shelving_and_clearout()
