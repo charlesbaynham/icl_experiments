@@ -209,10 +209,14 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
             - self.t_velocity_slicing_pulse_centre_mu
             + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
         )
-        print("hello")
 
         return -self._calculate_chirp_required(t_drop) + 3 * self.momentum_kick.get()
 
     @kernel
     def _calculate_chirp_required(self, t_drop: float):
         return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+
+    @kernel
+    def get_t_dipole_beams_off(self) -> int64:
+        print("hello")
+        return self.t_dipole_beams_off

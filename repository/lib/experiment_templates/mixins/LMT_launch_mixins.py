@@ -101,38 +101,37 @@ class LMTBase(
 
     # use if we start in the excited state
     @kernel
-    def lmt_series(self, offset_det, N):
+    def lmt_series(self, offset_det, N_previous_pulses, N):
 
         kick = self.momentum_kick.get()
-        total_ramp_time = 0.0
+        t_drop = self.get_t_dipole_beams_off()
 
-        t_start_ramp = now_mu()
         for i in range(N):
 
             if i % 2 == 0:
-                down_offset = 0.0
+                up_offset = 0.0
+                down_offset = 5e3
+                pulse_type = "down"
             else:
-                down_offset = self.down_offset_detuning.get()  # -15e3
+                up_offset = self.down_offset_detuning.get()  # -15e3
+                down_offset = 0.0
+                pulse_type = "up"
+
+            total_ramp_time = self.core.mu_to_seconds(now_mu() - t_drop)
 
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i) * kick
+                + (i + N_previous_pulses) * (-1) ** (i) * kick
                 + (-1) ** i
                 * (
                     offset_det
                     + down_offset
-                    + self.calculate_frequency_for_second_lmt_pulse(
-                        t_pulse_start_mu=now_mu()
-                    )
+                    + up_offset
+                    # + self.calculate_frequency_for_second_lmt_pulse(
+                    #     t_pulse_start_mu=now_mu()
                 )
             )
-            # start with down pulse
-            if i % 2 == 0:
-                pulse_type = "down"
-
-            else:
-                pulse_type = "up"
 
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type)
@@ -146,7 +145,6 @@ class LMTBase(
             #     delay(8e-9)
 
             t_end_pulse = now_mu()
-            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     # use if we start in the ground state
     @kernel
@@ -159,17 +157,17 @@ class LMTBase(
 
             # start with up pulse
             if i % 2 == 0:
-                down_offset = 0.0
+                up_offset = 0.0
                 pulse_type = "up"
             else:
-                down_offset = offset_down_beam
+                up_offset = offset_down_beam
                 pulse_type = "down"
 
             f_i = (
                 start_opll_offset
                 + (-1) ** (i) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i + 1) * kick
-                + (-1) ** (i + 1) * (offset_det + down_offset)
+                + (-1) ** (i + 1) * (offset_det + up_offset)
             )
 
             # fire the pulse
@@ -197,17 +195,17 @@ class LMTBase(
 
             # start with down pulse
             if i % 2 == 0:
-                down_offset = 0.0
+                up_offset = 0.0
                 pulse_type = "down"
             else:
-                down_offset = offset_down_beam
+                up_offset = offset_down_beam
                 pulse_type = "up"
 
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i + 1) * kick
-                + (-1) ** (i) * (offset_det + down_offset)
+                + (-1) ** (i) * (offset_det + up_offset)
             )
 
             # fire the pulse
@@ -265,6 +263,10 @@ class LMTBase(
         self,
         t_pulse_start_mu: int64,
     ) -> float:
+        return 0.0
+
+    @kernel
+    def get_t_dipole_beams_off(self) -> int64:
         return 0.0
 
 
@@ -447,7 +449,7 @@ class LMTInterferometryMixin(
             self.first_lmt_freq.get()
         )  # TODO: this is zero, need to delete the parameter
         bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
-        down_offset = self.down_offset_detuning.get()
+        up_offset = self.down_offset_detuning.get()
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
         mirror_freq = self.mirror_pulse_freq.get()
@@ -496,7 +498,7 @@ class LMTInterferometryMixin(
 
         # LMT sequence on upper arm, starting on the excited state at n=2
         if N > 2:
-            self.lmt_series(bs1_lmt_offset, N - 2)
+            self.lmt_series(bs1_lmt_offset, N_previous_pulses=3, N=N - 2)
 
         # delay_mu(8)
         # t_end_bs_mu = now_mu()
@@ -511,7 +513,7 @@ class LMTInterferometryMixin(
 
         # # LMT sequence on upper arm, momentum downwards
         # at_mu(t_start_lmt_mirror_mu)
-        # self.lmt_series_start_down_launch_down(upper_mirror_offset, down_offset, N - 2)
+        # self.lmt_series_start_down_launch_down(upper_mirror_offset, up_offset, N - 2)
 
         # # Clear out the ground state
         # self.fluorescence_pulse.do_imaging_pulse(
@@ -562,7 +564,7 @@ class LMTInterferometryMixin(
         # delay(self.delay_between_interferometry_pulses.get())
 
         # # LMT sequence on lower arm, momentum downwards
-        # self.lmt_series_start_down_launch_down(bs_detuning_lower, down_offset, N - 2)
+        # self.lmt_series_start_down_launch_down(bs_detuning_lower, up_offset, N - 2)
 
         # # Clear out the ground state
         # self.fluorescence_pulse.do_imaging_pulse(
