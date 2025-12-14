@@ -117,23 +117,18 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
 
-            total_ramp_time = self.core.mu_to_seconds(now_mu() - t_drop)
+            t_start_lmt_pulse_mu = now_mu() + 1e-6
+            total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
 
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + (i + N_previous_pulses) * (-1) ** (i) * kick
-                + (-1) ** i
-                * (
-                    offset_det
-                    + down_offset
-                    + up_offset
-                    # + self.calculate_frequency_for_second_lmt_pulse(
-                    #     t_pulse_start_mu=now_mu()
-                )
+                + (-1) ** i * (offset_det + down_offset + up_offset)
             )
 
             # fire the pulse
+            at_mu(t_start_lmt_pulse_mu)
             self.fire_lmt_pulse(f_i, pulse_type)
 
             # Clear out the ground state
@@ -143,8 +138,6 @@ class LMTBase(
             #         ignore_final_shutters=True,
             #     )
             #     delay(8e-9)
-
-            t_end_pulse = now_mu()
 
     # use if we start in the ground state
     @kernel
