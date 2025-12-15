@@ -526,8 +526,8 @@ class LMTInterferometryMixin(
         delay_mu(8)
         t_end_bs_mu = now_mu()
 
-        # # # Do a Stark shifting pulse in the first dark time
-        # # self.stark_shifter.do_stark_pulse()
+        # Do a Stark shifting pulse in the first dark time
+        self.stark_shifter.do_stark_pulse()
 
         # dark time
         t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
