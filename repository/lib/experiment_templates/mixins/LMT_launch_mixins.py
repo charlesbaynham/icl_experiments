@@ -86,15 +86,6 @@ class LMTBase(
         )
         self.momentum_kick: FloatParamHandle
 
-        self.setattr_param(
-            "down_offset_detuning",
-            FloatParam,
-            "Extra detuning for up beam",
-            default=constants.LMT_DOWN_BEAM_RECOIL_SHIFT,
-            unit="kHz",
-        )
-        self.down_offset_detuning: FloatParamHandle
-
         if not hasattr(self, "clock_opll"):
             self.setattr_fragment("clock_opll", ClockOPLLController)
             self.clock_opll: ClockOPLLController
@@ -109,13 +100,11 @@ class LMTBase(
         for i in range(N):
 
             if i % 2 == 0:
-                up_offset = 0.0
                 down_offset = (
                     offset_det  # FIXME: should be zero now that it is on switch aom
                 )
                 pulse_type = "down"
             else:
-                up_offset = self.down_offset_detuning.get()
                 down_offset = 0.0
                 pulse_type = "up"
 
@@ -126,7 +115,7 @@ class LMTBase(
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + (i + N_previous_pulses) * (-1) ** (i) * kick
-                + (-1) ** i * (down_offset + up_offset)
+                + (-1) ** i * (down_offset)
             )
 
             # fire the pulse
@@ -188,12 +177,10 @@ class LMTBase(
 
             # start with down pulse
             if i % 2 == 0:
-                up_offset = 0.0
                 down_offset = offset_det
                 pulse_type = "down"
 
             else:
-                up_offset = self.down_offset_detuning.get()
                 down_offset = 0.0
                 pulse_type = "up"
 
@@ -205,7 +192,7 @@ class LMTBase(
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + i * (-1) ** (i + 1) * kick
                 + N_previous_pulses * (-1) ** (i) * kick
-                + (-1) ** (i) * (down_offset + up_offset)
+                + (-1) ** (i) * (down_offset)
             )
 
             # fire the pulse
@@ -340,10 +327,28 @@ class LMTInterferometryMixin(
             "down_switch_detuning",
             FloatParam,
             "Detuning on the down switch AOM",
-            default=13.6e3,
+            default=constants.LMT_DOWN_BEAM_SHIFT,
             unit="kHz",
         )
         self.down_switch_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "up_switch_detuning_lower_intensity",
+            FloatParam,
+            "Detuning on the up switch AOM during selective pulse",
+            default=0.5e3,
+            unit="kHz",
+        )
+        self.up_switch_detuning_lower_intensity: FloatParamHandle
+
+        self.setattr_param(
+            "up_switch_detuning_higher_intensity",
+            FloatParam,
+            "Detuning on the up switch AOM during lmt pulses",
+            default=2.8e3,
+            unit="kHz",
+        )
+        self.up_switch_detuning_higher_intensity: FloatParamHandle
 
         self.setattr_param(
             "first_lmt_freq",
@@ -464,7 +469,6 @@ class LMTInterferometryMixin(
             self.first_lmt_freq.get()
         )  # TODO: this is zero, need to delete the parameter
         bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
-        up_offset = self.down_offset_detuning.get()
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
         mirror_freq = self.mirror_pulse_freq.get()
@@ -514,7 +518,7 @@ class LMTInterferometryMixin(
 
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + 2.8e3,  # TODO: add parameter stark shift up beam detuning
+            + self.up_switch_detuning_higher_intensity.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
@@ -544,7 +548,7 @@ class LMTInterferometryMixin(
         # stark shift for low intensity up neam
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + 0.5e3,  # add param detuning stark shift selective pulse
+            + self.up_switch_detuning_lower_intensity.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
@@ -601,7 +605,7 @@ class LMTInterferometryMixin(
         # stark shift for high intensity up beam
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + 2.8e3,  # add param detuning stark shift selective pulse
+            + self.up_switch_detuning_higher_intensity.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
@@ -628,7 +632,7 @@ class LMTInterferometryMixin(
         # stark shift for low intensity up neam
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + 0.5e3,  # add param detuning stark shift selective pulse
+            + self.up_switch_detuning_lower_intensity.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
