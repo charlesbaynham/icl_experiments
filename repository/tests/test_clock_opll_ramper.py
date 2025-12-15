@@ -162,10 +162,6 @@ class TestLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
 
-    @kernel
-    def _calculate_chirp_required(self, t_drop: float):
-        return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
-
 
 TestLMTInterferometryExp = make_fragment_scan_exp(
     TestLMTInterferometryFrag, max_rtio_underflow_retries=0
