@@ -189,7 +189,7 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
             + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
         )
 
-        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 14e3
+        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get()
 
     @kernel
     def calculate_frequency_for_first_lmt_pulse(

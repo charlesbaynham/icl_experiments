@@ -329,6 +329,15 @@ class LMTInterferometryMixin(
         self.lmt_pulses_number: IntParamHandle
 
         self.setattr_param(
+            "down_switch_detuning",
+            FloatParam,
+            "Detuning on the down switch AOM",
+            default=13e3,
+            unit="kHz",
+        )
+        self.down_switch_detuning: FloatParamHandle
+
+        self.setattr_param(
             "first_lmt_freq",
             FloatParam,
             "Detuning 1st LMT pulse",
@@ -470,7 +479,8 @@ class LMTInterferometryMixin(
         delay_mu(8)
 
         self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get(),
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
@@ -481,39 +491,39 @@ class LMTInterferometryMixin(
         delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
-        delay(1e-6)
+        # delay(1e-6)
 
-        # First pulse with a lower Rabi frequency, up beam pulse
-        if N > 1:
-            self.do_first_selective_lmt_pulse(first_freq, t_first_pi)
+        # # First pulse with a lower Rabi frequency, up beam pulse
+        # if N > 1:
+        #     self.do_first_selective_lmt_pulse(first_freq, t_first_pi)
 
-            # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
-                duration=self.clearout_duration.get(),
-                ignore_final_shutters=True,
-            )
-            delay(8e-9)
+        #     # Clear out the ground state
+        #     self.fluorescence_pulse.do_imaging_pulse(
+        #         duration=self.clearout_duration.get(),
+        #         ignore_final_shutters=True,
+        #     )
+        #     delay(8e-9)
 
-        # LMT sequence on upper arm, starting on the excited state at n=2
-        if N > 2:
-            self.lmt_series(bs1_lmt_offset, N_previous_pulses=3, N=N - 2)
+        # # LMT sequence on upper arm, starting on the excited state at n=2
+        # if N > 2:
+        #     self.lmt_series(bs1_lmt_offset, N_previous_pulses=3, N=N - 2)
 
-        delay_mu(8)
-        t_end_bs_mu = now_mu()
+        # delay_mu(8)
+        # t_end_bs_mu = now_mu()
 
-        # # Do a Stark shifting pulse in the first dark time
-        # self.stark_shifter.do_stark_pulse()
+        # # # Do a Stark shifting pulse in the first dark time
+        # # self.stark_shifter.do_stark_pulse()
 
-        # dark time
-        t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
-            self.delay_between_interferometry_pulses.get()
-        )
+        # # dark time
+        # t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
+        #     self.delay_between_interferometry_pulses.get()
+        # )
 
-        # LMT sequence on upper arm, momentum downwards
-        at_mu(t_start_lmt_mirror_mu)
-        self.lmt_series_start_down_launch_down(
-            upper_mirror_offset, N_previous_pulses=N + 1, N=4
-        )
+        # # LMT sequence on upper arm, momentum downwards
+        # at_mu(t_start_lmt_mirror_mu)
+        # self.lmt_series_start_down_launch_down(
+        #     upper_mirror_offset, N_previous_pulses=N + 1, N=1
+        # )
 
         # # Clear out the ground state
         # self.fluorescence_pulse.do_imaging_pulse(
