@@ -189,6 +189,8 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         delay_mu(int64(self.core.ref_multiplier))
         self.clock_opll.clock_frequency_ramper.stop_ramp()
 
+        delay(constants.DEFAULT_DELIVERY_SETTLING_DURATION)
+
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.shelving_pulse_clearout_duration.get(),
