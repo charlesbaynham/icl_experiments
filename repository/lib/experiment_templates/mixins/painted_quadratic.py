@@ -227,4 +227,4 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         # Do the ramp
         self.adiabatic_cooling_ramp.do_phase()
-        delay(6e-3)  # FIXME Remove this when finished testing
+        # delay(6e-3)  # FIXME Remove this when finished testing
