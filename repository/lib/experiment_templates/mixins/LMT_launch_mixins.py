@@ -74,7 +74,7 @@ class LMTBase(
             default=constants.LMT_PULSE_CLEAROUT_DURATION,
             unit="us",
         )
-        self.shelving_pulse_clearout_duration: FloatParamHandle
+        self.clearout_duration: FloatParamHandle
 
         if not hasattr(self, "spectroscopy_pulse_time"):
             self.setattr_param(
@@ -137,21 +137,12 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
-            # Clear out the ground state
-            # if pulse_type == "up":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
-
     # use if we start in the ground state
     @kernel
     def lmt_series_start_up(self, offset_det, N_previous_pulses, N):
         kick = self.momentum_kick.get()
         t_drop = self.get_t_start_shelving()
 
-        t_start_ramp = now_mu()
         for i in range(N):
 
             # start with up pulse
@@ -174,14 +165,6 @@ class LMTBase(
 
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
-
-            # Clear out the ground state
-            # if pulse_type == "down":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
 
     @kernel
     def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
@@ -325,6 +308,13 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         start_detuning = self.lmt_launch_offset_detuning.get()
         lmt_number = self.lmt_launch_pulses_number.get()
         self.lmt_series(start_detuning, lmt_number)
+
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
 
 
 class LMTInterferometryMixin(
