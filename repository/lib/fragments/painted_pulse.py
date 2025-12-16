@@ -10,8 +10,8 @@ from numpy import log
 from numpy import sqrt
 from scipy.optimize import root_scalar
 
-from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
 from repository.lib import constants
+from repository.lib.fragments.pulse_shaping import FrequencyShapedPulse
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             "g",
             FloatParam,
             description="Gradient of gravity compensation",
-            default=-1,
+            default=0,
             min=-1000.0,
             max=1000,
         )
@@ -203,7 +203,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             "mod_depth",
             FloatParam,
             description="Modulation depth of the scan",
-            default=7e6,
+            default=6e6,
             unit="MHz",
             min=1.0,
             max=200e6,
