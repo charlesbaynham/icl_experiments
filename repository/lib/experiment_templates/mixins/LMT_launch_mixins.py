@@ -50,6 +50,24 @@ class LMTBase(
         super().build_fragment()
 
         self.setattr_param(
+            "down_switch_detuning",
+            FloatParam,
+            "Detuning on the down switch AOM",
+            default=constants.LMT_DOWN_BEAM_SHIFT,
+            unit="kHz",
+        )
+        self.down_switch_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "up_switch_detuning_higher_intensity",
+            FloatParam,
+            "Detuning on the up switch AOM during lmt pulses",
+            default=2.8e3,
+            unit="kHz",
+        )
+        self.up_switch_detuning_higher_intensity: FloatParamHandle
+
+        self.setattr_param(
             "clearout_duration",
             FloatParam,
             "Duration of 461 clearout pulse after LMT pulse",
@@ -195,8 +213,6 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
 
-            # delay(100e-6)
-
     @kernel
     def fire_lmt_pulse(self, start_freq, type, t_start):
         # stop the ramp
@@ -283,7 +299,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         self.setattr_param(
             "lmt_lauch_offset_detuning",
             FloatParam,
-            "LMT offset detuning",
+            "Detuning for launch LMT series",
             default=constants.LMT_OFFSET_DETUNING,
             unit="kHz",
         )
@@ -321,15 +337,6 @@ class LMTInterferometryMixin(
         self.lmt_pulses_number: IntParamHandle
 
         self.setattr_param(
-            "down_switch_detuning",
-            FloatParam,
-            "Detuning on the down switch AOM",
-            default=constants.LMT_DOWN_BEAM_SHIFT,
-            unit="kHz",
-        )
-        self.down_switch_detuning: FloatParamHandle
-
-        self.setattr_param(
             "up_switch_detuning_lower_intensity",
             FloatParam,
             "Detuning on the up switch AOM during selective pulse",
@@ -337,15 +344,6 @@ class LMTInterferometryMixin(
             unit="kHz",
         )
         self.up_switch_detuning_lower_intensity: FloatParamHandle
-
-        self.setattr_param(
-            "up_switch_detuning_higher_intensity",
-            FloatParam,
-            "Detuning on the up switch AOM during lmt pulses",
-            default=2.8e3,
-            unit="kHz",
-        )
-        self.up_switch_detuning_higher_intensity: FloatParamHandle
 
         self.setattr_param(
             "first_lmt_freq",
@@ -456,15 +454,11 @@ class LMTInterferometryMixin(
         delay_mu(16)
 
         N = self.lmt_pulses_number.get()
-
-        t_pi_up = self.spectroscopy_pulse_time.get()
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
         # frequencies
-        first_freq = (
-            self.first_lmt_freq.get()
-        )  # TODO: this is zero, need to delete the parameter
+        first_freq = self.first_lmt_freq.get()
         bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
         last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
