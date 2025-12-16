@@ -307,7 +307,20 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
 
     @kernel
     def launch_hook(self):
+        # prepare delivery and switch aoms
         self.prepare_clock_delivery_aom()
+
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_higher_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
         delay_mu(16)
         start_detuning = self.lmt_launch_offset_detuning.get()
         lmt_number = self.lmt_launch_pulses_number.get()
@@ -536,7 +549,7 @@ class LMTInterferometryMixin(
         )
         delay_mu(8)
 
-        # stark shift for low intensity up neam
+        # stark shift for low intensity up beam
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
             + self.up_switch_detuning_lower_intensity.get(),
