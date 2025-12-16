@@ -26,6 +26,10 @@ logger = logging.getLogger(__name__)
 class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
     """
     Mixin which switches on both the painted quadratic and up dipole potential during the dipole trap loading sequence to matterwave collimate them.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~matterwave_collimate_hook`
     """
 
     def build_fragment(self):
@@ -100,6 +104,10 @@ class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
 class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
     """
     Mixin which switches on the painted quadratic potential during the dipole trap loading sequence.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~matterwave_collimate_hook`
     """
 
     def build_fragment(self):
@@ -138,7 +146,11 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
 
 class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
     """
-    Mixin which adiabitically adiabatically cools the atoms from the fixed HODT into the painted HODT
+    Mixin which adiabitically adiabatically cools the atoms from the fixed HODT into the painted HODT.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~matterwave_collimate_hook`
     """
 
     def build_fragment(self):
