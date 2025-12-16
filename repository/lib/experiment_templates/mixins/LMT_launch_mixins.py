@@ -95,14 +95,12 @@ class LMTBase(
     def lmt_series(self, offset_det, N_previous_pulses, N):
 
         kick = self.momentum_kick.get()
-        t_drop = self.get_t_dipole_beams_off()
+        t_drop = self.get_t_start_shelving()
 
         for i in range(N):
 
             if i % 2 == 0:
-                down_offset = (
-                    offset_det  # FIXME: should be zero now that it is on switch aom
-                )
+                down_offset = offset_det
                 pulse_type = "down"
             else:
                 down_offset = 0.0
@@ -115,7 +113,7 @@ class LMTBase(
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + (i + N_previous_pulses) * (-1) ** (i) * kick
-                + (-1) ** i * (down_offset)
+                + (-1) ** i * down_offset
             )
 
             # fire the pulse
@@ -171,7 +169,7 @@ class LMTBase(
     @kernel
     def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
         kick = self.momentum_kick.get()
-        t_drop = self.get_t_dipole_beams_off()
+        t_drop = self.get_t_start_shelving()
 
         for i in range(N):
 
@@ -259,7 +257,7 @@ class LMTBase(
         return 0.0
 
     @kernel
-    def get_t_dipole_beams_off(self) -> int64:
+    def get_t_start_shelving(self) -> int64:
         return 0.0
 
 
