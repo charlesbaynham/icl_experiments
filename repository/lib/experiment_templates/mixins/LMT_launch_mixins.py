@@ -129,30 +129,33 @@ class LMTBase(
 
     # use if we start in the ground state
     @kernel
-    def lmt_series_start_up(self, offset_det, offset_down_beam, N):
+    def lmt_series_start_up(self, offset_det, N_previous_pulses, N):
         kick = self.momentum_kick.get()
-        total_ramp_time = 0.0
+        t_drop = self.get_t_start_shelving()
 
         t_start_ramp = now_mu()
         for i in range(N):
 
             # start with up pulse
             if i % 2 == 0:
-                up_offset = 0.0
+                down_offset = 0.0
                 pulse_type = "up"
             else:
-                up_offset = offset_down_beam
+                down_offset = offset_det
                 pulse_type = "down"
 
             f_i = (
                 start_opll_offset
                 + (-1) ** (i) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i + 1) * kick
-                + (-1) ** (i + 1) * (offset_det + up_offset)
+                + (i + N_previous_pulses) * (-1) ** (i + 1) * kick
+                + (-1) ** (i + 1) * down_offset
             )
 
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
+
             # fire the pulse
-            self.fire_lmt_pulse(f_i, pulse_type)
+            self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
             # Clear out the ground state
             # if pulse_type == "down":
@@ -161,10 +164,6 @@ class LMTBase(
             #         ignore_final_shutters=True,
             #     )
             #     delay(8e-9)
-
-            delay(100e-6)
-            t_end_pulse = now_mu()
-            total_ramp_time = self.core.mu_to_seconds(t_end_pulse - t_start_ramp)
 
     @kernel
     def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
