@@ -180,16 +180,29 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         self.adiabatic_painter_ramp_on: PaintedLinearRamp
 
         self.setattr_param_rebind(
-            "adiabatic_cooling_time",
+            "HODT_adiabatic_ramp_down_time",
             self.adiabatic_cooling_ramp,
             "duration",
-            description="Duration of the adiabatic cooling time",
+            description="Duration of the HODT adiabatic ramp down time",
             unit="ms",
-            default=1e-3,
+            default=50e-3,
             min=0.0,
         )
 
-        self.adiabatic_cooling_time: FloatParamHandle
+        self.HODT_adiabatic_ramp_down_time: FloatParamHandle
+
+        self.setattr_param_rebind(
+            "Painter_adiabatic_ramp_up_time",
+            self.adiabatic_painter_ramp_on,
+            "duration",
+            description="Duration of the painter adiabatic ramp up time",
+            unit="ms",
+            default=50e-3,
+            min=0.0,
+        )
+
+        self.Painter_adiabatic_ramp_up_time: FloatParamHandle
+
         self.adiabatic_cooling_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
             self.dipole_beam_controller.all_beam_default_setter
         )
