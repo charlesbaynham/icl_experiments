@@ -163,6 +163,21 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         )
         self.clock_down_default_setter: SetBeamsToDefaults
 
+    def host_setup(self):
+        super().host_setup()
+
+        # Get param handles for the clock delivery AOM - we'll drive it manually
+        # here, but if the user changed them we should respect that. We must do
+        # this in host_setup because the amplitude doesn't exist at build time
+        # because the fragment can't detect that it's an AD9910 because ARTIQ
+        # passes it a DummyDevice. Is this a bug? Yes.
+        self.clock_switch_frequency_handle: FloatParamHandle = getattr(
+            self.clock_default_setter, f"frequency_{CLOCK_UP_BEAM_INFO.name}"
+        )
+        self.clock_switch_amplitude_handle: FloatParamHandle = getattr(
+            self.clock_default_setter, f"amplitude_{CLOCK_UP_BEAM_INFO.name}"
+        )
+
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
         param_handles = super().get_always_shown_params()
