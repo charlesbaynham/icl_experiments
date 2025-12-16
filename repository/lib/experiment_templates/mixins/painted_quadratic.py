@@ -9,8 +9,10 @@ from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRampAdiabaticCooling
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import PaintedLinearRamp
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
+    XODTWithLinearRampAdiabaticCooling,
+)
 from repository.lib.fragments.painted_pulse import (
     GravityAndDiffractionCompensatedQuadraticShapedPulse,
 )
@@ -133,11 +135,12 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
         self.dipole_beam_controller.turn_off_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
 
+
 class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
     """
     Mixin which adiabitically adiabatically cools the atoms from the fixed HODT into the painted HODT
     """
-    
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -175,10 +178,11 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         )
 
         self.adiabatic_cooling_time: FloatParamHandle
-        self.adiabatic_cooling_ramp.bind_suservo_setpoint_params_to_default_beam_setter(self.dipole_beam_controller.all_beam_default_setter)
+        self.adiabatic_cooling_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.dipole_beam_controller.all_beam_default_setter
+        )
 
         # Set the time to the parameter value
-
 
     @kernel
     def DMA_initialization_hook_painting(self):
@@ -189,13 +193,13 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         """
         self.adiabatic_painter_ramp_on.precalculate_dma_handle()
         self.adiabatic_cooling_ramp.precalculate_dma_handle()
-        
 
     @kernel
     def matterwave_collimate_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.adiabatic_painter_ramp_on.do_phase()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
         # Do the ramp
         self.adiabatic_cooling_ramp.do_phase()
         self.dipole_beam_controller.turn_off_painter_suservo()
