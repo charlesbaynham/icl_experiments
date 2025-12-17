@@ -137,6 +137,32 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
+    @kernel
+    def launch_series(self, offset_det, N):
+
+        kick = self.momentum_kick.get()
+        t_drop = self.get_t_start_shelving()
+
+        for i in range(N):
+
+            if i % 2 == 0:
+                pulse_type = "down"
+            else:
+                pulse_type = "up"
+
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
+
+            f_i = (
+                start_opll_offset
+                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                + (i) * (-1) ** (i) * kick
+                + (-1) ** i * offset_det
+            )
+
+            # fire the pulse
+            self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
+
             # Clear out the ground state
             # if pulse_type == "up":
             #     self.fluorescence_pulse.do_imaging_pulse(
@@ -316,15 +342,20 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             amplitude=self.clock_switch_amplitude_handle.get(),
         )
 
-        self.clock_up_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.up_switch_detuning_higher_intensity.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
+        # self.clock_up_dds.set(
+        #     frequency=self.clock_switch_frequency_handle.get()
+        #     + self.up_switch_detuning_higher_intensity.get(),
+        #     amplitude=self.clock_switch_amplitude_handle.get(),
+        # )
         delay_mu(16)
         start_detuning = self.lmt_launch_offset_detuning.get()
         lmt_number = self.lmt_launch_pulses_number.get()
-        self.lmt_series(start_detuning, N_previous_pulses=0, N=lmt_number)
+        self.launch_series(start_detuning, N=lmt_number)
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
 
 
 class LMTInterferometryMixin(
