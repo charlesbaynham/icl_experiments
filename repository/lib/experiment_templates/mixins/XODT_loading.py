@@ -52,6 +52,8 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
             ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
         )
+        self.painter_driver: GravityAndDiffractionCompensatedQuadraticShapedPulse
+
         self.setattr_fragment("mot_in_xodt", MOTInSingleXODT)
         self.mot_in_xodt: MOTInSingleXODT
 
@@ -121,6 +123,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
         self.mot_in_xodt.do_phase()
         self.dipole_beam_controller.turn_off_painter_suservo()
+        self.painter_driver.stop_output()
 
 
 class LoadXXODTMixin(LoadSingleXODTMixin):
