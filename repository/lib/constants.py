@@ -801,7 +801,7 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_painted_delivery",
         servo_enabled=True,
-        initial_amplitude=0.1,
+        initial_amplitude=1.0,
         setpoint=4.9,
         kI_loop_constant=-10000.0,
     ),
