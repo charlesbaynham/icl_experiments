@@ -91,7 +91,7 @@ class ClockInterferometryBase(
     def calculate_frequency_for_first_pi_by_2_pulse(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:
-        return 80e6
+        return 0.0
 
     @kernel
     def calculate_frequency_for_pi_pulse(
