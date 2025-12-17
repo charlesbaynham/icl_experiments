@@ -165,7 +165,7 @@ class MolassesRetroed(GeneralRampingPhaseWithBindingAndBiasField):
     urukuls = URUKULS_OPTICAL_PUMPING
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVO_MOLASSES + SUSERVOS_XODT
+    suservos = SUSERVO_MOLASSES + SUSERVOS_XODT + SUSERVO_PAINTER
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -179,12 +179,16 @@ class MolassesRetroed(GeneralRampingPhaseWithBindingAndBiasField):
     # much will happen. This is done so that all the phases can share the same
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(SUSERVO_MOLASSES + SUSERVOS_XODT)
+    default_suservo_nominal_setpoints = [0.0] * len(
+        SUSERVO_MOLASSES + SUSERVOS_XODT + SUSERVO_PAINTER
+    )
     # The start setpoints must be overridden by daisy-chaining to previous phase
     default_suservo_setpoint_multiples_start = [1] * len(
-        SUSERVO_MOLASSES + SUSERVOS_XODT
+        SUSERVO_MOLASSES + SUSERVOS_XODT + SUSERVO_PAINTER
     )
-    default_suservo_setpoint_multiples_end = [1] * len(SUSERVO_MOLASSES + SUSERVOS_XODT)
+    default_suservo_setpoint_multiples_end = [1] * len(
+        SUSERVO_MOLASSES + SUSERVOS_XODT + SUSERVO_PAINTER
+    )
 
     # Chamber 2 bias coils in amps
     general_setter_default_starts = constants.XODT_MOLASSES_BIAS_FIELD_START
@@ -206,7 +210,7 @@ class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBias
 
     duration_default = constants.XODT_MOLASSES_DURATION
 
-    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY + SUSERVO_PAINTER
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START

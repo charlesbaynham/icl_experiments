@@ -1247,6 +1247,7 @@ XODT_MOLASSES_689_STIR_DETUNING = 555000.0
 # "suservo_aom_1064_delivery",
 # "suservo_aom_down_813"
 # "suservo_aom_singlepass_487_transparency"
+# "suservo_aom_1064_painted_delivery"
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
 if USE_SR87:
@@ -1269,6 +1270,7 @@ if USE_SR87:
         1.0,
         1.0,
         0.6,
+        1.0,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1278,6 +1280,7 @@ if USE_SR87:
         1.0,
         0.7,
         0.6,
+        1.0,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         260e3,
