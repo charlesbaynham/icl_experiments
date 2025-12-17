@@ -11,6 +11,10 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
+from repository.lib.fragments.painted_pulse import (
+    GravityAndDiffractionCompensatedQuadraticShapedPulse,
+)
+
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
@@ -42,6 +46,12 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
+        self.setattr_fragment(
+            "painter_driver",
+            GravityAndDiffractionCompensatedQuadraticShapedPulse,
+            ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
+            automatic_trigger=True,
+        )
         self.setattr_fragment("mot_in_xodt", MOTInSingleXODT)
         self.mot_in_xodt: MOTInSingleXODT
 

@@ -16,8 +16,8 @@ from repository.lib.fragments.painted_pulse import (
 from repository.lib.fragments.painted_pulse import (
     GravityAndDiffractionCompensatedQuadraticShapedPulse,
 )
+from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 
-PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 logger = logging.getLogger(__name__)
 
 

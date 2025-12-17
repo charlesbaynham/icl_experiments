@@ -5,7 +5,7 @@ from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
+from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS, PAINTING_URUKUL_CHANNEL
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
@@ -17,7 +17,6 @@ from repository.lib.fragments.painted_pulse import (
     GravityAndDiffractionCompensatedQuadraticShapedPulse,
 )
 
-PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 SU_SERVO_STABILISE_TIME = 200e-6  # time for the suservo to stabilise
 
 logger = logging.getLogger(__name__)

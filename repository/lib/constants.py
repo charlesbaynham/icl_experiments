@@ -124,6 +124,7 @@ URUKULED_BEAMS = [
 # Convert to dict for ease of use
 URUKULED_BEAMS: dict[str, UrukuledBeam] = {beam.name: beam for beam in URUKULED_BEAMS}
 
+PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 PAINTED_DDS_ATT = 5.0
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
