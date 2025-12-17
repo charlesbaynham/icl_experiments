@@ -297,7 +297,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         self.lmt_launch_pulses_number: IntParamHandle
 
         self.setattr_param(
-            "lmt_lauch_offset_detuning",
+            "lmt_launch_offset_detuning",
             FloatParam,
             "Detuning for launch LMT series",
             default=constants.LMT_OFFSET_DETUNING,
@@ -459,7 +459,8 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.do_clock_interferometry()
+        # self.do_clock_interferometry()
+        pass
 
     @kernel
     def do_clock_interferometry(self):
