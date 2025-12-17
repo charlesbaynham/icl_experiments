@@ -324,7 +324,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         delay_mu(16)
         start_detuning = self.lmt_launch_offset_detuning.get()
         lmt_number = self.lmt_launch_pulses_number.get()
-        self.lmt_series(start_detuning, lmt_number)
+        self.lmt_series(start_detuning, N_previous_pulses=0, N=lmt_number)
 
 
 class LMTInterferometryMixin(
