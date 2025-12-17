@@ -52,7 +52,7 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     urukuls = URUKUL_RED_IJD
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_RED + SUSERVOS_XODT
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -324,6 +324,7 @@ class XODTWithLinearRamp_3(XODTWithLinearRamp):
 
     add_final_point = True
 
+
 class XODTWithLinearRampAdiabaticCooling(GeneralRampingPhaseWithBinding):
     """
     A phase with linear ramps for 1064 and 813 nm XODT for adiabatic cooling
@@ -339,6 +340,7 @@ class XODTWithLinearRampAdiabaticCooling(GeneralRampingPhaseWithBinding):
 
     default_suservo_setpoint_multiples_start = constants.XODT_ADIABATIC_START
     default_suservo_setpoint_multiples_end = [0.0] * 2
+
 
 class PaintedLinearRamp(GeneralRampingPhaseWithBinding):
     """
