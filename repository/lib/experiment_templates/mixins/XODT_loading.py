@@ -110,6 +110,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
 
         self.mot_in_xodt.do_phase()
+        self.dipole_beam_controller.turn_off_painter_suservo()
 
 
 class LoadXXODTMixin(LoadSingleXODTMixin):
