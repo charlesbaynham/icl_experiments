@@ -6,14 +6,14 @@ from artiq.language import now_mu
 from ndscan.experiment import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
-    PaintedQuadraticMixin,
+    PaintedMatterwaveLensingMixin,
 )
 
 PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
 logger = logging.getLogger(__name__)
 
 
-class TestMatterwaveCollimationInDipoleTrapFrag(PaintedQuadraticMixin):
+class TestMatterwaveCollimationInDipoleTrapFrag(PaintedMatterwaveLensingMixin):
 
     @kernel
     def run_once(self) -> None:
@@ -39,5 +39,5 @@ class TestMatterwaveCollimationInDipoleTrapFrag(PaintedQuadraticMixin):
 
 
 TestMatterwaveCollimationInDipoleTrap = make_fragment_scan_exp(
-    TestMatterwaveCollimationInDipoleTrap, max_rtio_underflow_retries=0
+    TestMatterwaveCollimationInDipoleTrapFrag, max_rtio_underflow_retries=0
 )
