@@ -147,8 +147,10 @@ class LMTBase(
 
             if i % 2 == 0:
                 pulse_type = "down"
+                down_offset = offset_det
             else:
                 pulse_type = "up"
+                down_offset = 0
 
             t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
@@ -157,7 +159,7 @@ class LMTBase(
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
                 + (i + N_previous_pulses) * (-1) ** (i) * kick
-                + (-1) ** i * offset_det
+                + (-1) ** i * down_offset
             )
 
             # fire the pulse
