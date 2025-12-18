@@ -50,6 +50,8 @@ class _ShapedPulse(Fragment, abc.ABC):
 
     ad9910_name: str = None
 
+    urukul_name: str = None
+
     ram_modulation_mode = None
     "The type of RAM modulation to be applied. Frequency, amplitude, phase, or phase+amplitude (phasor)"
 
@@ -77,7 +79,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         bit slower.
         """
 
-    def build_fragment(self, ad9910_name=None):
+    def build_fragment(self, urukul_name=None, ad9910_name=None):
         self.setattr_device("core")
         self.core: Core
 
@@ -86,8 +88,13 @@ class _ShapedPulse(Fragment, abc.ABC):
         elif ad9910_name is not None:
             self.ad9910_name = ad9910_name
 
+        if urukul_name is None and self.urukul_name is None:
+            raise ValueError("No urkul name provided")
+        elif urukul_name is not None:
+            self.urukul_name = urukul_name 
+
         # Make sure the Urukul is initialized
-        self.setattr_fragment("urukul_init", make_urukul_init([self.ad9910_name]))
+        self.setattr_fragment(urukul_name, make_urukul_init([self.ad9910_name]))
 
         self.dds: AD9910 = self.get_device(self.ad9910_name)
 
@@ -415,13 +422,16 @@ class FrequencyShapedPulse(_ShapedPulse):
     # Have it ramp up and down
 
     def build_fragment(
-        self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
+        self,
+        centre_frequency_param_handle: FloatParamHandle,
+        urukul_name,
+        ad9910_name=None,
     ):
         """
         Requires you to pass a FloatParamHandle representing a parameter that
         the pulse's centre frequency will be bound to.
         """
-        super().build_fragment(ad9910_name)
+        super().build_fragment(urukul_name=urukul_name, ad9910_name=ad9910_name)
 
         self.centre_frequency = centre_frequency_param_handle
 

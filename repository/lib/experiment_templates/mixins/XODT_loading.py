@@ -48,6 +48,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         self.setattr_fragment(
             "painter_driver_loading",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
+            urukul_name="urukul_init_loading",
             ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
         )

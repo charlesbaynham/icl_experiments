@@ -125,6 +125,7 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
         self.setattr_fragment(
             "painter_driver",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
+            urukul_name="urukul_init_matterwave_collimation",
             ad9910_name=PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
         )
@@ -158,6 +159,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         self.setattr_fragment(
             "painter_driver",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
+            urukul_name="urukul_init_adiabatic",
             ad9910_name=PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
         )
