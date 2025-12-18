@@ -138,7 +138,7 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
     @kernel
-    def launch_series(self, N_previous_pulses, offset_det, N):
+    def launch_series(self, offset_det, N_previous_pulses, N):
 
         kick = self.momentum_kick.get()
         t_drop = self.get_t_start_shelving()
@@ -342,11 +342,11 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             amplitude=self.clock_switch_amplitude_handle.get(),
         )
 
-        # self.clock_up_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.up_switch_detuning_higher_intensity.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        # )
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_higher_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
         delay_mu(16)
         start_detuning = self.lmt_launch_offset_detuning.get()
         lmt_number = self.lmt_launch_pulses_number.get()
