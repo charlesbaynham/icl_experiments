@@ -11,16 +11,15 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
-from repository.lib.fragments.painted_pulse import (
-    GravityAndDiffractionCompensatedQuadraticShapedPulse,
-)
-
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInBottomXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
+from repository.lib.fragments.painted_pulse import (
+    GravityAndDiffractionCompensatedQuadraticShapedPulse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +46,14 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         super().build_fragment()
 
         self.setattr_fragment(
-            "painter_driver",
+            "painter_driver_loading",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
             ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
         )
-        self.painter_driver: GravityAndDiffractionCompensatedQuadraticShapedPulse
+        self.painter_driver_loading: (
+            GravityAndDiffractionCompensatedQuadraticShapedPulse
+        )
 
         self.setattr_fragment("mot_in_xodt", MOTInSingleXODT)
         self.mot_in_xodt: MOTInSingleXODT
@@ -123,7 +124,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
 
         self.mot_in_xodt.do_phase()
         self.dipole_beam_controller.turn_off_painter_suservo()
-        self.painter_driver.stop_output()
+        self.painter_driver_loading.stop_output()
 
 
 class LoadXXODTMixin(LoadSingleXODTMixin):
