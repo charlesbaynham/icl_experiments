@@ -415,7 +415,10 @@ class FrequencyShapedPulse(_ShapedPulse):
     # Have it ramp up and down
 
     def build_fragment(
-        self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
+        self,
+        centre_frequency_param_handle: FloatParamHandle,
+        urukul_name,
+        ad9910_name=None,
     ):
         """
         Requires you to pass a FloatParamHandle representing a parameter that
