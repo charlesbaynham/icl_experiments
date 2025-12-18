@@ -50,6 +50,8 @@ class _ShapedPulse(Fragment, abc.ABC):
 
     ad9910_name: str = None
 
+    urukul_name: str = None
+
     ram_modulation_mode = None
     "The type of RAM modulation to be applied. Frequency, amplitude, phase, or phase+amplitude (phasor)"
 
@@ -77,7 +79,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         bit slower.
         """
 
-    def build_fragment(self, urukul_name, ad9910_name=None):
+    def build_fragment(self, urukul_name=None, ad9910_name=None):
         self.setattr_device("core")
         self.core: Core
 
@@ -85,6 +87,11 @@ class _ShapedPulse(Fragment, abc.ABC):
             raise ValueError("No AD9910 name provided")
         elif ad9910_name is not None:
             self.ad9910_name = ad9910_name
+
+        if urukul_name is None and self.urukul_name is None:
+            raise ValueError("No urkul name provided")
+        elif urukul_name is not None:
+            self.urukul_name = urukul_name 
 
         # Make sure the Urukul is initialized
         self.setattr_fragment(urukul_name, make_urukul_init([self.ad9910_name]))
