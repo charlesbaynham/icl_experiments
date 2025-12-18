@@ -424,7 +424,7 @@ class FrequencyShapedPulse(_ShapedPulse):
         Requires you to pass a FloatParamHandle representing a parameter that
         the pulse's centre frequency will be bound to.
         """
-        super().build_fragment(ad9910_name)
+        super().build_fragment(urukul_name=urukul_name, ad9910_name=ad9910_name)
 
         self.centre_frequency = centre_frequency_param_handle
 
