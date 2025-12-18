@@ -77,7 +77,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         bit slower.
         """
 
-    def build_fragment(self, ad9910_name=None):
+    def build_fragment(self, urukul_name, ad9910_name=None):
         self.setattr_device("core")
         self.core: Core
 
@@ -87,7 +87,7 @@ class _ShapedPulse(Fragment, abc.ABC):
             self.ad9910_name = ad9910_name
 
         # Make sure the Urukul is initialized
-        self.setattr_fragment("urukul_init", make_urukul_init([self.ad9910_name]))
+        self.setattr_fragment(urukul_name, make_urukul_init([self.ad9910_name]))
 
         self.dds: AD9910 = self.get_device(self.ad9910_name)
 
