@@ -352,10 +352,10 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         lmt_number = self.lmt_launch_pulses_number.get()
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=self.clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
         delay_mu(8)
 
 
@@ -491,7 +491,8 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.do_clock_interferometry()
+        # self.do_clock_interferometry()
+        pass
 
     @kernel
     def do_clock_interferometry(self):
