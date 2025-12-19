@@ -355,7 +355,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.clearout_duration.get(),
+            duration=50e-6,  # self.clearout_duration.get(),
             ignore_final_shutters=True,
         )
         delay_mu(8)
@@ -525,7 +525,6 @@ class LMTInterferometryMixin(
 
         self.clock_opll.clock_OPLL_offset.set(
             start_opll_offset
-            + bs1_lmt_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_first_pulse_mu,
                 t_pi_pulse=t_pi_down,
@@ -546,190 +545,190 @@ class LMTInterferometryMixin(
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
-        # self.clock_up_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.up_switch_detuning_lower_intensity.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        # )
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_lower_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
 
+        delay(1e-6)
+
+        # First pulse with a lower Rabi frequency, up beam pulse
+        if N > 1:
+            self.do_selective_lmt_pulse(first_freq, N_kicks=12, duration=t_first_pi)
+
+            # Clear out the ground state
+            self.fluorescence_pulse.do_imaging_pulse(
+                duration=self.clearout_duration.get(),
+                ignore_final_shutters=True,
+            )
+            delay(8e-9)
+
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_higher_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
+
+        # LMT sequence on upper arm, starting on the excited state at n=2
+        if N > 2:
+            self.lmt_series(bs1_lmt_offset, N_previous_pulses=13, N=N - 2)
+
+        delay_mu(8)
+        t_end_bs_mu = now_mu()
+
+        # Do a Stark shifting pulse in the first dark time
+        self.stark_shifter.do_stark_pulse()
+
+        # dark time
+        t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
+            self.delay_between_interferometry_pulses.get()
+        )
+
+        # LMT sequence on upper arm, momentum downwards
+        at_mu(t_start_lmt_mirror_mu)
+        self.lmt_series_start_down_launch_down(
+            upper_mirror_offset, N_previous_pulses=N + 10, N=N - 2
+        )
+        delay_mu(8)
+
+        # stark shift for low intensity up beam
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_lower_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
+
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
+
+        # last pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(
+            last_upper_mirror_freq, N_kicks=12, duration=t_first_pi
+        )
+
+        delay(8e-9)
+        # Phase step
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_pi_pulse(),
+        )
+
+        # delay to write onto the dds
         # delay(1e-6)
 
-        # # First pulse with a lower Rabi frequency, up beam pulse
-        # if N > 1:
-        #     self.do_selective_lmt_pulse(first_freq, N_kicks=6, duration=t_first_pi)
+        # MIRROR PULSE DOWN BEAM
+        t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(
+            1e-6
+        )  # Add a tiny delay to give us enough time to write to the DDS
 
-        #     # Clear out the ground state
-        #     self.fluorescence_pulse.do_imaging_pulse(
-        #         duration=self.clearout_duration.get(),
-        #         ignore_final_shutters=True,
-        #     )
-        #     delay(8e-9)
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_pi_pulse(
+                t_pulse_start_mu=t_start_mirror_pulse_mu,
+                t_pi_pulse=t_pi_down,
+            )
+            + mirror_freq
+            + 10 * 9.4e3
+        )
+        at_mu(t_start_mirror_pulse_mu)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)
+        self.clock_down_dds.sw.off()
 
-        # self.clock_up_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.up_switch_detuning_higher_intensity.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        # )
+        delay(1e-6)
 
-        # # LMT sequence on upper arm, starting on the excited state at n=2
-        # if N > 2:
-        #     self.lmt_series(bs1_lmt_offset, N_previous_pulses=7, N=N - 2)
+        # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(
+            first_lower_mirror_freq, N_kicks=12, duration=t_first_pi
+        )
 
-        # delay_mu(8)
-        # t_end_bs_mu = now_mu()
+        # stark shift for high intensity up beam
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_higher_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
 
-        # # Do a Stark shifting pulse in the first dark time
-        # self.stark_shifter.do_stark_pulse()
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
 
-        # # dark time
-        # t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
-        #     self.delay_between_interferometry_pulses.get()
-        # )
+        # LMT series on lower arm, start from second pulse, down beam
+        self.lmt_series(lower_mirror_offset, N_previous_pulses=13, N=N - 2)
+        delay_mu(8)
 
-        # # LMT sequence on upper arm, momentum downwards
-        # at_mu(t_start_lmt_mirror_mu)
-        # self.lmt_series_start_down_launch_down(
-        #     upper_mirror_offset, N_previous_pulses=N + 4, N=N - 2
-        # )
-        # delay_mu(8)
+        # Phase step
+        delay(self.delay_between_interferometry_pulses.get())
 
-        # # stark shift for low intensity up beam
-        # self.clock_up_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.up_switch_detuning_lower_intensity.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        # )
+        # LMT sequence on lower arm, momentum downwards
+        self.lmt_series_start_down_launch_down(
+            bs_detuning_lower, N_previous_pulses=N + 10, N=N - 2
+        )
 
-        # # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=self.clearout_duration.get(),
-        #     ignore_final_shutters=True,
-        # )
-        # delay(8e-9)
+        # stark shift for low intensity up neam
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_lower_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
 
-        # # last pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(
-        #     last_upper_mirror_freq, N_kicks=6, duration=t_first_pi
-        # )
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay(8e-9)
 
-        # delay(8e-9)
-        # # Phase step
-        # self.clock_down_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.down_switch_detuning.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_pi_pulse(),
-        # )
+        # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse(
+            last_selective_lower_bs_freq, N_kicks=12, duration=t_first_pi
+        )
 
-        # # delay to write onto the dds
-        # delay(1e-6)
+        delay(8e-9)
 
-        # # MIRROR PULSE DOWN BEAM
-        # t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(
-        #     1e-6
-        # )  # Add a tiny delay to give us enough time to write to the DDS
+        t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
+            2e-6
+        )  # Add a tiny delay to give us enough time to write to the DDS
 
-        # self.clock_opll.clock_OPLL_offset.set(
-        #     start_opll_offset
-        #     + self.calculate_frequency_for_pi_pulse(
-        #         t_pulse_start_mu=t_start_mirror_pulse_mu,
-        #         t_pi_pulse=t_pi_down,
-        #     )
-        #     + mirror_freq
-        #     + 3 * 9.4e3
-        # )
-        # at_mu(t_start_mirror_pulse_mu)
-        # self.clock_down_dds.sw.on()
-        # delay(t_pi_down)
-        # self.clock_down_dds.sw.off()
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_freq
+            + 10 * 9.4e3
+        )
+        delay_mu(8)
 
-        # delay(1e-6)
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
+        )
 
-        # # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(
-        #     first_lower_mirror_freq, N_kicks=6, duration=t_first_pi
-        # )
+        delay(1e-6)
 
-        # # stark shift for high intensity up beam
-        # self.clock_up_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.up_switch_detuning_higher_intensity.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        # )
+        # PI/2 PULSE
 
-        # # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=self.clearout_duration.get(),
-        #     ignore_final_shutters=True,
-        # )
-        # delay(8e-9)
-
-        # # LMT series on lower arm, start from second pulse, down beam
-        # self.lmt_series(lower_mirror_offset, N_previous_pulses=7, N=N - 2)
-        # delay_mu(8)
-
-        # # Phase step
-        # delay(self.delay_between_interferometry_pulses.get())
-
-        # # LMT sequence on lower arm, momentum downwards
-        # self.lmt_series_start_down_launch_down(
-        #     bs_detuning_lower, N_previous_pulses=N + 4, N=N - 2
-        # )
-
-        # # stark shift for low intensity up neam
-        # self.clock_up_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.up_switch_detuning_lower_intensity.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        # )
-
-        # # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=self.clearout_duration.get(),
-        #     ignore_final_shutters=True,
-        # )
-        # delay(8e-9)
-
-        # # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(
-        #     last_selective_lower_bs_freq, N_kicks=6, duration=t_first_pi
-        # )
-
-        # delay(8e-9)
-
-        # t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
-        #     2e-6
-        # )  # Add a tiny delay to give us enough time to write to the DDS
-
-        # self.clock_opll.clock_OPLL_offset.set(
-        #     start_opll_offset
-        #     + self.calculate_frequency_for_first_pi_by_2_pulse(
-        #         t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-        #     )
-        #     + last_bs_freq
-        #     + 3 * 9.4e3
-        # )
-        # delay_mu(8)
-
-        # self.clock_down_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.down_switch_detuning.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_second_pi_by_2_pulse(),
-        # )
-
-        # delay(1e-6)
-
-        # # PI/2 PULSE
-
-        # self.clock_down_dds.sw.on()
-        # delay(t_pi_down / 2)
-        # self.clock_down_dds.sw.off()
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down / 2)
+        self.clock_down_dds.sw.off()
 
     @kernel
     def do_selective_lmt_pulse(self, detuning, N_kicks, duration):
