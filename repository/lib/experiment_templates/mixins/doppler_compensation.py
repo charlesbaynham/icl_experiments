@@ -188,7 +188,6 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
             - self.t_velocity_slicing_pulse_centre_mu
             + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
         )
-        print("freq calculated")
 
         return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get()
 
