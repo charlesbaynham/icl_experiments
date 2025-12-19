@@ -179,8 +179,8 @@
             "channel": 8,
             "display_colour": "blue",
             "exposure": [
-                2,
-                2
+                10,
+                10
             ],
             "f_ref": 0.0,
             "fast_enabled_at": 0,
