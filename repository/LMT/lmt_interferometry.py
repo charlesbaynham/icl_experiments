@@ -72,7 +72,7 @@ class LMTInterferometryFrag(
         self.post_sequence_cleanup_hook_shelving()
 
 
-class LMTInterferometryWithLaunchFrag(
+class LMTInterferometryWithDoubleLaunchFrag(
     LMTInterferometryMixin,
     LMTLaunchDoubleTrapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
@@ -180,4 +180,6 @@ LMTInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunch
 ShapedFirstPulseLMTInterferometry = make_fragment_scan_exp(
     ShapedFirstPulseLMTInterferometryFrag
 )
-LMTInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)
+LMTInterferometryWithDoubleLaunch = make_fragment_scan_exp(
+    LMTInterferometryWithDoubleLaunchFrag
+)

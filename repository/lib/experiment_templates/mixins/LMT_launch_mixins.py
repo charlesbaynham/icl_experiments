@@ -396,7 +396,6 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
                 t_pulse_start_mu=t_start_first_pulse_mu,
                 t_pi_pulse=t_pi_down,
             )
-            # + 10 * 9.4e3
         )
 
         self.clock_down_dds.set(
@@ -409,8 +408,10 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)  # / 2)
+        delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
+
+        # LMT series on the lower trap
         self.launch_hook_default()
 
 
