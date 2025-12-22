@@ -180,3 +180,4 @@ LMTInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunch
 ShapedFirstPulseLMTInterferometry = make_fragment_scan_exp(
     ShapedFirstPulseLMTInterferometryFrag
 )
+LMTInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)
