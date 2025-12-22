@@ -881,7 +881,7 @@ class ShapedFirstPulseLMTInterferometryMixin(LMTInterferometryMixin):
             frequency=CLOCK_UP_BEAM_INFO.frequency
         )
         delay_mu(int64(self.core.ref_multiplier))
-        self.clock_up_dds.set_att(17.0)
+        self.clock_up_dds.set_att(14.0)
         delay_mu(int64(self.core.ref_multiplier))
 
         t_pulse = now_mu() + self.core.seconds_to_mu(1e-6)
