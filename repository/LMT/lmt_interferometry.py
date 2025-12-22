@@ -142,6 +142,7 @@ class LMTInterferometryWithLaunchFrag(
 
 class ShapedFirstPulseLMTInterferometryFrag(
     ShapedFirstPulseLMTInterferometryMixin,
+    LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
