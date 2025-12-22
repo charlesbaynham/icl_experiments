@@ -879,7 +879,7 @@ class ShapedFirstPulseLMTInterferometryMixin(LMTInterferometryMixin):
                 _t_start, self.spectroscopy_pulse_time.get()
             ),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=20.0,
+            attenuation=30.0,
             rf_switch_state=True,
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
             enable_iir=True,
