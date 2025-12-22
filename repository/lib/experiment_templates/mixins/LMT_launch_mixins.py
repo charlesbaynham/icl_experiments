@@ -335,6 +335,10 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
 
     @kernel
     def launch_hook(self):
+        self.launch_hook_default()
+
+    @kernel
+    def launch_hook_default(self):
         # prepare delivery and switch aoms
         self.prepare_clock_delivery_aom()
 
@@ -359,6 +363,55 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             ignore_final_shutters=True,
         )
         delay_mu(8)
+
+
+class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
+    """
+    Implements LMT launch after the dipole trap to create a double trap
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~launch_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "double_trap_launch_bs_detuning",
+            FloatParam,
+            "Detuning of the beam splitter in the double trap launch",
+            default=0.0,
+            unit="kHz",
+        )
+        self.double_trap_launch_bs_detuning: FloatParamHandle
+
+    @kernel
+    def launch_hook(self):
+        t_pi_down = self.down_pulses_duration.get()
+        t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_first_pulse_mu,
+                t_pi_pulse=t_pi_down,
+            )
+            # + 10 * 9.4e3
+        )
+
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
+
+        # PI/2 PULSE DOWN BEAM
+        at_mu(t_start_first_pulse_mu)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)  # / 2)
+        self.clock_down_dds.sw.off()
+        self.launch_hook_default()
 
 
 class LMTInterferometryMixin(
