@@ -644,7 +644,7 @@ class LMTInterferometryMixin(
                 t_pulse_start_mu=t_start_first_pulse_mu,
                 t_pi_pulse=t_pi_down,
             )
-            # + 10 * 9.4e3
+            + 10 * 9.4e3
         )
 
         self.clock_down_dds.set(
@@ -671,7 +671,7 @@ class LMTInterferometryMixin(
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
-            self.do_selective_lmt_pulse(first_freq, N_kicks=2, duration=t_first_pi)
+            self.do_selective_lmt_pulse(first_freq, N_kicks=2 + 10, duration=t_first_pi)
 
             # Clear out the ground state
             self.fluorescence_pulse.do_imaging_pulse(
@@ -689,7 +689,7 @@ class LMTInterferometryMixin(
 
         # LMT sequence on upper arm, starting on the excited state at n=2
         if N > 2:
-            self.lmt_series(bs1_lmt_offset, N_previous_pulses=3, N=N - 2)
+            self.lmt_series(bs1_lmt_offset, N_previous_pulses=3 + 10, N=N - 2)
 
         delay_mu(8)
         t_end_bs_mu = now_mu()
@@ -705,7 +705,7 @@ class LMTInterferometryMixin(
         # LMT sequence on upper arm, momentum downwards
         at_mu(t_start_lmt_mirror_mu)
         self.lmt_series_start_down_launch_down(
-            upper_mirror_offset, N_previous_pulses=N, N=N - 2
+            upper_mirror_offset, N_previous_pulses=N + 10, N=N - 2
         )
         delay_mu(8)
 
@@ -726,7 +726,7 @@ class LMTInterferometryMixin(
 
         # last pulse with a lower Rabi frequency, up beam pulse
         self.do_selective_lmt_pulse(
-            last_upper_mirror_freq, N_kicks=2, duration=t_first_pi
+            last_upper_mirror_freq, N_kicks=2 + 10, duration=t_first_pi
         )
 
         delay(8e-9)
@@ -753,7 +753,7 @@ class LMTInterferometryMixin(
                 t_pi_pulse=t_pi_down,
             )
             + mirror_freq
-            # + 10 * 9.4e3
+            + 10 * 9.4e3
         )
         at_mu(t_start_mirror_pulse_mu)
         self.clock_down_dds.sw.on()
@@ -764,7 +764,7 @@ class LMTInterferometryMixin(
 
         # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
         self.do_selective_lmt_pulse(
-            first_lower_mirror_freq, N_kicks=2, duration=t_first_pi
+            first_lower_mirror_freq, N_kicks=2 + 10, duration=t_first_pi
         )
 
         # stark shift for high intensity up beam
@@ -783,7 +783,7 @@ class LMTInterferometryMixin(
         delay(8e-9)
 
         # LMT series on lower arm, start from second pulse, down beam
-        self.lmt_series(lower_mirror_offset, N_previous_pulses=3, N=N - 2)
+        self.lmt_series(lower_mirror_offset, N_previous_pulses=3 + 10, N=N - 2)
         delay_mu(8)
 
         # Phase step
@@ -791,7 +791,7 @@ class LMTInterferometryMixin(
 
         # LMT sequence on lower arm, momentum downwards
         self.lmt_series_start_down_launch_down(
-            bs_detuning_lower, N_previous_pulses=N, N=N - 2
+            bs_detuning_lower, N_previous_pulses=N + 10, N=N - 2
         )
 
         # stark shift for low intensity up neam
@@ -811,7 +811,7 @@ class LMTInterferometryMixin(
 
         # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
         self.do_selective_lmt_pulse(
-            last_selective_lower_bs_freq, N_kicks=2, duration=t_first_pi
+            last_selective_lower_bs_freq, N_kicks=2 + 10, duration=t_first_pi
         )
 
         delay(8e-9)
@@ -826,7 +826,7 @@ class LMTInterferometryMixin(
                 t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
             )
             + last_bs_freq
-            # + 10 * 9.4e3
+            + 10 * 9.4e3
         )
         delay_mu(8)
 
