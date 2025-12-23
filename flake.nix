@@ -137,7 +137,9 @@
         apps = overriddenOutputs.apps // {
           backup_datasets = let
             script = pkgs.writeShellScriptBin "run" ''
-              export PATH=${pkgs.lib.makeBinPath [ pkgs.rsync ]}:$PATH
+              export PATH=${
+                pkgs.lib.makeBinPath [ pkgs.rsync pkgs.sshpass ]
+              }:$PATH
 
               # Unlike the other scripts, this one is launched w.r.t. the working directory
               # so that if the working dir isn't correct, it'll fail with an error message
