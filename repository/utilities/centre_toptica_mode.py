@@ -587,7 +587,6 @@ class CentreTopticaModeFrag(ExpFragment):
 
             max_iterations = 10
             for iteration in range(max_iterations):
-                # FIXME: scheduler.pause() may not work correctly in async context
                 self.scheduler.pause()  # type: ignore[attr-defined]
                 logger.info(
                     "[%s] Starting mode centring iteration %d",
@@ -621,7 +620,6 @@ class CentreTopticaModeFrag(ExpFragment):
                 i_top = i_start
 
                 while True:
-                    # FIXME: scheduler.pause() may not work correctly in async context
                     self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current += current_step
 
@@ -669,7 +667,6 @@ class CentreTopticaModeFrag(ExpFragment):
                 i_bottom = i_start
 
                 while True:
-                    # FIXME: scheduler.pause() may not work correctly in async context
                     self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current -= current_step
 

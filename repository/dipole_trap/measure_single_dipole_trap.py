@@ -157,7 +157,7 @@ class SingleXODTHorizontalYSloshedFrag(
     to desired trap depth, then use a spinpol beam to displace the atoms horizontally
     """
 
-    # FIXME: TODO: Rebind the evaporation params to a single ramp down followed by a ramp up
+    # TODO: Rebind the evaporation params to a single ramp down followed by a ramp up
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
