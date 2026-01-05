@@ -333,7 +333,7 @@ class LMTBase(
 
     @kernel
     def get_t_start_shelving(self) -> int64:
-        return 0.0
+        return 0
 
 
 class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
