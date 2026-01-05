@@ -213,7 +213,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "settle_time",
             FloatParam,
-            default=3.0,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].settle_time,
             description="Time to wait after current changes for laser to settle",
             unit="s",
             min=0.1,
@@ -223,7 +225,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "wait_before_jump_back",
             FloatParam,
-            default=1.0,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].wait_before_jump_back,
             description="Time to wait before jumping current back during mode restoration",
             unit="s",
             min=0.1,
