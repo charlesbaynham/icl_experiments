@@ -55,7 +55,7 @@ def _get_pump_current(ip):
         return ddata["iout"] * 1e-9
     else:
         # Pump is off or in error state
-        return float("nan")
+        return -1.0
 
 
 def _get_pump_pressure(
@@ -66,7 +66,14 @@ def _get_pump_pressure(
     """
     Return the pump pressure in bar
     """
-    pressure = _get_pump_current(ip) / conversion_rate
+    current = _get_pump_current(ip)
+
+    if current == -1.0:
+        # The pump is off
+        logger.debug("Pump at %s is off or in error state", ip)
+        return -1.0
+
+    pressure = current / conversion_rate
     logger.debug("Pressure = %s", pressure)
 
     return max([pressure, 1e-14])  # Cannot resolve below 1e-11 mbar
