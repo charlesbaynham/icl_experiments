@@ -48,7 +48,14 @@ def _get_pump_current(ip):
 
     logger.debug("raw data: %s", ddata)
 
-    return ddata["iout"] * 1e-9
+    status = ddata["status"]
+
+    if status:
+        # Pump is reporting current in nA
+        return ddata["iout"] * 1e-9
+    else:
+        # Pump is off or in error state
+        return float("nan")
 
 
 def _get_pump_pressure(
