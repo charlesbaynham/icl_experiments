@@ -17,6 +17,8 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 
 logger = logging.getLogger(__name__)
 
+EM_GAIN_DISABLE_DATASET = "DISABLE_EM_GAIN"
+
 
 class EMGain(AndorImagingBase):
     """
@@ -71,9 +73,34 @@ class EMGain(AndorImagingBase):
         super().host_setup()
         self.previous_em_gain = -1.0
 
-        # Uncomment to prevent EM gain
-        # if self.em_gain_enabled.get():
-        #     raise RuntimeError("Disabled!!")
+        # Initialize or read the EM gain safety interlock dataset
+        disable_em_gain = self.get_dataset(EM_GAIN_DISABLE_DATASET, default=True)
+        self.set_dataset(
+            EM_GAIN_DISABLE_DATASET,
+            disable_em_gain,
+            broadcast=True,
+            persist=True,
+            archive=False,
+        )
+
+        # Safety check: prevent EM gain activation if interlock is enabled
+        if disable_em_gain and self.em_gain_enabled.get():
+            raise RuntimeError(
+                "EM gain is enabled in parameters but the safety interlock "
+                f"dataset '{EM_GAIN_DISABLE_DATASET}' is set to True. "
+                f"To use EM gain, set the dataset '{EM_GAIN_DISABLE_DATASET}' "
+                "to False using the ARTIQ dashboard dataset manager, then restart "
+                "the experiment."
+                "\nSomeone set this up for a reason - don't ignore it!"
+            )
+
+        # Log interlock status
+        if disable_em_gain:
+            logger.info(
+                "EM gain safety interlock is ENABLED (dataset '%s' = True). "
+                "EM gain cannot be activated unless this dataset is set to False.",
+                EM_GAIN_DISABLE_DATASET,
+            )
 
     @kernel
     def _set_gain_if_changed(self):
