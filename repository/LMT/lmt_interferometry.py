@@ -105,6 +105,10 @@ class LMTInterferometryWithDoubleLaunchFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
 
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
 
 class LMTInterferometryWithLaunchFrag(
     LMTInterferometryMixin,
