@@ -427,6 +427,9 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
         N_launch = self.lmt_launch_pulses_number.get()
 
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        delay_mu(8)
+
         self.clock_opll.clock_OPLL_offset.set(
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
