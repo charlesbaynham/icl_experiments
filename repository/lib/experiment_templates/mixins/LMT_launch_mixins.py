@@ -420,6 +420,9 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
 
     @kernel
     def launch_hook(self):
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
+
         t_pi_down = self.down_pulses_duration.get()
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
         N_launch = self.lmt_launch_pulses_number.get()
