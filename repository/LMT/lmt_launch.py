@@ -1,11 +1,6 @@
-from artiq.coredevice.core import Core
-from artiq.language import delay
 from artiq.language import kernel
-from artiq.language import now_mu
-from ndscan.experiment import *
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
@@ -18,6 +13,12 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
+    ShapedClockShelvingAndClearoutDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForLMTMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
@@ -33,9 +34,6 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
-    ShapedClockShelvingAndClearoutDipoleTrapMixin,
-)
 
 
 class LaunchFromXODTFrag(
@@ -49,6 +47,7 @@ class LaunchFromXODTFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -89,6 +88,7 @@ class LaunchFromXODTShapedShelvingFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
     """
