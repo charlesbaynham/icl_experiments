@@ -71,6 +71,10 @@ class EMGain(AndorImagingBase):
         super().host_setup()
         self.previous_em_gain = -1.0
 
+        # Uncomment to prevent EM gain
+        # if self.em_gain_enabled.get():
+        #     raise RuntimeError("Disabled!!")
+
     @kernel
     def _set_gain_if_changed(self):
         new_gain = self.em_gain.get()
