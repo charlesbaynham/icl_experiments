@@ -164,7 +164,7 @@ LaunchFromXODT = make_fragment_scan_exp(
 )
 
 DoubleLaunchFromXODT = make_fragment_scan_exp(
-    LaunchFromXODTFrag, max_rtio_underflow_retries=0
+    DoubleLaunchFromXODTFrag, max_rtio_underflow_retries=0
 )
 
 LaunchFromXODTShapedShelving = make_fragment_scan_exp(
