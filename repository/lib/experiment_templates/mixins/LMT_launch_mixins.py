@@ -449,7 +449,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.off()
+        self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
@@ -481,17 +481,17 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         # LMT sequence on upper trap
         self.lmt_series(-2.2e3, N_previous_pulses=3, N=N_launch)
 
-        delay(100e-6)
-        # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=self.clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
+        # delay(100e-6)
+        # # Clear out the ground state
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=self.clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
 
-        delay(3e-3)  # TODO: create a parameter
+        delay(4e-3)  # TODO: create a parameter
 
         # LMT series on the lower trap
-        self.lmt_series(lmt_detuning, N_previous_pulses=1, N=N_launch)
+        self.lmt_series(-2.2e3, N_previous_pulses=1, N=N_launch)
 
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
@@ -502,7 +502,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         delay_mu(8)
 
         # second before last pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse(0.0, N_kicks=6, duration=95e-6)
+        self.do_selective_lmt_pulse(0.0, N_kicks=8, duration=95e-6)
 
         # last pulse, pi/2 with down beam and then throw away ground state
         t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
@@ -511,13 +511,13 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
             )
-            + self.double_trap_launch_bs_detuning.get()
-            + 4 * 9.4e3
+            + lmt_detuning
+            + 8 * 9.4e3
         )
 
         at_mu(t_start_last_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)  # / 2)
+        delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
 
