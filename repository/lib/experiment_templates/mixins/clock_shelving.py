@@ -158,6 +158,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         param_handles = super().get_always_shown_params()
         if self.clock_delivery_handles.frequency_handle not in param_handles:
             param_handles.append(self.clock_delivery_handles.frequency_handle)
+        param_handles.remove(self.shelving_pulse_time)
+        param_handles.remove(self.clock_delivery_preempt_time_shelving)
+        param_handles.remove(self.shelving_clock_delivery_setpoint)
         return param_handles
 
     @kernel
