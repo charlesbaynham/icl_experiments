@@ -183,6 +183,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         param_handles = super().get_always_shown_params()
         if self.clock_delivery_handles.frequency_handle not in param_handles:
             param_handles.append(self.clock_delivery_handles.frequency_handle)
+            param_handles.remove(self.spectroscopy_clock_delivery_setpoint)
         return param_handles
 
     @kernel
