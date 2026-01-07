@@ -457,6 +457,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         delay_mu(16)
 
         t_pi_down = self.down_pulses_duration.get()
+        t_pi_up = self.spectroscopy_pulse_time.get()
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
         lmt_detuning = self.lmt_launch_offset_detuning.get()
         N_launch = self.lmt_launch_pulses_number.get()
@@ -481,8 +482,8 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.off()
-        delay(t_pi_down)  # / 2)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
         # LMT series on the upper trap
@@ -540,23 +541,25 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         )
 
         # second before last pulse with a lower Rabi frequency, down beam pulse
-        self.do_selective_lmt_pulse_down_beam(lmt_detuning, N_kicks=6, duration=95e-6)
+        self.do_selective_lmt_pulse_down_beam(0.0, N_kicks=6, duration=95e-6)
 
-        # # last pulse, pi/2 with down beam and then throw away ground state
-        # t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
-        # self.clock_opll.clock_OPLL_offset.set(
-        #     start_opll_offset
-        #     + self.calculate_frequency_for_first_pi_by_2_pulse(
-        #         t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-        #     )
-        #     + lmt_detuning
-        #     + 7 * 9.4e3
-        # )
+        # last pulse, pi/2 with down beam and then throw away ground state
+        t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            - self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + 3.0e3
+            - 7 * 9.4e3
+        )
 
-        # at_mu(t_start_last_pulse_mu)
-        # self.clock_down_dds.sw.on()
-        # delay(t_pi_down / 2)
-        # self.clock_down_dds.sw.off()
+        at_mu(t_start_last_pulse_mu)
+        self.clock_up_dds.sw.on()
+        delay(t_pi_up / 2)
+        self.clock_up_dds.sw.off()
+
+        delay(1e-6)
 
 
 class LMTInterferometryMixin(
