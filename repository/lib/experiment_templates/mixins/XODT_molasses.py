@@ -75,20 +75,6 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.transparency_setter: SetBeamsToDefaults
 
-        # # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_start",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
-        )
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_end",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
-        )
-
         self.setattr_param_rebind(
             "red_narrowband_mot_689_up_start",
             self.red_mot.narrow_red_compression_phase,
@@ -142,6 +128,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
         param_handles = super().get_always_shown_params()
+        param_handles.remove(self.red_narrowband_mot_689_up_start)
         return param_handles
 
     @kernel
