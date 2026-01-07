@@ -561,6 +561,30 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
 
         delay(1e-6)
 
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=200e-6,
+            ignore_final_shutters=True,
+        )
+
+        # test mirror pulse
+        t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_mirror_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + lmt_detuning
+            + 8 * 9.4e3
+        )
+
+        at_mu(t_start_mirror_pulse_mu)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)
+        self.clock_down_dds.sw.off()
+
+        delay(100e-6)
+
 
 class LMTInterferometryMixin(
     LMTBase, ClockInterferometryBase, DipoleTrapWithExperiment
