@@ -444,7 +444,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             "double_trap_launch_bs_detuning",
             FloatParam,
             "Detuning of the beam splitter in the double trap launch",
-            default=-4.5e3,
+            default=-0.3e3,
             unit="kHz",
         )
         self.double_trap_launch_bs_detuning: FloatParamHandle
@@ -454,7 +454,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             self,
             original_name="lmt_launch_offset_detuning",
             description="Detuning for launch LMT series",
-            default=-4.7e3,
+            default=-0.3e3,
         )
         self.lmt_launch_offset_detuning_double_cloud: FloatParamHandle
 
@@ -471,7 +471,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             "launch_lower_selective_cloud_detuning",
             FloatParam,
             "Detuning of selective pulse lower cloud launch",
-            default=0.0e3,
+            default=4.5e3,
             unit="kHz",
         )
         self.launch_lower_selective_cloud_detuning: FloatParamHandle
