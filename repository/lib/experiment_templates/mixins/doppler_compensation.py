@@ -21,6 +21,7 @@ from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTBase
 
 CLOCK_UP_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
+momentum_kick = constants.MOMENTUM_KICK_DETUNING
 
 
 logger = logging.getLogger(__name__)
@@ -189,7 +190,7 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
             + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
         )
 
-        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get()
+        return -self._calculate_chirp_required(t_drop) + momentum_kick
 
     @kernel
     def calculate_frequency_for_second_lmt_pulse(
@@ -202,7 +203,7 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
             + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
         )
 
-        return -self._calculate_chirp_required(t_drop) + 3 * self.momentum_kick.get()
+        return -self._calculate_chirp_required(t_drop) + 3 * momentum_kick
 
     @kernel
     def calculate_frequency_for_selective_lmt_pulse(
@@ -214,9 +215,7 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
             + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
         )
 
-        return (
-            self._calculate_chirp_required(t_drop) - N_kicks * self.momentum_kick.get()
-        )
+        return self._calculate_chirp_required(t_drop) - N_kicks * momentum_kick
 
     @kernel
     def calculate_frequency_for_pi_pulse(
@@ -228,7 +227,7 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
             + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
         )
 
-        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get()
+        return -self._calculate_chirp_required(t_drop) + momentum_kick
 
     @kernel
     def _calculate_chirp_required(self, t_drop: float):
