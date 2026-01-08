@@ -32,6 +32,7 @@ CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+momentum_kick = constants.MOMENTUM_KICK_DETUNING
 start_opll_offset = 80e6
 
 logger = logging.getLogger(__name__)
@@ -95,15 +96,6 @@ class LMTBase(
         )
         self.down_pulses_duration: FloatParamHandle
 
-        self.setattr_param(
-            "momentum_kick",
-            FloatParam,
-            "Momentum kick",
-            default=constants.MOMENTUM_KICK_DETUNING,
-            unit="kHz",
-        )
-        self.momentum_kick: FloatParamHandle
-
         if not hasattr(self, "clock_opll"):
             self.setattr_fragment("clock_opll", ClockOPLLController)
             self.clock_opll: ClockOPLLController
@@ -112,7 +104,6 @@ class LMTBase(
     @kernel
     def lmt_series(self, offset_det, N_previous_pulses, N):
 
-        kick = self.momentum_kick.get()
         t_drop = self.get_t_start_shelving()
 
         for i in range(N):
@@ -130,7 +121,7 @@ class LMTBase(
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + (i + N_previous_pulses) * (-1) ** (i) * kick
+                + (i + N_previous_pulses) * (-1) ** (i) * momentum_kick
                 + (-1) ** i * down_offset
             )
 
@@ -140,7 +131,6 @@ class LMTBase(
     @kernel
     def launch_series(self, offset_det, N_previous_pulses, N):
 
-        kick = self.momentum_kick.get()
         t_drop = self.get_t_start_shelving()
 
         for i in range(N):
@@ -158,7 +148,7 @@ class LMTBase(
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + (i + N_previous_pulses) * (-1) ** (i) * kick
+                + (i + N_previous_pulses) * (-1) ** (i) * momentum_kick
                 + (-1) ** i * down_offset
             )
 
@@ -176,7 +166,7 @@ class LMTBase(
     # use if we start in the ground state
     @kernel
     def lmt_series_start_up(self, offset_det, N_previous_pulses, N):
-        kick = self.momentum_kick.get()
+
         t_drop = self.get_t_start_shelving()
 
         t_start_ramp = now_mu()
@@ -193,7 +183,7 @@ class LMTBase(
             f_i = (
                 start_opll_offset
                 + (-1) ** (i) * total_ramp_time * ramp_rate
-                + (i + N_previous_pulses) * (-1) ** (i + 1) * kick
+                + (i + N_previous_pulses) * (-1) ** (i + 1) * momentum_kick
                 + (-1) ** (i + 1) * down_offset
             )
 
@@ -213,7 +203,6 @@ class LMTBase(
 
     @kernel
     def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
-        kick = self.momentum_kick.get()
         t_drop = self.get_t_start_shelving()
 
         for i in range(N):
@@ -233,8 +222,8 @@ class LMTBase(
             f_i = (
                 start_opll_offset
                 + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i + 1) * kick
-                + N_previous_pulses * (-1) ** (i) * kick
+                + i * (-1) ** (i + 1) * momentum_kick
+                + N_previous_pulses * (-1) ** (i) * momentum_kick
                 + (-1) ** (i) * (down_offset)
             )
 
