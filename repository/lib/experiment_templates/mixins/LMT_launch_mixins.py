@@ -487,8 +487,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
 
     @kernel
     def launch_hook(self):
-        # self.launch_hook_double_cloud()
-        pass
+        self.launch_hook_double_cloud()
 
     @kernel
     def launch_hook_double_cloud(self):
@@ -585,7 +584,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
 
         # second before last pulse with a lower Rabi frequency, down beam pulse
         self.do_selective_lmt_pulse_down_beam(
-            lower_selective_det, N_kicks=N_launch, duration=95e-6
+            lower_selective_det, N_kicks=6, duration=95e-6
         )
 
         # last pulse, pi/2 with down beam and then throw away ground state
@@ -612,23 +611,23 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             ignore_final_shutters=True,
         )
 
-        # test mirror pulse
-        t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
-        self.clock_opll.clock_OPLL_offset.set(
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_mirror_pulse_mu, t_pi_pulse=t_pi_down
-            )
-            + lmt_detuning
-            + (N_launch + 2) * momentum_kick
-        )
+        # # test mirror pulse
+        # t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+        # self.clock_opll.clock_OPLL_offset.set(
+        #     start_opll_offset
+        #     + self.calculate_frequency_for_first_pi_by_2_pulse(
+        #         t_pulse_start_mu=t_start_mirror_pulse_mu, t_pi_pulse=t_pi_down
+        #     )
+        #     + lmt_detuning
+        #     + (N_launch + 2) * momentum_kick
+        # )
 
-        at_mu(t_start_mirror_pulse_mu)
-        self.clock_down_dds.sw.on()
-        delay(t_pi_down)
-        self.clock_down_dds.sw.off()
+        # at_mu(t_start_mirror_pulse_mu)
+        # self.clock_down_dds.sw.on()
+        # delay(t_pi_down)
+        # self.clock_down_dds.sw.off()
 
-        delay(100e-6)
+        # delay(100e-6)
 
 
 class LMTInterferometryMixin(
