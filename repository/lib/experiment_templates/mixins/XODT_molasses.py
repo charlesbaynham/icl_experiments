@@ -129,6 +129,8 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         # Expose the clock base frequency for convenience
         param_handles = super().get_always_shown_params()
         param_handles.remove(self.red_narrowband_mot_689_up_start)
+        param_handles.remove(self.delay_before_molasses)
+        param_handles.remove(self.mot_coil_current_first_molasses)
         return param_handles
 
     @kernel
