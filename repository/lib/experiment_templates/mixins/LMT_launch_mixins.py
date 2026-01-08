@@ -446,7 +446,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             "double_trap_launch_bs_detuning",
             FloatParam,
             "Detuning of the beam splitter in the double trap launch",
-            default=0.0,
+            default=-4.5e3,
             unit="kHz",
         )
         self.double_trap_launch_bs_detuning: FloatParamHandle
