@@ -432,6 +432,15 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         super().build_fragment()
 
         self.setattr_param(
+            "delay_between_launches",
+            FloatParam,
+            "Delay between the two launches",
+            default=4.0e-3,
+            unit="ms",
+        )
+        self.delay_between_launches: FloatParamHandle
+
+        self.setattr_param(
             "double_trap_launch_bs_detuning",
             FloatParam,
             "Detuning of the beam splitter in the double trap launch",
@@ -440,20 +449,65 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         )
         self.double_trap_launch_bs_detuning: FloatParamHandle
 
+        self.setattr_param_rebind(
+            "lmt_launch_offset_detuning_double_cloud",
+            self,
+            original_name="lmt_launch_offset_detuning",
+            description="Detuning for launch LMT series",
+            default=-4.7e3,
+        )
+        self.lmt_launch_offset_detuning_double_cloud: FloatParamHandle
+
+        self.setattr_param(
+            "launch_upper_selective_cloud_detuning",
+            FloatParam,
+            "Detuning of selective pulse upper cloud launch",
+            default=-0.3e3,
+            unit="kHz",
+        )
+        self.launch_upper_selective_cloud_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "launch_lower_selective_cloud_detuning",
+            FloatParam,
+            "Detuning of selective pulse lower cloud launch",
+            default=0.0e3,
+            unit="kHz",
+        )
+        self.launch_lower_selective_cloud_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "double_launch_last_pulse_detuning",
+            FloatParam,
+            "Detuning of the last pulse of double launch",
+            default=3.0e3,
+            unit="kHz",
+        )
+        self.double_launch_last_pulse_detuning: FloatParamHandle
+
     @kernel
     def launch_hook(self):
+        # self.launch_hook_double_cloud()
+        pass
+
+    @kernel
+    def launch_hook_double_cloud(self):
         self.prepare_clock_delivery_aom()
         delay_mu(16)
 
         t_pi_down = self.down_pulses_duration.get()
         t_pi_up = self.spectroscopy_pulse_time.get()
-        t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
-        lmt_detuning = self.lmt_launch_offset_detuning.get()
+
+        lmt_detuning = self.lmt_launch_offset_detuning_double_cloud.get()
         N_launch = self.lmt_launch_pulses_number.get()
+        upper_selective_det = self.launch_upper_selective_cloud_detuning.get()
+        lower_selective_det = self.launch_lower_selective_cloud_detuning.get()
+        last_detuning = self.double_launch_last_pulse_detuning.get()
 
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         delay_mu(8)
 
+        t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
         self.clock_opll.clock_OPLL_offset.set(
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
@@ -485,7 +539,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         delay(1e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse(-0.3e3, N_kicks=2, duration=95e-6)
+        self.do_selective_lmt_pulse(upper_selective_det, N_kicks=2, duration=95e-6)
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
@@ -501,7 +555,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         )
 
         # LMT sequence on upper trap
-        self.lmt_series(-4.7e3, N_previous_pulses=3, N=N_launch)
+        self.lmt_series(lmt_detuning, N_previous_pulses=3, N=N_launch)
 
         delay(100e-6)
         # Clear out the ground state
@@ -510,10 +564,10 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             ignore_final_shutters=True,
         )
 
-        delay(4e-3)  # TODO: create a parameter
+        delay(self.delay_between_launches.get())
 
         # LMT series on the lower trap
-        self.lmt_series(-4.7e3, N_previous_pulses=1, N=N_launch)
+        self.lmt_series(lmt_detuning, N_previous_pulses=1, N=N_launch)
 
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
@@ -530,7 +584,9 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         )
 
         # second before last pulse with a lower Rabi frequency, down beam pulse
-        self.do_selective_lmt_pulse_down_beam(0.0, N_kicks=6, duration=95e-6)
+        self.do_selective_lmt_pulse_down_beam(
+            lower_selective_det, N_kicks=N_launch, duration=95e-6
+        )
 
         # last pulse, pi/2 with down beam and then throw away ground state
         t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
@@ -539,8 +595,8 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             - self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
             )
-            + 3.0e3
-            - 7 * 9.4e3
+            + last_detuning
+            - (N_launch + 1) * momentum_kick
         )
 
         at_mu(t_start_last_pulse_mu)
@@ -564,7 +620,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
                 t_pulse_start_mu=t_start_mirror_pulse_mu, t_pi_pulse=t_pi_down
             )
             + lmt_detuning
-            + 8 * 9.4e3
+            + (N_launch + 2) * momentum_kick
         )
 
         at_mu(t_start_mirror_pulse_mu)
