@@ -633,9 +633,9 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.first_lmt_shaped_pulse: JessePulse
 
         self.setattr_param_rebind(
-            "pulse_duration",
+            "shaped_pulse_duration",
             self.first_lmt_shaped_pulse,
-            "first_lmt_duration",
+            "pulse_duration",
             default=100e-6,
             description="Duration of the Jesse pulse",
         )
@@ -733,8 +733,8 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        self.clock_down_dds.sw.off()
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         # Shaped pulse, common to both clouds
@@ -753,7 +753,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         opll_frequency = (
             start_opll_offset
             + self.calculate_frequency_for_selective_lmt_pulse(
-                t_pulse_start_mu=t_pulse, N_kicks=0
+                t_pulse_start_mu=t_pulse, N_kicks=1
             )
             + upper_selective_det
         )
@@ -994,7 +994,7 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.do_clock_interferometry()
+        pass  # self.do_clock_interferometry()
 
     @kernel
     def do_clock_interferometry(self):
