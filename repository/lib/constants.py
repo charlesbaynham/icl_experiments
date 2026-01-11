@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.911e6,
+        frequency=364.895e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -744,7 +744,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.77e6,
+        99.737e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1462,7 +1462,7 @@ CLOCK_GLITCH_FILTER_GATE_DURATION = 500e-6  # seconds
 ## Interferometry signal injection
 
 INTERFEROMETRY_SIGNAL_INJECTION_FREQUENCY = 1 / 1000  # Hz
-INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
+INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.6  # volts
 
 ## Differential interferometry stuff
 
