@@ -36,9 +36,6 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
 from repository.lib.experiment_templates.mixins.doppler_compensation import (
     DopplerCompensationForInterferometryMixin,
 )
-from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
-    FLIRBlueMOTMeasurementMixin,
-)
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
@@ -55,7 +52,7 @@ logger = logging.getLogger(__name__)
 class _DifferentialClockInterferometryImaging(
     DoubleTrapImagingRepumpedNormalised,
     CountConvertWithEMGain,
-    FLIRBlueMOTMeasurementMixin,
+    # FLIRBlueMOTMeasurementMixin,
 ):
     """
     Separate the imaging setup so we can also use absorption imaging
