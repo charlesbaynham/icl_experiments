@@ -118,10 +118,19 @@ class StarkShifterWithSignalMixin(ClockInterferometryBase):
                         self.t0.get() - t_crate_turned_on
                     )
 
-                # Calculate the period in machine units
-                self.period_mu = self.core.seconds_to_mu(
-                    1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
-                )
+                    # Calculate the period in machine units
+                    self.period_mu = self.core.seconds_to_mu(
+                        1 / self.parent_fragment.stark_shifter_setpoint_frequency.get()
+                    )
+
+                    # Save the period for debugging
+                    self.set_dataset(
+                        "dai_signal_period_mu",
+                        np.int64(self.period_mu),
+                        broadcast=True,
+                        persist=False,
+                        archive=True,
+                    )
 
                 # Every run, set the Stark shifter setpoint to the value
                 # relevant for the current time. We'll set it again closer to
