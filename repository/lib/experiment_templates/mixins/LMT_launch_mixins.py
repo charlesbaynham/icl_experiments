@@ -524,7 +524,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(t_pi_down / 2.5)
         self.clock_down_dds.sw.off()
 
         # LMT series on the upper trap
@@ -1022,7 +1022,7 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        pass  # self.do_clock_interferometry()
+        self.do_clock_interferometry()
 
     @kernel
     def do_clock_interferometry(self):
