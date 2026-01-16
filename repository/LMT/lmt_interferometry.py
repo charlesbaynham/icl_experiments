@@ -27,7 +27,7 @@ from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
     LMTInterferometryMixin,
 )
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
-    LMTLaunchDoubleTrapMixin,
+    LMTLaunchDoubleTrapShapedPulseMixin,
 )
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaunchMixin
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
@@ -77,7 +77,7 @@ class LMTInterferometryFrag(
 
 class LMTInterferometryWithDoubleLaunchFrag(
     LMTInterferometryMixin,
-    LMTLaunchDoubleTrapMixin,
+    LMTLaunchDoubleTrapShapedPulseMixin,
     DoubleTrapImagingRepumpedNormalised,
     EMGain,
     # FLIRBlueMOTMeasurementMixin,

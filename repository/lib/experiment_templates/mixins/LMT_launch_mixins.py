@@ -26,6 +26,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulse
+from repository.lib.fragments.pulse_shaping import JessePulseLMT
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -655,10 +656,10 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         self.setattr_fragment(
             "first_lmt_shaped_pulse",
-            JessePulse,
+            JessePulseLMT,
             ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
-        self.first_lmt_shaped_pulse: JessePulse
+        self.first_lmt_shaped_pulse: JessePulseLMT
 
         self.setattr_param_rebind(
             "shaped_pulse_duration",
@@ -765,46 +766,46 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
-        # Shaped pulse, common to both clouds
+        # # Shaped pulse, common to both clouds
 
-        # prepare ram mode
-        self.first_lmt_shaped_pulse.prepare_pulse(
-            frequency=CLOCK_UP_BEAM_INFO.frequency
-        )
-        delay_mu(int64(self.core.ref_multiplier))
-        self.clock_up_dds.set_att(0.0)
-        delay_mu(int64(self.core.ref_multiplier))
+        # # prepare ram mode
+        # self.first_lmt_shaped_pulse.prepare_pulse(
+        #     frequency=CLOCK_UP_BEAM_INFO.frequency
+        # )
+        # delay_mu(int64(self.core.ref_multiplier))
+        # self.clock_up_dds.set_att(0.0)
+        # delay_mu(int64(self.core.ref_multiplier))
 
-        t_pulse = now_mu() + self.core.seconds_to_mu(1e-6)
+        # t_pulse = now_mu() + self.core.seconds_to_mu(1e-6)
 
-        # set the frequency on the opll
-        opll_frequency = (
-            start_opll_offset
-            + self.calculate_frequency_for_selective_lmt_pulse(
-                t_pulse_start_mu=t_pulse, N_kicks=1
-            )
-            + upper_selective_det
-        )
+        # # set the frequency on the opll
+        # opll_frequency = (
+        #     start_opll_offset
+        #     + self.calculate_frequency_for_selective_lmt_pulse(
+        #         t_pulse_start_mu=t_pulse, N_kicks=1
+        #     )
+        #     + upper_selective_det
+        # )
 
-        at_mu(t_pulse)
-        # ramp the offset upwards
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            ramp_rate,
-            opll_frequency,
-            opll_frequency + 2e6,
-            wave_type=1,
-        )
+        # at_mu(t_pulse)
+        # # ramp the offset upwards
+        # self.clock_opll.clock_frequency_ramper.start_ramp(
+        #     ramp_rate,
+        #     opll_frequency,
+        #     opll_frequency + 2e6,
+        #     wave_type=1,
+        # )
 
-        # pulse
-        self.first_lmt_shaped_pulse.trigger_pulse()
+        # # pulse
+        # self.first_lmt_shaped_pulse.trigger_pulse()
 
-        # disable ram mode after shelving and clearout
-        self.first_lmt_shaped_pulse.disable_ram_mode()
-        # re-set the AOM to default
-        self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
+        # # disable ram mode after shelving and clearout
+        # self.first_lmt_shaped_pulse.disable_ram_mode()
+        # # re-set the AOM to default
+        # self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
 
-        # stop the frequency ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        # # stop the frequency ramp
+        # self.clock_opll.clock_frequency_ramper.stop_ramp()
 
         # LMT series on the upper trap
         # self.clock_up_dds.set(
@@ -1022,7 +1023,7 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.do_clock_interferometry()
+        pass  # self.do_clock_interferometry()
 
     @kernel
     def do_clock_interferometry(self):
