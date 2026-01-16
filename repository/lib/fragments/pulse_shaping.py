@@ -529,8 +529,13 @@ class JessePulseLMT(ShapedPulse):
 
         super().build_fragment(*args, **kwargs)
 
+        self.override_param(
+            "num_steps",
+            len(lmt_phase_values_rad),
+        )
+
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
-        amplitude = np.ones(n_words)
+        amplitude = np.ones(len(lmt_phase_values_rad))
         phase = lmt_phase_values_rad
 
         return amplitude, phase
