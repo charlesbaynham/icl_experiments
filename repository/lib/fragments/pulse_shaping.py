@@ -654,7 +654,14 @@ class JessePulseLMTSeries(PhasorShapedPulse):
         super().build_fragment(*args, **kwargs)
 
     def generate_amplitudes_and_phases(self, n_words):
-        amplitude = np.ones(len(lmt_series_phase_values_rad))
+        n_jesse_words = len(lmt_series_phase_values_rad)
+
+        if n_words != n_jesse_words:
+            raise ValueError(
+                f"Number of words requested ({n_words}) does not match number of Jesse LMT series words ({n_jesse_words})"
+            )
+
+        amplitude = np.ones(n_jesse_words)
         phase = lmt_series_phase_values_rad
 
         return amplitude, phase
