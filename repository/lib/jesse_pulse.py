@@ -531,3 +531,50 @@ lmt_phase_values_deg = [
 lmt_phase_values_rad = np.zeros(len(lmt_phase_values_deg))
 for i in range(len(lmt_phase_values_deg)):
     lmt_phase_values_rad[i] = lmt_phase_values_deg[i] * 2 * np.pi / 360
+
+lmt_series_phase_values_deg = [
+    227.8096,
+    227.8097,
+    227.8098,
+    227.8099,
+    227.8100,
+    227.8101,
+    227.8102,
+    227.8103,
+    227.8104,
+    227.8105,
+    227.8106,
+    227.8107,
+    227.8108,
+    227.8109,
+    227.8110,
+    227.8111,
+    227.8112,
+    227.8113,
+    227.8114,
+    227.8115,
+    227.8116,
+    227.8117,
+    227.8118,
+    227.8119,
+    227.8120,
+    227.8121,
+    227.8122,
+    227.8123,
+    227.8124,
+    227.8125,
+    227.8126,
+    227.8127,
+    227.8128,
+    227.8129,
+    227.8130,
+    227.8131,
+    227.8132,
+    227.8133,
+    227.8134,
+    227.8135,
+]
+
+lmt_series_phase_values_rad = np.zeros(len(lmt_series_phase_values_deg))
+for i in range(len(lmt_series_phase_values_deg)):
+    lmt_series_phase_values_rad[i] = lmt_series_phase_values_deg[i] * 2 * np.pi / 360
