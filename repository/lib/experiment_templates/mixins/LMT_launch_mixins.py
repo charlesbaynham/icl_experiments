@@ -26,7 +26,8 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulse
-from repository.lib.fragments.pulse_shaping import JessePulseLMT, JessePulseLMTSeries
+from repository.lib.fragments.pulse_shaping import JessePulseLMT
+from repository.lib.fragments.pulse_shaping import JessePulseLMTSeries
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -662,11 +663,18 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.first_lmt_shaped_pulse: JessePulseLMT
 
         self.setattr_fragment(
-            "lmt_series_shaped_pulse",
+            "lmt_series_shaped_pulse_up",
             JessePulseLMTSeries,
             ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
-        self.lmt_series_shaped_pulse: JessePulseLMTSeries
+        self.lmt_series_shaped_pulse_up: JessePulseLMTSeries
+
+        self.setattr_fragment(
+            "lmt_series_shaped_pulse_down",
+            JessePulseLMTSeries,
+            ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
+        )
+        self.lmt_series_shaped_pulse_down: JessePulseLMTSeries
 
         self.setattr_param_rebind(
             "shaped_pulse_duration",
@@ -735,6 +743,55 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.launch_hook_double_cloud()
 
     @kernel
+    def fire_lmt_pulse(self, start_freq, type, t_start):
+        # stop the ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        # prepare the aoms
+        self.lmt_series_shaped_pulse_up.prepare_pulse(
+            frequency=CLOCK_UP_BEAM_INFO.frequency
+        )
+        self.lmt_series_shaped_pulse_down.prepare_pulse(
+            frequency=CLOCK_DOWN_BEAM_INFO.frequency
+        )
+        # set the offset frequency
+        self.clock_opll.clock_OPLL_offset.set(start_freq)
+
+        if type == "down":
+            # ramp the offset downwards
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                start_freq - 1e6,
+                start_freq,
+                wave_type=2,
+            )
+            delay_mu(8)
+            # pulse the down beam
+            at_mu(t_start)
+            self.lmt_series_shaped_pulse_down.trigger_pulse()
+
+        if type == "up":
+            # ramp the offset upwards
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                start_freq,
+                start_freq + 2e6,
+                wave_type=1,
+            )
+            delay_mu(8)
+
+            # pulse the up beam
+            at_mu(t_start)
+            self.lmt_series_shaped_pulse_up.trigger_pulse()
+
+        # disable ram mode
+        self.lmt_series_shaped_pulse_up.disable_ram_mode()
+        self.lmt_series_shaped_pulse_down.disable_ram_mode()
+        # re-set the AOM to default
+        self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
+        self.clock_down_default_setter._turn_on_ad9910s(light_enabled=False)
+        delay(30e-6)
+
+    @kernel
     def launch_hook_double_cloud(self):
         self.prepare_clock_delivery_aom()
         delay_mu(16)
@@ -773,7 +830,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
-        # Shaped pulse, common to both clouds
+        # Shaped pulse with up beam, common to both clouds
 
         # prepare ram mode
         self.first_lmt_shaped_pulse.prepare_pulse(
@@ -806,13 +863,15 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # pulse
         self.first_lmt_shaped_pulse.trigger_pulse()
 
-        # disable ram mode after shelving and clearout
+        # stop the frequency ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+
+        # LMT series on the upper trap with shaped pulses
+
+        # disable ram mode
         self.first_lmt_shaped_pulse.disable_ram_mode()
         # re-set the AOM to default
         self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
-
-        # stop the frequency ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
 
         # LMT series on the upper trap
         self.clock_up_dds.set(
@@ -826,10 +885,10 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # LMT sequence on upper trap
         self.lmt_series(-0.3e3, N_previous_pulses=3, N=N_launch)
 
-        delay(self.delay_between_launches.get())
+        # delay(self.delay_between_launches.get())
 
-        # LMT series on the lower trap
-        self.lmt_series_start_up(lmt_detuning, N_previous_pulses=0, N=N_launch + 1)
+        # # LMT series on the lower trap
+        # self.lmt_series_start_up(lmt_detuning, N_previous_pulses=0, N=N_launch + 1)
 
         # self.clock_up_dds.set(
         #     frequency=self.clock_switch_frequency_handle.get()
