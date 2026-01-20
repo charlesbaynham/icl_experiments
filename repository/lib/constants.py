@@ -961,7 +961,7 @@ DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     max_current=245e-3,
     max_restore_jump_size=4e-3,
-    target_position=0.3,  # See lab book entry 2025-10-18 and 2025-10-20
+    target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
     fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
     mode_check_tolerance=10e9,
 )
