@@ -669,36 +669,36 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         )
         self.lmt_series_shaped_pulse_up: JessePulseLMTSeries
 
-        self.setattr_fragment(
-            "lmt_series_shaped_pulse_down",
-            JessePulseLMTSeries,
-            ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
-        )
-        self.lmt_series_shaped_pulse_down: JessePulseLMTSeries
+        # self.setattr_fragment(
+        #     "lmt_series_shaped_pulse_down",
+        #     JessePulseLMTSeriesDown,
+        #     ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
+        # )
+        # self.lmt_series_shaped_pulse_down: JessePulseLMTSeriesDown
 
         self.setattr_param_rebind(
             "shaped_pulse_duration",
             self.first_lmt_shaped_pulse,
             "pulse_duration",
-            default=100e-6,
+            default=181e-6,
             description="Duration of the Jesse pulse",
         )
 
-        self.setattr_param_rebind(
-            "shaped_up_pulse_duration",
-            self.lmt_series_shaped_pulse_up,
-            "pulse_duration",
-            default=90e-6,
-            description="Duration of the LMT Jesse pulse up",
-        )
+        # self.setattr_param_rebind(
+        #     "shaped_up_pulse_duration",
+        #     self.lmt_series_shaped_pulse_up,
+        #     "pulse_duration",
+        #     default=90e-6,
+        #     description="Duration of the LMT Jesse pulse up",
+        # )
 
-        self.setattr_param_rebind(
-            "shaped_down_pulse_duration",
-            self.lmt_series_shaped_pulse_down,
-            "pulse_duration",
-            default=90e-6,
-            description="Duration of the LMT Jesse pulse down",
-        )
+        # self.setattr_param_rebind(
+        #     "shaped_down_pulse_duration",
+        #     self.lmt_series_shaped_pulse_down,
+        #     "pulse_duration",
+        #     default=90e-6,
+        #     description="Duration of the LMT Jesse pulse down",
+        # )
 
         self.setattr_param(
             "delay_between_launches",
@@ -731,7 +731,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             "launch_upper_selective_cloud_detuning",
             FloatParam,
             "Detuning of selective pulse upper cloud launch",
-            default=-0.3e3,
+            default=2.0e3,
             unit="kHz",
         )
         self.launch_upper_selective_cloud_detuning: FloatParamHandle
@@ -842,8 +842,8 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.off()
-        delay(t_pi_down / 2)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         # Shaped pulse with up beam, common to both clouds
@@ -889,14 +889,14 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # re-set the AOM to default
         self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
 
-        # LMT series on the upper trap
-        self.clock_up_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.up_switch_detuning_higher_intensity.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
+        # # LMT series on the upper trap
+        # self.clock_up_dds.set(
+        #     frequency=self.clock_switch_frequency_handle.get()
+        #     + self.up_switch_detuning_higher_intensity.get(),
+        #     amplitude=self.clock_switch_amplitude_handle.get(),
+        # )
 
-        delay(1e-6)
+        # delay(1e-6)
 
         # LMT sequence on upper trap
         # self.lmt_series(-0.3e3, N_previous_pulses=3, N=N_launch)

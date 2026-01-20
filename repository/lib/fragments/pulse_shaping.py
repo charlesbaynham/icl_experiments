@@ -581,3 +581,12 @@ class JessePulseLMTSeries(ShapedPulse):
         self._old_num_steps = self.num_steps.get()
 
         return return_value
+
+
+class JessePulseLMTSeriesDown(JessePulseLMTSeries):
+    "Jesse's pulse for LMT series with down beam (phase only)"
+
+    def build_fragment(self, *args, **kwargs):
+        self._old_num_steps = -1
+
+        super().build_fragment(*args, **kwargs)
