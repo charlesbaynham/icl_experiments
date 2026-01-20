@@ -49,6 +49,7 @@ class _ShapedPulse(Fragment, abc.ABC):
     """
 
     ad9910_name: str = None
+    num_steps: int = 500
     ram_offset: int = 0
     "Offset in the RAM at which to start storing / reading the shaped pulse. You are responsible for making sure this does not overlap with other pulses' storage"
 
@@ -98,16 +99,6 @@ class _ShapedPulse(Fragment, abc.ABC):
         self._max_num_steps = 1024
 
         self.setattr_param(
-            "num_steps",
-            IntParam,
-            description="Number of steps in the shaped pulse",
-            default=500,
-            min=1,
-            max=self._max_num_steps,
-        )
-        self.num_steps: IntParamHandle
-
-        self.setattr_param(
             "pulse_duration",
             FloatParam,
             description="Duration of the pulse",
@@ -150,18 +141,15 @@ class _ShapedPulse(Fragment, abc.ABC):
     def device_setup_base(self):
         self.device_setup_subfragments()
 
-        if (
-            self.pulse_duration.get()
-            > self.num_steps.get() * self._max_duration_of_one_step
-        ):
+        if self.pulse_duration.get() > self.num_steps * self._max_duration_of_one_step:
             logger.error(
                 "Pulse duration %.3f ms is too long for %d steps",
                 self.pulse_duration.get() * 1e3,
-                self.num_steps.get(),
+                self.num_steps,
             )
             raise ValueError("Pulse duration is too long")
 
-        self._step_duration = self.pulse_duration.get() / self.num_steps.get()
+        self._step_duration = self.pulse_duration.get() / self.num_steps
 
         self._step_mu = min(
             self._seconds_to_ram_mu(self._step_duration),
@@ -236,7 +224,7 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         self.dds.set_profile_ram(
             start=self.ram_offset,
-            end=self.ram_offset + self.num_steps.get() - 1,
+            end=self.ram_offset + self.num_steps - 1,
             step=self._step_mu,
             mode=self.ram_ramp_mode,
             profile=RAM_PROFILE,
@@ -270,7 +258,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         Advances the timeline by the duration of the pulse
         """
         self.start_output()
-        delay(self._step_duration * self.num_steps.get())
+        delay(self._step_duration * self.num_steps)
         self.stop_output()
 
     @kernel
@@ -441,9 +429,9 @@ class FrequencyShapedPulse(_ShapedPulse):
         Call the user-provided function to generate a new pulse shape of the
         given length, and return this to the core device as RAM tuning words.
         """
-        detuning_frequency = self.generate_frequencies(self.num_steps.get())
+        detuning_frequency = self.generate_frequencies(self.num_steps)
 
-        assert len(detuning_frequency) == self.num_steps.get()
+        assert len(detuning_frequency) == self.num_steps
 
         absolute_frequency = self.centre_frequency.get() + detuning_frequency
         # Need to ensure that we don't have frequencies out of the bound
@@ -454,7 +442,7 @@ class FrequencyShapedPulse(_ShapedPulse):
         assert np.all(absolute_frequency > 0), "Frequency too low"
 
         # Convert to ram words
-        ram_data = [np.int32(0x00)] * self.num_steps.get()
+        ram_data = [np.int32(0x00)] * self.num_steps
         self.dds.frequency_to_ram(frequency=absolute_frequency, ram=ram_data)
 
         return ram_data
@@ -503,9 +491,9 @@ class PhasorShapedPulse(_ShapedPulse):
         Call the user-provided function to generate a new pulse shape of the
         given length, and return this to the core device as RAM tuning words.
         """
-        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps.get())
+        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps)
 
-        assert len(amplitude) == len(phases) == self.num_steps.get()
+        assert len(amplitude) == len(phases) == self.num_steps
 
         # Coerce to 0-1 and 0-2pi
         pulse_amplitudes = np.clip(amplitude, 0, 1)
@@ -515,7 +503,7 @@ class PhasorShapedPulse(_ShapedPulse):
         pulse_turns = pulse_phases / (2 * np.pi)
 
         # Convert to ram words
-        ram_data = [np.int32(0x00)] * self.num_steps.get()
+        ram_data = [np.int32(0x00)] * self.num_steps
         self.dds.turns_amplitude_to_ram(
             turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data
         )
@@ -567,14 +555,7 @@ class BlackmanShapedPulse(PhasorShapedPulse):
 
     @kernel
     def is_recalc_needed(self) -> bool:
-        return_value = False
-
-        if self.num_steps.get() != self._old_num_steps:
-            return_value = True
-
-        self._old_num_steps = self.num_steps.get()
-
-        return return_value
+        return False
 
 
 class PhaseStepPulse(PhasorShapedPulse):
@@ -597,14 +578,7 @@ class PhaseStepPulse(PhasorShapedPulse):
 
     @kernel
     def is_recalc_needed(self) -> bool:
-        return_value = False
-
-        if self.num_steps.get() != self._old_num_steps:
-            return_value = True
-
-        self._old_num_steps = self.num_steps.get()
-
-        return return_value
+        return False
 
 
 class PhaseRampPulse(PhasorShapedPulse):
@@ -625,14 +599,7 @@ class PhaseRampPulse(PhasorShapedPulse):
 
     @kernel
     def is_recalc_needed(self) -> bool:
-        return_value = False
-
-        if self.num_steps.get() != self._old_num_steps:
-            return_value = True
-
-        self._old_num_steps = self.num_steps.get()
-
-        return return_value
+        return False
 
 
 class JessePulse(PhasorShapedPulse):
@@ -651,28 +618,18 @@ class JessePulse(PhasorShapedPulse):
 
     @kernel
     def is_recalc_needed(self) -> bool:
-        return_value = False
-
-        if self.num_steps.get() != self._old_num_steps:
-            return_value = True
-
-        self._old_num_steps = self.num_steps.get()
-
-        return return_value
+        return False
 
 
 class JessePulseLMT(PhasorShapedPulse):
     "Jesse's first LMT pulse (phase only)"
 
+    num_steps = len(lmt_phase_values_rad)
+
     def build_fragment(self, *args, **kwargs):
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)
-
-        self.override_param(
-            "num_steps",
-            len(lmt_phase_values_rad),
-        )
 
     def generate_amplitudes_and_phases(self, n_words):
         amplitude = np.ones(len(lmt_phase_values_rad))
@@ -682,30 +639,19 @@ class JessePulseLMT(PhasorShapedPulse):
 
     @kernel
     def is_recalc_needed(self) -> bool:
-        return_value = False
-
-        if self.num_steps.get() != self._old_num_steps:
-            return_value = True
-
-        self._old_num_steps = self.num_steps.get()
-
-        return return_value
+        return False
 
 
 class JessePulseLMTSeries(PhasorShapedPulse):
     "Jesse's pulse for LMT series (phase only)"
 
     ram_offset = 512
+    num_steps = len(lmt_series_phase_values_rad)
 
     def build_fragment(self, *args, **kwargs):
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)
-
-        self.override_param(
-            "num_steps",
-            len(lmt_series_phase_values_rad),
-        )
 
     def generate_amplitudes_and_phases(self, n_words):
         amplitude = np.ones(len(lmt_series_phase_values_rad))
@@ -715,11 +661,4 @@ class JessePulseLMTSeries(PhasorShapedPulse):
 
     @kernel
     def is_recalc_needed(self) -> bool:
-        return_value = False
-
-        if self.num_steps.get() != self._old_num_steps:
-            return_value = True
-
-        self._old_num_steps = self.num_steps.get()
-
-        return return_value
+        return False
