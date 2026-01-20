@@ -26,7 +26,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulse
-from repository.lib.fragments.pulse_shaping import JessePulseLMT
+from repository.lib.fragments.pulse_shaping import JessePulseLMT, JessePulseLMTSeries
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -660,6 +660,13 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
         )
         self.first_lmt_shaped_pulse: JessePulseLMT
+
+        self.setattr_fragment(
+            "lmt_series_shaped_pulse",
+            JessePulseLMTSeries,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
+        )
+        self.lmt_series_shaped_pulse: JessePulseLMTSeries
 
         self.setattr_param_rebind(
             "shaped_pulse_duration",
