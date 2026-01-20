@@ -684,6 +684,22 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             description="Duration of the Jesse pulse",
         )
 
+        self.setattr_param_rebind(
+            "shaped_up_pulse_duration",
+            self.lmt_series_shaped_pulse_up,
+            "pulse_duration",
+            default=90e-6,
+            description="Duration of the LMT Jesse pulse up",
+        )
+
+        self.setattr_param_rebind(
+            "shaped_down_pulse_duration",
+            self.lmt_series_shaped_pulse_down,
+            "pulse_duration",
+            default=90e-6,
+            description="Duration of the LMT Jesse pulse down",
+        )
+
         self.setattr_param(
             "delay_between_launches",
             FloatParam,
@@ -883,7 +899,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(1e-6)
 
         # LMT sequence on upper trap
-        self.lmt_series(-0.3e3, N_previous_pulses=3, N=N_launch)
+        # self.lmt_series(-0.3e3, N_previous_pulses=3, N=N_launch)
 
         # delay(self.delay_between_launches.get())
 
