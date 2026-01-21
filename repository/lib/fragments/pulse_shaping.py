@@ -555,7 +555,7 @@ class BlackmanShapedPulse(PhasorShapedPulse):
 
         super().build_fragment(*args, **kwargs)
 
-    def generate_amplitudes_and_phases(self, n_words):
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         """
         Use the Blackman window function to generate a smooth range of amplitudes
 
@@ -589,7 +589,7 @@ class PhaseStepPulse(PhasorShapedPulse):
 
         super().build_fragment(*args, **kwargs)
 
-    def generate_amplitudes_and_phases(self, n_words):
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(n_words)
         phase = np.zeros_like(amplitude)
         for i in range(int(n_words / 2), n_words):
@@ -619,7 +619,7 @@ class PhaseRampPulse(PhasorShapedPulse):
 
         super().build_fragment(*args, **kwargs)
 
-    def generate_amplitudes_and_phases(self, n_words):
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(n_words)
         phase = np.linspace(0, 6.28, n_words)
 
@@ -645,7 +645,7 @@ class JessePulse(PhasorShapedPulse):
 
         super().build_fragment(*args, **kwargs)
 
-    def generate_amplitudes_and_phases(self, n_words):
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(n_words)
         phase = phase_values_rad
 
@@ -677,7 +677,7 @@ class JessePulseLMT(PhasorShapedPulse):
             len(lmt_phase_values_rad),
         )
 
-    def generate_amplitudes_and_phases(self, n_words):
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(len(lmt_phase_values_rad))
         phase = lmt_phase_values_rad
 
@@ -709,7 +709,7 @@ class JessePulseLMTSeries(PhasorShapedPulse):
             len(lmt_series_phase_values_rad),
         )
 
-    def generate_amplitudes_and_phases(self, n_words):
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(len(lmt_series_phase_values_rad))
         phase = lmt_series_phase_values_rad
 
