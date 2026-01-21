@@ -28,6 +28,7 @@ from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulse
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
 from repository.lib.fragments.pulse_shaping import JessePulseLMTSeries
+from repository.lib.fragments.pulse_shaping import JessePulseLMTSeriesDown
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -669,12 +670,12 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         )
         self.lmt_series_shaped_pulse_up: JessePulseLMTSeries
 
-        # self.setattr_fragment(
-        #     "lmt_series_shaped_pulse_down",
-        #     JessePulseLMTSeriesDown,
-        #     ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
-        # )
-        # self.lmt_series_shaped_pulse_down: JessePulseLMTSeriesDown
+        self.setattr_fragment(
+            "lmt_series_shaped_pulse_down",
+            JessePulseLMTSeriesDown,
+            ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
+        )
+        self.lmt_series_shaped_pulse_down: JessePulseLMTSeriesDown
 
         self.setattr_param_rebind(
             "shaped_pulse_duration",
@@ -684,21 +685,21 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             description="Duration of the Jesse pulse",
         )
 
-        # self.setattr_param_rebind(
-        #     "shaped_up_pulse_duration",
-        #     self.lmt_series_shaped_pulse_up,
-        #     "pulse_duration",
-        #     default=90e-6,
-        #     description="Duration of the LMT Jesse pulse up",
-        # )
+        self.setattr_param_rebind(
+            "shaped_up_pulse_duration",
+            self.lmt_series_shaped_pulse_up,
+            "pulse_duration",
+            default=90e-6,
+            description="Duration of the LMT Jesse pulse up",
+        )
 
-        # self.setattr_param_rebind(
-        #     "shaped_down_pulse_duration",
-        #     self.lmt_series_shaped_pulse_down,
-        #     "pulse_duration",
-        #     default=90e-6,
-        #     description="Duration of the LMT Jesse pulse down",
-        # )
+        self.setattr_param_rebind(
+            "shaped_down_pulse_duration",
+            self.lmt_series_shaped_pulse_down,
+            "pulse_duration",
+            default=90e-6,
+            description="Duration of the LMT Jesse pulse down",
+        )
 
         self.setattr_param(
             "delay_between_launches",
