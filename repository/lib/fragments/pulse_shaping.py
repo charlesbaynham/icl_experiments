@@ -123,9 +123,9 @@ class ShapedPulse(Fragment, abc.ABC):
         Call the user-provided function to generate a new pulse shape of the
         given length, and return this to the core device as RAM tuning words.
         """
-        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps.get())
+        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps)
 
-        assert len(amplitude) == len(phases) == self.num_steps.get()
+        assert len(amplitude) == len(phases) == self.num_steps
 
         # Coerce to 0-1 and 0-2pi
         pulse_amplitudes = np.clip(amplitude, 0, 1)
@@ -135,7 +135,7 @@ class ShapedPulse(Fragment, abc.ABC):
         pulse_turns = pulse_phases / (2 * np.pi)
 
         # Convert to ram words
-        ram_data_u32 = [np.uint32(0x00)] * self.num_steps.get()
+        ram_data_u32 = [np.uint32(0x00)] * self.num_steps
         self.dds.turns_amplitude_to_ram(
             turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data_u32
         )
@@ -203,8 +203,6 @@ class ShapedPulse(Fragment, abc.ABC):
         self.dds.set_profile_ram(
             start=self.ram_offset,
             end=self.ram_offset + len(read_data) - 1,
-            start=self.ram_offset,
-            end=self.ram_offset + len(read_data) - 1,
             profile=RAM_PROFILE,
         )
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
@@ -260,7 +258,7 @@ class ShapedPulse(Fragment, abc.ABC):
         self.dds.sw.on()
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
-        delay(self._step_duration * self.num_steps.get())
+        delay(self._step_duration * self.num_steps)
 
         self.dds.sw.off()
 
@@ -487,7 +485,6 @@ class JessePulse(ShapedPulse):
 class JessePulseLMT(ShapedPulse):
     "Jesse's first LMT pulse (phase only)"
 
-    ram_offset = 0
     num_steps = len(lmt_phase_values_rad)
 
     def build_fragment(self, *args, **kwargs):
@@ -510,7 +507,6 @@ class JessePulseLMT(ShapedPulse):
 class JessePulseLMTSeries(ShapedPulse):
     "Jesse's pulse for LMT series (phase only)"
 
-    ram_offset = 512
     num_steps = len(lmt_series_phase_values_rad)
 
     def build_fragment(self, *args, **kwargs):

@@ -27,6 +27,7 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulse
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
+from repository.lib.fragments.pulse_shaping import JessePulseLMTSeries
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -661,12 +662,12 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         )
         self.first_lmt_shaped_pulse: JessePulseLMT
 
-        # self.setattr_fragment(
-        #     "lmt_series_shaped_pulse_up",
-        #     JessePulseLMTSeries,
-        #     ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
-        # )
-        # self.lmt_series_shaped_pulse_up: JessePulseLMTSeries
+        self.setattr_fragment(
+            "lmt_series_shaped_pulse_up",
+            JessePulseLMTSeries,
+            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
+        )
+        self.lmt_series_shaped_pulse_up: JessePulseLMTSeries
 
         # self.setattr_fragment(
         #     "lmt_series_shaped_pulse_down",
@@ -841,8 +842,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.on()
-        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.on()
         delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
