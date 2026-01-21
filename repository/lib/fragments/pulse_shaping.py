@@ -17,6 +17,8 @@ from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from pyaion.fragments.urukul_init import make_urukul_init
 
 from repository.lib.jesse_pulse import *
