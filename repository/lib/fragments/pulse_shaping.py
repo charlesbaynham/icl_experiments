@@ -48,6 +48,8 @@ class ShapedPulse(Fragment, abc.ABC):
     """
 
     ad9910_name: str = None
+    ram_offset: int = 0
+    "Offset in the RAM at which to start storing / reading the shaped pulse. You are responsible for making sure this does not overlap with other pulses' storage"
 
     @abc.abstractmethod
     def generate_amplitudes_and_phases(self, n_words) -> tuple[np.ndarray, np.ndarray]:
@@ -180,7 +182,7 @@ class ShapedPulse(Fragment, abc.ABC):
     @kernel
     def _store_waveform_in_ram(self):
         ram_data = self._get_ram_words()
-        self._write_ram(ram_data)
+        self._write_ram(ram_data, offset=self.ram_offset)
 
         # Check that the data was written correctly. This takes ~4ms so could be
         # removed if we wanted to speed things up
@@ -212,8 +214,8 @@ class ShapedPulse(Fragment, abc.ABC):
     @kernel
     def _read_ram(self, read_data):
         self.dds.set_profile_ram(
-            start=0x00,
-            end=len(read_data) - 1,
+            start=self.ram_offset,
+            end=self.ram_offset + len(read_data) - 1,
             profile=RAM_PROFILE,
         )
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
@@ -245,8 +247,8 @@ class ShapedPulse(Fragment, abc.ABC):
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
         self.dds.set_profile_ram(
-            start=0x00,
-            end=self.num_steps.get() - 1,
+            start=self.ram_offset,
+            end=self.ram_offset + self.num_steps.get() - 1,
             step=self._step_mu,
             mode=ad9910.RAM_MODE_RAMPUP,
             profile=RAM_PROFILE,

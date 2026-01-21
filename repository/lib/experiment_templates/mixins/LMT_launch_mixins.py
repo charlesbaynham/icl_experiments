@@ -27,7 +27,6 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulse
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
-from repository.lib.fragments.pulse_shaping import JessePulseLMTSeries
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
@@ -662,19 +661,19 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         )
         self.first_lmt_shaped_pulse: JessePulseLMT
 
-        self.setattr_fragment(
-            "lmt_series_shaped_pulse_up",
-            JessePulseLMTSeries,
-            ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
-        )
-        self.lmt_series_shaped_pulse_up: JessePulseLMTSeries
+        # self.setattr_fragment(
+        #     "lmt_series_shaped_pulse_up",
+        #     JessePulseLMTSeries,
+        #     ad9910_name=CLOCK_UP_BEAM_INFO.urukul_device,
+        # )
+        # self.lmt_series_shaped_pulse_up: JessePulseLMTSeries
 
-        self.setattr_fragment(
-            "lmt_series_shaped_pulse_down",
-            JessePulseLMTSeries,
-            ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
-        )
-        self.lmt_series_shaped_pulse_down: JessePulseLMTSeries
+        # self.setattr_fragment(
+        #     "lmt_series_shaped_pulse_down",
+        #     JessePulseLMTSeries,
+        #     ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
+        # )
+        # self.lmt_series_shaped_pulse_down: JessePulseLMTSeries
 
         self.setattr_param_rebind(
             "shaped_pulse_duration",
@@ -684,21 +683,21 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             description="Duration of the Jesse pulse",
         )
 
-        self.setattr_param_rebind(
-            "shaped_up_pulse_duration",
-            self.lmt_series_shaped_pulse_up,
-            "pulse_duration",
-            default=90e-6,
-            description="Duration of the LMT Jesse pulse up",
-        )
+        # self.setattr_param_rebind(
+        #     "shaped_up_pulse_duration",
+        #     self.lmt_series_shaped_pulse_up,
+        #     "pulse_duration",
+        #     default=90e-6,
+        #     description="Duration of the LMT Jesse pulse up",
+        # )
 
-        self.setattr_param_rebind(
-            "shaped_down_pulse_duration",
-            self.lmt_series_shaped_pulse_down,
-            "pulse_duration",
-            default=90e-6,
-            description="Duration of the LMT Jesse pulse down",
-        )
+        # self.setattr_param_rebind(
+        #     "shaped_down_pulse_duration",
+        #     self.lmt_series_shaped_pulse_down,
+        #     "pulse_duration",
+        #     default=90e-6,
+        #     description="Duration of the LMT Jesse pulse down",
+        # )
 
         self.setattr_param(
             "delay_between_launches",
@@ -842,8 +841,8 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.off()
-        delay(t_pi_down / 2)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         # Shaped pulse with up beam, common to both clouds
