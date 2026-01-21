@@ -169,7 +169,6 @@ class ShapedPulse(Fragment, abc.ABC):
     def _store_waveform_in_ram(self):
         ram_data = self._get_ram_words()
         self._write_ram(ram_data, offset=self.ram_offset)
-        self._write_ram(ram_data, offset=self.ram_offset)
 
         # Check that the data was written correctly. This takes ~4ms so could be
         # removed if we wanted to speed things up
