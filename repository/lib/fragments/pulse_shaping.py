@@ -558,8 +558,6 @@ class JessePulseLMT(ShapedPulse):
 class JessePulseLMTSeries(ShapedPulse):
     "Jesse's pulse for LMT series (phase only)"
 
-    ram_offset = 512
-
     def build_fragment(self, *args, **kwargs):
         self.ram_offset = 512
         self._old_num_steps = -1
@@ -572,14 +570,7 @@ class JessePulseLMTSeries(ShapedPulse):
         )
 
     def generate_amplitudes_and_phases(self, n_words):
-        n_jesse_words = len(lmt_series_phase_values_rad)
-
-        if n_words != n_jesse_words:
-            raise ValueError(
-                f"Number of words requested ({n_words}) does not match number of Jesse LMT series words ({n_jesse_words})"
-            )
-
-        amplitude = np.ones(n_jesse_words)
+        amplitude = np.ones(len(lmt_series_phase_values_rad))
         phase = lmt_series_phase_values_rad
 
         return amplitude, phase
