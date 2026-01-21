@@ -577,6 +577,4 @@ lmt_series_phase_values_deg = [
 
 lmt_series_phase_values_rad = np.zeros(len(lmt_series_phase_values_deg))
 for i in range(len(lmt_series_phase_values_deg)):
-    lmt_series_phase_values_rad[i] = (
-        (lmt_series_phase_values_deg[i] - 360.0) * 2 * np.pi / 360
-    )
+    lmt_series_phase_values_rad[i] = (lmt_series_phase_values_deg[i]) * 2 * np.pi / 360
