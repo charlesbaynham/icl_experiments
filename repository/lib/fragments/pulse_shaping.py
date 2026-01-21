@@ -132,9 +132,9 @@ class ShapedPulse(Fragment, abc.ABC):
         Call the user-provided function to generate a new pulse shape of the
         given length, and return this to the core device as RAM tuning words.
         """
-        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps)
+        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps.get())
 
-        assert len(amplitude) == len(phases) == self.num_steps
+        assert len(amplitude) == len(phases) == self.num_steps.get()
 
         # Coerce to 0-1 and 0-2pi
         pulse_amplitudes = np.clip(amplitude, 0, 1)
@@ -144,7 +144,7 @@ class ShapedPulse(Fragment, abc.ABC):
         pulse_turns = pulse_phases / (2 * np.pi)
 
         # Convert to ram words
-        ram_data_u32 = [np.uint32(0x00)] * self.num_steps
+        ram_data_u32 = [np.uint32(0x00)] * self.num_steps.get()
         self.dds.turns_amplitude_to_ram(
             turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data_u32
         )
@@ -269,7 +269,7 @@ class ShapedPulse(Fragment, abc.ABC):
         self.dds.sw.on()
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
-        delay(self._step_duration * self.num_steps)
+        delay(self._step_duration * self.num_steps.get())
 
         self.dds.sw.off()
 
