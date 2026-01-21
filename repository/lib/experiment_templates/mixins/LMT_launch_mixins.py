@@ -843,6 +843,8 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
         delay(t_pi_down)  # / 2)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         # Shaped pulse with up beam, common to both clouds

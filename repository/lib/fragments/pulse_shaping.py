@@ -169,6 +169,7 @@ class ShapedPulse(Fragment, abc.ABC):
     def _store_waveform_in_ram(self):
         ram_data = self._get_ram_words()
         self._write_ram(ram_data, offset=self.ram_offset)
+        self._write_ram(ram_data, offset=self.ram_offset)
 
         # Check that the data was written correctly. This takes ~4ms so could be
         # removed if we wanted to speed things up
@@ -200,6 +201,8 @@ class ShapedPulse(Fragment, abc.ABC):
     @kernel
     def _read_ram(self, read_data):
         self.dds.set_profile_ram(
+            start=self.ram_offset,
+            end=self.ram_offset + len(read_data) - 1,
             start=self.ram_offset,
             end=self.ram_offset + len(read_data) - 1,
             profile=RAM_PROFILE,
@@ -488,6 +491,7 @@ class JessePulseLMT(ShapedPulse):
     num_steps = len(lmt_phase_values_rad)
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 0
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)
@@ -510,6 +514,7 @@ class JessePulseLMTSeries(ShapedPulse):
     num_steps = len(lmt_series_phase_values_rad)
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 512
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)
