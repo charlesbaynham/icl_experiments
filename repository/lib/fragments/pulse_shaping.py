@@ -17,7 +17,6 @@ from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 from pyaion.fragments.urukul_init import make_urukul_init
 
 from repository.lib.jesse_pulse import *
@@ -28,7 +27,7 @@ logger = logging.getLogger(__name__)
 RAM_PROFILE = urukul.DEFAULT_PROFILE
 
 
-class _ShapedPulse(Fragment, abc.ABC):
+class ShapedPulse(Fragment, abc.ABC):
     """
     Use an AD9910 channel to generate a shaped pulse
 
@@ -51,20 +50,14 @@ class _ShapedPulse(Fragment, abc.ABC):
     ram_offset: int = 0
     "Offset in the RAM at which to start storing / reading the shaped pulse. You are responsible for making sure this does not overlap with other pulses' storage"
 
-    ram_modulation_mode = None
-    "The type of RAM modulation to be applied. Frequency, amplitude, phase, or phase+amplitude (phasor)"
-
-    ram_ramp_mode = ad9910.RAM_MODE_RAMPUP
-    "RAM playback mode - see AD9910 datasheet for details. Default to a repeating ramp upwards through RAM addresses"
-
-    ram_nodwell_mode = 0
-    "NODWELL mode. 0 means wait at the top of the ramp through RAM, 1 means loop back"
-
-    def __init__(self, *args, **kwargs):
-        if self.ram_modulation_mode is None:
-            raise ValueError("ram_modulation_mode must be set in subclass")
-
-        super().__init__(*args, **kwargs)
+    @abc.abstractmethod
+    def generate_amplitudes_and_phases(self, n_words) -> tuple[np.ndarray, np.ndarray]:
+        """
+        This function must be defined by the user to define their pulse shape.
+        It must return a tuple of numpy arrays:
+            * amplitude: array of length n_words, coerced to 0-1
+            * phase: array of length n_words, coerced to 0-2*pi
+        """
 
     @abc.abstractmethod
     def is_recalc_needed(self) -> bool:
@@ -124,19 +117,34 @@ class _ShapedPulse(Fragment, abc.ABC):
         self._step_mu = 0
         self._step_duration = 0.0
 
-    @abc.abstractmethod
+    @rpc
     def _get_ram_words(self) -> TList(TInt32):
         """
-        Subclasses must implement this method as a synchronous RPC. It must
-        return a list of int32s, n_words long, that will be written into RAM.
+        Call the user-provided function to generate a new pulse shape of the
+        given length, and return this to the core device as RAM tuning words.
         """
+        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps.get())
 
-    @abc.abstractmethod
-    def prepare_pulse(self):
-        pass
+        assert len(amplitude) == len(phases) == self.num_steps.get()
+
+        # Coerce to 0-1 and 0-2pi
+        pulse_amplitudes = np.clip(amplitude, 0, 1)
+        pulse_phases = np.clip(phases, 0, 2 * np.pi)
+
+        # Convert phases to turns
+        pulse_turns = pulse_phases / (2 * np.pi)
+
+        # Convert to ram words
+        ram_data_u32 = [np.uint32(0x00)] * self.num_steps.get()
+        self.dds.turns_amplitude_to_ram(
+            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data_u32
+        )
+        ram_data_i32 = [np.int32(x & 0xFFFFFFFF) for x in ram_data_u32]
+
+        return ram_data_i32
 
     @kernel
-    def device_setup_base(self):
+    def device_setup(self):
         self.device_setup_subfragments()
 
         if self.pulse_duration.get() > self.num_steps * self._max_duration_of_one_step:
@@ -156,10 +164,6 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         if self.is_recalc_needed():
             self._store_waveform_in_ram()
-
-    @kernel
-    def device_setup(self):
-        self.device_setup_base()
 
     @kernel
     def _store_waveform_in_ram(self):
@@ -206,7 +210,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         self.dds.read_ram(read_data)
 
     @kernel
-    def _enter_RAM_mode(self):
+    def prepare_pulse(self, frequency: float):
         """
         Prepare for playback of the sequence recorded in RAM
 
@@ -215,18 +219,25 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         You should call `trigger_pulse` after this to actually play the
         sequence, and call `disable_ram_mode` afterwards to clean up.
+
+        Args:
+            frequency (float): Centre frequency to be modulated by the RAM data.
         """
+
+        # We must set the FTW of the DDS - this is distinct from the usual
+        # frequency which is stored in a single-tone profile
+        self.dds.set_frequency(frequency=frequency)
+
         # Disable RAM mode while changing profile
-        self.dds.set_cfr1(ram_enable=0, ram_destination=self.ram_modulation_mode)
+        self.dds.set_cfr1(ram_enable=0, ram_destination=ad9910.RAM_DEST_POWASF)
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
         self.dds.set_profile_ram(
             start=self.ram_offset,
             end=self.ram_offset + self.num_steps - 1,
             step=self._step_mu,
-            mode=self.ram_ramp_mode,
+            mode=ad9910.RAM_MODE_RAMPUP,
             profile=RAM_PROFILE,
-            nodwell_high=self.ram_nodwell_mode,
         )
 
         # This is a no-op since we are already on the right profile unless the
@@ -234,19 +245,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         assert RAM_PROFILE == urukul.DEFAULT_PROFILE
 
         # Enable RAM mode - the next IO_UPDATE will start playback
-        self.dds.set_cfr1(ram_enable=1, ram_destination=self.ram_modulation_mode)
-
-    @kernel
-    def start_output(self):
-        """
-        Start playback of the configured shape. This should be called after
-        `prepare_playback`.
-
-        This will turn on the RF switch and trigger the RAM playback. Whether it
-        loops forever or only fires only once depends on the choice of NODWELL mode.
-        """
-        self.dds.sw.on()
-        self.cpld.io_update.pulse_mu(int64(self.core.ref_multiplier))
+        self.dds.set_cfr1(ram_enable=1, ram_destination=ad9910.RAM_DEST_POWASF)
 
     @kernel
     def trigger_pulse(self):
@@ -255,15 +254,11 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         Advances the timeline by the duration of the pulse
         """
-        self.start_output()
-        delay(self._step_duration * self.num_steps)
-        self.stop_output()
+        self.dds.sw.on()
+        self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
-    @kernel
-    def stop_output(self):
-        """
-        Stop playback of the configured shape. This should be called after `start_output`.
-        """
+        delay(self._step_duration * self.num_steps.get())
+
         self.dds.sw.off()
 
     @kernel
@@ -396,140 +391,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         delay(2000e-3)
 
 
-class FrequencyShapedPulse(_ShapedPulse):
-    ram_modulation_mode = ad9910.RAM_DEST_FTW
-    ram_nodwell_mode = 1  # This might be ignored... acording to the datasheet
-    ram_ramp_mode = ad9910.RAM_MODE_CONT_BIDIR_RAMP
-    # Have it ramp up and down
-
-    def build_fragment(
-        self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
-    ):
-        """
-        Requires you to pass a FloatParamHandle representing a parameter that
-        the pulse's centre frequency will be bound to.
-        """
-        super().build_fragment(ad9910_name)
-
-        self.centre_frequency = centre_frequency_param_handle
-
-    @abc.abstractmethod
-    def generate_frequencies(self, n_words) -> np.ndarray:
-        """
-        This function must be defined by the user to define their pulse shape.
-        It must return a numpy array:
-            * detuning_frequency: array of length n_words
-        """
-
-    @rpc
-    def _get_ram_words(self) -> TList(TInt32):
-        """
-        Call the user-provided function to generate a new pulse shape of the
-        given length, and return this to the core device as RAM tuning words.
-        """
-        detuning_frequency = self.generate_frequencies(self.num_steps)
-
-        assert len(detuning_frequency) == self.num_steps
-
-        absolute_frequency = self.centre_frequency.get() + detuning_frequency
-        # Need to ensure that we don't have frequencies out of the bound
-        logger.warning(absolute_frequency)
-        assert np.all(
-            absolute_frequency < self.dds.ftw_to_frequency(0xFFFFFFFF)
-        ), "Frequency too high"
-        assert np.all(absolute_frequency > 0), "Frequency too low"
-
-        # Convert to ram words
-        ram_data = [np.int32(0x00)] * self.num_steps
-        self.dds.frequency_to_ram(frequency=absolute_frequency, ram=ram_data)
-
-        return ram_data
-
-    @kernel
-    def prepare_pulse(self):
-        """
-        Prepare for playback of the sequence recorded in RAM
-
-        This will enable RAM mode for this DDS - you cannot use it as a normal
-        DDS until you call `disable_ram_mode`.
-
-        You should call `trigger_pulse` after this to actually play the
-        sequence, and call `disable_ram_mode` afterwards to clean up.
-        """
-        self.dds.set_amplitude(1.0)
-        self._enter_RAM_mode()
-        # For frequency modulation we have the funny behaviour that the step rate determines the
-        # amplitude of the pulse. Notably, the smaller the rate the smaller the amplitude.
-        # See https://github.com/m-labs/artiq/issues/1554
-        # The solution is outlined below...
-        self.dds.set_cfr1(
-            ram_enable=1,
-            ram_destination=self.ram_modulation_mode,
-            manual_osk_external=0,
-            osk_enable=1,
-            select_auto_osk=0,
-        )
-
-
-class PhasorShapedPulse(_ShapedPulse):
-    ram_modulation_mode = ad9910.RAM_DEST_POWASF
-
-    @abc.abstractmethod
-    def generate_amplitudes_and_phases(self, n_words) -> tuple[np.ndarray, np.ndarray]:
-        """
-        This function must be defined by the user to define their pulse shape.
-        It must return a tuple of numpy arrays:
-            * amplitude: array of length n_words, coerced to 0-1
-            * phase: array of length n_words, coerced to 0-2*pi
-        """
-
-    @rpc
-    def _get_ram_words(self) -> TList(TInt32):
-        """
-        Call the user-provided function to generate a new pulse shape of the
-        given length, and return this to the core device as RAM tuning words.
-        """
-        amplitude, phases = self.generate_amplitudes_and_phases(self.num_steps)
-
-        assert len(amplitude) == len(phases) == self.num_steps
-
-        # Coerce to 0-1 and 0-2pi
-        pulse_amplitudes = np.clip(amplitude, 0, 1)
-        pulse_phases = np.clip(phases, 0, 2 * np.pi)
-
-        # Convert phases to turns
-        pulse_turns = pulse_phases / (2 * np.pi)
-
-        # Convert to ram words
-        ram_data = [np.int32(0x00)] * self.num_steps
-        self.dds.turns_amplitude_to_ram(
-            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data
-        )
-
-        return ram_data
-
-    @kernel
-    def prepare_pulse(self, frequency: float):
-        """
-        Prepare for playback of the sequence recorded in RAM
-
-        This will enable RAM mode for this DDS - you cannot use it as a normal
-        DDS until you call `disable_ram_mode`.
-
-        You should call `trigger_pulse` after this to actually play the
-        sequence, and call `disable_ram_mode` afterwards to clean up.
-
-        Args:
-            frequency (float): Centre frequency to be modulated by the RAM data.
-        """
-        # We must set the FTW of the DDS - this is distinct from the usual
-        # frequency which is stored in a single-tone profile
-        self.dds.set_frequency(frequency=frequency)
-
-        self._enter_RAM_mode()
-
-
-class BlackmanShapedPulse(PhasorShapedPulse):
+class BlackmanShapedPulse(ShapedPulse):
     """
     Blackman shaped pulses (amplitude only)
     """
@@ -556,7 +418,7 @@ class BlackmanShapedPulse(PhasorShapedPulse):
         return False
 
 
-class PhaseStepPulse(PhasorShapedPulse):
+class PhaseStepPulse(ShapedPulse):
     """
     Step the phase of the pulse
     """
@@ -579,7 +441,7 @@ class PhaseStepPulse(PhasorShapedPulse):
         return False
 
 
-class PhaseRampPulse(PhasorShapedPulse):
+class PhaseRampPulse(ShapedPulse):
     """
     Ramp the phase of the pulse
     """
@@ -600,7 +462,7 @@ class PhaseRampPulse(PhasorShapedPulse):
         return False
 
 
-class JessePulse(PhasorShapedPulse):
+class JessePulse(ShapedPulse):
     "Jesse's velocity selection pulse (phase only)"
 
     def build_fragment(self, *args, **kwargs):
@@ -619,7 +481,7 @@ class JessePulse(PhasorShapedPulse):
         return False
 
 
-class JessePulseLMT(PhasorShapedPulse):
+class JessePulseLMT(ShapedPulse):
     "Jesse's first LMT pulse (phase only)"
 
     ram_offset = 0
@@ -641,7 +503,7 @@ class JessePulseLMT(PhasorShapedPulse):
         return False
 
 
-class JessePulseLMTSeries(PhasorShapedPulse):
+class JessePulseLMTSeries(ShapedPulse):
     "Jesse's pulse for LMT series (phase only)"
 
     ram_offset = 512
