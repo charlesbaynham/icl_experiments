@@ -622,6 +622,7 @@ class JessePulse(PhasorShapedPulse):
 class JessePulseLMT(PhasorShapedPulse):
     "Jesse's first LMT pulse (phase only)"
 
+    ram_offset = 0
     num_steps = len(lmt_phase_values_rad)
 
     def build_fragment(self, *args, **kwargs):
