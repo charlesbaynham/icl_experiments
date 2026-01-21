@@ -527,6 +527,7 @@ class JessePulseLMT(ShapedPulse):
     "Jesse's first LMT pulse (phase only)"
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 0
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)
@@ -558,6 +559,7 @@ class JessePulseLMTSeries(ShapedPulse):
     "Jesse's pulse for LMT series (phase only)"
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 512
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)
