@@ -732,4 +732,5 @@ class JessePulseLMTSeriesDown(JessePulseLMTSeries):
     "Jesse's pulse for LMT series (phase only)"
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 512
         super().build_fragment(*args, **kwargs)
