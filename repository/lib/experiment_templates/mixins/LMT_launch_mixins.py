@@ -761,7 +761,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
     @kernel
     def fire_shaped_lmt_pulse(self, start_freq, type, t_start):
-        self.clock_down_dds.set_att(7.5)
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # prepare the aoms
@@ -807,12 +806,13 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # re-set the AOM to default
         self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
         self.clock_down_default_setter._turn_on_ad9910s(light_enabled=False)
-        self.clock_down_dds.set_att(0.0)
+
         delay(30e-6)
 
     @kernel
     def shaped_lmt_series(self, offset_det, N_previous_pulses, N):
 
+        self.clock_down_dds.set_att(7.5)
         t_drop = self.get_t_start_shelving()
 
         for i in range(N):
@@ -836,6 +836,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
             # fire the pulse
             self.fire_shaped_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
+        self.clock_down_dds.set_att(0.0)
 
     @kernel
     def launch_hook_double_cloud(self):
@@ -928,7 +929,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(1e-6)
 
         # LMT sequence on upper trap
-        self.lmt_series(lmt_detuning, N_previous_pulses=3, N=1)
+        self.shaped_lmt_series(lmt_detuning, N_previous_pulses=3, N=1)
 
         # delay(self.delay_between_launches.get())
 

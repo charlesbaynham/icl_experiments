@@ -728,9 +728,33 @@ class JessePulseLMTSeries(PhasorShapedPulse):
         return return_value
 
 
-class JessePulseLMTSeriesDown(JessePulseLMTSeries):
+class JessePulseLMTSeriesDown(PhasorShapedPulse):
     "Jesse's pulse for LMT series (phase only)"
 
     def build_fragment(self, *args, **kwargs):
         self.ram_offset = 512
+        self._old_num_steps = -1
+
         super().build_fragment(*args, **kwargs)
+
+        self.override_param(
+            "num_steps",
+            len(lmt_series_phase_values_rad),
+        )
+
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+        amplitude = np.ones(len(lmt_series_phase_values_rad))
+        phase = lmt_series_phase_values_rad
+
+        return amplitude, phase
+
+    @kernel
+    def is_recalc_needed(self) -> bool:
+        return_value = False
+
+        if self.num_steps.get() != self._old_num_steps:
+            return_value = True
+
+        self._old_num_steps = self.num_steps.get()
+
+        return return_value
