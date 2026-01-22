@@ -238,7 +238,6 @@ class LMTBase(
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
-        self.clock_down_dds.set_att(7.5)
 
         if type == "down":
             # ramp the offset downwards
@@ -252,9 +251,7 @@ class LMTBase(
             # pulse the down beam
             at_mu(t_start)
             self.clock_down_dds.sw.on()
-            delay(
-                self.spectroscopy_pulse_time.get()
-            )  # self.down_pulses_duration.get())
+            delay(self.down_pulses_duration.get())
             self.clock_down_dds.sw.off()
 
         if type == "up":
@@ -273,7 +270,6 @@ class LMTBase(
             delay(self.spectroscopy_pulse_time.get())
             self.clock_up_dds.sw.off()
         delay(30e-6)
-        self.clock_down_dds.set_att(0.0)
 
     @kernel
     def do_selective_lmt_pulse(self, detuning, N_kicks, att, duration):
@@ -765,7 +761,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
     @kernel
     def fire_shaped_lmt_pulse(self, start_freq, type, t_start):
-        self.clock_down_dds.set_att(8.0)
+        self.clock_down_dds.set_att(7.5)
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         # prepare the aoms
