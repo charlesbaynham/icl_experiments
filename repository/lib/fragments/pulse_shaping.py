@@ -743,7 +743,7 @@ class JessePulseLMTSeriesDown(PhasorShapedPulse):
         )
 
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
-        amplitude = np.ones(len(lmt_series_phase_values_rad))
+        amplitude = np.zeros(len(lmt_series_phase_values_rad))
         phase = lmt_series_phase_values_rad
 
         return amplitude, phase
