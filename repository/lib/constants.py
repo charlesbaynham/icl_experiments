@@ -787,7 +787,7 @@ SUSERVOED_BEAMS = [
         setpoint=3.5,
     ),
     SUServoedBeam(
-        "dipole_trap_painted_1064_delivery",
+        "dipole_trap_1064_delivery",
         frequency=110e6,
         attenuation=2.0,
         suservo_device="suservo_aom_1064_delivery",
@@ -797,7 +797,7 @@ SUSERVOED_BEAMS = [
         kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
-        "dipole_trap_1064_delivery",
+        "dipole_trap_painted_1064_delivery",
         frequency=105e6,
         attenuation=2.0,
         suservo_device="suservo_aom_1064_painted_delivery",
