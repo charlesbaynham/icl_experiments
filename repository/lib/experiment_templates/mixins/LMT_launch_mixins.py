@@ -929,7 +929,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(1e-6)
 
         # LMT sequence on upper trap
-        self.shaped_lmt_series(lmt_detuning, N_previous_pulses=3, N=1)
+        # self.shaped_lmt_series(lmt_detuning, N_previous_pulses=3, N=1)
 
         # delay(self.delay_between_launches.get())
 
