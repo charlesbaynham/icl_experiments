@@ -763,13 +763,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
     def fire_shaped_lmt_pulse(self, start_freq, type, t_start):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
-        # prepare the aoms
-        self.lmt_series_shaped_pulse_up.prepare_pulse(
-            frequency=CLOCK_UP_BEAM_INFO.frequency
-        )
-        self.lmt_series_shaped_pulse_down.prepare_pulse(
-            frequency=CLOCK_DOWN_BEAM_INFO.frequency
-        )
+
         # set the offset frequency
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
@@ -800,19 +794,21 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             at_mu(t_start)
             self.lmt_series_shaped_pulse_up.trigger_pulse()
 
-        # disable ram mode
-        self.lmt_series_shaped_pulse_up.disable_ram_mode()
-        self.lmt_series_shaped_pulse_down.disable_ram_mode()
-        # re-set the AOM to default
-        self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
-        self.clock_down_default_setter._turn_on_ad9910s(light_enabled=False)
-
         delay(30e-6)
 
     @kernel
     def shaped_lmt_series(self, offset_det, N_previous_pulses, N):
 
+        # prepare the aoms
+        self.lmt_series_shaped_pulse_up.prepare_pulse(
+            frequency=CLOCK_UP_BEAM_INFO.frequency
+        )
+        self.lmt_series_shaped_pulse_down.prepare_pulse(
+            frequency=CLOCK_DOWN_BEAM_INFO.frequency
+        )
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_down_dds.set_att(7.5)
+        delay_mu(int64(self.core.ref_multiplier))
         t_drop = self.get_t_start_shelving()
 
         for i in range(N):
@@ -836,6 +832,13 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
             # fire the pulse
             self.fire_shaped_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
+            # disable ram mode
+        self.lmt_series_shaped_pulse_up.disable_ram_mode()
+        self.lmt_series_shaped_pulse_down.disable_ram_mode()
+        # re-set the AOM to default
+        # self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
+        self.clock_down_default_setter._turn_on_ad9910s(light_enabled=False)
+        delay_mu(int64(self.core.ref_multiplier))
         self.clock_down_dds.set_att(0.0)
 
     @kernel
@@ -929,7 +932,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(1e-6)
 
         # LMT sequence on upper trap
-        # self.shaped_lmt_series(lmt_detuning, N_previous_pulses=3, N=1)
+        self.shaped_lmt_series(lmt_detuning, N_previous_pulses=3, N=1)
 
         # delay(self.delay_between_launches.get())
 
