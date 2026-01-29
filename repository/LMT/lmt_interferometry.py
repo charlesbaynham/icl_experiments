@@ -112,7 +112,7 @@ class LMTInterferometryWithDoubleLaunchFrag(
 
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
-    LMTInterferometryMixin,
+    ShapedFirstPulseLMTInterferometryMixin,
     LMTLaunchDoubleTrapShapedPulseMixin,
     DoubleTrapImagingRepumpedNormalised,
     EMGain,
