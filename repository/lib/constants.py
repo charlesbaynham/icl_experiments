@@ -766,7 +766,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "down_813",
-        frequency=205e6 * 813 / 780,
+        frequency=200e6 * 813 / 780,
         attenuation=0.0,
         suservo_device="suservo_aom_down_813",
         servo_enabled=True,
@@ -777,11 +777,11 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "up_813",
         frequency=170e6 * 813 / 780,
-        attenuation=7.0,
+        attenuation=5.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=3.5,
+        setpoint=4.0,
     ),
     SUServoedBeam(
         "dipole_trap_1064_delivery",
