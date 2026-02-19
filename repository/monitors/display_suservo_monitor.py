@@ -1,7 +1,6 @@
 import logging
 from typing import List
 
-from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.experiment import BooleanValue
@@ -19,16 +18,12 @@ from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
-from pyaion.fragments.default_beam_setter import UrukuledBeam
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.fragments.read_adc import ReadSUServoADC
 
 logger = logging.getLogger(__name__)
-
-CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
-CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 
 
 class DisplaySingleSUServoMonitorFrag(ExpFragment):
@@ -185,11 +180,6 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             constants.URUKULED_BEAMS["clock_down"],
         ]
 
-        self.clock_up_dds: AD9910 = self.get_device(CLOCK_UP_BEAM_INFO.urukul_device)
-        self.clock_down_dds: AD9910 = self.get_device(
-            CLOCK_DOWN_BEAM_INFO.urukul_device
-        )
-
         if not self.enable_servoing:
             for info in self.suservo_beam_infos:
                 info.servo_enabled = False
@@ -276,10 +266,6 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             delay(10 * ms)
             self.ttl_shutter_red_axial_mot.on()
             self.ttl_shutter_red_axial_spin_pol.off()
-
-            self.clock_up_dds.set_att(10.0)
-            self.clock_up_dds.sw.on()
-            self.clock_down_dds.sw.on()
 
             self.first_run = False
 
