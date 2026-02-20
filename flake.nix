@@ -15,8 +15,8 @@
       # This is so that the server can run other ARTIQ sessions bound to other
       # IP addresses.
       bind_settings = {
-        bind_command = "--no-localhost-bind --bind 10.137.1.252";
-        connection_ip = "10.137.1.252";
+        bind_command = "--bind \*";
+        connection_ip = "127.0.0.1";
       };
     in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
