@@ -16,7 +16,7 @@
       # IP addresses.
       bind_settings = {
         bind_command = "--bind \\\*";
-        connection_ip = "127.0.0.1";
+        connection_ip = "10.137.2.1";
       };
     in flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
