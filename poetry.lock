@@ -4453,18 +4453,21 @@ win32 = ["pywin32"]
 
 [[package]]
 name = "sipyco"
-version = "1.7"
-description = "Simple Python communications"
+version = "1.10"
+description = ""
 optional = false
 python-versions = "*"
 files = []
 develop = false
 
+[package.dependencies]
+numpy = "*"
+
 [package.source]
 type = "git"
 url = "https://github.com/m-labs/sipyco.git"
 reference = "HEAD"
-resolved_reference = "32ddd78ff3641b75054793ea0d5681c951766754"
+resolved_reference = "ce454bb64257b1bcef3703f258aaf7fa4ee0c275"
 
 [[package]]
 name = "six"
