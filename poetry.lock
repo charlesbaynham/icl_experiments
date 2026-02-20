@@ -130,7 +130,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/andor_windows_ndsp.git"
 reference = "HEAD"
-resolved_reference = "4483be1696e51cb014f6dec346504bb08aa6f0b5"
+resolved_reference = "3d14bef4c217b049452434002ad2e0aed00ca75b"
 
 [[package]]
 name = "anyio"
@@ -607,17 +607,6 @@ files = [
 pycparser = "*"
 
 [[package]]
-name = "cfgv"
-version = "3.4.0"
-description = "Validate configuration and produce human readable error messages."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "cfgv-3.4.0-py2.py3-none-any.whl", hash = "sha256:b7265b1f29fd3316bfcd2b330d63d024f2bfd8bcb8b0272f8e19a504856c48f9"},
-    {file = "cfgv-3.4.0.tar.gz", hash = "sha256:e52591d4c5f5dead8e0f673fb16db7949d2cfb3f7da4582893288f0ded8fe560"},
-]
-
-[[package]]
 name = "charset-normalizer"
 version = "3.3.0"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -952,17 +941,6 @@ files = [
 ]
 
 [[package]]
-name = "distlib"
-version = "0.3.8"
-description = "Distribution utilities"
-optional = false
-python-versions = "*"
-files = [
-    {file = "distlib-0.3.8-py2.py3-none-any.whl", hash = "sha256:034db59a0b96f8ca18035f36290806a9a6e6bd9d1ff91e45a7f172eb17e51784"},
-    {file = "distlib-0.3.8.tar.gz", hash = "sha256:1530ea13e350031b6312d8580ddb6b27a104275a31106523b8f123787f494f64"},
-]
-
-[[package]]
 name = "exceptiongroup"
 version = "1.1.3"
 description = "Backport of PEP 654 (exception groups)"
@@ -1037,22 +1015,6 @@ files = [
 
 [package.extras]
 devel = ["colorama", "json-spec", "jsonschema", "pylint", "pytest", "pytest-benchmark", "pytest-cache", "validictory"]
-
-[[package]]
-name = "filelock"
-version = "3.16.1"
-description = "A platform independent file lock."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "filelock-3.16.1-py3-none-any.whl", hash = "sha256:2082e5703d51fbf98ea75855d9d5527e33d8ff23099bec374a134febee6946b0"},
-    {file = "filelock-3.16.1.tar.gz", hash = "sha256:c249fbfcd5db47e5e2d6d62198e565475ee65e4831e2561c8e313fa7eb961435"},
-]
-
-[package.extras]
-docs = ["furo (>=2024.8.6)", "sphinx (>=8.0.2)", "sphinx-autodoc-typehints (>=2.4.1)"]
-testing = ["covdefaults (>=2.3)", "coverage (>=7.6.1)", "diff-cover (>=9.2)", "pytest (>=8.3.3)", "pytest-asyncio (>=0.24)", "pytest-cov (>=5)", "pytest-mock (>=3.14)", "pytest-timeout (>=2.3.1)", "virtualenv (>=20.26.4)"]
-typing = ["typing-extensions (>=4.12.2)"]
 
 [[package]]
 name = "fonttools"
@@ -1265,20 +1227,6 @@ files = [
 numpy = ">=1.17.3"
 
 [[package]]
-name = "identify"
-version = "2.6.1"
-description = "File identification library for Python"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "identify-2.6.1-py2.py3-none-any.whl", hash = "sha256:53863bcac7caf8d2ed85bd20312ea5dcfc22226800f6d6881f232d861db5a8f0"},
-    {file = "identify-2.6.1.tar.gz", hash = "sha256:91478c5fb7c3aac5ff7bf9b4344f803843dc586832d5f110d672b19aa1984c98"},
-]
-
-[package.extras]
-license = ["ukkonen"]
-
-[[package]]
 name = "idna"
 version = "3.4"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -1320,7 +1268,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/imperial-artiq-applets.git"
 reference = "HEAD"
-resolved_reference = "5d7d551dc87f610dfff6d7897015c25951293a25"
+resolved_reference = "22819b8538f7d5bd88593ec1bdbd3db9d298c1c9"
 
 [[package]]
 name = "iniconfig"
@@ -1841,7 +1789,7 @@ files = [
 
 [[package]]
 name = "koheron-ctl200-laser-driver"
-version = "1.0"
+version = "1.0.1"
 description = "A python, ARTIQ-compatible driver for the Koheron CTL200 laser diode controller"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -1849,7 +1797,7 @@ files = []
 develop = false
 
 [package.dependencies]
-generic-scpi-driver = {version = "^1.5", extras = ["artiq"]}
+generic-scpi-driver = {version = "^1.6.2", extras = ["artiq"]}
 numpy = "^1.26.1"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
@@ -1857,7 +1805,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git"
 reference = "HEAD"
-resolved_reference = "0dc7121963e5dcad1779bb18cbfc0d34dfaa6b09"
+resolved_reference = "000209b1af05929094ad734a1e3ed9dbfb735c0f"
 
 [[package]]
 name = "levenshtein"
@@ -2506,7 +2454,7 @@ test = ["pep440", "pre-commit", "pytest", "testpath"]
 
 [[package]]
 name = "ndscan"
-version = "v0.4.2"
+version = "v0.4.1"
 description = "Composable experiment fragments and multi-dimensional scans for ARTIQ"
 optional = false
 python-versions = "^3.10"
@@ -2527,8 +2475,8 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git"
-reference = "icl-live-fit"
-resolved_reference = "2d9412805aedaea193a292bd0e9b6f80e06415fa"
+reference = "transitive-rebinding-qt5"
+resolved_reference = "1f80a2a67cb99feb2bb32a9992360b2309ccd8b7"
 
 [[package]]
 name = "nest-asyncio"
@@ -2543,32 +2491,21 @@ files = [
 
 [[package]]
 name = "networkx"
-version = "3.1"
+version = "2.8.8"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "networkx-3.1-py3-none-any.whl", hash = "sha256:4f33f68cb2afcf86f28a45f43efc27a9386b535d567d2127f8f61d51dec58d36"},
-    {file = "networkx-3.1.tar.gz", hash = "sha256:de346335408f84de0eada6ff9fafafff9bcda11f0a0dfaa931133debb146ab61"},
+    {file = "networkx-2.8.8-py3-none-any.whl", hash = "sha256:e435dfa75b1d7195c7b8378c3859f0445cd88c6b0375c181ed66823a9ceb7524"},
+    {file = "networkx-2.8.8.tar.gz", hash = "sha256:230d388117af870fce5647a3c52401fcf753e94720e6ea6b4197a5355648885e"},
 ]
 
 [package.extras]
-default = ["matplotlib (>=3.4)", "numpy (>=1.20)", "pandas (>=1.3)", "scipy (>=1.8)"]
-developer = ["mypy (>=1.1)", "pre-commit (>=3.2)"]
-doc = ["nb2plots (>=0.6)", "numpydoc (>=1.5)", "pillow (>=9.4)", "pydata-sphinx-theme (>=0.13)", "sphinx (>=6.1)", "sphinx-gallery (>=0.12)", "texext (>=0.6.7)"]
-extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.10)", "sympy (>=1.10)"]
+default = ["matplotlib (>=3.4)", "numpy (>=1.19)", "pandas (>=1.3)", "scipy (>=1.8)"]
+developer = ["mypy (>=0.982)", "pre-commit (>=2.20)"]
+doc = ["nb2plots (>=0.6)", "numpydoc (>=1.5)", "pillow (>=9.2)", "pydata-sphinx-theme (>=0.11)", "sphinx (>=5.2)", "sphinx-gallery (>=0.11)", "texext (>=0.6.6)"]
+extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.9)", "sympy (>=1.10)"]
 test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
-
-[[package]]
-name = "nodeenv"
-version = "1.9.1"
-description = "Node.js virtual environment builder"
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
-files = [
-    {file = "nodeenv-1.9.1-py2.py3-none-any.whl", hash = "sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9"},
-    {file = "nodeenv-1.9.1.tar.gz", hash = "sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f"},
-]
 
 [[package]]
 name = "notebook"
@@ -2990,24 +2927,6 @@ ssh = ["paramiko"]
 test = ["coverage[toml]", "paramiko", "psutil", "pytest (>=6.0)", "pytest-cov", "pytest-mock", "pytest-timeout"]
 
 [[package]]
-name = "pre-commit"
-version = "3.3.2"
-description = "A framework for managing and maintaining multi-language pre-commit hooks."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "pre_commit-3.3.2-py2.py3-none-any.whl", hash = "sha256:8056bc52181efadf4aac792b1f4f255dfd2fb5a350ded7335d251a68561e8cb6"},
-    {file = "pre_commit-3.3.2.tar.gz", hash = "sha256:66e37bec2d882de1f17f88075047ef8962581f83c234ac08da21a0c58953d1f0"},
-]
-
-[package.dependencies]
-cfgv = ">=2.0.0"
-identify = ">=1.0.0"
-nodeenv = ">=0.11.1"
-pyyaml = ">=5.1"
-virtualenv = ">=20.10.0"
-
-[[package]]
 name = "prettytable"
 version = "3.9.0"
 description = "A simple Python library for easily displaying tabular data in a visually appealing ASCII table format"
@@ -3131,7 +3050,7 @@ generic-scpi-driver = ">=1.3"
 microscope = {git = "https://github.com/m-labs/microscope.git"}
 migen = {git = "https://github.com/m-labs/migen.git"}
 misoc = {git = "https://github.com/m-labs/misoc.git"}
-ndscan = {git = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git", branch = "icl-live-fit"}
+ndscan = {git = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git", branch = "transitive-rebinding-qt5"}
 numpy = "^1.26.0"
 pydantic = "1.10.2"
 pyqt5 = "5.15.9"
@@ -3144,8 +3063,8 @@ toptica-lasersdk = "^3.1.1"
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/pyaion.git"
-reference = "icl-clock"
-resolved_reference = "ecfcbbc60fe2689886a3e5fc3e6177f911d0096f"
+reference = "HEAD"
+resolved_reference = "c2b198ca8a3deb09bc48b8dd506877aa95796630"
 
 [[package]]
 name = "pycairo"
@@ -3926,24 +3845,28 @@ resolved_reference = "d59585a817477962fa7d0fa04d6a8431c98ac4c3"
 
 [[package]]
 name = "qbutler"
-version = "0.1+cbe325e"
+version = "0.2"
 description = "Manage a complex research experiment with lots of moving parts and drifting calibrations automatically and repeatably."
 optional = false
-python-versions = "*"
+python-versions = "^3.10"
 files = []
 develop = false
 
 [package.dependencies]
-networkx = "*"
-
-[package.extras]
-dev = ["black", "coverage", "ipython", "matplotlib", "notebook", "pip-tools", "pre-commit", "pylint", "pytest", "pytest-timeout", "sphinx", "sphinx-autobuild", "sphinx_rtd_theme", "sphinxcontrib-svg2pdfconverter"]
+artiq = {git = "https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git"}
+ndscan = {git = "https://gitlab.com/aion-physics/code/artiq/forks/ndscan.git", branch = "transitive-rebinding-qt5"}
+networkx = "^2.8.4"
+numpy = "^1.22.1"
+pyqt5 = "5.15.9"
+pyqt5-qt5 = "5.15.2"
+pyqt5-sip = "12.12.2"
+sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 
 [package.source]
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/qbutler.git"
 reference = "HEAD"
-resolved_reference = "cbe325ecde378f9d1a4b6e0eb790d1cbf7fea781"
+resolved_reference = "11e951efcad2633167074fa48da7d7f3654ea7b0"
 
 [[package]]
 name = "rapidfuzz"
@@ -4194,7 +4117,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
 reference = "HEAD"
-resolved_reference = "5f454875caad13ec6a704581f7dec2cd0a5b407c"
+resolved_reference = "ad977558f429ff6f3e356c0d89bc3f135deb243b"
 
 [[package]]
 name = "requests"
@@ -4467,7 +4390,7 @@ numpy = "*"
 type = "git"
 url = "https://github.com/m-labs/sipyco.git"
 reference = "HEAD"
-resolved_reference = "ce454bb64257b1bcef3703f258aaf7fa4ee0c275"
+resolved_reference = "96fcefbea490a9b42c862393860d2e586b05d744"
 
 [[package]]
 name = "six"
@@ -4593,13 +4516,13 @@ docs = ["ipykernel", "jupyter-client", "matplotlib", "nbconvert", "nbformat", "n
 
 [[package]]
 name = "tenma-power-supply"
-version = "1.2"
+version = "1.2.3"
 description = "Driver for the TENMA power supply"
 optional = false
-python-versions = ">=3.9,<3.13"
+python-versions = "<3.13,>=3.9"
 files = [
-    {file = "tenma_power_supply-1.2-py3-none-any.whl", hash = "sha256:164951fe84043617a9649596bd9ed05f9f66f0ceb52308e47a1dc1e4c6b8dd8a"},
-    {file = "tenma_power_supply-1.2.tar.gz", hash = "sha256:4a72a5e6676dc7f99264efc824b89dc53951a968e01a9f2795dd6b363271dbb1"},
+    {file = "tenma_power_supply-1.2.3-py3-none-any.whl", hash = "sha256:8e678b131b6d01327cd5f2d5b397140d4fd0b654a98e43a7bae061128f6ee1c5"},
+    {file = "tenma_power_supply-1.2.3.tar.gz", hash = "sha256:be18f17be6f3db51aec73cce3ffeed4280237c65e89c0b681e59019dc110947e"},
 ]
 
 [package.dependencies]
@@ -4839,35 +4762,16 @@ typing-extensions = {version = ">=4.0", markers = "python_version < \"3.11\""}
 standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.4)"]
 
 [[package]]
-name = "virtualenv"
-version = "20.26.5"
-description = "Virtual Python Environment builder"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "virtualenv-20.26.5-py3-none-any.whl", hash = "sha256:4f3ac17b81fba3ce3bd6f4ead2749a72da5929c01774948e243db9ba41df4ff6"},
-    {file = "virtualenv-20.26.5.tar.gz", hash = "sha256:ce489cac131aa58f4b25e321d6d186171f78e6cb13fafbf32a840cee67733ff4"},
-]
-
-[package.dependencies]
-distlib = ">=0.3.7,<1"
-filelock = ">=3.12.2,<4"
-platformdirs = ">=3.9.1,<5"
-
-[package.extras]
-docs = ["furo (>=2023.7.26)", "proselint (>=0.13)", "sphinx (>=7.1.2,!=7.3)", "sphinx-argparse (>=0.4)", "sphinxcontrib-towncrier (>=0.2.1a0)", "towncrier (>=23.6)"]
-test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7)", "packaging (>=23.1)", "pytest (>=7.4)", "pytest-env (>=0.8.2)", "pytest-freezer (>=0.4.8)", "pytest-mock (>=3.11.1)", "pytest-randomly (>=3.12)", "pytest-timeout (>=2.1)", "setuptools (>=68)", "time-machine (>=2.10)"]
-
-[[package]]
 name = "wand"
 version = "0.1.0"
 description = "Wavelength Analysis 'Nd Display"
 optional = false
-python-versions = "^3.9"
+python-versions = ">=3.9,<3.13"
 files = []
 develop = false
 
 [package.dependencies]
+generic-scpi-driver = "^1.6.2"
 numpy = "^1.23.5"
 pyqt5 = "^5.15.4"
 pyqtgraph = ">=0.12.0"
@@ -4879,7 +4783,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
 reference = "gaio-control"
-resolved_reference = "01d6b73c628d6ab43793ae83b8be5da3b234705a"
+resolved_reference = "ee87c0bdd05848d3a2630877912d76901f22f4e3"
 
 [[package]]
 name = "wcwidth"
@@ -5024,4 +4928,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "12564f8d48508e0340fda4e0b394e7420b881e66c5b9c29cddccecebe2a6ce12"
+content-hash = "d931072771200a28091eae3f607577cf8c8b4a58f98147c4793466757aadbd89"
