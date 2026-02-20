@@ -116,7 +116,7 @@ class RelockIJDFrag(ExpFragment):
             min=0,
             max=1,
         )
-        self.frac_through_window: IntParamHandle
+        self.frac_through_window: FloatParamHandle
 
         self.frag_ijd_scanner: SetKoheronFrag = self.setattr_fragment(
             f"frag_koheron_{controller_name}",
