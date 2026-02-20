@@ -36,8 +36,9 @@ def my_db_logger(self, name, state, data_list):
     for data in data_list:
         tags = {}
 
-        # By setting "type" here, allow monitors to override it by passing their own "type" entry
+        # By setting default tags here, allow monitors to override it by passing their own "type" entry
         tags["type"] = name
+        tags["experiment"] = "aion"
 
         timestamp = None
         if isinstance(data, dict):
