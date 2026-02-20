@@ -10,6 +10,11 @@ python = ">=3.10,<3.12"
 
 pyaion = { git = "https://gitlab.com/aion-physics/code/artiq/pyaion.git" , branch = "icl-clock"}
 
+# Specify sipyco even though it's already in pyaion, since we want a specific
+# version here. It would be nice if we could specify versions and get it from
+# PyPI, but this still hasn't been added
+sipyco = { git = "https://github.com/m-labs/sipyco.git" }
+
 artiq-http = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git" }
 koheron-ctl200-laser-driver = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git" }
 qbutler = { git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git" }
