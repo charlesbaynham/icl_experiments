@@ -49,6 +49,8 @@ class _ShapedPulse(Fragment, abc.ABC):
     """
 
     ad9910_name: str = None
+    ram_offset: int = 0
+    "Offset in the RAM at which to start storing / reading the shaped pulse. You are responsible for making sure this does not overlap with other pulses' storage"
 
     ram_modulation_mode = None
     "The type of RAM modulation to be applied. Frequency, amplitude, phase, or phase+amplitude (phasor)"
@@ -176,7 +178,7 @@ class _ShapedPulse(Fragment, abc.ABC):
     @kernel
     def _store_waveform_in_ram(self):
         ram_data = self._get_ram_words()
-        self._write_ram(ram_data)
+        self._write_ram(ram_data, offset=self.ram_offset)
 
         # Check that the data was written correctly. This takes ~4ms so could be
         # removed if we wanted to speed things up
@@ -208,8 +210,8 @@ class _ShapedPulse(Fragment, abc.ABC):
     @kernel
     def _read_ram(self, read_data):
         self.dds.set_profile_ram(
-            start=0x00,
-            end=len(read_data) - 1,
+            start=self.ram_offset,
+            end=self.ram_offset + len(read_data) - 1,
             profile=RAM_PROFILE,
         )
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
@@ -228,13 +230,14 @@ class _ShapedPulse(Fragment, abc.ABC):
         You should call `trigger_pulse` after this to actually play the
         sequence, and call `disable_ram_mode` afterwards to clean up.
         """
+
         # Disable RAM mode while changing profile
         self.dds.set_cfr1(ram_enable=0, ram_destination=self.ram_modulation_mode)
         self.cpld.io_update.pulse_mu(8)  # assumes 8 mu > t_SYN_CCLK
 
         self.dds.set_profile_ram(
-            start=0x00,
-            end=self.num_steps.get() - 1,
+            start=self.ram_offset,
+            end=self.ram_offset + self.num_steps.get() - 1,
             step=self._step_mu,
             mode=self.ram_ramp_mode,
             profile=RAM_PROFILE,
@@ -322,7 +325,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         """
 
         # Check that the data is the right length
-        if offset + len(data) > 1024:
+        if offset + len(data) > 1023:
             raise ValueError("Data length + offset exceeds 1024 words")
 
         # To work around annoying-ARTIQ-bug
@@ -513,12 +516,13 @@ class PhasorShapedPulse(_ShapedPulse):
         pulse_turns = pulse_phases / (2 * np.pi)
 
         # Convert to ram words
-        ram_data = [np.int32(0x00)] * self.num_steps.get()
+        ram_data_u32 = [np.uint32(0x00)] * self.num_steps.get()
         self.dds.turns_amplitude_to_ram(
-            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data
+            turns=pulse_turns, amplitude=pulse_amplitudes, ram=ram_data_u32
         )
+        ram_data_i32 = [np.int32(x & 0xFFFFFFFF) for x in ram_data_u32]
 
-        return ram_data
+        return ram_data_i32
 
     @kernel
     def prepare_pulse(self, frequency: float):
@@ -644,6 +648,102 @@ class JessePulse(PhasorShapedPulse):
     def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
         amplitude = np.ones(n_words)
         phase = phase_values_rad
+
+        return amplitude, phase
+
+    @kernel
+    def is_recalc_needed(self) -> bool:
+        return_value = False
+
+        if self.num_steps.get() != self._old_num_steps:
+            return_value = True
+
+        self._old_num_steps = self.num_steps.get()
+
+        return return_value
+
+
+class JessePulseLMT(PhasorShapedPulse):
+    "Jesse's first LMT pulse (phase only)"
+
+    def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 0
+        self._old_num_steps = -1
+
+        super().build_fragment(*args, **kwargs)
+
+        self.override_param(
+            "num_steps",
+            len(lmt_phase_values_rad),
+        )
+
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+        amplitude = np.ones(len(lmt_phase_values_rad))
+        phase = lmt_phase_values_rad
+
+        return amplitude, phase
+
+    @kernel
+    def is_recalc_needed(self) -> bool:
+        return_value = False
+
+        if self.num_steps.get() != self._old_num_steps:
+            return_value = True
+
+        self._old_num_steps = self.num_steps.get()
+
+        return return_value
+
+
+class JessePulseLMTSeries(PhasorShapedPulse):
+    "Jesse's pulse for LMT series (phase only)"
+
+    def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 512
+        self._old_num_steps = -1
+
+        super().build_fragment(*args, **kwargs)
+
+        self.override_param(
+            "num_steps",
+            len(lmt_series_phase_values_rad),
+        )
+
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+        amplitude = np.ones(len(lmt_series_phase_values_rad))
+        phase = lmt_series_phase_values_rad
+
+        return amplitude, phase
+
+    @kernel
+    def is_recalc_needed(self) -> bool:
+        return_value = False
+
+        if self.num_steps.get() != self._old_num_steps:
+            return_value = True
+
+        self._old_num_steps = self.num_steps.get()
+
+        return return_value
+
+
+class JessePulseLMTSeriesDown(PhasorShapedPulse):
+    "Jesse's pulse for LMT series (phase only)"
+
+    def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 512
+        self._old_num_steps = -1
+
+        super().build_fragment(*args, **kwargs)
+
+        self.override_param(
+            "num_steps",
+            len(lmt_series_phase_values_rad),
+        )
+
+    def generate_amplitudes_and_phases(self, n_words) -> np.ndarray:
+        amplitude = np.ones(len(lmt_series_phase_values_rad))
+        phase = lmt_series_phase_values_rad
 
         return amplitude, phase
 

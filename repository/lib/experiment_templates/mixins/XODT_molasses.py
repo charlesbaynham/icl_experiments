@@ -75,35 +75,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         )
         self.transparency_setter: SetBeamsToDefaults
 
-        # # Expose the bias field for moving the MOT to the right place
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_start",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_start",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES,
-        )
-        self.setattr_param_rebind(
-            "chamber_2_red_narrowband_mot_current_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="chamber_2_mot_current_end",
-            default=constants.RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES,
-        )
-        for idx, axis in enumerate(["x", "y", "z"]):
-            self.setattr_param_rebind(
-                f"narrowband_bias_{axis}",
-                self.red_mot,
-                default=constants.BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES[idx],
-            )
         self.setattr_param_rebind(
             "red_narrowband_mot_689_up_start",
             self.red_mot.narrow_red_compression_phase,
             original_name="setpoint_multiple_start_suservo_aom_singlepass_689_up",
             default=constants.RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES,
-        )
-        self.setattr_param_rebind(
-            "red_narrowband_mot_689_up_end",
-            self.red_mot.narrow_red_compression_phase,
-            original_name="setpoint_multiple_end_suservo_aom_singlepass_689_up",
         )
 
         self.setattr_param(
@@ -148,6 +124,14 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
         self.molasses_xodt_1.bind_ad9910_frequency_params(
             [self.red_mot.injection_aom_static_frequency]
         )
+
+    def get_always_shown_params(self):
+        # Expose the clock base frequency for convenience
+        param_handles = super().get_always_shown_params()
+        param_handles.remove(self.red_narrowband_mot_689_up_start)
+        param_handles.remove(self.delay_before_molasses)
+        param_handles.remove(self.mot_coil_current_first_molasses)
+        return param_handles
 
     @kernel
     def DMA_initialization_hook(self):

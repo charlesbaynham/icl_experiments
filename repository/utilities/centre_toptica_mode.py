@@ -213,7 +213,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "settle_time",
             FloatParam,
-            default=3.0,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].settle_time,
             description="Time to wait after current changes for laser to settle",
             unit="s",
             min=0.1,
@@ -223,7 +225,9 @@ class CentreTopticaModeFrag(ExpFragment):
         self.setattr_param(
             "wait_before_jump_back",
             FloatParam,
-            default=1.0,
+            default=constants.DEFAULT_MODE_CENTRING_SETTINGS[
+                self.laser_name
+            ].wait_before_jump_back,
             description="Time to wait before jumping current back during mode restoration",
             unit="s",
             min=0.1,
@@ -587,7 +591,6 @@ class CentreTopticaModeFrag(ExpFragment):
 
             max_iterations = 10
             for iteration in range(max_iterations):
-                # FIXME: scheduler.pause() may not work correctly in async context
                 self.scheduler.pause()  # type: ignore[attr-defined]
                 logger.info(
                     "[%s] Starting mode centring iteration %d",
@@ -621,7 +624,6 @@ class CentreTopticaModeFrag(ExpFragment):
                 i_top = i_start
 
                 while True:
-                    # FIXME: scheduler.pause() may not work correctly in async context
                     self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current += current_step
 
@@ -669,7 +671,6 @@ class CentreTopticaModeFrag(ExpFragment):
                 i_bottom = i_start
 
                 while True:
-                    # FIXME: scheduler.pause() may not work correctly in async context
                     self.scheduler.pause()  # type: ignore[attr-defined]
                     i_current -= current_step
 

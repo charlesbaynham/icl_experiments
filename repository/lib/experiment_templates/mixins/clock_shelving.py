@@ -47,8 +47,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment("clock_opll", ClockOPLLController)
-        self.clock_opll: ClockOPLLController
+        if not hasattr(self, "clock_opll"):
+            self.setattr_fragment("clock_opll", ClockOPLLController)
+            self.clock_opll: ClockOPLLController
 
         self.setattr_param(
             "shelving_pulse_time",
@@ -136,6 +137,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         # Kernel variable to record the moment of the velocity slicing pulse so
         # that other pulses can be relative to it
         self.t_velocity_slicing_pulse_centre_mu = int64(0)
+        self.t_dipole_beams_off = int64(0)
 
         # Ensure that the time of the slicing pulse is always reset
         class _ResetSlicingTime(Fragment):
@@ -156,6 +158,9 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         param_handles = super().get_always_shown_params()
         if self.clock_delivery_handles.frequency_handle not in param_handles:
             param_handles.append(self.clock_delivery_handles.frequency_handle)
+        param_handles.remove(self.shelving_pulse_time)
+        param_handles.remove(self.clock_delivery_preempt_time_shelving)
+        param_handles.remove(self.shelving_clock_delivery_setpoint)
         return param_handles
 
     @kernel
@@ -186,6 +191,8 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         self.fire_clock_shelving_pulse()
         delay_mu(int64(self.core.ref_multiplier))
         self.clock_opll.clock_frequency_ramper.stop_ramp()
+
+        delay(constants.DEFAULT_DELIVERY_SETTLING_DURATION)
 
         # Clear out the ground state
         self.fluorescence_pulse.do_imaging_pulse(
@@ -243,6 +250,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     @kernel
     def post_dipole_trap_hook(self):
+        self.t_dipole_beams_off = now_mu()
         self.post_dipole_trap_hook_default()
         delay_mu(int64(self.core.ref_multiplier))
         self.post_dipole_trap_hook_shelving_and_clearout()

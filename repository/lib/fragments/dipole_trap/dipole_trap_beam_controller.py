@@ -45,7 +45,9 @@ class DipoleBeamController(Fragment):
         self.setattr_fragment(
             "all_beam_default_setter",
             make_set_beams_to_default(
-                suservo_beam_infos=DIPOLE_SUSERVO_INFOS + PAINTED_SUSERVO_INFOS + VERTICAL_UP_BEAM,
+                suservo_beam_infos=DIPOLE_SUSERVO_INFOS
+                + PAINTED_SUSERVO_INFOS
+                + VERTICAL_UP_BEAM,
                 urukul_beam_infos=DIPOLE_URUKUL_INFOS,
                 name="DipoleBeamSettings",
                 use_automatic_setup=True,  # Automatically configure the DDSs but do not turn the beams on
@@ -78,9 +80,7 @@ class DipoleBeamController(Fragment):
         self.setattr_fragment(
             "up_dipole",
             LibSetSUServoStatic,
-            constants.SUSERVOED_BEAMS[
-                "up_813"
-            ].suservo_device,
+            constants.SUSERVOED_BEAMS["up_813"].suservo_device,
         )
 
         self.up_dipole: LibSetSUServoStatic

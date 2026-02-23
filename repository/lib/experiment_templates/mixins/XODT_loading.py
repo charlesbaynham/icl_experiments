@@ -1,7 +1,4 @@
 import logging
-from repository.lib.fragments.painted_pulse import (
-    GravityAndDiffractionCompensatedQuadraticShapedPulse,
-)
 
 from artiq.language import delay
 from artiq.language import kernel
@@ -20,6 +17,9 @@ from repository.lib.fragments.beams.toggling_beam_setter import (
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInBottomXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
+from repository.lib.fragments.painted_pulse import (
+    GravityAndDiffractionCompensatedQuadraticShapedPulse,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,8 @@ from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS, PAINTING_URUKUL_CHANNEL
+from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
+from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )

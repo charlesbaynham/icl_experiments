@@ -187,6 +187,7 @@ class CloseAllICLShutters(CloseAllShutters):
 
 _suservo_beams = list(constants.SUSERVOED_BEAMS.values())
 _suservo_beams = [n for n in _suservo_beams if "lattice" not in n.name]
+_suservo_beams = [n for n in _suservo_beams if "squeezing_cavity_" not in n.name]
 _urukul_beams = list(constants.URUKULED_BEAMS.values())
 _urukul_beams = [n for n in _urukul_beams if "injection" not in n.name]
 _urukul_beams = [n for n in _urukul_beams if "blue_xfer_offset" not in n.name]

@@ -50,8 +50,10 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+)
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
     PaintedMatterwaveLensingMixin,
-    AdiabaticCoolingWithPaintedQuadraticMixin
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
@@ -149,6 +151,7 @@ class ClockSpecFromSingleXODTEvaporatedAndLensedFrag(
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
+
 class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
@@ -162,7 +165,7 @@ class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped single XODT with evaporation and adiabatic cooling into painted trap 
+    Clock spectroscopy from dropped single XODT with evaporation and adiabatic cooling into painted trap
 
     Load into an XODT, then use the up clock beam for spectroscopy, altering the
     (single-pass) AOM.
@@ -176,6 +179,7 @@ class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_painting()
         self.DMA_initialization_hook_loading_xodt_mot()
+
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,

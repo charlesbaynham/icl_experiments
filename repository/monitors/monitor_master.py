@@ -19,6 +19,8 @@ from repository.database_monitors.monitor_lab_temperature import (
     MonitorTemperatureDencoOut,
 )
 from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
+from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
+from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
 from repository.database_monitors.monitor_topticas import *
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
@@ -34,8 +36,9 @@ def my_db_logger(self, name, state, data_list):
     for data in data_list:
         tags = {}
 
-        # By setting "type" here, allow monitors to override it by passing their own "type" entry
+        # By setting default tags here, allow monitors to override it by passing their own "type" entry
         tags["type"] = name
+        tags["experiment"] = "aion"
 
         timestamp = None
         if isinstance(data, dict):
@@ -73,8 +76,8 @@ MonitorMaster = make_monitor_controller(
         "temperature_PCW": MonitorTemperaturePCW,
         "ion_pump": MonitorAIONCh1IonPump,  # Keep legacy naming from when we only imagined one experiment
         "ion_pump_cham2": MonitorAIONCh2IonPump,
-        # "ion_pump_clock_ch1": MonitorClockCh1IonPump, # Not using these atm while flipping chamber
-        # "ion_pump_clock_ch2": MonitorClockCh2IonPump,
+        "ion_pump_clock_ch1": MonitorClockCh1IonPump,
+        "ion_pump_clock_ch2": MonitorClockCh2IonPump,
         "heartbeat": MonitorHeartbeat,
         # "turbopump": MonitorTurbo,
         "blue_ijd1": MonitorBlueIJD1,

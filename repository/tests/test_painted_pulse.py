@@ -10,13 +10,13 @@ from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 from pyaion.fragments.urukul_init import make_urukul_init
 
+from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 from repository.lib.fragments.painted_pulse import (
     DiffractionCompensatedQuadraticShapedPulse,
 )
 from repository.lib.fragments.painted_pulse import (
     GravityAndDiffractionCompensatedQuadraticShapedPulse,
 )
-from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,6 @@ from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
-from matplotlib.pylab import int64
 from ndscan.experiment import *
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
@@ -19,6 +18,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForLMTMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
@@ -139,6 +141,7 @@ class TestLMTInterferometryFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -158,50 +161,6 @@ class TestLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
-
-    @kernel
-    def calculate_frequency_for_first_pi_by_2_pulse(
-        self, t_pulse_start_mu: int64, t_pi_pulse: float
-    ) -> float:
-        t_drop = (
-            self.core.mu_to_seconds(
-                t_pulse_start_mu - self.t_velocity_slicing_pulse_centre_mu
-            )
-            + t_pi_pulse / 2
-        )
-        return -self._calculate_chirp_required(t_drop) + self.momentum_kick.get() + 9e3
-
-    @kernel
-    def calculate_frequency_for_first_lmt_pulse(
-        self, t_pulse_start_mu: int64, t_pi_pulse: float
-    ) -> float:
-        t_drop = self.core.mu_to_seconds(
-            t_pulse_start_mu
-            - self.t_velocity_slicing_pulse_centre_mu
-            + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
-        )
-
-        return (
-            +self._calculate_chirp_required(t_drop)
-            - 2 * self.momentum_kick.get()
-            + self.first_lmt_freq.get()
-        )
-
-    @kernel
-    def calculate_frequency_for_second_lmt_pulse(
-        self, t_pulse_start_mu: int64
-    ) -> float:
-        t_drop = self.core.mu_to_seconds(
-            t_pulse_start_mu
-            - self.t_velocity_slicing_pulse_centre_mu
-            + self.core.seconds_to_mu(self.shelving_pulse_time.get() / 2)
-        )
-
-        return -self._calculate_chirp_required(t_drop) + 3 * self.momentum_kick.get()
-
-    @kernel
-    def _calculate_chirp_required(self, t_drop: float):
-        return t_drop * constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
 TestLMTInterferometryExp = make_fragment_scan_exp(

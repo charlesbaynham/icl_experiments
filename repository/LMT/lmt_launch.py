@@ -1,11 +1,6 @@
-from artiq.coredevice.core import Core
-from artiq.language import delay
 from artiq.language import kernel
-from artiq.language import now_mu
-from ndscan.experiment import *
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
@@ -18,6 +13,12 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
+    ShapedClockShelvingAndClearoutDipoleTrapMixin,
+)
+from repository.lib.experiment_templates.mixins.doppler_compensation import (
+    DopplerCompensationForLMTMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
@@ -33,9 +34,6 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import (
-    ShapedClockShelvingAndClearoutDipoleTrapMixin,
-)
 
 
 class LaunchFromXODTFrag(
@@ -49,10 +47,52 @@ class LaunchFromXODTFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
     """
     Launch from XODT
+
+    Load into an XODT, shelve with a Jesse pulse, then use LMT for launching
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
+
+class DoubleLaunchFromXODTFrag(
+    LMTLaunchMixin,
+    NormalisedDipoleTrapFastKineticsMixin,
+    NormalisedFastKineticsRepumpedMixin,
+    EMGain,
+    FLIRBlueMOTMeasurementMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Double launch from XODT
 
     Load into an XODT, shelve with a Jesse pulse, then use LMT for launching
 
@@ -89,6 +129,7 @@ class LaunchFromXODTShapedShelvingFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
     """
@@ -120,6 +161,10 @@ class LaunchFromXODTShapedShelvingFrag(
 
 LaunchFromXODT = make_fragment_scan_exp(
     LaunchFromXODTFrag, max_rtio_underflow_retries=0
+)
+
+DoubleLaunchFromXODT = make_fragment_scan_exp(
+    DoubleLaunchFromXODTFrag, max_rtio_underflow_retries=0
 )
 
 LaunchFromXODTShapedShelving = make_fragment_scan_exp(

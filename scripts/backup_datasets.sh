@@ -30,7 +30,7 @@ while true; do {
             --modify-window=2 \
             ./results/ \
             ${SSH_USER}@${SSH_RDS_HOST}:${RDS_RESULTS_PATH}; then
-        
+
         echo Pinging cronitor
         curl https://cronitor.link/p/5de5a2d2d5b64e9b8711a630ca78dfcc/XMCp2l
     else
@@ -40,7 +40,6 @@ while true; do {
     sshpass -f "${SSH_PASSWORD_FILE}" rsync \
         --recursive \
         --links \
-        --times \
         --quiet \
         --progress \
         --modify-window=2 \

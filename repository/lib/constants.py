@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.9e6,
+        frequency=364.871e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -102,7 +102,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=64e6,
+        frequency=61e6,
         attenuation=26.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
@@ -473,7 +473,7 @@ else:
 
 _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 20
 _ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 20
-_ANDOR_ROI_DIPOLE_WIDTH = 60
+_ANDOR_ROI_DIPOLE_WIDTH = 80
 
 
 FAST_KINETICS_DELAY_BETWEEN_PULSES = (
@@ -488,7 +488,6 @@ _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 246
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
 _ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
-
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -752,7 +751,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.786e6,
+        99.722e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -779,12 +778,12 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "up_813",
-        frequency=90e6 * 813 / 780,
-        attenuation=7.0,
+        frequency=170e6 * 813 / 780,
+        attenuation=5.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=3.5,
+        setpoint=4.0,
     ),
     SUServoedBeam(
         "dipole_trap_1064_delivery",
@@ -814,6 +813,24 @@ SUSERVOED_BEAMS = [
         servo_enabled=True,
         initial_amplitude=0.3,
         setpoint=3.0,
+    ),
+    SUServoedBeam(
+        "squeezing_cavity_698_input",
+        frequency=80e6,
+        attenuation=5.0,
+        suservo_device="suservo_aom_698_squeezing_cavity_input",
+        servo_enabled=True,
+        initial_amplitude=1,
+        setpoint=1.0,
+    ),
+    SUServoedBeam(
+        "squeezing_cavity_698_transmission",
+        frequency=80e6,
+        attenuation=5.0,
+        suservo_device="suservo_aom_698_squeezing_cavity_transmission",
+        servo_enabled=True,
+        initial_amplitude=1,
+        setpoint=1.0,
     ),
 ]
 
@@ -947,6 +964,12 @@ class ModeCentringSettings:
     fractional_current_tolerance: float = (
         0.1  # Tolerance for final position within window as fraction of window size
     )
+    settle_time: float = (
+        0.5  # Time to wait after current changes for laser to settle / s
+    )
+    wait_before_jump_back: float = (
+        0.2  # Time to wait before jumping current back during mode restoration / s
+    )
 
 
 # For every laser in TOPTICA_TO_WAND_NAMES, define default mode centring settings
@@ -958,7 +981,7 @@ DEFAULT_MODE_CENTRING_SETTINGS: dict[str, ModeCentringSettings] = {
 DEFAULT_MODE_CENTRING_SETTINGS["toptica_461"] = ModeCentringSettings(
     max_current=245e-3,
     max_restore_jump_size=4e-3,
-    target_position=0.43,  # See lab book entry 2025-10-18 and 2025-10-20
+    target_position=0.3,  # See lab book entry 2025-10-18 and 2025-10-20
     fractional_current_tolerance=0.03,  # See lab book entry 2025-10-18
     mode_check_tolerance=10e9,
 )
@@ -1118,7 +1141,7 @@ CLOCK_DELIVERY_PREEMPT_TIME = 200e-6
 DELAY_AFTER_CLOCK_SPECTROSCOPY = 250e-6
 DELAY_BETWEEN_INTERFEROMETRY_PULSES = 50e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
-    -13e3  # Will need fine-tuning whenever velocity-selection pulse is changed
+    0.0e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
 DURATION_OF_STARK_PULSE = 30e-6
 
@@ -1252,8 +1275,6 @@ XODT_MOLASSES_689_STIR_DETUNING = 555000.0
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
 if USE_SR87:
-    RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 10.0
-    RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 10.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 3.5
 
     # This is optimized for loading into the HODT, not the XODT, because the 813
@@ -1308,8 +1329,6 @@ if USE_SR87:
     XODT_2ND_MOLASSES_MOT_CURRENT = 0.0
 else:
     DELAY_BEFORE_MOLASSES = 0.01e-3
-    RED_COMPRESSION_MOT_CURRENT_START_FOR_MOLASSES = 6.0
-    RED_COMPRESSION_MOT_CURRENT_END_FOR_MOLASSES = 6.0
     RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_MOLASSES = 0.0
 
     XODT_MOLASSES_DURATION = 120e-3
@@ -1478,7 +1497,7 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 
 # LMT stuff
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
-DOWN_CLOCK_BEAM_PI_TIME = 33e-6
+DOWN_CLOCK_BEAM_PI_TIME = 32e-6
 MOMENTUM_KICK_DETUNING = 9400
-LMT_OFFSET_DETUNING = -18e3
-LMT_DOWN_BEAM_RECOIL_SHIFT = -14e3
+LMT_OFFSET_DETUNING = 7e3
+LMT_DOWN_BEAM_SHIFT = 13.6e3

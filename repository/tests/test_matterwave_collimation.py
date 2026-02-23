@@ -4,7 +4,6 @@ from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment import make_fragment_scan_exp
-from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
     PaintedMatterwaveLensingMixin,
