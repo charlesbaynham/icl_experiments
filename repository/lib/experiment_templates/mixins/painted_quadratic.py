@@ -55,6 +55,7 @@ class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
             max=100,
         )
 
+        # FIXME consider ram_offset flag
         self.setattr_fragment(
             "painter_driver",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
@@ -123,6 +124,7 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
             max=100,
         )
 
+        # FIXME remember to add a ram_offset here
         self.setattr_fragment(
             "painter_driver",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
