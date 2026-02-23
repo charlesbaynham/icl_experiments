@@ -1,4 +1,7 @@
 import logging
+from repository.lib.fragments.painted_pulse import (
+    GravityAndDiffractionCompensatedQuadraticShapedPulse,
+)
 
 from artiq.language import delay
 from artiq.language import kernel
@@ -42,15 +45,15 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
-        # self.setattr_fragment(
-        #     "painter_driver_loading",
-        #     GravityAndDiffractionCompensatedQuadraticShapedPulse,
-        #     ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
-        #     automatic_trigger=True,
-        # )
-        # self.painter_driver_loading: (
-        #     GravityAndDiffractionCompensatedQuadraticShapedPulse
-        # )
+        self.setattr_fragment(
+            "painter_driver_loading",
+            GravityAndDiffractionCompensatedQuadraticShapedPulse,
+            ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
+            automatic_trigger=True,
+        )
+        self.painter_driver_loading: (
+            GravityAndDiffractionCompensatedQuadraticShapedPulse
+        )
 
         self.setattr_fragment("mot_in_xodt", MOTInSingleXODT)
         self.mot_in_xodt: MOTInSingleXODT
