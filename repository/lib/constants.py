@@ -813,15 +813,6 @@ SUSERVOED_BEAMS = [
         setpoint=3.0,
     ),
     SUServoedBeam(
-        "squeezing_cavity_698_input",
-        frequency=80e6,
-        attenuation=5.0,
-        suservo_device="suservo_aom_698_squeezing_cavity_input",
-        servo_enabled=True,
-        initial_amplitude=1,
-        setpoint=1.0,
-    ),
-    SUServoedBeam(
         "squeezing_cavity_698_transmission",
         frequency=80e6,
         attenuation=5.0,
