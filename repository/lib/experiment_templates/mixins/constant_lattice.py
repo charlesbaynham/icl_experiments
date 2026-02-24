@@ -14,10 +14,7 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
     Leaves a list of SUServo beams on throughout the entire sequence.
 
     Current list:
-    * 1379 lattice
-    * down_813
-    * up_813
-    * dipole_trap_1064_delivery
+    * squeezing_cavity_698_transmission
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -35,12 +32,13 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
             "constant_dipole_traps_setter",
             make_set_beams_to_default(
                 suservo_beam_infos=[
-                    constants.SUSERVOED_BEAMS["lattice_input_1379"],
-                    constants.SUSERVOED_BEAMS["down_813"],
-                    constants.SUSERVOED_BEAMS["up_813"],
-                    constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
+                    # constants.SUSERVOED_BEAMS["lattice_input_1379"],
+                    # constants.SUSERVOED_BEAMS["down_813"],
+                    # constants.SUSERVOED_BEAMS["up_813"],
+                    # constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
                     # constants.SUSERVOED_BEAMS["clock_delivery"],
-                    constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"],
+                    # constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"],
+                    constants.SUSERVOED_BEAMS["squeezing_cavity_698_transmission"],
                 ],
                 urukul_beam_infos=[
                     # constants.URUKULED_BEAMS["clock_up"],
