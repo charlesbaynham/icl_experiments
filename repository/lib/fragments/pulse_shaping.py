@@ -422,13 +422,16 @@ class FrequencyShapedPulse(_ShapedPulse):
     # Have it ramp up and down
 
     def build_fragment(
-        self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
+        self,
+        centre_frequency_param_handle: FloatParamHandle,
+        ad9910_name=None,
+        ram_offset=None,
     ):
         """
         Requires you to pass a FloatParamHandle representing a parameter that
         the pulse's centre frequency will be bound to.
         """
-        super().build_fragment(ad9910_name)
+        super().build_fragment(ad9910_name, ram_offset)
 
         self.centre_frequency = centre_frequency_param_handle
 
