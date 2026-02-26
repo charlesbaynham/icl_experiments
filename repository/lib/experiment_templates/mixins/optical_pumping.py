@@ -53,12 +53,12 @@ class OpticalPumpingBase(RedMOTWithExperiment):
         )
         self.delay_after_spinpol_pulse: FloatParamHandle
 
-    def get_always_shown_params(self):
-        # Don't show params
-        param_handles = super().get_always_shown_params()
-        param_handles.remove(self.delay_before_spinpol_pulse)
-        param_handles.remove(self.delay_after_spinpol_pulse)
-        return param_handles
+    # def get_always_shown_params(self):
+    #     # Don't show params
+    #     param_handles = super().get_always_shown_params()
+    #     param_handles.remove(self.delay_before_spinpol_pulse)
+    #     param_handles.remove(self.delay_after_spinpol_pulse)
+    #     return param_handles
 
     @kernel
     def spin_polarize(self):
