@@ -36,9 +36,10 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
                     # constants.SUSERVOED_BEAMS["down_813"],
                     # constants.SUSERVOED_BEAMS["up_813"],
                     # constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
+                    constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"],
                     # constants.SUSERVOED_BEAMS["clock_delivery"],
                     # constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"],
-                    constants.SUSERVOED_BEAMS["squeezing_cavity_698_transmission"],
+                    # constants.SUSERVOED_BEAMS["squeezing_cavity_698_transmission"],
                 ],
                 urukul_beam_infos=[
                     # constants.URUKULED_BEAMS["clock_up"],
