@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 class TestMatterwaveCollimationInDipoleTrapFrag(PaintedMatterwaveLensingMixin):
 
     @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        pass
+
+    @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
         self.dds.sw.off()
