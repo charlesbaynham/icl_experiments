@@ -819,7 +819,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_698_squeezing_cavity_transmission",
         servo_enabled=True,
         initial_amplitude=1,
-        setpoint=0.3,
+        setpoint=0.25,
     ),
 ]
 
