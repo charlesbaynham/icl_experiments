@@ -36,7 +36,6 @@ class MeasureEvaporatedXODTFrag(
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    # ClearOut689Mixin,
 ):
     """
     Measure a Single XODT with evaporation
