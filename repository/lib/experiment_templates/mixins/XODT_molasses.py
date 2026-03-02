@@ -36,6 +36,8 @@ SUSERVOS_XODT = [
     "suservo_aom_down_813",
 ]
 
+SUSERVO_UP_813 = ["suservo_aom_up_813"]
+
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
     """
@@ -74,6 +76,14 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
             ),
         )
         self.transparency_setter: SetBeamsToDefaults
+
+        self.setattr_fragment(
+            "up_813_setter",
+            make_set_beams_to_default(
+                suservo_beam_infos=[constants.SUSERVOED_BEAMS["up_813"]]
+            ),
+        )
+        self.up_813_setter: SetBeamsToDefaults
 
         self.setattr_param_rebind(
             "red_narrowband_mot_689_up_start",
@@ -118,6 +128,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
                 self.red_mot.red_beam_controller.all_beam_default_setter,
                 self.dipole_beam_controller.all_beam_default_setter,
                 self.transparency_setter,
+                self.up_813_setter,
             ]
         )
 
@@ -250,7 +261,7 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
         # )
 
         self.cool_molasses.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, SUSERVOS_XODT
+            self.molasses_xodt_1, SUSERVOS_XODT + SUSERVO_UP_813
         )
 
     @kernel

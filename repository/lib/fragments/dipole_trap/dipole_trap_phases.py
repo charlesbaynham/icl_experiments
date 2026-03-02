@@ -38,6 +38,8 @@ SUSERVOS_CAVITY_LATTICE = [
     "suservo_aom_singlepass_1379_cavity_input",
 ]
 
+SUSERVO_UP_813 = ["suservo_aom_up_813"]
+
 
 class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     """
@@ -204,7 +206,7 @@ class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBias
 
     duration_default = constants.XODT_MOLASSES_DURATION
 
-    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY + SUSERVO_UP_813
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START
@@ -269,10 +271,10 @@ class MolassesDipoleRamp(GeneralRampingPhaseWithBinding):
     duration_default = 1400e-3
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT
+    suservos = SUSERVOS_XODT + SUSERVO_UP_813
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT)
+    default_suservo_nominal_setpoints = [0.0] * len(suservos)
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_COOL_MOLASSES_MULTIPLE_START

@@ -781,7 +781,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=4.0,
+        setpoint=1.6,
     ),
     SUServoedBeam(
         "dipole_trap_1064_delivery",
@@ -1260,6 +1260,7 @@ XODT_MOLASSES_689_STIR_DETUNING = 555000.0
 # "suservo_aom_1064_delivery",
 # "suservo_aom_down_813"
 # "suservo_aom_singlepass_487_transparency"
+# "suservo_aom_up_813"
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
 if USE_SR87:
@@ -1280,6 +1281,7 @@ if USE_SR87:
         1.0,
         1.0,
         0.6,
+        1.0,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1289,6 +1291,7 @@ if USE_SR87:
         1.0,
         0.7,
         0.6,
+        0.7,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         260e3,
@@ -1347,8 +1350,9 @@ else:
 
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
-XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7]
-XODT_COOL_MOLASSES_MULTIPLE_END = [0.17, 0.2]
+# order: 1064, down 813, up 813
+XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7, 0.0]
+XODT_COOL_MOLASSES_MULTIPLE_END = [0.17, 0.2, 0.0]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 1400e-3
