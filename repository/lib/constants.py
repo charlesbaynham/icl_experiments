@@ -781,7 +781,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
         initial_amplitude=0.0,
-        setpoint=1.6,
+        setpoint=1.5,
     ),
     SUServoedBeam(
         "dipole_trap_1064_delivery",
