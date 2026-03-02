@@ -261,7 +261,7 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
         # )
 
         self.cool_molasses.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, SUSERVOS_XODT + SUSERVO_UP_813
+            self.molasses_xodt_1, SUSERVOS_XODT
         )
 
     @kernel
