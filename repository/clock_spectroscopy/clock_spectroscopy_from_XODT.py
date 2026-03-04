@@ -52,6 +52,9 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTRetroedMolassesPlusDipoleRampMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 
@@ -121,7 +124,8 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
+    # XODTSingleMolassesPlusDipoleRampMixin,
+    XODTRetroedMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
