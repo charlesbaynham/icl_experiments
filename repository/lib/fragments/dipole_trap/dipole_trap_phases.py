@@ -187,8 +187,8 @@ class MolassesRetroed(GeneralRampingPhaseWithBindingAndBiasField):
     default_suservo_setpoint_multiples_end = [1] * len(SUSERVO_MOLASSES + SUSERVOS_XODT)
 
     # Chamber 2 bias coils in amps
-    general_setter_default_starts = constants.XODT_MOLASSES_BIAS_FIELD_START
-    general_setter_default_ends = constants.XODT_MOLASSES_BIAS_FIELD_END
+    general_setter_default_starts = constants.add_field_offset(0.3983, 0.0653, 0.2681)
+    general_setter_default_ends = constants.add_field_offset(0.3983, 0.0653, 0.2681)
 
 
 class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBiasField):

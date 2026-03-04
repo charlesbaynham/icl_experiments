@@ -517,6 +517,14 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         )
         self.mot_coil_current_first_molasses: FloatParamHandle
 
+        self.setattr_param(
+            "bias_current_multiple_first_molasses",
+            FloatParam,
+            "Bias field amplitude during first molasses",
+            default=1.0,
+        )
+        self.bias_current_multiple_first_molasses: FloatParamHandle
+
         self.molasses_xodt_retroed.bind_suservo_setpoint_params_to_default_beam_setter(
             [
                 self.dipole_beam_controller.all_beam_default_setter,
@@ -564,9 +572,12 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         """
         self.red_mot.chamber_2_field_setter.set_all_fields(
             self.mot_coil_current_first_molasses.get(),
-            self.molasses_xodt_retroed.general_setter_default_starts[0],
-            self.molasses_xodt_retroed.general_setter_default_starts[1],
-            self.molasses_xodt_retroed.general_setter_default_starts[2],
+            self.bias_current_multiple_first_molasses.get()
+            * self.molasses_xodt_retroed.general_setter_default_starts[0],
+            self.bias_current_multiple_first_molasses.get()
+            * self.molasses_xodt_retroed.general_setter_default_starts[1],
+            self.bias_current_multiple_first_molasses.get()
+            * self.molasses_xodt_retroed.general_setter_default_starts[2],
         )
         if self.delay_before_molasses.get() > 1e-6:
             self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
