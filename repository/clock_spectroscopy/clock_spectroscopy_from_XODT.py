@@ -3,6 +3,7 @@ import logging
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
+import repository.lib.constants as constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
@@ -140,6 +141,17 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
     """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        multiple_bias_step = 3 * self.bias_current_multiple_first_molasses.get()
+
+        self.field_only_ramp.general_setter_default_starts = constants.add_field_offset(
+            multiple_bias_step * 0.3983,
+            multiple_bias_step * 0.0653,
+            multiple_bias_step * 0.2681,
+        )
 
     @kernel
     def DMA_initialization_hook(self):
