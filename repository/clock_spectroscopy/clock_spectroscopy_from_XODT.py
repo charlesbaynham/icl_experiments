@@ -145,7 +145,7 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     def build_fragment(self):
         super().build_fragment()
 
-        multiple_bias_step = 3 * self.bias_current_multiple_first_molasses
+        multiple_bias_step = 3  # * self.bias_current_multiple_first_molasses
 
         self.field_only_ramp.general_setter_default_starts = constants.add_field_offset(
             multiple_bias_step * 0.3983,
