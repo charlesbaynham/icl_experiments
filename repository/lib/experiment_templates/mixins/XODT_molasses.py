@@ -661,6 +661,13 @@ class XODTRetroedMolassesPlusDipoleRampMixin(MolassesRetroedBeamMixin):
     def dipole_trap_molasses_hook(self):
         self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
+        # step fields
+        self.red_mot.chamber_2_field_setter.set_all_fields(
+            self.mot_coil_current_first_molasses.get(),
+            2.0 * self.molasses_xodt_retroed.general_setter_default_starts[0],
+            2.0 * self.molasses_xodt_retroed.general_setter_default_starts[1],
+            2.0 * self.molasses_xodt_retroed.general_setter_default_starts[2],
+        )
         self.dipole_trap_molasses_hook_cool_molasses()
 
     @kernel
