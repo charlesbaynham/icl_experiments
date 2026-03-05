@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.84e6,
+        frequency=364.829e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -815,7 +815,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "squeezing_cavity_698_transmission",
         frequency=80e6,
-        attenuation=6.0,
+        attenuation=14.0,
         suservo_device="suservo_aom_698_squeezing_cavity_transmission",
         servo_enabled=True,
         initial_amplitude=1,
