@@ -599,19 +599,6 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         Do the first molasses ramping phase
         """
 
-        # set field
-        multiple_bias = self.bias_current_multiple_first_molasses.get()
-        self.molasses_xodt_retroed.general_setter_default_starts = (
-            constants.add_field_offset(
-                multiple_bias * 0.3983, multiple_bias * 0.0653, multiple_bias * 0.2681
-            )
-        )
-        self.molasses_xodt_retroed.general_setter_default_ends = (
-            constants.add_field_offset(
-                multiple_bias * 0.3983, multiple_bias * 0.0653, multiple_bias * 0.2681
-            )
-        )
-
         # turn on red beams and transparency beam
 
         self.molasses_beam_default_setter.turn_on_all()
@@ -683,7 +670,7 @@ class XODTRetroedMolassesPlusDipoleRampMixin(MolassesRetroedBeamMixin):
         self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
         # step fields
-        multiple_bias_step = 3 * self.bias_current_multiple_first_molasses.get()
+        multiple_bias_step = 1 * self.bias_current_multiple_first_molasses.get()
         self.red_mot.chamber_2_field_setter.set_all_fields(
             self.mot_coil_current_first_molasses.get(),
             constants.FIELD_COMP_X + multiple_bias_step * 0.3983,
