@@ -154,7 +154,7 @@ class MOTInBottomXODT(_RedAndXODTBeamsBase):
     default_urukul_detunings_end = [0.0]
 
 
-class MolassesRetroed(GeneralRampingPhaseWithBindingAndBiasField):
+class MolassesRetroed(GeneralRampingPhaseWithBinding):
     """
     Molasses phase with retro-reflected 689 nm molasses beams
     """
@@ -185,10 +185,6 @@ class MolassesRetroed(GeneralRampingPhaseWithBindingAndBiasField):
         SUSERVO_MOLASSES + SUSERVOS_XODT
     )
     default_suservo_setpoint_multiples_end = [1] * len(SUSERVO_MOLASSES + SUSERVOS_XODT)
-
-    # Chamber 2 bias coils in amps
-    general_setter_default_starts = constants.add_field_offset(0.3983, 0.0653, 0.2681)
-    general_setter_default_ends = constants.add_field_offset(0.3983, 0.0653, 0.2681)
 
 
 class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBiasField):
