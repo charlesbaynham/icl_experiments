@@ -181,10 +181,15 @@ class MolassesRetroed(GeneralRampingPhaseWithBinding):
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0] * len(SUSERVO_MOLASSES + SUSERVOS_XODT)
     # The start setpoints must be overridden by daisy-chaining to previous phase
-    default_suservo_setpoint_multiples_start = [1] * len(
-        SUSERVO_MOLASSES + SUSERVOS_XODT
-    )
-    default_suservo_setpoint_multiples_end = [1] * len(SUSERVO_MOLASSES + SUSERVOS_XODT)
+    default_suservo_setpoint_multiples_start = [0.001, 1.0, 1.0]
+    # [1] * len(
+    #     SUSERVO_MOLASSES + SUSERVOS_XODT
+    # )
+    default_suservo_setpoint_multiples_end = [
+        0.001,
+        1.0,
+        1.0,
+    ]  # [1] * len(SUSERVO_MOLASSES + SUSERVOS_XODT)
 
 
 class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBiasField):
