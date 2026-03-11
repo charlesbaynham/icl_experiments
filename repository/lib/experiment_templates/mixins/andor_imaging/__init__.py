@@ -4,6 +4,7 @@ if "file_import" not in __name__:
         SingleAndorImage,
     )
 
+    from .atom_number_check import AtomNumberCheckMixin
     from .bg_corrected_andor_image import BGCorrectedAndorImage
     from .triple_imaging_basic import TripleImageBasicMixin
     from .triple_imaging_fast_kinetics import TripleImageDipoleTrapFastKineticsMixin
@@ -11,6 +12,7 @@ if "file_import" not in __name__:
     from .triple_imaging_fast_kinetics import TripleImageXXODTFastKineticsMixin
 
     __all__ = [
+        "AtomNumberCheckMixin",
         "BGCorrectedAndorImage",
         "SingleAndorImage",
         "TripleImageBasicMixin",
