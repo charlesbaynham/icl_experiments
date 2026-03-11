@@ -1,14 +1,13 @@
 import logging
 
-from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import rpc
-from ndscan.experiment import FloatParam
 from ndscan.experiment import Fragment
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
-from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImage,
@@ -36,12 +35,12 @@ class _AtomNumberCheckFrag(Fragment):
     def build_fragment(self) -> None:
         self.setattr_param(
             "min_atom_number",
-            FloatParam,
+            IntParam,
             description="Minimum acceptable background-corrected atom number",
-            default=0.0,
-            min=0.0,
+            default=0,
+            min=0,
         )
-        self.min_atom_number: FloatParamHandle
+        self.min_atom_number: IntParamHandle
 
         self.setattr_param(
             "enable_check",
@@ -51,8 +50,8 @@ class _AtomNumberCheckFrag(Fragment):
         )
         self.enable_check: BoolParamHandle
 
-    @host_only
-    def check_atom_number(self, atom_number: float) -> None:
+    @rpc
+    def check_atom_number(self, atom_number: int) -> None:
         """Check that *atom_number* is above the configured threshold.
 
         Args:
@@ -63,15 +62,15 @@ class _AtomNumberCheckFrag(Fragment):
         """
         if not self.enable_check.get():
             return
-        threshold = self.min_atom_number.get()
+        threshold: int = self.min_atom_number.get()
         if atom_number < threshold:
             logger.warning(
-                "Atom number %g is below threshold %g, retrying point",
+                "Atom number %g is below threshold %d, retrying point",
                 atom_number,
                 threshold,
             )
             raise TransitoryError(
-                f"Atom number {atom_number:.4g} is below threshold {threshold:.4g}"
+                f"Atom number {atom_number:.4g} is below threshold {threshold}"
             )
 
 
@@ -110,7 +109,7 @@ class AtomNumberCheckMixin(BGCorrectedAndorImage):
 
         # Stores the most recent bg-corrected atom number so it can be
         # accessed in host_functions_after_experiment_hook.
-        self._last_atom_number: float = 0.0
+        self._last_atom_number: int = 0
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
@@ -130,8 +129,4 @@ class AtomNumberCheckMixin(BGCorrectedAndorImage):
 
     @kernel
     def host_functions_after_experiment_hook_atom_number_check(self):
-        self._do_atom_number_check()
-
-    @rpc
-    def _do_atom_number_check(self):
         self.atom_number_check.check_atom_number(self._last_atom_number)
