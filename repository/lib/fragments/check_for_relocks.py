@@ -5,6 +5,7 @@ import numpy as np
 from artiq.language.core import host_only
 from artiq.language.core import rpc
 from ndscan.experiment.fragment import Fragment
+from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.result_channels import IntChannel
 from relocker_driver.driver import RelockerDriver
 
@@ -77,8 +78,8 @@ class CheckForRelocksFrag(Fragment):
     @rpc
     def check_and_log_relocks(self) -> np.int32:
         relocks_total = 0
-        num_relolocks = self.check_for_relocks()
-        for i, n in enumerate(num_relolocks):
+        num_relocks = self.check_for_relocks()
+        for i, n in enumerate(num_relocks):
             if n:
                 logger.info(
                     "%s relocker relocked %d times during the experiment",
@@ -92,4 +93,7 @@ class CheckForRelocksFrag(Fragment):
             logger.warning(
                 "Total number of ijd relocks during the experiment: %d", relocks_total
             )
-        return int(sum(num_relolocks))
+            # FIXME
+            raise TransitoryError
+
+        return int(sum(num_relocks))

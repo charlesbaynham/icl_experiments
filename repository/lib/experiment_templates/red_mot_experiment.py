@@ -520,8 +520,6 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         Default implementation of the host functions after experiment hook
         """
         self.relock_checker.check_and_log_relocks()
-        # if relocks != 0:
-        #     raise TransitoryError
 
 
 # %%
