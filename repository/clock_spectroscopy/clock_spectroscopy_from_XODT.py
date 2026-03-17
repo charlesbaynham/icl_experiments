@@ -124,7 +124,7 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     XODTSingleMolassesPlusDipoleRampMixin,
     # XODTRetroedMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsWithFieldRampMixin,
-    # OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperiment,
 ):
