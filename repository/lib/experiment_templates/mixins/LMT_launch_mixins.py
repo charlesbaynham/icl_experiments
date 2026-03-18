@@ -416,11 +416,13 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=50e-6,  # self.clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=50e-6,  # self.clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
         delay_mu(8)
+
+        delay(10e-6)
 
 
 class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
