@@ -328,11 +328,7 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @kernel
     def post_sequence_cleanup_hook(self):
-        logger.warning("Doing Andor post sequence cleanup")
         self.post_sequence_cleanup_hook_base()
-        logger.warning(
-            "Finished base post sequence cleanup, now doing Andor specific cleanup"
-        )
         self.post_sequence_cleanup_hook_andor()
 
     @kernel
