@@ -5,6 +5,8 @@ import numpy as np
 from artiq.language.core import host_only
 from artiq.language.core import rpc
 from ndscan.experiment.fragment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.result_channels import IntChannel
 from relocker_driver.driver import RelockerDriver
 
@@ -20,6 +22,14 @@ class CheckForRelocksFrag(Fragment):
 
     def build_fragment(self, reset_at_start: bool = True):
         self.reset_at_start = reset_at_start
+
+        self.setattr_param(
+            "enabled",
+            BoolParam,
+            "Enable relock checks",
+            default=True,
+        )
+        self.enabled: BoolParamHandle
 
         self.relockers: List[RelockerDriver] = []
         self.num_relock_channels: List[IntChannel] = []
@@ -48,7 +58,7 @@ class CheckForRelocksFrag(Fragment):
     def host_setup(self):
         super().host_setup()
         # reset the relocker stats at the start of the scan
-        if self.reset_at_start:
+        if self.enabled.get() and self.reset_at_start:
             self.check_for_relocks()
 
     @host_only
@@ -76,6 +86,12 @@ class CheckForRelocksFrag(Fragment):
 
     @rpc
     def check_and_log_relocks(self) -> np.int32:
+        if not self.enabled.get():
+            for channel in self.num_relock_channels:
+                channel.push(0)
+            self.total_relocks.push(0)
+            return 0
+
         relocks_total = 0
         num_relolocks = self.check_for_relocks()
         for i, n in enumerate(num_relolocks):
