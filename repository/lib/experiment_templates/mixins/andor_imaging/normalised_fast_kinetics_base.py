@@ -397,7 +397,7 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
             "temporary_delay_between_series",
             FloatParam,
             "Temporary delay between first and second fast kinetics series",
-            default=100e-3,
+            default=200e-3,
             min=0.0,
             unit="ms",
         )
@@ -530,7 +530,10 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         self.post_first_series()  # call rpc to get images, start next acquisition
 
         # FIXME This is a temporary patch for an experiment we're running - do not merge it to master
-        at_mu(t_start_first_series_mu + self.temporary_delay_between_series.get())
+        at_mu(
+            t_start_first_series_mu
+            + self.core.seconds_to_mu(self.temporary_delay_between_series.get())
+        )
         self.pre_second_series()
         self.do_second_series()
         self.post_second_series()  # call rpc to get images
