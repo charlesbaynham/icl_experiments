@@ -1,6 +1,5 @@
 import logging
 
-from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (

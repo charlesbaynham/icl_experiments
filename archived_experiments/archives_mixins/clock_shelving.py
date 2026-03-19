@@ -1,5 +1,5 @@
-from artiq.language import kernel
 from artiq.language import delay_mu
+from artiq.language import kernel
 from numpy import int64
 
 from repository.lib.experiment_templates.mixins.clock_shelving import (

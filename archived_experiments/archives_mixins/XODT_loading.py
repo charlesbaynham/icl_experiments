@@ -1,9 +1,9 @@
 import logging
 
-
 from artiq.language import kernel
-from repository.lib.fragments.dipole_trap.dipole_trap_phases import DipoleRamp1064
+
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.fragments.dipole_trap.dipole_trap_phases import DipoleRamp1064
 
 logger = logging.getLogger(__name__)
 
