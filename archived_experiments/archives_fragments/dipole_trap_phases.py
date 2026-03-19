@@ -1,9 +1,8 @@
 import logging
 
 import repository.lib.constants as constants
-from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
-
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT
+from repository.lib.fragments.ramping_phase_bound import GeneralRampingPhaseWithBinding
 
 logger = logging.getLogger(__name__)
 

@@ -9,9 +9,6 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
     TripleImageDipoleTrapFastKineticsMixin,
 )

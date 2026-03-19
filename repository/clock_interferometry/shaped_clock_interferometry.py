@@ -1,6 +1,5 @@
 import logging
 
-from artiq.language import delay_mu
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
