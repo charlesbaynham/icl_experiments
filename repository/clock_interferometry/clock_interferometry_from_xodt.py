@@ -110,6 +110,7 @@ class DifferentialClockInterferometryWithNoiseFrag(
     Clock interferometry from a double XODT with added noise
     """
 
+    @kernel
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
@@ -133,6 +134,7 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
         self.host_functions_after_experiment_hook_signal_injection()
         self.host_functions_after_experiment_hook_glitch_counter()
 
+    @kernel
     def post_sequence_cleanup_hook(self):
         logger.warning(
             "Doing post sequence cleanup for interferometry with noise and signal"
