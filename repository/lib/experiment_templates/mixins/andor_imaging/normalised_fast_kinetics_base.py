@@ -530,6 +530,14 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         self.post_first_series()  # call rpc to get images, start next acquisition
 
         # FIXME This is a temporary patch for an experiment we're running - do not merge it to master
+        logger.critical(
+            "Start: %i, delay: %f s, Next: %i",
+            t_start_first_series_mu,
+            self.temporary_delay_between_series.get(),
+            t_start_first_series_mu
+            + self.core.seconds_to_mu(self.temporary_delay_between_series.get()),
+        )
+
         at_mu(
             t_start_first_series_mu
             + self.core.seconds_to_mu(self.temporary_delay_between_series.get())
@@ -537,6 +545,10 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         self.pre_second_series()
         self.do_second_series()
         self.post_second_series()  # call rpc to get images
+
+        logger.critical(
+            "Finished second series at: %i", self.core.get_rtio_counter_mu()
+        )
 
     @kernel
     def do_first_series(self):
