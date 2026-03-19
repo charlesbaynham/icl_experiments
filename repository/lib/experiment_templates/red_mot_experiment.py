@@ -306,21 +306,28 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         delay(self.delay_after_experiment.get())
         self.do_imaging_hook()
+        logger.warning("Cleaning up after sequence")
         self.post_sequence_cleanup_hook()
+        logger.warning("post sequence cleanup done, waiting for data saving etc.")
 
         self.core.wait_until_mu(now_mu())
+        logger.warning("waiting")
+
         # Normally I'd only have one hook for a given purpose, but since we
         # often want to do one thing with the FLIR camera and another with the
         # ANDOR, and since ARTIQ doesn't support inheritance properly, it's
         # easier to have two methods.
         # This one is intended for the FLIR cameras:
         self.save_flir_data_hook()
+        logger.warning("save Flir")
 
         # This one for the Andor
         self.save_andor_data_hook()
+        logger.warning("save andor")
 
         # Do extra functions at end of experiment
         self.host_functions_after_experiment_hook()
+        logger.warning("after experiment")
 
     # %% Hooks / overridable methods
     #
@@ -351,6 +358,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         """
         with parallel:
             self.do_imaging_hook_andor()
+            logger.warning("do imaging hook andor done, now doing flir")
             self.do_imaging_hook_flir()
 
     @kernel
@@ -385,6 +393,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
     @kernel
     def post_sequence_cleanup_hook_base(self):
+        logger.warning("Doing base post sequence cleanup")
         self.core.break_realtime()
         self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
         self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(

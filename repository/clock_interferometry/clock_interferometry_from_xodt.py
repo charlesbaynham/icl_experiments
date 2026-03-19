@@ -134,9 +134,17 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
         self.host_functions_after_experiment_hook_glitch_counter()
 
     def post_sequence_cleanup_hook(self):
+        logger.warning(
+            "Doing post sequence cleanup for interferometry with noise and signal"
+        )
         self.post_sequence_cleanup_hook_base()
+        logger.warning("Finished base post sequence cleanup, now doing Andor cleanup")
         self.post_sequence_cleanup_hook_andor()
+        logger.warning(
+            "Finished Andor post sequence cleanup, now doing shelving cleanup"
+        )
         self.post_sequence_cleanup_hook_shelving()
+        logger.warning("Finished shelving post sequence cleanup")
 
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
