@@ -65,7 +65,7 @@ class LMTBase(
             "up_switch_detuning_higher_intensity",
             FloatParam,
             "Detuning on the up switch AOM during lmt pulses",
-            default=2.8e3,
+            default=2.2e3,
             unit="kHz",
         )
         self.up_switch_detuning_higher_intensity: FloatParamHandle
@@ -416,10 +416,10 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=50e-6,  # self.clearout_duration.get(),
-        #     ignore_final_shutters=True,
-        # )
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=50e-6,  # self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
         delay_mu(8)
 
         delay(10e-6)

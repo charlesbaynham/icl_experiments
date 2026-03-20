@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.829e6,
+        frequency=364.83e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -749,7 +749,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.63e6,
+        99.626e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1111,8 +1111,8 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 
 # Clock stuff
 
-CLOCK_PI_TIME = 42e-6
-CLOCK_DOWN_PI_TIME = 32e-6
+CLOCK_PI_TIME = 55e-6
+CLOCK_DOWN_PI_TIME = 68e-6
 CLOCK_SHELVING_PULSE_TIME = 380e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
@@ -1473,5 +1473,5 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
 DOWN_CLOCK_BEAM_PI_TIME = 32e-6
 MOMENTUM_KICK_DETUNING = 9400
-LMT_OFFSET_DETUNING = 7e3
+LMT_OFFSET_DETUNING = -6e3
 LMT_DOWN_BEAM_SHIFT = 13.6e3
