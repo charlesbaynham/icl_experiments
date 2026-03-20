@@ -73,7 +73,7 @@ pytest:
   # update_test_durations job).
   parallel: 8
   script:
-  - nix run .#pytest -- --runslow --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX -n auto
+  - nix run .#pytest -- --runslow --splitting-algorithm least_duration --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX
   coverage: /^TOTAL.+?(\d+\%)$/
   needs: []
   artifacts:
