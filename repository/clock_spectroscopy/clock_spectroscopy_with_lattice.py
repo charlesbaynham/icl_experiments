@@ -18,9 +18,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
 )
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
-)
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
