@@ -20,9 +20,12 @@ stages:
   - if [ ! -z '$CACHIX_CACHE_NAME' ]; then cachix use $CACHIX_CACHE_NAME; fi
 
 cache:
-  key: ${CI_JOB_NAME}
-  paths:
-  - .cache
+  - key: ${CI_JOB_NAME}
+    paths:
+    - .cache
+  - key: test-durations
+    paths:
+    - .test_durations
 
 ### Linting ###
 
@@ -66,7 +69,8 @@ pytest:
   stage: Test
   # Split tests across parallel CI nodes using pytest-split for time-based
   # distribution, combined with pytest-xdist (-n auto) for intra-node
-  # parallelism. .test_durations is managed manually and committed to the repo.
+  # parallelism. .test_durations is pulled from cache (updated by the
+  # update_test_durations job).
   parallel: 8
   script:
   - nix run .#pytest -- --runslow --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX -n auto
@@ -74,10 +78,20 @@ pytest:
   needs: []
   artifacts:
     when: always
-    paths:
-    - .test_durations
     reports:
       junit: report.xml
+
+update_test_durations:
+  extends: .deps
+  stage: Test
+  rules:
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+  - if: $UPDATE_TEST_DURATIONS == "true"
+  timeout: 3h
+  script:
+  - nix run .#pytest -- --runslow --store-durations
+  - echo "Durations updated in cache"
+  needs: []
 
 ### Documentation ###
 
