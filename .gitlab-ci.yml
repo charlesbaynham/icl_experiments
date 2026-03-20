@@ -5,7 +5,6 @@ stages:
 - Static Analysis
 - Build
 - Test
-- Full test
 - Compile Documentation
 - Build Documentation
 
@@ -65,12 +64,18 @@ nix_build:
 pytest:
   extends: .deps
   stage: Test
+  # Split tests across parallel CI nodes using pytest-split for time-based
+  # distribution, combined with pytest-xdist (-n auto) for intra-node
+  # parallelism. .test_durations is managed manually and committed to the repo.
+  parallel: 8
   script:
-  - nix run .#pytest -- --runslow
+  - nix run .#pytest -- --runslow --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX -n auto --store-durations
   coverage: /^TOTAL.+?(\d+\%)$/
   needs: []
   artifacts:
     when: always
+    paths:
+    - .test_durations
     reports:
       junit: report.xml
 
