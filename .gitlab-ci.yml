@@ -86,6 +86,7 @@ update_test_durations:
   stage: Test
   rules:
   - if: $CI_PIPELINE_SOURCE == "schedule"
+  - if: $UPDATE_TEST_DURATIONS == "true"
   timeout: 3h
   script:
   - nix run .#pytest -- --runslow --store-durations
