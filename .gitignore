@@ -13,6 +13,10 @@ _build
 html_out
 report.xml
 
+# Generated automatically by nix git-hooks
+# See https://github.com/cachix/git-hooks.nix
+.pre-commit-config.yaml
+
 # ARTIQ outputs
 dataset_db.mdb*
 /*.pyon

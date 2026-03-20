@@ -33,10 +33,8 @@ pre-commit:
   extends: .deps
   needs: []
   stage: Static Analysis
-  variables:
-    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
   script:
-  - nix run .#pre-commit
+  - nix flake check --print-build-logs
   allow_failure: true
 
 check_for_fixme:
