@@ -20,12 +20,12 @@ stages:
   - if [ ! -z '$CACHIX_CACHE_NAME' ]; then cachix use $CACHIX_CACHE_NAME; fi
 
 cache:
-  - key: ${CI_JOB_NAME}
-    paths:
-    - .cache
-  - key: test-durations
-    paths:
-    - .test_durations
+- key: ${CI_JOB_NAME}
+  paths:
+  - .cache
+- key: test-durations
+  paths:
+  - .test_durations
 
 ### Linting ###
 

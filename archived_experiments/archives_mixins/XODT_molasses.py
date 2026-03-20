@@ -1,4 +1,3 @@
-
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
