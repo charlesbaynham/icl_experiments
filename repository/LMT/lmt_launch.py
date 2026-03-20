@@ -32,6 +32,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTRetroedMolassesPlusDipoleRampMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 
@@ -43,8 +46,9 @@ class LaunchFromXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    XODTRetroedMolassesPlusDipoleRampMixin,
+    # XODTSingleMolassesPlusDipoleRampMixin,
+    # OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
