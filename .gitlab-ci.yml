@@ -69,7 +69,7 @@ pytest:
   # parallelism. .test_durations is managed manually and committed to the repo.
   parallel: 8
   script:
-  - nix run .#pytest -- --runslow --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX -n auto --store-durations
+  - nix run .#pytest -- --runslow --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX -n auto
   coverage: /^TOTAL.+?(\d+\%)$/
   needs: []
   artifacts:
