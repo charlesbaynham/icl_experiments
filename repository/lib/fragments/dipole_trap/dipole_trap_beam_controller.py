@@ -120,9 +120,9 @@ class DipoleBeamController(Fragment):
 
         # Look up the SUServo setpoints from the default beam setter
         for i in range(len(self.suservo_nominal_amplitudes)):
-            self.suservo_nominal_amplitudes[
-                i
-            ] = self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            self.suservo_nominal_amplitudes[i] = (
+                self.all_beam_default_setter.get_suservo_setpoint_by_index(i)
+            )
 
         self.core.break_realtime()
 
