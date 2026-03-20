@@ -1,20 +1,18 @@
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesMixin,
-    EvapAndFieldRampBase,
-)
-
-import logging
 
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-
 from repository.lib import constants
-
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvapAndFieldRampBase,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    EvapAndFieldRampBase,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesMixin,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import SUSERVOS_XODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MolassesInXODT_2

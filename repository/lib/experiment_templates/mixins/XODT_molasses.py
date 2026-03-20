@@ -315,6 +315,9 @@ class XODTSingleMolassesPlusFieldRampMixin(
     * :meth:`~set_postnarrowband_fields_hook`
     """
 
+    def _bind_evap_ramp_suservo_params(self):
+        pass  # daisy_chain_with_previous_phase below handles the binding instead
+
     def build_fragment(self):
         super().build_fragment()
 

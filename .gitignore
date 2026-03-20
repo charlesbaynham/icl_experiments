@@ -1,4 +1,5 @@
 ## added by CFAB:
+.claude/settings.local.json
 *.elf
 todo.txt
 *.swp

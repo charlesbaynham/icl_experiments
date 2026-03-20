@@ -9,9 +9,6 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (
     TripleImageDipoleTrapFastKineticsMixin,
 )
@@ -20,9 +17,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
-)
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
@@ -62,7 +56,6 @@ class ClockSpecFromLatticeFrag(
 
 class ClockSpecFromVerticalLatticeFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    ConstantBeamsMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
