@@ -97,7 +97,7 @@ def find_hook_methods_in_file(filepath: Path) -> List[HookMethodInfo]:
             source = f.read()
 
         tree = ast.parse(source)
-    except (SyntaxError, UnicodeDecodeError, FileNotFoundError) as e:
+    except (SyntaxError, UnicodeDecodeError, FileNotFoundError):
         return hook_methods
 
     for node in ast.walk(tree):
@@ -191,7 +191,7 @@ def collect_all_hook_methods(repository_path: Path) -> Dict[str, List[HookMethod
     for filepath in python_files:
         # Get the module name from the file path
         relative_path = filepath.relative_to(repository_path.parent)
-        module_parts = list(relative_path.with_suffix("").parts)
+        list(relative_path.with_suffix("").parts)
 
         hook_methods = find_hook_methods_in_file(filepath)
 

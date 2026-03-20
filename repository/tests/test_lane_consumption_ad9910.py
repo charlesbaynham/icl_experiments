@@ -3,7 +3,10 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
-from artiq.experiment import *
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
+from artiq.experiment import StringValue
+from artiq.experiment import kernel
 from artiq.language import delay
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp

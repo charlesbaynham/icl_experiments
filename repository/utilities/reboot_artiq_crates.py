@@ -3,7 +3,8 @@ import random
 import time
 
 import requests
-from artiq.experiment import *
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
 
 logger = logging.getLogger(__name__)
 

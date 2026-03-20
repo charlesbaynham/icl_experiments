@@ -1135,13 +1135,13 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
         delay_mu(16)
 
         t_pi_down = self.down_pulses_duration.get()
-        t_pi_up = self.spectroscopy_pulse_time.get()
+        self.spectroscopy_pulse_time.get()
 
         lmt_detuning = self.lmt_launch_offset_detuning_double_cloud.get()
-        N_launch = self.lmt_launch_pulses_number.get()
+        self.lmt_launch_pulses_number.get()
         upper_selective_det = self.launch_upper_selective_cloud_detuning.get()
-        lower_selective_det = self.launch_lower_selective_cloud_detuning.get()
-        last_detuning = self.double_launch_last_pulse_detuning.get()
+        self.launch_lower_selective_cloud_detuning.get()
+        self.double_launch_last_pulse_detuning.get()
 
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         delay_mu(8)
@@ -1664,19 +1664,19 @@ class ShapedFirstPulseLMTInterferometryMixin(
 
         N = self.lmt_pulses_number.get()
         t_pi_down = self.down_pulses_duration.get()
-        t_first_pi = self.first_lmt_duration.get()
+        self.first_lmt_duration.get()
 
         # frequencies
         first_freq = self.first_lmt_freq.get()
         bs1_lmt_offset = self.bs1_lmt_offset_detuning.get()
         upper_mirror_offset = self.upper_mirror_offset_detuning.get()
-        last_upper_mirror_freq = self.last_upper_mirror_lmt_freq.get()
+        self.last_upper_mirror_lmt_freq.get()
         mirror_freq = self.mirror_pulse_freq.get()
-        first_lower_mirror_freq = self.first_lower_mirror_lmt_freq.get()
-        lower_mirror_offset = self.lower_mirror_offset_detuning.get()
-        bs_detuning_lower = self.lower_arm_bs_detuning.get()
-        last_selective_lower_bs_freq = self.last_selective_lower_bs_freq.get()
-        last_bs_freq = self.last_bs_freq.get()
+        self.first_lower_mirror_lmt_freq.get()
+        self.lower_mirror_offset_detuning.get()
+        self.lower_arm_bs_detuning.get()
+        self.last_selective_lower_bs_freq.get()
+        self.last_bs_freq.get()
 
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
             2e-6
