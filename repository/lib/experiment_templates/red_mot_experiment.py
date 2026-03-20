@@ -56,7 +56,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
-from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
@@ -64,7 +64,7 @@ from repository.lib.fragments.timestamp_synchronizer import Timestamper
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithExperiment(ExpFragment, abc.ABC):
+class RedMOTWithExperiment(RedMOTCheckpoints, ExpFragment, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -201,7 +201,21 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.core.break_realtime()
 
-        self.DMA_initialization_hook()
+        self.DMA_initialization_checkpoint()
+
+    @kernel
+    def DMA_initialization_checkpoint(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()
+        self.red_mot.broadband_red_phase.precalculate_dma_handle()
+        self.red_mot.narrow_red_capture_phase.precalculate_dma_handle()
+        self.red_mot.narrow_red_compression_phase.precalculate_dma_handle()
+
+        self.DMA_initialization_checkpoint_subfragments()
 
     @kernel
     def DMA_initialization_hook(self):
@@ -233,7 +247,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             self.blue_3d_mot.load_magnetic_trap()
         else:
             self.blue_3d_mot.load_mot(clearout=True)
-        self.end_of_blue_3d_mot_loading_hook()
+        self.end_of_blue_3d_mot_loading_checkpoint()
 
         # The ordering here looks odd because we're working around lane
         # constraints. The blue transfer MOT phase will queue lots of events
@@ -259,7 +273,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
                 # Turn on the red beams and start ramping them
                 self.red_mot.prepare_for_broadband_phase()
                 # Hook for mixins to use - default nothing
-                self.start_of_red_broadband_hook()
+                self.start_of_red_broadband_checkpoint()
                 # Save the time now so we can come back to it
                 t_red_light_on = now_mu()
             # Turn off the blue beams, a little after the red MOT starts
@@ -278,7 +292,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         at_mu(t_red_light_on)
         self.red_mot.broadband_red_phase.do_phase()
 
-        self.end_of_broadband_mot_hook()
+        self.end_of_broadband_mot_checkpoint()
 
         self.red_mot.terminate_broadband_mot()
         self.set_narrowband_fields_hook()
@@ -287,12 +301,15 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
+        # in the hook after completing whatever checkpoint actions were defined
+        # by sub-fragments
         self.post_narrowband_hook()
+        self.post_narrowband_checkpoint()
 
         # Do any other pre-expansion actions. By default, none
         t_light_off_mu = now_mu()
 
-        self.pre_expansion_hook()
+        self.pre_expansion_checkpoint()
 
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
@@ -306,7 +323,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         delay(self.delay_after_experiment.get())
         self.do_imaging_hook()
-        self.post_sequence_cleanup_hook()
+        self.post_sequence_cleanup_checkpoint()
 
         self.core.wait_until_mu(now_mu())
         # Normally I'd only have one hook for a given purpose, but since we
@@ -319,8 +336,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         # This one for the Andor
         self.save_andor_data_hook()
 
-        # Do extra functions at end of experiment
-        self.host_functions_after_experiment_hook()
+        self.after_data_saved_checkpoint()
 
     # %% Hooks / overridable methods
     #
@@ -375,6 +391,16 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         Run after the sequence has ended. This hook is intended to save data
         from the FLIR cameras.
         """
+
+    @kernel
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+
+        # Reset the MOT beams to allow AOMs to settle before the next shot
+        self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
+        self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
+            light_enabled=False
+        )
 
     @kernel
     def post_sequence_cleanup_hook(self):
