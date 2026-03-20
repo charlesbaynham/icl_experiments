@@ -73,7 +73,7 @@ pytest:
   # update_test_durations job).
   parallel: 8
   script:
-  - nix run .#pytest -- --runslow --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX -n auto
+  - nix run .#pytest -- --runslow --splits $CI_NODE_TOTAL --group $CI_NODE_INDEX
   coverage: /^TOTAL.+?(\d+\%)$/
   needs: []
   artifacts:
@@ -85,10 +85,10 @@ update_test_durations:
   extends: .deps
   stage: Test
   rules:
-  - if: $CI_PIPELINE_SOURCE == "schedule" && $UPDATE_TEST_DURATIONS == "true"
-  timeout: 2h
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+  timeout: 3h
   script:
-  - nix run .#pytest -- --runslow --store-durations -n auto
+  - nix run .#pytest -- --runslow --store-durations
   - echo "Durations updated in cache"
   needs: []
 
