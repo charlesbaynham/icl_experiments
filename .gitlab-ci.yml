@@ -85,7 +85,7 @@ update_test_durations:
   extends: .deps
   stage: Test
   rules:
-  - if: $UPDATE_TEST_DURATIONS == "true"
+  - if: $CI_PIPELINE_SOURCE == "schedule" && $UPDATE_TEST_DURATIONS == "true"
   timeout: 2h
   script:
   - nix run .#pytest -- --runslow --store-durations -n auto
