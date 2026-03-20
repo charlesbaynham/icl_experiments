@@ -181,6 +181,31 @@ To launch this stack, use `nix run .#full_stack` or run the script in this
 repository called `run_artiq.sh`.
 
 
+Testing
+=======
+
+Unit tests are enabled and highly recommended. While testing code that
+interacts with the ARTIQ kernel is difficult, testing utility functions is done
+via pytest. To run tests locally::
+
+   nix run .#pytest
+
+To run a specific test or test file, pass arguments::
+
+   nix run .#pytest -- -k test_name
+
+Updating test durations
+-----------------------
+
+The CI uses pytest-split to distribute tests across parallel runners based on
+their duration. The test duration data is stored in `.test_durations` and should
+be updated periodically to ensure optimal test distribution. To update it, run::
+
+   nix run .#pytest -- --store-durations
+
+Then commit the updated `.test_durations` file.
+
+
 
 Dependencies
 ============
