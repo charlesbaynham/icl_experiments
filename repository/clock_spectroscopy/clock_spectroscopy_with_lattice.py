@@ -59,7 +59,6 @@ class ClockSpecFromLatticeFrag(
 
 class ClockSpecFromVerticalLatticeFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
-    ConstantBeamsMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
