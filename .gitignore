@@ -1,5 +1,3 @@
-.worktrees/
-
 ## added by CFAB:
 .claude/settings.local.json
 *.elf
