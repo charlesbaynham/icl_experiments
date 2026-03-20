@@ -1,5 +1,6 @@
 import logging
 
+from artiq.experiment import rpc
 from ndscan.experiment.result_channels import FloatChannel
 
 from repository.lib import constants
@@ -55,6 +56,7 @@ class AbsorptionDoubleDipoleTrapMixin(AbsorptionImagingBase):
         )
         self.atom_number_ratio: FloatChannel
 
+    @rpc(flags={"async"})
     def process_andor_image_hook(self, images):
         super().process_andor_image_hook(images)
         atoms_img = images[0]

@@ -5,6 +5,7 @@ import numpy as np
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import parallel
+from artiq.language import rpc
 from artiq.language.core import delay
 from ndscan.experiment import FloatChannel
 from ndscan.experiment import OpaqueChannel
@@ -217,7 +218,7 @@ class AbsorptionImagingBase(AndorImagingBase):
             if with_light:
                 self.fluorescence_pulse.do_imaging_pulse(ignore_final_shutters=True)
 
-    @host_only
+    @rpc(flags={"async"})
     def process_andor_image_hook(self, images):
         atoms_img = images[0]
         light_img = images[1]
