@@ -316,7 +316,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
         self.atom_number.push(atom_number)
 
-    @host_only
+    @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
@@ -588,7 +588,7 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
 
         self.atom_number.push(atom_number)
 
-    @host_only
+    @rpc(flags={"async"})
     def process_andor_image_hook(self, images: NDArray):
         super().process_andor_image_hook(images)
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
