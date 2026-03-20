@@ -3,7 +3,8 @@ from typing import Optional
 
 import numpy as np
 from artiq.master.worker_impl import CCB
-from ndscan.experiment import *
+from ndscan.experiment import FloatParam
+from ndscan.experiment import kernel
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import abs
 from numpy import log

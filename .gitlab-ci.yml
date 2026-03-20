@@ -2,132 +2,132 @@
 image: nixpkgs/cachix-flakes
 
 stages:
-- Static Analysis
-- Build
-- Test
-- Full test
-- Compile Documentation
-- Build Documentation
+    - Static Analysis
+    - Build
+    - Test
+    - Full test
+    - Compile Documentation
+    - Build Documentation
 
 .deps:
-  before_script:
+    before_script:
         # Store the CI_JOB_TOKEN so that jobs can access other repositories with the access rights of the triggering user:
-  - echo -e "machine ${CI_SERVER_HOST}\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > ~/.netrc
-        # Set up git so that test commits don't fail
-  - echo [user] > ~/.gitconfig
-  - echo name = Gitlabs CI Testing >> ~/.gitconfig
-  - echo email = test@example.com >> ~/.gitconfig
-        # If a Cachix cache was passed, use it
-  - if [ ! -z '$CACHIX_CACHE_NAME' ]; then cachix use $CACHIX_CACHE_NAME; fi
+        - echo -e "machine ${CI_SERVER_HOST}\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > ~/.netrc
+          # Set up git so that test commits don't fail
+        - echo [user] > ~/.gitconfig
+        - echo name = Gitlabs CI Testing >> ~/.gitconfig
+        - echo email = test@example.com >> ~/.gitconfig
+          # If a Cachix cache was passed, use it
+        - if [ ! -z '$CACHIX_CACHE_NAME' ]; then cachix use $CACHIX_CACHE_NAME; fi
 
 cache:
-  key: ${CI_JOB_NAME}
-  paths:
-  - .cache
+    key: ${CI_JOB_NAME}
+    paths:
+        - .cache
 
 ### Linting ###
 
 pre-commit:
-  extends: .deps
-  needs: []
-  stage: Static Analysis
-  script:
-  - nix flake check --print-build-logs
-  allow_failure: true
+    extends: .deps
+    needs: []
+    stage: Static Analysis
+    script:
+        - nix flake check --print-build-logs
+    allow_failure: true
 
 check_for_fixme:
-  extends: .deps
-  stage: Static Analysis
-  script:
-  - nix run .#check_for_fixme
-  needs: []
+    extends: .deps
+    stage: Static Analysis
+    script:
+        - nix run .#check_for_fixme
+    needs: []
 
 ### Builder ###
 
 # If the environmental variables CACHIX_CACHE_NAME and CACHIX_AUTH_TOKEN are set,
 # build the package and the devShell and push the results to cachix
 nix_build:
-  extends: .deps
-  needs: []
-  stage: Build
-  rules:
-  - if: $CACHIX_CACHE_NAME && $CACHIX_AUTH_TOKEN && $CI_PIPELINE_SOURCE == "push"
-  script:
-  - cachix watch-exec $CACHIX_CACHE_NAME -- nix develop -c echo Build complete
-    # We shouldn't have to do this, but the cachix upload is broken. It's ok, the
-    # pytest stage will still catch nix errors
-  allow_failure: true
+    extends: .deps
+    needs: []
+    stage: Build
+    rules:
+        - if: $CACHIX_CACHE_NAME && $CACHIX_AUTH_TOKEN && $CI_PIPELINE_SOURCE == "push"
+    script:
+        - cachix watch-exec $CACHIX_CACHE_NAME -- nix develop -c echo Build complete
+          # We shouldn't have to do this, but the cachix upload is broken. It's ok, the
+          # pytest stage will still catch nix errors
+    allow_failure: true
 
 ### Tests ###
 
 pytest:
-  extends: .deps
-  stage: Test
-  script:
-  - nix run .#pytest -- --runslow
-  coverage: /^TOTAL.+?(\d+\%)$/
-  needs: []
-  artifacts:
-    when: always
-    reports:
-      junit: report.xml
+    extends: .deps
+    stage: Test
+    script:
+        - nix run .#pytest -- --runslow
+    coverage: /^TOTAL.+?(\d+\%)$/
+    needs: []
+    artifacts:
+        when: always
+        reports:
+            junit: report.xml
 
 ### Documentation ###
 
 # Build the documentation
 make_docs:
-  extends: .deps
-  stage: Compile Documentation
-  needs: []
-  script:
-  - nix build .#docs_html
-  - mkdir html_out && cp -r result/* html_out/.
-  - nix build .#docs_latex
-  - mkdir latex && cp -r result/* latex/.
+    extends: .deps
+    stage: Compile Documentation
+    needs: []
+    script:
+        - nix build .#docs_html
+        - mkdir html_out && cp -r result/* html_out/.
+        - nix build .#docs_latex
+        - mkdir latex && cp -r result/* latex/.
 
-  artifacts:
-    paths:
-    - latex
-    - html_out
-    expire_in: 1 hour
-  rules:
-  - if: $CI_COMMIT_BRANCH == "master"
-    when: always
-  - if: $CI_COMMIT_TAG
-    when: always
+    artifacts:
+        paths:
+            - latex
+            - html_out
+        expire_in: 1 hour
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
+          when: always
+        - if: $CI_COMMIT_TAG
+          when: always
 
 # Build a pdf
 pdf_compile:
-  needs: [make_docs]
-  stage: Build Documentation
-  image: charlesbaynham/ctanfull
-  artifacts:
-    paths:
-    - '*.pdf'
-    name: ${CI_COMMIT_REF_SLUG}_manual.pdf
-  script:
-  - cd latex
-  - make
-  - cp *.pdf ..
-  rules:
-  - if: $CI_COMMIT_BRANCH == "master"
-    when: always
-  - if: $CI_COMMIT_TAG
-    when: always
+    needs: [make_docs]
+    stage: Build Documentation
+    image: charlesbaynham/ctanfull
+    artifacts:
+        paths:
+            - "*.pdf"
+        name: ${CI_COMMIT_REF_SLUG}_manual.pdf
+    script:
+        - cd latex
+        - make
+        - cp *.pdf ..
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
+          when: always
+        - if: $CI_COMMIT_TAG
+          when: always
 
 # Upload the documentation to pages if we're on the master branch
 pages:
-  image: alpine   # Just for speed
-  stage: Build Documentation
-  needs: [make_docs]
-  script:
-  - cp -r html_out public
-  artifacts:
-    paths:
-    - public
-    - html_out
-  rules:
-  - if: $CI_COMMIT_BRANCH == "master"
-    when: always
-  - if: $CI_COMMIT_TAG
-    when: always
+    image: alpine # Just for speed
+    stage: Build Documentation
+    needs: [make_docs]
+    script:
+        - cp -r html_out public
+    artifacts:
+        paths:
+            - public
+            - html_out
+    rules:
+        - if: $CI_COMMIT_BRANCH == "master"
+          when: always
+        - if: $CI_COMMIT_TAG
+          when: always

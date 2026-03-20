@@ -2,7 +2,7 @@ from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
-from ndscan.experiment import *
+from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib import constants

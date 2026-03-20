@@ -2,16 +2,19 @@
 High level pythonic interface to to the aravis library
 """
 
-import time
-import logging
-import numpy as np
 import ctypes
+import logging
 
 ### patches by nix ###
 import os
+import time
+
+import numpy as np
+
 os.environ["GI_TYPELIB_PATH"] = "@aravisPath@/lib/girepository-1.0/"
 
 from gi.repository import Aravis
+
 ### end patches by nix ###
 
 __author__ = "Olivier Roulet-Dubonnet, Morten Lind"
@@ -19,8 +22,10 @@ __copyright__ = "Copyright 2011-2013, Sintef Raufoss Manufacturing"
 __license__ = "GPLv3"
 __version__ = "0.5"
 
+
 class AravisException(Exception):
     pass
+
 
 class Camera(object):
     """
@@ -29,9 +34,10 @@ class Camera(object):
     If name is None, the first found camera is used.
     If no camera is found an AravisException is raised.
     """
+
     def __init__(self, name=None, loglevel=logging.WARNING):
         self.logger = logging.getLogger(self.__class__.__name__)
-        if len(logging.root.handlers) == 0: #dirty hack
+        if len(logging.root.handlers) == 0:  # dirty hack
             logging.basicConfig()
         self.logger.setLevel(loglevel)
         self.name = name
@@ -52,15 +58,17 @@ class Camera(object):
         self._last_payload = 0
 
     def __getattr__(self, name):
-        if hasattr(self.cam, name): # expose methods from the aravis camera object which is also relatively high level
+        if hasattr(
+            self.cam, name
+        ):  # expose methods from the aravis camera object which is also relatively high level
             return getattr(self.cam, name)
-        #elif hasattr(self.dev, name): #epose methods from the aravis device object, this might be confusing
+        # elif hasattr(self.dev, name): #epose methods from the aravis device object, this might be confusing
         #    return getattr(self.dev, name)
         else:
             raise AttributeError(name)
 
     def __dir__(self):
-        tmp = list(self.__dict__.keys()) + self.cam.__dir__()# + self.dev.__dir__()
+        tmp = list(self.__dict__.keys()) + self.cam.__dir__()  # + self.dev.__dir__()
         return tmp
 
     def load_config(self, path):
@@ -87,7 +95,9 @@ class Camera(object):
         genicam = self.dev.get_genicam()
         node = genicam.get_node(name)
         if not node:
-            raise AravisException("Feature {} does not seem to exist in camera".format(name))
+            raise AravisException(
+                "Feature {} does not seem to exist in camera".format(name)
+            )
         return node.get_node_name()
 
     def get_feature(self, name):
@@ -136,7 +146,9 @@ class Camera(object):
         if ntype == "Enumeration":
             return self.dev.get_available_enumeration_feature_values_as_strings(name)
         else:
-            raise AravisException("{} is not an enumeration but a {}".format(name, ntype))
+            raise AravisException(
+                "{} is not an enumeration but a {}".format(name, ntype)
+            )
 
     def read_register(self, address):
         return self.dev.read_register(address)
@@ -152,7 +164,9 @@ class Camera(object):
             self.stream.push_buffer(Aravis.Buffer.new_allocate(payload))
 
     def pop_frame(self, timestamp=False):
-        while True: #loop in python in order to allow interrupt, have the loop in C might hang
+        while (
+            True
+        ):  # loop in python in order to allow interrupt, have the loop in C might hang
             if timestamp:
                 ts, frame = self.try_pop_frame(timestamp)
             else:
@@ -188,7 +202,7 @@ class Camera(object):
         if not buf:
             return None
         pixel_format = buf.get_image_pixel_format()
-        bits_per_pixel = pixel_format >> 16 & 0xff
+        bits_per_pixel = pixel_format >> 16 & 0xFF
         if bits_per_pixel == 8:
             INTP = ctypes.POINTER(ctypes.c_uint8)
         else:
@@ -215,35 +229,34 @@ class Camera(object):
         self.logger.info("starting acquisition")
         payload = self.cam.get_payload()
         if payload != self._last_payload:
-            #FIXME should clear buffers
+            # FIXME should clear buffers
             self.create_buffers(nb_buffers, payload)
             self._last_payload = payload
         self.cam.start_acquisition()
 
     def start_acquisition_trigger(self, nb_buffers=1):
-        self.set_feature("AcquisitionMode", "Continuous") #no acquisition limits
-        self.set_feature("TriggerSource", "Software") #wait for trigger t acquire image
-        self.set_feature("TriggerMode", "On") #Not documented but necesary
+        self.set_feature("AcquisitionMode", "Continuous")  # no acquisition limits
+        self.set_feature(
+            "TriggerSource", "Software"
+        )  # wait for trigger t acquire image
+        self.set_feature("TriggerMode", "On")  # Not documented but necesary
         self.start_acquisition(nb_buffers)
 
     def start_acquisition_continuous(self, nb_buffers=20):
-        self.set_feature("AcquisitionMode", "Continuous") #no acquisition limits
-        #self.set_feature("TriggerSource", "Freerun") #as fast as possible
-        #self.set_string_feature("TriggerSource", "FixedRate")
-        #self.set_feature("TriggerMode", "On") #Not documented but necesary
+        self.set_feature("AcquisitionMode", "Continuous")  # no acquisition limits
+        # self.set_feature("TriggerSource", "Freerun") #as fast as possible
+        # self.set_string_feature("TriggerSource", "FixedRate")
+        # self.set_feature("TriggerMode", "On") #Not documented but necesary
         self.start_acquisition(nb_buffers)
 
     def stop_acquisition(self):
         self.cam.stop_acquisition()
 
     def shutdown(self):
-	#Delete the objects on shutdown: socket will be closed!
+        # Delete the objects on shutdown: socket will be closed!
         del self.stream
         del self.dev
         del self.cam
-
-
-
 
 
 def get_device_ids():
@@ -254,21 +267,26 @@ def get_device_ids():
 
 def show_frame(frame):
     import cv2
+
     cv2.imshow("capture", frame)
     cv2.waitKey(0)
+
 
 def save_frame(frame, path="frame.png"):
     print("Saving frame to ", path)
     np.save(path, frame)
 
+
 def sfn(cam, path="frame.png"):
     from PIL import Image
+
     cam.start_acquisition()
     frame = cam.pop_frame()
     cam.stop_acquisition()
     im = Image.fromarray(frame)
     print("Saving image to ", path)
     im.save(path)
+
 
 def get_frame(cam):
     cam.start_acquisition()
@@ -277,36 +295,31 @@ def get_frame(cam):
     return frame
 
 
-
-
-
-
-
 if __name__ == "__main__":
-    #cam = Camera("Prosilica-02-2110A-06145")
-    #cam = Camera("AT-Automation Technology GmbH-20805103")
+    # cam = Camera("Prosilica-02-2110A-06145")
+    # cam = Camera("AT-Automation Technology GmbH-20805103")
     cam = Camera(None)
     try:
-        #Aravis.enable_interface ("Fake")
-        #x, y, width, height = cam.get_region()
+        # Aravis.enable_interface ("Fake")
+        # x, y, width, height = cam.get_region()
         print("Camera model: ", cam.get_model_name())
         print("Vendor Name: ", cam.get_vendor_name())
         print("Device id: ", cam.get_device_id())
-        #print("Image size: ", width, ",", height)
+        # print("Image size: ", width, ",", height)
         print("Sensor size: ", cam.get_sensor_size())
         print("Exposure: ", cam.get_exposure_time())
         print("Frame rate: ", cam.get_frame_rate())
         print("Payload: ", cam.get_payload())
         print("AcquisitionMode: ", cam.get_feature("AcquisitionMode"))
         print("Acquisition vals: ", cam.get_feature_vals("AcquisitionMode"))
-        #print("TriggerMode: ", cam.get_feature("TriggerMode"))
-        #print("Bandwidth: ", cam.get_feature("StreamBytesPerSecond"))
+        # print("TriggerMode: ", cam.get_feature("TriggerMode"))
+        # print("Bandwidth: ", cam.get_feature("StreamBytesPerSecond"))
         print("PixelFormat: ", cam.get_feature("PixelFormat"))
-        #print("ExposureAuto: ", cam.get_feature("ExposureAuto"))
+        # print("ExposureAuto: ", cam.get_feature("ExposureAuto"))
         print("PacketSize: ", cam.get_feature("GevSCPSPacketSize"))
 
-
         from IPython import embed
+
         embed()
     finally:
         cam.shutdown()

@@ -5,7 +5,8 @@ from artiq.coredevice.dma import CoreDMA
 from artiq.coredevice.ttl import TTLInOut
 from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
-from artiq.experiment import *
+from artiq.experiment import delay
+from artiq.experiment import now_mu
 from artiq.language import kernel
 
 

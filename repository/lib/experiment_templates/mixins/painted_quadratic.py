@@ -163,7 +163,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
             ad9910_name=PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
-            ram_offset = 512,
+            ram_offset=512,
         )
 
         self.setattr_fragment(

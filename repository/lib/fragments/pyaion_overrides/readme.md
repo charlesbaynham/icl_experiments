@@ -1,4 +1,3 @@
-
 # Overriding PyAION modules
 
 If you want to temporarily override a pyaion module, you should:
