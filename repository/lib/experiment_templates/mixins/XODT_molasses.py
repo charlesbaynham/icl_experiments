@@ -673,7 +673,7 @@ class XODTRetroedMolassesPlusDipoleRampMixin(MolassesRetroedBeamMixin):
         self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
         # step fields
-        multiple_bias_step = 2 * self.bias_current_multiple_first_molasses.get()
+        multiple_bias_step = 2
         self.red_mot.chamber_2_field_setter.set_all_fields(
             self.mot_coil_current_first_molasses.get(),
             constants.FIELD_COMP_X + multiple_bias_step * 0.3983,
