@@ -524,7 +524,7 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
             "bias_current_multiple_first_molasses",
             FloatParam,
             "Bias field amplitude during first molasses",
-            default=1.0,
+            default=0.1,
         )
         self.bias_current_multiple_first_molasses: FloatParamHandle
 

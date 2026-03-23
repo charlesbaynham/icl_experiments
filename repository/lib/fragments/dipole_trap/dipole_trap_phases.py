@@ -172,8 +172,8 @@ class MolassesRetroed(GeneralRampingPhaseWithBinding):
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
-    default_urukul_detunings_start = [0.0]
-    default_urukul_detunings_end = [0.0]
+    default_urukul_detunings_start = [0.53e6]
+    default_urukul_detunings_end = [0.35e6]
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -240,9 +240,11 @@ class EvapFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     # N.B. The start values are ignored if there is a spin pol phase present -
     # the spin pol settings are used instead.
 
-    general_setter_default_starts = constants.add_field_offset(
-        2 * 0.3983, 2 * 0.0653, 2 * 0.2681
-    )
+    general_setter_default_starts = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
+
+    # constants.add_field_offset(
+    #     2 * 0.3983, 2 * 0.0653, 2 * 0.2681
+    # )
     # constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
 
     general_setter_default_ends = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END
