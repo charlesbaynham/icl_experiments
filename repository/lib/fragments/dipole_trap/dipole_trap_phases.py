@@ -172,7 +172,7 @@ class MolassesRetroed(GeneralRampingPhaseWithBinding):
     # detuning / nominal setpoints. Use
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_urukul_nominal_frequencies = [0.0]
-    default_urukul_detunings_start = [0.53e6]
+    default_urukul_detunings_start = [0.35e6]
     default_urukul_detunings_end = [0.35e6]
 
     # These must be overridden / rebound by consumer fragments otherwise not
