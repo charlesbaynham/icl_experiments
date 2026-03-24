@@ -1280,6 +1280,7 @@ class LMTInterferometryMixin(
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_experiment_after_dipole_trap`
+    * :meth:`~post_sequence_cleanup_hook_lmt`
     """
 
     def build_fragment(self):
@@ -1650,6 +1651,17 @@ class LMTInterferometryMixin(
         self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_lmt()
+
+    @kernel
+    def post_sequence_cleanup_hook_lmt(self):
+        # stop the clock laser ramp
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll.clock_OPLL_offset.set(80e6)
 
 
 class ShapedFirstPulseLMTInterferometryMixin(
