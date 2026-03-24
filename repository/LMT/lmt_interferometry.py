@@ -76,6 +76,7 @@ class LMTInterferometryFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
 
 
 class LMTInterferometryWithDoubleLaunchFrag(
@@ -109,6 +110,7 @@ class LMTInterferometryWithDoubleLaunchFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
 
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
@@ -176,6 +178,7 @@ class LMTInterferometryWithLaunchFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
 
 
 class ShapedFirstPulseLMTInterferometryFrag(
