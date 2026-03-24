@@ -1617,13 +1617,21 @@ class LMTInterferometryMixin(
             2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
 
-        self.clock_opll.clock_OPLL_offset.set(
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-            )
-            + last_bs_freq
-            + 10 * 9.4e3
+        last_freq = start_opll_offset
+        +self.calculate_frequency_for_first_pi_by_2_pulse(
+            t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+        )
+        +last_bs_freq + 10 * 9.4e3
+
+        self.clock_opll.clock_OPLL_offset.set(last_freq)
+        delay_mu(8)
+
+        # ramp the offset downwards
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            last_freq - 1e6,
+            last_freq,
+            wave_type=2,
         )
         delay_mu(8)
 
@@ -1638,6 +1646,7 @@ class LMTInterferometryMixin(
 
         # PI/2 PULSE
 
+        at_mu(t_start_last_pulse_mu)
         self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
