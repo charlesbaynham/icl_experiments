@@ -602,7 +602,7 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         Do the first molasses ramping phase
         """
 
-        # turn on red beams and transparency beam
+        # turn on molasses beam and transparency beam
 
         self.molasses_beam_default_setter.turn_on_all()
         self.transparency_setter.turn_on_all()
