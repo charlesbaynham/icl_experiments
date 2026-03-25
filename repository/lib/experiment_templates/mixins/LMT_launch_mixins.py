@@ -1508,9 +1508,10 @@ class LMTInterferometryMixin(
             self.delay_between_interferometry_pulses.get()
         )
 
+        at_mu(t_start_lmt_mirror_mu)
         # LMT sequence on upper arm, momentum downwards
         if N > 2:
-            at_mu(t_start_lmt_mirror_mu)
+
             self.lmt_series_start_down_launch_down(
                 upper_mirror_offset, N_previous_pulses=N + N_launch, N=N - 2
             )
