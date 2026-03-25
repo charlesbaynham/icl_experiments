@@ -415,12 +415,20 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         lmt_number = self.lmt_launch_pulses_number.get()
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
-        # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
-            duration=50e-6,  # self.clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
+        # # Clear out the ground state
+        # self.fluorescence_pulse.do_imaging_pulse(
+        #     duration=50e-6,  # self.clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
+        # delay_mu(8)
+
         delay_mu(8)
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            80e6 - 1e6,
+            80e6,
+            wave_type=2,
+        )
 
         delay(10e-6)
 
