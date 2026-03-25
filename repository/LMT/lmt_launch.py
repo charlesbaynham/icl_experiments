@@ -45,7 +45,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 class LaunchFromXODTFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsClockPulseMixin,
+    NormalisedFastKineticsRepumpedMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
