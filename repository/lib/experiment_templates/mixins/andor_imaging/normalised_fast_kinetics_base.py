@@ -701,13 +701,14 @@ class NormalisedFastKineticsClockPulseMixin(
         delay(self.delay_clock_after_first_pulse.get())
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + self.imaging_clock_pulse_detuning.get(),
+            + self.imaging_clock_pulse_detuning.get()
+            + constants.LMT_DOWN_BEAM_SHIFT,
             amplitude=self.clock_switch_amplitude_handle.get(),
         )
 
         delay(1e-6)
 
-        # PI/2 PULSE
+        # PI PULSE
 
         self.clock_down_dds.sw.on()
         delay(constants.CLOCK_DOWN_PI_TIME)
