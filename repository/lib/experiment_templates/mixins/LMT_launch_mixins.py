@@ -140,7 +140,6 @@ class LMTBase(
             if i % 2 == 0:
                 pulse_type = "down"
                 down_offset = offset_det
-
             else:
                 pulse_type = "up"
                 down_offset = 0.0
@@ -156,31 +155,7 @@ class LMTBase(
             )
 
             # fire the pulse
-            if i != (N - 1):
-                self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
-
-            if i == N - 1:
-                print("bs pulse")
-                # stop the ramp
-                self.clock_opll.clock_frequency_ramper.stop_ramp()
-                # set the offset frequency
-                self.clock_opll.clock_OPLL_offset.set(start_freq)
-
-                # ramp the offset downwards
-                self.clock_opll.clock_frequency_ramper.start_ramp(
-                    ramp_rate,
-                    f_i - 1e6,
-                    f_i,
-                    wave_type=2,
-                )
-                delay_mu(8)
-                # pulse the down beam
-                at_mu(t_start_lmt_pulse_mu)
-                self.clock_down_dds.sw.on()
-                delay(self.down_pulses_duration.get() / 2)
-                self.clock_down_dds.sw.off()
-
-                delay(30e-6)
+            self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
             # Clear out the ground state
             # if pulse_type == "up":
@@ -438,7 +413,6 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         delay_mu(16)
         start_detuning = self.lmt_launch_offset_detuning.get()
         lmt_number = self.lmt_launch_pulses_number.get()
-        t_shelv = self.get_t_start_shelving()
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # # Clear out the ground state
@@ -448,14 +422,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         # )
         # delay_mu(8)
 
-        time_after_shelv = self.core.mu_to_seconds(now_mu() - t_shelv)
-
-        final_freq = 80e6 - ramp_rate * time_after_shelv
-        +(lmt_number + 1) * momentum_kick
-        +start_detuning
-
-        print(final_freq)
-
+        delay_mu(8)
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
             80e6 - 1e6,
