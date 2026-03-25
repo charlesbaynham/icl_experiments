@@ -1486,12 +1486,12 @@ class LMTInterferometryMixin(
             )
             delay(8e-9)
 
-        self.clock_up_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.up_switch_detuning_higher_intensity.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        )
+            self.clock_up_dds.set(
+                frequency=self.clock_switch_frequency_handle.get()
+                + self.up_switch_detuning_higher_intensity.get(),
+                amplitude=self.clock_switch_amplitude_handle.get(),
+                phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+            )
 
         # LMT sequence on upper arm, starting on the excited state at n=2
         if N > 2:
