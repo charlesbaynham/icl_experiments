@@ -1163,6 +1163,25 @@ files = [
 ]
 
 [[package]]
+name = "gaio-laser-driver"
+version = "1.0"
+description = "Gaio Laser Controller"
+optional = false
+python-versions = ">=3.10, <3.13"
+files = []
+develop = false
+
+[package.dependencies]
+generic-scpi-driver = {version = "^1.8", extras = ["artiq"]}
+sipyco = {git = "https://github.com/m-labs/sipyco.git"}
+
+[package.source]
+type = "git"
+url = "https://gitlab.com/imperial-sr/electronics/general-adc-dac-board/wand-ecdl-controller.git"
+reference = "HEAD"
+resolved_reference = "336dc3a86a1516991a0a5ca20d839efe37fcafd5"
+
+[[package]]
 name = "generic-scpi-driver"
 version = "1.8"
 description = "A generic template for creating python object-based drivers for SCPI hardware devices which communicate via VISA. Compatible with ARTIQ  installed with [artiq] modifier"
@@ -4797,7 +4816,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git"
 reference = "gaio-control"
-resolved_reference = "ee87c0bdd05848d3a2630877912d76901f22f4e3"
+resolved_reference = "961f8d779d7338ce56e4eadab166757d953225b7"
 
 [[package]]
 name = "wcwidth"
@@ -4942,4 +4961,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "d4fe1201684eb043c7ea710858c44d2a1047358d27949e972ccc7e10dcf1bb10"
+content-hash = "3515984e290cd9172bce756e6a83e8a87574f5661cbdcb64717dfd06ad0aaa82"

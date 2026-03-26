@@ -33,6 +33,10 @@ get_next_port = lambda: int(next(port_iterator))
 PORT_WAND_CONTROL = 3276
 PORT_WAND_NOTIFY = 3277
 
+# N.B. this needs to be in sync with the hard-coded value in
+# `icl_aion_server_config.pyon`
+PORT_GAIO_WAND_DRIVER = 4001
+
 
 def get_non_core_devices(simulation_mode=False):
     if simulation_mode:
@@ -120,6 +124,13 @@ def get_non_core_devices(simulation_mode=False):
             "host": "::1",
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
+        },
+        "gaio_wand_driver_688": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "::1",
+            "port": PORT_GAIO_WAND_DRIVER,
+            "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
         },
         # Removed: this has changed its firmware and no longer need to be run in ARTIQ (I should put back control of it though)
         # "cavity_scanner": {
