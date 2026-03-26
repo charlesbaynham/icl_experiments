@@ -58,6 +58,19 @@ class ScanGAOWithWavemeterFrag(ExpFragment):
         )
         self.cutoff_detuning: FloatParamHandle
 
+        self.setattr_result(
+            "frequency",
+            FloatChannel,
+            display_hints={"priority": -1},
+            description="Measured laser frequency",
+            unit="MHz",
+        )
+        self.setattr_result(
+            "detuning",
+            FloatChannel,
+            description="Measured laser detuning",
+            unit="MHz",
+        )
         self.frequency: FloatChannel
         self.detuning: FloatChannel
 
