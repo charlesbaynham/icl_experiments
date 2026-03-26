@@ -1412,8 +1412,7 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        # self.do_clock_interferometry()
-        pass
+        self.do_clock_interferometry()
 
     @kernel
     def do_clock_interferometry(self):
@@ -1435,7 +1434,7 @@ class LMTInterferometryMixin(
         lower_mirror_offset = self.lower_mirror_offset_detuning.get()
         bs_detuning_lower = self.lower_arm_bs_detuning.get()
         last_selective_lower_bs_freq = self.last_selective_lower_bs_freq.get()
-        last_bs_freq = self.last_bs_freq.get()
+        last_bs_frequency = self.last_bs_freq.get()
 
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
             2e-6
@@ -1462,7 +1461,7 @@ class LMTInterferometryMixin(
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.off()
+        self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
@@ -1647,20 +1646,22 @@ class LMTInterferometryMixin(
             2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
 
-        last_freq = start_opll_offset
-        +self.calculate_frequency_for_first_pi_by_2_pulse(
-            t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-        )
-        +last_bs_freq + N_launch * 9.4e3
-
-        self.clock_opll.clock_OPLL_offset.set(last_freq)
-        delay_mu(8)
-
-        # ramp the offset downwards
+        # ramp the offset downwards. It looks silly but the frequency has to be passed like this.
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
-            last_freq - 1e6,
-            last_freq,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3
+            - 1e6,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3,
             wave_type=2,
         )
         delay_mu(8)
