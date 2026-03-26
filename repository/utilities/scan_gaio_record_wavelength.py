@@ -3,6 +3,8 @@ import logging
 from gaio_laser_driver.driver import GAIO
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import FloatChannel
@@ -38,6 +40,14 @@ class ScanGAOWithWavemeterFrag(ExpFragment):
             unit="V",
         )
         self.voltage: FloatParamHandle
+
+        self.setattr_param(
+            "restore_settings",
+            BoolParam,
+            description="Restore initial laser settings after scan",
+            default=True,
+        )
+        self.restore_settings: BoolParamHandle
 
         self.frequency: FloatChannel
         self.detuning: FloatChannel
