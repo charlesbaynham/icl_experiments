@@ -46,6 +46,7 @@
           tenma-power-supply = ["poetry-core"];
           toptica-wrapper = ["poetry-core"];
           wand = ["poetry-core"];
+          gaio-laser-driver = ["poetry-core"];
           relocker-driver = ["poetry-core"];
           andor-artiq-ndsp = ["poetry-core"];
           imperial-artiq-applets = ["poetry-core"];
