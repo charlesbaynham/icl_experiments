@@ -83,7 +83,7 @@ class ScanGAOWithWavemeterFrag(ExpFragment):
         self.nominal_setpoint = constants.WAND_SETPOINTS_87["688"][0]
 
         # Record the initial current and voltage
-        self.initial_voltage = self.gao_board_688.query_get_pzt_voltage()
+        self.initial_voltage = float(self.gao_board_688.query_get_pzt_voltage()[0])
 
         return super().host_setup()
 
