@@ -315,6 +315,9 @@ class XODTSingleMolassesPlusFieldRampMixin(
     * :meth:`~set_postnarrowband_fields_hook`
     """
 
+    def _bind_evap_ramp_suservo_params(self):
+        pass  # daisy_chain_with_previous_phase below handles the binding instead
+
     def build_fragment(self):
         super().build_fragment()
 
@@ -521,7 +524,7 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
             "bias_current_multiple_first_molasses",
             FloatParam,
             "Bias field amplitude during first molasses",
-            default=1.0,
+            default=0.1,
         )
         self.bias_current_multiple_first_molasses: FloatParamHandle
 
@@ -599,7 +602,7 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
         Do the first molasses ramping phase
         """
 
-        # turn on red beams and transparency beam
+        # turn on molasses beam and transparency beam
 
         self.molasses_beam_default_setter.turn_on_all()
         self.transparency_setter.turn_on_all()
@@ -670,7 +673,7 @@ class XODTRetroedMolassesPlusDipoleRampMixin(MolassesRetroedBeamMixin):
         self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
         # step fields
-        multiple_bias_step = 2 * self.bias_current_multiple_first_molasses.get()
+        multiple_bias_step = 2
         self.red_mot.chamber_2_field_setter.set_all_fields(
             self.mot_coil_current_first_molasses.get(),
             constants.FIELD_COMP_X + multiple_bias_step * 0.3983,

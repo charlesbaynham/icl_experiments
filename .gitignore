@@ -1,4 +1,5 @@
 ## added by CFAB:
+.claude/settings.local.json
 *.elf
 todo.txt
 *.swp
@@ -11,6 +12,10 @@ _build
 .direnv
 html_out
 report.xml
+
+# Generated automatically by nix git-hooks
+# See https://github.com/cachix/git-hooks.nix
+.pre-commit-config.yaml
 
 # ARTIQ outputs
 dataset_db.mdb*

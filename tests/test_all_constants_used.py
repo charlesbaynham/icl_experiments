@@ -1,4 +1,5 @@
 import logging
+import re
 from pathlib import Path
 
 import pytest
@@ -41,8 +42,44 @@ def test_all_constants_used(all_module_files):
         [name for name in dir(constants) if name.isupper() and not name.startswith("_")]
     )
 
+    # Constants that are intentionally kept but only used in archived experiments
+    # or kept for future use. These are not considered "unused" for test purposes.
+    excluded_constants = {
+        # Used in archived_experiments/ but not in active code
+        "ANDOR_689_FAST_KINETICS_X0",
+        "ANDOR_689_FAST_KINETICS_X1",
+        "BIAS_DURING_NARROWBAND_MOT_FOR_MOLASSES",
+        "CLOCK_LASER_BEATNOTE_FREQUENCY",
+        "DELAY_BETWEEN_MOLASSES",
+        "DIPOLE_TRAP_LOADING_TIME",
+        "DIPOLE_TRAP_MOLASSES_DETUNING",
+        "DIPOLE_TRAP_MOLASSES_DURATION",
+        "DIPOLE_TRAP_MOLASSES_SETPOINT_MULTIPLE",
+        "RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT",
+        # XODT 2nd molasses parameters - used in archived code, kept for future
+        "XODT_2ND_MOLASSES_689_DETUNING_END",
+        "XODT_2ND_MOLASSES_689_DETUNING_START",
+        "XODT_2ND_MOLASSES_689_STIR_DETUNING",
+        "XODT_2ND_MOLASSES_BIAS_FIELD_END",
+        "XODT_2ND_MOLASSES_BIAS_FIELD_START",
+        "XODT_2ND_MOLASSES_DURATION",
+        "XODT_2ND_MOLASSES_MOT_CURRENT",
+        "XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_END",
+        "XODT_2ND_MOLASSES_SETPOINT_MULTIPLES_START",
+        # Internal calculation helper (used to compute other constants)
+        "SLACK_FOR_GRAVITY",
+        # Used internally within constants.py itself (for conditional logic)
+        "USE_LATTICE_MODE",
+    }
+
     print("Number of constants found: ", len(all_constants))
     print("All constants: ", sorted(list(all_constants)))
+
+    # Remove excluded constants from the check
+    all_constants = all_constants - excluded_constants
+
+    print("Number of constants after exclusions: ", len(all_constants))
+    print("Checking constants: ", sorted(list(all_constants)))
 
     if not all_constants:
         raise AssertionError("No constants found in constants.py")
@@ -54,7 +91,14 @@ def test_all_constants_used(all_module_files):
             content = f.read()
 
         # Find all constant usages in the file
-        constants_used = set(name for name in all_constants if "name" in content)
+
+        # Use regex with word boundaries to avoid partial matches
+        # e.g. don't match RED_MOT_CURRENT inside BROADBAND_RED_MOT_CURRENT
+        constants_used = set(
+            name
+            for name in all_constants
+            if re.search(r"\b" + re.escape(name) + r"\b", content)
+        )
 
         # Store the used constants for this file
         constants_used_per_file[file] = constants_used

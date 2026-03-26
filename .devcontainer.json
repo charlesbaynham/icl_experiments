@@ -26,12 +26,7 @@
             "nixpkgs": "nixpkgs-24.05",
             "version": "2.24.9",
             "multiUser": false,
-            "packages": [
-                "direnv",
-                "nix-direnv",
-                "cachix",
-                "pre-commit"
-            ],
+            "packages": ["direnv", "nix-direnv", "cachix", "pre-commit"],
             "extraNixConfig": "experimental-features = nix-command flakes,sandbox = false"
         }
     },

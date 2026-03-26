@@ -1,12 +1,10 @@
 import logging
 
-from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
     SingleAndorImage,
 )
-
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyRedMotMixin,
 )
@@ -16,7 +14,6 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     DroppedPumpedLatticeMixin,
 )
-
 
 logger = logging.getLogger(__name__)
 

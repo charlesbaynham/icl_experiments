@@ -1,7 +1,8 @@
+from artiq.language import kernel
+
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
-from artiq.language import kernel
 
 
 class ClockInterferometryRedMOTMixin(ClockInterferometryBase):

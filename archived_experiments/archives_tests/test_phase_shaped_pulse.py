@@ -5,7 +5,7 @@ from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment import ExpFragment
-from ndscan.experiment import *
+from ndscan.experiment import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     CLOCK_UP_BEAM_INFO,

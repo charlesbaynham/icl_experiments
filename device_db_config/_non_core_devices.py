@@ -69,7 +69,7 @@ def get_non_core_devices(simulation_mode=False):
                 "WLM_DATA_PATH=/etc/HighFinesse/libwlmData.so "
                 "nix run .#wand_server -- -n icl_aion --no-localhost-bind --bind {bind} "
                 f"--port-notify {PORT_WAND_NOTIFY} "
-                f"--port-control {PORT_WAND_CONTROL}"
+                f"--port-control {PORT_WAND_CONTROL} "
                 "'"
             ),
         },

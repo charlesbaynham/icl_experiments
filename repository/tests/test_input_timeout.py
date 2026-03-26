@@ -2,7 +2,10 @@ import logging
 
 import numpy as np
 from artiq.coredevice.rtio import rtio_input_timestamped_data
-from artiq.experiment import *
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
+from artiq.experiment import kernel
+from artiq.experiment import now_mu
 
 logger = logging.getLogger(__name__)
 

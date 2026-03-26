@@ -1,8 +1,8 @@
-from artiq.experiment import *
-import numpy as np
-
 import logging
 
+import numpy as np
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
 
 logger = logging.getLogger(__name__)
 
