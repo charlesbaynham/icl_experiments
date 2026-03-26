@@ -49,6 +49,15 @@ class ScanGAOWithWavemeterFrag(ExpFragment):
         )
         self.restore_settings: BoolParamHandle
 
+        self.setattr_param(
+            "cutoff_detuning",
+            FloatParam,
+            default=-1,
+            description="Max detuning to record (-1 = no cutoff)",
+            unit="MHz",
+        )
+        self.cutoff_detuning: FloatParamHandle
+
         self.frequency: FloatChannel
         self.detuning: FloatChannel
 
