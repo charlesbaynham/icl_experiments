@@ -1412,7 +1412,8 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.do_clock_interferometry()
+        # self.do_clock_interferometry()
+        pass
 
     @kernel
     def do_clock_interferometry(self):
@@ -1461,7 +1462,7 @@ class LMTInterferometryMixin(
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.on()
+        self.clock_down_dds.sw.off()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
