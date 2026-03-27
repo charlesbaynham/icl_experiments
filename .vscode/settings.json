@@ -33,5 +33,6 @@
     "editor.formatOnSave": true,
     "[nix]": {
         "editor.defaultFormatter": "jnoortheen.nix-ide"
-    }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }
