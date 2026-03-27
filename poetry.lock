@@ -4778,7 +4778,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/aion-physics/code/artiq/drivers/virtual-gaio-ctl200-laser-controller.git"
 reference = "HEAD"
-resolved_reference = "66c1108358542e28e6b4ecc4a5ac6b1b53c832a1"
+resolved_reference = "12f4896643f3d324a5981e8e6fbc237cc4ef219d"
 
 [[package]]
 name = "wand"
