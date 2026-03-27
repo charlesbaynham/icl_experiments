@@ -77,7 +77,7 @@ class LMTBase(
             default=constants.LMT_PULSE_CLEAROUT_DURATION,
             unit="us",
         )
-        self.shelving_pulse_clearout_duration: FloatParamHandle
+        self.clearout_duration: FloatParamHandle
 
         if not hasattr(self, "spectroscopy_pulse_time"):
             self.setattr_param(
@@ -1476,7 +1476,7 @@ class LMTInterferometryMixin(
 
             delay(1e-6)
             self.do_selective_lmt_pulse(
-                first_freq, N_kicks=2 + N_launch, att=13.0, duration=t_first_pi
+                first_freq, N_kicks=2 + N_launch, att=10.5, duration=t_first_pi
             )
 
             # Clear out the ground state
@@ -1538,7 +1538,7 @@ class LMTInterferometryMixin(
             self.do_selective_lmt_pulse(
                 last_upper_mirror_freq,
                 N_kicks=2 + N_launch,
-                att=13.0,
+                att=10.5,
                 duration=t_first_pi,
             )
 
@@ -1580,7 +1580,7 @@ class LMTInterferometryMixin(
             self.do_selective_lmt_pulse(
                 first_lower_mirror_freq,
                 N_kicks=2 + N_launch,
-                att=13.0,
+                att=10.5,
                 duration=t_first_pi,
             )
 
@@ -1636,7 +1636,7 @@ class LMTInterferometryMixin(
             self.do_selective_lmt_pulse(
                 last_selective_lower_bs_freq,
                 N_kicks=2 + N_launch,
-                att=13.0,
+                att=10.5,
                 duration=t_first_pi,
             )
 
