@@ -122,7 +122,7 @@
             "target": "",
             "host": "10.137.1.252",
             "port": 4001,
-            "type": "gaio",
+            "type": "virtual",
             "v_pzt_min": 0.0,
             "v_pzt_max": 4.0,
             "v_step_max": 0.01
