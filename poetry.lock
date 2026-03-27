@@ -4762,6 +4762,25 @@ typing-extensions = {version = ">=4.0", markers = "python_version < \"3.11\""}
 standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "watchfiles (>=0.13)", "websockets (>=10.4)"]
 
 [[package]]
+name = "virtual-laser-driver"
+version = "1.0"
+description = "Virtual Laser Controller"
+optional = false
+python-versions = ">=3.10, <3.13"
+files = []
+develop = false
+
+[package.dependencies]
+generic-scpi-driver = {version = "^1.8", extras = ["artiq"]}
+sipyco = {git = "https://github.com/m-labs/sipyco.git"}
+
+[package.source]
+type = "git"
+url = "https://gitlab.com/aion-physics/code/artiq/drivers/virtual-gaio-ctl200-laser-controller.git"
+reference = "HEAD"
+resolved_reference = "2e79908e4937c157b5be05c1193c5be1e0963f54"
+
+[[package]]
 name = "wand"
 version = "0.1.0"
 description = "Wavelength Analysis 'Nd Display"
@@ -4928,4 +4947,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "d931072771200a28091eae3f607577cf8c8b4a58f98147c4793466757aadbd89"
+content-hash = "2ddc3a7cf6a958d0142d20b90209f0a273d63a7a1dd22310bba915826e132a6c"

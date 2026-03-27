@@ -41,6 +41,7 @@
             toptica-wrapper = [ "poetry-core" ];
             wand = [ "poetry-core" ];
             relocker-driver = [ "poetry-core" ];
+            virtual-laser-driver = [ "poetry-core" ];
             andor-artiq-ndsp = [ "poetry-core" ];
             imperial-artiq-applets = [ "poetry-core" ];
           };
