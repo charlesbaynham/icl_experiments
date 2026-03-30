@@ -65,7 +65,7 @@ class LMTBase(
             "up_switch_detuning_higher_intensity",
             FloatParam,
             "Detuning on the up switch AOM during lmt pulses",
-            default=2.2e3,
+            default=1.5e3,
             unit="kHz",
         )
         self.up_switch_detuning_higher_intensity: FloatParamHandle
