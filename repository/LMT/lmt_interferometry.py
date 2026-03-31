@@ -88,7 +88,7 @@ class LMTInterferometryFrag(
 class LMTInterferometryWithDoubleLaunchFrag(
     LMTInterferometryMixin,
     LMTLaunchDoubleTrapMixin,
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingClockPulseNormalised,
     EMGain,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
