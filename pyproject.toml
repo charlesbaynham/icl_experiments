@@ -18,7 +18,7 @@ sipyco = { git = "https://github.com/m-labs/sipyco.git" }
 artiq-http = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/artiq_http.git" }
 koheron-ctl200-laser-driver = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/koheron_ctl200_laser_driver.git" }
 qbutler = { git = "https://gitlab.com/aion-physics/code/artiq/qbutler.git" }
-wand = { git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "charles-left" }
+wand = { git = "https://gitlab.com/aion-physics/code/artiq/forks/wand.git", rev = "charles_left" }
 toptica-wrapper = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/topticadlcpro.git" }
 relocker-driver = { git = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git" }
 virtual-laser-driver = { git = "https://gitlab.com/aion-physics/code/artiq/drivers/virtual-gaio-ctl200-laser-controller.git" }
