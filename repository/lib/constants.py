@@ -533,6 +533,8 @@ _y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
 ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
 ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
+ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH = 50
+
 # %% 689 spectroscopy defaults
 
 ANDOR_689_FAST_KINETICS_X0 = 52
