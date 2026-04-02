@@ -22,12 +22,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
-    SingleImageNormalisedDipoleTrapFastKineticsMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
-    SingleImageNormalisedFastKineticsRepumpedMixin,
-)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
@@ -303,36 +297,6 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
 
-
-class ClockSpecFromSingleXODTSingleImageFrag(
-    ClockRabiSpectroscopyDipoleTrapMixin,
-    SingleImageNormalisedDipoleTrapFastKineticsMixin,
-    SingleImageNormalisedFastKineticsRepumpedMixin,
-    EMGain,
-    FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
-):
-    """
-    Clock spectroscopy from dropped single XODT using only a single image
-
-    Load into an XODT, then use the up clock beam for spectroscopy, altering the
-    (single-pass) AOM.
-
-    Image the ground state atoms, repump and image the excited state, then image
-    once more for background.
-    """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-
-
-ClockSpecFromSingleXODTSingleImage = make_fragment_scan_exp(
-    ClockSpecFromSingleXODTSingleImageFrag
-)
 
 AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(
     AbsImagingFromXXODTWithShelvingAndClearoutFrag
