@@ -16,14 +16,17 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
     DoubleTrapImagingSpectroscopyRepumpedNormalised,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
-from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
-    SingleImageNormalisedDipoleTrapFastKineticsMixin,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
+    SingleImageNormalisedDipoleTrapFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
+    SingleImageNormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -304,7 +307,7 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
 class ClockSpecFromSingleXODTSingleImageFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     SingleImageNormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    SingleImageNormalisedFastKineticsRepumpedMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
@@ -312,7 +315,7 @@ class ClockSpecFromSingleXODTSingleImageFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped single XODT
+    Clock spectroscopy from dropped single XODT using only a single image
 
     Load into an XODT, then use the up clock beam for spectroscopy, altering the
     (single-pass) AOM.

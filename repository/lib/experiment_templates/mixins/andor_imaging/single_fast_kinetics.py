@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 import numpy as np
 from artiq.language import at_mu
@@ -9,8 +8,10 @@ from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
-from ndscan.experiment.parameters import FloatParam, IntParam
+from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from numpy.typing import NDArray
 
 from repository.lib import constants
@@ -28,7 +29,14 @@ ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
 def calculate_grabber_rois(
-    self, fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1
+    fast_kinetics_height,
+    fast_kinetics_offset,
+    num_images,
+    x0,
+    y0,
+    x1,
+    y1,
+    bg_width,
 ):
     """
     Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
@@ -59,7 +67,7 @@ def calculate_grabber_rois(
 
     background_rois = [
         [
-            x0 - self.Background_horizontal_ROI_width.get(),
+            x0 - bg_width,
             y0 + i * fast_kinetics_height - fast_kinetics_offset,
             x0,
             y1 + i * fast_kinetics_height - fast_kinetics_offset,
@@ -69,7 +77,7 @@ def calculate_grabber_rois(
         [
             x1,
             y0 + i * fast_kinetics_height - fast_kinetics_offset,
-            x1 + self.Background_horizontal_ROI_width.get(),
+            x1 + bg_width,
             y1 + i * fast_kinetics_height - fast_kinetics_offset,
         ]
         for i in range(num_images)
@@ -104,7 +112,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         )
 
         self.setattr_param(
-            "Background horizontal ROI width",
+            "background_horizontal_width",
             IntParam,
             "The width of the ROIs in the horizontal direction, in pixels. This is used for both the left and right background ROIs.",
             default=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
@@ -117,6 +125,8 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         # clocks out rows of the EMCCD in Fast Kinetics Mode. See the comments
         # in :mod:`~.andor_camera` and the lab book entry from 2024-10-30 for
         # more detail.
+
+        self.background_horizontal_width: IntParamHandle
 
         # Force the camera's fast kinetics shot time to match our pulse time
         self.andor_camera_control.bind_param(
@@ -166,40 +176,6 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
 
         self.hook_setup_andor_results()
 
-    def setup_gauss_fit_results(self):
-        self.amps: List[FloatChannel] = []
-        self.x_pos: List[FloatChannel] = []
-        self.y_pos: List[FloatChannel] = []
-        self.sigmas_x: List[FloatChannel] = []
-        self.sigmas_y: List[FloatChannel] = []
-        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
-            for j in ("ground", "excited"):
-                self.amps.append(
-                    self.setattr_result(
-                        f"amp_{i}_{j}", FloatChannel, display_hints={"priority": -1}
-                    )
-                )
-                self.x_pos.append(
-                    self.setattr_result(
-                        f"x_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}
-                    )
-                )
-                self.y_pos.append(
-                    self.setattr_result(
-                        f"y_pos_{i}_{j}", FloatChannel, display_hints={"priority": -1}
-                    )
-                )
-                self.sigmas_x.append(
-                    self.setattr_result(
-                        f"sigma_x_{i}_{j}", FloatChannel, display_hints={"priority": -1}
-                    )
-                )
-                self.sigmas_y.append(
-                    self.setattr_result(
-                        f"sigma_y_{i}_{j}", FloatChannel, display_hints={"priority": -1}
-                    )
-                )
-
     def get_grabber_roi_defaults(self):
         return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
@@ -209,6 +185,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
             y0=constants.ANDOR_ROI_Y0,
             x1=constants.ANDOR_ROI_X1,
             y1=constants.ANDOR_ROI_Y1,
+            bg_width=self.background_horizontal_width.get(),
         )
 
     @kernel
@@ -261,7 +238,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         # The normalisation factor is the ratio of the number of pixels in the background to signal ROIs. Since we have coerced the background ROIs to have the same height as the signal ROIs, this is just 2x the ratio of the widths (since we have two background ROIs, one on either side of the signal ROI).
         normalisation_factor = (
             2
-            * self.Background_horizontal_ROI_width.get()
+            * self.background_horizontal_width.get()
             / (constants.ANDOR_ROI_X1 - constants.ANDOR_ROI_X0)
         )
         atom_number = (
@@ -327,4 +304,39 @@ class SingleImageNormalisedDipoleTrapFastKineticsMixin(
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
         )
+
+
+class SingleImageNormalisedFastKineticsRepumpedMixin(
+    SingleImageNormalisedFastKineticsBase
+):
+    """
+    Adds repumping after the first fluorescence pulse to a
+    :class:`~.NormalisedFastKineticsBase` experiment.
+
+    This is a mixin for :class:`~.NormalisedFastKineticsBase`.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_first_pulse`
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()
