@@ -27,6 +27,57 @@ ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
 ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
+def calculate_grabber_rois(
+    self, fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1
+):
+    """
+    Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
+    when in fast kinetics mode. This specific method also calculates the background ROIs
+    which are on the sides of the signal ROIs.
+    Note: We only need the coords of the signal ROI. The background ROIs are calculated based on the signal ROI coords and the specified width.
+    """
+
+    logger.debug(
+        "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
+        (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
+    )
+
+    if y1 > fast_kinetics_height + fast_kinetics_offset:
+        raise ValueError(
+            "The fast kinetics region is not large enough to cover the full ROI"
+        )
+
+    signal_rois = [
+        [
+            x0,
+            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            x1,
+            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+        ]
+        for i in range(num_images)
+    ]
+
+    background_rois = [
+        [
+            x0 - self.Background_horizontal_ROI_width.get(),
+            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            x0,
+            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+        ]
+        for i in range(num_images)
+    ] + [
+        [
+            x1,
+            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            x1 + self.Background_horizontal_ROI_width.get(),
+            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+        ]
+        for i in range(num_images)
+    ]
+
+    return signal_rois + background_rois
+
+
 class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     """
     This is the base class for single image normalised fast kinetics.
@@ -115,56 +166,6 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
 
         self.hook_setup_andor_results()
 
-    def calculate_grabber_rois(
-        self, fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1
-    ):
-        """
-        Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
-        when in fast kinetics mode. This specific method also calculates the background ROIs
-        which are on the sides of the signal ROIs.
-        Note: We only need the coords of the signal ROI. The background ROIs are calculated based on the signal ROI coords and the specified width.
-        """
-
-        logger.debug(
-            "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
-            (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
-        )
-
-        if y1 > fast_kinetics_height + fast_kinetics_offset:
-            raise ValueError(
-                "The fast kinetics region is not large enough to cover the full ROI"
-            )
-
-        signal_rois = [
-            [
-                x0,
-                y0 + i * fast_kinetics_height - fast_kinetics_offset,
-                x1,
-                y1 + i * fast_kinetics_height - fast_kinetics_offset,
-            ]
-            for i in range(num_images)
-        ]
-
-        background_rois = [
-            [
-                x0 - self.Background_horizontal_ROI_width.get(),
-                y0 + i * fast_kinetics_height - fast_kinetics_offset,
-                x0,
-                y1 + i * fast_kinetics_height - fast_kinetics_offset,
-            ]
-            for i in range(num_images)
-        ] + [
-            [
-                x1,
-                y0 + i * fast_kinetics_height - fast_kinetics_offset,
-                x1 + self.Background_horizontal_ROI_width.get(),
-                y1 + i * fast_kinetics_height - fast_kinetics_offset,
-            ]
-            for i in range(num_images)
-        ]
-
-        return signal_rois + background_rois
-
     def setup_gauss_fit_results(self):
         self.amps: List[FloatChannel] = []
         self.x_pos: List[FloatChannel] = []
@@ -200,7 +201,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
                 )
 
     def get_grabber_roi_defaults(self):
-        return self.calculate_grabber_rois(
+        return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
             num_images=self.num_images_per_series,
@@ -296,16 +297,34 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
             archive=False,
         )
 
-    @host_only
-    def do_gauss_fit_hook(self, img_array: np.ndarray):
-        ground_bg_corrected = img_array[0].astype(int) - img_array[2].astype(int)
-        excited_bg_corrected = img_array[1].astype(int) - img_array[3].astype(int)
-        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
-            for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
-                grabber_idx = int(2 * i)
 
-                sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                    image, grabber_idx
-                )
-                popt = fit_2d_gaussian(sliced_image, offsets)
-                self.push_gauss_fit_pars(popt, int(2 * i + j))
+class SingleImageNormalisedDipoleTrapFastKineticsMixin(
+    SingleImageNormalisedFastKineticsBase
+):
+    """
+    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    experiment
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    * :meth:`~process_andor_data_hook`
+    * :meth:`~update_andor_monitor_hook`
+    """
+
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
+
+    def get_grabber_roi_defaults(self):
+        return calculate_grabber_rois(
+            fast_kinetics_height=self.fast_kinetics_height_default,
+            fast_kinetics_offset=self.fast_kinetics_offset_default,
+            num_images=self.num_images_per_series,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+        )

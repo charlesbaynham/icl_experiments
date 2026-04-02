@@ -16,6 +16,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
     DoubleTrapImagingSpectroscopyRepumpedNormalised,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
+    SingleImageNormalisedDipoleTrapFastKineticsMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -298,10 +301,39 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
         self.post_sequence_cleanup_hook_shelving()
 
 
+class ClockSpecFromSingleXODTSingleImageFrag(
+    ClockRabiSpectroscopyDipoleTrapMixin,
+    SingleImageNormalisedDipoleTrapFastKineticsMixin,
+    NormalisedFastKineticsRepumpedMixin,
+    EMGain,
+    FLIRBlueMOTMeasurementMixin,
+    LoadSingleXODTMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    Clock spectroscopy from dropped single XODT
+
+    Load into an XODT, then use the up clock beam for spectroscopy, altering the
+    (single-pass) AOM.
+
+    Image the ground state atoms, repump and image the excited state, then image
+    once more for background.
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+
+
+ClockSpecFromSingleXODTSingleImage = make_fragment_scan_exp(
+    ClockSpecFromSingleXODTSingleImageFrag
+)
+
 AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(
     AbsImagingFromXXODTWithShelvingAndClearoutFrag
 )
-
 
 ClockSpecFromXXODT = make_fragment_scan_exp(ClockSpecFromXXODTFrag)
 ClockSpecFromSingleXODTEvaporated = make_fragment_scan_exp(
