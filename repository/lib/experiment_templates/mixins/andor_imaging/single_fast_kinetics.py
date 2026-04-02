@@ -85,7 +85,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     """
     This is the base class for single image normalised fast kinetics.
 
-    I don't know what I'm doing
+    I don't know what I'm doing :')
     """
 
     num_andor_images = 2
@@ -231,27 +231,25 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     @kernel
     def process_grabber_data_hook(self, sums, means):
         # The normalisation factor is the ratio of the number of pixels in the background to signal ROIs. Since we have coerced the background ROIs to have the same height as the signal ROIs, this is just 2x the ratio of the widths (since we have two background ROIs, one on either side of the signal ROI).
-        normalisation_factor = (
-            2
-            * self.background_horizontal_width.get()
-            / (constants.ANDOR_ROI_X1 - constants.ANDOR_ROI_X0)
+        normalisation_factor = (constants.ANDOR_ROI_X1 - constants.ANDOR_ROI_X0) / (
+            2 * self.background_horizontal_width.get()
         )
-        atom_number = (
-            sums[0]
-            + sums[1]
-            - normalisation_factor * (sums[2] + sums[3] + sums[4] + sums[5])
-        )
+        atom_num_1 = sums[0] - normalisation_factor * (sums[2] + sums[4])
+        atom_num_2 = sums[1] - normalisation_factor * (sums[3] + sums[5])
+        atom_number = atom_num_1 + atom_num_2
 
         if atom_number == 0:
             self.excitation_fraction.push(0.0)
         else:
-            self.excitation_fraction.push((sums[1] - sums[3]) / atom_number)
+            # I'm not sure, but I think atom_num_2 is the excited state, it's the one with larger y coordinates
+            self.excitation_fraction.push(atom_num_2 / atom_number)
 
         self.atom_number.push(atom_number)
 
     @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
+        # Ok this is copied from normalised_fast_kinetics_base but idk what it does
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
         excited_bg_corrected = images[1].astype(int) - images[3].astype(int)
         self.set_dataset(
