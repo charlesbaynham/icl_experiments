@@ -237,7 +237,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     def process_grabber_data_hook(self, sums, means):
         # The normalisation factor is the ratio of the number of pixels in the background to signal ROIs. Since we have coerced the background ROIs to have the same height as the signal ROIs, this is just 2x the ratio of the widths (since we have two background ROIs, one on either side of the signal ROI).
         normalisation_factor = float(
-            (constants.ANDOR_ROI_X1 - constants.ANDOR_ROI_X0)
+            (self.getattr("roi_0_x1").get() - self.getattr("roi_0_x0").get())
         ) / (2 * float(self.background_horizontal_width.get()))
         logger.warning(normalisation_factor)
         atom_num_1 = sums[0] - normalisation_factor * (sums[2] + sums[4])
