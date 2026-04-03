@@ -191,9 +191,11 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         etc. is completed, and should handle imaging with the Andor camera.
         """
         self.do_image()
-        delay(0.5)
-        self.post_first_series()  # call rpc to get images
-        delay(0.5)
+        # t_post_mu = now_mu()
+        # delay(0.5)
+        # self.post_first_series()  # call rpc to get images
+        # at_mu(t_post_mu)
+        # delay(self.delay_before_bg_img.get())
 
     @kernel
     def do_image(self):
