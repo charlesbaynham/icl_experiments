@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
@@ -90,7 +91,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
 
     num_andor_images = 2
     num_grabber_readouts = 1
-    num_grabber_rois = 6
+    num_grabber_rois = 3
     num_images_per_series = 2
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
