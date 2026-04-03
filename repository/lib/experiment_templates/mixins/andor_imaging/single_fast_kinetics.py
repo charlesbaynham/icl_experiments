@@ -234,20 +234,74 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         self.andor_camera_control.start_acquisition()
 
     @kernel
+    def get_roi_area(self, roi):
+        return (roi[2] - roi[0]) * (roi[3] - roi[1])
+
+    @kernel
     def process_grabber_data_hook(self, sums, means):
         # The normalisation factor is the ratio of the number of pixels in the background to signal ROIs. Since we have coerced the background ROIs to have the same height as the signal ROIs, this is just 2x the ratio of the widths (since we have two background ROIs, one on either side of the signal ROI).
-        normalisation_factor = float(
-            (self.getattr("roi_0_x1").get() - self.getattr("roi_0_x0").get())
-        ) / (2 * float(self.background_horizontal_width.get()))
-        logger.warning(normalisation_factor)
-        atom_num_1 = sums[0] - normalisation_factor * (sums[2] + sums[4])
-        atom_num_2 = sums[1] - normalisation_factor * (sums[3] + sums[5])
+        # Absolutely fucking awful code... but it works :)
+        areas = [
+            self.get_roi_area(
+                [
+                    self.andor_camera_control.roi_0_x0.get(),
+                    self.andor_camera_control.roi_0_y0.get(),
+                    self.andor_camera_control.roi_0_x1.get(),
+                    self.andor_camera_control.roi_0_y1.get(),
+                ]
+            ),
+            self.get_roi_area(
+                [
+                    self.andor_camera_control.roi_1_x0.get(),
+                    self.andor_camera_control.roi_1_y0.get(),
+                    self.andor_camera_control.roi_1_x1.get(),
+                    self.andor_camera_control.roi_1_y1.get(),
+                ]
+            ),
+            self.get_roi_area(
+                [
+                    self.andor_camera_control.roi_2_x0.get(),
+                    self.andor_camera_control.roi_2_y0.get(),
+                    self.andor_camera_control.roi_2_x1.get(),
+                    self.andor_camera_control.roi_2_y1.get(),
+                ]
+            ),
+            self.get_roi_area(
+                [
+                    self.andor_camera_control.roi_3_x0.get(),
+                    self.andor_camera_control.roi_3_y0.get(),
+                    self.andor_camera_control.roi_3_x1.get(),
+                    self.andor_camera_control.roi_3_y1.get(),
+                ]
+            ),
+            self.get_roi_area(
+                [
+                    self.andor_camera_control.roi_4_x0.get(),
+                    self.andor_camera_control.roi_4_y0.get(),
+                    self.andor_camera_control.roi_4_x1.get(),
+                    self.andor_camera_control.roi_4_y1.get(),
+                ]
+            ),
+            self.get_roi_area(
+                [
+                    self.andor_camera_control.roi_5_x0.get(),
+                    self.andor_camera_control.roi_5_y0.get(),
+                    self.andor_camera_control.roi_5_x1.get(),
+                    self.andor_camera_control.roi_5_y1.get(),
+                ]
+            ),
+        ]
+
+        norm_factor_1 = areas[0] / (areas[2] + areas[4])
+        norm_factor_2 = areas[1] / (areas[3] + areas[5])
+
+        atom_num_1 = sums[0] - norm_factor_1 * (sums[2] + sums[4])
+        atom_num_2 = sums[1] - norm_factor_2 * (sums[3] + sums[5])
         atom_number = atom_num_1 + atom_num_2
 
         if atom_number == 0:
             self.excitation_fraction.push(0.0)
         else:
-            # I'm not sure, but I think atom_num_2 is the excited state, it's the one with larger y coordinates
             self.excitation_fraction.push(atom_num_2 / atom_number)
 
         self.atom_number.push(atom_number)
