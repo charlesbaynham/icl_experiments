@@ -250,8 +250,8 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
         # Ok this is copied from normalised_fast_kinetics_base but idk what it does
-        ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
-        excited_bg_corrected = images[1].astype(int) - images[3].astype(int)
+        ground_bg_corrected = images[0].astype(int)
+        excited_bg_corrected = images[1].astype(int)
         self.set_dataset(
             ANDOR_FK_G_BG_CORR_DATASET,
             ground_bg_corrected,
