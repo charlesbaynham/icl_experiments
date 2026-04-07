@@ -162,7 +162,7 @@ class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
+    XODTSingleMolassesMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     DipoleTrapWithExperiment,
