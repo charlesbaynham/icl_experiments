@@ -4,7 +4,9 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import Grabber
 from artiq.coredevice.grabber import OutOfSyncException
 from artiq.coredevice.rtio import rtio_input_timestamped_data
-from artiq.experiment import *
+from artiq.experiment import NumberValue
+from artiq.experiment import TInt64
+from artiq.experiment import kernel
 from artiq.language import delay
 from artiq.language import now_mu
 from artiq.language import us

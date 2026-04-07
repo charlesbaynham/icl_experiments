@@ -3,7 +3,7 @@ import logging
 from artiq.coredevice.core import Core
 from artiq.coredevice.suservo import Channel as SUServoChannel
 from artiq.coredevice.suservo import SUServo
-from artiq.coredevice.urukul import *
+from artiq.coredevice.urukul import TFloat
 from artiq.experiment import EnvExperiment
 from artiq.experiment import StringValue
 from artiq.language import kernel

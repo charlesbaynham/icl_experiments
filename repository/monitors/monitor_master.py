@@ -21,7 +21,14 @@ from repository.database_monitors.monitor_lab_temperature import (
 from repository.database_monitors.monitor_lab_temperature import MonitorTemperaturePCW
 from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh1IonPump
 from repository.database_monitors.monitor_saes_ion_pump import MonitorClockCh2IonPump
-from repository.database_monitors.monitor_topticas import *
+from repository.database_monitors.monitor_topticas import MonitorToptica461
+from repository.database_monitors.monitor_topticas import MonitorToptica487
+from repository.database_monitors.monitor_topticas import MonitorToptica641
+from repository.database_monitors.monitor_topticas import MonitorToptica679
+from repository.database_monitors.monitor_topticas import MonitorToptica689
+from repository.database_monitors.monitor_topticas import MonitorToptica698
+from repository.database_monitors.monitor_topticas import MonitorToptica707
+from repository.database_monitors.monitor_topticas import MonitorToptica1379
 from repository.database_monitors.monitor_wand import MonitorWAND
 from repository.database_monitors.monitor_weather import MonitorWeather
 

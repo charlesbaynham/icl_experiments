@@ -4,7 +4,12 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD
-from artiq.coredevice.urukul import *
+from artiq.coredevice.urukul import now_mu
+from artiq.coredevice.urukul import urukul_sta_ifc_mode
+from artiq.coredevice.urukul import urukul_sta_pll_lock
+from artiq.coredevice.urukul import urukul_sta_proto_rev
+from artiq.coredevice.urukul import urukul_sta_rf_sw
+from artiq.coredevice.urukul import urukul_sta_smp_err
 from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 from artiq.language import delay

@@ -1,7 +1,11 @@
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.ad9912 import AD9912
 from artiq.coredevice.urukul import CPLD
-from artiq.experiment import *
+from artiq.experiment import BooleanValue
+from artiq.experiment import EnumerationValue
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
+from artiq.experiment import kernel
 from pyaion.lib.utils import get_local_devices
 
 

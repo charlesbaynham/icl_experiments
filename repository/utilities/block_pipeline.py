@@ -1,6 +1,6 @@
 import time
 
-from artiq.experiment import *
+from artiq.experiment import EnvExperiment
 from artiq.master.scheduler import Scheduler
 
 
