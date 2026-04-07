@@ -61,6 +61,9 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTSingleMolassesMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 
@@ -179,6 +182,7 @@ class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_painting()
         self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
 
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
