@@ -219,7 +219,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+        # self.adiabatic_painter_ramp_on.precalculate_dma_handle()
         self.adiabatic_cooling_ramp.precalculate_dma_handle()
 
     @kernel
