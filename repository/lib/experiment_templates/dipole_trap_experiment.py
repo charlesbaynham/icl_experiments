@@ -124,7 +124,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     def do_experiment_after_red_mot_hook(self):
         self.dipole_trap_loading_hook()
         self.dipole_trap_molasses_hook()
-        self.do_clearout_pulse_hook()
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
         delay(self.dipole_hold_time.get())
@@ -152,12 +151,6 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
     def dipole_trap_molasses_hook(self):
         """
         Hook for implementation of stages in the dipole trap molasses stage. By default, do nothing
-        """
-
-    @kernel
-    def do_clearout_pulse_hook(self):
-        """
-        Hook for implementation of a clearout pulse with 689. By default, do nothing
         """
 
     @kernel
