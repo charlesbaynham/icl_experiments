@@ -116,7 +116,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         Turn the dipole beams on and do the xodt loading ramping phase
         """
         self.dipole_beam_controller.turn_on_dipole_beams()
-        self.dipole_beam_controller.turn_on_painter_suservo()
+        # self.dipole_beam_controller.turn_on_painter_suservo()
 
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
@@ -124,7 +124,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
 
         self.mot_in_xodt.do_phase()
-        self.dipole_beam_controller.turn_off_painter_suservo()
+        # self.dipole_beam_controller.turn_off_painter_suservo()
         # self.painter_driver_loading.stop_output()
 
 
