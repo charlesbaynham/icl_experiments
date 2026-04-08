@@ -152,7 +152,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~matterwave_collimate_hook`
+    * :meth:`~adiabatic_cooling_hook`
     """
 
     def build_fragment(self):
@@ -223,7 +223,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         self.adiabatic_cooling_ramp.precalculate_dma_handle()
 
     @kernel
-    def matterwave_collimate_hook(self):
+    def adiabatic_cooling_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         # delay(DELAY_BETWEEN_RTIO_EVENTS)
         # self.adiabatic_painter_ramp_on.do_phase()

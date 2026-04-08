@@ -126,6 +126,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_trap_molasses_hook()
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
+        self.adiabatic_cooling_hook()
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
         self.post_dipole_trap_hook()
@@ -175,6 +176,13 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         released. By default, turn off the dipole trap beams.
         """
         self.post_dipole_trap_hook_default()
+
+    @kernel
+    def adiabatic_cooling_hook(self):
+        """
+        Hook for adiabatic colling.
+        By default, do nothing.
+        """
 
     @kernel
     def matterwave_collimate_hook(self):
