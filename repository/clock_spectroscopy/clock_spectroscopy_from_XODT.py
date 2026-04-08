@@ -155,7 +155,7 @@ class ClockSpecFromSingleXODTEvaporatedAndLensedFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
 
 
-class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
+class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
@@ -164,11 +164,13 @@ class ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag(
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     DipoleTrapWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped single XODT with evaporation and adiabatic cooling into painted trap
+    Clock spectroscopy from dropped single XODT with adiabatic cooling into painted trap
 
     Load into an XODT, then use the up clock beam for spectroscopy, altering the
     (single-pass) AOM.
@@ -394,5 +396,5 @@ ClockSpecDownFromSingleXODTEvaporatedShelving = make_fragment_scan_exp(
 )
 
 ClockSpecFromSingleXODTEvaporatedAdiabaticallyCooled = make_fragment_scan_exp(
-    ClockSpecFromSingleXODTEvaporatedAndAdiabaticallyCooledFrag
+    ClockSpecFromSingleXODTAdiabaticallyCooledFrag
 )
