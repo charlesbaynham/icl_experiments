@@ -337,7 +337,7 @@ class XODTWithLinearRampAdiabaticCooling(GeneralRampingPhaseWithBinding):
     duration_default = constants.XODT_ADIABATIC_RAMP_DURATION
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT
+    suservos = SUSERVOS_XODT + SUSERVO_PAINTER
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVO_PAINTER)
