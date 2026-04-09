@@ -255,6 +255,7 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
         # %% Kernel params
 
         self.first_run = True
+        self.last_influx_write_time = None
 
     @kernel
     def device_setup(self) -> None:
@@ -291,6 +292,14 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
     @rpc(flags={"async"})
     def save_data(self, voltages: TArray(TFloat), ctrl_signals: TArray(TFloat)):
+        import time
+
+        current_time = time.time()
+        should_write_influx = (
+            self.last_influx_write_time is None
+            or (current_time - self.last_influx_write_time) >= 1.0
+        )
+
         for i_beam, beam_info in enumerate(self.suservo_beam_infos):
             voltage = voltages[i_beam]
             ctrl_signal = ctrl_signals[i_beam]
@@ -304,18 +313,22 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 
             self.control_signal_results_channels[i_beam].push(ctrl_signal)
 
-            self.influx_logger.write(
-                tags={
-                    "type": self.__class__.__name__,
-                    "beam": beam_info.name,
-                    "rid": self.scheduler.rid,
-                },
-                fields={
-                    "setpoint": beam_info.setpoint,
-                    "reading": voltage,
-                    "ctrl_signal": ctrl_signal,
-                },
-            )
+            if should_write_influx:
+                self.influx_logger.write(
+                    tags={
+                        "type": self.__class__.__name__,
+                        "beam": beam_info.name,
+                        "rid": self.scheduler.rid,
+                    },
+                    fields={
+                        "setpoint": beam_info.setpoint,
+                        "reading": voltage,
+                        "ctrl_signal": ctrl_signal,
+                    },
+                )
+
+        if should_write_influx:
+            self.last_influx_write_time = current_time
 
 
 DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
