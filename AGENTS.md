@@ -1,3 +1,5 @@
+# AGENTS.md - Notes for AI Assistants
+
 # ICL ARTIQ Experiments Repository
 
 ## Project Overview
@@ -59,6 +61,14 @@ docs/               # Sphinx documentation
 scripts/            # Launch scripts and utilities
 ```
 
+### Aravis Directory - DO NOT MODIFY
+
+**The `nix/aravis/` directory contains third-party code that is NOT controlled by this repository.**
+
+- Do NOT fix FIXMEs or TODOs in this directory
+- Do NOT modify any files under `nix/aravis/`
+- This is external/vendor code - any changes would be overwritten or lost
+
 ### Experiment structure
 
 TODO: Describe how hooks and mixins are used with the main experiments.
@@ -114,7 +124,12 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Use `TODO` for planned improvements
 - Use `FIXME` for temporary bodges that must be removed
 - **FIXME markers will fail CI** - they are not allowed in committed code on the master branch
-- Search for these using TodoTree extension or similar
+
+### Git branching conventions
+
+- New features should usually be developed on feature branches
+- All branches should have an associated merge request
+- **The master branch should always be deployable** - no broken code or failing tests allowed
 
 ## Nix Environment
 

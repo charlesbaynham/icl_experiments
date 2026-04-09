@@ -33,7 +33,7 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
             make_set_beams_to_default(
                 suservo_beam_infos=[
                     # constants.SUSERVOED_BEAMS["lattice_input_1379"],
-                    # constants.SUSERVOED_BEAMS["down_813"],
+                    constants.SUSERVOED_BEAMS["down_813"],
                     # constants.SUSERVOED_BEAMS["up_813"],
                     # constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
                     constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"],
