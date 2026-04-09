@@ -204,7 +204,7 @@ class GravityAndDiffractionCompensatedQuadraticShapedPulse(FrequencyShapedPulse)
             "mod_depth",
             FloatParam,
             description="Modulation depth of the scan",
-            default=6e6,
+            default=8e6,
             unit="MHz",
             min=1.0,
             max=200e6,

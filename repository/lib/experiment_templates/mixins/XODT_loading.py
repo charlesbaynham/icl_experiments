@@ -150,8 +150,8 @@ class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
     def dipole_trap_loading_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         self.dipole_trap_loading_hook_single_xodt_mot()
-        self.dipole_beam_controller.turn_off_painter_suservo()
-        self.painter_driver_loading.stop_output()
+        # self.dipole_beam_controller.turn_off_painter_suservo()
+        # self.painter_driver_loading.stop_output()
 
 
 class LoadXXODTMixin(LoadSingleXODTMixin):
