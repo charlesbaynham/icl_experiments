@@ -1395,7 +1395,7 @@ XODT_ADIABATIC_END = [0.0, 0.0, 0.0]
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
 # Single dipole trap loading phase
-# order diagonal, sigmaplus, sigmaminus, up, 1064, 813
+# order diagonal, sigmaplus, sigmaminus, up, 1064, 813, painted 1064
 XODT_SINGLE_LOADING_DURATION = 31e-3
 
 
