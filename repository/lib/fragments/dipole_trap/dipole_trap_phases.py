@@ -34,6 +34,8 @@ SUSERVOS_XODT = [
 
 SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
 
+VERTICAL_UP_BEAM = [constants.SUSERVOED_BEAMS["up_813"]]
+
 SUSERVOS_TRANSPARENCY = ["suservo_aom_singlepass_487_transparency"]
 
 SUSERVOS_CAVITY_LATTICE = [
@@ -52,7 +54,7 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     urukuls = URUKUL_RED_IJD
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER + VERTICAL_UP_BEAM
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same

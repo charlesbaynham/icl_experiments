@@ -201,6 +201,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.dipole_beam_controller.turn_off_dipole_beams()
         # maybe add delay
         self.dipole_beam_controller.turn_off_painter_suservo()
+        self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
     @kernel
     def dipole_trap_evaporation_hook_default(self):
@@ -212,6 +213,7 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
         self.dipole_beam_controller.turn_off_painter_suservo()
+        self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
     @abc.abstractmethod
     def do_experiment_after_dipole_trap_hook(self):
