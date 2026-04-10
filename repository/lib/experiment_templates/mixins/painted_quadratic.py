@@ -174,13 +174,13 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
 
         self.adiabatic_cooling_ramp: XODTWithLinearRampAdiabaticCooling
 
-        # self.setattr_fragment(
-        #     "adiabatic_painter_ramp_on",
-        #     PaintedLinearRamp,
-        #     enforce_binding_to_defaults=False,
-        # )
+        self.setattr_fragment(
+            "adiabatic_painter_ramp_on",
+            PaintedLinearRamp,
+            enforce_binding_to_defaults=False,
+        )
 
-        # self.adiabatic_painter_ramp_on: PaintedLinearRamp
+        self.adiabatic_painter_ramp_on: PaintedLinearRamp
 
         self.setattr_param_rebind(
             "HODT_adiabatic_ramp_down_time",
@@ -194,17 +194,17 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
 
         self.HODT_adiabatic_ramp_down_time: FloatParamHandle
 
-        # self.setattr_param_rebind(
-        #     "Painter_adiabatic_ramp_up_time",
-        #     self.adiabatic_painter_ramp_on,
-        #     "duration",
-        #     description="Duration of the painter adiabatic ramp up time",
-        #     unit="ms",
-        #     default=50e-3,
-        #     min=0.0,
-        # )
+        self.setattr_param_rebind(
+            "Painter_adiabatic_ramp_up_time",
+            self.adiabatic_painter_ramp_on,
+            "duration",
+            description="Duration of the painter adiabatic ramp up time",
+            unit="ms",
+            default=50e-3,
+            min=0.0,
+        )
 
-        # self.Painter_adiabatic_ramp_up_time: FloatParamHandle
+        self.Painter_adiabatic_ramp_up_time: FloatParamHandle
 
         self.adiabatic_cooling_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
             self.dipole_beam_controller.all_beam_default_setter
@@ -225,8 +225,8 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
     @kernel
     def adiabatic_cooling_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
-        # delay(DELAY_BETWEEN_RTIO_EVENTS)
-        # self.adiabatic_painter_ramp_on.do_phase()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.adiabatic_painter_ramp_on.do_phase()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         # Do the ramp
         self.adiabatic_cooling_ramp.do_phase()
