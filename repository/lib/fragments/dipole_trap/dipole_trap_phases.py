@@ -34,7 +34,7 @@ SUSERVOS_XODT = [
 
 SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
 
-VERTICAL_UP_BEAM = [constants.SUSERVOED_BEAMS["up_813"]]
+SUSERVO_UP_813 = ["suservo_aom_up_813"]
 
 SUSERVOS_TRANSPARENCY = ["suservo_aom_singlepass_487_transparency"]
 
@@ -54,7 +54,7 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     urukuls = URUKUL_RED_IJD
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER + VERTICAL_UP_BEAM
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -217,7 +217,7 @@ class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBias
         + SUSERVOS_XODT
         + SUSERVOS_TRANSPARENCY
         + SUSERVO_PAINTER
-        + VERTICAL_UP_BEAM
+        + SUSERVO_UP_813
     )
 
     default_suservo_setpoint_multiples_start = (
@@ -283,7 +283,7 @@ class MolassesDipoleRamp(GeneralRampingPhaseWithBinding):
     duration_default = 1400e-3
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT + SUSERVO_PAINTER + VERTICAL_UP_BEAM
+    suservos = SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVO_PAINTER)
