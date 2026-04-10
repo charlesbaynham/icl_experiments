@@ -212,7 +212,13 @@ class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBias
 
     duration_default = constants.XODT_MOLASSES_DURATION
 
-    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY + SUSERVO_PAINTER
+    suservos = (
+        SUSERVOS_RED
+        + SUSERVOS_XODT
+        + SUSERVOS_TRANSPARENCY
+        + SUSERVO_PAINTER
+        + VERTICAL_UP_BEAM
+    )
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START
@@ -277,7 +283,7 @@ class MolassesDipoleRamp(GeneralRampingPhaseWithBinding):
     duration_default = 1400e-3
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT + SUSERVO_PAINTER
+    suservos = SUSERVOS_XODT + SUSERVO_PAINTER + VERTICAL_UP_BEAM
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
     default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVO_PAINTER)
