@@ -1391,9 +1391,9 @@ PAINT_ADIABATIC_RAMP_DURATION = 50e-3
 PAINT_ADIABATIC_RAMP_START = [0.0]
 PAINT_ADIABATIC_RAMP_END = [1.0]
 
-# SUServo order: [1064 delivery, down 813, painter]
-XODT_ADIABATIC_START = [1.0, 0.7, 0.0]
-XODT_ADIABATIC_END = [0.0, 0.0, 0.0]
+# SUServo order: [1064 delivery, down 813, painter, up 813]
+XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 1.0]
+XODT_ADIABATIC_END = [0.0, 0.0, 0.0, 0.0]
 
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
