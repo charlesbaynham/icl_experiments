@@ -56,6 +56,9 @@ from repository.lib.experiment_templates.mixins.painted_quadratic import (
     PaintedMatterwaveLensingMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithPainterMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
@@ -161,7 +164,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
+    LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
