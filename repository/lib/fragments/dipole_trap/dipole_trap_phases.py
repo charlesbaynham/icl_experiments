@@ -366,10 +366,12 @@ class PaintedLinearRamp(GeneralRampingPhaseWithBinding):
     duration_default = constants.PAINT_ADIABATIC_RAMP_DURATION
     time_step_default = 1e-3
 
-    suservos = SUSERVO_PAINTER
+    suservos = SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(SUSERVO_PAINTER)
+    default_suservo_nominal_setpoints = [0.0] * len(
+        SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
+    )
 
     default_suservo_setpoint_multiples_start = constants.PAINT_ADIABATIC_RAMP_START
     default_suservo_setpoint_multiples_end = constants.PAINT_ADIABATIC_RAMP_END
