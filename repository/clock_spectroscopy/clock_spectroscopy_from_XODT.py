@@ -193,6 +193,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_loading()
         self.post_sequence_cleanup_hook_painter()
         self.post_sequence_cleanup_hook_shelving()
 

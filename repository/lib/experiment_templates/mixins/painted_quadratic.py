@@ -178,6 +178,9 @@ class PainterRampMixin(DipoleTrapWithExperiment):
                 ram_offset=512,
             )
             self.painter_driver: GravityAndDiffractionCompensatedQuadraticShapedPulse
+            self.painted_loading = True
+        else:
+            self.painted_loading = False
 
         self.setattr_fragment(
             "adiabatic_painter_ramp_on",
@@ -225,17 +228,14 @@ class PainterRampMixin(DipoleTrapWithExperiment):
         self.adiabatic_painter_ramp_on.do_phase()
 
     @kernel
-    def painter_off(self):
-        self.dipole_beam_controller.turn_off_painter_suservo()
-        self.painter_driver.stop_output()
-
-    @kernel
     def adiabatic_cooling_hook(self):
         self.painter_ramp_on()
 
     @kernel
     def post_sequence_cleanup_hook_painter(self):
-        self.painter_driver.stop_output()
+        self.dipole_beam_controller.turn_off_painter_suservo()
+        if self.painted_loading == False:
+            self.painter_driver.stop_output()
 
     @kernel
     def post_sequence_cleanup_hook(self):

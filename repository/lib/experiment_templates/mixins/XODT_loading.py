@@ -147,6 +147,16 @@ class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
         )
 
     @kernel
+    def post_sequence_cleanup_hook_loading(self):
+        self.dipole_beam_controller.turn_off_painter_suservo()
+        self.painter_driver_loading.stop_output()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_loading()
+
+    @kernel
     def dipole_trap_loading_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         self.dipole_beam_controller.turn_on_vertical_up_suservo()
