@@ -22,7 +22,14 @@ SU_SERVO_STABILISE_TIME = 200e-6  # time for the suservo to stabilise
 
 logger = logging.getLogger(__name__)
 
+SUSERVOS_XODT = [
+    "suservo_aom_1064_delivery",
+    "suservo_aom_down_813",
+]
+
 SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
+
+SUSERVO_UP_813 = ["suservo_aom_up_813"]
 
 
 class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
@@ -249,7 +256,8 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
         self.HODT_adiabatic_ramp_down_time: FloatParamHandle
 
         self.adiabatic_cooling_ramp.daisy_chain_with_previous_phase(
-            self.adiabatic_painter_ramp_on, SUSERVO_PAINTER
+            self.adiabatic_painter_ramp_on,
+            SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813,
         )
 
         # Set the time to the parameter value
