@@ -135,24 +135,23 @@ class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "painter_driver_loading",
-            GravityAndDiffractionCompensatedQuadraticShapedPulse,
-            ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
-            automatic_trigger=True,
-            ram_offset=0,
-        )
-        self.painter_driver_loading: (
-            GravityAndDiffractionCompensatedQuadraticShapedPulse
-        )
+        if not hasattr(self, "painter_driver"):
+            self.setattr_fragment(
+                "painter_driver_loading",
+                GravityAndDiffractionCompensatedQuadraticShapedPulse,
+                ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
+                automatic_trigger=True,
+                ram_offset=0,
+            )
+            self.painter_driver_loading: (
+                GravityAndDiffractionCompensatedQuadraticShapedPulse
+            )
 
     @kernel
     def dipole_trap_loading_hook(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         self.dipole_beam_controller.turn_on_vertical_up_suservo()
         self.dipole_trap_loading_hook_single_xodt_mot()
-        # self.dipole_beam_controller.turn_off_painter_suservo()
-        # self.painter_driver_loading.stop_output()
 
 
 class LoadXXODTMixin(LoadSingleXODTMixin):

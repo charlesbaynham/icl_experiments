@@ -185,9 +185,16 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_painting()
+        self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_painter()
+        self.post_sequence_cleanup_hook_shelving()
 
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(

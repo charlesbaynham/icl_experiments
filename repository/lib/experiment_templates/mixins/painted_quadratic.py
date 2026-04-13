@@ -162,18 +162,22 @@ class PainterRampMixin(DipoleTrapWithExperiment):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~adiabatic_cooling_hook`
+    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~DMA_initialisation_hook`
     """
 
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "painter_driver",
-            GravityAndDiffractionCompensatedQuadraticShapedPulse,
-            ad9910_name=PAINTING_URUKUL_CHANNEL,
-            automatic_trigger=True,
-            ram_offset=512,
-        )
+        if not hasattr(self, "painter_driver_loading"):
+            self.setattr_fragment(
+                "painter_driver",
+                GravityAndDiffractionCompensatedQuadraticShapedPulse,
+                ad9910_name=PAINTING_URUKUL_CHANNEL,
+                automatic_trigger=True,
+                ram_offset=512,
+            )
+            self.painter_driver: GravityAndDiffractionCompensatedQuadraticShapedPulse
 
         self.setattr_fragment(
             "adiabatic_painter_ramp_on",
@@ -206,7 +210,7 @@ class PainterRampMixin(DipoleTrapWithExperiment):
         self.adiabatic_painter_ramp_on.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook_painting(self):
+    def DMA_initialization_hook(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
@@ -221,8 +225,22 @@ class PainterRampMixin(DipoleTrapWithExperiment):
         self.adiabatic_painter_ramp_on.do_phase()
 
     @kernel
+    def painter_off(self):
+        self.dipole_beam_controller.turn_off_painter_suservo()
+        self.painter_driver.stop_output()
+
+    @kernel
     def adiabatic_cooling_hook(self):
         self.painter_ramp_on()
+
+    @kernel
+    def post_sequence_cleanup_hook_painter(self):
+        self.painter_driver.stop_output()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_painter()
 
 
 class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
@@ -232,6 +250,8 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~adiabatic_cooling_hook`
+    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~DMA_initialisation_hook`
     """
 
     def build_fragment(self):
@@ -263,14 +283,18 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
         # Set the time to the parameter value
 
     @kernel
-    def DMA_initialization_hook_painting(self):
+    def DMA_initialization_hook_adiabatic_cooling(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.DMA_initialization_hook_painter_on
+        self.DMA_initialization_hook_painter_on()
         self.adiabatic_cooling_ramp.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_adiabatic_cooling()
 
     @kernel
     def adiabatic_cooling_hook(self):
