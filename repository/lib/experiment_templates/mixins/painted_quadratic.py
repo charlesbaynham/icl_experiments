@@ -22,6 +22,8 @@ SU_SERVO_STABILISE_TIME = 200e-6  # time for the suservo to stabilise
 
 logger = logging.getLogger(__name__)
 
+SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
+
 
 class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
     """
@@ -146,9 +148,9 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
         delay(DELAY_BETWEEN_RTIO_EVENTS)
 
 
-class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
+class PainterRampMixin(DipoleTrapWithExperiment):
     """
-    Mixin which adiabitically adiabatically cools the atoms from the fixed HODT into the painted HODT.
+    Mixin which adiabatically turns on the painter in the adiabatic cooling hook.
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
@@ -167,32 +169,12 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         )
 
         self.setattr_fragment(
-            "adiabatic_cooling_ramp",
-            XODTWithLinearRampAdiabaticCooling,
-            enforce_binding_to_defaults=False,
-        )
-
-        self.adiabatic_cooling_ramp: XODTWithLinearRampAdiabaticCooling
-
-        self.setattr_fragment(
             "adiabatic_painter_ramp_on",
             PaintedLinearRamp,
             enforce_binding_to_defaults=False,
         )
 
         self.adiabatic_painter_ramp_on: PaintedLinearRamp
-
-        self.setattr_param_rebind(
-            "HODT_adiabatic_ramp_down_time",
-            self.adiabatic_cooling_ramp,
-            "duration",
-            description="Duration of the HODT adiabatic ramp down time",
-            unit="ms",
-            default=50e-3,
-            min=0.0,
-        )
-
-        self.HODT_adiabatic_ramp_down_time: FloatParamHandle
 
         self.setattr_param_rebind(
             "Painter_adiabatic_ramp_up_time",
@@ -206,8 +188,72 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
 
         self.Painter_adiabatic_ramp_up_time: FloatParamHandle
 
+        self.adiabatic_painter_ramp_on.bind_suservo_setpoint_params_to_default_beam_setter(
+            self.dipole_beam_controller.all_beam_default_setter
+        )
+
+        # Set the time to the parameter value
+
+    @kernel
+    def DMA_initialization_hook_painter_on(self):
+        self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+
+    @kernel
+    def DMA_initialization_hook_painting(self):
+        """
+        Preload phases' handles. These have to be grouped together, instead of
+        handled in separate subfragment setups, otherwise only the last-compiled
+        dma handle is valid.
+        """
+        self.DMA_initialization_hook_painter_on()
+
+    @kernel
+    def painter_ramp_on(self):
+        self.dipole_beam_controller.turn_on_painter_suservo()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.adiabatic_painter_ramp_on.do_phase()
+
+    @kernel
+    def adiabatic_cooling_hook(self):
+        self.painter_ramp_on()
+
+
+class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
+    """
+    Mixin which adiabitically adiabatically cools the atoms from the fixed HODT into the painted HODT.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~adiabatic_cooling_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "adiabatic_cooling_ramp",
+            XODTWithLinearRampAdiabaticCooling,
+            enforce_binding_to_defaults=False,
+        )
+        self.adiabatic_cooling_ramp: XODTWithLinearRampAdiabaticCooling
+
+        self.setattr_param_rebind(
+            "HODT_adiabatic_ramp_down_time",
+            self.adiabatic_cooling_ramp,
+            "duration",
+            description="Duration of the HODT adiabatic ramp down time",
+            unit="ms",
+            default=50e-3,
+            min=0.0,
+        )
+        self.HODT_adiabatic_ramp_down_time: FloatParamHandle
+
         self.adiabatic_cooling_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
             self.dipole_beam_controller.all_beam_default_setter
+        )
+
+        self.adiabatic_cooling_ramp.daisy_chain_with_previous_phase(
+            self.adiabatic_painter_ramp_on, SUSERVO_PAINTER
         )
 
         # Set the time to the parameter value
@@ -219,14 +265,12 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(DipoleTrapWithExperiment):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        # self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+        self.DMA_initialization_hook_painter_on
         self.adiabatic_cooling_ramp.precalculate_dma_handle()
 
     @kernel
     def adiabatic_cooling_hook(self):
-        self.dipole_beam_controller.turn_on_painter_suservo()
-        delay(DELAY_BETWEEN_RTIO_EVENTS)
-        self.adiabatic_painter_ramp_on.do_phase()
+        self.painter_ramp_on()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         # Do the ramp
         self.adiabatic_cooling_ramp.do_phase()
