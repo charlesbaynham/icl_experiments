@@ -178,8 +178,6 @@ class PainterRampMixin(DipoleTrapWithExperiment):
                 ram_offset=512,
             )
             self.painter_driver: GravityAndDiffractionCompensatedQuadraticShapedPulse
-            self.painted_loading = True
-        else:
             self.painted_loading = False
 
         self.setattr_fragment(
