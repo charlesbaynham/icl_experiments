@@ -249,7 +249,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
         self.HODT_adiabatic_ramp_down_time: FloatParamHandle
 
         self.adiabatic_cooling_ramp.bind_suservo_setpoint_params_to_default_beam_setter(
-            self.dipole_beam_controller.all_beam_default_setter
+            self.dipole_beam_controller.xodt_beam_default_setter
         )
 
         self.adiabatic_cooling_ramp.daisy_chain_with_previous_phase(
