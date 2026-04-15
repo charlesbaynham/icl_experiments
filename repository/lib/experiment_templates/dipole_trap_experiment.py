@@ -202,8 +202,8 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
 
         Advances the timeline by a few coarse cycles
         """
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=False)
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
 
     @abc.abstractmethod
     def do_experiment_after_dipole_trap_hook(self):
