@@ -33,12 +33,14 @@ def calculate_grabber_rois(
     x1,
     y1,
     bg_width,
+    excited_shift,
 ):
     """
     Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
     when in fast kinetics mode. This specific method also calculates the background ROIs
     which are on the sides of the signal ROIs.
-    Note: We only need the coords of the signal ROI. The background ROIs are calculated based on the signal ROI coords and the specified width.
+    Note: We only need the coords of the signal ROI. The background ROIs are calculated based on the signal ROI coords and the specified width. The excited state ROIS
+    cen be shifted downwards to compensate the fall under gravity with excited_shift.
     """
 
     logger.debug(
@@ -54,9 +56,9 @@ def calculate_grabber_rois(
     signal_rois = [
         [
             x0,
-            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x1,
-            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ]
@@ -64,17 +66,17 @@ def calculate_grabber_rois(
     background_rois = [
         [
             x0 - bg_width,
-            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x0,
-            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ] + [
         [
             x1,
-            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x1 + bg_width,
-            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ]
@@ -182,6 +184,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
             x1=constants.ANDOR_ROI_X1,
             y1=constants.ANDOR_ROI_Y1,
             bg_width=self.background_horizontal_width.get(),
+            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
         )
 
     @kernel
