@@ -53,6 +53,6 @@ class ClockSpecFromSingleXODTShelvingSingleImageFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
 
 
-ClockSpecFromSingleXODTSingleImage = make_fragment_scan_exp(
+ClockSpecFromSingleXODTShelvingSingleImage = make_fragment_scan_exp(
     ClockSpecFromSingleXODTShelvingSingleImageFrag
 )
