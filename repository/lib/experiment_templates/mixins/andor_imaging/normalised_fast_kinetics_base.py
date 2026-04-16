@@ -658,6 +658,9 @@ class NormalisedFastKineticsRepumpedMixin(NormalisedFastKineticsBase):
         self.blue_3d_mot.turn_on_repumpers()
 
 
+# FIXME CHarles loook here
+
+
 class NormalisedFastKineticsClockPulseMixin(
     NormalisedFastKineticsBase, ClockSpectroscopyBase
 ):
