@@ -27,7 +27,7 @@ from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXO
 logger = logging.getLogger(__name__)
 
 
-class ClockSpecFromSingleXODTSingleImageFrag(
+class ClockSpecFromSingleXODTShelvingSingleImageFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     SingleImageNormalisedDipoleTrapFastKineticsMixin,
     SingleImageNormalisedFastKineticsRepumpedMixin,
@@ -38,7 +38,7 @@ class ClockSpecFromSingleXODTSingleImageFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    Clock spectroscopy from dropped single XODT using only a single image
+    Clock spectroscopy with shelving and clearout from dropped single XODT using only a single image
 
     Load into an XODT, then use the up clock beam for spectroscopy, altering the
     (single-pass) AOM.
@@ -54,5 +54,5 @@ class ClockSpecFromSingleXODTSingleImageFrag(
 
 
 ClockSpecFromSingleXODTSingleImage = make_fragment_scan_exp(
-    ClockSpecFromSingleXODTSingleImageFrag
+    ClockSpecFromSingleXODTShelvingSingleImageFrag
 )
