@@ -68,7 +68,10 @@ def calculate_grabber_rois(
             x0 - bg_width,
             y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x0,
-            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
+            y1
+            + i * (fast_kinetics_height - excited_shift)
+            - fast_kinetics_offset
+            + 25,  # FIXME Debugging code? Uncommitted
         ]
         for i in range(num_images)
     ] + [
@@ -76,7 +79,10 @@ def calculate_grabber_rois(
             x1,
             y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x1 + bg_width,
-            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
+            y1
+            + i * (fast_kinetics_height - excited_shift)
+            - fast_kinetics_offset
+            + 25,  # FIXME Debugging code? Uncommitted
         ]
         for i in range(num_images)
     ]
