@@ -944,7 +944,7 @@ class ModeCentringSettings:
         0.1  # Tolerance for final position within window as fraction of window size
     )
     settle_time: float = (
-        0.5  # Time to wait after current changes for laser to settle / s
+        0.2  # Time to wait after current changes for laser to settle / s
     )
     wait_before_jump_back: float = (
         0.2  # Time to wait before jumping current back during mode restoration / s
