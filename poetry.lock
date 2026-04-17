@@ -4134,7 +4134,7 @@ files = [
 
 [[package]]
 name = "relocker-driver"
-version = "4.2"
+version = "5.0.1"
 description = "ARTIQ driver for relocker boards"
 optional = false
 python-versions = ">=3.10, <3.13"
@@ -4149,7 +4149,7 @@ sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 type = "git"
 url = "https://gitlab.com/imperial-sr/programming/relocker-board-driver.git"
 reference = "HEAD"
-resolved_reference = "ad977558f429ff6f3e356c0d89bc3f135deb243b"
+resolved_reference = "d4471addb8edabbf1d614f0d31fbc2bf2386416d"
 
 [[package]]
 name = "requests"
