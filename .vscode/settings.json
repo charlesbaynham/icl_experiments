@@ -35,5 +35,7 @@
         "editor.defaultFormatter": "jnoortheen.nix-ide"
     },
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix"
+    "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
+    "nixEnvSelector.useFlakes": true,
+    "python.analysis.typeCheckingMode": "basic"
 }
