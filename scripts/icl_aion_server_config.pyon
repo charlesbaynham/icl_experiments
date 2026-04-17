@@ -119,10 +119,10 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "USB",
             "target": "",
-            "id": "USB VID:PID=0403:6001 SER=AG0KOVMA",
-            "type": "gaio",
+            "host": "10.137.2.4",
+            "port": 3284,
+            "type": "virtual",
             "v_pzt_min": 0.0,
             "v_pzt_max": 4.0,
             "v_step_max": 0.01

@@ -186,8 +186,8 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD3_controller": IJDSettings(
         temperature=8200,
-        window_high=369e-3,
-        window_low=363e-3,
+        window_high=371e-3,
+        window_low=365e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
@@ -780,7 +780,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.58e6,
+        99.606e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -879,6 +879,7 @@ _default_461 = (
     - 10e6
     - 20e6  # 2025-08-07
     + 10e6  # 2025-09-15
+    - 32.0e6  # 2026-04-17
 )
 _default_707 = 423_913_478e6 - 5e6  # 2025-08-07
 _default_679 = 441_332_627e6 + 20e6  # 2025-08-07
@@ -975,7 +976,7 @@ class ModeCentringSettings:
         0.1  # Tolerance for final position within window as fraction of window size
     )
     settle_time: float = (
-        0.5  # Time to wait after current changes for laser to settle / s
+        0.2  # Time to wait after current changes for laser to settle / s
     )
     wait_before_jump_back: float = (
         0.2  # Time to wait before jumping current back during mode restoration / s
@@ -1143,7 +1144,7 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 # Clock stuff
 
 CLOCK_PI_TIME = 55e-6
-CLOCK_DOWN_PI_TIME = 68e-6
+CLOCK_DOWN_PI_TIME = 74e-6  # 68e-6
 CLOCK_SHELVING_PULSE_TIME = 380e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
@@ -1505,4 +1506,4 @@ LMT_PULSE_CLEAROUT_DURATION = 50e-6
 DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
 LMT_OFFSET_DETUNING = -6e3
-LMT_DOWN_BEAM_SHIFT = 13.6e3
+LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3
