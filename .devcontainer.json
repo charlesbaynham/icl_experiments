@@ -10,14 +10,13 @@
                 "mhutchie.git-graph",
                 "tamasfe.even-better-toml",
                 "donjayamanne.githistory",
-                "gitlab.gitlab-workflow",
-                "eamodio.gitlens",
                 "npxms.hide-gitignored",
                 "jnoortheen.nix-ide",
                 "ms-python.python",
                 "ms-python.debugpy",
-                "stkb.rewrap",
-                "gruntfuggly.todo-tree"
+                "gruntfuggly.todo-tree",
+                "waderyan.gitblame",
+                "dnut.rewrap-revived"
             ]
         }
     },
