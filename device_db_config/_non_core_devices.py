@@ -125,13 +125,13 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
         },
-        "gaio_wand_driver_688": {
-            "type": "controller",
-            "best_effort": True,
-            "host": "::1",
-            "port": PORT_GAIO_WAND_DRIVER,
-            "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
-        },
+        # "gaio_wand_driver_688": {
+        #    "type": "controller",
+        #    "best_effort": True,
+        #    "host": "::1",
+        #    "port": PORT_GAIO_WAND_DRIVER,
+        #    "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
+        # },
         "rpi_quote_controller": {
             "type": "controller",
             "host": "10.137.1.51",
