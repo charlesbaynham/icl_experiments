@@ -157,6 +157,8 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction", FloatChannel)
         self.setattr_result("atom_number", FloatChannel)
+        self.setattr_result("ground_atom_number", FloatChannel)
+        self.setattr_result("excited_atom_number", FloatChannel)
 
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
