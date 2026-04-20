@@ -132,6 +132,12 @@ def get_non_core_devices(simulation_mode=False):
             "port": PORT_GAIO_WAND_DRIVER,
             "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
         },
+        "rpi_quote_controller": {
+            "type": "controller",
+            "host": "10.137.1.51",
+            "port": get_next_port(),
+            "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
+        },
         # Removed: this has changed its firmware and no longer need to be run in ARTIQ (I should put back control of it though)
         # "cavity_scanner": {
         #     "type": "controller",
