@@ -160,6 +160,8 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
 
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
+        self.ground_atom_number: FloatChannel
+        self.excited_atom_number: FloatChannel
 
     def hook_setup_andor(self):
         """
@@ -313,7 +315,10 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         else:
             self.excitation_fraction.push(atom_num_2 / atom_number)
 
+        # Save the atom number counts
         self.atom_number.push(atom_number)
+        self.ground_atom_number.push(atom_num_1)
+        self.excited_atom_number.push(atom_num_2)
 
     @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
