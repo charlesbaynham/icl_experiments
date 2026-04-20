@@ -102,7 +102,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=61e6,
+        frequency=78.5e6,
         attenuation=27.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
