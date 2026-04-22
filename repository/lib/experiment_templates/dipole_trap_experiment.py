@@ -59,7 +59,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
 logger = logging.getLogger(__name__)
 
 
-# FIXME: REMOVE CONSTANT BEAM MIXIN AFTER DILLEN IS DONE (WHICH WILL BE NEVER!!!!)
+# TODO: REMOVE CONSTANT BEAM MIXIN AFTER DILLEN IS DONE (WHICH WILL BE NEVER!!!!)
 class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
@@ -202,8 +202,8 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
 
         Advances the timeline by a few coarse cycles
         """
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
-        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=False)
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
 
     @abc.abstractmethod
     def do_experiment_after_dipole_trap_hook(self):

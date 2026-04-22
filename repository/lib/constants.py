@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.822e6,
+        frequency=364.8e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -102,7 +102,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=61e6,
+        frequency=78.5e6,
         attenuation=27.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
@@ -186,8 +186,8 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD3_controller": IJDSettings(
         temperature=8200,
-        window_high=369e-3,
-        window_low=363e-3,
+        window_high=371e-3,
+        window_low=365e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
@@ -533,12 +533,43 @@ _y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
 ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
 ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
+ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH = 50
+
 # %% 689 spectroscopy defaults
 
 ANDOR_689_FAST_KINETICS_X0 = 52
 ANDOR_689_FAST_KINETICS_X1 = 160
 FLUORESCENCE_PULSE_DURATION_689 = 4e-6
 
+
+# IMAGING ROIS FOR SINGLE IMAGING
+
+_ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y = 290  # 4ms dropping time
+
+_ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE = 40
+_ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE = (
+    0  # shift in the horizontal direction to have the streak not in the BG image
+)
+_ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE = 10
+_ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE = 2
+
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = (
+    round(_ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
+    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = (
+    round(_ANDOR_DIPOLE_TRAP_FORWARD_X + _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
+    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = round(
+    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
+    - _ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = round(
+    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
+    + _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE
+)
+ROI_SHIFT_EXCITED_STATE = 16
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
@@ -800,7 +831,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_1064_painted_delivery",
         servo_enabled=True,
         initial_amplitude=0.1,
-        setpoint=4.7,
+        setpoint=4.0,
         kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
@@ -944,7 +975,7 @@ class ModeCentringSettings:
         0.1  # Tolerance for final position within window as fraction of window size
     )
     settle_time: float = (
-        0.5  # Time to wait after current changes for laser to settle / s
+        0.2  # Time to wait after current changes for laser to settle / s
     )
     wait_before_jump_back: float = (
         0.2  # Time to wait before jumping current back during mode restoration / s

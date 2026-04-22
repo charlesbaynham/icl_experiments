@@ -395,6 +395,17 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle
+
+        self.setattr_param(
+            "temporary_delay_between_series",
+            FloatParam,
+            "Temporary delay between first and second fast kinetics series",
+            default=200e-3,
+            min=0.0,
+            unit="ms",
+        )
+        self.temporary_delay_between_series: FloatParamHandle
+
         # Note the wording of this parameter - it's the time between the starts
         # of the pulses, not the time the end of one and the start of the next
         # one. This interacts non-trivially with the way that the Andor camera
@@ -516,10 +527,17 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
+
+        t_start_first_series_mu = now_mu()
         self.do_first_series()
         self.post_first_series()  # call rpc to get images, start next acquisition
-        self.core.break_realtime()
-        delay(10e-3)  # Extra slack for the fluorescence probe pre-empt time
+
+        # FIXME This is a temporary patch for an experiment we're running - do not merge it to master
+
+        at_mu(
+            t_start_first_series_mu
+            + self.core.seconds_to_mu(self.temporary_delay_between_series.get())
+        )
         self.pre_second_series()
         self.do_second_series()
         self.post_second_series()  # call rpc to get images
@@ -656,6 +674,9 @@ class NormalisedFastKineticsRepumpedMixin(NormalisedFastKineticsBase):
         self.do_pulse()
         delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
+
+
+# FIXME CHarles loook here
 
 
 class NormalisedFastKineticsClockPulseMixin(
