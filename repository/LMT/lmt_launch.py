@@ -49,9 +49,9 @@ class LaunchFromXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
-    XODTRetroedMolassesPlusDipoleRampMixin,
-    # XODTSingleMolassesPlusDipoleRampMixin,
-    # OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    # XODTRetroedMolassesPlusDipoleRampMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
@@ -60,7 +60,7 @@ class LaunchFromXODTFrag(
     """
     Launch from XODT
 
-    Load into an XODT, shelve with a Jesse pulse, then use LMT for launching
+    Load into an XODT, then use LMT for launching
 
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
