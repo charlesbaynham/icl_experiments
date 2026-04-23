@@ -92,9 +92,28 @@ def calculate_grabber_rois(
 
 class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     """
-    This is the base class for single image normalised fast kinetics.
+    Implements normalised readout using a single image for a :py:class:`~RedMOTWithExperiment`
+    experiment.
 
-    I don't know what I'm doing :')
+    This mixin base uses the Andor camera to take one fast kinetics series with two images and creates a
+    ResultChannels for normalised state readout. The two images in the fast kinetics series images atoms that starts in (i)
+    the ground state, and (ii) the excited state.
+    The normalised image is then calculated by subtracting the counts of the signal ROI with an average background count that is calculated as followed:
+    Consider two background ROIs with the same height as the signal ROI and a width of 50 pixels; the two images are placed immediately to the left and right of the signal ROI.
+    The total sum of background ROI counts is divided by the number of pixels in the background ROI and multiplied by the number of pixels in the signal ROI to get the average background across the entire signal ROI.
+    Finally this background count is subtracted from the total signal ROI to get a normalised value.
+
+    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
+    and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_imaging_hook_andor`
+    * :meth:`~process_andor_data_hook`
+    * :meth:`~update_andor_monitor_hook`
     """
 
     num_andor_images = 2
@@ -302,6 +321,11 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
                 ]
             ),
         ]
+
+        # ROI 0     : Ground state signal ROI
+        # ROI 1     : Excited state signal ROI
+        # ROI 2 & 6 : Ground state background ROI
+        # ROI 3 & 5 : Excited state background ROI
 
         norm_factor_1 = areas[0] / (areas[2] + areas[4])
         norm_factor_2 = areas[1] / (areas[3] + areas[5])
