@@ -33,7 +33,13 @@ from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaun
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithPainterMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTRetroedMolassesPlusDipoleRampMixin,
 )
@@ -48,12 +54,13 @@ class LaunchFromXODTFrag(
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
+    LoadSingleXODTWithPainterMixin,
     # XODTRetroedMolassesPlusDipoleRampMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
     DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
