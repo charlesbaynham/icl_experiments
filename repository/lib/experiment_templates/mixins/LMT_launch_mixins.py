@@ -422,13 +422,13 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         # )
         # delay_mu(8)
 
-        delay_mu(8)
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            ramp_rate,
-            80e6 - 1e6,
-            80e6,
-            wave_type=2,
-        )
+        # delay_mu(8)
+        # self.clock_opll.clock_frequency_ramper.start_ramp(
+        #     ramp_rate,
+        #     80e6 - 1e6,
+        #     80e6,
+        #     wave_type=2,
+        # )
 
         delay(10e-6)
 
