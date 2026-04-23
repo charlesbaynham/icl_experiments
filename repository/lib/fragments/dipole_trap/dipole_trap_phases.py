@@ -240,10 +240,11 @@ class EvapFieldRamp(GeneralRampingPhaseWithBindingAndBiasField):
     # N.B. The start values are ignored if there is a spin pol phase present -
     # the spin pol settings are used instead.
 
-    general_setter_default_starts = constants.add_field_offset(
-        2 * 0.3983, 2 * 0.0653, 2 * 0.2681
-    )
-    # constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
+    general_setter_default_starts = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_START
+    # constants.add_field_offset(
+    #     2 * 0.3983, 2 * 0.0653, 2 * 0.2681
+    # )
+    #
 
     general_setter_default_ends = constants.XODT_EVAP_AND_FIELD_RAMP_FIELD_END
 
