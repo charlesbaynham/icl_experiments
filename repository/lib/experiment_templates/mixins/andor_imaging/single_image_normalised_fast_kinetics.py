@@ -7,6 +7,9 @@ from ndscan.experiment.parameters import FloatParamHandle
 from single_image_normalised_fast_kinetics_base import (
     SingleImageNormalisedFastKineticsBase,
 )
+from single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedFastKineticsDoubleTrapBase,
+)
 from single_image_normalised_fast_kinetics_base import calculate_grabber_rois
 
 from repository.lib import constants
@@ -142,3 +145,37 @@ class SingleImageNormalisedFastKineticsClockPulseMixin(
         self.clock_down_dds.sw.on()
         delay(constants.CLOCK_DOWN_PI_TIME)
         self.clock_down_dds.sw.off()
+
+
+class SingleImageNormalisedFastKineticsDoubleTrapRepumpedMixin(
+    SingleImageNormalisedFastKineticsDoubleTrapBase
+):
+    """
+    Adds repumping after the first fluorescence pulse to a
+    :class:`~.SingleImageNormalisedFastKineticsDoubleTrapBase` experiment.
+
+    This is a mixin for :class:`~.SingleImageNormalisedFastKineticsDoubleTrapBase`.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_first_pulse`
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()
