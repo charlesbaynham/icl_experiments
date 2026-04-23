@@ -53,7 +53,14 @@ ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
 def calculate_grabber_rois(
-    fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1
+    fast_kinetics_height,
+    fast_kinetics_offset,
+    num_images,
+    x0,
+    y0,
+    x1,
+    y1,
+    excited_shift,
 ):
     """
     Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
@@ -79,9 +86,9 @@ def calculate_grabber_rois(
     return [
         [
             x0,
-            y0 + i * fast_kinetics_height - fast_kinetics_offset,
+            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x1,
-            y1 + i * fast_kinetics_height - fast_kinetics_offset,
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ]
@@ -235,6 +242,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
             y0=constants.ANDOR_ROI_Y0,
             x1=constants.ANDOR_ROI_X1,
             y1=constants.ANDOR_ROI_Y1,
+            excited_shift=0,
         )
 
     @kernel
@@ -519,6 +527,7 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
             y0=constants.ANDOR_ROI_Y0,
             x1=constants.ANDOR_ROI_X1,
             y1=constants.ANDOR_ROI_Y1,
+            excited_shift=0,
         )
 
     @kernel

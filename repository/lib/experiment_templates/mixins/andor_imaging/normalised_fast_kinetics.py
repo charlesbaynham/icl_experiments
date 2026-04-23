@@ -67,10 +67,11 @@ class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
             num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1,
+            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
         )
 
 
@@ -143,6 +144,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            excited_shift=0,
         )
         backward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
@@ -152,6 +154,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+            excited_shift=0,
         )
 
         # Compensate for the drop under gravity in the excited cloud relative to
@@ -277,6 +280,7 @@ class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsBa
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            excited_shift=0,
         )
         backward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
@@ -286,6 +290,7 @@ class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsBa
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+            excited_shift=0,
         )
 
         # Compensate for the drop under gravity in the excited cloud relative to
