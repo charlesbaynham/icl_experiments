@@ -102,7 +102,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=61e6,
+        frequency=78.5e6,
         attenuation=27.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
@@ -546,10 +546,10 @@ FLUORESCENCE_PULSE_DURATION_689 = 4e-6
 
 # Read obsidian labbook entry '2026-04-20 Redefining Dipole ROI for single background imaging' for
 # why it's defined like this
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = 176
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = 216
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = 280
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = 292
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = 166
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = 246
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = 265
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = 305
 
 ROI_SHIFT_EXCITED_STATE = 16
 

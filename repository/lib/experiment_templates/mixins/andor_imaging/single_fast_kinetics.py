@@ -68,10 +68,7 @@ def calculate_grabber_rois(
             x0 - bg_width,
             y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x0,
-            y1
-            + i * (fast_kinetics_height - excited_shift)
-            - fast_kinetics_offset
-            + 25,  # FIXME Debugging code? Uncommitted
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ] + [
@@ -79,10 +76,7 @@ def calculate_grabber_rois(
             x1,
             y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x1 + bg_width,
-            y1
-            + i * (fast_kinetics_height - excited_shift)
-            - fast_kinetics_offset
-            + 25,  # FIXME Debugging code? Uncommitted
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ]
@@ -176,6 +170,8 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction", FloatChannel)
         self.setattr_result("atom_number", FloatChannel)
+        self.setattr_result("ground_atom_number", FloatChannel)
+        self.setattr_result("excited_atom_number", FloatChannel)
 
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
