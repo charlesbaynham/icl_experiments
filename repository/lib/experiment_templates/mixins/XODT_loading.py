@@ -17,6 +17,9 @@ from repository.lib.fragments.beams.toggling_beam_setter import (
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInBottomXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
+from repository.lib.fragments.painted_pulse import (
+    GravityAndDiffractionCompensatedQuadraticShapedPulse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +112,55 @@ class LoadSingleXODTMixin(DipoleTrapWithExperiment):
         )
 
         self.mot_in_xodt.do_phase()
+
+
+class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
+    """
+    Loads atoms in a single XODT after the narrowband red MOT
+
+    Ramps the dipole trap beams on at the start of a stage of ramping MOT beams.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~DMA_initialization_hook`
+    * :meth:`~post_narrowband_hook`
+    * :meth:`~dipole_trap_loading_hook`
+
+    We also override this hook to do nothing since this Mixin is now taking
+    charge of field setting:
+
+    * :meth:`~set_postnarrowband_fields_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_fragment(
+            "painter_driver_loading",
+            GravityAndDiffractionCompensatedQuadraticShapedPulse,
+            ad9910_name=constants.PAINTING_URUKUL_CHANNEL,
+            automatic_trigger=True,
+            ram_offset=0,
+        )
+        self.painter_driver_loading: (
+            GravityAndDiffractionCompensatedQuadraticShapedPulse
+        )
+
+    @kernel
+    def post_sequence_cleanup_hook_loading(self):
+        self.dipole_beam_controller.turn_off_painter_suservo()
+        self.painter_driver_loading.stop_output()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_loading()
+
+    @kernel
+    def dipole_trap_loading_hook(self):
+        self.dipole_beam_controller.turn_on_painter_suservo()
+        self.dipole_beam_controller.turn_on_vertical_up_suservo()
+        self.dipole_trap_loading_hook_single_xodt_mot()
 
 
 class LoadXXODTMixin(LoadSingleXODTMixin):

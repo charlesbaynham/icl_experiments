@@ -36,7 +36,16 @@ SUSERVOS_XODT = [
     "suservo_aom_down_813",
 ]
 
+SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
+
 SUSERVO_UP_813 = ["suservo_aom_up_813"]
+
+SUSERVO_IN_DIPOLE_RAMP = [
+    "suservo_aom_1064_delivery",
+    "suservo_aom_down_813",
+    "suservo_aom_1064_painted_delivery",
+    "suservo_aom_up_813",
+]
 
 
 class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
@@ -261,7 +270,7 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
         # )
 
         self.cool_molasses.daisy_chain_with_previous_phase(
-            self.molasses_xodt_1, SUSERVOS_XODT
+            self.molasses_xodt_1, SUSERVO_IN_DIPOLE_RAMP
         )
 
     @kernel
@@ -283,6 +292,7 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
     def dipole_trap_molasses_hook(self):
         self.set_fields_xodt_molasses()
         self.dipole_trap_molasses_hook_first_xodt_molasses()
+        # self.dipole_beam_controller.()
         self.dipole_trap_molasses_hook_cool_molasses()
 
     @kernel
