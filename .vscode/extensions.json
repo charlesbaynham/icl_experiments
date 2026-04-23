@@ -1,6 +1,5 @@
 {
     "recommendations": [
-        "mkhl.direnv",
         "ms-python.black-formatter",
         "streetsidesoftware.code-spell-checker",
         "editorconfig.editorconfig",
@@ -8,12 +7,12 @@
         "tamasfe.even-better-toml",
         "donjayamanne.githistory",
         "gitlab.gitlab-workflow",
-        "eamodio.gitlens",
         "npxms.hide-gitignored",
         "jnoortheen.nix-ide",
         "ms-python.python",
         "ms-python.debugpy",
-        "stkb.rewrap",
-        "gruntfuggly.todo-tree"
+        "gruntfuggly.todo-tree",
+        "dnut.rewrap-revived",
+        "arrterian.nix-env-selector"
     ]
 }

@@ -41,6 +41,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     fit_2d_gaussian,
 )
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
@@ -316,7 +319,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
         self.atom_number.push(atom_number)
 
-    @host_only
+    @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
@@ -392,6 +395,17 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
             unit="ms",
         )
         self.delay_between_imaging_pulses: FloatParamHandle
+
+        self.setattr_param(
+            "temporary_delay_between_series",
+            FloatParam,
+            "Temporary delay between first and second fast kinetics series",
+            default=200e-3,
+            min=0.0,
+            unit="ms",
+        )
+        self.temporary_delay_between_series: FloatParamHandle
+
         # Note the wording of this parameter - it's the time between the starts
         # of the pulses, not the time the end of one and the start of the next
         # one. This interacts non-trivially with the way that the Andor camera
@@ -513,10 +527,17 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         Hook for the imaging sequence. This hook runs after the spectroscopy
         etc. is completed, and should handle imaging with the Andor camera.
         """
+
+        t_start_first_series_mu = now_mu()
         self.do_first_series()
         self.post_first_series()  # call rpc to get images, start next acquisition
-        self.core.break_realtime()
-        delay(10e-3)  # Extra slack for the fluorescence probe pre-empt time
+
+        # FIXME This is a temporary patch for an experiment we're running - do not merge it to master
+
+        at_mu(
+            t_start_first_series_mu
+            + self.core.seconds_to_mu(self.temporary_delay_between_series.get())
+        )
         self.pre_second_series()
         self.do_second_series()
         self.post_second_series()  # call rpc to get images
@@ -588,7 +609,7 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
 
         self.atom_number.push(atom_number)
 
-    @host_only
+    @rpc(flags={"async"})
     def process_andor_image_hook(self, images: NDArray):
         super().process_andor_image_hook(images)
         ground_bg_corrected = images[0].astype(int) - images[2].astype(int)
@@ -655,6 +676,66 @@ class NormalisedFastKineticsRepumpedMixin(NormalisedFastKineticsBase):
         self.blue_3d_mot.turn_on_repumpers()
 
 
+# FIXME CHarles loook here
+
+
+class NormalisedFastKineticsClockPulseMixin(
+    NormalisedFastKineticsBase, ClockSpectroscopyBase
+):
+    """
+    Adds a clock pi pulse after the first fluorescence pulse to a
+    :class:`~.NormalisedFastKineticsBase` experiment, in order to selectively
+    bring the excited state in the ground state before imaging.
+
+    This is a mixin for :class:`~.NormalisedFastKineticsBase`.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_first_pulse`
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_clock_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before the pi pulse",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_clock_after_first_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "imaging_clock_pulse_detuning",
+            FloatParam,
+            "Detuning for the imaging clock pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.imaging_clock_pulse_detuning: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_clock_after_first_pulse.get())
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.imaging_clock_pulse_detuning.get()
+            + constants.LMT_DOWN_BEAM_SHIFT,
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+
+        delay(1e-6)
+
+        # PI PULSE
+
+        self.clock_down_dds.sw.on()
+        delay(constants.CLOCK_DOWN_PI_TIME)
+        self.clock_down_dds.sw.off()
+
+
 class NormalisedFastKineticsDoubleTrapRepumpedMixin(
     NormalisedFastKineticsDoubleTrapBase
 ):
@@ -687,3 +768,60 @@ class NormalisedFastKineticsDoubleTrapRepumpedMixin(
         self.do_pulse()
         delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
+
+
+class NormalisedFastKineticsDoubleTrapClockPulseMixin(
+    NormalisedFastKineticsDoubleTrapBase, ClockSpectroscopyBase
+):
+    """
+    Adds a clock pi pulse after the first fluorescence pulse to a
+    :class:`~.NormalisedFastKineticsBase` experiment, in order to selectively
+    bring the excited state in the ground state before imaging.
+
+    This is a mixin for :class:`~.NormalisedFastKineticsBase`.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_first_pulse`
+    * :meth:`~do_imaging_hook_andor`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_clock_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before the pi pulse",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_clock_after_first_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "imaging_clock_pulse_detuning",
+            FloatParam,
+            "Detuning for the imaging clock pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.imaging_clock_pulse_detuning: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_clock_after_first_pulse.get())
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.imaging_clock_pulse_detuning.get()
+            + constants.LMT_DOWN_BEAM_SHIFT,
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+
+        delay(1e-6)
+
+        # PI PULSE
+
+        self.clock_down_dds.sw.on()
+        delay(constants.CLOCK_DOWN_PI_TIME)
+        self.clock_down_dds.sw.off()

@@ -95,7 +95,13 @@ class EvapAndFieldRampBase(_RampDuringEvapHookBase):
 
     def build_fragment(self):
         super().build_fragment()
+        self._bind_evap_ramp_suservo_params()
 
+    def _bind_evap_ramp_suservo_params(self):
+        # Separated into an overrideable method so subclasses that daisy-chain
+        # ramp_during_evap_phase to a preceding phase (rather than binding to
+        # the default beam setter) can skip this binding and avoid the
+        # "Not a free parameter" error that would result from binding twice.
         self.ramp_during_evap_phase.bind_suservo_setpoint_params_to_default_beam_setter(
             [self.dipole_beam_controller.all_beam_default_setter]
         )

@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.871e6,
+        frequency=364.8e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -102,8 +102,8 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=78e6,
-        attenuation=26.0,
+        frequency=78.5e6,
+        attenuation=27.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
     UrukuledBeam(
@@ -188,8 +188,8 @@ IJD_DEFAULTS = {
     ),
     "blue_IJD3_controller": IJDSettings(
         temperature=8200,
-        window_high=369e-3,
-        window_low=363e-3,
+        window_high=371e-3,
+        window_low=365e-3,
         relock_step=3e-3,
     ),
     "red_IJD1_controller": IJDSettings(
@@ -298,7 +298,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.45,
+        v_low_threshold=1.6,
         v_rise_threshold=0.015,
         wait_time=300e-3,
         auto_relock=True,
@@ -319,7 +319,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.45,
+        v_low_threshold=1.6,
         v_rise_threshold=0.015,
         wait_time=300e-3,
         auto_relock=True,
@@ -340,7 +340,7 @@ IJD_RELOCKER_DEFAULTS = {
         n_steps=100,
         window_frac=0.2,
         min_diff=0.1,
-        v_low_threshold=1.45,
+        v_low_threshold=1.6,
         v_rise_threshold=0.015,
         wait_time=500e-3,
         auto_relock=True,
@@ -535,12 +535,43 @@ _y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
 ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
 ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
+ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH = 50
+
 # %% 689 spectroscopy defaults
 
 ANDOR_689_FAST_KINETICS_X0 = 52
 ANDOR_689_FAST_KINETICS_X1 = 160
 FLUORESCENCE_PULSE_DURATION_689 = 4e-6
 
+
+# IMAGING ROIS FOR SINGLE IMAGING
+
+_ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y = 290  # 4ms dropping time
+
+_ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE = 40
+_ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE = (
+    0  # shift in the horizontal direction to have the streak not in the BG image
+)
+_ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE = 10
+_ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE = 2
+
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = (
+    round(_ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
+    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = (
+    round(_ANDOR_DIPOLE_TRAP_FORWARD_X + _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
+    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = round(
+    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
+    - _ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = round(
+    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
+    + _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE
+)
+ROI_SHIFT_EXCITED_STATE = 16
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
@@ -751,7 +782,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.722e6,
+        99.606e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -801,9 +832,9 @@ SUSERVOED_BEAMS = [
         attenuation=2.0,
         suservo_device="suservo_aom_1064_painted_delivery",
         servo_enabled=True,
-        initial_amplitude=1.0,
-        setpoint=5.1,
-        kI_loop_constant=-10000.0,
+        initial_amplitude=0.1,
+        setpoint=4.0,
+        kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
         "stark_shifter_689_delivery",
@@ -814,23 +845,14 @@ SUSERVOED_BEAMS = [
         initial_amplitude=0.3,
         setpoint=3.0,
     ),
-    # SUServoedBeam(
-    # "squeezing_cavity_698_input",
-    # frequency=80e6,
-    # attenuation=5.0,
-    # suservo_device="suservo_aom_698_squeezing_cavity_input",
-    # servo_enabled=True,
-    # initial_amplitude=1,
-    # setpoint=1.0,
-    # ),
     SUServoedBeam(
         "squeezing_cavity_698_transmission",
         frequency=80e6,
-        attenuation=4.0,
+        attenuation=14.0,
         suservo_device="suservo_aom_698_squeezing_cavity_transmission",
         servo_enabled=True,
-        initial_amplitude=1,
-        setpoint=0.3,
+        initial_amplitude=0.5,
+        setpoint=0.25,
     ),
 ]
 
@@ -894,11 +916,6 @@ MIRNY_SETTINGS_87 = [
     MirnySettings(
         device_name="mirny_eom_689_sideband", frequency=1463.265e6, attenuation=20.0
     ),
-    MirnySettings(
-        device_name="mirny_eom_transfer_cavity_offset",
-        frequency=_MIRNY_FREQ_461_TRANSFER_CAVITY + _ISOTOPE_SHIFT_461,
-        attenuation=27.5,
-    ),
 ]
 
 MIRNY_SETTINGS_88 = [
@@ -916,11 +933,6 @@ MIRNY_SETTINGS_88 = [
         device_name="mirny_eom_689_sideband",
         frequency=MIRNY_SETTINGS_87[1].frequency,
         rf_switch=False,
-    ),
-    MirnySettings(
-        device_name="mirny_eom_transfer_cavity_offset",
-        frequency=_MIRNY_FREQ_461_TRANSFER_CAVITY,
-        attenuation=27.5,
     ),
 ]
 
@@ -965,7 +977,7 @@ class ModeCentringSettings:
         0.1  # Tolerance for final position within window as fraction of window size
     )
     settle_time: float = (
-        0.5  # Time to wait after current changes for laser to settle / s
+        0.2  # Time to wait after current changes for laser to settle / s
     )
     wait_before_jump_back: float = (
         0.2  # Time to wait before jumping current back during mode restoration / s
@@ -1133,7 +1145,7 @@ DELAY_AFTER_OPTICAL_PUMPING = 0e-3
 # Clock stuff
 
 CLOCK_PI_TIME = 55e-6
-CLOCK_DOWN_PI_TIME = 70e-6
+CLOCK_DOWN_PI_TIME = 74e-6  # 68e-6
 CLOCK_SHELVING_PULSE_TIME = 380e-6
 CLOCK_SHELVING_PULSE_SETPOINT = 0.012
 SHELVING_PULSE_CLEAROUT_DURATION = 2200e-6
@@ -1525,7 +1537,7 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 
 # LMT stuff
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
-DOWN_CLOCK_BEAM_PI_TIME = 32e-6
+DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
-LMT_OFFSET_DETUNING = 7e3
-LMT_DOWN_BEAM_SHIFT = 13.6e3
+LMT_OFFSET_DETUNING = -6e3
+LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3

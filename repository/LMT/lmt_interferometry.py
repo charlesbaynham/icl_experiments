@@ -5,11 +5,17 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingClockPulseNormalised,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingRepumpedNormalised,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsClockPulseMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
@@ -48,7 +54,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 class LMTInterferometryFrag(
     LMTInterferometryMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGain,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
@@ -76,12 +82,13 @@ class LMTInterferometryFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
 
 
 class LMTInterferometryWithDoubleLaunchFrag(
     LMTInterferometryMixin,
     LMTLaunchDoubleTrapMixin,
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingClockPulseNormalised,
     EMGain,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
@@ -109,10 +116,11 @@ class LMTInterferometryWithDoubleLaunchFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
 
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
-    ShapedFirstPulseLMTInterferometryMixin,
+    LMTInterferometryMixin,
     LMTLaunchDoubleTrapShapedPulseMixin,
     DoubleTrapImagingRepumpedNormalised,
     EMGain,
@@ -176,6 +184,7 @@ class LMTInterferometryWithLaunchFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
 
 
 class ShapedFirstPulseLMTInterferometryFrag(

@@ -161,6 +161,7 @@ class RedBeamController(Fragment):
             FloatParam,
             "689 injection AOM nominal static frequency",
             unit="MHz",
+            min=0,
             default=constants.URUKULED_BEAMS["red_doublepass_injection"].frequency,
         )
 
@@ -169,6 +170,7 @@ class RedBeamController(Fragment):
             FloatParam,
             "Spin pol AOM nominal static frequency",
             unit="MHz",
+            min=0,
             default=constants.URUKULED_BEAMS["red_spinpol"].frequency,
         )
 
@@ -177,6 +179,7 @@ class RedBeamController(Fragment):
             FloatParam,
             "689 injection AOM ramp frequency",
             unit="kHz",
+            min=0,
             default=constants.RED_INJECTION_AOM_RAMP_FREQUENCY,
         )
         self.setattr_param(
@@ -206,6 +209,7 @@ class RedBeamController(Fragment):
             FloatParam,
             "689 spinpol AOM ramp frequency",
             unit="kHz",
+            min=0,
             default=constants.RED_SPINPOL_AOM_RAMP_FREQUENCY,
         )
         self.setattr_param(

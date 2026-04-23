@@ -454,6 +454,105 @@ class CentreTopticaModeFrag(ExpFragment):
         )
         return False
 
+    async def attempt_mode_recovery(
+        self,
+        initial_current: float,
+        target_detuning: float,
+        max_steps: int = 20,
+    ) -> bool:
+        """Attempt to recover the correct mode by trying restore_correct_mode at a
+        variety of starting currents in an expanding pattern around initial_current.
+
+        Tries centres in the order: initial, initial+step, initial-step,
+        initial+2*step, initial-2*step, etc., where step is 0.3% of
+        max_safe_current. Stops after max_steps total attempts (including
+        out-of-range skips) or when both directions at a given magnitude are
+        outside the safe current limits.
+
+        Args:
+            initial_current: The starting centre current in A
+            target_detuning: The target detuning in Hz
+            max_steps: Maximum number of centre attempts (including skipped ones)
+
+        Returns:
+            True if mode was recovered, False if all attempts failed
+        """
+        settle_time = self.settle_time.get()
+        min_safe = self.min_safe_current.get()
+        max_safe = self.max_safe_current.get()
+        step_size = 0.003 * max_safe  # 0.3% of max_safe_current
+
+        logger.info(
+            "[%s] Attempting mode recovery from %.3f mA with step %.3f mA "
+            "(max %d attempts)",
+            self.laser_name,
+            1e3 * initial_current,
+            1e3 * step_size,
+            max_steps,
+        )
+
+        for n in range(max_steps):
+            # Expanding pattern: 0, +step, -step, +2*step, -2*step, ...
+            if n == 0:
+                offset = 0.0
+            else:
+                magnitude = (n + 1) // 2
+                sign = 1 if n % 2 == 1 else -1
+                offset = sign * magnitude * step_size
+
+            # Break early if both directions at this magnitude are exhausted
+            if n > 0:
+                magnitude = (n + 1) // 2
+                pos_out = (initial_current + magnitude * step_size) > max_safe
+                neg_out = (initial_current - magnitude * step_size) < min_safe
+                if pos_out and neg_out:
+                    logger.info(
+                        "[%s] Both directions exhausted at magnitude %d (%.3f mA), "
+                        "stopping recovery early",
+                        self.laser_name,
+                        magnitude,
+                        1e3 * magnitude * step_size,
+                    )
+                    break
+
+            centre = initial_current + offset
+
+            if centre < min_safe or centre > max_safe:
+                logger.debug(
+                    "[%s] Recovery centre %.3f mA outside safe range "
+                    "[%.3f, %.3f] mA, skipping",
+                    self.laser_name,
+                    1e3 * centre,
+                    1e3 * min_safe,
+                    1e3 * max_safe,
+                )
+                continue
+
+            logger.info(
+                "[%s] Recovery attempt %d/%d: centre current %.3f mA",
+                self.laser_name,
+                n + 1,
+                max_steps,
+                1e3 * centre,
+            )
+            self.set_current(centre)
+            await asyncio.sleep(settle_time)
+
+            if await self.restore_correct_mode(centre, target_detuning):
+                logger.info(
+                    "[%s] Mode recovered at centre %.3f mA",
+                    self.laser_name,
+                    1e3 * centre,
+                )
+                return True
+
+        logger.error(
+            "[%s] Failed to recover mode after %d attempts",
+            self.laser_name,
+            max_steps,
+        )
+        return False
+
     def check_current_within_limits(self, current: float):
         """Check if a current value is within safe operating limits.
 
@@ -579,15 +678,31 @@ class CentreTopticaModeFrag(ExpFragment):
         initial_voltage = self.get_voltage()
 
         try:
-            # 0. Confirm that the laser is on the correct mode
+            # -1. If the FALC is present, disable it
+            try:
+                logger.info("[%s] Disabling FALC", self.laser_name)
+                self.set_FALC(False, False)
+
+            except TypeError:
+                # No FALC
+                pass
+
+            # 0. Confirm that the laser is on the correct mode; if not, attempt recovery
             if not await self.is_on_correct_mode(
                 target_detuning=self.target_detuning.get()
             ):
-                raise RuntimeError(
-                    "[%s] Laser is not on the correct mode. Please manually set the laser "
-                    "to the correct mode before running this experiment."
-                    % self.laser_name
+                logger.warning(
+                    "[%s] Laser is not on the correct mode, attempting recovery",
+                    self.laser_name,
                 )
+                if not await self.attempt_mode_recovery(
+                    initial_current, self.target_detuning.get()
+                ):
+                    raise RuntimeError(
+                        "[%s] Laser is not on the correct mode and recovery failed. "
+                        "Please manually set the laser to the correct mode before "
+                        "running this experiment." % self.laser_name
+                    )
 
             max_iterations = 10
             for iteration in range(max_iterations):

@@ -9,6 +9,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsClockPulseMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
@@ -32,6 +35,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
+    XODTRetroedMolassesPlusDipoleRampMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 
@@ -43,6 +49,7 @@ class LaunchFromXODTFrag(
     EMGain,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
+    # XODTRetroedMolassesPlusDipoleRampMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
@@ -53,7 +60,7 @@ class LaunchFromXODTFrag(
     """
     Launch from XODT
 
-    Load into an XODT, shelve with a Jesse pulse, then use LMT for launching
+    Load into an XODT, then use LMT for launching
 
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.

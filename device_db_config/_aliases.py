@@ -56,7 +56,6 @@ aliases = {
     "urukul9910_aom_698_down_switch": "urukul2_ch1",
     "urukul9910_OPLL_698_clock": "urukul8_ch2",
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
-    # "suservo_aom_698_squeezing_cavity_input": "suservo0_ch1",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
     # %% TTLs
     "TTL_shutter_461_pushbeam": "ttl8",
@@ -85,7 +84,6 @@ aliases = {
     "mirny_eom_707_sideband_A": "mirny0_ch1",
     "mirny_eom_707_sideband_B": "mirny0_ch2",
     "mirny_eom_689_sideband": "mirny0_ch3",
-    "mirny_eom_transfer_cavity_offset": "mirny1_ch0",
     # %% Other
     "zotino_plant_room": "zotino0",
 }

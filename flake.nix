@@ -46,6 +46,7 @@
           tenma-power-supply = ["poetry-core"];
           toptica-wrapper = ["poetry-core"];
           wand = ["poetry-core"];
+          gaio-laser-driver = ["poetry-core"];
           relocker-driver = ["poetry-core"];
           andor-artiq-ndsp = ["poetry-core"];
           imperial-artiq-applets = ["poetry-core"];
@@ -120,8 +121,7 @@
     in {
       inherit (overriddenOutputs) formatter;
 
-      # Add a script to the shell hook that sets the DISPLAY environment variable
-      # if we are running on WSL and a Windows X server is detected
+      # Add pre-commit hooks and WSL display fix to the default shell
       devShells = let
         newDefaultShell = overriddenOutputs.devShells.default.overrideAttrs (prev: {
           shellHook = ''
@@ -199,7 +199,7 @@
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
 
-              if rg FIXME "${self}" -g "!nix" -g !flake.nix -g !readme.rst; then
+              if rg FIXME "${self}" -g "!nix" -g !flake.nix -g !readme.rst -g !AGENTS.md; then
                 echo \"FIXME\" found in files
                 exit 1
               else
@@ -282,6 +282,12 @@
             backup_database = "nix run .#backup_database";
             backup_datasets = "nix run .#backup_datasets";
 
+            # This is an extra instance of ctlmgr which searches for controllers assigned to
+            # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
+            # since we must hard-code the IP of the labserver in the moninj proxy otherwise
+            # dashboards don't know where to connect to it.
+            moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
+
             # Automatic startup of database monitors
             monitor_launcher = "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
           in
@@ -290,7 +296,8 @@
                 commands =
                   prev.commands
                   // {
-                    inherit backup_database backup_datasets monitor_launcher;
+                    inherit backup_database backup_datasets moninj_proxy_ctlmgr monitor_launcher;
+                    ndscan_janitor = "ndscan_dataset_janitor --timeout 7200"; # 2 hours
                   };
               }
               // bind_settings);
