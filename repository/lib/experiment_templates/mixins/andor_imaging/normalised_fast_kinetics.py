@@ -62,15 +62,28 @@ class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
 
+    # def get_grabber_roi_defaults(self):
+    #     return calculate_grabber_rois(
+    #         fast_kinetics_height=self.fast_kinetics_height_default,
+    #         fast_kinetics_offset=self.fast_kinetics_offset_default,
+    #         num_images=self.num_images_per_series,
+    #         x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+    #         y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+    #         x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+    #         y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+    #    )
+
     def get_grabber_roi_defaults(self):
         return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
             num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1,
+            bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
+            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
         )
 
 
