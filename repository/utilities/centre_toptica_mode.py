@@ -678,6 +678,15 @@ class CentreTopticaModeFrag(ExpFragment):
         initial_voltage = self.get_voltage()
 
         try:
+            # -1. If the FALC is present, disable it
+            try:
+                logger.info("[%s] Disabling FALC", self.laser_name)
+                self.set_FALC(False, False)
+
+            except TypeError:
+                # No FALC
+                pass
+
             # 0. Confirm that the laser is on the correct mode; if not, attempt recovery
             if not await self.is_on_correct_mode(
                 target_detuning=self.target_detuning.get()

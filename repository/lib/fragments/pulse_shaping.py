@@ -81,7 +81,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         bit slower.
         """
 
-    def build_fragment(self, ad9910_name=None):
+    def build_fragment(self, ad9910_name=None, ram_offset=None):
         self.setattr_device("core")
         self.core: Core
 
@@ -89,6 +89,10 @@ class _ShapedPulse(Fragment, abc.ABC):
             raise ValueError("No AD9910 name provided")
         elif ad9910_name is not None:
             self.ad9910_name = ad9910_name
+
+        if ram_offset is not None:
+            # Note - if not set this defaults to 0
+            self.ram_offset = ram_offset
 
         # Make sure the Urukul is initialized
         self.setattr_fragment("urukul_init", make_urukul_init([self.ad9910_name]))
@@ -103,7 +107,7 @@ class _ShapedPulse(Fragment, abc.ABC):
             "num_steps",
             IntParam,
             description="Number of steps in the shaped pulse",
-            default=500,
+            default=500,  # TODO This could interact badly with ram_offset - fix this nicely
             min=1,
             max=self._max_num_steps,
         )
@@ -231,7 +235,6 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         You should call `trigger_pulse` after this to actually play the
         sequence, and call `disable_ram_mode` afterwards to clean up.
-
         """
 
         # Disable RAM mode while changing profile
@@ -421,13 +424,16 @@ class FrequencyShapedPulse(_ShapedPulse):
     # Have it ramp up and down
 
     def build_fragment(
-        self, centre_frequency_param_handle: FloatParamHandle, ad9910_name=None
+        self,
+        centre_frequency_param_handle: FloatParamHandle,
+        ad9910_name=None,
+        ram_offset=None,
     ):
         """
         Requires you to pass a FloatParamHandle representing a parameter that
         the pulse's centre frequency will be bound to.
         """
-        super().build_fragment(ad9910_name)
+        super().build_fragment(ad9910_name, ram_offset)
 
         self.centre_frequency = centre_frequency_param_handle
 

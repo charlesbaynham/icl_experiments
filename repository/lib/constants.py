@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.822e6,
+        frequency=364.8e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -102,7 +102,7 @@ URUKULED_BEAMS = [
     ),
     UrukuledBeam(
         "blue_xfer_offset",
-        frequency=61e6,
+        frequency=78.5e6,
         attenuation=27.0,
         urukul_device="urukul9910_aom_doublepass_461_to_xfer_cavity",
     ),
@@ -124,6 +124,8 @@ URUKULED_BEAMS = [
 # Convert to dict for ease of use
 URUKULED_BEAMS: dict[str, UrukuledBeam] = {beam.name: beam for beam in URUKULED_BEAMS}
 
+PAINTING_URUKUL_CHANNEL = "urukul9910_aom_1064_painting"
+PAINTED_DDS_ATT = 5.0
 
 # Setpoints for the red sigmaplus and sigmaminus SUServos while running the spin
 # polarizing beam (i.e. not their normal MOT beams)
@@ -533,12 +535,43 @@ _y_bottom_of_frame = _y_bottom_trap - height / 2 - SLACK_FOR_GRAVITY
 ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP = round(_y_top_of_frame - _y_bottom_of_frame)
 ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP = round(_y_bottom_of_frame)
 
+ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH = 50
+
 # %% 689 spectroscopy defaults
 
 ANDOR_689_FAST_KINETICS_X0 = 52
 ANDOR_689_FAST_KINETICS_X1 = 160
 FLUORESCENCE_PULSE_DURATION_689 = 4e-6
 
+
+# IMAGING ROIS FOR SINGLE IMAGING
+
+_ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y = 290  # 4ms dropping time
+
+_ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE = 40
+_ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE = (
+    0  # shift in the horizontal direction to have the streak not in the BG image
+)
+_ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE = 10
+_ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE = 2
+
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = (
+    round(_ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
+    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = (
+    round(_ANDOR_DIPOLE_TRAP_FORWARD_X + _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
+    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = round(
+    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
+    - _ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE
+)
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = round(
+    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
+    + _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE
+)
+ROI_SHIFT_EXCITED_STATE = 16
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
 "Camera exposure time, also used for length of fluorescence pulse by default"
@@ -800,7 +833,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_1064_painted_delivery",
         servo_enabled=True,
         initial_amplitude=0.1,
-        setpoint=4.7,
+        setpoint=4.0,
         kI_loop_constant=-1000.0,
     ),
     SUServoedBeam(
@@ -1240,7 +1273,7 @@ else:
 
 # Unused in Sr88 so only one setting needed
 XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
-XODT_MOLASSES_689_STIR_DETUNING = 555000.0
+XODT_MOLASSES_689_STIR_DETUNING = 585000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",
@@ -1250,6 +1283,7 @@ XODT_MOLASSES_689_STIR_DETUNING = 555000.0
 # "suservo_aom_1064_delivery",
 # "suservo_aom_down_813"
 # "suservo_aom_singlepass_487_transparency"
+# "suservo_aom_1064_painted_delivery"
 # "suservo_aom_up_813"
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
@@ -1272,6 +1306,7 @@ if USE_SR87:
         1.0,
         0.6,
         1.0,
+        0.0,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1281,7 +1316,8 @@ if USE_SR87:
         1.0,
         0.7,
         0.6,
-        0.7,
+        1.0,
+        0.0,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         260e3,
@@ -1340,17 +1376,19 @@ else:
 
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
-# order: 1064, down 813, up 813
-XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7, 0.0]
-XODT_COOL_MOLASSES_MULTIPLE_END = [0.17, 0.2, 0.0]
+# order: 1064, 813, painter, up 813
+XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7, 1.0, 0.0]
+XODT_COOL_MOLASSES_MULTIPLE_END = [1.0, 0.7, 1.0, 0.0]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 1400e-3
 XODT_EVAP_2_DURATION = 1000e-3
 XODT_EVAP_3_DURATION = 1300e-3
+XODT_ADIABATIC_RAMP_DURATION = 20e-3
 # SUServo order: [1064 delivery, down 813]
 XODT_EVAP_START = [1.0, 0.7]
 XODT_EVAP_END = [0.35, 0.7]
+
 XODT_EVAP_AND_FIELD_RAMP_SUSERVOS_END = [1.0, 1.0]
 XODT_EVAP_AND_FIELD_RAMP_FIELD_START = OPTICAL_PUMPING_BIAS_FIELD
 XODT_EVAP_AND_FIELD_RAMP_FIELD_END = add_field_offset(-1.12, 0.0, 0.0)
@@ -1362,15 +1400,43 @@ XODT_EVAP_2_END = [0.21, 0.7]
 
 XODT_EVAP_3_END = [0.18, 0.7]
 
+
+# SUServo order: [1064 delivery, down 813, painter, up 813]
+XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 0.0]
+XODT_ADIABATIC_END = [0.0, 0.2, 1.0, 0.0]
+
+PAINT_ADIABATIC_RAMP_DURATION = 50e-3
+PAINT_ADIABATIC_RAMP_START = [1.0, 0.7, 1.0, 0.0]
+PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0, 0.0]
+
+
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
 # Single dipole trap loading phase
-# order diagonal, sigmaplus, sigmaminus, up, 1064, 813
-XODT_SINGLE_LOADING_DURATION = 31e-3
+# order diagonal, sigmaplus, sigmaminus, up, 1064, 813, painted 1064, up 813
+XODT_SINGLE_LOADING_DURATION = 90e-3
 
 
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [0.025, 0.02, 0.03, 0.16, 0.6, 0.0]
-XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [0.001, 0.005, 0.005, 0.003, 1.0, 1.0]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [
+    0.025,
+    0.02,
+    0.03,
+    0.16,
+    0.6,
+    0.0,
+    1.0,
+    0.0,
+]
+XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [
+    0.001,
+    0.005,
+    0.005,
+    0.003,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     0e3,
 ]
