@@ -76,6 +76,7 @@ class LaunchFromXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
@@ -84,6 +85,7 @@ class LaunchFromXODTFrag(
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_loading()
         self.post_sequence_cleanup_hook_shelving()
 
     @kernel
