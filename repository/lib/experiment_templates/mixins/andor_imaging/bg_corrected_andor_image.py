@@ -18,6 +18,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 
 logger = logging.getLogger(__name__)
 
+# FIXME draft patch
+BGCorrectedAndorImage = NormalisedImagingBecauseWereLazy
+
 
 class BGCorrectedAndorImage(AndorImagingBase):
     """

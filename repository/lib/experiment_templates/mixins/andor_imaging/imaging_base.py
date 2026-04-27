@@ -36,6 +36,36 @@ ANDOR_MONITOR_DATASET = "andor_monitor_image"
 ANDOR_DETAILED_MONITOR_DATASETS = "andor_image_{i}"
 
 
+class LocProcFragment(abc.ABC, Fragment):
+    num_andor_images = 1
+    "How many images will the Andor driver read out"
+    num_images_per_series = 1
+    "How many images will the Andor driver read out in each series"
+    num_grabber_rois = 1
+    "How many ROIs in each image for the Grabber"
+    num_grabber_readouts = 1
+    "How many images will the Grabber read out"
+
+    def build_fragment(self):
+        # Maybe something goes here, maybe not. If so, it must be common to all LocProcs.
+        pass
+
+    @abc.abstractmethod
+    def get_grabber_roi_defaults(self, num_grabber_rois) -> List[List[int]]:
+        """
+        Get the default ROIs for the Grabber
+
+        Must return a list of "num_grabber_rois" ROIs, each in the format [x0, y0, x1, y1].
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def hook_setup_andor_results(self):
+        """
+        Set up result channels
+        """
+
+
 class AndorImagingBase(RedMOTWithExperiment):
     """
     Base class for imaging with the Andor camera
@@ -57,14 +87,19 @@ class AndorImagingBase(RedMOTWithExperiment):
     * :meth:`~save_grabber_data_hook`
     """
 
-    num_andor_images = 1
-    "How many images will the Andor driver read out"
-    num_images_per_series = 1
-    "How many images will the Andor driver read out in each series"
-    num_grabber_rois = 1
-    "How many ROIs in each image for the Grabber"
-    num_grabber_readouts = 1
-    "How many images will the Grabber read out"
+    # FIXME These need to move
+    # num_andor_images = 1
+    # "How many images will the Andor driver read out"
+    # num_images_per_series = 1
+    # "How many images will the Andor driver read out in each series"
+    # num_grabber_rois = 1
+    # "How many ROIs in each image for the Grabber"
+    # num_grabber_readouts = 1
+    # "How many images will the Grabber read out"
+
+    locproc: LocProcFragment
+    "LocProc interface - this must be overridden and will define the location and processing of ROIs"
+    # FIXME horrible name
 
     image_read_timeout = 15.0
     "Timeout for the ANDOR camera readout - must be longer than sequence"
@@ -142,7 +177,9 @@ class AndorImagingBase(RedMOTWithExperiment):
                     except GrabberTimeoutException:
                         break
 
-        self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
+        self.setattr_fragment(
+            "imagingsetup", ImagingDeviceSetup, self.self.locproc.num_grabber_rois
+        )
         self.imagingsetup: ImagingDeviceSetup
 
     def get_grabber_roi_defaults(self, num_grabber_rois) -> List[List[int]]:
@@ -175,14 +212,17 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(self.num_grabber_rois),
+            roi_defaults=self.locproc.get_grabber_roi_defaults(
+                self.self.locproc.num_grabber_rois
+            ),
         )
         self.andor_camera_control: AndorCameraControl
         self.andor_camera_control.keep_andor_shutter_closed = (
             self.keep_andor_shutter_closed
         )
 
-        self.hook_setup_andor_results()
+        # FIXME not a "hook" any more
+        self.locproc.hook_setup_andor_results()
 
     def setup_gauss_fit_results(self):
         self.amps: List[FloatChannel] = []
@@ -191,7 +231,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
 
-        for i in range(self.num_grabber_rois):
+        for i in range(self.self.locproc.num_grabber_rois):
             self.amps.append(
                 self.setattr_result(
                     f"amp_{i}", FloatChannel, display_hints={"priority": -1}
@@ -218,13 +258,16 @@ class AndorImagingBase(RedMOTWithExperiment):
                 )
             )
 
+    # FIXME needs to move to locproc
     def hook_setup_andor_results(self):
         # Set up result channels for all the Grabber ROIs
         self.andor_sums: List[FloatChannel] = []
         self.andor_means: List[FloatChannel] = []
         self.setup_gauss_fit_results()
 
-        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
+        for i in range(
+            self.self.locproc.num_grabber_rois * self.self.locproc.num_grabber_readouts
+        ):
             sum = self.setattr_result(
                 f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
             )
@@ -233,7 +276,11 @@ class AndorImagingBase(RedMOTWithExperiment):
                 FloatChannel,
                 display_hints=(  # Show by default if there's only one ROI
                     {}
-                    if (self.num_grabber_rois * self.num_grabber_readouts == 1)
+                    if (
+                        self.self.locproc.num_grabber_rois
+                        * self.self.locproc.num_grabber_readouts
+                        == 1
+                    )
                     else {"priority": -1}
                 ),
             )
@@ -246,7 +293,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.andor_profile_ys: List[OpaqueChannel] = []
         self.andor_images: List[OpaqueChannel] = []
 
-        for i in range(self.num_andor_images):
+        for i in range(self.locproc.num_andor_images):
             profile_x = self.setattr_result(f"andor_profile_x_{i}", OpaqueChannel)
             profile_y = self.setattr_result(f"andor_profile_y_{i}", OpaqueChannel)
             image = self.setattr_result(f"andor_image_{i}", OpaqueChannel)
@@ -271,7 +318,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             # is very possible, but the only place this matters at the moment is
             # in normalised readout, and that already shows ROIs in the ground /
             # excited state images.
-            for i in range(self.num_andor_images):
+            for i in range(self.self.locproc.num_andor_images):
                 dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
                 self.ccb.issue(
                     "create_applet",
@@ -347,14 +394,16 @@ class AndorImagingBase(RedMOTWithExperiment):
             # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
             raise TransitoryError(f"Andor camera error: {e}")
         n_stored_images = len(self.image_store)
-        if n_stored_images != self.num_andor_images:
+        if n_stored_images != self.self.locproc.num_andor_images:
             # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
             self.image_store = []
             logger.error(
-                "Expected %d images but got %d", self.num_andor_images, n_stored_images
+                "Expected %d images but got %d",
+                self.self.locproc.num_andor_images,
+                n_stored_images,
             )
             raise TransitoryError(
-                f"Expected {self.num_andor_images} images but got {n_stored_images}"
+                f"Expected {self.self.locproc.num_andor_images} images but got {n_stored_images}"
             )
         images_array = np.array(self.image_store)
         # Update detailed images
@@ -378,7 +427,8 @@ class AndorImagingBase(RedMOTWithExperiment):
     def get_andor_images(self):
         # Readout and store the andor images
         imgs_array = self.andor_camera_control.readout_all_new_images(
-            num_images=self.num_images_per_series, timeout=self.image_read_timeout
+            num_images=self.self.locproc.num_images_per_series,
+            timeout=self.image_read_timeout,
         )
 
         return imgs_array.tolist()
@@ -426,13 +476,21 @@ class AndorImagingBase(RedMOTWithExperiment):
     @kernel
     def get_grabber_data(self):
         # Arrays to hold all the ROIs
-        sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
-        means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
+        sums = (
+            [0]
+            * self.self.locproc.num_grabber_rois
+            * self.self.locproc.num_grabber_readouts
+        )
+        means = (
+            [0.0]
+            * self.self.locproc.num_grabber_rois
+            * self.self.locproc.num_grabber_readouts
+        )
 
-        for i in range(self.num_grabber_readouts):
+        for i in range(self.self.locproc.num_grabber_readouts):
             # Arrays to hold the ROIs from this readout
-            s = [0] * self.num_grabber_rois
-            m = [0.0] * self.num_grabber_rois
+            s = [0] * self.self.locproc.num_grabber_rois
+            m = [0.0] * self.self.locproc.num_grabber_rois
 
             self.andor_camera_control.readout_ROIs(
                 s,
@@ -442,13 +500,15 @@ class AndorImagingBase(RedMOTWithExperiment):
             )
 
             # Copy ROI data from temporary arrays into main array
-            for j in range(self.num_grabber_rois):
-                idx = i * self.num_grabber_rois + j
+            for j in range(self.self.locproc.num_grabber_rois):
+                idx = i * self.self.locproc.num_grabber_rois + j
 
                 sums[idx] = s[j]
                 means[idx] = m[j]
 
-        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
+        for i in range(
+            self.self.locproc.num_grabber_rois * self.self.locproc.num_grabber_readouts
+        ):
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
 
@@ -520,7 +580,7 @@ class AndorImagingBase(RedMOTWithExperiment):
 
     @host_only
     def fit_from_grabber_rois(self, image):
-        for i in range(self.num_grabber_rois):
+        for i in range(self.self.locproc.num_grabber_rois):
             sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
                 image, i
             )
@@ -582,3 +642,27 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
     sigma_x = popt[3]
     sigma_y = popt[4]
     return A, pos_x, pos_y, sigma_x, sigma_y
+
+
+# FIXME This is an example of what a finished readout mixin should look like. It
+# shouldn't stay in this file, it's only here for reference
+
+
+class ClockNormalisedReadoutMixin(AndorImagingBase):
+    """
+    Implementation of normalised readout for the Andor camera, where we take one
+    image with atoms and one image without atoms and do background subtraction
+    in software.
+
+    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
+    details.
+
+    As a mixin of AndorImagingBase, this mixin must define the "locproc" and
+    "repump_ctrl" fragments.
+    """
+
+    def build_fragment(self):
+        self.setattr_fragment("locproc", LocProcFragment)
+        self.setattr_fragment("repump_ctrl", RepumpControlFragment)
+
+        return super().build_fragment()
