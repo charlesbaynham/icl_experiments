@@ -195,8 +195,8 @@ def get_non_core_devices(simulation_mode=False):
         "clock_glitch_filter": {
             "type": "controller",
             "best_effort": True,
-            #   "host": "::1",
-            #   "port": get_next_port(),
+            "host": "somewhereelse.lan",
+            "port": get_next_port(),
             "command": (
                 "python -m repository.lib.devices.aqctl_clock_glitch_filter"
                 " --port {port}"
