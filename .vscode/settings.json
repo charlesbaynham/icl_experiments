@@ -27,7 +27,8 @@
         "**/node_modules/*/**",
         "**/nix/aravis/**",
         "**/flake.nix",
-        "**/.git/**"
+        "**/.git/**",
+        "**/AGENTS.md"
     ],
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
