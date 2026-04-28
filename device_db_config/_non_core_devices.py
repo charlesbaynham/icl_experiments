@@ -132,7 +132,7 @@ def get_non_core_devices(simulation_mode=False):
         #    "port": PORT_GAIO_WAND_DRIVER,
         #    "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
         # },
-        "rpi_quote_controller": {
+        "rpi_quote_controller_red": {
             "type": "controller",
             "host": "10.137.1.51",
             "port": get_next_port(),
