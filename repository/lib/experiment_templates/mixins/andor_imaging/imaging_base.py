@@ -649,20 +649,49 @@ def fit_2d_gaussian(image, offsets=(0, 0)):
 
 
 class ClockNormalisedReadoutMixin(AndorImagingBase):
-    """
-    Implementation of normalised readout for the Andor camera, where we take one
-    image with atoms and one image without atoms and do background subtraction
-    in software.
-
-    This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
-    details.
-
-    As a mixin of AndorImagingBase, this mixin must define the "locproc" and
-    "repump_ctrl" fragments.
-    """
-
     def build_fragment(self):
         self.setattr_fragment("locproc", LocProcFragment)
         self.setattr_fragment("repump_ctrl", RepumpControlFragment)
 
         return super().build_fragment()
+
+
+# FIXME here's another alternative, after we realised that the "locProc" vs
+# "repumping" separation doesn't really make sense. Note that this inherits from
+# RedMOTWithExperiment
+
+
+# %% Repump stuff
+
+
+class RepumpControlFragment(Fragment, abc.ABC):
+    @abc.abstractmethod
+    def do_repump(self):
+        pass
+
+
+class NoRepumps(RepumpControlFragment):
+    def do_repump(self):
+        pass
+
+
+# %% Imaging frag stuff
+
+
+class NormalisedImagingFrag(AndorImagingBase):
+    def build_fragment(self, Repumper: type[RepumpControlFragment]):
+        self.setattr_fragment("repumper", Repumper)
+        # Set up whatever params etc the imaging needs
+        return super().build_fragment()
+
+    def do_imaging_hook_andor(self):
+        # Do the repump pulse between two imaging pulses (or whatever)
+        self.do_pulse()
+        self.repumper.do_repump()
+        self.do_pulse()
+
+
+# %% Example of the actual mixin
+class ClockNormalisedReadoutMixin(RedMOTWithExperiment):
+    def build_fragment(self):
+        self.setattr_fragment("imaging_frag", NormalisedImagingFrag(repumper=NoRepumps))
