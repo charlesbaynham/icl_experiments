@@ -22,7 +22,6 @@ from single_image_normalised_fast_kinetics_base import (
 from single_image_normalised_fast_kinetics_base import (
     SingleImageNormalisedFastKineticsSingleTrapBase,
 )
-from single_image_normalised_fast_kinetics_base import calculate_grabber_rois
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
