@@ -54,8 +54,12 @@ class SingleImageNormalisedDipoleTrapFastKineticsMixin(
         """
         Need to fill this out
         """
-
-        return
+        # TODO : CHECK CHECK CHECK!!!!
+        return (
+            constants.SHELVING_PULSE_CLEAROUT_DURATION
+            + constants.CLOCK_SHELVING_PULSE_TIME
+            + constants.CLOCK_PI_TIME
+        )
 
 
 class SingleImageNormalisedFastKineticsRepumpedMixin(
