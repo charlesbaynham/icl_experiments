@@ -144,6 +144,12 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
         },
+        "rpi_controller_clock": {
+            "type": "controller",
+            "host": "10.137.2.10",
+            "port": get_next_port(),
+            "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
+        },
         # Removed: this has changed its firmware and no longer need to be run in ARTIQ (I should put back control of it though)
         # "cavity_scanner": {
         #     "type": "controller",
