@@ -128,7 +128,7 @@ def get_non_core_devices(simulation_mode=False):
         "gaio_wand_driver_688": {
             "type": "controller",
             "best_effort": True,
-            "host": "10.137.1.51",
+            "host": "10.137.2.10",
             "port": PORT_GAIO_WAND_DRIVER,
             "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
         },
@@ -141,12 +141,6 @@ def get_non_core_devices(simulation_mode=False):
         "rpi_quote_controller_blue": {
             "type": "controller",
             "host": "10.137.1.41",
-            "port": get_next_port(),
-            "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
-        },
-        "rpi_controller_clock": {
-            "type": "controller",
-            "host": "10.137.2.10",
             "port": get_next_port(),
             "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
         },
