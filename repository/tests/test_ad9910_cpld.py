@@ -23,9 +23,7 @@ class ProbeUrukulStatusRegisterAndPLL(EnvExperiment):
         self.setattr_device("core")
         self.core: Core
 
-        self.channel: AD9910 = self.get_device(
-            "urukul9910_aom_doublepass_689_red_injection"
-        )
+        self.channel: AD9910 = self.get_device("suservo_aom_1064_painted_delivery")
 
         self.setattr_argument("leave_reset", BooleanValue(default=False))
         self.leave_reset: bool
@@ -35,7 +33,7 @@ class ProbeUrukulStatusRegisterAndPLL(EnvExperiment):
 
     @kernel
     def urukul_rst(self, dds):
-        # type:(CPLD) -> None
+        # type: (CPLD) -> None
 
         """Pulse MASTER_RESET"""
 
