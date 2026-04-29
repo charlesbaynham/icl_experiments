@@ -23,7 +23,7 @@ class ProbeUrukulStatusRegisterAndPLL(EnvExperiment):
         self.setattr_device("core")
         self.core: Core
 
-        self.channel: AD9910 = self.get_device("suservo_aom_1064_painted_delivery")
+        self.channel: AD9910 = self.get_device("urukul9910_aom_1064_painting")
 
         self.setattr_argument("leave_reset", BooleanValue(default=False))
         self.leave_reset: bool
