@@ -137,7 +137,7 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     DipoleTrapWithExperiment,
 ):
     """
-    LMT interferometry with double trap launch
+    LMT interferometry with double trap launch but using only a single image
 
     """
 
