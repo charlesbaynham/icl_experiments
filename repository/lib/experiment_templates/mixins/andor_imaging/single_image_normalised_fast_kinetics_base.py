@@ -20,6 +20,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
