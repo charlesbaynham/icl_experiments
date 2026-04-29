@@ -4,26 +4,26 @@ from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsBase,
-)
-from single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsDoubleTrapClockPulseBase,
-)
-from single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase,
-)
-from single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsDoubleTrapRepumpedBase,
-)
-from single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsDoubleTrapSpectroscopyBase,
-)
-from single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsSingleTrapBase,
-)
 
 from repository.lib import constants
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedFastKineticsBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedFastKineticsDoubleTrapClockPulseBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedFastKineticsDoubleTrapRepumpedBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedFastKineticsDoubleTrapSpectroscopyBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedFastKineticsSingleTrapBase,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
