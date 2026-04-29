@@ -7,10 +7,10 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperiment,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
-from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
     SingleImageNormalisedDipoleTrapFastKineticsMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.single_fast_kinetics import (
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
     SingleImageNormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
