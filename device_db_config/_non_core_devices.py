@@ -140,7 +140,7 @@ def get_non_core_devices(simulation_mode=False):
         },
         "rpi_quote_controller_blue": {
             "type": "controller",
-            "host": "10.137.1.41",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
         },
