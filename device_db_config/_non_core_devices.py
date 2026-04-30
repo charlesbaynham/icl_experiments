@@ -86,21 +86,21 @@ def get_non_core_devices(simulation_mode=False):
         "blue_IJD1_controller": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
         },
         "blue_IJD2_controller": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
         },
         "blue_IJD3_controller": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
         },
@@ -114,7 +114,7 @@ def get_non_core_devices(simulation_mode=False):
         "blue_relocker": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
         },
