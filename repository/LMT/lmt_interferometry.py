@@ -237,12 +237,12 @@ LMTInterferometryExp = make_fragment_scan_exp(
 )
 LMTInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)
 ShapedFirstPulseLMTInterferometry = make_fragment_scan_exp(
-    ShapedFirstPulseLMTInterferometryFrag
+    ShapedFirstPulseLMTInterferometryFrag, max_rtio_underflow_retries=0
 )
 LMTInterferometryWithDoubleLaunch = make_fragment_scan_exp(
-    LMTInterferometryWithDoubleLaunchFrag
+    LMTInterferometryWithDoubleLaunchFrag, max_rtio_underflow_retries=0
 )
 
 LMTInterferometryWithShapedDoubleLaunch = make_fragment_scan_exp(
-    LMTInterferometryWithShapedDoubleLaunchFrag
+    LMTInterferometryWithShapedDoubleLaunchFrag, max_rtio_underflow_retries=0
 )
