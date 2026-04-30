@@ -618,17 +618,15 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
         norm_factor_ground_bottom = areas[6] / (areas[8] + areas[10])
         norm_factor_excited_bottom = areas[7] / (areas[9] + areas[11])
 
-        atom_number_ground_top = areas[0] - norm_factor_ground_top * (
-            areas[2] + areas[4]
+        atom_number_ground_top = sums[0] - norm_factor_ground_top * (sums[2] + sums[4])
+        atom_number_excited_top = sums[1] - norm_factor_excited_top * (
+            sums[3] + sums[5]
         )
-        atom_number_excited_top = areas[1] - norm_factor_excited_top * (
-            areas[3] + areas[5]
+        atom_number_ground_bottom = sums[6] - norm_factor_ground_bottom * (
+            sums[8] + sums[10]
         )
-        atom_number_ground_bottom = areas[6] - norm_factor_ground_bottom * (
-            areas[8] + areas[10]
-        )
-        atom_number_excited_bottom = areas[7] - norm_factor_excited_bottom * (
-            areas[9] + areas[11]
+        atom_number_excited_bottom = sums[7] - norm_factor_excited_bottom * (
+            sums[9] + sums[11]
         )
 
         atom_number_total = (
