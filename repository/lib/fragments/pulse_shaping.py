@@ -8,6 +8,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD
+from artiq.experiment import RTIOUnderflow
 from artiq.language import TInt32
 from artiq.language import TList
 from artiq.language import delay
@@ -355,11 +356,7 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         else:
             if break_realtime:
-                duration_of_write = len(data) * 32 * (1 / 125e6)  # 32 bits at 125 MHz
-                # Allow 5x this for safety, since underflows here will corrupt the
-                # AD9910's state in a way that can't be recovered without a RESET.
                 self.core.break_realtime()
-                delay(5 * duration_of_write)
 
             # Configure RAM mode for this DDS. We'll use profile 0 for writing, but
             # it could be reconfigured later after the data has been stored.
@@ -376,7 +373,19 @@ class _ShapedPulse(Fragment, abc.ABC):
             # user has taken control themselves. So it's commented out with a check
             assert RAM_PROFILE == urukul.DEFAULT_PROFILE
 
-            self.dds.write_ram(data)
+            retry = True
+            while retry:
+                try:
+                    self.dds.write_ram(data)
+                    retry = False
+                except RTIOUnderflow:
+                    if break_realtime:
+                        self.core.break_realtime()
+                    else:
+                        logger.error(
+                            "Underflow error and break_realtime is disabled. AD9910 state may be corrupted and require a reset"
+                        )
+                        raise
 
             # Here we would restore ARTIQ's default profile setting, but it's not
             # needed, since we never changed
@@ -405,7 +414,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         state that needs a power-cycle to fix (though I have never observed
         this).
         """
-        # type:(CPLD) -> None
+        # type: (CPLD) -> None
 
         """Pulse MASTER_RESET"""
 
