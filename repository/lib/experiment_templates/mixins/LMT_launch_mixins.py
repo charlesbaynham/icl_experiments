@@ -682,7 +682,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             "shaped_pulse_duration",
             self.first_lmt_shaped_pulse,
             "pulse_duration",
-            default=181e-6,
+            default=200e-6,
             description="Duration of the Jesse pulse",
         )
 
@@ -754,7 +754,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         self.lmt_launch_offset_detuning_double_cloud.get()
         self.lmt_launch_pulses_number.get()
-        self.launch_upper_selective_cloud_detuning.get()
+        upper_selective_det = self.launch_upper_selective_cloud_detuning.get()
         self.launch_lower_selective_cloud_detuning.get()
         self.double_launch_last_pulse_detuning.get()
 
@@ -780,11 +780,11 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
-        # # Shaped pulse with up beam, common to both clouds
-        # self.first_shaped_lmt_pulse(detuning=3.0e3, N_kicks=1)
+        # Shaped pulse with up beam, common to both clouds
+        self.first_shaped_lmt_pulse(detuning=upper_selective_det, N_kicks=1)
 
         # self.clock_up_dds.set(
         #     frequency=self.clock_switch_frequency_handle.get()
@@ -980,7 +980,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
             "shaped_pulse_duration",
             self.first_lmt_shaped_pulse,
             "pulse_duration",
-            default=181e-6,
+            default=200e-6,
             description="Duration of the Jesse pulse",
         )
 
