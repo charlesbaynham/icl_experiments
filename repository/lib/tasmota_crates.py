@@ -22,22 +22,30 @@ TASMOTA_HOSTS = [
     "tasmota-artiq-plantroom",
 ]
 
+TASMOTA_OVEN = "10.137.1.34"
+
 POWER_ON_CMD = "http://{}/cm?cmnd=Power%20on"
 POWER_OFF_CMD = "http://{}/cm?cmnd=Power%20off"
 
 
-def power_off_all() -> None:
+def power_off_all(include_oven: bool = False) -> None:
     """Send a power-off command to every Tasmota host in ``TASMOTA_HOSTS``."""
     for host in TASMOTA_HOSTS:
         logger.info("Turning off %s", host)
         requests.get(POWER_OFF_CMD.format(host))
+    if include_oven:
+        logger.info("Turning off oven (%s)", TASMOTA_OVEN)
+        requests.get(POWER_OFF_CMD.format(TASMOTA_OVEN))
 
 
-def power_on_all() -> None:
+def power_on_all(include_oven: bool = False) -> None:
     """Send a power-on command to every Tasmota host in ``TASMOTA_HOSTS``."""
     for host in TASMOTA_HOSTS:
         logger.info("Turning on %s", host)
         requests.get(POWER_ON_CMD.format(host))
+    if include_oven:
+        logger.info("Turning on oven (%s)", TASMOTA_OVEN)
+        requests.get(POWER_ON_CMD.format(TASMOTA_OVEN))
 
 
 def confirm_with_code(experiment: HasEnvironment, dataset_name: str) -> bool:

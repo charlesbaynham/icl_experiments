@@ -1,5 +1,6 @@
 import logging
 
+from artiq.experiment import BooleanValue
 from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 
@@ -19,11 +20,16 @@ class ShutdownARTIQCrates(EnvExperiment):
             "confirmation_code",
             NumberValue(default=-1, precision=0, scale=1, step=1, min=0, type="int"),
         )
+        self.setattr_argument(
+            "include_oven",
+            BooleanValue(default=False),
+        )
         self.confirmation_code: int
+        self.include_oven: bool
 
     def run(self):
         if not confirm_with_code(self, DATASET_NAME):
             return
 
         logger.warning("Shutting down ARTIQ crates now")
-        power_off_all()
+        power_off_all(include_oven=self.include_oven)
