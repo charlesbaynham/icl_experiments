@@ -157,7 +157,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             "delay_after_experiment",
             FloatParam,
             "Delay after experiment before imaging",
-            default=10500e-6,
+            default=4000e-6,
             unit="us",
         )
         self.delay_after_experiment: FloatParamHandle
