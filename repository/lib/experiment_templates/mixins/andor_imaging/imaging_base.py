@@ -27,6 +27,7 @@ from repository.lib.analysis.gauss_fit_2d import fit_gaussian
 from repository.lib.analysis.tof_temp import get_custom_analysis
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.andor_camera import GrabberROIController
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 
 logger = logging.getLogger(__name__)
@@ -145,26 +146,26 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
         self.imagingsetup: ImagingDeviceSetup
 
-    def get_grabber_roi_defaults(self, num_grabber_rois) -> List[List[int]]:
-        """
-        Get the default ROIs for the Grabber
+    # def get_grabber_roi_defaults(self, num_grabber_rois) -> List[List[int]]:
+    #     """
+    #     Get the default ROIs for the Grabber
 
-        This is a hook that can be overridden by subclasses to e.g. set the ROIs
-        based on the imaging sequence.
+    #     This is a hook that can be overridden by subclasses to e.g. set the ROIs
+    #     based on the imaging sequence.
 
-        Alternatively, subclasses can override :meth:`~hook_setup_andor`
-        directly, which will then not use this method.
+    #     Alternatively, subclasses can override :meth:`~hook_setup_andor`
+    #     directly, which will then not use this method.
 
-        Must return a list of "num_grabber_rois" ROIs, each in the format [x0, y0, x1, y1].
-        """
-        return [
-            [
-                constants.ANDOR_ROI_X0,
-                constants.ANDOR_ROI_Y0,
-                constants.ANDOR_ROI_X1,
-                constants.ANDOR_ROI_Y1,
-            ]
-        ] * num_grabber_rois
+    #     Must return a list of "num_grabber_rois" ROIs, each in the format [x0, y0, x1, y1].
+    #     """
+    #     return [
+    #         [
+    #             constants.ANDOR_ROI_X0,
+    #             constants.ANDOR_ROI_Y0,
+    #             constants.ANDOR_ROI_X1,
+    #             constants.ANDOR_ROI_Y1,
+    #         ]
+    #     ] * num_grabber_rois
 
     def hook_setup_andor(self):
         """
@@ -172,10 +173,26 @@ class AndorImagingBase(RedMOTWithExperiment):
 
         This is a method so that children classes can override it
         """
+        # Set up the grabber roi controller fragment
+        self.setattr_fragment(
+            "roi_controller",
+            GrabberROIController,
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ]
+            * self.num_grabber_rois,
+        )
+        self.roi_controller: GrabberROIController
+
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(self.num_grabber_rois),
+            roi_controller=self.roi_controller,
         )
         self.andor_camera_control: AndorCameraControl
         self.andor_camera_control.keep_andor_shutter_closed = (

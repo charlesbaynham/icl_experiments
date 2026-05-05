@@ -24,6 +24,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.andor_camera import GrabberROIController
 
 logger = logging.getLogger(__name__)
 ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
@@ -118,6 +119,9 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         self.setattr_device("scheduler")
         self.scheduler: Scheduler
 
+        self.setattr_fragment("roi_controller", GrabberROIController)
+        self.roi_controller: GrabberROIController
+
         self.delay_between_imaging_pulses: FloatParamHandle
         # Note the wording of this parameter - it's the time between the starts
         # of the pulses, not the time the end of one and the start of the next
@@ -150,13 +154,28 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
 
     def hook_setup_andor(self):
         """
-        Setup the andor camera control with the grabber ROI defaults being yet to be defined!
+        Setup the andor camera control and the grabber roi controller fragment
         """
+        self.setattr_fragment(
+            "roi_controller",
+            GrabberROIController,
+            roi_defaults=[
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ]
+            * self.num_grabber_rois,
+        )
+
+        self.roi_controller: GrabberROIController
 
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(),
+            roi_controller=self.roi_controller,
             fast_kinetics_height_default=self.fast_kinetics_height_default,
             fast_kinetics_offset_default=self.fast_kinetics_offset_default,
             add_pre_trigger_delay=True,

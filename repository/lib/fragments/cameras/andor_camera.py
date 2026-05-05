@@ -31,6 +31,105 @@ class AndorNoImageAvailable(Exception):
     pass
 
 
+class GrabberROIController(Fragment):
+    """
+    A grabber ROI controller that is fed into AndorCameraControl. This let's us move the grabber ROI at runtime instead of build time.
+    The convention for the ROIs is a list of lists, where each inner list is [x0, y0, x1, y1].
+    By default, this will be set to ANDOR_ROI_XX from constants.
+    """
+
+    def build_fragment(self, roi_defaults=None):
+
+        if roi_defaults is None:
+            self.roi = [
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ]
+        else:
+            self.roi = roi_defaults
+
+        self.num_rois = len(self.roi)
+
+    def overwrite_all_rois(self, rois):
+        """
+        Overwrite all the ROIs at once from a list of ROIs.
+
+        Parameters:
+        rois (List[List[int, int, int, int]]): List of ROIs
+        """
+
+        self.rois = rois
+        self.num_rois = len(rois)
+
+    def update_roi_i(self, i, new_roi):
+        """
+        Update a single ROI from a new ROI, the new ROI must have the same shape as the old ROI
+
+        Parameters:
+        i (int): Index of the ROI to update
+        new_roi (List[int, int, int, int]): New ROI
+        """
+
+        for j in range(4):
+            self.rois[i][j] += new_roi[j]
+
+    def update_all_rois(self, new_rois):
+        """
+        Update all the ROIs at once from a list of ROIs, the new rois must have the same shape as the old rois
+
+        Parameters:
+        rois (List[List[int, int, int, int]]): List of ROIs
+        """
+
+        for i in range(self.num_rois):
+            # Should I manually expand this? Does it make it faster?
+            self.update_roi_i(i, new_rois[i])
+
+    def update_vertical_rois(self, i, delta_ys):
+        """
+        This is a special implementation of update_roi_i that just updates the y values
+
+        Parameters:
+        i (int): Index of the ROI to update
+        delta_ys (List[int, int]): List of changes to y0 and y1
+        """
+
+        self.rois[i][1] += delta_ys[0]
+        self.rois[i][3] += delta_ys[1]
+
+    def get_rois(self):
+        """
+        A simple function to get the ROIs
+        """
+
+        return self.rois
+
+    @rpc
+    def calculate_roi_config(self) -> TArray(TInt32, 2):
+        """
+        Populate an ROI array from the generated NDScan parameters
+
+        This unfortunately has to happen on the host since it uses various
+        python features that aren't available in kernels
+        """
+
+        rois = np.zeros((self.num_rois, 4), dtype=int)
+        for i in range(self.num_rois):
+            param_prefix = f"roi_{i}_"
+            rois[i, :] = [
+                getattr(self, param_prefix + "x0").get(),
+                getattr(self, param_prefix + "y0").get(),
+                getattr(self, param_prefix + "x1").get(),
+                getattr(self, param_prefix + "y1").get(),
+            ]
+
+        return rois
+
+
 class AndorCameraControl(Fragment):
     """
     Control the Andor camera and associated shutters / triggers
@@ -56,14 +155,7 @@ class AndorCameraControl(Fragment):
 
     def build_fragment(
         self,
-        roi_defaults=[
-            [
-                constants.ANDOR_ROI_X0,
-                constants.ANDOR_ROI_Y0,
-                constants.ANDOR_ROI_X1,
-                constants.ANDOR_ROI_Y1,
-            ]
-        ],
+        roi_controller=GrabberROIController(),
         fast_kinetics_height_default=None,
         fast_kinetics_offset_default=None,
         add_pre_trigger_delay=True,
@@ -71,6 +163,9 @@ class AndorCameraControl(Fragment):
     ):
         self.setattr_device("core")
         self.core: Core
+
+        self.setattr_fragment("roi_controller", roi_controller)
+        self.roi_controller: GrabberROIController
 
         self.setattr_device("grabber0")
         self.grabber: Grabber = self.grabber0
@@ -90,39 +185,39 @@ class AndorCameraControl(Fragment):
         )
         self.shutter_delay: FloatParamHandle
 
-        for i, (x0, y0, x1, y1) in enumerate(roi_defaults):
-            self.setattr_param(
-                f"roi_{i}_x0",
-                IntParam,
-                f"Grabber ROI {i} x0",
-                default=x0,
-                min=0,
-                max=512,
-            )
-            self.setattr_param(
-                f"roi_{i}_x1",
-                IntParam,
-                f"Grabber ROI {i} x1",
-                default=x1,
-                min=0,
-                max=512,
-            )
-            self.setattr_param(
-                f"roi_{i}_y0",
-                IntParam,
-                f"Grabber ROI {i} y0",
-                default=y0,
-                min=0,
-                max=1024,
-            )
-            self.setattr_param(
-                f"roi_{i}_y1",
-                IntParam,
-                f"Grabber ROI {i} y1",
-                default=y1,
-                min=0,
-                max=1024,
-            )
+        # for i, (x0, y0, x1, y1) in enumerate(self.roi_controller.roi):
+        #     self.setattr_param(
+        #         f"roi_{i}_x0",
+        #         IntParam,
+        #         f"Grabber ROI {i} x0",
+        #         default=x0,
+        #         min=0,
+        #         max=512,
+        #     )
+        #     self.setattr_param(
+        #         f"roi_{i}_x1",
+        #         IntParam,
+        #         f"Grabber ROI {i} x1",
+        #         default=x1,
+        #         min=0,
+        #         max=512,
+        #     )
+        #     self.setattr_param(
+        #         f"roi_{i}_y0",
+        #         IntParam,
+        #         f"Grabber ROI {i} y0",
+        #         default=y0,
+        #         min=0,
+        #         max=1024,
+        #     )
+        #     self.setattr_param(
+        #         f"roi_{i}_y1",
+        #         IntParam,
+        #         f"Grabber ROI {i} y1",
+        #         default=y1,
+        #         min=0,
+        #         max=1024,
+        #     )
 
         self.setattr_param(
             "pre_trigger_delay",
@@ -240,7 +335,6 @@ class AndorCameraControl(Fragment):
         self.fast_kinetics_num_shots = fast_kinetics_num_shots
 
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.num_rois = len(roi_defaults)
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("debug_enabled")
@@ -250,27 +344,6 @@ class AndorCameraControl(Fragment):
         self.kernel_invariants.add("num_rois")
         self.kernel_invariants.add("ttl_trigger")
         self.kernel_invariants.add("ttl_shutter")
-
-    @rpc
-    def calculate_roi_config(self) -> TArray(TInt32, 2):
-        """
-        Populate an ROI array from the generated NDScan parameters
-
-        This unfortunately has to happen on the host since it uses various
-        python features that aren't available in kernels
-        """
-
-        rois = np.zeros((self.num_rois, 4), dtype=int)
-        for i in range(self.num_rois):
-            param_prefix = f"roi_{i}_"
-            rois[i, :] = [
-                getattr(self, param_prefix + "x0").get(),
-                getattr(self, param_prefix + "y0").get(),
-                getattr(self, param_prefix + "x1").get(),
-                getattr(self, param_prefix + "y1").get(),
-            ]
-
-        return rois
 
     def host_setup(self):
         self.fast_kinetics_shift_time = 0.0  # to prevent compilation errors
@@ -396,7 +469,7 @@ class AndorCameraControl(Fragment):
         # Here we sadly need an RPC. That make this scan a bit slower, but only
         # by a ms or so which is small compared to most (all?) of our sequences.
         # TODO: detect if ROI is not scanned and only run this once in that case.
-        roi_config = self.calculate_roi_config()
+        roi_config = self.roi_controller.calculate_roi_config()
 
         # If in fast kinetics mode we cannot acquire continuously, so trigger a
         # new acquisition each cycle
@@ -421,7 +494,7 @@ class AndorCameraControl(Fragment):
 
         mask = 0
 
-        for i in range(self.num_rois):
+        for i in range(self.roi_controller.num_rois):
             self.core.break_realtime()
             self.grabber.setup_roi(
                 i,
@@ -573,11 +646,14 @@ class AndorCameraControl(Fragment):
             is nonsense.
         """
 
-        if len(means) != self.num_rois or len(sums) != self.num_rois:
+        if (
+            len(means) != self.roi_controller.num_rois
+            or len(sums) != self.roi_controller.num_rois
+        ):
             raise ValueError("sums and means must be arrays with length num_rois")
 
         # Get data
-        data = [0] * self.num_rois
+        data = [0] * self.roi_controller.num_rois
 
         # If the andor is in fast kinetics mode and the height of pixels to emit
         # is > 512, it will emit two frames onto Grabber instead of one. The
@@ -593,7 +669,7 @@ class AndorCameraControl(Fragment):
             self.roi_0_y1.get() - self.roi_0_y0.get()
         )
 
-        for i in range(self.num_rois):
+        for i in range(self.roi_controller.num_rois):
             sums[i] = data[i]
 
             if area == 0:
