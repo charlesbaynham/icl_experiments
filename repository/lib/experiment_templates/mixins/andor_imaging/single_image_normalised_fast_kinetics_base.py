@@ -154,7 +154,8 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
 
     def hook_setup_andor(self):
         """
-        Setup the andor camera control and the grabber roi controller fragment
+        Setup the andor camera control and the grabber roi controller fragment.
+        It is important that we set the default values of the GrabberROIController here as it will be initialised with these default values.
         """
         self.setattr_fragment(
             "roi_controller",
@@ -170,6 +171,8 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
             * self.num_grabber_rois,
         )
 
+        self.update_default_rois()
+
         self.roi_controller: GrabberROIController
 
         self.setattr_fragment(
@@ -184,12 +187,6 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         self.andor_camera_control: AndorCameraControl
 
         self.hook_setup_andor_results()
-
-    @abc.abstractmethod
-    def get_grabber_roi_defaults(self):
-        """
-        This must be filled out in the base class
-        """
 
     def calculate_gravitational_drop(self):
         """
@@ -216,6 +213,15 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         )
 
         return pixels_dropped_between_pulses
+
+    @kernel
+    def final_grabber_roi_update(self):
+        """
+        Do one final update where we take the gravitational drop into account before we save the data!
+        """
+        g_drop = self.calculate_gravitational_drop()
+        for i in range(self.num_grabber_rois):
+            self.roi_controller.update_vertical_rois(i, [-g_drop, -g_drop])
 
     @abc.abstractmethod
     def time_dropped_before_first_pulse(self):
@@ -347,17 +353,20 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
         self.ground_atom_number: FloatChannel
         self.excited_atom_number: FloatChannel
 
-    def get_grabber_roi_defaults(self):
-        return calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_X0,
-            y0=constants.ANDOR_ROI_Y0,
-            x1=constants.ANDOR_ROI_X1,
-            y1=constants.ANDOR_ROI_Y1,
-            bg_width=self.calculate_gravitational_drop(),
-            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
+    def update_default_rois(self):
+        # right now this is just updating the ROI defaults
+        self.roi_controller.overwrite_all_rois(
+            calculate_grabber_rois(
+                fast_kinetics_height=self.fast_kinetics_height_default,
+                fast_kinetics_offset=self.fast_kinetics_offset_default,
+                num_images=self.num_images_per_series,
+                x0=constants.ANDOR_ROI_X0,
+                y0=constants.ANDOR_ROI_Y0,
+                x1=constants.ANDOR_ROI_X1,
+                y1=constants.ANDOR_ROI_Y1,
+                bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
+                excited_shift=0,
+            )
         )
 
     @kernel
@@ -492,7 +501,7 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
         self.atom_number_imbalance: FloatChannel
         self.atom_number_total: FloatChannel
 
-    def get_grabber_roi_defaults(self):
+    def update_default_rois(self):
         # Calculate two ROIs assuming that the clouds do not drop.
         # NOTE: This is the default behaviour that will be overidden in most situations
         # We expect 12 ROIs in total 4 signal and 8 background
@@ -507,7 +516,7 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
             bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
-            excited_shift=self.calculate_gravitational_drop(),
+            excited_shift=0,
         )
 
         backward_rois = calculate_grabber_rois(
@@ -519,18 +528,19 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
             bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
-            excited_shift=self.calculate_gravitational_drop(),
+            excited_shift=0,
         )
 
         top_trap_rois = backward_rois
         bottom_trap_rois = forward_rois
 
-        return top_trap_rois + bottom_trap_rois
+        self.roi_controller.overwrite_all_rois(top_trap_rois + bottom_trap_rois)
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
         # The normalisation factor is the ratio of the number of pixels in the background to signal ROIs. Since we have coerced the background ROIs to have the same height as the signal ROIs, this is just 2x the ratio of the widths (since we have two background ROIs, one on either side of the signal ROI).
         # Absolutely fucking awful code... but it works :)
+
         areas = [
             self.get_roi_area(
                 [
@@ -827,10 +837,10 @@ class SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase(
         # be updated.
 
         return (
-            constants.SHELVING_PULSE_CLEAROUT_DURATION
-            + constants.CLOCK_SHELVING_PULSE_TIME
-            + 2 * constants.CLOCK_PI_TIME
-            + 2 * constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES
+            getattr(self, "shelving_pulse_clearout_duration")
+            + getattr(self, "shelving_pulse_time")
+            + 2 * getattr(self, "spectroscopy_pulse_time")
+            + 2 * getattr(self, "delay_between_interferometry_pulses")
         )
 
     def host_setup(self):

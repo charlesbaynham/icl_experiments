@@ -146,26 +146,10 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
         self.imagingsetup: ImagingDeviceSetup
 
-    # def get_grabber_roi_defaults(self, num_grabber_rois) -> List[List[int]]:
-    #     """
-    #     Get the default ROIs for the Grabber
-
-    #     This is a hook that can be overridden by subclasses to e.g. set the ROIs
-    #     based on the imaging sequence.
-
-    #     Alternatively, subclasses can override :meth:`~hook_setup_andor`
-    #     directly, which will then not use this method.
-
-    #     Must return a list of "num_grabber_rois" ROIs, each in the format [x0, y0, x1, y1].
-    #     """
-    #     return [
-    #         [
-    #             constants.ANDOR_ROI_X0,
-    #             constants.ANDOR_ROI_Y0,
-    #             constants.ANDOR_ROI_X1,
-    #             constants.ANDOR_ROI_Y1,
-    #         ]
-    #     ] * num_grabber_rois
+    def update_default_rois(self):
+        """
+        Quick! Update the values of the GrabberROIController here before it get's written in!
+        """
 
     def hook_setup_andor(self):
         """
@@ -188,6 +172,12 @@ class AndorImagingBase(RedMOTWithExperiment):
             * self.num_grabber_rois,
         )
         self.roi_controller: GrabberROIController
+
+        self.update_default_rois()
+
+        # If we want to modify the default values of the ROIs, we better do it here before AndorCameraControl is initialised
+        # and starts setting them up! This hook is executed in the RedMOTWithExperiment build_fragment,
+        #  which is before the AndorCameraControl build_fragment!
 
         self.setattr_fragment(
             "andor_camera_control",
@@ -438,7 +428,15 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         if self.use_andor_driver.get():
             self._call_camera_rpc()
+        self.final_grabber_roi_update()
         self.get_grabber_data()
+
+    @kernel
+    def final_grabber_roi_update(self):
+        """
+        Do a final update of the grabber ROIs to make sure they're correct for the images we just got.
+        This let's us add any parameters we want to the ROIs that had to be defined at run-time.
+        """
 
     @kernel
     def get_grabber_data(self):

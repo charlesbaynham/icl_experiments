@@ -185,39 +185,39 @@ class AndorCameraControl(Fragment):
         )
         self.shutter_delay: FloatParamHandle
 
-        # for i, (x0, y0, x1, y1) in enumerate(self.roi_controller.roi):
-        #     self.setattr_param(
-        #         f"roi_{i}_x0",
-        #         IntParam,
-        #         f"Grabber ROI {i} x0",
-        #         default=x0,
-        #         min=0,
-        #         max=512,
-        #     )
-        #     self.setattr_param(
-        #         f"roi_{i}_x1",
-        #         IntParam,
-        #         f"Grabber ROI {i} x1",
-        #         default=x1,
-        #         min=0,
-        #         max=512,
-        #     )
-        #     self.setattr_param(
-        #         f"roi_{i}_y0",
-        #         IntParam,
-        #         f"Grabber ROI {i} y0",
-        #         default=y0,
-        #         min=0,
-        #         max=1024,
-        #     )
-        #     self.setattr_param(
-        #         f"roi_{i}_y1",
-        #         IntParam,
-        #         f"Grabber ROI {i} y1",
-        #         default=y1,
-        #         min=0,
-        #         max=1024,
-        #     )
+        for i, (x0, y0, x1, y1) in enumerate(self.roi_controller.roi):
+            self.setattr_param(
+                f"roi_{i}_x0",
+                IntParam,
+                f"Grabber ROI {i} x0",
+                default=x0,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"roi_{i}_x1",
+                IntParam,
+                f"Grabber ROI {i} x1",
+                default=x1,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"roi_{i}_y0",
+                IntParam,
+                f"Grabber ROI {i} y0",
+                default=y0,
+                min=0,
+                max=1024,
+            )
+            self.setattr_param(
+                f"roi_{i}_y1",
+                IntParam,
+                f"Grabber ROI {i} y1",
+                default=y1,
+                min=0,
+                max=1024,
+            )
 
         self.setattr_param(
             "pre_trigger_delay",
