@@ -61,8 +61,6 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
     image_read_timeout = 15.0
     "Timeout for the ANDOR camera readout - must be longer than sequence"
 
-    keep_andor_shutter_closed = False
-
     @abc.abstractmethod
     def get_andor_camera_config_hook(self) -> AndorCameraConfig:
         """
@@ -169,9 +167,6 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
             camera_config=self.andor_camera_config,
         )
         self.andor_camera_control: AndorCameraControl
-        self.andor_camera_control.keep_andor_shutter_closed = (
-            self.keep_andor_shutter_closed
-        )
 
         self.hook_setup_andor_results()
 

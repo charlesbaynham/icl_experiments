@@ -127,8 +127,6 @@ class AndorCameraControl(Fragment):
         fast kinetics mode will be used.
     """
 
-    keep_andor_shutter_closed = False  # HACK this is ugly
-
     def build_fragment(
         self,
         camera_config: AndorCameraConfig = None,  # type: ignore
@@ -139,6 +137,9 @@ class AndorCameraControl(Fragment):
     ):
         self.setattr_device("core")
         self.core: Core
+
+        if camera_config is None:
+            raise ValueError("Must provide AndorCameraConfig to AndorCameraControl")
 
         self.andor_camera_config = camera_config
 
@@ -308,8 +309,8 @@ class AndorCameraControl(Fragment):
                 self.cam.stop_acquisition()
             self.set_roi()
             self.cam.set_baseline_clamp(self.baseline_clamp_mode.get())
-            if not self.keep_andor_shutter_closed:
-                self.cam.set_shutter_open()
+
+            self.cam.set_shutter_open()
 
             if self.fast_kinetics_mode:
                 logger.info("Setting up fast kinetics mode")
