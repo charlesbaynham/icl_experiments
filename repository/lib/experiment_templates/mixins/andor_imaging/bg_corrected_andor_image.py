@@ -72,16 +72,16 @@ class BGCorrectedAndorImageConfig(AndorCameraConfig):
         self.roi_y0: IntParamHandle
         self.roi_y1: IntParamHandle
 
+        #  Kernel variables
+        self.roi_buffer = [[np.int32(0)] * 4] * self.num_grabber_rois
+
     @portable
     def get_rois(self):
-        return [
-            [
-                self.roi_x0.get(),
-                self.roi_y0.get(),
-                self.roi_x1.get(),
-                self.roi_y1.get(),
-            ]
-        ]
+        self.roi_buffer[0][0] = self.roi_x0.get()
+        self.roi_buffer[0][1] = self.roi_y0.get()
+        self.roi_buffer[0][2] = self.roi_x1.get()
+        self.roi_buffer[0][3] = self.roi_y1.get()
+        return self.roi_buffer
 
 
 class BGCorrectedAndorImage(AndorImagingBase):
