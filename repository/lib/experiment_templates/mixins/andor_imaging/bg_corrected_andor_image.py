@@ -1,5 +1,4 @@
 import logging
-from typing import cast
 
 import numpy as np
 from artiq.language import TArray
@@ -107,10 +106,17 @@ class BGCorrectedAndorImage(AndorImagingBase):
     """
 
     def get_andor_camera_config_hook(self) -> AndorCameraConfig:
-        return cast(
+        f = self.setattr_fragment(
+            "andor_camera_config",
             BGCorrectedAndorImageConfig,
-            self.setattr_fragment("andor_camera_config", BGCorrectedAndorImageConfig),
+            default_roi=[
+                constants.ANDOR_ROI_X0,
+                constants.ANDOR_ROI_Y0,
+                constants.ANDOR_ROI_X1,
+                constants.ANDOR_ROI_Y1,
+            ],
         )
+        return f  # type: ignore
 
     def build_fragment(self):
         super().build_fragment()
