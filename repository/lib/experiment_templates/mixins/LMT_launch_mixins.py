@@ -679,7 +679,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.first_lmt_shaped_pulse: JessePulseLMT
 
         self.setattr_param_rebind(
-            "shaped_pulse_duration",
+            "shaped_imaging_pulse_duration",
             self.first_lmt_shaped_pulse,
             "pulse_duration",
             default=200e-6,
