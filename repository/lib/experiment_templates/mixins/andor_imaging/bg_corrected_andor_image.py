@@ -11,6 +11,8 @@ from artiq.language import portable
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -30,15 +32,53 @@ class BGCorrectedAndorImageConfig(AndorCameraConfig):
     num_grabber_readouts = 2
     num_grabber_rois = 1
 
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "roi_x0",
+            IntParam,
+            "Grabber ROI x0",
+            default=constants.ANDOR_ROI_X0,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            "roi_x1",
+            IntParam,
+            "Grabber ROI x1",
+            default=constants.ANDOR_ROI_X1,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            "roi_y0",
+            IntParam,
+            "Grabber ROI y0",
+            default=constants.ANDOR_ROI_Y0,
+            min=0,
+            max=1024,
+        )
+        self.setattr_param(
+            "roi_y1",
+            IntParam,
+            "Grabber ROI y1",
+            default=constants.ANDOR_ROI_Y1,
+            min=0,
+            max=1024,
+        )
+        self.roi_x0: IntParamHandle
+        self.roi_x1: IntParamHandle
+        self.roi_y0: IntParamHandle
+        self.roi_y1: IntParamHandle
+
     @portable
     def get_rois(self):
         return [
-            [
-                constants.ANDOR_ROI_X0,
-                constants.ANDOR_ROI_Y0,
-                constants.ANDOR_ROI_X1,
-                constants.ANDOR_ROI_Y1,
-            ]
+            self.roi_x0.get(),
+            self.roi_y0.get(),
+            self.roi_x1.get(),
+            self.roi_y1.get(),
         ]
 
 

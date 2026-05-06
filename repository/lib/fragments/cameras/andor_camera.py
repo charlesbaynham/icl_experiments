@@ -69,10 +69,16 @@ class AndorCameraConfig(Fragment, abc.ABC):
         if self.num_grabber_readouts is None:
             raise ValueError("num_grabber_readouts must be set in subclass")
 
+    def host_setup(self):
+        super().host_setup()
+
         if self.num_grabber_rois != len(self.get_rois()):
             raise ValueError(
                 "num_grabber_rois must be equal to the number of ROIs returned by get_rois()"
             )
+
+    def build_fragment(self):
+        pass
 
     @portable
     @abc.abstractmethod
