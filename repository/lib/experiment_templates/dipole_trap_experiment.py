@@ -142,12 +142,12 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
                 self.device_setup_subfragments()
 
                 # Record the actions_after_drop sequence in DMA
-                with self.core_dma.record(PulseDMARecording.dma_name):
+                with self.core_dma.record(self.dma_name):
                     self.outer_self.actions_after_drop()
 
             @kernel
             def DMA_initialization_hook_after_drop(self):
-                self.dma_handle = self.core_dma.get_handle(PulseDMARecording.dma_name)
+                self.dma_handle = self.core_dma.get_handle(self.dma_name)
 
             @kernel
             def playback(self):
