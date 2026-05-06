@@ -3,7 +3,6 @@ import logging
 import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
