@@ -903,7 +903,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(1e-6)
 
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
+        self.fluorescence_pulse.do_clearout_pulse(
             duration=200e-6,
             ignore_final_shutters=True,
         )
@@ -1498,7 +1498,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )
@@ -1546,7 +1546,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )
@@ -1611,7 +1611,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )
@@ -1644,7 +1644,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )
