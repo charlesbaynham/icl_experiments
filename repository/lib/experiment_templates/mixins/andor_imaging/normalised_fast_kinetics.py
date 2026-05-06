@@ -101,12 +101,10 @@ class NormalisedXXODTFastKineticsBase(NormalisedFastKineticsDoubleTrapBase):
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
     def get_monitor_rois(self):
-        default_rois = []
-        fwd_roi = self.andor_camera_control.get_roi_i(0)
-        bwd_roi = self.andor_camera_control.get_roi_i(2)
-        default_rois.append(fwd_roi)
-        default_rois.append(bwd_roi)
-        return default_rois
+        rois = self.andor_camera_config.get_rois()
+        fwd_roi = list(rois[0])
+        bwd_roi = list(rois[2])
+        return [fwd_roi, bwd_roi]
 
 
 class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):

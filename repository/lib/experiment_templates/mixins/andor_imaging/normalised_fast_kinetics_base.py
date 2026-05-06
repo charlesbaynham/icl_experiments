@@ -28,10 +28,13 @@ from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from numpy.typing import NDArray
 
 from repository.lib import constants
@@ -45,6 +48,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +98,224 @@ def calculate_grabber_rois(
     ]
 
 
+class NormalisedFKConfig(FastKineticsCameraConfig):
+    """
+    Camera config for normalised fast kinetics readout of a single trap.
+
+    Supports 2 images per series (ground + excited state), producing 2 grabber ROIs.
+    """
+
+    num_andor_images = 4
+    num_images_per_series = 2
+    num_grabber_rois = 2
+    num_grabber_readouts = 2
+    fast_kinetics_num_shots = 2
+
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+
+    def build_fragment(self, x0, y0, x1, y1, excited_shift=0):
+        super().build_fragment()
+
+        self.setattr_param(
+            "roi_x0",
+            IntParam,
+            "Grabber ROI x0",
+            default=x0,
+            min=0,
+            max=512,
+        )
+        self.roi_x0: IntParamHandle
+        self.setattr_param(
+            "roi_y0",
+            IntParam,
+            "Grabber ROI y0",
+            default=y0,
+            min=0,
+            max=1024,
+        )
+        self.roi_y0: IntParamHandle
+        self.setattr_param(
+            "roi_x1",
+            IntParam,
+            "Grabber ROI x1",
+            default=x1,
+            min=0,
+            max=512,
+        )
+        self.roi_x1: IntParamHandle
+        self.setattr_param(
+            "roi_y1",
+            IntParam,
+            "Grabber ROI y1",
+            default=y1,
+            min=0,
+            max=1024,
+        )
+        self.roi_y1: IntParamHandle
+
+        self._excited_shift = np.int32(excited_shift)
+        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
+
+    @portable
+    def get_rois(self):
+        height = self.fast_kinetics_height.get()
+        offset = self.fast_kinetics_offset.get()
+        x0 = self.roi_x0.get()
+        y0 = self.roi_y0.get()
+        x1 = self.roi_x1.get()
+        y1 = self.roi_y1.get()
+        step = height - self._excited_shift
+        self.roi_buffer[0][0] = x0
+        self.roi_buffer[0][1] = y0 - offset
+        self.roi_buffer[0][2] = x1
+        self.roi_buffer[0][3] = y1 - offset
+        self.roi_buffer[1][0] = x0
+        self.roi_buffer[1][1] = y0 + step - offset
+        self.roi_buffer[1][2] = x1
+        self.roi_buffer[1][3] = y1 + step - offset
+        return self.roi_buffer
+
+
+class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
+    """
+    Camera config for normalised fast kinetics readout of two traps (forward + backward).
+
+    Supports 2 images per series (ground + excited), 4 grabber ROIs (2 per trap).
+    """
+
+    num_andor_images = 4
+    num_images_per_series = 2
+    num_grabber_rois = 4
+    num_grabber_readouts = 2
+    fast_kinetics_num_shots = 2
+
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+
+    def build_fragment(
+        self,
+        fwd_x0,
+        fwd_y0,
+        fwd_x1,
+        fwd_y1,
+        bwd_x0,
+        bwd_y0,
+        bwd_x1,
+        bwd_y1,
+        excited_shift=0,
+    ):
+        super().build_fragment()
+
+        self.setattr_param(
+            "fwd_roi_x0",
+            IntParam,
+            "Forward trap grabber ROI x0",
+            default=fwd_x0,
+            min=0,
+            max=512,
+        )
+        self.fwd_roi_x0: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_y0",
+            IntParam,
+            "Forward trap grabber ROI y0",
+            default=fwd_y0,
+            min=0,
+            max=1024,
+        )
+        self.fwd_roi_y0: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_x1",
+            IntParam,
+            "Forward trap grabber ROI x1",
+            default=fwd_x1,
+            min=0,
+            max=512,
+        )
+        self.fwd_roi_x1: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_y1",
+            IntParam,
+            "Forward trap grabber ROI y1",
+            default=fwd_y1,
+            min=0,
+            max=1024,
+        )
+        self.fwd_roi_y1: IntParamHandle
+
+        self.setattr_param(
+            "bwd_roi_x0",
+            IntParam,
+            "Backward trap grabber ROI x0",
+            default=bwd_x0,
+            min=0,
+            max=512,
+        )
+        self.bwd_roi_x0: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_y0",
+            IntParam,
+            "Backward trap grabber ROI y0",
+            default=bwd_y0,
+            min=0,
+            max=1024,
+        )
+        self.bwd_roi_y0: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_x1",
+            IntParam,
+            "Backward trap grabber ROI x1",
+            default=bwd_x1,
+            min=0,
+            max=512,
+        )
+        self.bwd_roi_x1: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_y1",
+            IntParam,
+            "Backward trap grabber ROI y1",
+            default=bwd_y1,
+            min=0,
+            max=1024,
+        )
+        self.bwd_roi_y1: IntParamHandle
+
+        self._excited_shift = np.int32(excited_shift)
+        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
+
+    @portable
+    def get_rois(self):
+        height = self.fast_kinetics_height.get()
+        offset = self.fast_kinetics_offset.get()
+        step = height - self._excited_shift
+        fwd_x0 = self.fwd_roi_x0.get()
+        fwd_y0 = self.fwd_roi_y0.get()
+        fwd_x1 = self.fwd_roi_x1.get()
+        fwd_y1 = self.fwd_roi_y1.get()
+        self.roi_buffer[0][0] = fwd_x0
+        self.roi_buffer[0][1] = fwd_y0 - offset
+        self.roi_buffer[0][2] = fwd_x1
+        self.roi_buffer[0][3] = fwd_y1 - offset
+        self.roi_buffer[1][0] = fwd_x0
+        self.roi_buffer[1][1] = fwd_y0 + step - offset
+        self.roi_buffer[1][2] = fwd_x1
+        self.roi_buffer[1][3] = fwd_y1 + step - offset
+        bwd_x0 = self.bwd_roi_x0.get()
+        bwd_y0 = self.bwd_roi_y0.get()
+        bwd_x1 = self.bwd_roi_x1.get()
+        bwd_y1 = self.bwd_roi_y1.get()
+        self.roi_buffer[2][0] = bwd_x0
+        self.roi_buffer[2][1] = bwd_y0 - offset
+        self.roi_buffer[2][2] = bwd_x1
+        self.roi_buffer[2][3] = bwd_y1 - offset
+        self.roi_buffer[3][0] = bwd_x0
+        self.roi_buffer[3][1] = bwd_y0 + step - offset
+        self.roi_buffer[3][2] = bwd_x1
+        self.roi_buffer[3][3] = bwd_y1 + step - offset
+        return self.roi_buffer
+
+
 class NormalisedFastKineticsBase(AndorImagingBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
@@ -117,12 +339,17 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 4
-    num_grabber_readouts = 2
-    num_grabber_rois = 2
-    num_images_per_series = 2
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    def get_andor_camera_config_hook(self):
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            NormalisedFKConfig,
+            x0=constants.ANDOR_ROI_X0,
+            y0=constants.ANDOR_ROI_Y0,
+            x1=constants.ANDOR_ROI_X1,
+            y1=constants.ANDOR_ROI_Y1,
+        )
+        self.andor_camera_config: NormalisedFKConfig
+        return f
 
     def build_fragment(self):
         super().build_fragment()
@@ -143,7 +370,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         # more detail.
 
         # Force the camera's fast kinetics shot time to match our pulse time
-        self.andor_camera_control.bind_param(
+        self.andor_camera_config.bind_param(
             "fast_kinetics_time_between_shots",
             self.delay_between_imaging_pulses,
         )
@@ -180,32 +407,18 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
-    def setup_andor_camera_control_hook(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-        """
-
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(),
-            fast_kinetics_height_default=self.fast_kinetics_height_default,
-            fast_kinetics_offset_default=self.fast_kinetics_offset_default,
-            add_pre_trigger_delay=True,
-            fast_kinetics_num_shots=self.num_images_per_series,
-        )
-        self.andor_camera_control: AndorCameraControl
-
-        self.hook_setup_andor_results()
-
     def setup_gauss_fit_results(self):
         self.amps: List[FloatChannel] = []
         self.x_pos: List[FloatChannel] = []
         self.y_pos: List[FloatChannel] = []
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
-        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+        for i in range(
+            int(
+                self.andor_camera_config.num_grabber_rois
+                / self.andor_camera_config.num_grabber_readouts
+            )
+        ):
             for j in ("ground", "excited"):
                 self.amps.append(
                     self.setattr_result(
@@ -232,18 +445,6 @@ class NormalisedFastKineticsBase(AndorImagingBase):
                         f"sigma_y_{i}_{j}", FloatChannel, display_hints={"priority": -1}
                     )
                 )
-
-    def get_grabber_roi_defaults(self):  # FIXME
-        return calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_X0,
-            y0=constants.ANDOR_ROI_Y0,
-            x1=constants.ANDOR_ROI_X1,
-            y1=constants.ANDOR_ROI_Y1,
-            excited_shift=0,
-        )
 
     @kernel
     def do_imaging_hook_andor(self):
@@ -351,12 +552,17 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     def do_gauss_fit_hook(self, img_array: np.ndarray):
         ground_bg_corrected = img_array[0].astype(int) - img_array[2].astype(int)
         excited_bg_corrected = img_array[1].astype(int) - img_array[3].astype(int)
-        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+        for i in range(
+            int(
+                self.andor_camera_config.num_grabber_rois
+                / self.andor_camera_config.num_grabber_readouts
+            )
+        ):
             for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
                 grabber_idx = int(2 * i)
 
-                sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                    image, grabber_idx
+                sliced_image, offsets = self.slice_from_roi_params(
+                    image, self.andor_camera_config.get_rois()[grabber_idx]
                 )
                 popt = fit_2d_gaussian(sliced_image, offsets)
                 self.push_gauss_fit_pars(popt, int(2 * i + j))
@@ -385,12 +591,21 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 4
-    num_grabber_readouts = 2
-    num_grabber_rois = 2
-    num_images_per_series = 2
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    def get_andor_camera_config_hook(self):
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            NormalisedFKDoubleTrapConfig,
+            fwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+            fwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+            fwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+            fwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            bwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+            bwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+            bwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+            bwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+        )
+        self.andor_camera_config: NormalisedFKDoubleTrapConfig
+        return f
 
     def build_fragment(self):
         super().build_fragment()
@@ -422,7 +637,7 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         # more detail.
 
         # Force the camera's fast kinetics shot time to match our pulse time
-        self.andor_camera_control.bind_param(
+        self.andor_camera_config.bind_param(
             "fast_kinetics_time_between_shots",
             self.delay_between_imaging_pulses,
         )
@@ -432,20 +647,21 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     def host_setup(self):
         super().host_setup()
 
+        rois = self.andor_camera_config.get_rois()
         default_rois_ground = [
-            self.andor_camera_control.get_roi_i(0),
-            self.andor_camera_control.get_roi_i(2),
+            list(rois[0]),
+            list(rois[2]),
         ]
         default_rois_excited = [
-            self.andor_camera_control.get_roi_i(1),
-            self.andor_camera_control.get_roi_i(3),
+            list(rois[1]),
+            list(rois[3]),
         ]
 
         # Subtract the fast kinetics height from the y coordinates of the
         # excited state ROIs
         for roi in default_rois_excited:
-            roi[1] -= self.fast_kinetics_height_default
-            roi[3] -= self.fast_kinetics_height_default
+            roi[1] -= self.andor_camera_config.fast_kinetics_height_default
+            roi[3] -= self.andor_camera_config.fast_kinetics_height_default
 
         self.ccb.issue(
             "create_applet",
@@ -465,32 +681,18 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
-    def setup_andor_camera_control_hook(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-        """
-
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(),
-            fast_kinetics_height_default=self.fast_kinetics_height_default,
-            fast_kinetics_offset_default=self.fast_kinetics_offset_default,
-            add_pre_trigger_delay=True,
-            fast_kinetics_num_shots=self.num_images_per_series,
-        )
-        self.andor_camera_control: AndorCameraControl
-
-        self.hook_setup_andor_results()
-
     def setup_gauss_fit_results(self):
         self.amps: List[FloatChannel] = []
         self.x_pos: List[FloatChannel] = []
         self.y_pos: List[FloatChannel] = []
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
-        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+        for i in range(
+            int(
+                self.andor_camera_config.num_grabber_rois
+                / self.andor_camera_config.num_grabber_readouts
+            )
+        ):
             for j in ("ground", "excited"):
                 self.amps.append(
                     self.setattr_result(
@@ -517,18 +719,6 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
                         f"sigma_y_{i}_{j}", FloatChannel, display_hints={"priority": -1}
                     )
                 )
-
-    def get_grabber_roi_defaults(self):  # FIXME
-        return calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_X0,
-            y0=constants.ANDOR_ROI_Y0,
-            x1=constants.ANDOR_ROI_X1,
-            y1=constants.ANDOR_ROI_Y1,
-            excited_shift=0,
-        )
 
     @kernel
     def do_imaging_hook_andor(self):
@@ -645,12 +835,17 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     def do_gauss_fit_hook(self, img_array: np.ndarray):
         ground_bg_corrected = img_array[0].astype(int) - img_array[2].astype(int)
         excited_bg_corrected = img_array[1].astype(int) - img_array[3].astype(int)
-        for i in range(int(self.num_grabber_rois / self.num_grabber_readouts)):
+        for i in range(
+            int(
+                self.andor_camera_config.num_grabber_rois
+                / self.andor_camera_config.num_grabber_readouts
+            )
+        ):
             for j, image in enumerate([ground_bg_corrected, excited_bg_corrected]):
                 grabber_idx = int(2 * i)
 
-                sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                    image, grabber_idx
+                sliced_image, offsets = self.slice_from_roi_params(
+                    image, self.andor_camera_config.get_rois()[grabber_idx]
                 )
                 popt = fit_2d_gaussian(sliced_image, offsets)
                 self.push_gauss_fit_pars(popt, int(2 * i + j))
