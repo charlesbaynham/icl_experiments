@@ -148,9 +148,6 @@ class TripleImageFastKineticsBase(AndorImagingBase):
     is ground-state atoms, the second one is excited state and the third is
     background (i.e. no atoms at all).
 
-    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
-    and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
-
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
 
@@ -161,11 +158,17 @@ class TripleImageFastKineticsBase(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 3
-    num_grabber_readouts = 1
-    num_grabber_rois = 3
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    def get_andor_camera_config_hook(self) -> TripleFKConfig:
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            TripleFKConfig,
+            x0=constants.ANDOR_ROI_X0,
+            y0=constants.ANDOR_ROI_Y0,
+            x1=constants.ANDOR_ROI_X1,
+            y1=constants.ANDOR_ROI_Y1,
+        )
+        self.andor_camera_config: TripleFKConfig
+        return f
 
     def build_fragment(self):
         super().build_fragment()
@@ -186,7 +189,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
         # more detail.
 
         # Force the camera's fast kinetics shot time to match our pulse time
-        self.andor_camera_control.bind_param(
+        self.andor_camera_config.bind_param(
             "fast_kinetics_time_between_shots",
             self.delay_between_imaging_pulses,
         )
@@ -199,36 +202,6 @@ class TripleImageFastKineticsBase(AndorImagingBase):
 
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
-
-    def setup_andor_camera_control_hook(self):
-        """
-        Setup the Andor camera to use 3x ROIs since we're expecting fast
-        kinetics mode with 3 images
-        """
-
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(),
-            fast_kinetics_height_default=self.fast_kinetics_height_default,
-            fast_kinetics_offset_default=self.fast_kinetics_offset_default,
-            add_pre_trigger_delay=True,
-            fast_kinetics_num_shots=3,
-        )
-        self.andor_camera_control: AndorCameraControl
-
-        self.hook_setup_andor_results()
-
-    def get_grabber_roi_defaults(self):  # FIXME
-        return calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_grabber_rois,
-            x0=constants.ANDOR_ROI_X0,
-            y0=constants.ANDOR_ROI_Y0,
-            x1=constants.ANDOR_ROI_X1,
-            y1=constants.ANDOR_ROI_Y1,
-        )
 
     @kernel
     def do_imaging_hook_andor(self):
