@@ -42,6 +42,9 @@ def get_all_of_class_from_module(module, cls, exceptions=[]):
             and not obj.__name__.endswith(
                 "Base"
             )  # nor ends in "Base" and is therefore allowed to be abstract
+            and not obj.__name__.endswith(
+                "Mixin"
+            )  # nor ends in "Mixin" and is therefore allowed to be abstract
         ):
             out.append(obj)
     return out
