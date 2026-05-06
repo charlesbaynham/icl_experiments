@@ -794,21 +794,6 @@ class NormalisedFastKineticsDoubleTrapClockPulseMixin(
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_fragment(
-            "shaped_imaging_pulse",
-            JessePulse,
-            ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
-        )
-        self.shaped_imaging_pulse: JessePulse
-
-        self.setattr_param_rebind(
-            "shaped_pulse_duration",
-            self.shaped_imaging_pulse,
-            "pulse_duration",
-            default=200e-6,
-            description="Duration of the imaging clock pulse",
-        )
-
         self.setattr_param(
             "delay_clock_after_first_pulse",
             FloatParam,
@@ -842,20 +827,6 @@ class NormalisedFastKineticsDoubleTrapClockPulseMixin(
 
         # PI PULSE
 
-        # self.clock_down_dds.sw.on()
-        # delay(constants.CLOCK_DOWN_PI_TIME)
-        # self.clock_down_dds.sw.off()
-
-        # prepare ram mode
-        self.shaped_imaging_pulse.prepare_pulse(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.imaging_clock_pulse_detuning.get()
-            + constants.LMT_DOWN_BEAM_SHIFT
-        )
-        delay_mu(int64(self.core.ref_multiplier))
-        self.clock_up_dds.set_att(0.0)
-        delay_mu(int64(self.core.ref_multiplier))
-
-        self.shaped_imaging_pulse.trigger_pulse()
-
-        self.shaped_imaging_pulse.disable_ram_mode()
+        self.clock_down_dds.sw.on()
+        delay(constants.CLOCK_DOWN_PI_TIME)
+        self.clock_down_dds.sw.off()
