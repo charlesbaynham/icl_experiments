@@ -46,8 +46,6 @@ class AndorCameraControl(Fragment):
 
     Parameters:
     roi_defaults (List[List[int, int, int, int]]): List of ROIs to set up
-    add_pre_trigger_delay (bool): Whether to add a delay before triggering the
-        camera.
     fast_kinetics_num_shots (int): Number of shots to per frame. If > 1,
         fast kinetics mode will be used.
     """
@@ -66,7 +64,6 @@ class AndorCameraControl(Fragment):
         ],
         fast_kinetics_height_default=None,
         fast_kinetics_offset_default=None,
-        add_pre_trigger_delay=True,
         fast_kinetics_num_shots=1,
     ):
         self.setattr_device("core")
@@ -133,9 +130,6 @@ class AndorCameraControl(Fragment):
             min=0.0,
         )
         self.pre_trigger_delay: FloatParamHandle
-
-        if not add_pre_trigger_delay:
-            self.override_param("pre_trigger_delay", 0.0)
 
         self.setattr_param(
             "use_andor_driver",

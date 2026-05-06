@@ -49,7 +49,6 @@ class TestFastKineticsGrabber(ExpFragment):
                 ]
                 for i in range(self.N_ROIs)
             ],
-            add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl
 

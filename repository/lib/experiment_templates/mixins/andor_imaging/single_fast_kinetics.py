@@ -167,7 +167,6 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
             roi_defaults=self.get_grabber_roi_defaults(),
             fast_kinetics_height_default=self.fast_kinetics_height_default,
             fast_kinetics_offset_default=self.fast_kinetics_offset_default,
-            add_pre_trigger_delay=True,
             fast_kinetics_num_shots=self.num_images_per_series,
         )
         self.andor_camera_control: AndorCameraControl
