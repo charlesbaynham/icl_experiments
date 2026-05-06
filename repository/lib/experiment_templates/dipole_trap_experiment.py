@@ -42,8 +42,14 @@ the same time::
 import abc
 import logging
 
+from artiq.coredevice.core import Core
+from artiq.coredevice.dma import CoreDMA
+from artiq.coredevice.ttl import TTLInOut
+from artiq.experiment import EnvExperiment
+from artiq.experiment import NumberValue
 from artiq.language import delay
 from artiq.language import kernel
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -123,6 +129,65 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
+        class PulseDMARecording(Fragment):
+            dma_name = "actions_after_drop"
+
+            def build_fragment(self, outer_self: "DipoleTrapWithExperiment"):
+                self.outer_self = outer_self
+
+                self.setattr_device("core")
+                self.core: Core
+
+                self.setattr_device("core_dma")
+                self.core_dma: CoreDMA
+
+                self.dma_handle = 0
+
+            @kernel
+            def device_setup(self):
+                self.device_setup_subfragments()
+
+                # Record the actions_after_drop sequence in DMA
+                with self.core_dma.record(PulseDMARecording.dma_name):
+                    self.outer_self.actions_after_drop()
+
+            @kernel
+            def DMA_initialization_hook_after_drop(self):
+                self.dma_handle = self.core_dma.get_handle(PulseDMARecording.dma_name)
+
+            @kernel
+            def playback(self):
+                if self.dma_handle == 0:
+                    raise RuntimeError(
+                        "DMA buffer handle not set. Did you forget to call DMA_initialization_hook_after_drop?"
+                    )
+                return self.core_dma.playback_handle(self.dma_handle)
+
+        self.setattr_fragment(
+            "dma_recording_fragment", PulseDMARecording, outer_self=self
+        )
+        self.dma_recording_fragment: PulseDMARecording
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.dma_recording_fragment.DMA_initialization_hook_after_drop()
+
+    @kernel
+    def actions_after_drop(self):
+        """
+        Split out the parts of the sequence that occur after the atoms are
+        dropped so that we can pre-record them in DMA. This allows us to :
+
+        a) playback quickly
+        b) know in advance the timings so we can calculate corrected ROI positions
+        """
+
+        delay(self.before_launch_delay.get())
+        self.launch_hook()
+        delay(self.dipole_pre_experiment_delay.get())
+        self.do_experiment_after_dipole_trap_hook()
+
     @kernel
     def do_experiment_after_red_mot_hook(self):
         self.dipole_trap_loading_hook()
@@ -133,10 +198,8 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
         self.post_dipole_trap_hook()
-        delay(self.before_launch_delay.get())
-        self.launch_hook()
-        delay(self.dipole_pre_experiment_delay.get())
-        self.do_experiment_after_dipole_trap_hook()
+
+        self.dma_recording_fragment.playback()
 
     @kernel
     def launch_hook(self):
