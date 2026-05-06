@@ -281,6 +281,11 @@ class AbsorptionImagingBase(AndorImagingBase):
             for i in range(len(self.amps)):
                 self.push_gauss_fit_pars([np.nan] * 5, i)
 
+    @kernel
+    def process_grabber_data_hook(self, sums, means):
+        # No need for any grabber processing - we don't use the grabber
+        pass
+
     @host_only
     def do_gauss_fit_hook(self, imgs_array):
         for img_array in imgs_array:
