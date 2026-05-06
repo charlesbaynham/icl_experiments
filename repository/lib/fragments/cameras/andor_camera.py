@@ -1,3 +1,4 @@
+import abc
 import logging
 
 import numpy as np
@@ -12,6 +13,7 @@ from artiq.experiment import TInt32
 from artiq.language import delay_mu
 from artiq.language import host_only
 from artiq.language import kernel
+from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
@@ -29,6 +31,145 @@ logger = logging.getLogger(__name__)
 
 class AndorNoImageAvailable(Exception):
     pass
+
+
+class AndorCameraConfig(Fragment, abc.ABC):
+    """
+    A configuration object that contains settings for the Andor camera + Grabber
+
+    This object is responsible for calculating the position of ROIs, defining
+    the number of images, etc. These can be hard-coded, set by parameters or
+    calculated on the fly, as required.
+
+    This is an abstract base class - concrete implementations must implement the
+    abstract methods below.
+    """
+
+    num_andor_images = None
+    "How many images will the Andor driver read out"
+    num_images_per_series = None
+    "How many images will the Andor driver read out in each series"
+    num_grabber_rois = None
+    "How many ROIs in each image for the Grabber"
+    num_grabber_readouts = None
+    "How many images will the Grabber read out"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.num_andor_images is None:
+            raise ValueError("num_andor_images must be set in subclass")
+
+        if self.num_images_per_series is None:
+            raise ValueError("num_images_per_series must be set in subclass")
+
+        if self.num_grabber_rois is None:
+            raise ValueError("num_grabber_rois must be set in subclass")
+
+        if self.num_grabber_readouts is None:
+            raise ValueError("num_grabber_readouts must be set in subclass")
+
+    @portable
+    @abc.abstractmethod
+    def get_rois(self) -> TArray(TInt32, 2):  # pyright: ignore[reportInvalidTypeForm]
+        """
+        Get the list of desired grabber ROIs
+
+        Returns an array of size (N, 4) where each line is (x0, y0, x1, y1)
+        """
+
+
+class AndorCameraDefaultConfig(AndorCameraConfig):
+    def build_fragment(self, roi_defaults=None):
+
+        if roi_defaults is None:
+            self.roi = [
+                [
+                    constants.ANDOR_ROI_X0,
+                    constants.ANDOR_ROI_Y0,
+                    constants.ANDOR_ROI_X1,
+                    constants.ANDOR_ROI_Y1,
+                ]
+            ]
+        else:
+            self.roi = roi_defaults
+
+        self.num_rois = len(self.roi)
+
+    def overwrite_all_rois(self, rois):
+        """
+        Overwrite all the ROIs at once from a list of ROIs.
+
+        Parameters:
+        rois (List[List[int, int, int, int]]): List of ROIs
+        """
+
+        self.rois = rois
+        self.num_rois = len(rois)
+
+    def update_roi_i(self, i, new_roi):
+        """
+        Update a single ROI from a new ROI, the new ROI must have the same shape as the old ROI
+
+        Parameters:
+        i (int): Index of the ROI to update
+        new_roi (List[int, int, int, int]): New ROI
+        """
+
+        for j in range(4):
+            self.rois[i][j] += new_roi[j]
+
+    def update_all_rois(self, new_rois):
+        """
+        Update all the ROIs at once from a list of ROIs, the new rois must have the same shape as the old rois
+
+        Parameters:
+        rois (List[List[int, int, int, int]]): List of ROIs
+        """
+
+        for i in range(self.num_rois):
+            # Should I manually expand this? Does it make it faster?
+            self.update_roi_i(i, new_rois[i])
+
+    def update_vertical_rois(self, i, delta_ys):
+        """
+        This is a special implementation of update_roi_i that just updates the y values
+
+        Parameters:
+        i (int): Index of the ROI to update
+        delta_ys (List[int, int]): List of changes to y0 and y1
+        """
+
+        self.rois[i][1] += delta_ys[0]
+        self.rois[i][3] += delta_ys[1]
+
+    def get_rois(self):
+        """
+        A simple function to get the ROIs
+        """
+
+        return self.rois
+
+    @rpc
+    def calculate_roi_config(self) -> TArray(TInt32, 2):
+        """
+        Populate an ROI array from the generated NDScan parameters
+
+        This unfortunately has to happen on the host since it uses various
+        python features that aren't available in kernels
+        """
+
+        rois = np.zeros((self.num_rois, 4), dtype=int)
+        for i in range(self.num_rois):
+            param_prefix = f"roi_{i}_"
+            rois[i, :] = [
+                getattr(self, param_prefix + "x0").get(),
+                getattr(self, param_prefix + "y0").get(),
+                getattr(self, param_prefix + "x1").get(),
+                getattr(self, param_prefix + "y1").get(),
+            ]
+
+        return rois
 
 
 class AndorCameraControl(Fragment):
