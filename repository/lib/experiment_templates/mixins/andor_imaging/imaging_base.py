@@ -153,14 +153,16 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
         )
         self.imagingsetup: ImagingDeviceSetup
 
+    def hook_setup_andor_new(self):
+        self.andor_camera_config = self.get_andor_camera_config_hook()
+        self.hook_setup_andor()
+
     def hook_setup_andor(self):
         """
         Setup the Andor camera
 
         This is a method so that children classes can override it
         """
-        self.andor_camera_config = self.get_andor_camera_config_hook()
-
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
