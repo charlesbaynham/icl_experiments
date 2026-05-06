@@ -125,7 +125,7 @@ class AndorCameraControl(Fragment):
 
     def build_fragment(
         self,
-        andor_camera_config: AndorCameraConfig = None,  # type: ignore
+        camera_config: AndorCameraConfig = None,  # type: ignore
         fast_kinetics_height_default=None,
         fast_kinetics_offset_default=None,
         add_pre_trigger_delay=True,
@@ -134,7 +134,7 @@ class AndorCameraControl(Fragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.andor_camera_config = andor_camera_config
+        self.andor_camera_config = camera_config
 
         self.setattr_device("grabber0")
         self.grabber: Grabber = self.grabber0  # type: ignore
