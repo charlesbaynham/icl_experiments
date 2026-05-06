@@ -63,6 +63,7 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
 
     keep_andor_shutter_closed = False
 
+    @abc.abstractmethod
     def get_andor_camera_config_hook(self) -> AndorCameraConfig:
         """
         Build an Andor camera config object which defines the behaviour of this
@@ -72,7 +73,7 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
         using setattr_fragment, or it might return one that was built elsewhere.
         For an example implementation, see xxxx
         """
-        raise NotImplementedError
+        # FIXME put in class ref to comment
 
     def build_fragment(self):
         super().build_fragment()
