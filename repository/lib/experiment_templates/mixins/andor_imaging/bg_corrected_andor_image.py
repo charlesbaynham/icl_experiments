@@ -174,10 +174,6 @@ class BGCorrectedAndorImage(AndorImagingBase):
         self.andor_sum_bg_corrected.push(sums[0] - sums[1])
         self.andor_mean_bg_corrected.push(means[0] - means[1])
 
-    # @host_only
-    # def process_andor_image_hook(self, imgs_array):
-    #     super().process_andor_image_hook(imgs_array)
-
     @host_only
     def do_gauss_fit_hook(self, img_array):
         img_array = img_array[0]
