@@ -191,7 +191,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             "bias_field_z_end", self.red_mot.narrowband_bias_z
         )
 
-        self.hook_setup_andor_new()
+        self.setup_andor_hook()
 
         self._first_run = True
 
@@ -332,7 +332,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     # allow you to construct children classes until those methods are
     # implemented
 
-    def hook_setup_andor_new(self):
+    def setup_andor_hook(self):
         """
         Setup the Andor camera
 

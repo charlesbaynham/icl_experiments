@@ -148,7 +148,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
             f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois}'",
         )
 
-    def hook_setup_andor(self):
+    def setup_andor_camera_control_hook(self):
         """
         Setup the andor camera control with the grabber ROI defaults being yet to be defined!
         """

@@ -180,7 +180,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
-    def hook_setup_andor(self):
+    def setup_andor_camera_control_hook(self):
         """
         Setup the Andor camera to use 3x ROIs since we're expecting fast
         kinetics mode with 3 images
@@ -465,7 +465,7 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         self.excitation_fraction: FloatChannel
         self.atom_number: FloatChannel
 
-    def hook_setup_andor(self):
+    def setup_andor_camera_control_hook(self):
         """
         Setup the Andor camera to use 3x ROIs since we're expecting fast
         kinetics mode with 3 images

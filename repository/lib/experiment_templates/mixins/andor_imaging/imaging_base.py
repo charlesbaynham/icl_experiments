@@ -153,11 +153,11 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
         )
         self.imagingsetup: ImagingDeviceSetup
 
-    def hook_setup_andor_new(self):
+    def setup_andor_hook(self):
         self.andor_camera_config = self.get_andor_camera_config_hook()
-        self.hook_setup_andor()
+        self.setup_andor_camera_control_hook()
 
-    def hook_setup_andor(self):
+    def setup_andor_camera_control_hook(self):
         """
         Setup the Andor camera
 
