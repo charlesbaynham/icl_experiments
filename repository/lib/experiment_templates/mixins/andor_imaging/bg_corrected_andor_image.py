@@ -1,9 +1,13 @@
 import logging
+from typing import cast
 
 import numpy as np
+from artiq.language import TArray
+from artiq.language import TInt32
 from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
+from artiq.language import portable
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -15,8 +19,27 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 
 logger = logging.getLogger(__name__)
+
+
+class BGCorrectedAndorImageConfig(AndorCameraConfig):
+    num_andor_images = 2
+    num_images_per_series = 2
+    num_grabber_readouts = 2
+    num_grabber_rois = 1
+
+    @portable
+    def get_rois(self):
+        return [
+            [
+                constants.ANDOR_ROI_X0,
+                constants.ANDOR_ROI_Y0,
+                constants.ANDOR_ROI_X1,
+                constants.ANDOR_ROI_Y1,
+            ]
+        ]
 
 
 class BGCorrectedAndorImage(AndorImagingBase):
@@ -33,10 +56,11 @@ class BGCorrectedAndorImage(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 2
-    num_images_per_series = 2
-    num_grabber_readouts = 2
-    num_grabber_rois = 1
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        return cast(
+            BGCorrectedAndorImageConfig,
+            self.setattr_fragment("andor_camera_config", BGCorrectedAndorImageConfig),
+        )
 
     def build_fragment(self):
         super().build_fragment()

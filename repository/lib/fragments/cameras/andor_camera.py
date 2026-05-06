@@ -69,6 +69,11 @@ class AndorCameraConfig(Fragment, abc.ABC):
         if self.num_grabber_readouts is None:
             raise ValueError("num_grabber_readouts must be set in subclass")
 
+        if self.num_grabber_rois != len(self.get_rois()):
+            raise ValueError(
+                "num_grabber_rois must be equal to the number of ROIs returned by get_rois()"
+            )
+
     @portable
     @abc.abstractmethod
     def get_rois(self) -> TArray(TInt32, 2):  # pyright: ignore[reportInvalidTypeForm]

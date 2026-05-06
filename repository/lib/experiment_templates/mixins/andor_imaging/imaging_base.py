@@ -464,6 +464,7 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
 
         self.process_grabber_data_hook(sums, means)
 
+    @abc.abstractmethod
     @kernel
     def process_grabber_data_hook(self, sums, means):
         """
