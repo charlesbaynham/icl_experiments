@@ -78,8 +78,6 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
     def build_fragment(self):
         super().build_fragment()
 
-        self.andor_camera_config = self.get_andor_camera_config_hook()
-
         self.setattr_device("ccb")
         self.ccb: CCB
 
@@ -161,6 +159,8 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
 
         This is a method so that children classes can override it
         """
+        self.andor_camera_config = self.get_andor_camera_config_hook()
+
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
