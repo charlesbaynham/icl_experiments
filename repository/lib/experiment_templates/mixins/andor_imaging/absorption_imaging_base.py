@@ -1,10 +1,11 @@
 import logging
-from typing import List
+import typing as ty
 
 import numpy as np
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import parallel
+from artiq.language import portable
 from artiq.language import rpc
 from artiq.language.core import delay
 from ndscan.experiment import FloatChannel
@@ -29,42 +30,25 @@ DATASET_OD_KEY = "abs_od_img"
 
 
 class AbsorptionImagingConfig(AndorCameraConfig):
+    """
+    Configure camera for absoption imaging
 
-    default_abs_rois = self.get_default_abs_rois()
+    We don't actually use the grabber here, but we must read at least one
+    grabber ROI so we read a dummy one
+    """
 
-    for i, (x0, y0, x1, y1) in enumerate(default_abs_rois):
-        self.setattr_param(
-            f"abs_roi_{i}_x0",
-            IntParam,
-            f"Abs ROI {i} x0",
-            default=x0,
-            min=0,
-            max=512,
-        )
-        self.setattr_param(
-            f"abs_roi_{i}_x1",
-            IntParam,
-            f"Abs ROI {i} x1",
-            default=x1,
-            min=0,
-            max=512,
-        )
-        self.setattr_param(
-            f"abs_roi_{i}_y0",
-            IntParam,
-            f"Abs ROI {i} y0",
-            default=y0,
-            min=0,
-            max=512,
-        )
-        self.setattr_param(
-            f"abs_roi_{i}_y1",
-            IntParam,
-            f"Abs ROI {i} y1",
-            default=y1,
-            min=0,
-            max=512,
-        )
+    num_andor_images = 3
+    num_images_per_series = 3
+    num_grabber_readouts = 3
+    num_grabber_rois = 1
+
+    def host_setup(self):
+        self.grabber_dummy_roi = [[0, 0, 1, 1]]
+        super().host_setup()
+
+    @portable
+    def get_rois(self):
+        return self.grabber_dummy_roi
 
 
 class AbsorptionImagingBase(AndorImagingBase):
@@ -82,9 +66,6 @@ class AbsorptionImagingBase(AndorImagingBase):
     * :meth:`~post_sequence_cleanup_hook`
     * :meth:`~save_andor_data_hook`
     """
-
-    num_andor_images = 3
-    num_images_per_series = 3
 
     num_absorption_rois = 1
 
@@ -126,6 +107,42 @@ class AbsorptionImagingBase(AndorImagingBase):
         # self.setattr_param_rebind("delivery_settling_duration", self.fluorescence_pulse)
         # self.override_param("delivery_settling_duration", 6e3)
 
+        # The absoption imaging doesn't use the grabber ROIs - it uses it's own
+        # ROIs based on the raw images. So we configure these here
+        for i, (x0, y0, x1, y1) in enumerate(self.get_default_abs_rois()):
+            self.setattr_param(
+                f"abs_roi_{i}_x0",
+                IntParam,
+                f"Abs ROI {i} x0",
+                default=x0,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"abs_roi_{i}_x1",
+                IntParam,
+                f"Abs ROI {i} x1",
+                default=x1,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"abs_roi_{i}_y0",
+                IntParam,
+                f"Abs ROI {i} y0",
+                default=y0,
+                min=0,
+                max=512,
+            )
+            self.setattr_param(
+                f"abs_roi_{i}_y1",
+                IntParam,
+                f"Abs ROI {i} y1",
+                default=y1,
+                min=0,
+                max=512,
+            )
+
     def host_setup(self):
         super().host_setup()
         self.andor_camera_control.cam.stop_acquisition()
@@ -154,9 +171,10 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.od_img: OpaqueChannel
         self.setup_gauss_fit_results()
 
-        self.atom_numbers: List[FloatChannel] = []
+        self.atom_numbers: ty.List[FloatChannel] = []
         for i in range(self.num_absorption_rois):
             atom_number = self.setattr_result(f"atom_number_{i}", FloatChannel)
+            atom_number = ty.cast(FloatChannel, atom_number)
             self.atom_numbers.append(atom_number)
 
     @kernel
@@ -265,44 +283,43 @@ class AbsorptionImagingBase(AndorImagingBase):
     @host_only
     def fit_from_abs_rois(self, image):
         for i in range(self.num_absorption_rois):
-            sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                image, i, prefix="abs_roi_", obj=self
-            )
+            roi = self.get_abs_rois()[i]
+            sliced_image, offsets = self.slice_from_roi_params(image, roi)
             popt = fit_2d_gaussian(sliced_image, offsets)
             self.push_gauss_fit_pars(popt, i)
 
     def setup_gauss_fit_results(self):
-        self.amps: List[FloatChannel] = []
-        self.x_pos: List[FloatChannel] = []
-        self.y_pos: List[FloatChannel] = []
-        self.sigmas_x: List[FloatChannel] = []
-        self.sigmas_y: List[FloatChannel] = []
-        # print(f"num_gauss_fit_results: {num_gauss_fit_results}")
+        self.amps: ty.List[FloatChannel] = []
+        self.x_pos: ty.List[FloatChannel] = []
+        self.y_pos: ty.List[FloatChannel] = []
+        self.sigmas_x: ty.List[FloatChannel] = []
+        self.sigmas_y: ty.List[FloatChannel] = []
+
         for i in range(self.num_absorption_rois):
             self.amps.append(
                 self.setattr_result(
                     f"amp_{i}", FloatChannel, display_hints={"priority": -1}
-                )
+                )  # type: ignore
             )
             self.x_pos.append(
                 self.setattr_result(
                     f"x_pos_{i}", FloatChannel, display_hints={"priority": -1}
-                )
+                )  # type: ignore
             )
             self.y_pos.append(
                 self.setattr_result(
                     f"y_pos_{i}", FloatChannel, display_hints={"priority": -1}
-                )
+                )  # type: ignore
             )
             self.sigmas_x.append(
                 self.setattr_result(
                     f"sigma_x_{i}", FloatChannel, display_hints={"priority": -1}
-                )
+                )  # type: ignore
             )
             self.sigmas_y.append(
                 self.setattr_result(
                     f"sigma_y_{i}", FloatChannel, display_hints={"priority": -1}
-                )
+                )  # type: ignore
             )
 
     @host_only
