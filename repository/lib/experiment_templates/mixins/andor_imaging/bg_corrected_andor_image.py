@@ -32,22 +32,22 @@ class BGCorrectedAndorImageConfig(AndorCameraConfig):
     num_grabber_readouts = 2
     num_grabber_rois = 1
 
-    def build_fragment(self):
+    def build_fragment(
+        self,
+        default_roi: list[int] = None,  # type: ignore
+    ):
         super().build_fragment()
+
+        if default_roi is None:
+            raise ValueError(
+                "Must provide default ROIs for BGCorrectedAndorImageConfig"
+            )
 
         self.setattr_param(
             "roi_x0",
             IntParam,
             "Grabber ROI x0",
-            default=constants.ANDOR_ROI_X0,
-            min=0,
-            max=512,
-        )
-        self.setattr_param(
-            "roi_x1",
-            IntParam,
-            "Grabber ROI x1",
-            default=constants.ANDOR_ROI_X1,
+            default=default_roi[0],
             min=0,
             max=512,
         )
@@ -55,15 +55,23 @@ class BGCorrectedAndorImageConfig(AndorCameraConfig):
             "roi_y0",
             IntParam,
             "Grabber ROI y0",
-            default=constants.ANDOR_ROI_Y0,
+            default=default_roi[1],
             min=0,
             max=1024,
+        )
+        self.setattr_param(
+            "roi_x1",
+            IntParam,
+            "Grabber ROI x1",
+            default=default_roi[2],
+            min=0,
+            max=512,
         )
         self.setattr_param(
             "roi_y1",
             IntParam,
             "Grabber ROI y1",
-            default=constants.ANDOR_ROI_Y1,
+            default=default_roi[3],
             min=0,
             max=1024,
         )
