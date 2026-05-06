@@ -410,7 +410,7 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
         """
         Get the default ROIs for the Andor monitors
         """
-        default_rois = [self.andor_camera_control.get_roi_i(0)]
+        default_rois = [self.andor_camera_config.get_rois()[0]]
         return default_rois
 
     @kernel
@@ -578,7 +578,7 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
                         OpaqueChannel(f"fit_t_{name}"),
                         OpaqueChannel(f"fit_sigma_{name}"),
                     ],
-                )
+                )  # type: ignore
         return default_analyses
 
 
