@@ -150,6 +150,7 @@
           hooks = {
             alejandra.enable = true;
             autoflake.enable = true;
+            autoflake.args = ["--remove-all-unused-imports" "--remove-unused-variables" "--in-place"];
             black.enable = true;
             check-case-conflicts.enable = true;
             check-merge-conflicts.enable = true;
