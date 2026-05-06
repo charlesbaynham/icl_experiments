@@ -77,6 +77,12 @@ class AndorCameraConfig(Fragment, abc.ABC):
                 "num_grabber_rois must be equal to the number of ROIs returned by get_rois()"
             )
 
+        for roi in self.get_rois():
+            if len(roi) != 4:
+                raise ValueError(
+                    "Each ROI returned by get_rois() must be a list of 4 integers: [x0, y0, x1, y1]"
+                )
+
     def build_fragment(self):
         pass
 
