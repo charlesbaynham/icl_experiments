@@ -6,6 +6,7 @@ from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from artiq.language import rpc
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
@@ -23,7 +24,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 
 logger = logging.getLogger(__name__)
 ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
@@ -90,16 +91,327 @@ def calculate_grabber_rois(
     return signal_rois + background_rois
 
 
-class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
+class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
+    """
+    Config for single-image normalised fast-kinetics readout with one trap.
 
-    # These must be filled out
-    num_andor_images: int
-    num_grabber_readouts: int
-    num_grabber_rois: int
-    num_images_per_series: int
+    Creates 2 signal ROIs (ground + excited state) plus 4 background ROIs
+    (left+right of each signal), for 6 total.
+    """
+
+    num_andor_images = 2
+    num_images_per_series = 2
+    num_grabber_rois = 6
+    num_grabber_readouts = 1
+    fast_kinetics_num_shots = 2
 
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+
+    def build_fragment(self, x0, y0, x1, y1, bg_width, excited_shift=0):
+        super().build_fragment()
+
+        self.setattr_param(
+            "roi_x0",
+            IntParam,
+            "Grabber ROI x0",
+            default=x0,
+            min=0,
+            max=512,
+        )
+        self.roi_x0: IntParamHandle
+        self.setattr_param(
+            "roi_y0",
+            IntParam,
+            "Grabber ROI y0",
+            default=y0,
+            min=0,
+            max=1024,
+        )
+        self.roi_y0: IntParamHandle
+        self.setattr_param(
+            "roi_x1",
+            IntParam,
+            "Grabber ROI x1",
+            default=x1,
+            min=0,
+            max=512,
+        )
+        self.roi_x1: IntParamHandle
+        self.setattr_param(
+            "roi_y1",
+            IntParam,
+            "Grabber ROI y1",
+            default=y1,
+            min=0,
+            max=1024,
+        )
+        self.roi_y1: IntParamHandle
+
+        self.setattr_param(
+            "bg_width",
+            IntParam,
+            "Background ROI width (pixels)",
+            default=bg_width,
+            min=0,
+            max=512,
+        )
+        self.bg_width: IntParamHandle
+
+        self._excited_shift = np.int32(excited_shift)
+        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
+
+    @portable
+    def get_rois(self):
+        height = self.fast_kinetics_height.get()
+        offset = self.fast_kinetics_offset.get()
+        x0 = self.roi_x0.get()
+        y0 = self.roi_y0.get()
+        x1 = self.roi_x1.get()
+        y1 = self.roi_y1.get()
+        bg_width = self.bg_width.get()
+        step = height - self._excited_shift
+
+        # ROI 0: signal ground
+        self.roi_buffer[0][0] = x0
+        self.roi_buffer[0][1] = y0 - offset
+        self.roi_buffer[0][2] = x1
+        self.roi_buffer[0][3] = y1 - offset
+        # ROI 1: signal excited
+        self.roi_buffer[1][0] = x0
+        self.roi_buffer[1][1] = y0 + step - offset
+        self.roi_buffer[1][2] = x1
+        self.roi_buffer[1][3] = y1 + step - offset
+        # ROI 2: bg_left ground
+        self.roi_buffer[2][0] = x0 - bg_width
+        self.roi_buffer[2][1] = y0 - offset
+        self.roi_buffer[2][2] = x0
+        self.roi_buffer[2][3] = y1 - offset
+        # ROI 3: bg_left excited
+        self.roi_buffer[3][0] = x0 - bg_width
+        self.roi_buffer[3][1] = y0 + step - offset
+        self.roi_buffer[3][2] = x0
+        self.roi_buffer[3][3] = y1 + step - offset
+        # ROI 4: bg_right ground
+        self.roi_buffer[4][0] = x1
+        self.roi_buffer[4][1] = y0 - offset
+        self.roi_buffer[4][2] = x1 + bg_width
+        self.roi_buffer[4][3] = y1 - offset
+        # ROI 5: bg_right excited
+        self.roi_buffer[5][0] = x1
+        self.roi_buffer[5][1] = y0 + step - offset
+        self.roi_buffer[5][2] = x1 + bg_width
+        self.roi_buffer[5][3] = y1 + step - offset
+
+        return self.roi_buffer
+
+
+class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
+    """
+    Config for single-image normalised fast-kinetics readout with two traps.
+
+    Creates 4 signal ROIs (ground/excited x forward/backward) plus 8 background
+    ROIs, for 12 total. ROIs 0..5 are the "top trap" (backward ROIs), ROIs 6..11
+    are the "bottom trap" (forward ROIs); within each set the layout matches
+    SingleFKSingleTrapConfig.
+    """
+
+    num_andor_images = 2
+    num_images_per_series = 2
+    num_grabber_rois = 12
+    num_grabber_readouts = 1
+    fast_kinetics_num_shots = 2
+
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+
+    def build_fragment(
+        self,
+        fwd_x0,
+        fwd_y0,
+        fwd_x1,
+        fwd_y1,
+        bwd_x0,
+        bwd_y0,
+        bwd_x1,
+        bwd_y1,
+        bg_width,
+        excited_shift=0,
+    ):
+        super().build_fragment()
+
+        self.setattr_param(
+            "fwd_roi_x0",
+            IntParam,
+            "Forward trap grabber ROI x0",
+            default=fwd_x0,
+            min=0,
+            max=512,
+        )
+        self.fwd_roi_x0: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_y0",
+            IntParam,
+            "Forward trap grabber ROI y0",
+            default=fwd_y0,
+            min=0,
+            max=1024,
+        )
+        self.fwd_roi_y0: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_x1",
+            IntParam,
+            "Forward trap grabber ROI x1",
+            default=fwd_x1,
+            min=0,
+            max=512,
+        )
+        self.fwd_roi_x1: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_y1",
+            IntParam,
+            "Forward trap grabber ROI y1",
+            default=fwd_y1,
+            min=0,
+            max=1024,
+        )
+        self.fwd_roi_y1: IntParamHandle
+
+        self.setattr_param(
+            "bwd_roi_x0",
+            IntParam,
+            "Backward trap grabber ROI x0",
+            default=bwd_x0,
+            min=0,
+            max=512,
+        )
+        self.bwd_roi_x0: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_y0",
+            IntParam,
+            "Backward trap grabber ROI y0",
+            default=bwd_y0,
+            min=0,
+            max=1024,
+        )
+        self.bwd_roi_y0: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_x1",
+            IntParam,
+            "Backward trap grabber ROI x1",
+            default=bwd_x1,
+            min=0,
+            max=512,
+        )
+        self.bwd_roi_x1: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_y1",
+            IntParam,
+            "Backward trap grabber ROI y1",
+            default=bwd_y1,
+            min=0,
+            max=1024,
+        )
+        self.bwd_roi_y1: IntParamHandle
+
+        self.setattr_param(
+            "bg_width",
+            IntParam,
+            "Background ROI width (pixels)",
+            default=bg_width,
+            min=0,
+            max=512,
+        )
+        self.bg_width: IntParamHandle
+
+        self._excited_shift = np.int32(excited_shift)
+        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
+
+    @portable
+    def get_rois(self):
+        height = self.fast_kinetics_height.get()
+        offset = self.fast_kinetics_offset.get()
+        bg_width = self.bg_width.get()
+        step = height - self._excited_shift
+
+        # Top trap = backward ROIs at indices 0..5
+        bx0 = self.bwd_roi_x0.get()
+        by0 = self.bwd_roi_y0.get()
+        bx1 = self.bwd_roi_x1.get()
+        by1 = self.bwd_roi_y1.get()
+
+        # ROI 0: top signal ground
+        self.roi_buffer[0][0] = bx0
+        self.roi_buffer[0][1] = by0 - offset
+        self.roi_buffer[0][2] = bx1
+        self.roi_buffer[0][3] = by1 - offset
+        # ROI 1: top signal excited
+        self.roi_buffer[1][0] = bx0
+        self.roi_buffer[1][1] = by0 + step - offset
+        self.roi_buffer[1][2] = bx1
+        self.roi_buffer[1][3] = by1 + step - offset
+        # ROI 2: top bg_left ground
+        self.roi_buffer[2][0] = bx0 - bg_width
+        self.roi_buffer[2][1] = by0 - offset
+        self.roi_buffer[2][2] = bx0
+        self.roi_buffer[2][3] = by1 - offset
+        # ROI 3: top bg_left excited
+        self.roi_buffer[3][0] = bx0 - bg_width
+        self.roi_buffer[3][1] = by0 + step - offset
+        self.roi_buffer[3][2] = bx0
+        self.roi_buffer[3][3] = by1 + step - offset
+        # ROI 4: top bg_right ground
+        self.roi_buffer[4][0] = bx1
+        self.roi_buffer[4][1] = by0 - offset
+        self.roi_buffer[4][2] = bx1 + bg_width
+        self.roi_buffer[4][3] = by1 - offset
+        # ROI 5: top bg_right excited
+        self.roi_buffer[5][0] = bx1
+        self.roi_buffer[5][1] = by0 + step - offset
+        self.roi_buffer[5][2] = bx1 + bg_width
+        self.roi_buffer[5][3] = by1 + step - offset
+
+        # Bottom trap = forward ROIs at indices 6..11
+        fx0 = self.fwd_roi_x0.get()
+        fy0 = self.fwd_roi_y0.get()
+        fx1 = self.fwd_roi_x1.get()
+        fy1 = self.fwd_roi_y1.get()
+
+        # ROI 6: bottom signal ground
+        self.roi_buffer[6][0] = fx0
+        self.roi_buffer[6][1] = fy0 - offset
+        self.roi_buffer[6][2] = fx1
+        self.roi_buffer[6][3] = fy1 - offset
+        # ROI 7: bottom signal excited
+        self.roi_buffer[7][0] = fx0
+        self.roi_buffer[7][1] = fy0 + step - offset
+        self.roi_buffer[7][2] = fx1
+        self.roi_buffer[7][3] = fy1 + step - offset
+        # ROI 8: bottom bg_left ground
+        self.roi_buffer[8][0] = fx0 - bg_width
+        self.roi_buffer[8][1] = fy0 - offset
+        self.roi_buffer[8][2] = fx0
+        self.roi_buffer[8][3] = fy1 - offset
+        # ROI 9: bottom bg_left excited
+        self.roi_buffer[9][0] = fx0 - bg_width
+        self.roi_buffer[9][1] = fy0 + step - offset
+        self.roi_buffer[9][2] = fx0
+        self.roi_buffer[9][3] = fy1 + step - offset
+        # ROI 10: bottom bg_right ground
+        self.roi_buffer[10][0] = fx1
+        self.roi_buffer[10][1] = fy0 - offset
+        self.roi_buffer[10][2] = fx1 + bg_width
+        self.roi_buffer[10][3] = fy1 - offset
+        # ROI 11: bottom bg_right excited
+        self.roi_buffer[11][0] = fx1
+        self.roi_buffer[11][1] = fy0 + step - offset
+        self.roi_buffer[11][2] = fx1 + bg_width
+        self.roi_buffer[11][3] = fy1 + step - offset
+
+        return self.roi_buffer
+
+
+class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
 
     def build_fragment(self):
         super().build_fragment()
@@ -127,7 +439,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         # more detail.
 
         # Force the camera's fast kinetics shot time to match our pulse time
-        self.andor_camera_control.bind_param(
+        self.andor_camera_config.bind_param(
             "fast_kinetics_time_between_shots",
             self.delay_between_imaging_pulses,
         )
@@ -148,28 +460,13 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
             f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois}'",
         )
 
-    def setup_andor_camera_control_hook(self):
-        """
-        Setup the andor camera control with the grabber ROI defaults being yet to be defined!
-        """
-
-        self.setattr_fragment(
-            "andor_camera_control",
-            AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(),
-            fast_kinetics_height_default=self.fast_kinetics_height_default,
-            fast_kinetics_offset_default=self.fast_kinetics_offset_default,
-            add_pre_trigger_delay=True,
-            fast_kinetics_num_shots=self.num_images_per_series,
-        )
-        self.andor_camera_control: AndorCameraControl
-
-        self.hook_setup_andor_results()
-
     @abc.abstractmethod
-    def get_grabber_roi_defaults(self):  # FIXME
+    def get_andor_camera_config_hook(self):
         """
-        This must be filled out in the base class
+        Build the AndorCameraConfig for this experiment.
+
+        Subclasses must override this and return a config (typically built via
+        ``setattr_fragment``).
         """
 
     def calculate_gravitational_drop(self):
@@ -297,7 +594,7 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
     The total sum of background ROI counts is divided by the number of pixels in the background ROI and multiplied by the number of pixels in the signal ROI to get the average background across the entire signal ROI.
     Finally this background count is subtracted from the total signal ROI to get a normalised value.
 
-    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
+    Variant mixins based on this class are expected to reimplement get_andor_camera_config_hook
     and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
@@ -312,10 +609,21 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 2
-    num_grabber_readouts = 1
-    num_grabber_rois = 6
-    num_images_per_series = 2
+    def get_andor_camera_config_hook(self) -> SingleFKSingleTrapConfig:
+        # TODO: This is the single trap mapping; the double trap variant has
+        # bg_width and excited_shift swapped -- investigate later.
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            SingleFKSingleTrapConfig,
+            x0=constants.ANDOR_ROI_X0,
+            y0=constants.ANDOR_ROI_Y0,
+            x1=constants.ANDOR_ROI_X1,
+            y1=constants.ANDOR_ROI_Y1,
+            bg_width=self.calculate_gravitational_drop(),
+            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
+        )
+        self.andor_camera_config: SingleFKSingleTrapConfig
+        return f
 
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction", FloatChannel)
@@ -328,73 +636,13 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
         self.ground_atom_number: FloatChannel
         self.excited_atom_number: FloatChannel
 
-    def get_grabber_roi_defaults(self):  # FIXME
-        return calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_X0,
-            y0=constants.ANDOR_ROI_Y0,
-            x1=constants.ANDOR_ROI_X1,
-            y1=constants.ANDOR_ROI_Y1,
-            bg_width=self.calculate_gravitational_drop(),
-            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
-        )
-
     @kernel
     def process_grabber_data_hook(self, sums, means):
         # The normalisation factor is the ratio of the number of pixels in the background to signal ROIs. Since we have coerced the background ROIs to have the same height as the signal ROIs, this is just 2x the ratio of the widths (since we have two background ROIs, one on either side of the signal ROI).
-        # Absolutely fucking awful code... but it works :)
-        areas = [
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_0_x0.get(),
-                    self.andor_camera_control.roi_0_y0.get(),
-                    self.andor_camera_control.roi_0_x1.get(),
-                    self.andor_camera_control.roi_0_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_1_x0.get(),
-                    self.andor_camera_control.roi_1_y0.get(),
-                    self.andor_camera_control.roi_1_x1.get(),
-                    self.andor_camera_control.roi_1_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_2_x0.get(),
-                    self.andor_camera_control.roi_2_y0.get(),
-                    self.andor_camera_control.roi_2_x1.get(),
-                    self.andor_camera_control.roi_2_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_3_x0.get(),
-                    self.andor_camera_control.roi_3_y0.get(),
-                    self.andor_camera_control.roi_3_x1.get(),
-                    self.andor_camera_control.roi_3_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_4_x0.get(),
-                    self.andor_camera_control.roi_4_y0.get(),
-                    self.andor_camera_control.roi_4_x1.get(),
-                    self.andor_camera_control.roi_4_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_5_x0.get(),
-                    self.andor_camera_control.roi_5_y0.get(),
-                    self.andor_camera_control.roi_5_x1.get(),
-                    self.andor_camera_control.roi_5_y1.get(),
-                ]
-            ),
-        ]
+        rois = self.andor_camera_config.get_rois()
+        areas = [np.int32(0)] * 6
+        for i in range(6):
+            areas[i] = self.get_roi_area(rois[i])
 
         # ROI 0     : Ground state signal ROI
         # ROI 1     : Excited state signal ROI
@@ -436,7 +684,7 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
     the ground state, and (ii) the excited state. The second series reproduces the conditions of the first,
     with a long delay to clear out atoms.
 
-    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
+    Variant mixins based on this class are expected to reimplement get_andor_camera_config_hook
     and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
@@ -449,10 +697,23 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 2
-    num_grabber_readouts = 1
-    num_grabber_rois = 12
-    num_images_per_series = 2
+    def get_andor_camera_config_hook(self) -> SingleFKDoubleTrapConfig:
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            SingleFKDoubleTrapConfig,
+            fwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+            fwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+            fwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+            fwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            bwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+            bwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+            bwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+            bwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+            bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
+            excited_shift=self.calculate_gravitational_drop(),
+        )
+        self.andor_camera_config: SingleFKDoubleTrapConfig
+        return f
 
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
@@ -473,143 +734,13 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
         self.atom_number_imbalance: FloatChannel
         self.atom_number_total: FloatChannel
 
-    def get_grabber_roi_defaults(self):  # FIXME
-        # Calculate two ROIs assuming that the clouds do not drop.
-        # NOTE: This is the default behaviour that will be overidden in most situations
-        # We expect 12 ROIs in total 4 signal and 8 background
-
-        # The excited state shift needs to be calculated by different mixins
-        forward_rois = calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
-            bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
-            excited_shift=self.calculate_gravitational_drop(),
-        )
-
-        backward_rois = calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_images_per_series,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
-            bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
-            excited_shift=self.calculate_gravitational_drop(),
-        )
-
-        top_trap_rois = backward_rois
-        bottom_trap_rois = forward_rois
-
-        return top_trap_rois + bottom_trap_rois
-
     @kernel
     def process_grabber_data_hook(self, sums, means):
         # The normalisation factor is the ratio of the number of pixels in the background to signal ROIs. Since we have coerced the background ROIs to have the same height as the signal ROIs, this is just 2x the ratio of the widths (since we have two background ROIs, one on either side of the signal ROI).
-        # Absolutely fucking awful code... but it works :)
-        areas = [
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_0_x0.get(),
-                    self.andor_camera_control.roi_0_y0.get(),
-                    self.andor_camera_control.roi_0_x1.get(),
-                    self.andor_camera_control.roi_0_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_1_x0.get(),
-                    self.andor_camera_control.roi_1_y0.get(),
-                    self.andor_camera_control.roi_1_x1.get(),
-                    self.andor_camera_control.roi_1_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_2_x0.get(),
-                    self.andor_camera_control.roi_2_y0.get(),
-                    self.andor_camera_control.roi_2_x1.get(),
-                    self.andor_camera_control.roi_2_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_3_x0.get(),
-                    self.andor_camera_control.roi_3_y0.get(),
-                    self.andor_camera_control.roi_3_x1.get(),
-                    self.andor_camera_control.roi_3_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_4_x0.get(),
-                    self.andor_camera_control.roi_4_y0.get(),
-                    self.andor_camera_control.roi_4_x1.get(),
-                    self.andor_camera_control.roi_4_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_5_x0.get(),
-                    self.andor_camera_control.roi_5_y0.get(),
-                    self.andor_camera_control.roi_5_x1.get(),
-                    self.andor_camera_control.roi_5_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_6_x0.get(),
-                    self.andor_camera_control.roi_6_y0.get(),
-                    self.andor_camera_control.roi_6_x1.get(),
-                    self.andor_camera_control.roi_6_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_7_x0.get(),
-                    self.andor_camera_control.roi_7_y0.get(),
-                    self.andor_camera_control.roi_7_x1.get(),
-                    self.andor_camera_control.roi_7_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_8_x0.get(),
-                    self.andor_camera_control.roi_8_y0.get(),
-                    self.andor_camera_control.roi_8_x1.get(),
-                    self.andor_camera_control.roi_8_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_9_x0.get(),
-                    self.andor_camera_control.roi_9_y0.get(),
-                    self.andor_camera_control.roi_9_x1.get(),
-                    self.andor_camera_control.roi_9_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_10_x0.get(),
-                    self.andor_camera_control.roi_10_y0.get(),
-                    self.andor_camera_control.roi_10_x1.get(),
-                    self.andor_camera_control.roi_10_y1.get(),
-                ]
-            ),
-            self.get_roi_area(
-                [
-                    self.andor_camera_control.roi_11_x0.get(),
-                    self.andor_camera_control.roi_11_y0.get(),
-                    self.andor_camera_control.roi_11_x1.get(),
-                    self.andor_camera_control.roi_11_y1.get(),
-                ]
-            ),
-        ]
+        rois = self.andor_camera_config.get_rois()
+        areas = [np.int32(0)] * 12
+        for i in range(12):
+            areas[i] = self.get_roi_area(rois[i])
 
         # TODO Check that the indices are correct
 
