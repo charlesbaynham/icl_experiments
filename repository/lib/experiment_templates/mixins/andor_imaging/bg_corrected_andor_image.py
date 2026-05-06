@@ -75,10 +75,12 @@ class BGCorrectedAndorImageConfig(AndorCameraConfig):
     @portable
     def get_rois(self):
         return [
-            self.roi_x0.get(),
-            self.roi_y0.get(),
-            self.roi_x1.get(),
-            self.roi_y1.get(),
+            [
+                self.roi_x0.get(),
+                self.roi_y0.get(),
+                self.roi_x1.get(),
+                self.roi_y1.get(),
+            ]
         ]
 
 
