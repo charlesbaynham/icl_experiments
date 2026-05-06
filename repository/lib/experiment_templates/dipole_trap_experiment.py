@@ -44,9 +44,6 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
-from artiq.coredevice.ttl import TTLInOut
-from artiq.experiment import EnvExperiment
-from artiq.experiment import NumberValue
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment import Fragment
@@ -54,9 +51,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
-)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,

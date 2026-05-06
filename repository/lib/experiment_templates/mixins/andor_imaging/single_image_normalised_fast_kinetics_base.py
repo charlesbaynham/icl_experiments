@@ -12,9 +12,6 @@ from artiq_influx_generic import InfluxController
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment.parameters import IntParam
-from ndscan.experiment.parameters import IntParamHandle
-from numpy.typing import NDArray
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (

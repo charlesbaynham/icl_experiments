@@ -3,34 +3,14 @@ from typing import List
 
 import numpy as np
 from artiq.language import TList
-from artiq.language import at_mu
-from artiq.language import delay
-from artiq.language import host_only
-from artiq.language import kernel
-from artiq.language import now_mu
-from artiq.language import rpc
-from ndscan.experiment import FloatChannel
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from numpy.typing import NDArray
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
-    AndorImagingBase,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
-    fit_2d_gaussian,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsClockPulseMixin,
 )
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyBase,
-)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 

@@ -22,7 +22,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
     fit_2d_gaussian,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
