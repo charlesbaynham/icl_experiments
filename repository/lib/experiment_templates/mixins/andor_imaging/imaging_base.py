@@ -37,7 +37,7 @@ ANDOR_MONITOR_DATASET = "andor_monitor_image"
 ANDOR_DETAILED_MONITOR_DATASETS = "andor_image_{i}"
 
 
-class AndorImagingBase(RedMOTWithExperiment):
+class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
     """
     Base class for imaging with the Andor camera
 
