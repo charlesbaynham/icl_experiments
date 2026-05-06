@@ -44,7 +44,7 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
-from artiq.language import delay
+from artiq.language import delay, now_mu
 from artiq.language import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
@@ -59,6 +59,8 @@ from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
 )
 
 logger = logging.getLogger(__name__)
+
+BUFFER_DEPTH = 300
 
 
 class DipoleTrapWithExperiment(RedMOTWithExperiment):
@@ -140,11 +142,17 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
                 self.dma_handle = (int32(0), int64(0), int32(0), False)
                 self.dma_handle_valid = False
 
+                # Preallocate a buffer to record pulses
+                self._pulse_record_times_mu = [int64(0)] * BUFFER_DEPTH
+                self._pulse_record_is_up = [False] * BUFFER_DEPTH
+                self._pulse_record_num_pulses = 0
+
             @kernel
             def device_setup(self):
                 self.device_setup_subfragments()
 
                 # Record the actions_after_drop sequence in DMA
+                # FIXME should not recalculate every shot?  maybe?
                 with self.core_dma.record(self.dma_name):
                     self.outer_self.actions_after_drop()
 
@@ -160,6 +168,27 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
                         "DMA buffer handle not set. Did you forget to call DMA_initialization_hook_after_drop?"
                     )
                 return self.core_dma.playback_handle(self.dma_handle)
+
+            @kernel
+            def register_pulse(self, is_up: bool):
+                """
+                Register a clock pulse interacting with the atoms at the current
+                position of the cursor. This will be used to reconstruct the
+                atom's momentum / position for imaging.
+
+                Mixins that want to use ROI dynamic positioning should call this
+                method whenever the light interacts with the atoms. If you're
+                not using dynamic ROI positioning, calling this method will do
+                no harm so you might as well do it anyway.
+                """
+                if self._pulse_record_num_pulses >= BUFFER_DEPTH:
+                    raise RuntimeError(
+                        f"Exceeded maximum number of pulses that can be recorded ({BUFFER_DEPTH}). Congratulations!!!"
+                    )
+
+                self._pulse_record_times_mu[self._pulse_record_num_pulses] = now_mu()
+                self._pulse_record_is_up[self._pulse_record_num_pulses] = is_up
+                self._pulse_record_num_pulses += 1
 
         self.setattr_fragment(
             "dma_recording_fragment", PulseDMARecording, outer_self=self
