@@ -189,7 +189,7 @@ class BGCorrectedAndorImageSingleXODT(BGCorrectedAndorImage):
     ROI set for the single, "forward" XODT
     """
 
-    def get_grabber_roi_defaults(self, num_grabber_rois):
+    def get_grabber_roi_defaults(self, num_grabber_rois):  # FIXME
         return [
             [
                 constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,

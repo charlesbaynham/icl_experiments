@@ -167,7 +167,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         self.hook_setup_andor_results()
 
     @abc.abstractmethod
-    def get_grabber_roi_defaults(self):
+    def get_grabber_roi_defaults(self):  # FIXME
         """
         This must be filled out in the base class
         """
@@ -328,7 +328,7 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
         self.ground_atom_number: FloatChannel
         self.excited_atom_number: FloatChannel
 
-    def get_grabber_roi_defaults(self):
+    def get_grabber_roi_defaults(self):  # FIXME
         return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
@@ -473,7 +473,7 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
         self.atom_number_imbalance: FloatChannel
         self.atom_number_total: FloatChannel
 
-    def get_grabber_roi_defaults(self):
+    def get_grabber_roi_defaults(self):  # FIXME
         # Calculate two ROIs assuming that the clouds do not drop.
         # NOTE: This is the default behaviour that will be overidden in most situations
         # We expect 12 ROIs in total 4 signal and 8 background

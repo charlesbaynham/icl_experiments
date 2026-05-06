@@ -133,7 +133,7 @@ class TripleImageFastKineticsBase(AndorImagingBase):
 
         self.hook_setup_andor_results()
 
-    def get_grabber_roi_defaults(self):
+    def get_grabber_roi_defaults(self):  # FIXME
         return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
