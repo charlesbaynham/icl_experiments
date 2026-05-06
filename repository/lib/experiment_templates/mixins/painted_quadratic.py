@@ -64,7 +64,6 @@ class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
             max=100,
         )
 
-        # FIXME consider ram_offset flag
         self.setattr_fragment(
             "painter_driver",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
@@ -132,16 +131,14 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
             min=0.0,
             max=100,
         )
+        self.matterwave_collimation_time: FloatParamHandle
 
-        # FIXME remember to add a ram_offset here
         self.setattr_fragment(
             "painter_driver",
             GravityAndDiffractionCompensatedQuadraticShapedPulse,
             ad9910_name=PAINTING_URUKUL_CHANNEL,
             automatic_trigger=True,
         )
-
-        self.matterwave_collimation_time: FloatParamHandle
 
     @kernel
     def matterwave_collimate_hook(self):
@@ -288,4 +285,3 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         # Do the ramp
         self.adiabatic_cooling_ramp.do_phase()
-        # delay(6e-3)  # FIXME Remove this when finished testing

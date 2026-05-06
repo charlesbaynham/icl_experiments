@@ -216,7 +216,6 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
         """
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
         self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
-        # self.dipole_beam_controller.turn_off_painter_suservo()  # FIXME
         self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
     @abc.abstractmethod
