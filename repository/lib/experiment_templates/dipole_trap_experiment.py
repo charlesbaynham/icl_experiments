@@ -49,6 +49,8 @@ from artiq.language import kernel
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int32
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
@@ -135,7 +137,8 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
                 self.setattr_device("core_dma")
                 self.core_dma: CoreDMA
 
-                self.dma_handle = 0
+                self.dma_handle = (int32(0), int64(0), int32(0), False)
+                self.dma_handle_valid = False
 
             @kernel
             def device_setup(self):
@@ -148,10 +151,11 @@ class DipoleTrapWithExperiment(RedMOTWithExperiment):
             @kernel
             def DMA_initialization_hook_after_drop(self):
                 self.dma_handle = self.core_dma.get_handle(self.dma_name)
+                self.dma_handle_valid = True
 
             @kernel
             def playback(self):
-                if self.dma_handle == 0:
+                if not self.dma_handle_valid:
                     raise RuntimeError(
                         "DMA buffer handle not set. Did you forget to call DMA_initialization_hook_after_drop?"
                     )
