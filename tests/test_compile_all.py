@@ -39,7 +39,9 @@ def get_all_of_class_from_module(module, cls, exceptions=[]):
             and obj is not cls  # But not the cls class itself
             and obj.__name__[0] != "_"  # nor marked as private
             and obj not in exceptions  # nor one of the exceptions
-            and not inspect.isabstract(obj)  # and is not an abstract base class
+            and not obj.__name__.endswith(
+                "Base"
+            )  # nor ends in "Base" and is therefore allowed to be abstract
         ):
             out.append(obj)
     return out

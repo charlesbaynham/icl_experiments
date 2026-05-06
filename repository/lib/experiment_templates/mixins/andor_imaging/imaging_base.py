@@ -26,6 +26,7 @@ from repository.lib import constants
 from repository.lib.analysis.gauss_fit_2d import fit_gaussian
 from repository.lib.analysis.tof_temp import get_custom_analysis
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 
@@ -36,7 +37,7 @@ ANDOR_MONITOR_DATASET = "andor_monitor_image"
 ANDOR_DETAILED_MONITOR_DATASETS = "andor_image_{i}"
 
 
-class AndorImagingBase(RedMOTWithExperiment):
+class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
     """
     Base class for imaging with the Andor camera
 
@@ -57,19 +58,20 @@ class AndorImagingBase(RedMOTWithExperiment):
     * :meth:`~save_grabber_data_hook`
     """
 
-    num_andor_images = 1
-    "How many images will the Andor driver read out"
-    num_images_per_series = 1
-    "How many images will the Andor driver read out in each series"
-    num_grabber_rois = 1
-    "How many ROIs in each image for the Grabber"
-    num_grabber_readouts = 1
-    "How many images will the Grabber read out"
-
     image_read_timeout = 15.0
     "Timeout for the ANDOR camera readout - must be longer than sequence"
 
-    keep_andor_shutter_closed = False
+    @abc.abstractmethod
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        """
+        Build an Andor camera config object which defines the behaviour of this
+        class
+
+        This method should return an AndorCameraConfig object. It might make one
+        using setattr_fragment, or it might return one that was built elsewhere.
+        For an example implementation, see xxxx
+        """
+        # FIXME put in class ref to comment
 
     def build_fragment(self):
         super().build_fragment()
@@ -142,31 +144,18 @@ class AndorImagingBase(RedMOTWithExperiment):
                     except GrabberTimeoutException:
                         break
 
-        self.setattr_fragment("imagingsetup", ImagingDeviceSetup, self.num_grabber_rois)
+        self.setattr_fragment(
+            "imagingsetup",
+            ImagingDeviceSetup,
+            self.andor_camera_config.num_grabber_rois,
+        )
         self.imagingsetup: ImagingDeviceSetup
 
-    def get_grabber_roi_defaults(self, num_grabber_rois) -> List[List[int]]:
-        """
-        Get the default ROIs for the Grabber
+    def setup_andor_hook(self):
+        self.andor_camera_config = self.get_andor_camera_config_hook()
+        self.setup_andor_camera_control_hook()
 
-        This is a hook that can be overridden by subclasses to e.g. set the ROIs
-        based on the imaging sequence.
-
-        Alternatively, subclasses can override :meth:`~hook_setup_andor`
-        directly, which will then not use this method.
-
-        Must return a list of "num_grabber_rois" ROIs, each in the format [x0, y0, x1, y1].
-        """
-        return [
-            [
-                constants.ANDOR_ROI_X0,
-                constants.ANDOR_ROI_Y0,
-                constants.ANDOR_ROI_X1,
-                constants.ANDOR_ROI_Y1,
-            ]
-        ] * num_grabber_rois
-
-    def hook_setup_andor(self):
+    def setup_andor_camera_control_hook(self):
         """
         Setup the Andor camera
 
@@ -175,12 +164,9 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(self.num_grabber_rois),
+            camera_config=self.andor_camera_config,
         )
         self.andor_camera_control: AndorCameraControl
-        self.andor_camera_control.keep_andor_shutter_closed = (
-            self.keep_andor_shutter_closed
-        )
 
         self.hook_setup_andor_results()
 
@@ -191,7 +177,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.sigmas_x: List[FloatChannel] = []
         self.sigmas_y: List[FloatChannel] = []
 
-        for i in range(self.num_grabber_rois):
+        for i in range(self.andor_camera_config.num_grabber_rois):
             self.amps.append(
                 self.setattr_result(
                     f"amp_{i}", FloatChannel, display_hints={"priority": -1}
@@ -224,7 +210,10 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.andor_means: List[FloatChannel] = []
         self.setup_gauss_fit_results()
 
-        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
+        for i in range(
+            self.andor_camera_config.num_grabber_rois
+            * self.andor_camera_config.num_grabber_readouts
+        ):
             sum = self.setattr_result(
                 f"andor_sum_{i}", FloatChannel, display_hints={"priority": -1}
             )
@@ -233,27 +222,31 @@ class AndorImagingBase(RedMOTWithExperiment):
                 FloatChannel,
                 display_hints=(  # Show by default if there's only one ROI
                     {}
-                    if (self.num_grabber_rois * self.num_grabber_readouts == 1)
+                    if (
+                        self.andor_camera_config.num_grabber_rois
+                        * self.andor_camera_config.num_grabber_readouts
+                        == 1
+                    )
                     else {"priority": -1}
                 ),
             )
 
-            self.andor_sums.append(sum)
-            self.andor_means.append(mean)
+            self.andor_sums.append(sum)  # type: ignore
+            self.andor_means.append(mean)  # type: ignore
 
         # Set up result channels for the Andor images
         self.andor_profile_xs: List[OpaqueChannel] = []
         self.andor_profile_ys: List[OpaqueChannel] = []
         self.andor_images: List[OpaqueChannel] = []
 
-        for i in range(self.num_andor_images):
+        for i in range(self.andor_camera_config.num_andor_images):
             profile_x = self.setattr_result(f"andor_profile_x_{i}", OpaqueChannel)
             profile_y = self.setattr_result(f"andor_profile_y_{i}", OpaqueChannel)
             image = self.setattr_result(f"andor_image_{i}", OpaqueChannel)
 
-            self.andor_profile_xs.append(profile_x)
-            self.andor_profile_ys.append(profile_y)
-            self.andor_images.append(image)
+            self.andor_profile_xs.append(profile_x)  # type: ignore
+            self.andor_profile_ys.append(profile_y)  # type: ignore
+            self.andor_images.append(image)  # type: ignore
 
     def host_setup(self):
         super().host_setup()
@@ -271,7 +264,7 @@ class AndorImagingBase(RedMOTWithExperiment):
             # is very possible, but the only place this matters at the moment is
             # in normalised readout, and that already shows ROIs in the ground /
             # excited state images.
-            for i in range(self.num_andor_images):
+            for i in range(self.andor_camera_config.num_andor_images):
                 dataset_name = ANDOR_DETAILED_MONITOR_DATASETS.format(i=i)
                 self.ccb.issue(
                     "create_applet",
@@ -347,14 +340,16 @@ class AndorImagingBase(RedMOTWithExperiment):
             # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
             raise TransitoryError(f"Andor camera error: {e}")
         n_stored_images = len(self.image_store)
-        if n_stored_images != self.num_andor_images:
+        if n_stored_images != self.andor_camera_config.num_andor_images:
             # raising as transitory error because we believe this mostly likely happens due to timing jitter and we want ndscan to try again
             self.image_store = []
             logger.error(
-                "Expected %d images but got %d", self.num_andor_images, n_stored_images
+                "Expected %d images but got %d",
+                self.andor_camera_config.num_andor_images,
+                n_stored_images,
             )
             raise TransitoryError(
-                f"Expected {self.num_andor_images} images but got {n_stored_images}"
+                f"Expected {self.andor_camera_config.num_andor_images} images but got {n_stored_images}"
             )
         images_array = np.array(self.image_store)
         # Update detailed images
@@ -378,7 +373,8 @@ class AndorImagingBase(RedMOTWithExperiment):
     def get_andor_images(self):
         # Readout and store the andor images
         imgs_array = self.andor_camera_control.readout_all_new_images(
-            num_images=self.num_images_per_series, timeout=self.image_read_timeout
+            num_images=self.andor_camera_config.num_images_per_series,
+            timeout=self.image_read_timeout,
         )
 
         return imgs_array.tolist()
@@ -411,7 +407,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         """
         Get the default ROIs for the Andor monitors
         """
-        default_rois = [self.andor_camera_control.get_roi_i(0)]
+        default_rois = [self.andor_camera_config.get_rois()[0]]
         return default_rois
 
     @kernel
@@ -426,13 +422,21 @@ class AndorImagingBase(RedMOTWithExperiment):
     @kernel
     def get_grabber_data(self):
         # Arrays to hold all the ROIs
-        sums = [0] * self.num_grabber_rois * self.num_grabber_readouts
-        means = [0.0] * self.num_grabber_rois * self.num_grabber_readouts
+        sums = (
+            [0]
+            * self.andor_camera_config.num_grabber_rois
+            * self.andor_camera_config.num_grabber_readouts
+        )
+        means = (
+            [0.0]
+            * self.andor_camera_config.num_grabber_rois
+            * self.andor_camera_config.num_grabber_readouts
+        )
 
-        for i in range(self.num_grabber_readouts):
+        for i in range(self.andor_camera_config.num_grabber_readouts):
             # Arrays to hold the ROIs from this readout
-            s = [0] * self.num_grabber_rois
-            m = [0.0] * self.num_grabber_rois
+            s = [0] * self.andor_camera_config.num_grabber_rois
+            m = [0.0] * self.andor_camera_config.num_grabber_rois
 
             self.andor_camera_control.readout_ROIs(
                 s,
@@ -442,18 +446,22 @@ class AndorImagingBase(RedMOTWithExperiment):
             )
 
             # Copy ROI data from temporary arrays into main array
-            for j in range(self.num_grabber_rois):
-                idx = i * self.num_grabber_rois + j
+            for j in range(self.andor_camera_config.num_grabber_rois):
+                idx = i * self.andor_camera_config.num_grabber_rois + j
 
                 sums[idx] = s[j]
                 means[idx] = m[j]
 
-        for i in range(self.num_grabber_rois * self.num_grabber_readouts):
+        for i in range(
+            self.andor_camera_config.num_grabber_rois
+            * self.andor_camera_config.num_grabber_readouts
+        ):
             self.andor_sums[i].push(sums[i])
             self.andor_means[i].push(means[i])
 
         self.process_grabber_data_hook(sums, means)
 
+    @abc.abstractmethod
     @kernel
     def process_grabber_data_hook(self, sums, means):
         """
@@ -519,13 +527,25 @@ class AndorImagingBase(RedMOTWithExperiment):
             self.fit_from_grabber_rois(img_array)
 
     @host_only
+    @staticmethod
+    def slice_from_roi_params(img, roi):
+        x0, y0, x1, y1 = roi
+        width, height = img.shape
+
+        logger.debug(f"Image shape: {width}, {height}")
+        logger.debug(f"ROI: {x0}, {x1}, {y0}, {y1}")
+
+        return img[x0:x1, height - y0 : height - y1 : -1], (x0, y0)
+
+    @host_only
     def fit_from_grabber_rois(self, image):
-        for i in range(self.num_grabber_rois):
-            sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                image, i
-            )
+        rois = self.andor_camera_config.get_rois()
+        i = 0
+        for roi in rois:
+            sliced_image, offsets = self.slice_from_roi_params(image, roi)
             popt = fit_2d_gaussian(sliced_image, offsets)
             self.push_gauss_fit_pars(popt, i)
+            i += 1
 
     @host_only
     def push_gauss_fit_pars(self, pars, i):
@@ -555,7 +575,7 @@ class AndorImagingBase(RedMOTWithExperiment):
                         OpaqueChannel(f"fit_t_{name}"),
                         OpaqueChannel(f"fit_sigma_{name}"),
                     ],
-                )
+                )  # type: ignore
         return default_analyses
 
 

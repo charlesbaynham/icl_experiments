@@ -20,6 +20,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
+    SingleImageNormalisedFastKineticsRepumpedInterferometryMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
@@ -107,6 +110,40 @@ class LMTInterferometryWithDoubleLaunchFrag(
 ):
     """
     LMT interferometry with double trap launch
+
+    """
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
+
+
+class LMTInterferometryWithDoubleLaunchSingleImageFrag(
+    LMTInterferometryMixin,
+    LMTLaunchDoubleTrapMixin,
+    SingleImageNormalisedFastKineticsRepumpedInterferometryMixin,
+    EMGain,
+    # FLIRBlueMOTMeasurementMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    DopplerCompensationForLMTMixin,
+    DipoleTrapWithExperiment,
+):
+    """
+    LMT interferometry with double trap launch but using only a single image
 
     """
 
@@ -241,6 +278,10 @@ ShapedFirstPulseLMTInterferometry = make_fragment_scan_exp(
 )
 LMTInterferometryWithDoubleLaunch = make_fragment_scan_exp(
     LMTInterferometryWithDoubleLaunchFrag, max_rtio_underflow_retries=0
+)
+
+LMTInterferometryWithDoubleLaunchSingleImage = make_fragment_scan_exp(
+    LMTInterferometryWithDoubleLaunchSingleImageFrag
 )
 
 LMTInterferometryWithShapedDoubleLaunch = make_fragment_scan_exp(

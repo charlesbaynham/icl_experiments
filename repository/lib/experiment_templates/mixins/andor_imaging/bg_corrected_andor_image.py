@@ -1,12 +1,17 @@
 import logging
 
 import numpy as np
+from artiq.language import TArray
+from artiq.language import TInt32
 from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
+from artiq.language import portable
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -15,8 +20,75 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 
 logger = logging.getLogger(__name__)
+
+
+class BGCorrectedAndorImageConfig(AndorCameraConfig):
+    num_andor_images = 2
+    num_images_per_series = 2
+    num_grabber_readouts = 2
+    num_grabber_rois = 1
+
+    def build_fragment(
+        self,
+        default_roi: list[int] = None,  # type: ignore
+    ):
+        super().build_fragment()
+
+        if default_roi is None:
+            raise ValueError(
+                "Must provide default ROIs for BGCorrectedAndorImageConfig"
+            )
+
+        self.setattr_param(
+            "roi_x0",
+            IntParam,
+            "Grabber ROI x0",
+            default=default_roi[0],
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            "roi_y0",
+            IntParam,
+            "Grabber ROI y0",
+            default=default_roi[1],
+            min=0,
+            max=1024,
+        )
+        self.setattr_param(
+            "roi_x1",
+            IntParam,
+            "Grabber ROI x1",
+            default=default_roi[2],
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            "roi_y1",
+            IntParam,
+            "Grabber ROI y1",
+            default=default_roi[3],
+            min=0,
+            max=1024,
+        )
+        self.roi_x0: IntParamHandle
+        self.roi_x1: IntParamHandle
+        self.roi_y0: IntParamHandle
+        self.roi_y1: IntParamHandle
+
+        #  Kernel variables
+        self.roi_buffer = [[np.int32(0)] * 4] * self.num_grabber_rois
+
+    @portable
+    def get_rois(self):
+        self.roi_buffer[0][0] = self.roi_x0.get()
+        self.roi_buffer[0][1] = self.roi_y0.get()
+        self.roi_buffer[0][2] = self.roi_x1.get()
+        self.roi_buffer[0][3] = self.roi_y1.get()
+        return self.roi_buffer
 
 
 class BGCorrectedAndorImage(AndorImagingBase):
@@ -33,10 +105,18 @@ class BGCorrectedAndorImage(AndorImagingBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_andor_images = 2
-    num_images_per_series = 2
-    num_grabber_readouts = 2
-    num_grabber_rois = 1
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            BGCorrectedAndorImageConfig,
+            default_roi=[
+                constants.ANDOR_ROI_X0,
+                constants.ANDOR_ROI_Y0,
+                constants.ANDOR_ROI_X1,
+                constants.ANDOR_ROI_Y1,
+            ],
+        )
+        return f  # type: ignore
 
     def build_fragment(self):
         super().build_fragment()
@@ -108,10 +188,6 @@ class BGCorrectedAndorImage(AndorImagingBase):
         self.andor_sum_bg_corrected.push(sums[0] - sums[1])
         self.andor_mean_bg_corrected.push(means[0] - means[1])
 
-    # @host_only
-    # def process_andor_image_hook(self, imgs_array):
-    #     super().process_andor_image_hook(imgs_array)
-
     @host_only
     def do_gauss_fit_hook(self, img_array):
         img_array = img_array[0]
@@ -127,13 +203,15 @@ class BGCorrectedAndorImageSingleXODT(BGCorrectedAndorImage):
     ROI set for the single, "forward" XODT
     """
 
-    def get_grabber_roi_defaults(self, num_grabber_rois):
-        return [
-            [
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            BGCorrectedAndorImageConfig,
+            default_roi=[
                 constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
                 constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
                 constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
                 constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
-            ]
-            * num_grabber_rois
-        ]
+            ],
+        )
+        return f  # type: ignore

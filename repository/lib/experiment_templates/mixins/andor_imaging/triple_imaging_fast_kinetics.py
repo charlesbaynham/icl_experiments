@@ -57,7 +57,7 @@ class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
 
-    def get_grabber_roi_defaults(self):
+    def get_grabber_roi_defaults(self):  # FIXME
         return calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
@@ -96,7 +96,7 @@ class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
     fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
     fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
-    def get_grabber_roi_defaults(self):
+    def get_grabber_roi_defaults(self):  # FIXME
         forward_rois = calculate_grabber_rois(
             fast_kinetics_height=self.fast_kinetics_height_default,
             fast_kinetics_offset=self.fast_kinetics_offset_default,
