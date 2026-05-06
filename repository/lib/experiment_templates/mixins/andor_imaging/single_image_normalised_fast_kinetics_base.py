@@ -31,66 +31,6 @@ ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
 ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
-def calculate_grabber_rois(
-    fast_kinetics_height,
-    fast_kinetics_offset,
-    num_images,
-    x0,
-    y0,
-    x1,
-    y1,
-    bg_width,
-    excited_shift,
-):
-    """
-    Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
-    when in fast kinetics mode. This specific method also calculates the background ROIs
-    which are on the sides of the signal ROIs.
-    Note: We only need the coords of the signal ROI. The background ROIs are calculated based on the signal ROI coords and the specified width. The excited state ROIS
-    cen be shifted downwards to compensate the fall under gravity with excited_shift.
-    """
-
-    logger.debug(
-        "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
-        (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
-    )
-
-    if y1 > fast_kinetics_height + fast_kinetics_offset:
-        raise ValueError(
-            "The fast kinetics region is not large enough to cover the full ROI"
-        )
-
-    signal_rois = [
-        [
-            x0,
-            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-            x1,
-            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-        ]
-        for i in range(num_images)
-    ]
-
-    background_rois = [
-        [
-            x0 - bg_width,
-            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-            x0,
-            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-        ]
-        for i in range(num_images)
-    ] + [
-        [
-            x1,
-            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-            x1 + bg_width,
-            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-        ]
-        for i in range(num_images)
-    ]
-
-    return signal_rois + background_rois
-
-
 class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
     """
     Config for single-image normalised fast-kinetics readout with one trap.

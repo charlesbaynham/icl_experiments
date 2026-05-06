@@ -56,48 +56,6 @@ ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
 ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
-def calculate_grabber_rois(
-    fast_kinetics_height,
-    fast_kinetics_offset,
-    num_images,
-    x0,
-    y0,
-    x1,
-    y1,
-    excited_shift,
-):
-    """
-    Given an ROI (x0, y0, x1, y1) on the full image, calculate the required ROI
-    when in fast kinetics mode.
-
-    Returns a list of ROIs in (x0, y0, x1, y1) format.
-
-    TODO: For normalised clock readout, which may need repumping for several ms
-    between 461 flu pulses, we should write a more sophisticated ROI calculator to
-    account for the cloud falling under gravity.
-    """
-
-    logger.debug(
-        "fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1",
-        (fast_kinetics_height, fast_kinetics_offset, num_images, x0, y0, x1, y1),
-    )
-
-    if y1 > fast_kinetics_height + fast_kinetics_offset:
-        raise ValueError(
-            "The fast kinetics region is not large enough to cover the full ROI"
-        )
-
-    return [
-        [
-            x0,
-            y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-            x1,
-            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
-        ]
-        for i in range(num_images)
-    ]
-
-
 class NormalisedFKConfig(FastKineticsCameraConfig):
     """
     Camera config for normalised fast kinetics readout of a single trap.
@@ -326,8 +284,8 @@ class NormalisedFastKineticsBase(AndorImagingBase):
     the ground state, and (ii) the excited state. The second series reproduces the conditions of the first,
     with a long delay to clear out atoms.
 
-    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
-    and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
+    Variant mixins based on this class are expected to reimplement get_andor_camera_config_hook
+    to provide a custom config (e.g. with different ROI defaults or FK height/offset) as needed.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.
@@ -578,8 +536,8 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     the ground state, and (ii) the excited state. The second series reproduces the conditions of the first,
     with a long delay to clear out atoms.
 
-    Variant mixins based on this class are expected to reimplement get_grabber_roi_defaults
-    and/or fast_kinetics_default_height and fast_kinetics_default_offset as needed.
+    Variant mixins based on this class are expected to reimplement get_andor_camera_config_hook
+    to provide a custom config (e.g. with different ROI defaults or FK height/offset) as needed.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
     details.

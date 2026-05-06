@@ -5,7 +5,10 @@ from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fas
     TripleImageFastKineticsBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
-    calculate_grabber_rois,
+    TripleFKConfig,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
+    TripleFKDoubleTrapConfig,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,6 +35,13 @@ class TripleImageRedMOTFastKineticsMixin(TripleImageFastKineticsBase):
     """
 
 
+class TripleImageDipoleTrapFKConfig(TripleFKConfig):
+    """TripleFKConfig with dipole-trap-specific FK height/offset defaults."""
+
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
+
+
 class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
@@ -54,19 +64,17 @@ class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
-
-    def get_grabber_roi_defaults(self):  # FIXME
-        return calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_andor_images,
+    def get_andor_camera_config_hook(self):
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            TripleImageDipoleTrapFKConfig,
             x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
         )
+        self.andor_camera_config: TripleImageDipoleTrapFKConfig
+        return f
 
 
 class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
@@ -91,28 +99,18 @@ class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
     * :meth:`~update_andor_monitor_hook`
     """
 
-    num_grabber_rois = 6
-
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
-
-    def get_grabber_roi_defaults(self):  # FIXME
-        forward_rois = calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_andor_images,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+    def get_andor_camera_config_hook(self):
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            TripleFKDoubleTrapConfig,
+            fwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+            fwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+            fwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+            fwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+            bwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+            bwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+            bwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+            bwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
         )
-        backward_rois = calculate_grabber_rois(
-            fast_kinetics_height=self.fast_kinetics_height_default,
-            fast_kinetics_offset=self.fast_kinetics_offset_default,
-            num_images=self.num_andor_images,
-            x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
-            y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
-            x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
-            y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
-        )
-        return forward_rois + backward_rois
+        self.andor_camera_config: TripleFKDoubleTrapConfig
+        return f
