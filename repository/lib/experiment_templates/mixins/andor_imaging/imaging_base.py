@@ -155,27 +155,6 @@ class AndorImagingBase(RedMOTWithExperiment):
         )
         self.imagingsetup: ImagingDeviceSetup
 
-    def get_grabber_roi_defaults(self, num_grabber_rois) -> List[List[int]]:
-        """
-        Get the default ROIs for the Grabber
-
-        This is a hook that can be overridden by subclasses to e.g. set the ROIs
-        based on the imaging sequence.
-
-        Alternatively, subclasses can override :meth:`~hook_setup_andor`
-        directly, which will then not use this method.
-
-        Must return a list of "num_grabber_rois" ROIs, each in the format [x0, y0, x1, y1].
-        """
-        return [
-            [
-                constants.ANDOR_ROI_X0,
-                constants.ANDOR_ROI_Y0,
-                constants.ANDOR_ROI_X1,
-                constants.ANDOR_ROI_Y1,
-            ]
-        ] * num_grabber_rois
-
     def hook_setup_andor(self):
         """
         Setup the Andor camera
@@ -185,9 +164,7 @@ class AndorImagingBase(RedMOTWithExperiment):
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=self.get_grabber_roi_defaults(
-                self.andor_camera_config.num_grabber_rois
-            ),
+            camera_config=self.andor_camera_config,
         )
         self.andor_camera_control: AndorCameraControl
         self.andor_camera_control.keep_andor_shutter_closed = (
@@ -257,8 +234,8 @@ class AndorImagingBase(RedMOTWithExperiment):
                 ),
             )
 
-            self.andor_sums.append(sum)
-            self.andor_means.append(mean)
+            self.andor_sums.append(sum)  # type: ignore
+            self.andor_means.append(mean)  # type: ignore
 
         # Set up result channels for the Andor images
         self.andor_profile_xs: List[OpaqueChannel] = []
@@ -270,9 +247,9 @@ class AndorImagingBase(RedMOTWithExperiment):
             profile_y = self.setattr_result(f"andor_profile_y_{i}", OpaqueChannel)
             image = self.setattr_result(f"andor_image_{i}", OpaqueChannel)
 
-            self.andor_profile_xs.append(profile_x)
-            self.andor_profile_ys.append(profile_y)
-            self.andor_images.append(image)
+            self.andor_profile_xs.append(profile_x)  # type: ignore
+            self.andor_profile_ys.append(profile_y)  # type: ignore
+            self.andor_images.append(image)  # type: ignore
 
     def host_setup(self):
         super().host_setup()
