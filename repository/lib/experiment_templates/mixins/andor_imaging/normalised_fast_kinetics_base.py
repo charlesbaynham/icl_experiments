@@ -25,6 +25,7 @@ from typing import List
 import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
@@ -32,6 +33,7 @@ from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 from numpy.typing import NDArray
 
 from repository.lib import constants
@@ -45,11 +47,13 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.pulse_shaping import JessePulse
 
 logger = logging.getLogger(__name__)
 
 ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
 ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
+CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 
 
 def calculate_grabber_rois(
@@ -789,6 +793,21 @@ class NormalisedFastKineticsDoubleTrapClockPulseMixin(
     def build_fragment(self):
         super().build_fragment()
 
+        self.setattr_fragment(
+            "shaped_imaging_pulse",
+            JessePulse,
+            ad9910_name=CLOCK_DOWN_BEAM_INFO.urukul_device,
+        )
+        self.shaped_imaging_pulse: JessePulse
+
+        self.setattr_param_rebind(
+            "shaped_pulse_duration",
+            self.shaped_imaging_pulse,
+            "pulse_duration",
+            default=200e-6,
+            description="Duration of the imaging clock pulse",
+        )
+
         self.setattr_param(
             "delay_clock_after_first_pulse",
             FloatParam,
@@ -822,6 +841,20 @@ class NormalisedFastKineticsDoubleTrapClockPulseMixin(
 
         # PI PULSE
 
-        self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
-        self.clock_down_dds.sw.off()
+        # self.clock_down_dds.sw.on()
+        # delay(constants.CLOCK_DOWN_PI_TIME)
+        # self.clock_down_dds.sw.off()
+
+        # prepare ram mode
+        self.shaped_imaging_pulse.prepare_pulse(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.imaging_clock_pulse_detuning.get()
+            + constants.LMT_DOWN_BEAM_SHIFT
+        )
+        delay_mu(int64(self.core.ref_multiplier))
+        self.clock_up_dds.set_att(0.0)
+        delay_mu(int64(self.core.ref_multiplier))
+
+        self.shaped_imaging_pulse.trigger_pulse()
+
+        self.shaped_imaging_pulse.disable_ram_mode()
