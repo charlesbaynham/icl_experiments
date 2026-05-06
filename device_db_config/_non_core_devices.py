@@ -86,21 +86,21 @@ def get_non_core_devices(simulation_mode=False):
         "blue_IJD1_controller": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT0405C1'",
         },
         "blue_IJD2_controller": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT04051V'",
         },
         "blue_IJD3_controller": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_koheron_ctl200_laser_driver {'--simulation-mode' if simulation_mode else ''} --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6015 SER=DT040D35'",
         },
@@ -114,7 +114,7 @@ def get_non_core_devices(simulation_mode=False):
         "blue_relocker": {
             "type": "controller",
             "best_effort": True,
-            "host": "::1",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QRMM'",
         },
@@ -125,16 +125,22 @@ def get_non_core_devices(simulation_mode=False):
             "port": get_next_port(),
             "command": f"aqctl_relocker_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AQ01QR9I'",
         },
-        # "gaio_wand_driver_688": {
-        #    "type": "controller",
-        #    "best_effort": True,
-        #    "host": "::1",
-        #    "port": PORT_GAIO_WAND_DRIVER,
-        #    "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
-        # },
-        "rpi_quote_controller": {
+        "gaio_wand_driver_688": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "10.137.2.10",
+            "port": PORT_GAIO_WAND_DRIVER,
+            "command": f"aqctl_gaio_laser_driver --port {{port}} --bind {{bind}} --id 'USB VID:PID=0403:6001 SER=AG0KOVMA'",
+        },
+        "rpi_quote_controller_red": {
             "type": "controller",
             "host": "10.137.1.51",
+            "port": get_next_port(),
+            "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
+        },
+        "rpi_quote_controller_blue": {
+            "type": "controller",
+            "host": "10.137.1.52",
             "port": get_next_port(),
             "command": f"aqctl_quotes -v --port {{port}} --bind {{bind}} --id 'Hello'",
         },
@@ -186,18 +192,18 @@ def get_non_core_devices(simulation_mode=False):
             "mockmodule": "repository.lib.fragments.rigol.rigol_device",
             "mockclass": "MockRigolCounter",
         },
-        # "clock_glitch_filter": {
-        #     "type": "controller",
-        #     "best_effort": True,
-        #     "host": "::1",
-        #     "port": get_next_port(),
-        #     "command": (
-        #         "python -m repository.lib.devices.aqctl_clock_glitch_filter"
-        #         " --port {port}"
-        #         " --bind {bind}"
-        #         " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB'"
-        #     ),
-        # },
+        "clock_glitch_filter": {
+            "type": "controller",
+            "best_effort": True,
+            "host": "somewhereelse.lan",
+            "port": get_next_port(),
+            "command": (
+                "python -m repository.lib.devices.aqctl_clock_glitch_filter"
+                " --port {port}"
+                " --bind {bind}"
+                " --id 'USB VID:PID=0403:6001 SER=AG0KOVMB'"
+            ),
+        },
         "andor_camera": {
             "type": "controller",
             "host": "labpc1.lan",

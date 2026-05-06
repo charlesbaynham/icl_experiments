@@ -16,22 +16,22 @@ class TurnOn698Temporary(ExpFragment):
     def build_fragment(self):
         self.setattr_device("core")
 
-        self.setattr_param(
-            "input_attenuation",
-            FloatParam,
-            description="Attenuation on Urukul's variable attenuator",
-            default=30,
-            unit="dB",
-            min=0,
-            max=31.5,
-        )
+        # self.setattr_param(
+        #     "input_attenuation",
+        #     FloatParam,
+        #     description="Attenuation on Urukul's variable attenuator",
+        #     default=30,
+        #     unit="dB",
+        #     min=0,
+        #     max=31.5,
+        # )
 
-        self.setattr_param(
-            "input_rf_switch",
-            BoolParam,
-            description="State of the RF switch",
-            default=True,
-        )
+        # self.setattr_param(
+        #     "input_rf_switch",
+        #     BoolParam,
+        #     description="State of the RF switch",
+        #     default=True,
+        # )
 
         self.setattr_param(
             "transmission_attenuation",
@@ -50,30 +50,30 @@ class TurnOn698Temporary(ExpFragment):
             default=True,
         )
 
-        self.input_attenuation: FloatParamHandle
-        self.input_rf_switch: BoolParamHandle
+        # self.input_attenuation: FloatParamHandle
+        # self.input_rf_switch: BoolParamHandle
         self.transmission_attenuation: FloatParamHandle
         self.transmission_rf_switch: BoolParamHandle
 
-        self.setattr_fragment(
-            "input_aom", LibSetSUServoStatic, "suservo_aom_698_squeezing_cavity_input"
-        )
+        # self.setattr_fragment(
+        #     "input_aom", LibSetSUServoStatic, "suservo_aom_698_squeezing_cavity_input"
+        # )
         self.setattr_fragment(
             "transmission_aom",
             LibSetSUServoStatic,
             "suservo_aom_698_squeezing_cavity_transmission",
         )
-        self.input_aom: LibSetSUServoStatic
+        # self.input_aom: LibSetSUServoStatic
         self.transmission_aom: LibSetSUServoStatic
 
     @kernel
     def run_once(self):
-        self.input_aom.set_suservo(
-            80e6,
-            1.0,
-            self.input_attenuation.get(),
-            self.input_rf_switch.get(),
-        )
+        # self.input_aom.set_suservo(
+        #     80e6,
+        #     1.0,
+        #     self.input_attenuation.get(),
+        #     self.input_rf_switch.get(),
+        # )
         self.transmission_aom.set_suservo(
             80e6,
             1.0,
