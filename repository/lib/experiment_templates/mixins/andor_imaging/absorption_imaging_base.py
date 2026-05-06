@@ -20,11 +20,51 @@ from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base impor
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     fit_2d_gaussian,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
 
 DATASET_OD_KEY = "abs_od_img"
+
+
+class AbsorptionImagingConfig(AndorCameraConfig):
+
+    default_abs_rois = self.get_default_abs_rois()
+
+    for i, (x0, y0, x1, y1) in enumerate(default_abs_rois):
+        self.setattr_param(
+            f"abs_roi_{i}_x0",
+            IntParam,
+            f"Abs ROI {i} x0",
+            default=x0,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            f"abs_roi_{i}_x1",
+            IntParam,
+            f"Abs ROI {i} x1",
+            default=x1,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            f"abs_roi_{i}_y0",
+            IntParam,
+            f"Abs ROI {i} y0",
+            default=y0,
+            min=0,
+            max=512,
+        )
+        self.setattr_param(
+            f"abs_roi_{i}_y1",
+            IntParam,
+            f"Abs ROI {i} y1",
+            default=y1,
+            min=0,
+            max=512,
+        )
 
 
 class AbsorptionImagingBase(AndorImagingBase):
@@ -44,8 +84,9 @@ class AbsorptionImagingBase(AndorImagingBase):
     """
 
     num_andor_images = 3
-    num_absorption_rois = 1
     num_images_per_series = 3
+
+    num_absorption_rois = 1
 
     def build_fragment(self):
         super().build_fragment()
@@ -78,42 +119,6 @@ class AbsorptionImagingBase(AndorImagingBase):
         )
         self.delay_before_bg_pulse: FloatParamHandle
 
-        default_abs_rois = self.get_default_abs_rois()
-
-        for i, (x0, y0, x1, y1) in enumerate(default_abs_rois):
-            self.setattr_param(
-                f"abs_roi_{i}_x0",
-                IntParam,
-                f"Abs ROI {i} x0",
-                default=x0,
-                min=0,
-                max=512,
-            )
-            self.setattr_param(
-                f"abs_roi_{i}_x1",
-                IntParam,
-                f"Abs ROI {i} x1",
-                default=x1,
-                min=0,
-                max=512,
-            )
-            self.setattr_param(
-                f"abs_roi_{i}_y0",
-                IntParam,
-                f"Abs ROI {i} y0",
-                default=y0,
-                min=0,
-                max=512,
-            )
-            self.setattr_param(
-                f"abs_roi_{i}_y1",
-                IntParam,
-                f"Abs ROI {i} y1",
-                default=y1,
-                min=0,
-                max=512,
-            )
-
         # force use of andor driver to ensure em gain can be set to 0
         self.override_param("use_andor_driver", True)
         self.setattr_param_rebind("pre_trigger_delay", self.andor_camera_control)
@@ -138,14 +143,6 @@ class AbsorptionImagingBase(AndorImagingBase):
             f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --default_rois '{self.get_abs_rois()}' --dataset_prefix od_omage",
         )
 
-        andor_exposure = 2 * self.fluorescence_pulse.fluorescence_pulse_duration.get()
-
-        logger.warning(
-            "Please ensure that the Andor is in Kinetics mode (not Fast Kinetics) with NO EM GAIN!"
-            " And that exposure is set to at least %f us",
-            1e6 * andor_exposure,
-        )
-
     def hook_setup_andor(self):
         self.setattr_fragment("andor_camera_control", AndorCameraControl)
         self.andor_camera_control: AndorCameraControl
@@ -153,12 +150,6 @@ class AbsorptionImagingBase(AndorImagingBase):
         self.hook_setup_andor_results()
 
     def hook_setup_andor_results(self):
-        # self.setattr_result("atoms_img", OpaqueChannel)
-        # self.atoms_img: OpaqueChannel
-        # self.setattr_result("light_img", OpaqueChannel)
-        # self.light_img: OpaqueChannel
-        # self.setattr_result("bg_img", OpaqueChannel)
-        # self.bg_img: OpaqueChannel
         self.setattr_result("od_img", OpaqueChannel)
         self.od_img: OpaqueChannel
         self.setup_gauss_fit_results()
