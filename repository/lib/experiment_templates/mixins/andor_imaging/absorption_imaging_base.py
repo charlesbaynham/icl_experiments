@@ -166,12 +166,6 @@ class AbsorptionImagingBase(AndorImagingBase):
             f"${{python}} -m custom_artiq_applets.full_img_applet {DATASET_OD_KEY} --default_rois '{self.get_abs_rois()}' --dataset_prefix od_omage",
         )
 
-    def setup_andor_camera_control_hook(self):
-        self.setattr_fragment("andor_camera_control", AndorCameraControl)
-        self.andor_camera_control: AndorCameraControl
-
-        self.hook_setup_andor_results()
-
     def hook_setup_andor_results(self):
         self.setattr_result("od_img", OpaqueChannel)
         self.od_img: OpaqueChannel
