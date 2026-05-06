@@ -530,13 +530,25 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
             self.fit_from_grabber_rois(img_array)
 
     @host_only
+    @staticmethod
+    def slice_from_roi_params(img, roi):
+        x0, y0, x1, y1 = roi
+        width, height = img.shape
+
+        logger.debug(f"Image shape: {width}, {height}")
+        logger.debug(f"ROI: {x0}, {x1}, {y0}, {y1}")
+
+        return img[x0:x1, height - y0 : height - y1 : -1], (x0, y0)
+
+    @host_only
     def fit_from_grabber_rois(self, image):
-        for i in range(self.andor_camera_config.num_grabber_rois):
-            sliced_image, offsets = self.andor_camera_control.slice_from_roi_params(
-                image, i
-            )
+        rois = self.andor_camera_config.get_rois()
+        i = 0
+        for roi in rois:
+            sliced_image, offsets = self.slice_from_roi_params(image, roi)
             popt = fit_2d_gaussian(sliced_image, offsets)
             self.push_gauss_fit_pars(popt, i)
+            i += 1
 
     @host_only
     def push_gauss_fit_pars(self, pars, i):
