@@ -270,18 +270,19 @@ class AndorCameraControl(Fragment):
         self.fast_kinetics_num_shots = fast_kinetics_num_shots
 
         self.debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        self.num_rois = len(self.andor_camera_config.get_rois())
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("debug_enabled")
         self.kernel_invariants.add("fast_kinetics_mode")
         self.kernel_invariants.add("fast_kinetics_num_shots")
         self.kernel_invariants.add("andor_requires_storage_frame")
-        self.kernel_invariants.add("num_rois")
         self.kernel_invariants.add("ttl_trigger")
         self.kernel_invariants.add("ttl_shutter")
 
     def host_setup(self):
+        self.num_rois = len(self.andor_camera_config.get_rois())
+        self.kernel_invariants.add("num_rois")
+
         self.fast_kinetics_shift_time = 0.0  # to prevent compilation errors
         # If the andor is in fast kinetics mode and the height of pixels to emit
         # is > 512, it will emit two frames onto Grabber instead of one. The
