@@ -69,6 +69,12 @@ class AbsorptionImagingBase(AndorImagingBase):
 
     num_absorption_rois = 1
 
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        return self.setattr_fragment(
+            "andor_camera_config",
+            AbsorptionImagingConfig,
+        )  # type: ignore
+
     def build_fragment(self):
         super().build_fragment()
 
