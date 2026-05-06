@@ -1,18 +1,22 @@
 import logging
 
+import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
-from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +54,88 @@ def calculate_grabber_rois(
         ]
         for i in range(num_images)
     ]
+
+
+class TripleFKConfig(FastKineticsCameraConfig):
+    """
+    Camera config for triple-image fast kinetics readout.
+
+    Takes 3 images per series (ground state, excited state, background),
+    producing 3 grabber ROIs with a single grabber readout.
+    """
+
+    num_andor_images = 3
+    num_images_per_series = 3
+    num_grabber_rois = 3
+    num_grabber_readouts = 1
+    fast_kinetics_num_shots = 3
+
+    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+
+    def build_fragment(self, x0, y0, x1, y1):
+        super().build_fragment()
+
+        self.setattr_param(
+            "roi_x0",
+            IntParam,
+            "Grabber ROI x0",
+            default=x0,
+            min=0,
+            max=512,
+        )
+        self.roi_x0: IntParamHandle
+        self.setattr_param(
+            "roi_y0",
+            IntParam,
+            "Grabber ROI y0",
+            default=y0,
+            min=0,
+            max=1024,
+        )
+        self.roi_y0: IntParamHandle
+        self.setattr_param(
+            "roi_x1",
+            IntParam,
+            "Grabber ROI x1",
+            default=x1,
+            min=0,
+            max=512,
+        )
+        self.roi_x1: IntParamHandle
+        self.setattr_param(
+            "roi_y1",
+            IntParam,
+            "Grabber ROI y1",
+            default=y1,
+            min=0,
+            max=1024,
+        )
+        self.roi_y1: IntParamHandle
+
+        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
+
+    @portable
+    def get_rois(self):
+        height = self.fast_kinetics_height.get()
+        offset = self.fast_kinetics_offset.get()
+        x0 = self.roi_x0.get()
+        y0 = self.roi_y0.get()
+        x1 = self.roi_x1.get()
+        y1 = self.roi_y1.get()
+        self.roi_buffer[0][0] = x0
+        self.roi_buffer[0][1] = y0 - offset
+        self.roi_buffer[0][2] = x1
+        self.roi_buffer[0][3] = y1 - offset
+        self.roi_buffer[1][0] = x0
+        self.roi_buffer[1][1] = y0 + height - offset
+        self.roi_buffer[1][2] = x1
+        self.roi_buffer[1][3] = y1 + height - offset
+        self.roi_buffer[2][0] = x0
+        self.roi_buffer[2][1] = y0 + 2 * height - offset
+        self.roi_buffer[2][2] = x1
+        self.roi_buffer[2][3] = y1 + 2 * height - offset
+        return self.roi_buffer
 
 
 class TripleImageFastKineticsBase(AndorImagingBase):
