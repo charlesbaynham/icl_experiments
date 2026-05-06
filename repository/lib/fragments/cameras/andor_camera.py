@@ -205,16 +205,16 @@ class AndorCameraControl(Fragment):
 
     TODO: Add Andor camera parameter control
 
-    By default, this fragment produces 1x ROI with the region set in
-    :module:`~.constants`. To override this, pass "roi_defaults" to
-    :meth:`~.setattr_fragment`.
+    The camera's ROI / fast-kinetics behaviour is supplied via an
+    :class:`AndorCameraConfig` instance, which the caller constructs and passes
+    in. See :class:`AndorCameraConfig` (and subclasses such as
+    :class:`FastKineticsCameraConfig`) for the available options.
 
     Parameters:
-    roi_defaults (List[List[int, int, int, int]]): List of ROIs to set up
+    camera_config (AndorCameraConfig): Required. Describes the ROI layout and,
+        for fast-kinetics modes, the number of sub-frames and their geometry.
     add_pre_trigger_delay (bool): Whether to add a delay before triggering the
         camera.
-    fast_kinetics_num_shots (int): Number of shots to per frame. If > 1,
-        fast kinetics mode will be used.
     """
 
     def build_fragment(

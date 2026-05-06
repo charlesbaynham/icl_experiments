@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 from artiq.language import TList
+from artiq.language import kernel
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
@@ -54,6 +55,7 @@ class LMTCompensatedCameraConfig(AndorCameraConfig):
         self.kernel_invariants.add("andor_sensor_width")
         self.kernel_invariants.add("andor_sensor_height")
 
+    @kernel
     def calculate_atom_positions(
         self,
         t1: np.int64,
@@ -75,6 +77,7 @@ class LMTCompensatedCameraConfig(AndorCameraConfig):
         """
         # FIXME do stuff here
 
+    @kernel
     def get_rois(self) -> List[tuple[int, int, int, int]]:
         half_width = self.roi_width.get() // 2
         half_height = self.roi_height.get() // 2
