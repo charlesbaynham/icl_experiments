@@ -41,6 +41,8 @@ ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}
 ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
+ANDOR_CAMERA_FACTS["sensor_width"] = 512
+ANDOR_CAMERA_FACTS["sensor_height"] = 512
 
 GRAVITY_DOPPLER_PER_SEC_CLOCK = (
     SR_FACTS["FREQUENCIES"]["698"] * scipy_constants.g / scipy_constants.c
