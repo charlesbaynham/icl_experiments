@@ -240,11 +240,12 @@ class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):
     def host_setup(self):
         super().host_setup()
 
-        # Add checks to catch varied parameters which would cause the above
-        # gravity calculations to fail. This is horrible code because it a)
-        # relies on classes that this one does not inherit from and b) it should
-        # just calculate this properly, not throw error when it's wrong. I'm so
-        # sorry, time is just too short to do this properly right now.
+        # Add checks to catch varied parameters which would cause the gravity
+        # calculations in `_gravity_pixels_dropped_interferometry` (called from
+        # `get_andor_camera_config_hook`) to fail. This is horrible code because
+        # it a) relies on classes that this one does not inherit from and b) it
+        # should just calculate this properly, not throw error when it's wrong.
+        # I'm so sorry, time is just too short to do this properly right now.
         handles_and_default_vals = [
             (
                 "shelving_pulse_clearout_duration",
@@ -336,11 +337,12 @@ class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsBa
     def host_setup(self):
         super().host_setup()
 
-        # Add checks to catch varied parameters which would cause the above
-        # gravity calculations to fail. This is horrible code because it a)
-        # relies on classes that this one does not inherit from and b) it should
-        # just calculate this properly, not throw error when it's wrong. I'm so
-        # sorry, time is just too short to do this properly right now.
+        # Add checks to catch varied parameters which would cause the gravity
+        # calculations in `_gravity_pixels_dropped_spectroscopy` (called from
+        # `get_andor_camera_config_hook`) to fail. This is horrible code because
+        # it a) relies on classes that this one does not inherit from and b) it
+        # should just calculate this properly, not throw error when it's wrong.
+        # I'm so sorry, time is just too short to do this properly right now.
         handles_and_default_vals = [
             (
                 "shelving_pulse_clearout_duration",
