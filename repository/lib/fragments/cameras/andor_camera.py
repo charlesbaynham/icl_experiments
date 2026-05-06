@@ -45,13 +45,13 @@ class AndorCameraConfig(Fragment, abc.ABC):
     abstract methods below.
     """
 
-    num_andor_images = None
+    num_andor_images: int = None  # type: ignore
     "How many images will the Andor driver read out"
-    num_images_per_series = None
+    num_images_per_series: int = None  # type: ignore
     "How many images will the Andor driver read out in each series"
-    num_grabber_rois = None
+    num_grabber_rois: int = None  # type: ignore
     "How many ROIs in each image for the Grabber"
-    num_grabber_readouts = None
+    num_grabber_readouts: int = None  # type: ignore
     "How many images will the Grabber read out"
 
     def __init__(self, *args, **kwargs):
