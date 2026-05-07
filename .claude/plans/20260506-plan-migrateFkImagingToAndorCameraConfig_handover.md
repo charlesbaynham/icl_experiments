@@ -132,9 +132,9 @@ File: `repository/lib/experiment_templates/mixins/andor_imaging/single_image_nor
 
 Has a different `calculate_grabber_rois()` that also includes background ROIs (`bg_width` param). Three base classes:
 
-- `SingleImageNormalisedFastKineticsBase` (abstract, has `get_andor_camera_config_hook` as abstract method at line 169, FIXME at 170)
-- `SingleImageNormalisedFastKineticsSingleTrapBase` at line ~200 — `num_grabber_rois=6` (2 signal + 2×2 bg)
-- `SingleImageNormalisedFastKineticsDoubleTrapBase` at line ~350 — `num_grabber_rois=12`
+- `SingleImageNormalisedBase` (abstract, has `get_andor_camera_config_hook` as abstract method at line 169, FIXME at 170)
+- `SingleImageNormalisedSingleTrapBase` at line ~200 — `num_grabber_rois=6` (2 signal + 2×2 bg)
+- `SingleImageNormalisedDoubleTrapBase` at line ~350 — `num_grabber_rois=12`
 
 Background ROI formula (from `calculate_grabber_rois`): left BG has `x0-bg_width` to `x0`; right BG has `x1` to `x1+bg_width`
 

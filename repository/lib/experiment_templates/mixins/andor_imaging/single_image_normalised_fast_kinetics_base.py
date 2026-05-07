@@ -27,6 +27,9 @@ ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
 ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
+# %% Utility functions
+
+
 def _single_trap_roi_block(x0, y0, x1, y1, offset, step, bg_width):
     return np.array(
         [
@@ -98,6 +101,9 @@ def _copy_trap_roi_block(
     roi_buffer[start_index + 5][1] = y0 + step - offset
     roi_buffer[start_index + 5][2] = x1 + bg_width
     roi_buffer[start_index + 5][3] = y1 + step - offset
+
+
+# %% Camera config classes
 
 
 class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
@@ -363,7 +369,10 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
         return self.roi_buffer
 
 
-class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
+# %% Mixin bases
+
+
+class SingleImageNormalisedBase(AndorImagingBase):
 
     def build_fragment(self):
         super().build_fragment()
@@ -531,9 +540,7 @@ class SingleImageNormalisedFastKineticsBase(AndorImagingBase):
         )
 
 
-class SingleImageNormalisedFastKineticsSingleTrapBase(
-    SingleImageNormalisedFastKineticsBase
-):
+class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
     """
     Implements normalised readout using a single image for a :py:class:`~RedMOTWithExperimentBase`
     experiment.
@@ -624,9 +631,7 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
         # NOTE : WE can log this information into the InfluxDB like in the double trap
 
 
-class SingleImageNormalisedFastKineticsDoubleTrapBase(
-    SingleImageNormalisedFastKineticsBase
-):
+class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
     """
     Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
@@ -665,7 +670,7 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
             excited_shift=self.calculate_gravitational_drop(),
         )
         self.andor_camera_config: SingleFKDoubleTrapConfig
-        return f
+        return f  # type: ignore
 
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
@@ -773,15 +778,23 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
         )
 
 
-class SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase(
-    SingleImageNormalisedFastKineticsDoubleTrapBase
+class SingleImageNormalisedDoubleTrapInterferometryBase(
+    SingleImageNormalisedDoubleTrapBase
 ):
+    """
+    This class should not need to exist - it's here to tell the imaging setup
+    how long the atoms are falling for. It's therefore custom for a given
+    experiment (interferometry) in this case and fragile. We will get rid of it
+    soon using the code on the `icl_experiments.dma_lmt_abc` branch.
+    """
+
     # TODO: IS THIS REALLY INTERFEROMETRY?
     def time_dropped_before_first_pulse(self):
+        """
+        Compensate for the drop under gravity in the excited cloud relative to
+        the ground cloud.
+        """
 
-        # Compensate for the drop under gravity in the excited cloud relative to
-        # the ground cloud.
-        #
         # TODO: This logic uses values from constants but these are defaults and
         # might be overridden by the user. If they do this, this calculation
         # will be wrong. It does this because this fragment is configured in
@@ -794,46 +807,3 @@ class SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase(
             + 2 * constants.CLOCK_PI_TIME
             + 2 * constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES
         )
-
-    def host_setup(self):
-        super().host_setup()
-
-        # Add checks to catch varied parameters which would cause the above
-        # gravity calculations to fail. This is horrible code because it a)
-        # relies on classes that this one does not inherit from and b) it should
-        # just calculate this properly, not throw error when it's wrong. I'm so
-        # sorry, time is just too short to do this properly right now.
-        handles_and_default_vals = [
-            (
-                "shelving_pulse_clearout_duration",
-                constants.SHELVING_PULSE_CLEAROUT_DURATION,
-            ),
-            ("shelving_pulse_time", constants.CLOCK_SHELVING_PULSE_TIME),
-            ("spectroscopy_pulse_time", constants.CLOCK_PI_TIME),
-            (
-                "delay_between_interferometry_pulses",
-                constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES,
-            ),
-        ]
-
-        for handle_name, default_val in handles_and_default_vals:
-            if not hasattr(self, handle_name):
-                logger.warning(
-                    "NormaliseXXODT readout is applying gravity corrections assuming that you're doing "
-                    "slicing but you're not, so the gravity corrections will be wrong. "
-                    "Specifically the %s parameter is not present.",
-                    handle_name,
-                )
-            else:
-                val = getattr(self, handle_name).get()
-
-                diff = val - default_val
-                if abs(diff) / default_val > 1e-6:
-                    logger.warning(
-                        "NormaliseXXODT readout is applying gravity corrections based on the "
-                        "default parameter value of %s = %s, but you have set it to %s so the "
-                        "excited state ROI will be in the wrong place.",
-                        handle_name,
-                        default_val,
-                        val,
-                    )

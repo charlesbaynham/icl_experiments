@@ -74,19 +74,19 @@ Create `SingleFKSingleTrapConfig(SingleFKConfig)`: `num_grabber_rois=6`, 2 image
 
 Create `SingleFKDoubleTrapConfig(SingleFKConfig)`: `num_grabber_rois=12`, 2 images, 1 readout. `build_fragment(fwd_x0/y0/x1/y1, bwd_x0/y0/x1/y1, bg_width, excited_shift)` creates 8 ROI IntParams + bg_width.
 
-For `SingleImageNormalisedFastKineticsBase`:
+For `SingleImageNormalisedBase`:
 
 - Replace `setup_andor_camera_control_hook()` with `get_andor_camera_config_hook()` (abstract)
 - Remove abstract `get_grabber_roi_defaults()` FIXME
 - Update `bind_param` call to `self.andor_camera_config`
 
-For `SingleImageNormalisedFastKineticsSingleTrapBase`:
+For `SingleImageNormalisedSingleTrapBase`:
 
 - Implement `get_andor_camera_config_hook()` using `SingleFKSingleTrapConfig` with standard ROI defaults
 - Remove `get_grabber_roi_defaults()` FIXME
 - Simplify `process_grabber_data_hook()` — see Phase 5
 
-For `SingleImageNormalisedFastKineticsDoubleTrapBase`:
+For `SingleImageNormalisedDoubleTrapBase`:
 
 - Implement `get_andor_camera_config_hook()` using `SingleFKDoubleTrapConfig` with standard ROI defaults
 - Remove `get_grabber_roi_defaults()` FIXME
@@ -106,7 +106,7 @@ In `triple_imaging_fast_kinetics.py`:
 
 ### Phase 5 — Simplify `process_grabber_data_hook` in SingleImage classes — _depends on Phase 3c_
 
-The current `process_grabber_data_hook` in `SingleImageNormalisedFastKineticsSingleTrapBase` (and double-trap) accesses ROI areas via individual `self.andor_camera_control.roi_N_xN.get()` calls — one per coordinate per ROI. Replace with:
+The current `process_grabber_data_hook` in `SingleImageNormalisedSingleTrapBase` (and double-trap) accesses ROI areas via individual `self.andor_camera_control.roi_N_xN.get()` calls — one per coordinate per ROI. Replace with:
 
 ```python
 rois = self.andor_camera_config.get_rois()

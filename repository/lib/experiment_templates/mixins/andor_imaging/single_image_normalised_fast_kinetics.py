@@ -7,10 +7,10 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase,
+    SingleImageNormalisedDoubleTrapInterferometryBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedFastKineticsSingleTrapBase,
+    SingleImageNormalisedSingleTrapBase,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class SingleImageNormalisedSingleTrapRepumpedSpectroscopyMixin(
-    SingleImageNormalisedFastKineticsSingleTrapBase
+    SingleImageNormalisedSingleTrapBase
 ):
     """
     Single-trap single-image readout for the clock-spectroscopy path.
@@ -59,7 +59,7 @@ class SingleImageNormalisedSingleTrapRepumpedSpectroscopyMixin(
 
 
 class SingleImageNormalisedSingleTrapClockPulseSpectroscopyMixin(
-    SingleImageNormalisedFastKineticsSingleTrapBase,
+    SingleImageNormalisedSingleTrapBase,
     ClockSpectroscopyBase,
 ):
     """
@@ -119,7 +119,7 @@ class SingleImageNormalisedSingleTrapClockPulseSpectroscopyMixin(
 
 
 class SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin(
-    SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase
+    SingleImageNormalisedDoubleTrapInterferometryBase
 ):
     """
     Double-trap single-image readout for the LMT interferometry path.
@@ -150,7 +150,7 @@ class SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin(
 
 
 class SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin(
-    SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase,
+    SingleImageNormalisedDoubleTrapInterferometryBase,
     ClockSpectroscopyBase,
 ):
     """
