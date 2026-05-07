@@ -28,6 +28,8 @@
         "**/nix/aravis/**",
         "**/flake.nix",
         "**/.git/**",
+        "**/.claude/plans/*.md",
+        "**/.vscode/**",
         "**/AGENTS.md"
     ],
     "editor.defaultFormatter": "ms-python.black-formatter",
