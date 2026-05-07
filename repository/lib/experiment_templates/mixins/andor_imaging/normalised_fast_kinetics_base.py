@@ -25,7 +25,6 @@ from typing import List
 import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
@@ -33,7 +32,6 @@ from artiq.language import rpc
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import int64
 from numpy.typing import NDArray
 from pyaion.models import UrukuledBeam
 
@@ -48,7 +46,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
-from repository.lib.fragments.pulse_shaping import JessePulse
 
 logger = logging.getLogger(__name__)
 
