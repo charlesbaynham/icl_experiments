@@ -3,12 +3,12 @@ import logging
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingRepumpedNormalisedMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -16,7 +16,7 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.red_spectroscopy import (
-    RedSpectroscopyDipoleTrap,
+    RedSpectroscopyDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
 
@@ -24,13 +24,13 @@ logger = logging.getLogger(__name__)
 
 
 class RedSpectroscopyFromXXODTFrag(
-    RedSpectroscopyDipoleTrap,
-    DoubleTrapImagingRepumpedNormalised,
-    EMGain,
+    RedSpectroscopyDipoleTrapMixin,
+    DoubleTrapImagingRepumpedNormalisedMixin,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadXXODTMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     689 spectroscopy from dropped XXODT

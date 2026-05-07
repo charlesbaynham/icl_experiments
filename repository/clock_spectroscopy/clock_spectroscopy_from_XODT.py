@@ -4,18 +4,18 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
     AbsorptionDoubleDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingRepumpedNormalisedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingSpectroscopyRepumpedNormalised,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -74,11 +74,11 @@ class ClockSpecFromSingleXODTFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped single XODT
@@ -100,13 +100,13 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped single XODT with evaporation
@@ -129,14 +129,14 @@ class ClockSpecFromSingleXODTEvaporatedAndLensedFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     PaintedMatterwaveLensingMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped single XODT with evaporation and matterwave lensing
@@ -159,7 +159,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -167,7 +167,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped single XODT with adiabatic cooling into painted trap
@@ -200,7 +200,7 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     # DopplerCompensationForClockSpecMixin,
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -208,7 +208,7 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped single XODT with evaporation, shelving and clearout
@@ -238,14 +238,14 @@ class ClockSpecDownFromSingleXODTEvaporatedShelvingFrag(
     # DopplerCompensationForClockSpecMixin,
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsWithFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Down beam clock spectroscopy from dropped single XODT with evaporation, shelving and clearout
@@ -277,13 +277,13 @@ class ClockSpecFromXXODTFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     # Imaging:
-    DoubleTrapImagingRepumpedNormalised,
-    EMGain,
+    DoubleTrapImagingRepumpedNormalisedMixin,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped XXODT
@@ -313,12 +313,12 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     # Imaging:
     DoubleTrapImagingSpectroscopyRepumpedNormalised,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped XXODT with shelving and clearout

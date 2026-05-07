@@ -36,6 +36,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy.typing import NDArray
+from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
@@ -53,6 +54,7 @@ logger = logging.getLogger(__name__)
 
 ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
 ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
+CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 
 
 class NormalisedFKConfig(FastKineticsCameraConfig):
@@ -275,7 +277,7 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
 
 class NormalisedFastKineticsBase(AndorImagingBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create
@@ -527,7 +529,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
 class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create

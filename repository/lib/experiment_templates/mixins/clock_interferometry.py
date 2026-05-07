@@ -12,7 +12,7 @@ from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
@@ -197,7 +197,7 @@ class ClockInterferometryBase(
 
 
 class ClockInterferometryDipoleTrapMixin(
-    ClockInterferometryBase, DipoleTrapWithExperiment
+    ClockInterferometryBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements clock interferometry after the dipole trap

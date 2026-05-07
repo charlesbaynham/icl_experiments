@@ -707,6 +707,7 @@ class JessePulse(PhasorShapedPulse):
     "Jesse's velocity selection pulse (phase only)"
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 0
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)

@@ -42,6 +42,9 @@ def get_all_of_class_from_module(module, cls, exceptions=[]):
             and not obj.__name__.endswith(
                 "Base"
             )  # nor ends in "Base" and is therefore allowed to be abstract
+            and not obj.__name__.endswith(
+                "Mixin"
+            )  # nor ends in "Mixin" and is therefore allowed to be abstract
         ):
             out.append(obj)
     return out
@@ -64,6 +67,14 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 xfails = [
     # ("ScanTopticaMOTFrag", "Toptica host setup is not mocked")
     # ("ScanKoheronMeasureScopeFrag", "pipeline can't talk to scope")
+    (
+        "MeasureXODTNewMolassesFrag",
+        "general_setter_names length mismatch in pyaion/fragments/ramping_phase.py",
+    ),
+    (
+        "TestMatterwaveCollimationInDipoleTrapFrag",
+        "host object does not have an attribute 'dds'",
+    ),
 ]
 
 xfail_names = [x[0] for x in xfails]

@@ -25,7 +25,9 @@ from sipyco.packed_exceptions import GenericRemoteException
 from repository.lib import constants
 from repository.lib.analysis.gauss_fit_2d import fit_gaussian
 from repository.lib.analysis.tof_temp import get_custom_analysis
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
@@ -37,7 +39,7 @@ ANDOR_MONITOR_DATASET = "andor_monitor_image"
 ANDOR_DETAILED_MONITOR_DATASETS = "andor_image_{i}"
 
 
-class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
+class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
     """
     Base class for imaging with the Andor camera
 
@@ -69,9 +71,8 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
 
         This method should return an AndorCameraConfig object. It might make one
         using setattr_fragment, or it might return one that was built elsewhere.
-        For an example implementation, see xxxx
+        For an example implementation, see :class:`~.bg_corrected_andor_image.BGCorrectedAndorImageMixin`.
         """
-        # FIXME put in class ref to comment
 
     def build_fragment(self):
         super().build_fragment()
@@ -311,7 +312,7 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
             self.imagingsetup.set_toptica_analog.reset_freq()
             delay(
                 constants.DELAY_BETWEEN_RTIO_EVENTS
-            )  # to avoid collision with next event, e.g. MOT field setting in BGCorrectedAndorImage
+            )  # to avoid collision with next event, e.g. MOT field setting in BGCorrectedAndorImageMixin
 
     # In red_mot_experiment this is optional, but we make it compulsory here
     # since using this base class alone should be an error

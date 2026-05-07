@@ -9,7 +9,7 @@ from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeams
 from repository.lib.fragments.beams.toggling_beam_setter import (
@@ -24,7 +24,7 @@ from repository.lib.fragments.painted_pulse import (
 logger = logging.getLogger(__name__)
 
 
-class LoadSingleXODTMixin(DipoleTrapWithExperiment):
+class LoadSingleXODTMixin(DipoleTrapWithExperimentBase):
     """
     Loads atoms in a single XODT after the narrowband red MOT
 

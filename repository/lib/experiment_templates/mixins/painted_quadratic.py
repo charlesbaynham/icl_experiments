@@ -8,7 +8,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import PaintedLinearRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
@@ -32,7 +32,7 @@ SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
 SUSERVO_UP_813 = ["suservo_aom_up_813"]
 
 
-class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
+class MatterwaveLensingInBothDirectionMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which switches on both the painted quadratic and up dipole potential during the dipole trap loading sequence to matterwave collimate them.
 
@@ -110,7 +110,7 @@ class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
         self.dipole_beam_controller.turn_off_painter_suservo()
 
 
-class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
+class PaintedMatterwaveLensingMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which switches on the painted quadratic potential during the dipole trap loading sequence.
 
@@ -152,7 +152,7 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
         delay(DELAY_BETWEEN_RTIO_EVENTS)
 
 
-class PainterRampMixin(DipoleTrapWithExperiment):
+class PainterRampMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which adiabatically turns on the painter in the adiabatic cooling hook.
 

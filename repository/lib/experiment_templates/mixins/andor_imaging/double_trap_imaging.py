@@ -1,18 +1,19 @@
 import logging
 
+import numpy as np
 from artiq.language import host_only
 from artiq.language import kernel
+from artiq.language import portable
 from artiq.language import rpc
 from artiq.master.scheduler import Scheduler
 from artiq_influx_generic import InfluxController
 from ndscan.experiment import FloatChannel
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImage,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
-    AndorImagingBase,
+    BGCorrectedAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedXXODTFastKineticsMixin,
@@ -27,61 +28,155 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsDoubleTrapRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
+    SingleAndorImageMixin,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 
 logger = logging.getLogger(__name__)
 
 
-class _DoubleTrapROIOverrides(AndorImagingBase):
-    def build_fragment(self):
+class _DoubleTrapAndorImageConfigBase(AndorCameraConfig):
+    """
+    Base config for imaging two traps (forward + backward).
+
+    Provides 8 ROI IntParams (fwd_roi_* and bwd_roi_*) and a get_rois() that
+    returns them in [fwd, bwd] order. Subclasses must set num_andor_images,
+    num_images_per_series and num_grabber_readouts.
+    """
+
+    num_grabber_rois = 2
+
+    def build_fragment(
+        self,
+        fwd_x0,
+        fwd_y0,
+        fwd_x1,
+        fwd_y1,
+        bwd_x0,
+        bwd_y0,
+        bwd_x1,
+        bwd_y1,
+    ):
         super().build_fragment()
 
-        # Set default ROIs
-        self.setattr_param_rebind(
-            "roi_0_x0",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+        self.setattr_param(
+            "fwd_roi_x0",
+            IntParam,
+            "Forward trap grabber ROI x0",
+            default=fwd_x0,
+            min=0,
+            max=512,
         )
-        self.setattr_param_rebind(
-            "roi_0_x1",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+        self.fwd_roi_x0: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_y0",
+            IntParam,
+            "Forward trap grabber ROI y0",
+            default=fwd_y0,
+            min=0,
+            max=1024,
         )
-        self.setattr_param_rebind(
-            "roi_0_y0",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+        self.fwd_roi_y0: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_x1",
+            IntParam,
+            "Forward trap grabber ROI x1",
+            default=fwd_x1,
+            min=0,
+            max=512,
         )
-        self.setattr_param_rebind(
-            "roi_0_y1",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+        self.fwd_roi_x1: IntParamHandle
+        self.setattr_param(
+            "fwd_roi_y1",
+            IntParam,
+            "Forward trap grabber ROI y1",
+            default=fwd_y1,
+            min=0,
+            max=1024,
         )
+        self.fwd_roi_y1: IntParamHandle
 
-        self.setattr_param_rebind(
-            "roi_1_x0",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+        self.setattr_param(
+            "bwd_roi_x0",
+            IntParam,
+            "Backward trap grabber ROI x0",
+            default=bwd_x0,
+            min=0,
+            max=512,
         )
-        self.setattr_param_rebind(
-            "roi_1_x1",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+        self.bwd_roi_x0: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_y0",
+            IntParam,
+            "Backward trap grabber ROI y0",
+            default=bwd_y0,
+            min=0,
+            max=1024,
         )
-        self.setattr_param_rebind(
-            "roi_1_y0",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+        self.bwd_roi_y0: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_x1",
+            IntParam,
+            "Backward trap grabber ROI x1",
+            default=bwd_x1,
+            min=0,
+            max=512,
         )
-        self.setattr_param_rebind(
-            "roi_1_y1",
-            self.andor_camera_control,
-            default=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+        self.bwd_roi_x1: IntParamHandle
+        self.setattr_param(
+            "bwd_roi_y1",
+            IntParam,
+            "Backward trap grabber ROI y1",
+            default=bwd_y1,
+            min=0,
+            max=1024,
         )
+        self.bwd_roi_y1: IntParamHandle
+
+        self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
+
+    @portable
+    def get_rois(self):
+        self.roi_buffer[0][0] = self.fwd_roi_x0.get()
+        self.roi_buffer[0][1] = self.fwd_roi_y0.get()
+        self.roi_buffer[0][2] = self.fwd_roi_x1.get()
+        self.roi_buffer[0][3] = self.fwd_roi_y1.get()
+        self.roi_buffer[1][0] = self.bwd_roi_x0.get()
+        self.roi_buffer[1][1] = self.bwd_roi_y0.get()
+        self.roi_buffer[1][2] = self.bwd_roi_x1.get()
+        self.roi_buffer[1][3] = self.bwd_roi_y1.get()
+        return self.roi_buffer
 
 
-class DoubleTrapImagingBasic(_DoubleTrapROIOverrides, SingleAndorImage):
+class DoubleTrapBasicAndorImageConfig(_DoubleTrapAndorImageConfigBase):
+    """Config for DoubleTrapImagingBasicMixin: 2 ROIs, 1 readout, 1 image per series."""
+
+    num_andor_images = 1
+    num_images_per_series = 1
+    num_grabber_readouts = 1
+
+
+class DoubleTrapBGCorrectedAndorImageConfig(_DoubleTrapAndorImageConfigBase):
+    """Config for DoubleTrapImagingBGSubtractedMixin: 2 ROIs, 2 readouts, 2 images per series."""
+
+    num_andor_images = 2
+    num_images_per_series = 2
+    num_grabber_readouts = 2
+
+
+_DOUBLE_TRAP_DEFAULT_ROIS = dict(
+    fwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0,
+    fwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y0,
+    fwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_X1,
+    fwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_Y1,
+    bwd_x0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X0,
+    bwd_y0=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y0,
+    bwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
+    bwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
+)
+
+
+class DoubleTrapImagingBasicMixin(SingleAndorImageMixin):
     """
     Image two traps with a single fluorescence pulse
 
@@ -93,12 +188,16 @@ class DoubleTrapImagingBasic(_DoubleTrapROIOverrides, SingleAndorImage):
     * :meth:`~do_imaging_hook_andor`
     """
 
-    num_andor_images = 1
-    num_grabber_readouts = 1
-    num_grabber_rois = 2
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            DoubleTrapBasicAndorImageConfig,
+            **_DOUBLE_TRAP_DEFAULT_ROIS,
+        )
+        return f  # type: ignore
 
 
-class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorImage):
+class DoubleTrapImagingBGSubtractedMixin(BGCorrectedAndorImageMixin):
     """
     Image two traps with two fluorescence pulses and background-subtract
 
@@ -110,9 +209,13 @@ class DoubleTrapImagingBGSubtracted(_DoubleTrapROIOverrides, BGCorrectedAndorIma
     * :meth:`~do_imaging_hook_andor`
     """
 
-    num_andor_images = 2
-    num_grabber_readouts = 2
-    num_grabber_rois = 2
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            DoubleTrapBGCorrectedAndorImageConfig,
+            **_DOUBLE_TRAP_DEFAULT_ROIS,
+        )
+        return f  # type: ignore
 
     def bg_imaging_make_result_channel(self):
         self.setattr_result("andor_sum_fwd_corrected", FloatChannel)
@@ -415,7 +518,7 @@ class DoubleTrapImagingClockPulseNormalisedBase(
         )
 
 
-class DoubleTrapImagingRepumpedNormalised(
+class DoubleTrapImagingRepumpedNormalisedMixin(
     NormalisedXXODTFastKineticsMixin, DoubleTrapImagingRepumpedNormalisedBase
 ):
     """
@@ -431,7 +534,7 @@ class DoubleTrapImagingRepumpedNormalised(
     """
 
 
-class DoubleTrapImagingClockPulseNormalised(
+class DoubleTrapImagingClockPulseNormalisedMixin(
     NormalisedXXODTFastKineticsMixin, DoubleTrapImagingClockPulseNormalisedBase
 ):
     """
@@ -447,7 +550,7 @@ class DoubleTrapImagingClockPulseNormalised(
     """
 
 
-class DoubleTrapImagingSpectroscopyRepumpedNormalised(
+class DoubleTrapImagingSpectroscopyRepumpedNormalisedMixin(
     NormalisedXXODTSpectroscopyFastKineticsMixin,
     DoubleTrapImagingRepumpedNormalisedBase,
 ):
@@ -462,3 +565,8 @@ class DoubleTrapImagingSpectroscopyRepumpedNormalised(
 
     * :meth:`~do_imaging_hook_andor`
     """
+
+
+DoubleTrapImagingSpectroscopyRepumpedNormalised = (
+    DoubleTrapImagingSpectroscopyRepumpedNormalisedMixin
+)

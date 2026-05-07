@@ -15,7 +15,7 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
@@ -23,7 +23,9 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
 from repository.lib.fragments.pulse_shaping import JessePulseLMTSeries
@@ -42,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 class LMTBase(
     ClockSpectroscopyBase,
-    RedMOTWithExperiment,
+    RedMOTWithExperimentBase,
 ):
     """
     Base for succession of clock pulses with up and down beams
@@ -361,7 +363,7 @@ class LMTBase(
         return 0
 
 
-class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
+class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
     """
     Implements LMT launch after the dipole trap
 
@@ -433,7 +435,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         delay(10e-6)
 
 
-class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
+class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
     """
     Implements LMT launch after the dipole trap to create a double trap
 
@@ -658,7 +660,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         # )
 
 
-class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
+class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
     """
     Implements LMT launch after the dipole trap to create a double trap. Uses a shaped pulse to
     address both clouds, with opposite momentum, after the beam splitter.
@@ -903,7 +905,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(1e-6)
 
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
+        self.fluorescence_pulse.do_clearout_pulse(
             duration=200e-6,
             ignore_final_shutters=True,
         )
@@ -957,7 +959,9 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
 
 
-class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
+class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
+    LMTLaunchMixin, DipoleTrapWithExperimentBase
+):
     """
     Implements LMT launch after the dipole trap to create a double trap. Uses a shaped pulse to
     address both clouds, with opposite momentum, after the beam splitter, and shaped pulses for the LMT series
@@ -1298,7 +1302,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
 
 
 class LMTInterferometryMixin(
-    LMTBase, ClockInterferometryBase, DipoleTrapWithExperiment
+    LMTBase, ClockInterferometryBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements LMT interferometry after the launch
@@ -1438,7 +1442,7 @@ class LMTInterferometryMixin(
         delay_mu(16)
 
         N = self.lmt_pulses_number.get()
-        N_launch = 10
+        N_launch = 14
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -1498,7 +1502,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )
@@ -1546,7 +1550,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )
@@ -1611,7 +1615,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )
@@ -1644,7 +1648,7 @@ class LMTInterferometryMixin(
             )
 
             # Clear out the ground state
-            self.fluorescence_pulse.do_imaging_pulse(
+            self.fluorescence_pulse.do_clearout_pulse(
                 duration=self.clearout_duration.get(),
                 ignore_final_shutters=True,
             )

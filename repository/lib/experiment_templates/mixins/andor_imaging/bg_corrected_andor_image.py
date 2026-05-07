@@ -89,7 +89,7 @@ class BGCorrectedAndorImageConfig(AndorCameraConfig):
         return self.roi_buffer
 
 
-class BGCorrectedAndorImage(AndorImagingBase):
+class BGCorrectedAndorImageMixin(AndorImagingBase):
     """
     Image with a single fluorescence pulse using the Andor camera then take another for background subtraction
 
@@ -194,7 +194,7 @@ class BGCorrectedAndorImage(AndorImagingBase):
         self.fit_from_grabber_rois(corrected_img_array)
 
 
-class BGCorrectedAndorImageSingleXODT(BGCorrectedAndorImage):
+class BGCorrectedAndorImageSingleXODTMixin(BGCorrectedAndorImageMixin):
     """
     Image with a single fluorescence pulse using the Andor camera then take another for background subtraction
 

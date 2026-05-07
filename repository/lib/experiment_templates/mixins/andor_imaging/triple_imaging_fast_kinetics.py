@@ -2,13 +2,13 @@ import logging
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
-    TripleImageFastKineticsBase,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
     TripleFKConfig,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
     TripleFKDoubleTrapConfig,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics_base import (
+    TripleImageFastKineticsBase,
 )
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class TripleImageRedMOTFastKineticsMixin(TripleImageFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin uses the Andor camera to take three images and create
@@ -44,7 +44,7 @@ class TripleImageDipoleTrapFKConfig(TripleFKConfig):
 
 class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin uses the Andor camera to take three images and create
@@ -79,7 +79,7 @@ class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):
 
 class TripleImageXXODTFastKineticsMixin(TripleImageFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin uses the Andor camera to take three images and create

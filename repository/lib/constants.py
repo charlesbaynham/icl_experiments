@@ -58,7 +58,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.702e6,
+        frequency=364.706e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -766,7 +766,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.545e6,
+        99.5435e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1204,7 +1204,7 @@ else:
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
-# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
+# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperimentBase, so effectively ignored
 # This should be confirmed and then these settings removed
 RED_BROADBAND_BIAS_FIELD_START = [
     B_FIELD_BIAS_BLUE_MOT_X,

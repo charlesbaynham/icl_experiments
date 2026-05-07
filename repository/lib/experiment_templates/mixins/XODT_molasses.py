@@ -11,7 +11,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvapAndFieldRampBase,
@@ -48,7 +48,7 @@ SUSERVO_IN_DIPOLE_RAMP = [
 ]
 
 
-class XODTSingleMolassesMixin(DipoleTrapWithExperiment):
+class XODTSingleMolassesMixin(DipoleTrapWithExperimentBase):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, and implements a
     single stage of ramping molasses (or MOT) with ramping bias magnetic field.
@@ -342,7 +342,7 @@ class XODTSingleMolassesPlusFieldRampMixin(
         self.DMA_initialization_hook_evap_with_field_ramp()
 
 
-class ClearOut689Mixin(DipoleTrapWithExperiment):
+class ClearOut689Mixin(DipoleTrapWithExperimentBase):
     """
     Pulse 689 nm beam to clear out atoms after molasses
 
@@ -453,7 +453,7 @@ class ClearOut689Mixin(DipoleTrapWithExperiment):
         )
 
 
-class MolassesRetroedBeamMixin(DipoleTrapWithExperiment):
+class MolassesRetroedBeamMixin(DipoleTrapWithExperimentBase):
     """
     Mixin for the molasses with the retroreflected molasses beam
 

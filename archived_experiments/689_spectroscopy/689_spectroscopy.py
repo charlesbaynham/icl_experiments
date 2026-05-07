@@ -23,7 +23,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ class SpectroscopyWithKinetics_UpBeam(
     TripleImageRedMOTFastKineticsMixin,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
-    RedMOTWithExperiment,
+    RedMOTWithExperimentBase,
 ):
     """
     689nm spectroscopy UP
@@ -128,7 +130,7 @@ class SpectroscopySingleImage_UpBeam(
     DroppedPumpedLatticeMixin,
     SpectroscopyParamsMixin,
     ConstantBeamsMixin,
-    RedMOTWithExperiment,
+    RedMOTWithExperimentBase,
 ):
     """
     689nm spectroscopy UP - single image

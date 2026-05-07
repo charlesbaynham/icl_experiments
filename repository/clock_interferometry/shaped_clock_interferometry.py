@@ -4,9 +4,9 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -41,7 +41,7 @@ class ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag(
     # Imaging
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading and state preparation
     LoadSingleXODTMixin,
@@ -50,7 +50,7 @@ class ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # Slicing
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock interferometry from dropped single XODT with evaporation, shaped shelving and clearout

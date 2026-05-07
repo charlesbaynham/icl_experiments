@@ -1,10 +1,12 @@
 from artiq.language import kernel
 
 from archived_experiments.archives_fragments.rigol_counter import RigolCounterFrag
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 
-class RigolCounterMixin(RedMOTWithExperiment):
+class RigolCounterMixin(RedMOTWithExperimentBase):
     def build_fragment(self):
         self.setattr_fragment("rigol", RigolCounterFrag)
         self.rigol: RigolCounterFrag
