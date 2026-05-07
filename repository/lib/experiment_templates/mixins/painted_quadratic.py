@@ -32,7 +32,7 @@ SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
 SUSERVO_UP_813 = ["suservo_aom_up_813"]
 
 
-class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
+class MatterwaveLensingInBothDirectionMixin(DipoleTrapWithExperiment):
     """
     Mixin which switches on both the painted quadratic and up dipole potential during the dipole trap loading sequence to matterwave collimate them.
 
@@ -285,3 +285,6 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         # Do the ramp
         self.adiabatic_cooling_ramp.do_phase()
+
+
+MatterwaveLensingInBothDirection = MatterwaveLensingInBothDirectionMixin

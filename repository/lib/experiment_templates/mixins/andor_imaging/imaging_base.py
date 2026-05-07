@@ -69,9 +69,8 @@ class AndorImagingBase(RedMOTWithExperiment, abc.ABC):
 
         This method should return an AndorCameraConfig object. It might make one
         using setattr_fragment, or it might return one that was built elsewhere.
-        For an example implementation, see xxxx
+        For an example implementation, see :class:`~.bg_corrected_andor_image.BGCorrectedAndorImageMixin`.
         """
-        # FIXME put in class ref to comment
 
     def build_fragment(self):
         super().build_fragment()

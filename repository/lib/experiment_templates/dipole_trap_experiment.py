@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: REMOVE CONSTANT BEAM MIXIN AFTER DILLEN IS DONE (WHICH WILL BE NEVER!!!!)
-class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
+class DipoleTrapWithExperimentBase(ConstantBeamsMixin, RedMOTWithExperiment):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -226,3 +226,6 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
         completed.
         """
         raise NotImplementedError
+
+
+DipoleTrapWithExperiment = DipoleTrapWithExperimentBase

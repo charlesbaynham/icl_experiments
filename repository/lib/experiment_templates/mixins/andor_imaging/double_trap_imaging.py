@@ -176,7 +176,7 @@ _DOUBLE_TRAP_DEFAULT_ROIS = dict(
 )
 
 
-class DoubleTrapImagingBasic(SingleAndorImage):
+class DoubleTrapImagingBasicMixin(SingleAndorImage):
     """
     Image two traps with a single fluorescence pulse
 
@@ -197,7 +197,7 @@ class DoubleTrapImagingBasic(SingleAndorImage):
         return f  # type: ignore
 
 
-class DoubleTrapImagingBGSubtracted(BGCorrectedAndorImage):
+class DoubleTrapImagingBGSubtractedMixin(BGCorrectedAndorImage):
     """
     Image two traps with two fluorescence pulses and background-subtract
 
@@ -518,7 +518,7 @@ class DoubleTrapImagingClockPulseNormalisedBase(
         )
 
 
-class DoubleTrapImagingRepumpedNormalised(
+class DoubleTrapImagingRepumpedNormalisedMixin(
     NormalisedXXODTFastKineticsMixin, DoubleTrapImagingRepumpedNormalisedBase
 ):
     """
@@ -534,7 +534,7 @@ class DoubleTrapImagingRepumpedNormalised(
     """
 
 
-class DoubleTrapImagingClockPulseNormalised(
+class DoubleTrapImagingClockPulseNormalisedMixin(
     NormalisedXXODTFastKineticsMixin, DoubleTrapImagingClockPulseNormalisedBase
 ):
     """
@@ -550,7 +550,7 @@ class DoubleTrapImagingClockPulseNormalised(
     """
 
 
-class DoubleTrapImagingSpectroscopyRepumpedNormalised(
+class DoubleTrapImagingSpectroscopyRepumpedNormalisedMixin(
     NormalisedXXODTSpectroscopyFastKineticsMixin,
     DoubleTrapImagingRepumpedNormalisedBase,
 ):
@@ -565,3 +565,12 @@ class DoubleTrapImagingSpectroscopyRepumpedNormalised(
 
     * :meth:`~do_imaging_hook_andor`
     """
+
+
+DoubleTrapImagingBasic = DoubleTrapImagingBasicMixin
+DoubleTrapImagingBGSubtracted = DoubleTrapImagingBGSubtractedMixin
+DoubleTrapImagingRepumpedNormalised = DoubleTrapImagingRepumpedNormalisedMixin
+DoubleTrapImagingClockPulseNormalised = DoubleTrapImagingClockPulseNormalisedMixin
+DoubleTrapImagingSpectroscopyRepumpedNormalised = (
+    DoubleTrapImagingSpectroscopyRepumpedNormalisedMixin
+)

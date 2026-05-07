@@ -82,7 +82,7 @@ class SingleAndorImageConfig(AndorCameraConfig):
         return self.roi_buffer
 
 
-class SingleAndorImage(AndorImagingBase):
+class SingleAndorImageMixin(AndorImagingBase):
     """
     Image with a single fluorescence pulse using the Andor camera
 
@@ -121,3 +121,6 @@ class SingleAndorImage(AndorImagingBase):
         # No special processing - the base class already pushes sums/means to
         # result channels.
         pass
+
+
+SingleAndorImage = SingleAndorImageMixin

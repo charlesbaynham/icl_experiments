@@ -64,7 +64,7 @@ from repository.lib.fragments.timestamp_synchronizer import Timestamper
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithExperiment(ExpFragment, abc.ABC):
+class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -522,6 +522,9 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         self.relock_checker.check_and_log_relocks()
         # if relocks != 0:
         #     raise TransitoryError
+
+
+RedMOTWithExperiment = RedMOTWithExperimentBase
 
 
 # %%

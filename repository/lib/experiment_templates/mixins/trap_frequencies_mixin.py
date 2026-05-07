@@ -13,7 +13,7 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 
 
-class SwitchHODT(DipoleTrapWithExperiment):
+class SwitchHODTMixin(DipoleTrapWithExperiment):
     """
     Switch the 1064 power back up after the evaporation stage.
 
@@ -77,6 +77,9 @@ class SwitchHODT(DipoleTrapWithExperiment):
         delay(self.slosh_time.get())
         self.hodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
         self.vodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
+
+
+SwitchHODT = SwitchHODTMixin
 
 
 class HorizontalKickMixin(OpticalPumpingBase, DipoleTrapWithExperiment):

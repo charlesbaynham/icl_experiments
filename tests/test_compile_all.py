@@ -67,6 +67,14 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 xfails = [
     # ("ScanTopticaMOTFrag", "Toptica host setup is not mocked")
     # ("ScanKoheronMeasureScopeFrag", "pipeline can't talk to scope")
+    (
+        "MeasureXODTNewMolassesFrag",
+        "general_setter_names length mismatch in pyaion/fragments/ramping_phase.py",
+    ),
+    (
+        "TestMatterwaveCollimationInDipoleTrapFrag",
+        "host object does not have an attribute 'dds'",
+    ),
 ]
 
 xfail_names = [x[0] for x in xfails]

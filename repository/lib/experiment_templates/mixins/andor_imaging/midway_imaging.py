@@ -27,7 +27,7 @@ from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 logger = logging.getLogger(__name__)
 
 
-class MidSequenceAndorImage(AndorImagingBase):
+class MidSequenceAndorImageMixin(AndorImagingBase):
     """
     Image midway through the sequence, expressed as time since the start of the
     broadband red MOT
@@ -199,3 +199,6 @@ class MidSequenceAndorImage(AndorImagingBase):
     @kernel
     def process_grabber_data_hook(self, sums, means):
         self.andor_mean_bg_corrected.push(means[0] - means[1])
+
+
+MidSequenceAndorImage = MidSequenceAndorImageMixin

@@ -4,10 +4,10 @@ from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 from sipyco.packed_exceptions import GenericRemoteException
 
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 
 
-class CountConvertWithEMGain(EMGain):
+class CountConvertWithEMGainMixin(EMGainMixin):
     """
     Adds EM gain control to the Andor camera and converts the EM counts to photons
 
@@ -55,3 +55,6 @@ class CountConvertWithEMGain(EMGain):
         if hasattr(self, "cam"):
             self.andor_camera_control.cam.set_count_convert_mode(0)
         super().host_cleanup()
+
+
+CountConvertWithEMGain = CountConvertWithEMGainMixin

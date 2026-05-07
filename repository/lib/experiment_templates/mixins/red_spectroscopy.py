@@ -112,7 +112,7 @@ class _RedSpectroscopyBase(
         )
 
 
-class RedSpectroscopyDipoleTrap(
+class RedSpectroscopyDipoleTrapMixin(
     _RedSpectroscopyBase, FieldBoostMixin, DipoleTrapWithExperiment
 ):
     """
@@ -157,3 +157,6 @@ class RedSpectroscopyDipoleTrap(
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.do_red_spectroscopy()
+
+
+RedSpectroscopyDipoleTrap = RedSpectroscopyDipoleTrapMixin
