@@ -7,7 +7,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from numpy import int64
 
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
+    SingleAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class RedMOTWithClockLight(
-    SingleAndorImage,
+    SingleAndorImageMixin,
     FLIRBlueMOTMeasurementMixin,
     ClockSpectroscopyBase,
     RedMOTWithExperiment,

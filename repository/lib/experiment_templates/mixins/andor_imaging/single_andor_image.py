@@ -121,6 +121,3 @@ class SingleAndorImageMixin(AndorImagingBase):
         # No special processing - the base class already pushes sums/means to
         # result channels.
         pass
-
-
-SingleAndorImage = SingleAndorImageMixin

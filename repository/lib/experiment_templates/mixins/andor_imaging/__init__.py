@@ -1,7 +1,7 @@
 # Guard against the ARTIQ repository scanner
 if "file_import" not in __name__:
     from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-        SingleAndorImage,
+        SingleAndorImageMixin,
     )
 
     from .bg_corrected_andor_image import BGCorrectedAndorImage
@@ -12,7 +12,7 @@ if "file_import" not in __name__:
 
     __all__ = [
         "BGCorrectedAndorImage",
-        "SingleAndorImage",
+        "SingleAndorImageMixin",
         "TripleImageBasicMixin",
         "TripleImageRedMOTFastKineticsMixin",
         "TripleImageDipoleTrapFastKineticsMixin",

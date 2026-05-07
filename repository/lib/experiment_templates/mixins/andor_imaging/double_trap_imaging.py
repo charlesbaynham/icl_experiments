@@ -28,7 +28,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsDoubleTrapRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
+    SingleAndorImageMixin,
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 
@@ -176,7 +176,7 @@ _DOUBLE_TRAP_DEFAULT_ROIS = dict(
 )
 
 
-class DoubleTrapImagingBasicMixin(SingleAndorImage):
+class DoubleTrapImagingBasicMixin(SingleAndorImageMixin):
     """
     Image two traps with a single fluorescence pulse
 

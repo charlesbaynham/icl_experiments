@@ -10,7 +10,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
     BGCorrectedAndorImage,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
+    SingleAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
@@ -43,7 +43,7 @@ class _MeasureNarrowbandMOTFrag(RedMOTWithExperiment):
 class MeasureNarrowbandMOTFrag(
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
-    SingleAndorImage,
+    SingleAndorImageMixin,
     ConstantBeamsMixin,
     _MeasureNarrowbandMOTFrag,
 ):
