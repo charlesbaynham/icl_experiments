@@ -18,7 +18,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
-    SingleImageNormalisedFastKineticsRepumpedInterferometryMixin,
+    SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -128,7 +128,7 @@ class LMTInterferometryWithDoubleLaunchFrag(
 class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     LMTInterferometryMixin,
     LMTLaunchDoubleTrapMixin,
-    SingleImageNormalisedFastKineticsRepumpedInterferometryMixin,
+    SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,

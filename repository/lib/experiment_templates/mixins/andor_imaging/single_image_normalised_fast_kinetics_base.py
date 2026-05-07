@@ -20,14 +20,84 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyBase,
-)
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 
 logger = logging.getLogger(__name__)
 ANDOR_FK_G_BG_CORR_DATASET = "g_bg_corrected"
 ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
+
+
+def _single_trap_roi_block(x0, y0, x1, y1, offset, step, bg_width):
+    return np.array(
+        [
+            [x0, y0 - offset, x1, y1 - offset],
+            [x0, y0 + step - offset, x1, y1 + step - offset],
+            [x0 - bg_width, y0 - offset, x0, y1 - offset],
+            [x0 - bg_width, y0 + step - offset, x0, y1 + step - offset],
+            [x1, y0 - offset, x1 + bg_width, y1 - offset],
+            [x1, y0 + step - offset, x1 + bg_width, y1 + step - offset],
+        ],
+        dtype=np.int32,
+    )
+
+
+@portable
+def _background_correct_trap_block(sums, areas, start_index):
+    ground_signal_index = start_index
+    excited_signal_index = start_index + 1
+    ground_background_indices = (start_index + 2, start_index + 4)
+    excited_background_indices = (start_index + 3, start_index + 5)
+
+    ground_norm_factor = areas[ground_signal_index] / (
+        areas[ground_background_indices[0]] + areas[ground_background_indices[1]]
+    )
+    excited_norm_factor = areas[excited_signal_index] / (
+        areas[excited_background_indices[0]] + areas[excited_background_indices[1]]
+    )
+
+    ground_atom_number = sums[ground_signal_index] - ground_norm_factor * (
+        sums[ground_background_indices[0]] + sums[ground_background_indices[1]]
+    )
+    excited_atom_number = sums[excited_signal_index] - excited_norm_factor * (
+        sums[excited_background_indices[0]] + sums[excited_background_indices[1]]
+    )
+
+    return ground_atom_number, excited_atom_number
+
+
+@portable
+def _copy_trap_roi_block(
+    roi_buffer, start_index, x0, y0, x1, y1, offset, step, bg_width
+):
+    roi_buffer[start_index + 0][0] = x0
+    roi_buffer[start_index + 0][1] = y0 - offset
+    roi_buffer[start_index + 0][2] = x1
+    roi_buffer[start_index + 0][3] = y1 - offset
+
+    roi_buffer[start_index + 1][0] = x0
+    roi_buffer[start_index + 1][1] = y0 + step - offset
+    roi_buffer[start_index + 1][2] = x1
+    roi_buffer[start_index + 1][3] = y1 + step - offset
+
+    roi_buffer[start_index + 2][0] = x0 - bg_width
+    roi_buffer[start_index + 2][1] = y0 - offset
+    roi_buffer[start_index + 2][2] = x0
+    roi_buffer[start_index + 2][3] = y1 - offset
+
+    roi_buffer[start_index + 3][0] = x0 - bg_width
+    roi_buffer[start_index + 3][1] = y0 + step - offset
+    roi_buffer[start_index + 3][2] = x0
+    roi_buffer[start_index + 3][3] = y1 + step - offset
+
+    roi_buffer[start_index + 4][0] = x1
+    roi_buffer[start_index + 4][1] = y0 - offset
+    roi_buffer[start_index + 4][2] = x1 + bg_width
+    roi_buffer[start_index + 4][3] = y1 - offset
+
+    roi_buffer[start_index + 5][0] = x1
+    roi_buffer[start_index + 5][1] = y0 + step - offset
+    roi_buffer[start_index + 5][2] = x1 + bg_width
+    roi_buffer[start_index + 5][3] = y1 + step - offset
 
 
 class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
@@ -111,36 +181,17 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
         bg_width = self.bg_width.get()
         step = height - self._excited_shift
 
-        # ROI 0: signal ground
-        self.roi_buffer[0][0] = x0
-        self.roi_buffer[0][1] = y0 - offset
-        self.roi_buffer[0][2] = x1
-        self.roi_buffer[0][3] = y1 - offset
-        # ROI 1: signal excited
-        self.roi_buffer[1][0] = x0
-        self.roi_buffer[1][1] = y0 + step - offset
-        self.roi_buffer[1][2] = x1
-        self.roi_buffer[1][3] = y1 + step - offset
-        # ROI 2: bg_left ground
-        self.roi_buffer[2][0] = x0 - bg_width
-        self.roi_buffer[2][1] = y0 - offset
-        self.roi_buffer[2][2] = x0
-        self.roi_buffer[2][3] = y1 - offset
-        # ROI 3: bg_left excited
-        self.roi_buffer[3][0] = x0 - bg_width
-        self.roi_buffer[3][1] = y0 + step - offset
-        self.roi_buffer[3][2] = x0
-        self.roi_buffer[3][3] = y1 + step - offset
-        # ROI 4: bg_right ground
-        self.roi_buffer[4][0] = x1
-        self.roi_buffer[4][1] = y0 - offset
-        self.roi_buffer[4][2] = x1 + bg_width
-        self.roi_buffer[4][3] = y1 - offset
-        # ROI 5: bg_right excited
-        self.roi_buffer[5][0] = x1
-        self.roi_buffer[5][1] = y0 + step - offset
-        self.roi_buffer[5][2] = x1 + bg_width
-        self.roi_buffer[5][3] = y1 + step - offset
+        _copy_trap_roi_block(
+            roi_buffer=self.roi_buffer,
+            start_index=0,
+            x0=x0,
+            y0=y0,
+            x1=x1,
+            y1=y1,
+            offset=offset,
+            step=step,
+            bg_width=bg_width,
+        )
 
         return self.roi_buffer
 
@@ -279,36 +330,17 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
         bx1 = self.bwd_roi_x1.get()
         by1 = self.bwd_roi_y1.get()
 
-        # ROI 0: top signal ground
-        self.roi_buffer[0][0] = bx0
-        self.roi_buffer[0][1] = by0 - offset
-        self.roi_buffer[0][2] = bx1
-        self.roi_buffer[0][3] = by1 - offset
-        # ROI 1: top signal excited
-        self.roi_buffer[1][0] = bx0
-        self.roi_buffer[1][1] = by0 + step - offset
-        self.roi_buffer[1][2] = bx1
-        self.roi_buffer[1][3] = by1 + step - offset
-        # ROI 2: top bg_left ground
-        self.roi_buffer[2][0] = bx0 - bg_width
-        self.roi_buffer[2][1] = by0 - offset
-        self.roi_buffer[2][2] = bx0
-        self.roi_buffer[2][3] = by1 - offset
-        # ROI 3: top bg_left excited
-        self.roi_buffer[3][0] = bx0 - bg_width
-        self.roi_buffer[3][1] = by0 + step - offset
-        self.roi_buffer[3][2] = bx0
-        self.roi_buffer[3][3] = by1 + step - offset
-        # ROI 4: top bg_right ground
-        self.roi_buffer[4][0] = bx1
-        self.roi_buffer[4][1] = by0 - offset
-        self.roi_buffer[4][2] = bx1 + bg_width
-        self.roi_buffer[4][3] = by1 - offset
-        # ROI 5: top bg_right excited
-        self.roi_buffer[5][0] = bx1
-        self.roi_buffer[5][1] = by0 + step - offset
-        self.roi_buffer[5][2] = bx1 + bg_width
-        self.roi_buffer[5][3] = by1 + step - offset
+        _copy_trap_roi_block(
+            roi_buffer=self.roi_buffer,
+            start_index=0,
+            x0=bx0,
+            y0=by0,
+            x1=bx1,
+            y1=by1,
+            offset=offset,
+            step=step,
+            bg_width=bg_width,
+        )
 
         # Bottom trap = forward ROIs at indices 6..11
         fx0 = self.fwd_roi_x0.get()
@@ -316,36 +348,17 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
         fx1 = self.fwd_roi_x1.get()
         fy1 = self.fwd_roi_y1.get()
 
-        # ROI 6: bottom signal ground
-        self.roi_buffer[6][0] = fx0
-        self.roi_buffer[6][1] = fy0 - offset
-        self.roi_buffer[6][2] = fx1
-        self.roi_buffer[6][3] = fy1 - offset
-        # ROI 7: bottom signal excited
-        self.roi_buffer[7][0] = fx0
-        self.roi_buffer[7][1] = fy0 + step - offset
-        self.roi_buffer[7][2] = fx1
-        self.roi_buffer[7][3] = fy1 + step - offset
-        # ROI 8: bottom bg_left ground
-        self.roi_buffer[8][0] = fx0 - bg_width
-        self.roi_buffer[8][1] = fy0 - offset
-        self.roi_buffer[8][2] = fx0
-        self.roi_buffer[8][3] = fy1 - offset
-        # ROI 9: bottom bg_left excited
-        self.roi_buffer[9][0] = fx0 - bg_width
-        self.roi_buffer[9][1] = fy0 + step - offset
-        self.roi_buffer[9][2] = fx0
-        self.roi_buffer[9][3] = fy1 + step - offset
-        # ROI 10: bottom bg_right ground
-        self.roi_buffer[10][0] = fx1
-        self.roi_buffer[10][1] = fy0 - offset
-        self.roi_buffer[10][2] = fx1 + bg_width
-        self.roi_buffer[10][3] = fy1 - offset
-        # ROI 11: bottom bg_right excited
-        self.roi_buffer[11][0] = fx1
-        self.roi_buffer[11][1] = fy0 + step - offset
-        self.roi_buffer[11][2] = fx1 + bg_width
-        self.roi_buffer[11][3] = fy1 + step - offset
+        _copy_trap_roi_block(
+            roi_buffer=self.roi_buffer,
+            start_index=6,
+            x0=fx0,
+            y0=fy0,
+            x1=fx1,
+            y1=fy1,
+            offset=offset,
+            step=step,
+            bg_width=bg_width,
+        )
 
         return self.roi_buffer
 
@@ -591,11 +604,11 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
         # TODO : This BG subtraction method is common to both of the double and single trap so in principle should be
         # in the top base class, but I need to figure out how the ROIs are defined.
 
-        norm_factor_1 = areas[0] / (areas[2] + areas[4])
-        norm_factor_2 = areas[1] / (areas[3] + areas[5])
-
-        atom_num_1 = sums[0] - norm_factor_1 * (sums[2] + sums[4])
-        atom_num_2 = sums[1] - norm_factor_2 * (sums[3] + sums[5])
+        atom_num_1, atom_num_2 = _background_correct_trap_block(
+            sums=sums,
+            areas=areas,
+            start_index=0,
+        )
         atom_number = atom_num_1 + atom_num_2
 
         if atom_number == 0:
@@ -664,7 +677,8 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
         self.setattr_result("atom_number_imbalance", FloatChannel)
         self.setattr_result("atom_number_total", FloatChannel)
 
-        # Maybe we want information about the individual corrected ground and excited state atom number like in the single imaging code, but for now we will use the same result channels as in the old bg subtraction method.
+        # Keep the double-trap output focused on per-trap excitation fractions,
+        # per-trap atom numbers, imbalance, and total population.
 
         self.excitation_fraction_forward: FloatChannel
         self.atom_number_forward: FloatChannel
@@ -683,20 +697,11 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
 
         # TODO Check that the indices are correct
 
-        norm_factor_ground_top = areas[0] / (areas[2] + areas[4])
-        norm_factor_excited_top = areas[1] / (areas[3] + areas[5])
-        norm_factor_ground_bottom = areas[6] / (areas[8] + areas[10])
-        norm_factor_excited_bottom = areas[7] / (areas[9] + areas[11])
-
-        atom_number_ground_top = sums[0] - norm_factor_ground_top * (sums[2] + sums[4])
-        atom_number_excited_top = sums[1] - norm_factor_excited_top * (
-            sums[3] + sums[5]
+        atom_number_ground_top, atom_number_excited_top = (
+            _background_correct_trap_block(sums=sums, areas=areas, start_index=0)
         )
-        atom_number_ground_bottom = sums[6] - norm_factor_ground_bottom * (
-            sums[8] + sums[10]
-        )
-        atom_number_excited_bottom = sums[7] - norm_factor_excited_bottom * (
-            sums[9] + sums[11]
+        atom_number_ground_bottom, atom_number_excited_bottom = (
+            _background_correct_trap_block(sums=sums, areas=areas, start_index=6)
         )
 
         atom_number_total = (
@@ -768,100 +773,6 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
         )
 
 
-class SingleImageNormalisedFastKineticsDoubleTrapRepumpedBase(
-    SingleImageNormalisedFastKineticsDoubleTrapBase
-):
-    """
-    Adds repumping after the first fluorescence pulse to a
-    :class:`~.SingleImageNormalisedFastKineticsDoubleTrapBase` experiment.
-
-    This is a mixin for :class:`~.SingleImageNormalisedFastKineticsDoubleTrapBase`.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_first_pulse`
-    * :meth:`~do_imaging_hook_andor`
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "delay_repumps_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before repumps turn on",
-            default=0.01e-3,
-            unit="ms",
-        )
-        self.delay_repumps_after_first_pulse: FloatParamHandle
-
-    @kernel
-    def do_first_pulse(self):
-        self.do_pulse()
-        delay(self.delay_repumps_after_first_pulse.get())
-        self.blue_3d_mot.turn_on_repumpers()
-
-    def time_dropped_before_first_pulse(self):
-        return ()
-
-
-class SingleImageNormalisedFastKineticsDoubleTrapClockPulseBase(
-    SingleImageNormalisedFastKineticsDoubleTrapBase, ClockSpectroscopyBase
-):
-    """
-    Adds a clock pi pulse after the first fluorescence pulse to a
-    :class:`~.SingleImageNormalisedFastKineticsDoubleTrapBase` experiment, in order to selectively
-    bring the excited state in the ground state before imaging.
-
-    This is a mixin for :class:`~.SingleImageNormalisedFastKineticsDoubleTrapBase`.
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_first_pulse`
-    * :meth:`~do_imaging_hook_andor`
-    """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "delay_clock_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before the pi pulse",
-            default=0.01e-3,
-            unit="ms",
-        )
-        self.delay_clock_after_first_pulse: FloatParamHandle
-
-        self.setattr_param(
-            "imaging_clock_pulse_detuning",
-            FloatParam,
-            "Detuning for the imaging clock pulse",
-            default=0.0,
-            unit="kHz",
-        )
-        self.imaging_clock_pulse_detuning: FloatParamHandle
-
-    @kernel
-    def do_first_pulse(self):
-        self.do_pulse()
-        delay(self.delay_clock_after_first_pulse.get())
-        self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.imaging_clock_pulse_detuning.get()
-            + constants.LMT_DOWN_BEAM_SHIFT,
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
-
-        delay(1e-6)
-
-        # PI PULSE
-
-        self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
-        self.clock_down_dds.sw.off()
-
-
 class SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase(
     SingleImageNormalisedFastKineticsDoubleTrapBase
 ):
@@ -903,53 +814,6 @@ class SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase(
                 "delay_between_interferometry_pulses",
                 constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES,
             ),
-        ]
-
-        for handle_name, default_val in handles_and_default_vals:
-            if not hasattr(self, handle_name):
-                logger.warning(
-                    "NormaliseXXODT readout is applying gravity corrections assuming that you're doing "
-                    "slicing but you're not, so the gravity corrections will be wrong. "
-                    "Specifically the %s parameter is not present.",
-                    handle_name,
-                )
-            else:
-                val = getattr(self, handle_name).get()
-
-                diff = val - default_val
-                if abs(diff) / default_val > 1e-6:
-                    logger.warning(
-                        "NormaliseXXODT readout is applying gravity corrections based on the "
-                        "default parameter value of %s = %s, but you have set it to %s so the "
-                        "excited state ROI will be in the wrong place.",
-                        handle_name,
-                        default_val,
-                        val,
-                    )
-
-
-class SingleImageNormalisedFastKineticsDoubleTrapSpectroscopyBase(
-    SingleImageNormalisedFastKineticsDoubleTrapBase
-):
-
-    def time_dropped_before_first_pulse(self):
-        return (
-            constants.SHELVING_PULSE_CLEAROUT_DURATION
-            + constants.CLOCK_SHELVING_PULSE_TIME
-            + constants.CLOCK_PI_TIME
-            + constants.DELAY_AFTER_CLOCK_SPECTROSCOPY
-        )
-
-    def host_setup(self):
-
-        handles_and_default_vals = [
-            (
-                "shelving_pulse_clearout_duration",
-                constants.SHELVING_PULSE_CLEAROUT_DURATION,
-            ),
-            ("shelving_pulse_time", constants.CLOCK_SHELVING_PULSE_TIME),
-            ("spectroscopy_pulse_time", constants.CLOCK_PI_TIME),
-            ("delay_after_spectroscopy", constants.DELAY_AFTER_CLOCK_SPECTROSCOPY),
         ]
 
         for handle_name, default_val in handles_and_default_vals:
