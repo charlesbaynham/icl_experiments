@@ -537,7 +537,10 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         self.do_first_series()
         self.post_first_series()  # call rpc to get images, start next acquisition
 
-        # FIXME This is a temporary patch for an experiment we're running - do not merge it to master
+        # HACK This was a temporary patch for an experiment we were running, but
+        # it's actually better than the bugged code that was previously there so
+        # we're leaving it for now. Better to delete it and move over to the new
+        # imaging setup entirely.
 
         at_mu(
             t_start_first_series_mu
@@ -679,9 +682,6 @@ class NormalisedFastKineticsRepumpedMixin(NormalisedFastKineticsBase):
         self.do_pulse()
         delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
-
-
-# FIXME CHarles loook here
 
 
 class NormalisedFastKineticsClockPulseMixin(
