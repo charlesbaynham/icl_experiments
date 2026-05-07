@@ -1,8 +1,6 @@
 import logging
 
 import numpy as np
-from artiq.language import TArray
-from artiq.language import TInt32
 from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
