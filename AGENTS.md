@@ -398,10 +398,6 @@ Key differences:
 - No FIXME markers allowed in commits on the master branch
 - Document new experiments thoroughly
 
-### AI commits
-
-- When commiting code authored by AI assistants, prefix commits with "[AI]"
-
 ### Type annotation
 
 - ARTIQ and ndscan make heavy use of `setattr_xxxxxx` methods. These follow the convention that `self.setattr_xxxxx("name", ObjectType)` will make an object of type `ObjectType` and save it as `self.name`.
@@ -490,7 +486,7 @@ from artiq.master.worker_impl import CCB
     - Where appropriate, sensible "max" and "min" values should be added when making new parameters
 
 3. **External Libraries**:
-    - Where external libraries require non-base units (e.g. a laser library that takes current in "mA", do the conversion as close as possible to the call to the external library
+    - Where external libraries require non-base units (e.g. a laser library that takes current in "mA"), do the conversion as close as possible to the call to the external library
     - Example:
         ```python
         current = self.current_param.get()  # Get in Amperes (base SI)
