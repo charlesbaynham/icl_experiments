@@ -1,26 +1,31 @@
 import logging
 
-from artiq.language import delay
-from artiq.language import kernel
-from ndscan.experiment.parameters import FloatParam
-from ndscan.experiment.parameters import FloatParamHandle
-
-from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
-    SingleImageNormalisedDoubleTrapInterferometryBase,
+    DroptimeInterferometryMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    DroptimeSpectroscopyMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    RepumpingWith679Mixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    RepumpingWithClockMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    SingleImageNormalisedDoubleTrapBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
     SingleImageNormalisedSingleTrapBase,
-)
-from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
-    ClockSpectroscopyBase,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class SingleImageNormalisedSingleTrapRepumpedSpectroscopyMixin(
-    SingleImageNormalisedSingleTrapBase
+    RepumpingWith679Mixin,
+    DroptimeSpectroscopyMixin,
+    SingleImageNormalisedSingleTrapBase,
 ):
     """
     Single-trap single-image readout for the clock-spectroscopy path.
@@ -32,35 +37,11 @@ class SingleImageNormalisedSingleTrapRepumpedSpectroscopyMixin(
     background subtraction, and result-channel updates.
     """
 
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "delay_repumps_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before repumps turn on",
-            default=0.01e-3,
-            unit="ms",
-        )
-        self.delay_repumps_after_first_pulse: FloatParamHandle
-
-    @kernel
-    def do_first_pulse(self):
-        self.do_pulse()
-        delay(self.delay_repumps_after_first_pulse.get())
-        self.blue_3d_mot.turn_on_repumpers()
-
-    def time_dropped_before_first_pulse(self):
-        return (
-            constants.SHELVING_PULSE_CLEAROUT_DURATION
-            + constants.CLOCK_SHELVING_PULSE_TIME
-            + constants.CLOCK_PI_TIME
-        )
-
 
 class SingleImageNormalisedSingleTrapClockPulseSpectroscopyMixin(
+    RepumpingWithClockMixin,
+    DroptimeSpectroscopyMixin,
     SingleImageNormalisedSingleTrapBase,
-    ClockSpectroscopyBase,
 ):
     """
     Single-trap single-image readout for the clock-spectroscopy path using a
@@ -72,54 +53,11 @@ class SingleImageNormalisedSingleTrapClockPulseSpectroscopyMixin(
     population.
     """
 
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "delay_clock_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before the pi pulse",
-            default=0.01e-3,
-            unit="ms",
-        )
-        self.delay_clock_after_first_pulse: FloatParamHandle
-
-        self.setattr_param(
-            "imaging_clock_pulse_detuning",
-            FloatParam,
-            "Detuning for the imaging clock pulse",
-            default=0.0,
-            unit="kHz",
-        )
-        self.imaging_clock_pulse_detuning: FloatParamHandle
-
-    @kernel
-    def do_first_pulse(self):
-        self.do_pulse()
-        delay(self.delay_clock_after_first_pulse.get())
-        self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.imaging_clock_pulse_detuning.get()
-            + constants.LMT_DOWN_BEAM_SHIFT,
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
-
-        delay(1e-6)
-
-        self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
-        self.clock_down_dds.sw.off()
-
-    def time_dropped_before_first_pulse(self):
-        return (
-            constants.SHELVING_PULSE_CLEAROUT_DURATION
-            + constants.CLOCK_SHELVING_PULSE_TIME
-            + constants.CLOCK_PI_TIME
-        )
-
 
 class SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin(
-    SingleImageNormalisedDoubleTrapInterferometryBase
+    RepumpingWith679Mixin,
+    DroptimeInterferometryMixin,
+    SingleImageNormalisedDoubleTrapBase,
 ):
     """
     Double-trap single-image readout for the LMT interferometry path.
@@ -130,28 +68,11 @@ class SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin(
     from one fast-kinetics image series.
     """
 
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "delay_repumps_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before repumps turn on",
-            default=0.01e-3,
-            unit="ms",
-        )
-        self.delay_repumps_after_first_pulse: FloatParamHandle
-
-    @kernel
-    def do_first_pulse(self):
-        self.do_pulse()
-        delay(self.delay_repumps_after_first_pulse.get())
-        self.blue_3d_mot.turn_on_repumpers()
-
 
 class SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin(
-    SingleImageNormalisedDoubleTrapInterferometryBase,
-    ClockSpectroscopyBase,
+    RepumpingWithClockMixin,
+    DroptimeInterferometryMixin,
+    SingleImageNormalisedDoubleTrapBase,
 ):
     """
     Double-trap single-image readout for the LMT interferometry path using a
@@ -162,41 +83,3 @@ class SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin(
     into the fluorescing state so the second pulse measures the excited-state
     population for both traps.
     """
-
-    def build_fragment(self):
-        super().build_fragment()
-
-        self.setattr_param(
-            "delay_clock_after_first_pulse",
-            FloatParam,
-            "Delay after first fluorescence pulse before the pi pulse",
-            default=0.01e-3,
-            unit="ms",
-        )
-        self.delay_clock_after_first_pulse: FloatParamHandle
-
-        self.setattr_param(
-            "imaging_clock_pulse_detuning",
-            FloatParam,
-            "Detuning for the imaging clock pulse",
-            default=0.0,
-            unit="kHz",
-        )
-        self.imaging_clock_pulse_detuning: FloatParamHandle
-
-    @kernel
-    def do_first_pulse(self):
-        self.do_pulse()
-        delay(self.delay_clock_after_first_pulse.get())
-        self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.imaging_clock_pulse_detuning.get()
-            + constants.LMT_DOWN_BEAM_SHIFT,
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
-
-        delay(1e-6)
-
-        self.clock_down_dds.sw.on()
-        delay(constants.CLOCK_DOWN_PI_TIME)
-        self.clock_down_dds.sw.off()

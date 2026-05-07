@@ -1,3 +1,8 @@
+"""
+Mixin bases for single-image normalised fast kinetics readout with the Andor
+camera. Used only in single_image_normalised_fast_kinetics.py, but split out here for organisation
+"""
+
 import abc
 import logging
 
@@ -19,6 +24,9 @@ from ndscan.experiment.parameters import IntParamHandle
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
 )
 from repository.lib.fragments.cameras.andor_camera import FastKineticsCameraConfig
 
@@ -778,17 +786,19 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         )
 
 
-class SingleImageNormalisedDoubleTrapInterferometryBase(
-    SingleImageNormalisedDoubleTrapBase
-):
+# %% Gravity compensation mixins
+
+
+class DroptimeInterferometryMixin(SingleImageNormalisedBase):
     """
+    Set up ROI drops for interferometry
+
     This class should not need to exist - it's here to tell the imaging setup
     how long the atoms are falling for. It's therefore custom for a given
     experiment (interferometry) in this case and fragile. We will get rid of it
     soon using the code on the `icl_experiments.dma_lmt_abc` branch.
     """
 
-    # TODO: IS THIS REALLY INTERFEROMETRY?
     def time_dropped_before_first_pulse(self):
         """
         Compensate for the drop under gravity in the excited cloud relative to
@@ -807,3 +817,107 @@ class SingleImageNormalisedDoubleTrapInterferometryBase(
             + 2 * constants.CLOCK_PI_TIME
             + 2 * constants.DELAY_BETWEEN_INTERFEROMETRY_PULSES
         )
+
+
+class DroptimeSpectroscopyMixin(SingleImageNormalisedBase):
+    """
+    Set up ROI drops for spectroscopy
+
+    This class should not need to exist - it's here to tell the imaging setup
+    how long the atoms are falling for. It's therefore custom for a given
+    experiment (interferometry) in this case and fragile. We will get rid of it
+    soon using the code on the `icl_experiments.dma_lmt_abc` branch.
+    """
+
+    def time_dropped_before_first_pulse(self):
+        """
+        Compensate for the drop under gravity in the excited cloud relative to
+        the ground cloud.
+        """
+
+        # TODO: This logic uses values from constants but these are defaults and
+        # might be overridden by the user. If they do this, this calculation
+        # will be wrong. It does this because this fragment is configured in
+        # build_fragment where parameter values are not yet set. This ought to
+        # be updated.
+
+        return (
+            constants.SHELVING_PULSE_CLEAROUT_DURATION
+            + constants.CLOCK_SHELVING_PULSE_TIME
+            + constants.CLOCK_PI_TIME
+        )
+
+
+# %% Repumping mixins
+
+
+class RepumpingWith679Mixin(SingleImageNormalisedBase):
+    """
+    Repumping-based normalisation for SingleImage imaging
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_repumps_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before repumps turn on",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_repumps_after_first_pulse: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_repumps_after_first_pulse.get())
+        self.blue_3d_mot.turn_on_repumpers()
+
+
+class RepumpingWithClockMixin(
+    SingleImageNormalisedSingleTrapBase,
+    SingleImageNormalisedBase,
+    ClockSpectroscopyBase,
+):
+    """
+    Repumping with a clock pulse for SingleImage imaging
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_clock_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before the pi pulse",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_clock_after_first_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "imaging_clock_pulse_detuning",
+            FloatParam,
+            "Detuning for the imaging clock pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.imaging_clock_pulse_detuning: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_clock_after_first_pulse.get())
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.imaging_clock_pulse_detuning.get()
+            + constants.LMT_DOWN_BEAM_SHIFT,
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+
+        delay(1e-6)
+
+        self.clock_down_dds.sw.on()
+        delay(constants.CLOCK_DOWN_PI_TIME)
+        self.clock_down_dds.sw.off()
