@@ -2,15 +2,15 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingClockPulseNormalised,
+    DoubleTrapImagingClockPulseNormalisedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingRepumpedNormalisedMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -64,7 +64,7 @@ class LMTInterferometryFrag(
     LMTInterferometryMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsClockPulseMixin,
-    EMGain,
+    EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -72,7 +72,7 @@ class LMTInterferometryFrag(
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     LMT interferometry without launch
@@ -97,8 +97,8 @@ class LMTInterferometryFrag(
 class LMTInterferometryWithDoubleLaunchFrag(
     LMTInterferometryMixin,
     LMTLaunchDoubleTrapMixin,
-    DoubleTrapImagingClockPulseNormalised,
-    EMGain,
+    DoubleTrapImagingClockPulseNormalisedMixin,
+    EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -106,7 +106,7 @@ class LMTInterferometryWithDoubleLaunchFrag(
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     LMT interferometry with double trap launch
@@ -132,7 +132,7 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     LMTInterferometryMixin,
     LMTLaunchDoubleTrapMixin,
     SingleImageNormalisedFastKineticsRepumpedInterferometryMixin,
-    EMGain,
+    EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -140,7 +140,7 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     LMT interferometry with double trap launch but using only a single image
@@ -164,8 +164,8 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
     LMTInterferometryMixin,
-    DoubleTrapImagingClockPulseNormalised,
-    EMGain,
+    DoubleTrapImagingClockPulseNormalisedMixin,
+    EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -175,7 +175,7 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     LoadSingleXODTWithPainterMixin,
     LMTLaunchDoubleTrapShapedPulseMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     LMT interferometry with double trap launch and shaped first pulse
@@ -205,7 +205,7 @@ class LMTInterferometryWithLaunchFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -213,7 +213,7 @@ class LMTInterferometryWithLaunchFrag(
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     LMT interferometry with launch
@@ -240,7 +240,7 @@ class ShapedFirstPulseLMTInterferometryFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -248,7 +248,7 @@ class ShapedFirstPulseLMTInterferometryFrag(
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     LMT interferometry with shaped selective pulses

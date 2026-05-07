@@ -144,6 +144,3 @@ class EMGainMixin(AndorImagingBase):
         if self.em_gain_enabled.get():
             logger.info("EM gain turned off again")
         return super().host_cleanup()
-
-
-EMGain = EMGainMixin

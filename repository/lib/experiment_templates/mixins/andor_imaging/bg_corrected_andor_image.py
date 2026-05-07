@@ -215,7 +215,3 @@ class BGCorrectedAndorImageSingleXODTMixin(BGCorrectedAndorImageMixin):
             ],
         )
         return f  # type: ignore
-
-
-BGCorrectedAndorImage = BGCorrectedAndorImageMixin
-BGCorrectedAndorImageSingleXODT = BGCorrectedAndorImageSingleXODTMixin

@@ -55,6 +55,3 @@ class CountConvertWithEMGainMixin(EMGainMixin):
         if hasattr(self, "cam"):
             self.andor_camera_control.cam.set_count_convert_mode(0)
         super().host_cleanup()
-
-
-CountConvertWithEMGain = CountConvertWithEMGainMixin

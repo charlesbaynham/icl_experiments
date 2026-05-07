@@ -7,7 +7,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
     AbsorptionDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsMixin,
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 class MeasureEvaporatedXODTFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsMixin,
@@ -58,7 +58,7 @@ class MeasureEvaporatedXODTFrag(
 
 class MeasureXODTNewMolassesFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTMixin,
     XODTRetroedMolassesPlusDipoleRampMixin,
 ):

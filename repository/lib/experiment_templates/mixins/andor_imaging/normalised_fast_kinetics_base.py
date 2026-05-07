@@ -275,7 +275,7 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
 
 class NormalisedFastKineticsBase(AndorImagingBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create
@@ -527,7 +527,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
 class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create

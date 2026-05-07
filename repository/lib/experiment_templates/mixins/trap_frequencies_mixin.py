@@ -6,14 +6,14 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 import repository.lib.constants as constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingBase,
 )
 
 
-class SwitchHODTMixin(DipoleTrapWithExperiment):
+class SwitchHODTMixin(DipoleTrapWithExperimentBase):
     """
     Switch the 1064 power back up after the evaporation stage.
 
@@ -79,10 +79,7 @@ class SwitchHODTMixin(DipoleTrapWithExperiment):
         self.vodt_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
 
-SwitchHODT = SwitchHODTMixin
-
-
-class HorizontalKickMixin(OpticalPumpingBase, DipoleTrapWithExperiment):
+class HorizontalKickMixin(OpticalPumpingBase, DipoleTrapWithExperimentBase):
     """
     Use the spinpol beam to displace the atoms in the dipole trap
     after the evaporation stage.

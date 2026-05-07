@@ -3,12 +3,14 @@ import logging
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class SpectroscopyParamsMixin(RedMOTWithExperiment):
+class SpectroscopyParamsMixin(RedMOTWithExperimentBase):
     """
     Adds parameters for controlling a spectroscopy pulse
 

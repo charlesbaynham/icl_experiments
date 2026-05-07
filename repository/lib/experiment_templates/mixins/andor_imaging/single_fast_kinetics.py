@@ -334,7 +334,7 @@ class SingleImageNormalisedDipoleTrapFastKineticsMixin(
     SingleImageNormalisedFastKineticsBase
 ):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for

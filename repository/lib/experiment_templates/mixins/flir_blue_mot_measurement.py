@@ -5,13 +5,15 @@ from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.cameras.dual_camera_measurer import DualCameraMeasurement
 
 logger = logging.getLogger(__name__)
 
 
-class FLIRBlueMOTMeasurementMixin(RedMOTWithExperiment):
+class FLIRBlueMOTMeasurementMixin(RedMOTWithExperimentBase):
     """
     Image the blue MOT using the FLIR cameras
 

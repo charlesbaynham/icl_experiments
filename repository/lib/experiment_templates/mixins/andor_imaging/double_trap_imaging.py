@@ -13,7 +13,7 @@ from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImage,
+    BGCorrectedAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedXXODTFastKineticsMixin,
@@ -149,7 +149,7 @@ class _DoubleTrapAndorImageConfigBase(AndorCameraConfig):
 
 
 class DoubleTrapBasicAndorImageConfig(_DoubleTrapAndorImageConfigBase):
-    """Config for DoubleTrapImagingBasic: 2 ROIs, 1 readout, 1 image per series."""
+    """Config for DoubleTrapImagingBasicMixin: 2 ROIs, 1 readout, 1 image per series."""
 
     num_andor_images = 1
     num_images_per_series = 1
@@ -157,7 +157,7 @@ class DoubleTrapBasicAndorImageConfig(_DoubleTrapAndorImageConfigBase):
 
 
 class DoubleTrapBGCorrectedAndorImageConfig(_DoubleTrapAndorImageConfigBase):
-    """Config for DoubleTrapImagingBGSubtracted: 2 ROIs, 2 readouts, 2 images per series."""
+    """Config for DoubleTrapImagingBGSubtractedMixin: 2 ROIs, 2 readouts, 2 images per series."""
 
     num_andor_images = 2
     num_images_per_series = 2
@@ -197,7 +197,7 @@ class DoubleTrapImagingBasicMixin(SingleAndorImageMixin):
         return f  # type: ignore
 
 
-class DoubleTrapImagingBGSubtractedMixin(BGCorrectedAndorImage):
+class DoubleTrapImagingBGSubtractedMixin(BGCorrectedAndorImageMixin):
     """
     Image two traps with two fluorescence pulses and background-subtract
 
@@ -567,10 +567,6 @@ class DoubleTrapImagingSpectroscopyRepumpedNormalisedMixin(
     """
 
 
-DoubleTrapImagingBasic = DoubleTrapImagingBasicMixin
-DoubleTrapImagingBGSubtracted = DoubleTrapImagingBGSubtractedMixin
-DoubleTrapImagingRepumpedNormalised = DoubleTrapImagingRepumpedNormalisedMixin
-DoubleTrapImagingClockPulseNormalised = DoubleTrapImagingClockPulseNormalisedMixin
 DoubleTrapImagingSpectroscopyRepumpedNormalised = (
     DoubleTrapImagingSpectroscopyRepumpedNormalisedMixin
 )

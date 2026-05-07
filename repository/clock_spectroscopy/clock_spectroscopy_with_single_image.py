@@ -4,9 +4,9 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
     SingleImageNormalisedDipoleTrapFastKineticsMixin,
 )
@@ -40,14 +40,14 @@ class ClockSpecFromSingleXODTShelvingSingleImageFrag(
     ClockRabiSpectroscopyDipoleTrapMixin,
     SingleImageNormalisedDipoleTrapFastKineticsMixin,
     SingleImageNormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     FieldOnlyRampInEvapMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy with shelving and clearout from dropped single XODT using only a single image

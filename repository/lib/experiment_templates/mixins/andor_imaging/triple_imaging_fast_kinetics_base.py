@@ -252,7 +252,7 @@ class TripleFKDoubleTrapConfig(FastKineticsCameraConfig):
 
 class TripleImageFastKineticsBase(AndorImagingBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to take three images and create

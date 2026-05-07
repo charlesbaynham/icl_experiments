@@ -523,7 +523,7 @@ class SingleImageNormalisedFastKineticsSingleTrapBase(
     SingleImageNormalisedFastKineticsBase
 ):
     """
-    Implements normalised readout using a single image for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout using a single image for a :py:class:`~RedMOTWithExperimentBase`
     experiment.
 
     This mixin base uses the Andor camera to take one fast kinetics series with two images and creates a
@@ -616,7 +616,7 @@ class SingleImageNormalisedFastKineticsDoubleTrapBase(
     SingleImageNormalisedFastKineticsBase
 ):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create

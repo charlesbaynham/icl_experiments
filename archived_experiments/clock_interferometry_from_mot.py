@@ -2,7 +2,7 @@ import logging
 
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedRedMOTFastKineticsMixin,
 )
@@ -24,7 +24,7 @@ class MOTClockInterferometryNormalizedExp(
     ClockShelvingAndClearoutRedMOTMixin,
     FLIRBlueMOTMeasurementMixin,
     NormalisedRedMOTFastKineticsMixin,
-    EMGain,
+    EMGainMixin,
 ):
     """
     Clock interferometry from red MOT with clock shelving and fast kinetics

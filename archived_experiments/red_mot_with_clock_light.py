@@ -15,7 +15,9 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,7 @@ class RedMOTWithClockLight(
     SingleAndorImageMixin,
     FLIRBlueMOTMeasurementMixin,
     ClockSpectroscopyBase,
-    RedMOTWithExperiment,
+    RedMOTWithExperimentBase,
 ):
     """
     Image red MOT leaving the clock light on throughout

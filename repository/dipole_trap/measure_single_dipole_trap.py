@@ -14,9 +14,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
     AbsorptionDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationSingleRampMixin,
 )
@@ -29,7 +29,9 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import (
     HorizontalKickMixin,
 )
-from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import SwitchHODT
+from repository.lib.experiment_templates.mixins.trap_frequencies_mixin import (
+    SwitchHODTMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesMixin,
@@ -40,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 class MeasureSingleXODTBGCorrectedFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTMixin,
 ):
     """
@@ -74,7 +76,7 @@ class MeasureSingleXODTBGCorrectedFrag(
 
 class SingleXODTSloshedFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTMixin,
 ):
     """
@@ -127,11 +129,11 @@ class SingleXODTSloshedFrag(
 
 class SingleXODTVerticalSloshedFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
     EvaporationSingleRampMixin,
-    SwitchHODT,
+    SwitchHODTMixin,
 ):
     """
     Vertically slosh a single XODT
@@ -143,8 +145,8 @@ class SingleXODTVerticalSloshedFrag(
 
 class SingleXODTHorizontalYSloshedFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
-    EMGain,
+    BGCorrectedAndorImageSingleXODTMixin,
+    EMGainMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesMixin,
     EvaporationThreeRampsMixin,

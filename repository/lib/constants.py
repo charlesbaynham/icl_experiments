@@ -1204,7 +1204,7 @@ else:
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
-# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
+# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperimentBase, so effectively ignored
 # This should be confirmed and then these settings removed
 RED_BROADBAND_BIAS_FIELD_START = [
     B_FIELD_BIAS_BLUE_MOT_X,

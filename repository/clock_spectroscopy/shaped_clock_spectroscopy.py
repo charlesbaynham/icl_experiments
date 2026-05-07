@@ -6,9 +6,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from numpy import int64
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -61,12 +61,12 @@ class ShapedClockSpecFromSingleXODTFrag(
     FieldOnlyRampInEvapMixin,
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
     LoadSingleXODTMixin,
     # Base:
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Shaped clock spectroscopy from dropped single XODT
@@ -103,12 +103,12 @@ class ShapedClockSpecWithSlicingFrag(
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
     LoadSingleXODTMixin,
     # Base:
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Shaped clock spectroscopy from dropped, velocity-sliced single XODT
@@ -154,12 +154,12 @@ class ShapedClockSpecWithEvapAndSlicingFrag(
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
     LoadSingleXODTMixin,
     # Base:
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Shaped clock spectroscopy from dropped, velocity-sliced and evaporated single XODT
@@ -198,7 +198,7 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
     # Imaging
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading and state preparation
     LoadSingleXODTMixin,
@@ -207,7 +207,7 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # Slicing
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Down beam clock spectroscopy from dropped single XODT with evaporation, shaped shelving and clearout
@@ -238,7 +238,7 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     # Imaging
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading and state preparation
     LoadSingleXODTMixin,
@@ -247,7 +247,7 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # Slicing
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped single XODT with evaporation, shaped shelving and clearout

@@ -4,14 +4,14 @@ if "file_import" not in __name__:
         SingleAndorImageMixin,
     )
 
-    from .bg_corrected_andor_image import BGCorrectedAndorImage
+    from .bg_corrected_andor_image import BGCorrectedAndorImageMixin
     from .triple_imaging_basic import TripleImageBasicMixin
     from .triple_imaging_fast_kinetics import TripleImageDipoleTrapFastKineticsMixin
     from .triple_imaging_fast_kinetics import TripleImageRedMOTFastKineticsMixin
     from .triple_imaging_fast_kinetics import TripleImageXXODTFastKineticsMixin
 
     __all__ = [
-        "BGCorrectedAndorImage",
+        "BGCorrectedAndorImageMixin",
         "SingleAndorImageMixin",
         "TripleImageBasicMixin",
         "TripleImageRedMOTFastKineticsMixin",

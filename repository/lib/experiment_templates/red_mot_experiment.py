@@ -1,5 +1,5 @@
 """
-This package provides a template experiment, :class:`~RedMOTWithExperiment` .
+This package provides a template experiment, :class:`~RedMOTWithExperimentBase` .
 Unlike other modules, it *does not* provide a Fragment which you should use via
 `self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
 converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
@@ -12,7 +12,7 @@ the functionality of these experiment. This allows you to reuse this code for
 multiple different experiments by implementing child classes which define these
 hooks in different ways.
 
-For example, see the documentation of :class:`~RedMOTWithExperiment` for the
+For example, see the documentation of :class:`~RedMOTWithExperimentBase` for the
 most basic implementation of hooks.
 
 Mixins
@@ -33,7 +33,7 @@ the same time::
     class MyAndorImagedLatticeExperiment(
         AndorImagingMixin,
         LatticeTrappingMixin,
-        RedMOTWithExperiment
+        RedMOTWithExperimentBase
     ):
         pass
 
@@ -522,9 +522,6 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         self.relock_checker.check_and_log_relocks()
         # if relocks != 0:
         #     raise TransitoryError
-
-
-RedMOTWithExperiment = RedMOTWithExperimentBase
 
 
 # %%

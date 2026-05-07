@@ -1,5 +1,5 @@
 """
-This package provides a template experiment, :class:`~RedMOTWithExperiment` .
+This package provides a template experiment, :class:`~RedMOTWithExperimentBase` .
 Unlike other modules, it *does not* provide a Fragment which you should use via
 `self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
 converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
@@ -12,7 +12,7 @@ the functionality of these experiment. This allows you to reuse this code for
 multiple different experiments by implementing child classes which define these
 hooks in different ways.
 
-For example, see the documentation of :class:`~RedMOTWithExperiment` for the
+For example, see the documentation of :class:`~RedMOTWithExperimentBase` for the
 most basic implementation of hooks.
 
 Mixins
@@ -33,7 +33,7 @@ the same time::
     class MyAndorImagedLatticeExperiment(
         AndorImagingMixin,
         LatticeTrappingMixin,
-        RedMOTWithExperiment
+        RedMOTWithExperimentBase
     ):
         pass
 
@@ -51,7 +51,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
@@ -60,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: REMOVE CONSTANT BEAM MIXIN AFTER DILLEN IS DONE (WHICH WILL BE NEVER!!!!)
-class DipoleTrapWithExperimentBase(ConstantBeamsMixin, RedMOTWithExperiment):
+class DipoleTrapWithExperimentBase(ConstantBeamsMixin, RedMOTWithExperimentBase):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -226,6 +228,3 @@ class DipoleTrapWithExperimentBase(ConstantBeamsMixin, RedMOTWithExperiment):
         completed.
         """
         raise NotImplementedError
-
-
-DipoleTrapWithExperiment = DipoleTrapWithExperimentBase

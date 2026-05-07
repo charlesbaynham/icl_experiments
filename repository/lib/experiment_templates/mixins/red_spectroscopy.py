@@ -14,7 +14,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.field_boost import FieldBoostMixin
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
@@ -23,7 +23,9 @@ from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_deca
 from repository.lib.experiment_templates.mixins.spectroscopy_params import (
     SpectroscopyParamsMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,7 @@ class _RedSpectroscopyBase(
     SpectroscopyParamsMixin,
     ExponentialDecayMixin,
     FieldBoostMixin,
-    RedMOTWithExperiment,
+    RedMOTWithExperimentBase,
 ):
     """
     Sets up the 689 beam for spectroscopy
@@ -113,7 +115,7 @@ class _RedSpectroscopyBase(
 
 
 class RedSpectroscopyDipoleTrapMixin(
-    _RedSpectroscopyBase, FieldBoostMixin, DipoleTrapWithExperiment
+    _RedSpectroscopyBase, FieldBoostMixin, DipoleTrapWithExperimentBase
 ):
     """
     Sets up the 689 beam for spectroscopy in a dipole trap
@@ -157,6 +159,3 @@ class RedSpectroscopyDipoleTrapMixin(
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
         self.do_red_spectroscopy()
-
-
-RedSpectroscopyDipoleTrap = RedSpectroscopyDipoleTrapMixin

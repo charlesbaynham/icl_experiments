@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class NormalisedRedMOTFastKineticsMixin(NormalisedFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create
@@ -51,7 +51,7 @@ class NormalisedDipoleTrapFKConfig(NormalisedFKConfig):
 
 class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create
@@ -100,7 +100,7 @@ class NormalisedXXODTSpectroscopyFKConfig(NormalisedXXODTFKConfigBase):
 
 class NormalisedXXODTFastKineticsBase(NormalisedFastKineticsDoubleTrapBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create
@@ -187,7 +187,7 @@ def _gravity_pixels_dropped_spectroscopy():
 
 class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create
@@ -284,7 +284,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):
 
 class NormalisedXXODTSpectroscopyFastKineticsMixin(NormalisedXXODTFastKineticsBase):
     """
-    Implements normalised readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalised readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment
 
     This mixin base uses the Andor camera to two fast kinetics series with two images each and create
