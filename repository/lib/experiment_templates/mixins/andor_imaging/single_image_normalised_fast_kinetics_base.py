@@ -39,6 +39,16 @@ ANDOR_FK_E_BG_CORR_DATASET = "e_bg_corrected"
 
 
 def _single_trap_roi_block(x0, y0, x1, y1, offset, step, bg_width):
+    """Build the six-ROI single-trap layout as a NumPy array.
+
+    The returned block contains, in order, the ground-state signal ROI, the
+    excited-state signal ROI, then left and right background ROIs for each
+    signal. Production code does not call this helper directly because the
+    camera-config path runs under ARTIQ ``@portable`` constraints and cannot
+    safely allocate and return a fresh NumPy array there. It is kept as a
+    host-side reference implementation and as a focused test hook for the ROI
+    geometry.
+    """
     return np.array(
         [
             [x0, y0 - offset, x1, y1 - offset],
@@ -54,6 +64,13 @@ def _single_trap_roi_block(x0, y0, x1, y1, offset, step, bg_width):
 
 @portable
 def _background_correct_trap_block(sums, areas, start_index):
+    """Return background-corrected ground and excited counts for one trap.
+
+    ``start_index`` selects a six-ROI block laid out as signal-ground,
+    signal-excited, then the left and right background ROIs for each signal.
+    The background sums are scaled by ROI area so the correction matches the
+    signal ROI area before subtraction.
+    """
     ground_signal_index = start_index
     excited_signal_index = start_index + 1
     ground_background_indices = (start_index + 2, start_index + 4)
@@ -80,6 +97,13 @@ def _background_correct_trap_block(sums, areas, start_index):
 def _copy_trap_roi_block(
     roi_buffer, start_index, x0, y0, x1, y1, offset, step, bg_width
 ):
+    """Write the six-ROI single-trap layout into a preallocated ROI buffer.
+
+    This mirrors :func:`_single_trap_roi_block`, but writes element-by-element
+    into an existing buffer so it can be used from ARTIQ ``@portable`` code.
+    The camera-config classes use this helper to avoid allocating a fresh array
+    while still sharing one ROI layout definition.
+    """
     roi_buffer[start_index + 0][0] = x0
     roi_buffer[start_index + 0][1] = y0 - offset
     roi_buffer[start_index + 0][2] = x1
