@@ -106,10 +106,12 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 ### Testing
 
 - Write unit tests in `tests/` directory
+- Or, add valid experiment Fragments into `repository/tests`. These must be runnable on the live system, but will also be compile by the unit tests
 - Use `pytest` as the test runner
 - Tests run in parallel (`-n 16` by default)
 - Mark expected failures with `@pytest.mark.xfail`
 - Test non-kernel utility functions (kernel testing is difficult)
+- The `test_compile_all.py` test will compile every Fragment in the repo. It's very useful for catching errors, but also very expensive to run - it takes >1h. Only run the whole thing if explicitly requested, otherwise use pytest selectors to choose which tests from it you need.
 
 ### Documentation
 
@@ -132,6 +134,8 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - **The master branch should always be deployable** - no broken code or failing tests allowed
 
 ## Nix Environment
+
+Used for all dependencies. Never make a python venv yourself.
 
 ### Key Commands
 
