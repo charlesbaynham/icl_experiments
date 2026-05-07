@@ -58,5 +58,13 @@ def test_public_module_exposes_concrete_single_image_mixins():
     )
     assert hasattr(
         single_image_fk,
+        "SingleImageNormalisedSingleTrapClockPulseSpectroscopyMixin",
+    )
+    assert hasattr(
+        single_image_fk,
         "SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin",
+    )
+    assert hasattr(
+        single_image_fk,
+        "SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin",
     )

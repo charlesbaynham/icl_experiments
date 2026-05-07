@@ -12,6 +12,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_image_norma
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
     SingleImageNormalisedFastKineticsSingleTrapBase,
 )
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +58,66 @@ class SingleImageNormalisedSingleTrapRepumpedSpectroscopyMixin(
         )
 
 
+class SingleImageNormalisedSingleTrapClockPulseSpectroscopyMixin(
+    SingleImageNormalisedFastKineticsSingleTrapBase,
+    ClockSpectroscopyBase,
+):
+    """
+    Single-trap single-image readout for the clock-spectroscopy path using a
+    clock pi pulse between the two imaging pulses.
+
+    The first fluorescence pulse images the ground-state population. After a
+    short configurable delay, a clock pulse transfers the excited-state atoms
+    into the fluorescing state so the second pulse images the excited-state
+    population.
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_clock_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before the pi pulse",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_clock_after_first_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "imaging_clock_pulse_detuning",
+            FloatParam,
+            "Detuning for the imaging clock pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.imaging_clock_pulse_detuning: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_clock_after_first_pulse.get())
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.imaging_clock_pulse_detuning.get()
+            + constants.LMT_DOWN_BEAM_SHIFT,
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+
+        delay(1e-6)
+
+        self.clock_down_dds.sw.on()
+        delay(constants.CLOCK_DOWN_PI_TIME)
+        self.clock_down_dds.sw.off()
+
+    def time_dropped_before_first_pulse(self):
+        return (
+            constants.SHELVING_PULSE_CLEAROUT_DURATION
+            + constants.CLOCK_SHELVING_PULSE_TIME
+            + constants.CLOCK_PI_TIME
+        )
+
+
 class SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin(
     SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase
 ):
@@ -84,3 +147,56 @@ class SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin(
         self.do_pulse()
         delay(self.delay_repumps_after_first_pulse.get())
         self.blue_3d_mot.turn_on_repumpers()
+
+
+class SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin(
+    SingleImageNormalisedFastKineticsDoubleTrapInterferometryBase,
+    ClockSpectroscopyBase,
+):
+    """
+    Double-trap single-image readout for the LMT interferometry path using a
+    clock pi pulse between the two imaging pulses.
+
+    The first fluorescence pulse images the ground-state population. After a
+    short configurable delay, a clock pulse transfers the excited-state atoms
+    into the fluorescing state so the second pulse measures the excited-state
+    population for both traps.
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "delay_clock_after_first_pulse",
+            FloatParam,
+            "Delay after first fluorescence pulse before the pi pulse",
+            default=0.01e-3,
+            unit="ms",
+        )
+        self.delay_clock_after_first_pulse: FloatParamHandle
+
+        self.setattr_param(
+            "imaging_clock_pulse_detuning",
+            FloatParam,
+            "Detuning for the imaging clock pulse",
+            default=0.0,
+            unit="kHz",
+        )
+        self.imaging_clock_pulse_detuning: FloatParamHandle
+
+    @kernel
+    def do_first_pulse(self):
+        self.do_pulse()
+        delay(self.delay_clock_after_first_pulse.get())
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.imaging_clock_pulse_detuning.get()
+            + constants.LMT_DOWN_BEAM_SHIFT,
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+
+        delay(1e-6)
+
+        self.clock_down_dds.sw.on()
+        delay(constants.CLOCK_DOWN_PI_TIME)
+        self.clock_down_dds.sw.off()
