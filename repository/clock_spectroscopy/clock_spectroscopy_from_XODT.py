@@ -64,9 +64,6 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTSingleMolassesMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 

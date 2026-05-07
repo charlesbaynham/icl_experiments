@@ -9,9 +9,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsClockPulseMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
@@ -39,9 +36,6 @@ from repository.lib.experiment_templates.mixins.painted_quadratic import (
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadSingleXODTWithPainterMixin,
-)
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTRetroedMolassesPlusDipoleRampMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,

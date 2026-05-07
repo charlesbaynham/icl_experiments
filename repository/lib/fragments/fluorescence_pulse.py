@@ -144,6 +144,33 @@ class FluorescencePulseBase(Fragment):
         )  # minimum delay to avoid use of extra lane (1 coarse rtio cycle)
         self.delivery_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
 
+    @kernel
+    def do_clearout_pulse_base(
+        self, ignore_initial_shutters=False, ignore_final_shutters=False, duration=-1.0
+    ):
+        """
+        Do a clearout pulse. Similar to the imaging pulse, but without any settling time for the delivery aom -
+        both the delivery and switch turn on at the same time.
+
+        Use `fluorescence_pulse_duration` as the duration if `duration` is < 0.
+
+        Advances the timeline by the duration of the pulse.
+        """
+        if duration < 0:
+            duration = self.fluorescence_pulse_duration.get()
+
+        self.delivery_beam_toggler.turn_on_beams(
+            ignore_shutters=ignore_initial_shutters
+        )
+
+        self.all_beam_toggler.turn_on_beams(ignore_shutters=ignore_initial_shutters)
+        delay(duration)
+        self.all_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
+        delay_mu(
+            int64(self.core.ref_multiplier)
+        )  # minimum delay to avoid use of extra lane (1 coarse rtio cycle)
+        self.delivery_beam_toggler.turn_off_beams(ignore_shutters=ignore_final_shutters)
+
 
 class ImagingFluorescencePulse(FluorescencePulseBase):
     """
@@ -265,3 +292,17 @@ class ToggleableFluorescencePulse(Fragment):
                 ignore_final_shutters=ignore_final_shutters,
                 duration=duration,
             )
+
+    @kernel
+    def do_clearout_pulse(
+        self, ignore_initial_shutters=False, ignore_final_shutters=False, duration=-1.0
+    ):
+        """
+        Do a clearout pulse. Similar to the imaging pulse, but without any settling time for the delivery aom -
+        both the delivery and switch turn on at the same time.
+
+        Use `fluorescence_pulse_duration` as the duration if `duration` is < 0.
+
+        Advances the timeline by the duration of the pulse.
+        """
+        self.imaging_beam.do_clearout_pulse_base()

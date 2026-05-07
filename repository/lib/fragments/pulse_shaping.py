@@ -11,7 +11,6 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD
-from artiq.coredevice.urukul import DEFAULT_PROFILE
 from artiq.experiment import RTIOUnderflow
 from artiq.language import TInt32
 from artiq.language import TList
@@ -19,26 +18,16 @@ from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import portable
 from artiq.language import rpc
-from artiq.language.core import at_mu
 from artiq.language.core import delay
-from artiq.language.core import delay_mu
 from artiq.language.core import kernel
-from artiq.language.core import now_mu
 from artiq.language.core import portable
-from artiq.language.types import TBool
-from artiq.language.types import TFloat
 from artiq.language.types import TInt32
-from artiq.language.types import TInt64
 from artiq.language.types import TList
-from artiq.language.types import TTuple
-from artiq.language.units import ms
-from artiq.language.units import us
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from numpy import int32
 from numpy import int64
 from pyaion.fragments.urukul_init import make_urukul_init
 
@@ -718,6 +707,7 @@ class JessePulse(PhasorShapedPulse):
     "Jesse's velocity selection pulse (phase only)"
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 0
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)
