@@ -116,42 +116,42 @@ class FastKineticsCameraConfig(AndorCameraConfig):
     Adds parameters for fast kinetics height, offset and time between shots.
     """
 
-    fast_kinetics_height_default: int = None  # type: ignore
-    fast_kinetics_offset_default: int = None  # type: ignore
+    fast_kinetics_height: int = None  # type: ignore
+    fast_kinetics_offset: int = None  # type: ignore
     fast_kinetics_num_shots: int = None  # type: ignore
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.fast_kinetics_height_default is None:
-            raise ValueError("fast_kinetics_height_default must be set in subclass")
-        if self.fast_kinetics_offset_default is None:
-            raise ValueError("fast_kinetics_offset_default must be set in subclass")
+        if self.fast_kinetics_height is None:
+            raise ValueError("fast_kinetics_height must be set in subclass")
+        if self.fast_kinetics_offset is None:
+            raise ValueError("fast_kinetics_offset must be set in subclass")
         if self.fast_kinetics_num_shots is None:
             raise ValueError("fast_kinetics_num_shots must be set in subclass")
 
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_param(
-            "fast_kinetics_height",
-            IntParam,
-            "Fast kinetics height",
-            default=self.fast_kinetics_height_default,
-            min=0,
-            max=512,
-        )
-        self.fast_kinetics_height: IntParamHandle
+        # self.setattr_param(
+        #     "fast_kinetics_height",
+        #     IntParam,
+        #     "Fast kinetics height",
+        #     default=self.fast_kinetics_height_default,
+        #     min=0,
+        #     max=512,
+        # )
+        # self.fast_kinetics_height: IntParamHandle
 
-        self.setattr_param(
-            "fast_kinetics_offset",
-            IntParam,
-            "Fast kinetics offset",
-            default=self.fast_kinetics_offset_default,
-            min=0,
-            max=512,
-        )
-        self.fast_kinetics_offset: IntParamHandle
+        # self.setattr_param(
+        #     "fast_kinetics_offset",
+        #     IntParam,
+        #     "Fast kinetics offset",
+        #     default=self.fast_kinetics_offset_default,
+        #     min=0,
+        #     max=512,
+        # )
+        # self.fast_kinetics_offset: IntParamHandle
 
         self.setattr_param(
             "fast_kinetics_time_between_shots",
