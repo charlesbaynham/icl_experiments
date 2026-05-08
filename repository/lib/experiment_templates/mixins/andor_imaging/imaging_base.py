@@ -251,7 +251,7 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
     def host_setup(self):
         super().host_setup()
         if self.use_andor_driver.get():
-            monitor_rois = self.get_monitor_rois()
+            monitor_rois = np.array(self.get_monitor_rois()).tolist()
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
