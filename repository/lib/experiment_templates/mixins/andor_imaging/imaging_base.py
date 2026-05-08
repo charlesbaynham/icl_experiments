@@ -95,8 +95,6 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         self.do_gauss_fit: BoolParamHandle
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("num_andor_images")
-        self.kernel_invariants.add("num_grabber_rois")
         self.kernel_invariants.add("num_grabber_readouts")
         self.kernel_invariants.add("do_gauss_fit")
 
@@ -252,11 +250,11 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
     def host_setup(self):
         super().host_setup()
         if self.use_andor_driver.get():
-            monitor_rois = self.get_monitor_rois()
+            monitor_rois = np.array(self.get_monitor_rois()).tolist()
             self.ccb.issue(
                 "create_applet",
                 "Andor monitor image",
-                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{[monitor_rois[0]]}' --dataset_prefix 'andor_monitor'",
+                f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_MONITOR_DATASET} --default_rois '{monitor_rois}' --dataset_prefix 'andor_monitor'",
             )
 
             # Also make an applet for every image. Don't include the ROIs on

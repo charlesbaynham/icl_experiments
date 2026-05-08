@@ -9,6 +9,7 @@ import logging
 import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
+from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import portable
@@ -144,6 +145,20 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
 
     Creates 2 signal ROIs (ground + excited state) plus 4 background ROIs
     (left+right of each signal), for 6 total.
+
+    # ROI labelling:
+
+    ```
+    Excited state (second image):
+        +----------+----------+----------+
+        |    3     |    1     |    5     |
+        +----------+----------+----------+
+
+    Ground state (first image):
+        +----------+----------+----------+
+        |    2     |    0     |    4     |
+        +----------+----------+----------+
+    ```
     """
 
     num_andor_images = 2
@@ -610,8 +625,8 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
             y0=constants.ANDOR_ROI_Y0,
             x1=constants.ANDOR_ROI_X1,
             y1=constants.ANDOR_ROI_Y1,
-            bg_width=self.calculate_gravitational_drop(),
-            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
+            bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
+            excited_shift=self.calculate_gravitational_drop(),
         )
         self.andor_camera_config: SingleFKSingleTrapConfig
         return f
@@ -626,6 +641,13 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
         self.atom_number: FloatChannel
         self.ground_atom_number: FloatChannel
         self.excited_atom_number: FloatChannel
+
+    @host_only
+    def get_monitor_rois(self):
+        """
+        Get the default ROIs for the Andor monitors
+        """
+        return np.array(self.andor_camera_config.get_rois()[[0, 2, 4]]).tolist()
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
