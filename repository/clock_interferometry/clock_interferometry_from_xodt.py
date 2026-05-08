@@ -18,9 +18,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
 from repository.lib.experiment_templates.mixins.cavity_relocking import (
     MonitorAndRelock689and698Mixin,
 )
-from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
-    ClockGlitchCounterMixin,
-)
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
@@ -71,7 +68,7 @@ class _DifferentialClockInterferometry(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     # Extra monitoring:
-    ClockGlitchCounterMixin,
+    # ClockGlitchCounterMixin,
     MonitorAndRelock689and698Mixin,
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
