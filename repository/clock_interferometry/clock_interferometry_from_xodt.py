@@ -137,7 +137,7 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
     def host_functions_after_experiment_hook(self):
         self.host_functions_after_experiment_hook_default()
         self.host_functions_after_experiment_hook_signal_injection()
-        self.host_functions_after_experiment_hook_glitch_counter()
+        # self.host_functions_after_experiment_hook_glitch_counter()
 
     @kernel
     def post_sequence_cleanup_hook(self):
