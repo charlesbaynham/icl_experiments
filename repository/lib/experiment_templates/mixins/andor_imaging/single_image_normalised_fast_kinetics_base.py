@@ -96,7 +96,7 @@ def _background_correct_trap_block(sums, areas, start_index):
 
 @portable
 def _copy_trap_roi_block(
-    roi_buffer, start_index, x0, y0, x1, y1, offset, step, bg_width
+    roi_buffer, start_index, x0, y0_minus_offset, x1, y1_minus_offset, step, bg_width
 ):
     """Write the six-ROI single-trap layout into a preallocated ROI buffer.
 
@@ -106,34 +106,34 @@ def _copy_trap_roi_block(
     while still sharing one ROI layout definition.
     """
     roi_buffer[start_index + 0][0] = x0
-    roi_buffer[start_index + 0][1] = y0 - offset
+    roi_buffer[start_index + 0][1] = y0_minus_offset
     roi_buffer[start_index + 0][2] = x1
-    roi_buffer[start_index + 0][3] = y1 - offset
+    roi_buffer[start_index + 0][3] = y1_minus_offset
 
     roi_buffer[start_index + 1][0] = x0
-    roi_buffer[start_index + 1][1] = y0 + step - offset
+    roi_buffer[start_index + 1][1] = y0_minus_offset + step
     roi_buffer[start_index + 1][2] = x1
-    roi_buffer[start_index + 1][3] = y1 + step - offset
+    roi_buffer[start_index + 1][3] = y1_minus_offset + step
 
     roi_buffer[start_index + 2][0] = x0 - bg_width
-    roi_buffer[start_index + 2][1] = y0 - offset
+    roi_buffer[start_index + 2][1] = y0_minus_offset
     roi_buffer[start_index + 2][2] = x0
-    roi_buffer[start_index + 2][3] = y1 - offset
+    roi_buffer[start_index + 2][3] = y1_minus_offset
 
     roi_buffer[start_index + 3][0] = x0 - bg_width
-    roi_buffer[start_index + 3][1] = y0 + step - offset
+    roi_buffer[start_index + 3][1] = y0_minus_offset + step
     roi_buffer[start_index + 3][2] = x0
-    roi_buffer[start_index + 3][3] = y1 + step - offset
+    roi_buffer[start_index + 3][3] = y1_minus_offset + step
 
     roi_buffer[start_index + 4][0] = x1
-    roi_buffer[start_index + 4][1] = y0 - offset
+    roi_buffer[start_index + 4][1] = y0_minus_offset
     roi_buffer[start_index + 4][2] = x1 + bg_width
-    roi_buffer[start_index + 4][3] = y1 - offset
+    roi_buffer[start_index + 4][3] = y1_minus_offset
 
     roi_buffer[start_index + 5][0] = x1
-    roi_buffer[start_index + 5][1] = y0 + step - offset
+    roi_buffer[start_index + 5][1] = y0_minus_offset + step
     roi_buffer[start_index + 5][2] = x1 + bg_width
-    roi_buffer[start_index + 5][3] = y1 + step - offset
+    roi_buffer[start_index + 5][3] = y1_minus_offset + step
 
 
 # %% Camera config classes
@@ -167,8 +167,8 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self, x0, y0, x1, y1, bg_width, excited_shift=0):
         super().build_fragment()
@@ -186,7 +186,7 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
             "roi_y0",
             IntParam,
             "Grabber ROI y0",
-            default=y0,
+            default=y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -204,7 +204,7 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
             "roi_y1",
             IntParam,
             "Grabber ROI y1",
-            default=y1,
+            default=y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -225,8 +225,8 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
+
         x0 = self.roi_x0.get()
         y0 = self.roi_y0.get()
         x1 = self.roi_x1.get()
@@ -238,10 +238,9 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
             roi_buffer=self.roi_buffer,
             start_index=0,
             x0=x0,
-            y0=y0,
+            y0_minus_offset=y0,
             x1=x1,
-            y1=y1,
-            offset=offset,
+            y1_minus_offset=y1,
             step=step,
             bg_width=bg_width,
         )
@@ -265,8 +264,8 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(
         self,
@@ -296,7 +295,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y0",
             IntParam,
             "Forward trap grabber ROI y0",
-            default=fwd_y0,
+            default=fwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -314,7 +313,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y1",
             IntParam,
             "Forward trap grabber ROI y1",
-            default=fwd_y1,
+            default=fwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -333,7 +332,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y0",
             IntParam,
             "Backward trap grabber ROI y0",
-            default=bwd_y0,
+            default=bwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -351,7 +350,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y1",
             IntParam,
             "Backward trap grabber ROI y1",
-            default=bwd_y1,
+            default=bwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -372,8 +371,8 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
+        self.fast_kinetics_offset
         bg_width = self.bg_width.get()
         step = height - self._excited_shift
 
@@ -387,10 +386,9 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             roi_buffer=self.roi_buffer,
             start_index=0,
             x0=bx0,
-            y0=by0,
+            y0_minus_offset=by0,
             x1=bx1,
-            y1=by1,
-            offset=offset,
+            y1_minus_offset=by1,
             step=step,
             bg_width=bg_width,
         )
@@ -405,10 +403,9 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             roi_buffer=self.roi_buffer,
             start_index=6,
             x0=fx0,
-            y0=fy0,
+            y0_minus_offset=fy0,
             x1=fx1,
-            y1=fy1,
-            offset=offset,
+            y1_minus_offset=fy1,
             step=step,
             bg_width=bg_width,
         )
