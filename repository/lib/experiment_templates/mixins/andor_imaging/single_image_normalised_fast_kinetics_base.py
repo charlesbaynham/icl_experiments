@@ -9,6 +9,7 @@ import logging
 import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
+from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import portable
@@ -626,6 +627,13 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
         self.atom_number: FloatChannel
         self.ground_atom_number: FloatChannel
         self.excited_atom_number: FloatChannel
+
+    @host_only
+    def get_monitor_rois(self):
+        """
+        Get the default ROIs for the Andor monitors
+        """
+        return np.array(self.andor_camera_config.get_rois()[0:3]).tolist()
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
