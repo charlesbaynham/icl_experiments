@@ -335,10 +335,11 @@ class DoubleTrapImagingClockPulseNormalisedBase(
         # This is a bit fragile, and ought to be based on NDScan functions
 
         self.setattr_device("ccb")
-        dataset_path_x = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_forward"
-        dataset_path_y = f"ndscan.rid_{self.scheduler.rid}.points.channel_excitation_fraction_backward"
+        rid = self.scheduler.rid
+        dataset_path_x = f"ndscan.rid_{rid}.points.channel_excitation_fraction_forward"
+        dataset_path_y = f"ndscan.rid_{rid}.points.channel_excitation_fraction_backward"
 
-        cmd = f"${{artiq_applet}}plot_xy {dataset_path_y} --x {dataset_path_x}"
+        cmd = f'${{artiq_applet}}plot_xy {dataset_path_y} --x {dataset_path_x} --title "RID {rid}"'
         self.ccb.issue("create_applet", "Excitation Lissajous plot", cmd)
 
     @kernel
