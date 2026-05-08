@@ -3,9 +3,6 @@ import logging
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperimentBase,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
     AbsorptionDoubleDipoleTrapMixin,
 )
@@ -17,6 +14,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
 )
 from repository.lib.experiment_templates.mixins.cavity_relocking import (
     MonitorAndRelock689and698Mixin,
+)
+from repository.lib.experiment_templates.mixins.clock_interferometry import (
+    ClockInterferometryBase,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
@@ -46,6 +46,10 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
 
+# from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
+#     ClockGlitchCounterMixin,
+# )
+
 logger = logging.getLogger(__name__)
 
 
@@ -73,7 +77,8 @@ class _DifferentialClockInterferometry(
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
-    DipoleTrapWithExperimentBase,
+    ClockInterferometryBase,
+    DipoleTrapWithExperiment,
 ):
     @kernel
     def DMA_initialization_hook(self):
