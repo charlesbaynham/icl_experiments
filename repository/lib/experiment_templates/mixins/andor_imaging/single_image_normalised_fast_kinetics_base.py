@@ -145,6 +145,20 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
 
     Creates 2 signal ROIs (ground + excited state) plus 4 background ROIs
     (left+right of each signal), for 6 total.
+
+    # ROI labelling:
+
+    ```
+    Excited state (second image):
+        +----------+----------+----------+
+        |    3     |    1     |    5     |
+        +----------+----------+----------+
+
+    Ground state (first image):
+        +----------+----------+----------+
+        |    2     |    0     |    4     |
+        +----------+----------+----------+
+    ```
     """
 
     num_andor_images = 2
