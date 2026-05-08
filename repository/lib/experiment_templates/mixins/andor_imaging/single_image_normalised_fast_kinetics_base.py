@@ -611,8 +611,8 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
             y0=constants.ANDOR_ROI_Y0,
             x1=constants.ANDOR_ROI_X1,
             y1=constants.ANDOR_ROI_Y1,
-            bg_width=self.calculate_gravitational_drop(),
-            excited_shift=constants.ROI_SHIFT_EXCITED_STATE,
+            bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
+            excited_shift=self.calculate_gravitational_drop(),
         )
         self.andor_camera_config: SingleFKSingleTrapConfig
         return f
