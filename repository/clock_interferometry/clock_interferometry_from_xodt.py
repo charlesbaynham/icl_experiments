@@ -19,6 +19,9 @@ from repository.lib.experiment_templates.mixins.cavity_relocking import (
     MonitorAndRelock689and698Mixin,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
+    ClockInterferometryBase,
+)
+from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry_with_noise import (
@@ -45,6 +48,10 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
+
+# from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
+#     ClockGlitchCounterMixin,
+# )
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +80,7 @@ class _DifferentialClockInterferometry(
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
+    ClockInterferometryBase,
     DipoleTrapWithExperiment,
 ):
     @kernel
