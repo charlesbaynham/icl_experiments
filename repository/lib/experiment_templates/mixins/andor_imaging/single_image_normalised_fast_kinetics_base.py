@@ -633,7 +633,7 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
         """
         Get the default ROIs for the Andor monitors
         """
-        return np.array(self.andor_camera_config.get_rois()[0:3]).tolist()
+        return np.array(self.andor_camera_config.get_rois()[[0, 2, 4]]).tolist()
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
