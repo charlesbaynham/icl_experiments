@@ -621,10 +621,10 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
         f = self.setattr_fragment(
             "andor_camera_config",
             SingleFKSingleTrapConfig,
-            x0=constants.ANDOR_ROI_X0,
-            y0=constants.ANDOR_ROI_Y0,
-            x1=constants.ANDOR_ROI_X1,
-            y1=constants.ANDOR_ROI_Y1,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1,
             bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
             excited_shift=self.calculate_gravitational_drop(),
         )
