@@ -626,8 +626,8 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         # Subtract the fast kinetics height from the y coordinates of the
         # excited state ROIs
         for roi in default_rois_excited:
-            roi[1] -= self.andor_camera_config.fast_kinetics_height_default
-            roi[3] -= self.andor_camera_config.fast_kinetics_height_default
+            roi[1] -= self.andor_camera_config.fast_kinetics_height
+            roi[3] -= self.andor_camera_config.fast_kinetics_height
 
         self.ccb.issue(
             "create_applet",

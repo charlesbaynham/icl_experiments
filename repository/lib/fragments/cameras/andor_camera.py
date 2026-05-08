@@ -110,7 +110,7 @@ class FastKineticsCameraConfig(AndorCameraConfig):
     """
     Base configuration for Andor camera in fast kinetics mode.
 
-    Subclasses must set `fast_kinetics_height_default`, `fast_kinetics_offset_default`,
+    Subclasses must set `fast_kinetics_height`, `fast_kinetics_offset`,
     and `fast_kinetics_num_shots` as class attributes.
 
     Adds parameters for fast kinetics height, offset and time between shots.
@@ -137,7 +137,7 @@ class FastKineticsCameraConfig(AndorCameraConfig):
         #     "fast_kinetics_height",
         #     IntParam,
         #     "Fast kinetics height",
-        #     default=self.fast_kinetics_height_default,
+        #     default=self.fast_kinetics_height,
         #     min=0,
         #     max=512,
         # )
@@ -147,7 +147,7 @@ class FastKineticsCameraConfig(AndorCameraConfig):
         #     "fast_kinetics_offset",
         #     IntParam,
         #     "Fast kinetics offset",
-        #     default=self.fast_kinetics_offset_default,
+        #     default=self.fast_kinetics_offset,
         #     min=0,
         #     max=512,
         # )

@@ -1,6 +1,6 @@
 # Plan: Migrate FK Imaging Classes to `AndorCameraConfig` Interface
 
-**The core problem:** `AndorCameraControl.build_fragment()` was already updated to require a `camera_config` arg — but the 4 fast-kinetics base classes still call it with the old `roi_defaults=`, `fast_kinetics_height_default=`, `fast_kinetics_offset_default=`, and `fast_kinetics_num_shots=` args. These calls are currently broken. The FIXMEs mark all the places that need updating.
+**The core problem:** `AndorCameraControl.build_fragment()` was already updated to require a `camera_config` arg — but the 4 fast-kinetics base classes still call it with the old `roi_defaults=`, `fast_kinetics_height=`, `fast_kinetics_offset=`, and `fast_kinetics_num_shots=` args. These calls are currently broken. The FIXMEs mark all the places that need updating.
 
 **Recommended approach:** Create `AndorCameraConfig` subclasses for each FK family, move all FK params (including `fast_kinetics_time_between_shots`) into those configs, and have the base classes use `get_andor_camera_config_hook()` like `BGCorrectedAndorImage` already does.
 
@@ -14,7 +14,7 @@ Create `FastKineticsCameraConfig(AndorCameraConfig)` between `AndorCameraConfig`
 
 `FastKineticsCameraConfig`:
 
-- Class attrs: `fast_kinetics_height_default: int`, `fast_kinetics_offset_default: int`, `fast_kinetics_num_shots: int` (all abstract — subclasses must set them)
+- Class attrs: `fast_kinetics_height: int`, `fast_kinetics_offset: int`, `fast_kinetics_num_shots: int` (all abstract — subclasses must set them)
 - In `build_fragment()`: creates IntParams `fast_kinetics_height` (default from class attr) and `fast_kinetics_offset` (default from class attr), and a FloatParam `fast_kinetics_time_between_shots` (default 3.5 ms). Type annotations: `fast_kinetics_height: IntParamHandle`, `fast_kinetics_offset: IntParamHandle`, `fast_kinetics_time_between_shots: FloatParamHandle`
 - Static method `_calculate_rois(height, offset, num_images, x0, y0, x1, y1, excited_shift=0)` — implements the simple FK ROI formula (no background ROIs). Used by NormalisedFK and TripleFK families.
 
@@ -22,7 +22,7 @@ Create `FastKineticsCameraConfig(AndorCameraConfig)` between `AndorCameraConfig`
 
 Remove FK constructor args, read them from the config instead:
 
-- Remove `fast_kinetics_height_default`, `fast_kinetics_offset_default`, `fast_kinetics_num_shots` from `build_fragment()` signature
+- Remove `fast_kinetics_height`, `fast_kinetics_offset`, `fast_kinetics_num_shots` from `build_fragment()` signature
 - Read `self.fast_kinetics_num_shots = camera_config.fast_kinetics_num_shots` (from config class attr)
 - Derive `self.fast_kinetics_mode = self.fast_kinetics_num_shots > 1`
 - Remove the `fast_kinetics_height`, `fast_kinetics_offset`, and `fast_kinetics_time_between_shots` IntParam/FloatParam blocks from `AndorCameraControl.build_fragment()` — all three now live in the config
@@ -34,7 +34,7 @@ Remove FK constructor args, read them from the config instead:
 
 Create `NormalisedFKConfig(FastKineticsCameraConfig)`:
 
-- Class attrs: `num_andor_images=4`, `num_images_per_series=2`, `num_grabber_rois=2`, `num_grabber_readouts=2`, `fast_kinetics_num_shots=2`, `fast_kinetics_height_default=constants.ANDOR_FAST_KINETICS_HEIGHT`, `fast_kinetics_offset_default=constants.ANDOR_FAST_KINETICS_OFFSET`
+- Class attrs: `num_andor_images=4`, `num_images_per_series=2`, `num_grabber_rois=2`, `num_grabber_readouts=2`, `fast_kinetics_num_shots=2`, `fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT`, `fast_kinetics_offset=constants.ANDOR_FAST_KINETICS_OFFSET`
 - `build_fragment(self, x0, y0, x1, y1, excited_shift=0)`: calls `super().build_fragment()` (creates FK params), then creates IntParams for the 4 ROI coordinates with the passed defaults. Pre-allocates `self.roi_buffer = [[np.int32(0)] * 4] * self.num_grabber_rois`
 - `@portable get_rois()`: fills buffer by calling `self._calculate_rois(...)` using the IntParam values
 
@@ -95,7 +95,7 @@ For `SingleImageNormalisedDoubleTrapBase`:
 
 In `normalised_fast_kinetics.py`:
 
-- `NormalisedDipoleTrapFastKineticsMixin`: replace `get_grabber_roi_defaults()` with `get_andor_camera_config_hook()` using `NormalisedFKConfig` subclassed or instantiated with dipole-trap ROI coords and `excited_shift=constants.ROI_SHIFT_EXCITED_STATE`. Remove `fast_kinetics_height_default`/`fast_kinetics_offset_default` class-attr overrides — pass `fast_kinetics_height_default` and `fast_kinetics_offset_default` as class attrs on an inline config subclass instead.
+- `NormalisedDipoleTrapFastKineticsMixin`: replace `get_grabber_roi_defaults()` with `get_andor_camera_config_hook()` using `NormalisedFKConfig` subclassed or instantiated with dipole-trap ROI coords and `excited_shift=constants.ROI_SHIFT_EXCITED_STATE`. Remove `fast_kinetics_height`/`fast_kinetics_offset` class-attr overrides — pass `fast_kinetics_height` and `fast_kinetics_offset` as class attrs on an inline config subclass instead.
 - `NormalisedXXODTFastKineticsMixin`: create `NormalisedXXODTFKConfig(NormalisedFKDoubleTrapConfig)` (or inline). Gravity correction logic stays as a build-time calculation inside `build_fragment()` of the config, computing corrected `excited_y0`/`excited_y1` defaults before passing them to the ROI IntParams.
 - `NormalisedXXODTSpectroscopyFastKineticsMixin`: same pattern with the spectroscopy gravity timing.
 
