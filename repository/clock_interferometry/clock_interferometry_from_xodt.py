@@ -78,7 +78,6 @@ class _DifferentialClockInterferometry(
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
     ClockInterferometryBase,
-    DipoleTrapWithExperiment,
 ):
     @kernel
     def DMA_initialization_hook(self):
