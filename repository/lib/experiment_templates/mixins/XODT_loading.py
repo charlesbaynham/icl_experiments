@@ -75,7 +75,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperimentBase):
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
