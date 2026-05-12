@@ -25,6 +25,7 @@ while true; do {
         rsync \
             --recursive \
             --links \
+            --times \
             --progress \
             --modify-window=2 \
             ./results/ \

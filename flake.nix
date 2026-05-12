@@ -126,7 +126,6 @@
         newDefaultShell = overriddenOutputs.devShells.default.overrideAttrs (prev: {
           shellHook = ''
             ${self.checks.${system}.pre-commit-check.shellHook}
-
             source ${self}/scripts/wsl_display_fix.sh
           '';
           buildInputs = prev.buildInputs ++ self.checks.${system}.pre-commit-check.enabledPackages;
@@ -151,6 +150,7 @@
           hooks = {
             alejandra.enable = true;
             autoflake.enable = true;
+            autoflake.args = ["--remove-all-unused-imports" "--remove-unused-variables" "--in-place"];
             black.enable = true;
             check-case-conflicts.enable = true;
             check-merge-conflicts.enable = true;

@@ -7,9 +7,6 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
     DoubleTrapImagingClockPulseNormalised,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingRepumpedNormalised,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
@@ -45,7 +42,13 @@ from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithPainterMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
@@ -91,7 +94,7 @@ class LMTInterferometryWithDoubleLaunchFrag(
     DoubleTrapImagingClockPulseNormalised,
     EMGain,
     # FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
+    LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
@@ -121,15 +124,16 @@ class LMTInterferometryWithDoubleLaunchFrag(
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
     LMTInterferometryMixin,
-    LMTLaunchDoubleTrapShapedPulseMixin,
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingClockPulseNormalised,
     EMGain,
     # FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    LoadSingleXODTWithPainterMixin,
+    LMTLaunchDoubleTrapShapedPulseMixin,
     DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
@@ -143,6 +147,8 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
         self.DMA_initialization_hook_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_painter_on()
+        self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
     @kernel
@@ -150,6 +156,8 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_lmt()
+        self.post_sequence_cleanup_hook_loading()
 
 
 class LMTInterferometryWithLaunchFrag(
@@ -226,12 +234,12 @@ LMTInterferometryExp = make_fragment_scan_exp(
 )
 LMTInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)
 ShapedFirstPulseLMTInterferometry = make_fragment_scan_exp(
-    ShapedFirstPulseLMTInterferometryFrag
+    ShapedFirstPulseLMTInterferometryFrag, max_rtio_underflow_retries=0
 )
 LMTInterferometryWithDoubleLaunch = make_fragment_scan_exp(
-    LMTInterferometryWithDoubleLaunchFrag
+    LMTInterferometryWithDoubleLaunchFrag, max_rtio_underflow_retries=0
 )
 
 LMTInterferometryWithShapedDoubleLaunch = make_fragment_scan_exp(
-    LMTInterferometryWithShapedDoubleLaunchFrag
+    LMTInterferometryWithShapedDoubleLaunchFrag, max_rtio_underflow_retries=0
 )

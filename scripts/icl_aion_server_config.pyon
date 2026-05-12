@@ -120,9 +120,9 @@
             "locked": false,
             "locked_at": 0,
             "target": "",
-            "host": "10.137.2.4",
-            "port": 3284,
-            "type": "virtual",
+            "host": "10.137.2.10",
+            "port": 4001,
+            "type": "gaio",
             "v_pzt_min": 0.0,
             "v_pzt_max": 4.0,
             "v_step_max": 0.01

@@ -18,8 +18,8 @@ from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imagin
 from repository.lib.experiment_templates.mixins.cavity_relocking import (
     MonitorAndRelock689and698Mixin,
 )
-from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
-    ClockGlitchCounterMixin,
+from repository.lib.experiment_templates.mixins.clock_interferometry import (
+    ClockInterferometryBase,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryDipoleTrapMixin,
@@ -49,6 +49,10 @@ from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadXXODTWithTransparencyBeamMixin,
 )
 
+# from repository.lib.experiment_templates.mixins.clock_glitch_counting import (
+#     ClockGlitchCounterMixin,
+# )
+
 logger = logging.getLogger(__name__)
 
 
@@ -71,11 +75,12 @@ class _DifferentialClockInterferometry(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     # Extra monitoring:
-    ClockGlitchCounterMixin,
+    # ClockGlitchCounterMixin,
     MonitorAndRelock689and698Mixin,
     # Loading:
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
+    ClockInterferometryBase,
     DipoleTrapWithExperiment,
 ):
     @kernel
@@ -132,7 +137,7 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
     def host_functions_after_experiment_hook(self):
         self.host_functions_after_experiment_hook_default()
         self.host_functions_after_experiment_hook_signal_injection()
-        self.host_functions_after_experiment_hook_glitch_counter()
+        # self.host_functions_after_experiment_hook_glitch_counter()
 
     @kernel
     def post_sequence_cleanup_hook(self):

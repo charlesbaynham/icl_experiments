@@ -3,7 +3,6 @@ import logging
 import numpy as np
 from artiq.language import at_mu
 from artiq.language import delay
-from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
@@ -68,10 +67,7 @@ def calculate_grabber_rois(
             x0 - bg_width,
             y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x0,
-            y1
-            + i * (fast_kinetics_height - excited_shift)
-            - fast_kinetics_offset
-            + 25,  # FIXME Debugging code? Uncommitted
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ] + [
@@ -79,10 +75,7 @@ def calculate_grabber_rois(
             x1,
             y0 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
             x1 + bg_width,
-            y1
-            + i * (fast_kinetics_height - excited_shift)
-            - fast_kinetics_offset
-            + 25,  # FIXME Debugging code? Uncommitted
+            y1 + i * (fast_kinetics_height - excited_shift) - fast_kinetics_offset,
         ]
         for i in range(num_images)
     ]

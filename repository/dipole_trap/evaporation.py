@@ -19,6 +19,9 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithPainterMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTRetroedMolassesPlusDipoleRampMixin,
 )
@@ -32,11 +35,10 @@ logger = logging.getLogger(__name__)
 class MeasureEvaporatedXODTFrag(
     FLIRMeasurementMixin,
     BGCorrectedAndorImageSingleXODT,
-    LoadSingleXODTMixin,
+    LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    # ClearOut689Mixin,
 ):
     """
     Measure a Single XODT with evaporation

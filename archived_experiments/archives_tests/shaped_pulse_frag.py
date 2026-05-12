@@ -11,10 +11,10 @@ from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParamHandle
 from scipy.stats import beta
 
-from repository.lib.fragments.pulse_shaping import ShapedPulse
+from repository.lib.fragments.pulse_shaping import PhasorShapedPulse
 
 
-class BetaShapedPulse(ShapedPulse):
+class BetaShapedPulse(PhasorShapedPulse):
     def build_fragment(self, *args, **kwargs):
         self.setattr_param(
             "alpha",
@@ -86,7 +86,7 @@ class _TestShapedPulseBase(ExpFragment):
         self.setattr_fragment(
             "shaped_pulse", self.the_pulse, ad9910_name="urukul9910_aom_698_up_switch"
         )
-        self.shaped_pulse: ShapedPulse
+        self.shaped_pulse: PhasorShapedPulse
 
         self.setattr_device("core")
         self.core: Core
@@ -129,7 +129,7 @@ class TestShapedPulseOnAdjacent(ExpFragment):
         self.setattr_fragment(
             "shaped_pulse", BetaShapedPulse, ad9910_name="urukul0_ch0"
         )
-        self.shaped_pulse: ShapedPulse
+        self.shaped_pulse: PhasorShapedPulse
 
         self.setattr_device("core")
         self.core: Core

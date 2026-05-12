@@ -9,9 +9,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsClockPulseMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
@@ -33,9 +30,12 @@ from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTLaun
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
-from repository.lib.experiment_templates.mixins.XODT_molasses import (
-    XODTRetroedMolassesPlusDipoleRampMixin,
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithPainterMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -48,19 +48,20 @@ class LaunchFromXODTFrag(
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
     FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
-    XODTRetroedMolassesPlusDipoleRampMixin,
-    # XODTSingleMolassesPlusDipoleRampMixin,
-    # OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    # XODTRetroedMolassesPlusDipoleRampMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    LoadSingleXODTWithPainterMixin,
     DopplerCompensationForLMTMixin,
     DipoleTrapWithExperiment,
 ):
     """
     Launch from XODT
 
-    Load into an XODT, shelve with a Jesse pulse, then use LMT for launching
+    Load into an XODT, then use LMT for launching
 
     Image the ground state atoms, repump and image the excited state, then image
     once more for background.
@@ -69,6 +70,7 @@ class LaunchFromXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
@@ -77,6 +79,7 @@ class LaunchFromXODTFrag(
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_loading()
         self.post_sequence_cleanup_hook_shelving()
 
     @kernel

@@ -48,9 +48,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.constant_lattice import (
-    ConstantBeamsMixin,
-)
 from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
@@ -59,8 +56,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
 logger = logging.getLogger(__name__)
 
 
-# TODO: REMOVE CONSTANT BEAM MIXIN AFTER DILLEN IS DONE (WHICH WILL BE NEVER!!!!)
-class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
+class DipoleTrapWithExperiment(RedMOTWithExperiment):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -128,10 +124,11 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
     def do_experiment_after_red_mot_hook(self):
         self.dipole_trap_loading_hook()
         self.dipole_trap_molasses_hook()
-        self.do_clearout_pulse_hook()
         self.dipole_trap_optical_pumping_hook()
         self.dipole_trap_evaporation_hook()
+        self.adiabatic_cooling_hook()
         delay(self.dipole_hold_time.get())
+        self.matterwave_collimate_hook()
         self.post_dipole_trap_hook()
         delay(self.before_launch_delay.get())
         self.launch_hook()
@@ -158,12 +155,6 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
         """
 
     @kernel
-    def do_clearout_pulse_hook(self):
-        """
-        Hook for implementation of a clearout pulse with 689. By default, do nothing
-        """
-
-    @kernel
     def dipole_trap_optical_pumping_hook(self):
         """
         Hook for implementation of stages after the dipole trap optical pumping stage. By default, do nothing.
@@ -187,6 +178,20 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
         self.post_dipole_trap_hook_default()
 
     @kernel
+    def adiabatic_cooling_hook(self):
+        """
+        Hook for adiabatic colling.
+        By default, do nothing.
+        """
+
+    @kernel
+    def matterwave_collimate_hook(self):
+        """
+        Hook for matterwave collimation of the atoms.
+        By default, do nothing.
+        """
+
+    @kernel
     def post_dipole_trap_hook_default(self):
         """
         Turn off the dipole trap beams
@@ -194,6 +199,9 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
         Advances the timeline by a few coarse cycles
         """
         self.dipole_beam_controller.turn_off_dipole_beams()
+        # maybe add delay
+        self.dipole_beam_controller.turn_off_painter_suservo()
+        self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
     @kernel
     def dipole_trap_evaporation_hook_default(self):
@@ -202,8 +210,9 @@ class DipoleTrapWithExperiment(ConstantBeamsMixin, RedMOTWithExperiment):
 
         Advances the timeline by a few coarse cycles
         """
-        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=False)
-        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=False)
+        self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
+        self.red_mot.red_beam_controller.turn_off_spin_pol(ignore_shutters=True)
+        self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
     @abc.abstractmethod
     def do_experiment_after_dipole_trap_hook(self):
