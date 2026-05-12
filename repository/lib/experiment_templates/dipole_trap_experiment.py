@@ -205,6 +205,10 @@ class DipoleTrapWithExperimentBase(ConstantBeamsMixin, RedMOTWithExperimentBase)
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+
+    @kernel
+    def DMA_initialization_hook_dipole_trap_default(self):
         self.dma_recording_fragment.DMA_initialization_hook_after_drop()
 
     @kernel
