@@ -1421,7 +1421,7 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
         delay(2e-6)
 
@@ -1529,7 +1529,7 @@ class LMTInterferometryMixin(
             + N_launch * 9.4e3
         )
         at_mu(t_start_mirror_pulse_mu)
-        self.clock_down_dds.sw.off()
+        self.clock_down_dds.sw.on()
         delay(t_pi_down)
         self.clock_down_dds.sw.off()
 
@@ -1650,8 +1650,8 @@ class LMTInterferometryMixin(
             wave_type=2,
         )
         delay_mu(8)
-        self.clock_down_dds.sw.off()
-        delay(t_pi_down / 2)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down)  # / 2)
         self.clock_down_dds.sw.off()
 
         # stark shift for low intensity up neam
@@ -1663,10 +1663,10 @@ class LMTInterferometryMixin(
         )
 
         # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse_down_beam(
+        self.do_selective_lmt_pulse(
             last_selective_lower_bs_freq,
             N_kicks=N_launch,
-            att=10.0,
+            att=13.0,
             duration=t_first_pi,
         )
 
