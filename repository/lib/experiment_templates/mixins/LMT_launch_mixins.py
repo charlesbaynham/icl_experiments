@@ -119,7 +119,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
 
-            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
 
             f_i = (
@@ -146,7 +146,7 @@ class LMTBase(
                 pulse_type = "up"
                 down_offset = 0.0
 
-            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
 
             f_i = (
@@ -183,7 +183,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "down"
 
-            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
 
             f_i = (
@@ -219,7 +219,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
 
-            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_2_pulse_mu - t_drop)
 
             f_i = (
@@ -241,36 +241,38 @@ class LMTBase(
         self.clock_opll.clock_OPLL_offset.set(start_freq)
 
         if type == "down":
-            # ramp the offset downwards
-            self.clock_opll.clock_frequency_ramper.start_ramp(
-                ramp_rate,
-                start_freq - 1e6,
-                start_freq,
-                wave_type=2,
-            )
-            delay_mu(8)
-            # pulse the down beam
             at_mu(t_start)
+            # ramp the offset downwards
+            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            #     ramp_rate,
+            #     start_freq - 1e6,
+            #     start_freq,
+            #     wave_type=2,
+            # )
+            # delay_mu(8)
+            # pulse the down beam
+
             self.clock_down_dds.sw.on()
             delay(self.down_pulses_duration.get())
             self.clock_down_dds.sw.off()
 
         if type == "up":
+            at_mu(t_start)
             # ramp the offset upwards
-            self.clock_opll.clock_frequency_ramper.start_ramp(
-                ramp_rate,
-                start_freq,
-                start_freq + 2e6,
-                wave_type=1,
-            )
-            delay_mu(8)
+            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            #     ramp_rate,
+            #     start_freq,
+            #     start_freq + 2e6,
+            #     wave_type=1,
+            # )
+            # delay_mu(8)
 
             # pulse the up beam
-            at_mu(t_start)
+
             self.clock_up_dds.sw.on()
             delay(self.spectroscopy_pulse_time.get())
             self.clock_up_dds.sw.off()
-        delay(30e-6)
+        delay(10e-6)
 
     @kernel
     def do_selective_lmt_pulse(self, detuning, N_kicks, att, duration):
@@ -332,11 +334,8 @@ class LMTBase(
         self.clock_down_dds.sw.on()
         delay(duration)
         self.clock_down_dds.sw.off()
-        delay_mu(8)
         self.clock_opll.clock_frequency_ramper.stop_ramp()
-        delay_mu(8)
         self.clock_opll.clock_OPLL_offset.set(80e6)
-        delay_mu(8)
         self.clock_down_dds.set_att(0.0)
 
     @kernel
@@ -788,37 +787,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # Shaped pulse with up beam, common to both clouds
         self.first_shaped_lmt_pulse(detuning=2.0e3, N_kicks=1)
 
-        # self.clock_up_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.up_switch_detuning_lower_intensity.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        # )
-
-        # delay(1e-6)
-
-        # # First pulse with a lower Rabi frequency, down beam pulse
-        # self.do_selective_lmt_pulse_down_beam(
-        #     upper_selective_det, N_kicks=2, att=0.0, duration=68e-6
-        # )
-
-        # # second pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(-8.6e3, N_kicks=3, att=5.0, duration=51e-6)
-        # delay(100e-9)
-
-        # # Third pulse with a lower Rabi frequency, down beam pulse
-        # self.do_selective_lmt_pulse_down_beam(
-        #     7.0e3, N_kicks=4, att=11.0, duration=55e-6
-        # )
-        # delay(100e-9)
-
-        # # fourth pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(
-        #     upper_selective_det, N_kicks=5, att=6.0, duration=52e-6
-        # )
-        # delay(100e-9)
-        # self.clock_down_dds.set_att(0.0)
-        # delay(100e-9)
-
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
             + self.up_switch_detuning_higher_intensity.get(),
@@ -844,34 +812,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         )
 
         delay_mu(8)
-
-        # # first pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(
-        #     last_detuning, N_kicks=int(N_launch + 2), att=0.0, duration=60e-6
-        # )
-
-        # # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=200e-6,
-        #     ignore_final_shutters=True,
-        # )
-        # delay(8e-9)
-
-        # # second pulse with a lower Rabi frequency, down beam pulse
-        # self.do_selective_lmt_pulse_down_beam(
-        #     -2.0e3, N_kicks=int(N_launch + 3), att=11.0, duration=55e-6
-        # )
-
-        # # second pulse with a lower Rabi frequency, up beam pulse
-        # self.do_selective_lmt_pulse(
-        #     1.0e3, N_kicks=int(N_launch + 4), att=5.0, duration=51e-6
-        # )
-        # delay(8e-9)
-
-        # # First pulse with a lower Rabi frequency, down beam pulse
-        # self.do_selective_lmt_pulse_down_beam(
-        #     lower_selective_det, N_kicks=int(N_launch + 5), att=9.5, duration=51e-6
-        # )
 
         delay(8e-9)
 
@@ -1442,7 +1382,7 @@ class LMTInterferometryMixin(
         delay_mu(16)
 
         N = self.lmt_pulses_number.get()
-        N_launch = 12
+        N_launch = 16
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -1476,7 +1416,8 @@ class LMTInterferometryMixin(
 
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + self.down_switch_detuning.get(),
+            + self.down_switch_detuning.get()
+            + bs1_lmt_offset,
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
@@ -1486,6 +1427,7 @@ class LMTInterferometryMixin(
         self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
+        delay(2e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
@@ -1496,7 +1438,7 @@ class LMTInterferometryMixin(
                 phase=self.calculate_phase_for_first_pi_by_2_pulse(),
             )
 
-            delay(1e-6)
+            delay_mu(8)
             self.do_selective_lmt_pulse(
                 first_freq, N_kicks=2 + N_launch, att=10.5, duration=t_first_pi
             )
@@ -1591,7 +1533,7 @@ class LMTInterferometryMixin(
             + N_launch * 9.4e3
         )
         at_mu(t_start_mirror_pulse_mu)
-        self.clock_down_dds.sw.on()
+        self.clock_down_dds.sw.off()
         delay(t_pi_down)
         self.clock_down_dds.sw.off()
 
@@ -1667,7 +1609,32 @@ class LMTInterferometryMixin(
         t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
             2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3
+            - 1e6,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3,
+        )
 
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
+        )
+
+        # PI/2 PULSE
+
+        at_mu(t_start_last_pulse_mu)
         # ramp the offset downwards. It looks silly but the frequency has to be passed like this.
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
@@ -1687,22 +1654,45 @@ class LMTInterferometryMixin(
             wave_type=2,
         )
         delay_mu(8)
-
-        self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.down_switch_detuning.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
-        )
-
-        delay(1e-6)
-
-        # PI/2 PULSE
-
-        at_mu(t_start_last_pulse_mu)
-        self.clock_down_dds.sw.on()
+        self.clock_down_dds.sw.off()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
+
+        # stark shift for low intensity up neam
+        self.clock_up_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_lower_intensity.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
+
+        # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+        self.do_selective_lmt_pulse_down_beam(
+            last_selective_lower_bs_freq,
+            N_kicks=N_launch,
+            att=10.0,
+            duration=t_first_pi,
+        )
+
+        delay(8e-9)
+
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3
+            - 1e6,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3,
+            wave_type=2,
+        )
 
     @kernel
     def post_sequence_cleanup_hook(self):
