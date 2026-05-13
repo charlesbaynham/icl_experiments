@@ -18,7 +18,7 @@ class ExternalTrigger(Fragment):
     Trigger the experiment based on a TTL that is triggered by the mains
     """
 
-    def build_fragment(self, ttl_name: str) -> None:
+    def build_fragment(self, ttl_name: str, auto_wait: bool) -> None:
         self.setattr_device("core")
         self.core: Core
 
@@ -34,16 +34,11 @@ class ExternalTrigger(Fragment):
         )
         self.trigger_offset: FloatParamHandle
 
-        self.setattr_param(
-            "auto_wait",
-            BoolParam,
-            "Automatically wait for the external trigger in device_setup",
-            default=True,
-        )
-        self.auto_wait: BoolParamHandle
+        self.auto_wait = auto_wait
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("ttl")
+        self.kernel_invariants.add("auto_wait")
 
     @kernel
     def device_setup(self) -> None:
@@ -54,7 +49,7 @@ class ExternalTrigger(Fragment):
             self.core.break_realtime()
             self.ttl.input()
 
-        if self.auto_wait.get():
+        if self.auto_wait:
             self.wait_for_trigger()
 
         self.device_setup_subfragments()
