@@ -2,13 +2,11 @@ import logging
 
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLInOut
-from artiq.language import at_mu, delay_mu, kernel, now_mu
+from artiq.language import at_mu
+from artiq.language import kernel
 from ndscan.experiment import Fragment
-from ndscan.experiment.parameters import BoolParam, BoolParamHandle
-from ndscan.experiment.parameters import FloatParam, FloatParamHandle
-
-# from pyaion.models import SUServoedBeam
-
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +37,8 @@ class ExternalTrigger(Fragment):
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("ttl")
         self.kernel_invariants.add("auto_wait")
+
+        self.first_run = False
 
     @kernel
     def device_setup(self) -> None:

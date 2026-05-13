@@ -1665,8 +1665,8 @@ class LMTInterferometryMixin(
         # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
         self.do_selective_lmt_pulse(
             last_selective_lower_bs_freq,
-            N_kicks=N_launch,
-            att=13.0,
+            N_kicks=N_launch - 2,
+            att=10.5,
             duration=t_first_pi,
         )
 
