@@ -11,7 +11,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 logger = logging.getLogger(__name__)
 
 
-class ExternalTrigger(Fragment):
+class ExternalTriggerFrag(Fragment):
     """
     Trigger the experiment based on a TTL that is triggered by the mains
     """

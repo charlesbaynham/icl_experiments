@@ -227,6 +227,8 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         self.core.break_realtime()
 
+        self.pre_sequence_hook()
+
         self.timestamper.mark_timestamp()
 
         if self.magnetic_trap_loading_bool.get():
@@ -398,6 +400,14 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
 
         Feel free to use break_realtime - it will be called again before the MOT
         is loaded.
+        """
+
+    @kernel
+    def pre_sequence_hook(self):
+        """
+        Hook for core actions that can affect the timeline at the start of the sequence
+
+        In contrast to :meth:`~before_start_hook`, break_realtimes will affect the sequence timeline from this point onwards.
         """
 
     @kernel
