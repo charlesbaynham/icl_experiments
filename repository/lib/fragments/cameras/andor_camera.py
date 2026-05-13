@@ -353,8 +353,7 @@ class AndorCameraControl(Fragment):
         # up to a max of 1024 high (i.e. the image + storage EMCCDs).
         # See labbook entry 2024-06-11.
         self.andor_requires_storage_frame = self.fast_kinetics_mode and (
-            self.andor_camera_config.fast_kinetics_height.get()
-            * self.fast_kinetics_num_shots
+            self.andor_camera_config.fast_kinetics_height * self.fast_kinetics_num_shots
             > constants.ANDOR_SENSOR_HEIGHT
         )
 
@@ -380,7 +379,7 @@ class AndorCameraControl(Fragment):
                 # to the "exposure time" specified in Fast Kinetics mode.
 
                 self.fast_kinetics_shift_time = (
-                    self.andor_camera_config.fast_kinetics_height.get()
+                    self.andor_camera_config.fast_kinetics_height
                     * self.cam.get_vsspeed()
                     * 1e-6
                 )
@@ -460,9 +459,9 @@ class AndorCameraControl(Fragment):
         self.cam.stop_acquisition()
         self.cam.setup_fast_kinetics_mode(
             num_acc=self.fast_kinetics_num_shots,
-            subarea_height=self.andor_camera_config.fast_kinetics_height.get(),
+            subarea_height=self.andor_camera_config.fast_kinetics_height,
             exposure_time=exposure_time,
-            offset=self.andor_camera_config.fast_kinetics_offset.get(),
+            offset=self.andor_camera_config.fast_kinetics_offset,
         )
 
     @kernel
