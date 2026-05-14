@@ -774,7 +774,7 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         if atom_number_total == 0:
             imbalance = 0.0
         else:
-            imbalance = (atom_number_bottom + atom_number_top) / atom_number_total
+            imbalance = (atom_number_bottom - atom_number_top) / atom_number_total
 
         # Save and push
         self._double_trap_imaging_log_data(
