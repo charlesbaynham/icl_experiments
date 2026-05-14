@@ -106,6 +106,20 @@ class AndorCameraConfig(Fragment, abc.ABC):
         #     x1: int = 0
         #     y1: int = 0
 
+    @portable
+    @staticmethod
+    def calculate_area_from_roi(roi):
+        """
+        Calculate area of an ROI
+
+        Parameters:
+        roi (List[int]): List of 4 integers [x0, y0, x1, y1]
+
+        Returns:
+            int: Area of the ROI in pixels
+        """
+        return (roi[2] - roi[0]) * (roi[3] - roi[1])
+
 
 class FastKineticsCameraConfig(AndorCameraConfig):
     """
@@ -656,7 +670,7 @@ class AndorCameraControl(Fragment):
 
         for i in range(self.num_rois):
             roi = rois[i]
-            area = (roi[2] - roi[0]) * (roi[3] - roi[1])
+            area = self.andor_camera_config.calculate_area_from_roi(roi)
 
             sums[i] = data[i]
 

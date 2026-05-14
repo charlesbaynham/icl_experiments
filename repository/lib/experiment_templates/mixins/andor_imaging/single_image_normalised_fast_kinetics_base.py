@@ -553,14 +553,6 @@ class SingleImageNormalisedBase(AndorImagingBase):
         self.image_store += self.get_andor_images()
         self.andor_camera_control.start_acquisition()
 
-    @kernel
-    def get_roi_area(self, roi):
-        """
-        Cute little function to get the area of a pixel grid given the four corners in the order
-        [x0, x1, y0, y1]
-        """
-        return (roi[2] - roi[0]) * (roi[3] - roi[1])
-
     @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
@@ -652,7 +644,7 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
         rois = self.andor_camera_config.get_rois()
         areas = [np.int32(0)] * 6
         for i in range(6):
-            areas[i] = self.get_roi_area(rois[i])
+            areas[i] = self.andor_camera_config.calculate_area_from_roi(rois[i])
 
         # ROI 0     : Ground state signal ROI
         # ROI 1     : Excited state signal ROI
@@ -749,7 +741,7 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         rois = self.andor_camera_config.get_rois()
         areas = [np.int32(0)] * 12
         for i in range(12):
-            areas[i] = self.get_roi_area(rois[i])
+            areas[i] = self.andor_camera_config.calculate_area_from_roi(rois[i])
 
         # TODO Check that the indices are correct
 
