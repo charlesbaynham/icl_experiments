@@ -1631,7 +1631,7 @@ class LMTInterferometryMixin(
         # PI/2 PULSE
 
         at_mu(t_start_last_pulse_mu)
-        # ramp the offset downwards. It looks silly but the frequency has to be passed like this.
+        delay_mu(8)
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
             start_opll_offset
@@ -1654,6 +1654,7 @@ class LMTInterferometryMixin(
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
+        # TRANSFER PULSES GROUND STATE
         # stark shift for low intensity up neam
         self.clock_up_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
@@ -1662,12 +1663,14 @@ class LMTInterferometryMixin(
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
 
+        delay(8e-9)
+
         # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
         self.do_selective_lmt_pulse(
             0.0,
             N_kicks=N_launch + 2,
             att=10.5,
-            duration=t_first_pi,
+            duration=100e-6,
         )
 
         delay(8e-9)
@@ -1681,26 +1684,27 @@ class LMTInterferometryMixin(
 
         # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
         self.do_selective_lmt_pulse(
-            last_selective_lower_bs_freq,
+            0.0,
             N_kicks=N_launch + 2,
             att=10.5,
-            duration=t_first_pi,
+            duration=100e-6,
         )
 
         delay(8e-9)
 
+        t_start_last_ramp_mu = now_mu()
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+                t_pulse_start_mu=t_start_last_ramp_mu, t_pi_pulse=t_pi_down
             )
             + last_bs_frequency
             + N_launch * 9.4e3
             - 1e6,
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+                t_pulse_start_mu=t_start_last_ramp_mu, t_pi_pulse=t_pi_down
             )
             + last_bs_frequency
             + N_launch * 9.4e3,
