@@ -4,7 +4,7 @@ from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.fragments.external_trigger import ExternalTrigger
+from repository.lib.fragments.external_trigger import ExternalTriggerFrag
 
 
 class TestExternalTriggerFrag(ExpFragment):
@@ -13,9 +13,9 @@ class TestExternalTriggerFrag(ExpFragment):
         self.core: Core
 
         self.setattr_fragment(
-            "trigger", ExternalTrigger, ttl_name="ttl_50hz_trigger", auto_wait=False
+            "trigger", ExternalTriggerFrag, ttl_name="ttl_50hz_trigger", auto_wait=False
         )
-        self.trigger: ExternalTrigger
+        self.trigger: ExternalTriggerFrag
 
     @kernel
     def run_once(self) -> None:
