@@ -117,7 +117,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
 
-            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(50e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
 
             f_i = (
@@ -217,7 +217,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
 
-            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
+            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(50e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_2_pulse_mu - t_drop)
 
             f_i = (
@@ -277,7 +277,7 @@ class LMTBase(
         self.clock_up_dds.set_att(att)
 
         delay_mu(8)
-        t_pulse = now_mu() + self.core.seconds_to_mu(1e-6)
+        t_pulse = now_mu() + self.core.seconds_to_mu(50e-6)
 
         opll_frequency = (
             start_opll_offset
@@ -1423,7 +1423,7 @@ class LMTInterferometryMixin(
         self.clock_down_dds.sw.on()
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
-        delay(2e-6)
+        delay(100e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
@@ -1603,7 +1603,7 @@ class LMTInterferometryMixin(
             delay(8e-9)
 
         t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            2e-6
+            100e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
         self.clock_opll.clock_OPLL_offset.set(
             start_opll_offset
@@ -1647,43 +1647,43 @@ class LMTInterferometryMixin(
         delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
 
-        # TRANSFER PULSES GROUND STATE
-        # stark shift for low intensity up neam
-        self.clock_up_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.up_switch_detuning_lower_intensity.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        )
+        # # TRANSFER PULSES GROUND STATE
+        # # stark shift for low intensity up neam
+        # self.clock_up_dds.set(
+        #     frequency=self.clock_switch_frequency_handle.get()
+        #     + self.up_switch_detuning_lower_intensity.get(),
+        #     amplitude=self.clock_switch_amplitude_handle.get(),
+        #     phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        # )
 
-        delay(8e-9)
+        # delay(8e-9)
 
-        # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse(
-            0.0,
-            N_kicks=N_launch + 2,
-            att=10.5,
-            duration=t_first_pi,
-        )
+        # # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+        # self.do_selective_lmt_pulse(
+        #     0.0,
+        #     N_kicks=N_launch + 2,
+        #     att=10.5,
+        #     duration=t_first_pi,
+        # )
 
-        delay(8e-9)
+        # delay(8e-9)
 
-        # Clear out the ground state
-        self.fluorescence_pulse.do_clearout_pulse(
-            duration=self.clearout_duration.get(),
-            ignore_final_shutters=True,
-        )
-        delay(8e-9)
+        # # Clear out the ground state
+        # self.fluorescence_pulse.do_clearout_pulse(
+        #     duration=self.clearout_duration.get(),
+        #     ignore_final_shutters=True,
+        # )
+        # delay(8e-9)
 
-        # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
-        self.do_selective_lmt_pulse(
-            0.0,
-            N_kicks=N_launch + 2,
-            att=10.5,
-            duration=t_first_pi,
-        )
+        # # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+        # self.do_selective_lmt_pulse(
+        #     0.0,
+        #     N_kicks=N_launch + 2,
+        #     att=10.5,
+        #     duration=t_first_pi,
+        # )
 
-        delay(8e-9)
+        # delay(8e-9)
 
         t_start_last_ramp_mu = now_mu()
         self.clock_opll.clock_frequency_ramper.start_ramp(
