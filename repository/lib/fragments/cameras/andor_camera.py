@@ -107,8 +107,7 @@ class AndorCameraConfig(Fragment, abc.ABC):
         #     y1: int = 0
 
     @portable
-    @staticmethod
-    def calculate_area_from_roi(roi):
+    def calculate_area_from_roi(self, roi):
         """
         Calculate area of an ROI
 
