@@ -493,7 +493,7 @@ class SingleImageNormalisedBase(AndorImagingBase):
             distance_fallen_between_pulses / constants.ANDOR_CAMERA_FACTS["pixel_size"]
         )
 
-        logger.debug(
+        logger.critical(
             "Compensating gravity drop with an offset of %s pixels",
             pixels_dropped_between_pulses,
         )
