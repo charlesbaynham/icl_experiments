@@ -6,6 +6,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
     AbsorptionRedMOTMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.atom_number_check import (
+    AtomNumberCheckMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageMixin,
 )
@@ -66,6 +69,7 @@ class MeasureNarrowbandMOTBGCorrectedWithTrapsFrag(
 
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
+    AtomNumberCheckMixin,
     BGCorrectedAndorImageMixin,
     FLIRMeasurementMixin,
     _MeasureNarrowbandMOTFrag,
