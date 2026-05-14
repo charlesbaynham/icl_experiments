@@ -1611,13 +1611,6 @@ class LMTInterferometryMixin(
                 t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
             )
             + last_bs_frequency
-            + N_launch * 9.4e3
-            - 1e6,
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-            )
-            + last_bs_frequency
             + N_launch * 9.4e3,
         )
 
@@ -1670,7 +1663,7 @@ class LMTInterferometryMixin(
             0.0,
             N_kicks=N_launch + 2,
             att=10.5,
-            duration=100e-6,
+            duration=t_first_pi,
         )
 
         delay(8e-9)
@@ -1687,7 +1680,7 @@ class LMTInterferometryMixin(
             0.0,
             N_kicks=N_launch + 2,
             att=10.5,
-            duration=100e-6,
+            duration=t_first_pi,
         )
 
         delay(8e-9)
