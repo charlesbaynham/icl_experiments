@@ -648,7 +648,7 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
 
         # ROI 0     : Ground state signal ROI
         # ROI 1     : Excited state signal ROI
-        # ROI 2 & 6 : Ground state background ROI
+        # ROI 2 & 4 : Ground state background ROI
         # ROI 3 & 5 : Excited state background ROI
 
         # TODO : This BG subtraction method is common to both of the double and single trap so in principle should be
