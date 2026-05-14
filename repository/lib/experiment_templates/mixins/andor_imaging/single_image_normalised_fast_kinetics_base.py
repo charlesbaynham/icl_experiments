@@ -769,7 +769,7 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         if atom_number_bottom == 0:
             excitation_fraction_bottom = 0.0
         else:
-            excitation_fraction_bottom = atom_number_excited_bottom / atom_number_top
+            excitation_fraction_bottom = atom_number_excited_bottom / atom_number_bottom
 
         if atom_number_total == 0:
             imbalance = 0.0
