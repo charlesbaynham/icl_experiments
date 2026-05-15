@@ -37,7 +37,8 @@ class ExternalTriggerFrag(Fragment):
             "trigger_offset",
             FloatParam,
             "Delay after the external trigger edge before continuing the experiment",
-            default=0.0,
+            default=10e-3,
+            min=0,
             unit="ms",
         )
         self.trigger_offset: FloatParamHandle
