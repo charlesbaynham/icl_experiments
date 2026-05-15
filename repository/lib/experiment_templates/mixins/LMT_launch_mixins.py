@@ -1412,8 +1412,7 @@ class LMTInterferometryMixin(
 
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + self.down_switch_detuning.get()
-            + bs1_lmt_offset,
+            + self.down_switch_detuning.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
@@ -1516,7 +1515,7 @@ class LMTInterferometryMixin(
 
         # MIRROR PULSE DOWN BEAM
         t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            1e-6
+            50e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
 
         self.clock_opll.clock_OPLL_offset.set(
@@ -1533,7 +1532,7 @@ class LMTInterferometryMixin(
         delay(t_pi_down)
         self.clock_down_dds.sw.off()
 
-        delay(1e-6)
+        delay(50e-6)
 
         if N > 1:
             # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
