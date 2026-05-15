@@ -18,6 +18,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
+from repository.lib.experiment_templates.mixins.external_triggering import (
+    External50HzTriggerMixin,
+)
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
 )
@@ -29,7 +32,7 @@ from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExp
 logger = logging.getLogger(__name__)
 
 
-class _MeasureNarrowbandMOTFrag(RedMOTWithExperiment):
+class _MeasureNarrowbandMOTFrag(External50HzTriggerMixin, RedMOTWithExperiment):
     def build_fragment(self):
         super().build_fragment()
 
