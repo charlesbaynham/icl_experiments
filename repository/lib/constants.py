@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
+import numpy as np
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 from scipy import constants as scipy_constants
@@ -50,6 +51,29 @@ GRAVITY_DOPPLER_PER_SEC_CLOCK = (
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
+
+# ── Ballistic predictor constants ────────────────────────────────────────────
+
+SR_ATOM_MASS_KG = scipy_constants.atomic_mass * (87 if USE_SR87 else 88)
+CLOCK_WAVELENGTH_M = scipy_constants.c / SR_FACTS["FREQUENCIES"]["698"]
+
+# Lab-frame convention: +x = horizontal (along imaging axis), +y = horizontal
+# (perpendicular), +z = up.  Gravity points downward.
+GRAVITY_VEC_M_PER_S2 = np.array([0.0, 0.0, -scipy_constants.g])
+
+# Side-view Andor camera: looks from the +y direction toward the trap.
+# Sensor +x maps to lab +x; sensor +y maps to lab +z so that falling atoms
+# appear to move in the -y direction on the sensor, matching experiment.
+ANDOR_OPTICAL_AXIS_DEFAULT = np.array([0.0, 1.0, 0.0])
+ANDOR_SENSOR_X_AXIS_DEFAULT = np.array([1.0, 0.0, 0.0])
+ANDOR_SENSOR_Y_AXIS_DEFAULT = np.array([0.0, 0.0, 1.0])
+
+# Clock beam direction: +is_up kick is in the +z (up) direction.
+CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
+
+# Default ROI dimensions for dynamic-ROI imaging (pixels).
+DEFAULT_ROI_WIDTH = 100
+DEFAULT_ROI_HEIGHT = 100
 
 USE_LATTICE_MODE = False
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
