@@ -74,14 +74,13 @@ class ExternalTriggerFrag(Fragment):
         lies in the future.
         """
         if self.enabled.get():
-            timeout_mu = self.core.seconds_to_mu(0.2)
-            gate_end = self.ttl.gate_rising_mu(timeout_mu)
+            gate_end = self.ttl.gate_rising(1.0)
             offset_mu = self.core.seconds_to_mu(self.trigger_offset.get())
 
             # Commence waiting for the trigger
             t_mu = self.ttl.timestamp_mu(gate_end)
             if t_mu < 0:
-                logger.error("No external trigger detected within 0.2s timeout")
+                logger.error("No external trigger detected within timeout")
                 return
 
             # Jump the cursor to the target time
