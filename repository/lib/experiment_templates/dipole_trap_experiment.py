@@ -181,23 +181,23 @@ class DipoleTrapWithExperimentBase(
                 return self.core_dma.playback_handle(self.dma_handle)
 
             @kernel
-            def register_pulse(self, is_up: bool):
+            def register_pulse(self, is_up: bool, duration_s: float):
                 """
-                Register a clock pulse interacting with the atoms at the current
-                position of the cursor. This will be used to reconstruct the
-                atom's momentum / position for imaging.
+                Register a clock pulse about to be applied.
 
-                Mixins that want to use ROI dynamic positioning should call this
-                method whenever the light interacts with the atoms. If you're
-                not using dynamic ROI positioning, calling this method will do
-                no harm so you might as well do it anyway.
+                Call this IMMEDIATELY BEFORE turning the clock AOM on. The
+                impulse is recorded at the pulse centre — i.e. at
+                now_mu() + seconds_to_mu(duration_s / 2) — which is a better
+                approximation of the average momentum-imparting moment than the
+                leading edge.
                 """
                 if self._pulse_record_num_pulses >= BUFFER_DEPTH:
                     raise RuntimeError(
                         f"Exceeded maximum number of pulses that can be recorded ({BUFFER_DEPTH}). Congratulations!!!"
                     )
 
-                self._pulse_record_times_mu[self._pulse_record_num_pulses] = now_mu()
+                half_mu = self.core.seconds_to_mu(duration_s / 2)
+                self._pulse_record_times_mu[self._pulse_record_num_pulses] = now_mu() + half_mu
                 self._pulse_record_is_up[self._pulse_record_num_pulses] = is_up
                 self._pulse_record_num_pulses += 1
 
@@ -298,6 +298,15 @@ class DipoleTrapWithExperimentBase(
         Hook for matterwave collimation of the atoms.
         By default, do nothing.
         """
+
+    @kernel
+    def register_pulse(self, is_up: bool, duration_s: float):
+        """
+        Delegate to dma_recording_fragment.register_pulse so that clock-pulse
+        mixins can call self.register_pulse unconditionally without knowing
+        whether a DMA fragment exists.
+        """
+        self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
 
     @kernel
     def post_dipole_trap_hook_default(self):

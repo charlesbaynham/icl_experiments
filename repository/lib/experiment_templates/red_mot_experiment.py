@@ -518,6 +518,18 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         raise NotImplementedError
 
     @kernel
+    def register_pulse(self, is_up: bool, duration_s: float):
+        """
+        No-op base implementation. Overridden by DipoleTrapWithExperimentBase
+        to record the pulse for dynamic ROI positioning.
+
+        Call this immediately before turning the clock AOM on, passing the
+        full pulse duration. The recorded timestamp is placed at the pulse
+        centre (now_mu() + duration/2), which is the best single-impulse
+        approximation of the momentum transfer.
+        """
+
+    @kernel
     def host_functions_after_experiment_hook(self):
         """
         Hook for doing any extra functions at the end of the experiment.

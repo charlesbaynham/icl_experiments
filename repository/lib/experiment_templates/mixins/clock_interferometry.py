@@ -146,6 +146,7 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_first_pulse_mu)
+        self.register_pulse(is_up=True, duration_s=t_pi_pulse / 2)
         self.clock_up_dds.sw.on()
         delay(t_pi_pulse / 2)
         self.clock_up_dds.sw.off()
@@ -170,6 +171,7 @@ class ClockInterferometryBase(
 
         # PI PULSE
         at_mu(t_start_pi_pulse_mu)
+        self.register_pulse(is_up=True, duration_s=t_pi_pulse)
         self.clock_up_dds.sw.on()
         delay(t_pi_pulse)
         self.clock_up_dds.sw.off()
@@ -189,6 +191,7 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_final_pulse_mu)
+        self.register_pulse(is_up=True, duration_s=t_pi_pulse / 2)
         self.clock_up_dds.sw.on()
         delay(t_pi_pulse / 2)
         self.clock_up_dds.sw.off()
