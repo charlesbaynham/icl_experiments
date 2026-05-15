@@ -29,7 +29,7 @@ class ExternalTriggerFrag(Fragment):
             "enabled",
             BoolParam,
             "Enable or disable external triggering",
-            default=True,
+            default=False,
         )
         self.enabled: BoolParamHandle
 
