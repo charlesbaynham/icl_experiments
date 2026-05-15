@@ -58,11 +58,19 @@ aliases = {
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
     # %% TTLs
+    # ttl0-3 bank set to In/Out
+    "ttl_50hz_trigger": "ttl1",
+    # other TTLs are all set to Output:
+    "ttl_camera_trigger_andor": "ttl4",
+    "ttl_shutter_andor": "ttl5",
+    "ttl_camera_trigger_horizontal": "ttl6",
+    "ttl_camera_trigger_vertical": "ttl7",
     "TTL_shutter_461_pushbeam": "ttl8",
     "TTL_shutter_461_2dmot_is_it_a": "ttl9",
     "TTL_shutter_461_2dmot_is_it_b": "ttl10",
     "TTL_shutter_461_3dmot": "ttl11",
     "ttl_clock_glitch_counter": "ttl12",
+    "ttl_698_opll_enable": "ttl14",
     "ttl_shutter_repump_707": "ttl16",
     "ttl_shutter_repump_679": "ttl17",
     "ttl_shutter_red_sigmaplus": "ttl18",
@@ -73,12 +81,6 @@ aliases = {
     "ttl_shutter_red_axial_spin_pol": "ttl23",
     "ttl_shutter_red_wavemeter_689_master": "ttl24",
     "ttl_shutter_red_wavemeter_689_from_1379": "ttl25",
-    "ttl_shutter_andor": "ttl0",
-    "ttl_debugging": "ttl1",
-    "ttl_camera_trigger_andor": "ttl4",
-    "ttl_camera_trigger_horizontal": "ttl6",
-    "ttl_camera_trigger_vertical": "ttl7",
-    "ttl_698_opll_enable": "ttl14",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch0",
     "mirny_eom_707_sideband_A": "mirny0_ch1",

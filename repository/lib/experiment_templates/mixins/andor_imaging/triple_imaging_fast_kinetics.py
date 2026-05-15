@@ -38,8 +38,8 @@ class TripleImageRedMOTFastKineticsMixin(TripleImageFastKineticsBase):
 class TripleImageDipoleTrapFKConfig(TripleFKConfig):
     """TripleFKConfig with dipole-trap-specific FK height/offset defaults."""
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
 
 
 class TripleImageDipoleTrapFastKineticsMixin(TripleImageFastKineticsBase):

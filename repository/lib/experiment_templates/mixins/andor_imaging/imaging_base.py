@@ -95,7 +95,6 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         self.do_gauss_fit: BoolParamHandle
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("num_grabber_readouts")
         self.kernel_invariants.add("do_gauss_fit")
 
         class ImagingDeviceSetup(Fragment):

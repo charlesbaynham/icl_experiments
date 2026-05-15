@@ -96,7 +96,7 @@ def _background_correct_trap_block(sums, areas, start_index):
 
 @portable
 def _copy_trap_roi_block(
-    roi_buffer, start_index, x0, y0, x1, y1, offset, step, bg_width
+    roi_buffer, start_index, x0, y0_minus_offset, x1, y1_minus_offset, step, bg_width
 ):
     """Write the six-ROI single-trap layout into a preallocated ROI buffer.
 
@@ -106,34 +106,34 @@ def _copy_trap_roi_block(
     while still sharing one ROI layout definition.
     """
     roi_buffer[start_index + 0][0] = x0
-    roi_buffer[start_index + 0][1] = y0 - offset
+    roi_buffer[start_index + 0][1] = y0_minus_offset
     roi_buffer[start_index + 0][2] = x1
-    roi_buffer[start_index + 0][3] = y1 - offset
+    roi_buffer[start_index + 0][3] = y1_minus_offset
 
     roi_buffer[start_index + 1][0] = x0
-    roi_buffer[start_index + 1][1] = y0 + step - offset
+    roi_buffer[start_index + 1][1] = y0_minus_offset + step
     roi_buffer[start_index + 1][2] = x1
-    roi_buffer[start_index + 1][3] = y1 + step - offset
+    roi_buffer[start_index + 1][3] = y1_minus_offset + step
 
     roi_buffer[start_index + 2][0] = x0 - bg_width
-    roi_buffer[start_index + 2][1] = y0 - offset
+    roi_buffer[start_index + 2][1] = y0_minus_offset
     roi_buffer[start_index + 2][2] = x0
-    roi_buffer[start_index + 2][3] = y1 - offset
+    roi_buffer[start_index + 2][3] = y1_minus_offset
 
     roi_buffer[start_index + 3][0] = x0 - bg_width
-    roi_buffer[start_index + 3][1] = y0 + step - offset
+    roi_buffer[start_index + 3][1] = y0_minus_offset + step
     roi_buffer[start_index + 3][2] = x0
-    roi_buffer[start_index + 3][3] = y1 + step - offset
+    roi_buffer[start_index + 3][3] = y1_minus_offset + step
 
     roi_buffer[start_index + 4][0] = x1
-    roi_buffer[start_index + 4][1] = y0 - offset
+    roi_buffer[start_index + 4][1] = y0_minus_offset
     roi_buffer[start_index + 4][2] = x1 + bg_width
-    roi_buffer[start_index + 4][3] = y1 - offset
+    roi_buffer[start_index + 4][3] = y1_minus_offset
 
     roi_buffer[start_index + 5][0] = x1
-    roi_buffer[start_index + 5][1] = y0 + step - offset
+    roi_buffer[start_index + 5][1] = y0_minus_offset + step
     roi_buffer[start_index + 5][2] = x1 + bg_width
-    roi_buffer[start_index + 5][3] = y1 + step - offset
+    roi_buffer[start_index + 5][3] = y1_minus_offset + step
 
 
 # %% Camera config classes
@@ -167,8 +167,8 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self, x0, y0, x1, y1, bg_width, excited_shift=0):
         super().build_fragment()
@@ -186,7 +186,7 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
             "roi_y0",
             IntParam,
             "Grabber ROI y0",
-            default=y0,
+            default=y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -204,7 +204,7 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
             "roi_y1",
             IntParam,
             "Grabber ROI y1",
-            default=y1,
+            default=y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -225,8 +225,8 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
+
         x0 = self.roi_x0.get()
         y0 = self.roi_y0.get()
         x1 = self.roi_x1.get()
@@ -238,10 +238,9 @@ class SingleFKSingleTrapConfig(FastKineticsCameraConfig):
             roi_buffer=self.roi_buffer,
             start_index=0,
             x0=x0,
-            y0=y0,
+            y0_minus_offset=y0,
             x1=x1,
-            y1=y1,
-            offset=offset,
+            y1_minus_offset=y1,
             step=step,
             bg_width=bg_width,
         )
@@ -265,8 +264,8 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(
         self,
@@ -296,7 +295,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y0",
             IntParam,
             "Forward trap grabber ROI y0",
-            default=fwd_y0,
+            default=fwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -314,7 +313,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y1",
             IntParam,
             "Forward trap grabber ROI y1",
-            default=fwd_y1,
+            default=fwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -333,7 +332,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y0",
             IntParam,
             "Backward trap grabber ROI y0",
-            default=bwd_y0,
+            default=bwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -351,7 +350,7 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y1",
             IntParam,
             "Backward trap grabber ROI y1",
-            default=bwd_y1,
+            default=bwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -372,8 +371,8 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
+        self.fast_kinetics_offset
         bg_width = self.bg_width.get()
         step = height - self._excited_shift
 
@@ -387,10 +386,9 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             roi_buffer=self.roi_buffer,
             start_index=0,
             x0=bx0,
-            y0=by0,
+            y0_minus_offset=by0,
             x1=bx1,
-            y1=by1,
-            offset=offset,
+            y1_minus_offset=by1,
             step=step,
             bg_width=bg_width,
         )
@@ -405,10 +403,9 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
             roi_buffer=self.roi_buffer,
             start_index=6,
             x0=fx0,
-            y0=fy0,
+            y0_minus_offset=fy0,
             x1=fx1,
-            y1=fy1,
-            offset=offset,
+            y1_minus_offset=fy1,
             step=step,
             bg_width=bg_width,
         )
@@ -456,16 +453,26 @@ class SingleImageNormalisedBase(AndorImagingBase):
 
     def host_setup(self):
         super().host_setup()
-        default_rois = self.get_monitor_rois()
+
+        ground_rois = np.array(self.andor_camera_config.get_rois()[[0, 2, 4]]).tolist()
+
+        fk_height = self.andor_camera_config.fast_kinetics_height
+        excited_rois = np.array(self.andor_camera_config.get_rois()[[1, 3, 5]]).tolist()
+        # Subtract the fast kinetics height from the y components
+        excited_rois = [
+            [roi[0], roi[1] - fk_height, roi[2], roi[3] - fk_height]
+            for roi in excited_rois
+        ]
+
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{default_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{ground_rois}'",
         )
         self.ccb.issue(
             "create_applet",
             "Excited bg corrected",
-            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{default_rois}'",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{excited_rois}'",
         )
 
     @abc.abstractmethod
@@ -556,14 +563,6 @@ class SingleImageNormalisedBase(AndorImagingBase):
         self.image_store += self.get_andor_images()
         self.andor_camera_control.start_acquisition()
 
-    @kernel
-    def get_roi_area(self, roi):
-        """
-        Cute little function to get the area of a pixel grid given the four corners in the order
-        [x0, x1, y0, y1]
-        """
-        return (roi[2] - roi[0]) * (roi[3] - roi[1])
-
     @rpc(flags={"async"})
     def process_andor_image_hook(self, images: np.array):
         super().process_andor_image_hook(images)
@@ -621,10 +620,10 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
         f = self.setattr_fragment(
             "andor_camera_config",
             SingleFKSingleTrapConfig,
-            x0=constants.ANDOR_ROI_X0,
-            y0=constants.ANDOR_ROI_Y0,
-            x1=constants.ANDOR_ROI_X1,
-            y1=constants.ANDOR_ROI_Y1,
+            x0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0,
+            y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0,
+            x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1,
+            y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1,
             bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
             excited_shift=self.calculate_gravitational_drop(),
         )
@@ -655,11 +654,11 @@ class SingleImageNormalisedSingleTrapBase(SingleImageNormalisedBase):
         rois = self.andor_camera_config.get_rois()
         areas = [np.int32(0)] * 6
         for i in range(6):
-            areas[i] = self.get_roi_area(rois[i])
+            areas[i] = self.andor_camera_config.calculate_area_from_roi(rois[i])
 
         # ROI 0     : Ground state signal ROI
         # ROI 1     : Excited state signal ROI
-        # ROI 2 & 6 : Ground state background ROI
+        # ROI 2 & 4 : Ground state background ROI
         # ROI 3 & 5 : Excited state background ROI
 
         # TODO : This BG subtraction method is common to both of the double and single trap so in principle should be
@@ -752,7 +751,7 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         rois = self.andor_camera_config.get_rois()
         areas = [np.int32(0)] * 12
         for i in range(12):
-            areas[i] = self.get_roi_area(rois[i])
+            areas[i] = self.andor_camera_config.calculate_area_from_roi(rois[i])
 
         # TODO Check that the indices are correct
 
@@ -780,12 +779,12 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         if atom_number_bottom == 0:
             excitation_fraction_bottom = 0.0
         else:
-            excitation_fraction_bottom = atom_number_excited_bottom / atom_number_top
+            excitation_fraction_bottom = atom_number_excited_bottom / atom_number_bottom
 
         if atom_number_total == 0:
             imbalance = 0.0
         else:
-            imbalance = (atom_number_bottom + atom_number_top) / atom_number_total
+            imbalance = (atom_number_bottom - atom_number_top) / atom_number_total
 
         # Save and push
         self._double_trap_imaging_log_data(

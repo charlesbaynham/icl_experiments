@@ -41,28 +41,38 @@ def test_single_trap_roi_block_builds_ground_excited_and_background_rois():
 def test_copy_trap_roi_block_matches_single_trap_roi_block():
     roi_buffer = np.zeros((6, 4), dtype=np.int32)
 
+    x0 = 100
+    y0 = 200
+    x1 = 120
+    y1 = 230
+    offset = 7
+    step = 40
+    bg_width = 8
+
+    y0_minus_offset = y0 - offset
+    y1_minus_offset = y1 - offset
+
     _copy_trap_roi_block(
         roi_buffer=roi_buffer,
         start_index=0,
-        x0=100,
-        y0=200,
-        x1=120,
-        y1=230,
-        offset=7,
-        step=40,
-        bg_width=8,
+        x0=x0,
+        y0_minus_offset=y0_minus_offset,
+        x1=x1,
+        y1_minus_offset=y1_minus_offset,
+        step=step,
+        bg_width=bg_width,
     )
 
     assert np.array_equal(
         roi_buffer,
         _single_trap_roi_block(
-            x0=100,
-            y0=200,
-            x1=120,
-            y1=230,
-            offset=7,
-            step=40,
-            bg_width=8,
+            x0=x0,
+            y0=y0,
+            x1=x1,
+            y1=y1,
+            offset=offset,
+            step=step,
+            bg_width=bg_width,
         ),
     )
 

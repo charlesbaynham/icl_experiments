@@ -45,8 +45,8 @@ class NormalisedRedMOTFastKineticsMixin(NormalisedFastKineticsBase):
 class NormalisedDipoleTrapFKConfig(NormalisedFKConfig):
     """NormalisedFKConfig with dipole-trap-specific FK height/offset defaults."""
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT_DIPOLE_TRAP
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET_DIPOLE_TRAP
 
 
 class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
@@ -86,8 +86,8 @@ class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
 class NormalisedXXODTFKConfigBase(NormalisedFKDoubleTrapConfig):
     """Base config for XXODT (double-trap) fast-kinetics variants."""
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
 
 class NormalisedXXODTFKConfig(NormalisedXXODTFKConfigBase):

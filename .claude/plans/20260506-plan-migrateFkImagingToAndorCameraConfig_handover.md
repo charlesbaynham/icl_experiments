@@ -31,7 +31,7 @@ Changes made:
 
 1. Added `NormalisedFKConfig(FastKineticsCameraConfig)` at ~line 100:
     - `num_andor_images=4`, `num_images_per_series=2`, `num_grabber_rois=2`, `num_grabber_readouts=2`
-    - `fast_kinetics_num_shots=2`, `fast_kinetics_height_default/offset_default` from constants
+    - `fast_kinetics_num_shots=2`, `fast_kinetics_height/offset_default` from constants
     - `build_fragment(x0, y0, x1, y1, excited_shift=0)` creates 4 `roi_xN` IntParams
     - `roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)` — IMPORTANT: must be numpy array, not list-of-lists
     - `_excited_shift = np.int32(excited_shift)` — IMPORTANT: must be int32, not Python int
@@ -101,8 +101,8 @@ File: `repository/lib/experiment_templates/mixins/andor_imaging/triple_imaging_f
 The `TripleImageFastKineticsBase` class still uses old-style `setup_andor_camera_control_hook()`:
 
 - `num_andor_images=3`, `num_grabber_rois=3`, `num_grabber_readouts=1`
-- `fast_kinetics_height_default=constants.ANDOR_FAST_KINETICS_HEIGHT`
-- At line 122 still calls `self.setattr_fragment("andor_camera_control", AndorCameraControl, roi_defaults=..., fast_kinetics_height_default=..., fast_kinetics_num_shots=3, ...)`
+- `fast_kinetics_height=constants.ANDOR_FAST_KINETICS_HEIGHT`
+- At line 122 still calls `self.setattr_fragment("andor_camera_control", AndorCameraControl, roi_defaults=..., fast_kinetics_height=..., fast_kinetics_num_shots=3, ...)`
 - FIXME at line 136: `get_grabber_roi_defaults()` returns `calculate_grabber_rois(...)` with `ANDOR_ROI_X0/Y0/X1/Y1`
 
 **Plan**: Create `TripleFKConfig(FastKineticsCameraConfig)` with:

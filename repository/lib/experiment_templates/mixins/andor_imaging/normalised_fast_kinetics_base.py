@@ -62,6 +62,8 @@ class NormalisedFKConfig(FastKineticsCameraConfig):
     Camera config for normalised fast kinetics readout of a single trap.
 
     Supports 2 images per series (ground + excited state), producing 2 grabber ROIs.
+
+    Note that the y heights have the fast kinetics offset subtracted from them, this makes them appear to match up with the andor monitor image.
     """
 
     num_andor_images = 4
@@ -70,8 +72,8 @@ class NormalisedFKConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 2
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self, x0, y0, x1, y1, excited_shift=0):
         super().build_fragment()
@@ -89,7 +91,7 @@ class NormalisedFKConfig(FastKineticsCameraConfig):
             "roi_y0",
             IntParam,
             "Grabber ROI y0",
-            default=y0,
+            default=y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -107,7 +109,7 @@ class NormalisedFKConfig(FastKineticsCameraConfig):
             "roi_y1",
             IntParam,
             "Grabber ROI y1",
-            default=y1,
+            default=y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -118,21 +120,23 @@ class NormalisedFKConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
+
         x0 = self.roi_x0.get()
-        y0 = self.roi_y0.get()
+        y0_minus_offset = self.roi_y0.get()
         x1 = self.roi_x1.get()
-        y1 = self.roi_y1.get()
+        y1_minus_offset = self.roi_y1.get()
+
         step = height - self._excited_shift
+
         self.roi_buffer[0][0] = x0
-        self.roi_buffer[0][1] = y0 - offset
+        self.roi_buffer[0][1] = y0_minus_offset
         self.roi_buffer[0][2] = x1
-        self.roi_buffer[0][3] = y1 - offset
+        self.roi_buffer[0][3] = y1_minus_offset
         self.roi_buffer[1][0] = x0
-        self.roi_buffer[1][1] = y0 + step - offset
+        self.roi_buffer[1][1] = y0_minus_offset + step
         self.roi_buffer[1][2] = x1
-        self.roi_buffer[1][3] = y1 + step - offset
+        self.roi_buffer[1][3] = y1_minus_offset + step
         return self.roi_buffer
 
 
@@ -149,8 +153,8 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 2
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(
         self,
@@ -179,7 +183,7 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y0",
             IntParam,
             "Forward trap grabber ROI y0",
-            default=fwd_y0,
+            default=fwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -197,7 +201,7 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y1",
             IntParam,
             "Forward trap grabber ROI y1",
-            default=fwd_y1,
+            default=fwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -216,7 +220,7 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y0",
             IntParam,
             "Backward trap grabber ROI y0",
-            default=bwd_y0,
+            default=bwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -234,7 +238,7 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y1",
             IntParam,
             "Backward trap grabber ROI y1",
-            default=bwd_y1,
+            default=bwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -245,33 +249,36 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
         step = height - self._excited_shift
+
         fwd_x0 = self.fwd_roi_x0.get()
-        fwd_y0 = self.fwd_roi_y0.get()
+        fwd_y0_minus_offset = self.fwd_roi_y0.get()
         fwd_x1 = self.fwd_roi_x1.get()
-        fwd_y1 = self.fwd_roi_y1.get()
+        fwd_y1_minus_offset = self.fwd_roi_y1.get()
+
         self.roi_buffer[0][0] = fwd_x0
-        self.roi_buffer[0][1] = fwd_y0 - offset
+        self.roi_buffer[0][1] = fwd_y0_minus_offset
         self.roi_buffer[0][2] = fwd_x1
-        self.roi_buffer[0][3] = fwd_y1 - offset
+        self.roi_buffer[0][3] = fwd_y1_minus_offset
         self.roi_buffer[1][0] = fwd_x0
-        self.roi_buffer[1][1] = fwd_y0 + step - offset
+        self.roi_buffer[1][1] = fwd_y0_minus_offset + step
         self.roi_buffer[1][2] = fwd_x1
-        self.roi_buffer[1][3] = fwd_y1 + step - offset
+        self.roi_buffer[1][3] = fwd_y1_minus_offset + step
+
         bwd_x0 = self.bwd_roi_x0.get()
-        bwd_y0 = self.bwd_roi_y0.get()
+        bwd_y0_minus_offset = self.bwd_roi_y0.get()
         bwd_x1 = self.bwd_roi_x1.get()
-        bwd_y1 = self.bwd_roi_y1.get()
+        bwd_y1_minus_offset = self.bwd_roi_y1.get()
+
         self.roi_buffer[2][0] = bwd_x0
-        self.roi_buffer[2][1] = bwd_y0 - offset
+        self.roi_buffer[2][1] = bwd_y0_minus_offset
         self.roi_buffer[2][2] = bwd_x1
-        self.roi_buffer[2][3] = bwd_y1 - offset
+        self.roi_buffer[2][3] = bwd_y1_minus_offset
         self.roi_buffer[3][0] = bwd_x0
-        self.roi_buffer[3][1] = bwd_y0 + step - offset
+        self.roi_buffer[3][1] = bwd_y0_minus_offset + step
         self.roi_buffer[3][2] = bwd_x1
-        self.roi_buffer[3][3] = bwd_y1 + step - offset
+        self.roi_buffer[3][3] = bwd_y1_minus_offset + step
         return self.roi_buffer
 
 
@@ -619,8 +626,8 @@ class NormalisedFastKineticsDoubleTrapBase(AndorImagingBase):
         # Subtract the fast kinetics height from the y coordinates of the
         # excited state ROIs
         for roi in default_rois_excited:
-            roi[1] -= self.andor_camera_config.fast_kinetics_height_default
-            roi[3] -= self.andor_camera_config.fast_kinetics_height_default
+            roi[1] -= self.andor_camera_config.fast_kinetics_height
+            roi[3] -= self.andor_camera_config.fast_kinetics_height
 
         self.ccb.issue(
             "create_applet",

@@ -35,8 +35,8 @@ class TripleFKConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 3
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self, x0, y0, x1, y1):
         super().build_fragment()
@@ -54,7 +54,7 @@ class TripleFKConfig(FastKineticsCameraConfig):
             "roi_y0",
             IntParam,
             "Grabber ROI y0",
-            default=y0,
+            default=y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -72,7 +72,7 @@ class TripleFKConfig(FastKineticsCameraConfig):
             "roi_y1",
             IntParam,
             "Grabber ROI y1",
-            default=y1,
+            default=y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -82,24 +82,24 @@ class TripleFKConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
         x0 = self.roi_x0.get()
-        y0 = self.roi_y0.get()
+        y0_minus_offset = self.roi_y0.get()
         x1 = self.roi_x1.get()
-        y1 = self.roi_y1.get()
+        y1_minus_offset = self.roi_y1.get()
+
         self.roi_buffer[0][0] = x0
-        self.roi_buffer[0][1] = y0 - offset
+        self.roi_buffer[0][1] = y0_minus_offset
         self.roi_buffer[0][2] = x1
-        self.roi_buffer[0][3] = y1 - offset
+        self.roi_buffer[0][3] = y1_minus_offset
         self.roi_buffer[1][0] = x0
-        self.roi_buffer[1][1] = y0 + height - offset
+        self.roi_buffer[1][1] = y0_minus_offset + height
         self.roi_buffer[1][2] = x1
-        self.roi_buffer[1][3] = y1 + height - offset
+        self.roi_buffer[1][3] = y1_minus_offset + height
         self.roi_buffer[2][0] = x0
-        self.roi_buffer[2][1] = y0 + 2 * height - offset
+        self.roi_buffer[2][1] = y0_minus_offset + 2 * height
         self.roi_buffer[2][2] = x1
-        self.roi_buffer[2][3] = y1 + 2 * height - offset
+        self.roi_buffer[2][3] = y1_minus_offset + 2 * height
         return self.roi_buffer
 
 
@@ -117,8 +117,8 @@ class TripleFKDoubleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 3
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
     def build_fragment(
         self,
@@ -146,7 +146,7 @@ class TripleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y0",
             IntParam,
             "Forward trap grabber ROI y0",
-            default=fwd_y0,
+            default=fwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -164,7 +164,7 @@ class TripleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "fwd_roi_y1",
             IntParam,
             "Forward trap grabber ROI y1",
-            default=fwd_y1,
+            default=fwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -183,7 +183,7 @@ class TripleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y0",
             IntParam,
             "Backward trap grabber ROI y0",
-            default=bwd_y0,
+            default=bwd_y0 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -201,7 +201,7 @@ class TripleFKDoubleTrapConfig(FastKineticsCameraConfig):
             "bwd_roi_y1",
             IntParam,
             "Backward trap grabber ROI y1",
-            default=bwd_y1,
+            default=bwd_y1 - self.fast_kinetics_offset,
             min=0,
             max=1024,
         )
@@ -211,42 +211,42 @@ class TripleFKDoubleTrapConfig(FastKineticsCameraConfig):
 
     @portable
     def get_rois(self):
-        height = self.fast_kinetics_height.get()
-        offset = self.fast_kinetics_offset.get()
+        height = self.fast_kinetics_height
         fwd_x0 = self.fwd_roi_x0.get()
-        fwd_y0 = self.fwd_roi_y0.get()
+        fwd_y0_minus_offset = self.fwd_roi_y0.get()
         fwd_x1 = self.fwd_roi_x1.get()
-        fwd_y1 = self.fwd_roi_y1.get()
+        fwd_y1_minus_offset = self.fwd_roi_y1.get()
         # Forward trap ROIs: indices 0..2
         self.roi_buffer[0][0] = fwd_x0
-        self.roi_buffer[0][1] = fwd_y0 - offset
+        self.roi_buffer[0][1] = fwd_y0_minus_offset
         self.roi_buffer[0][2] = fwd_x1
-        self.roi_buffer[0][3] = fwd_y1 - offset
+        self.roi_buffer[0][3] = fwd_y1_minus_offset
         self.roi_buffer[1][0] = fwd_x0
-        self.roi_buffer[1][1] = fwd_y0 + height - offset
+        self.roi_buffer[1][1] = fwd_y0_minus_offset + height
         self.roi_buffer[1][2] = fwd_x1
-        self.roi_buffer[1][3] = fwd_y1 + height - offset
+        self.roi_buffer[1][3] = fwd_y1_minus_offset + height
         self.roi_buffer[2][0] = fwd_x0
-        self.roi_buffer[2][1] = fwd_y0 + 2 * height - offset
+        self.roi_buffer[2][1] = fwd_y0_minus_offset + 2 * height
         self.roi_buffer[2][2] = fwd_x1
-        self.roi_buffer[2][3] = fwd_y1 + 2 * height - offset
+        self.roi_buffer[2][3] = fwd_y1_minus_offset + 2 * height
+
         bwd_x0 = self.bwd_roi_x0.get()
-        bwd_y0 = self.bwd_roi_y0.get()
+        bwd_y0_minus_offset = self.bwd_roi_y0.get()
         bwd_x1 = self.bwd_roi_x1.get()
-        bwd_y1 = self.bwd_roi_y1.get()
+        bwd_y1_minus_offset = self.bwd_roi_y1.get()
         # Backward trap ROIs: indices 3..5
         self.roi_buffer[3][0] = bwd_x0
-        self.roi_buffer[3][1] = bwd_y0 - offset
+        self.roi_buffer[3][1] = bwd_y0_minus_offset
         self.roi_buffer[3][2] = bwd_x1
-        self.roi_buffer[3][3] = bwd_y1 - offset
+        self.roi_buffer[3][3] = bwd_y1_minus_offset
         self.roi_buffer[4][0] = bwd_x0
-        self.roi_buffer[4][1] = bwd_y0 + height - offset
+        self.roi_buffer[4][1] = bwd_y0_minus_offset + height
         self.roi_buffer[4][2] = bwd_x1
-        self.roi_buffer[4][3] = bwd_y1 + height - offset
+        self.roi_buffer[4][3] = bwd_y1_minus_offset + height
         self.roi_buffer[5][0] = bwd_x0
-        self.roi_buffer[5][1] = bwd_y0 + 2 * height - offset
+        self.roi_buffer[5][1] = bwd_y0_minus_offset + 2 * height
         self.roi_buffer[5][2] = bwd_x1
-        self.roi_buffer[5][3] = bwd_y1 + 2 * height - offset
+        self.roi_buffer[5][3] = bwd_y1_minus_offset + 2 * height
         return self.roi_buffer
 
 

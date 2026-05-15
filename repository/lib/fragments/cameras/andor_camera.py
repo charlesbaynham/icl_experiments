@@ -1,5 +1,6 @@
 import abc
 import logging
+import typing as ty
 
 import numpy as np
 from andor_artiq_ndsp.driver import AndorDriver
@@ -105,53 +106,66 @@ class AndorCameraConfig(Fragment, abc.ABC):
         #     x1: int = 0
         #     y1: int = 0
 
+    @portable
+    def calculate_area_from_roi(self, roi):
+        """
+        Calculate area of an ROI
+
+        Parameters:
+        roi (List[int]): List of 4 integers [x0, y0, x1, y1]
+
+        Returns:
+            int: Area of the ROI in pixels
+        """
+        return (roi[2] - roi[0]) * (roi[3] - roi[1])
+
 
 class FastKineticsCameraConfig(AndorCameraConfig):
     """
     Base configuration for Andor camera in fast kinetics mode.
 
-    Subclasses must set `fast_kinetics_height_default`, `fast_kinetics_offset_default`,
+    Subclasses must set `fast_kinetics_height`, `fast_kinetics_offset`,
     and `fast_kinetics_num_shots` as class attributes.
 
     Adds parameters for fast kinetics height, offset and time between shots.
     """
 
-    fast_kinetics_height_default: int = None  # type: ignore
-    fast_kinetics_offset_default: int = None  # type: ignore
+    fast_kinetics_height: int = None  # type: ignore
+    fast_kinetics_offset: int = None  # type: ignore
     fast_kinetics_num_shots: int = None  # type: ignore
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.fast_kinetics_height_default is None:
-            raise ValueError("fast_kinetics_height_default must be set in subclass")
-        if self.fast_kinetics_offset_default is None:
-            raise ValueError("fast_kinetics_offset_default must be set in subclass")
+        if self.fast_kinetics_height is None:
+            raise ValueError("fast_kinetics_height must be set in subclass")
+        if self.fast_kinetics_offset is None:
+            raise ValueError("fast_kinetics_offset must be set in subclass")
         if self.fast_kinetics_num_shots is None:
             raise ValueError("fast_kinetics_num_shots must be set in subclass")
 
     def build_fragment(self):
         super().build_fragment()
 
-        self.setattr_param(
-            "fast_kinetics_height",
-            IntParam,
-            "Fast kinetics height",
-            default=self.fast_kinetics_height_default,
-            min=0,
-            max=512,
-        )
-        self.fast_kinetics_height: IntParamHandle
+        # self.setattr_param(
+        #     "fast_kinetics_height",
+        #     IntParam,
+        #     "Fast kinetics height",
+        #     default=self.fast_kinetics_height,
+        #     min=0,
+        #     max=512,
+        # )
+        # self.fast_kinetics_height: IntParamHandle
 
-        self.setattr_param(
-            "fast_kinetics_offset",
-            IntParam,
-            "Fast kinetics offset",
-            default=self.fast_kinetics_offset_default,
-            min=0,
-            max=512,
-        )
-        self.fast_kinetics_offset: IntParamHandle
+        # self.setattr_param(
+        #     "fast_kinetics_offset",
+        #     IntParam,
+        #     "Fast kinetics offset",
+        #     default=self.fast_kinetics_offset,
+        #     min=0,
+        #     max=512,
+        # )
+        # self.fast_kinetics_offset: IntParamHandle
 
         self.setattr_param(
             "fast_kinetics_time_between_shots",
@@ -353,7 +367,9 @@ class AndorCameraControl(Fragment):
         # up to a max of 1024 high (i.e. the image + storage EMCCDs).
         # See labbook entry 2024-06-11.
         self.andor_requires_storage_frame = self.fast_kinetics_mode and (
-            self.andor_camera_config.fast_kinetics_height.get()
+            ty.cast(
+                FastKineticsCameraConfig, self.andor_camera_config
+            ).fast_kinetics_height
             * self.fast_kinetics_num_shots
             > constants.ANDOR_SENSOR_HEIGHT
         )
@@ -380,7 +396,9 @@ class AndorCameraControl(Fragment):
                 # to the "exposure time" specified in Fast Kinetics mode.
 
                 self.fast_kinetics_shift_time = (
-                    self.andor_camera_config.fast_kinetics_height.get()
+                    ty.cast(
+                        FastKineticsCameraConfig, self.andor_camera_config
+                    ).fast_kinetics_height
                     * self.cam.get_vsspeed()
                     * 1e-6
                 )
@@ -448,7 +466,9 @@ class AndorCameraControl(Fragment):
     @rpc(flags={"async"})
     def setup_fast_kinetics_mode(self):
         exposure_time = (
-            self.andor_camera_config.fast_kinetics_time_between_shots.get()
+            ty.cast(
+                FastKineticsCameraConfig, self.andor_camera_config
+            ).fast_kinetics_time_between_shots.get()
             - self.fast_kinetics_shift_time
         )
 
@@ -460,9 +480,13 @@ class AndorCameraControl(Fragment):
         self.cam.stop_acquisition()
         self.cam.setup_fast_kinetics_mode(
             num_acc=self.fast_kinetics_num_shots,
-            subarea_height=self.andor_camera_config.fast_kinetics_height.get(),
+            subarea_height=ty.cast(
+                FastKineticsCameraConfig, self.andor_camera_config
+            ).fast_kinetics_height,
             exposure_time=exposure_time,
-            offset=self.andor_camera_config.fast_kinetics_offset.get(),
+            offset=ty.cast(
+                FastKineticsCameraConfig, self.andor_camera_config
+            ).fast_kinetics_offset,
         )
 
     @kernel
@@ -645,7 +669,7 @@ class AndorCameraControl(Fragment):
 
         for i in range(self.num_rois):
             roi = rois[i]
-            area = (roi[2] - roi[0]) * (roi[3] - roi[1])
+            area = self.andor_camera_config.calculate_area_from_roi(roi)
 
             sums[i] = data[i]
 
