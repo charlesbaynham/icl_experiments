@@ -1,4 +1,7 @@
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLInOut
+from artiq.experiment import EnvExperiment
+from artiq.experiment import kernel
 from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment import ExpFragment
@@ -28,3 +31,16 @@ class TestExternalTriggerFrag(ExpFragment):
 
 
 TestExternalTrigger = make_fragment_scan_exp(TestExternalTriggerFrag)
+
+
+class TestExternalTriggerDirect(EnvExperiment):
+    def build(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_device("ttl1")
+        self.ttl1: TTLInOut
+
+    @kernel
+    def run(self):
+        print("Hello")
