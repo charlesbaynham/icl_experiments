@@ -4,6 +4,7 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLInOut
 from artiq.language import at_mu
 from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -38,7 +39,7 @@ class ExternalTriggerFrag(Fragment):
             FloatParam,
             "Delay after the external trigger edge before continuing the experiment",
             default=10e-3,
-            min=0,
+            min=10e-6,
             unit="ms",
         )
         self.trigger_offset: FloatParamHandle
@@ -75,15 +76,25 @@ class ExternalTriggerFrag(Fragment):
         lies in the future.
         """
         if self.enabled.get():
-            gate_end = self.ttl.gate_rising(1.0)
+            max_wait_mu = now_mu() + self.core.seconds_to_mu(1.0)
             offset_mu = self.core.seconds_to_mu(self.trigger_offset.get())
 
+            # Configure ttl to start registering events. Use private functions
+            # of the TTL class since I don't want to also schedule the end event
+            # yet - this can cause sequence errors
+            self.ttl._set_sensitivity(1)
+
             # Commence waiting for the trigger
-            t_mu = self.ttl.timestamp_mu(gate_end)
+            t_mu = self.ttl.timestamp_mu(max_wait_mu)
             if t_mu < 0:
                 logger.error("No external trigger detected within timeout")
-                return
+                self.core.break_realtime()
+                self.ttl._set_sensitivity(0)
+            else:
+                # Jump the cursor forward by enough that we can stop new triggers arriving
+                at_mu(t_mu + self.core.seconds_to_mu(10e-6))
+                self.ttl._set_sensitivity(0)
 
-            # Jump the cursor to the target time
-            target_mu = t_mu + offset_mu
-            at_mu(target_mu)
+                # Now jump to the actual offset we want for the rest of the experiment
+                target_mu = t_mu + offset_mu
+                at_mu(target_mu)
