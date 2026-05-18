@@ -54,7 +54,8 @@ class TestExternalTriggerDirect(EnvExperiment):
             self.core.break_realtime()
             fin = self.ttl1.gate_rising(1.0)
             # while True:
-            r = self.ttl1.count(fin)
+            r = self.ttl1.timestamp_mu(fin)
             print(r)
+
             # if r == -1:
             #     break
