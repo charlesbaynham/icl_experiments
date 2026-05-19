@@ -12,6 +12,10 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageSingleXODT,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.clock_shelving import (
+    ClockShelvingAndClearoutDipoleTrapMixin,
+)
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
@@ -99,6 +103,8 @@ class MeasureCooledXODTFrag(
     MatterwaveLensingVerticalBeam,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
+    ClockShelvingAndClearoutDipoleTrapMixin,
+    EMGain,
 ):
     """
     Measure a Single XODT with adiabatic cooling and delta kick
