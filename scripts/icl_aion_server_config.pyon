@@ -127,7 +127,7 @@
             "v_pzt_max": 4.0,
             "v_step_max": 0.01
         },
-        "698": {
+        "641": {
             "auto_exposure": true,
             "channel": 3,
             "display_colour": "red",
@@ -148,7 +148,7 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "10.137.1.11",
+            "host": "10.137.1.12",
             "target": "laser2",
             "v_pzt_min": 5
         },
