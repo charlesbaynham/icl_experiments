@@ -140,7 +140,7 @@
             "fast_mode": false,
             "fast_mode_set_at": 1683033885.65985,
             "lock_capture_range": 3000000000.0,
-            "lock_gain": 1e-10,
+            "lock_gain": 0.3e-10,
             "lock_owner": "",
             "lock_poll_time": 20.0,
             "lock_ready": true,

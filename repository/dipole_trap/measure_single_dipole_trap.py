@@ -6,24 +6,11 @@ from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
 from repository.lib import constants
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
     AbsorptionDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageSingleXODT,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
-    NormalisedDipoleTrapFastKineticsMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsRepumpedMixin,
-)
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
@@ -105,17 +92,13 @@ class MeasureSingleXODTAbsFrag(
 
 class MeasureCooledXODTFrag(
     FLIRMeasurementMixin,
-    NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    BGCorrectedAndorImageSingleXODT,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     MatterwaveLensingVerticalBeam,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
 ):
     """
     Measure a Single XODT with adiabatic cooling and delta kick
