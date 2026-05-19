@@ -12,16 +12,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
     BGCorrectedAndorImageSingleXODT,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
-    NormalisedDipoleTrapFastKineticsMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsRepumpedMixin,
-)
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutDipoleTrapMixin,
-)
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
@@ -102,16 +92,14 @@ class MeasureSingleXODTAbsFrag(
 
 class MeasureCooledXODTFrag(
     FLIRMeasurementMixin,
-    NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
-    NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    BGCorrectedAndorImageSingleXODT,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     MatterwaveLensingVerticalBeam,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
+    # ClockShelvingAndClearoutDipoleTrapMixin,
 ):
     """
     Measure a Single XODT with adiabatic cooling and delta kick
