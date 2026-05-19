@@ -13,6 +13,12 @@ from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor
     BGCorrectedAndorImageSingleXODT,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
+    NormalisedDipoleTrapFastKineticsMixin,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
+    NormalisedFastKineticsRepumpedMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
@@ -96,7 +102,8 @@ class MeasureSingleXODTAbsFrag(
 
 class MeasureCooledXODTFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    NormalisedDipoleTrapFastKineticsMixin,
+    NormalisedFastKineticsRepumpedMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
