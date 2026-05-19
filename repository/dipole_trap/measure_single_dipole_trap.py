@@ -104,6 +104,7 @@ class MeasureSingleXODTAbsFrag(
 
 
 class MeasureCooledXODTFrag(
+    FLIRMeasurementMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
