@@ -1284,7 +1284,6 @@ XODT_MOLASSES_689_STIR_DETUNING = 585000.0
 # "suservo_aom_down_813"
 # "suservo_aom_singlepass_487_transparency"
 # "suservo_aom_1064_painted_delivery"
-# "suservo_aom_up_813"
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
 if USE_SR87:
@@ -1306,7 +1305,6 @@ if USE_SR87:
         1.0,
         0.6,
         1.0,
-        0.0,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1317,7 +1315,6 @@ if USE_SR87:
         0.7,
         0.6,
         1.0,
-        0.0,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         260e3,
@@ -1376,9 +1373,9 @@ else:
 
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
-# order: 1064, 813, painter, up 813
-XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7, 1.0, 0.0]
-XODT_COOL_MOLASSES_MULTIPLE_END = [1.0, 0.7, 1.0, 0.0]
+# order: 1064, 813, painter
+XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7, 1.0]
+XODT_COOL_MOLASSES_MULTIPLE_END = [1.0, 0.7, 1.0]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 1400e-3
@@ -1401,19 +1398,19 @@ XODT_EVAP_2_END = [0.21, 0.7]
 XODT_EVAP_3_END = [0.18, 0.7]
 
 
-# SUServo order: [1064 delivery, down 813, painter, up 813]
-XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 0.0]
-XODT_ADIABATIC_END = [0.0, 0.2, 1.0, 0.0]
+# SUServo order: [1064 delivery, down 813, painter]
+XODT_ADIABATIC_START = [1.0, 0.7, 1.0]
+XODT_ADIABATIC_END = [0.0, 0.2, 1.0]
 
 PAINT_ADIABATIC_RAMP_DURATION = 50e-3
-PAINT_ADIABATIC_RAMP_START = [1.0, 0.7, 1.0, 0.0]
-PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0, 0.0]
+PAINT_ADIABATIC_RAMP_START = [1.0, 0.7, 1.0]
+PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0]
 
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
 # Single dipole trap loading phase
-# order diagonal, sigmaplus, sigmaminus, up, 1064, 813, painted 1064, up 813
+# order diagonal, sigmaplus, sigmaminus, up, 1064, 813, painted 1064,
 XODT_SINGLE_LOADING_DURATION = 90e-3
 
 
@@ -1425,7 +1422,6 @@ XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [
     0.6,
     0.0,
     1.0,
-    0.0,
 ]
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [
     0.001,
@@ -1435,7 +1431,6 @@ XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [
     1.0,
     1.0,
     1.0,
-    0.0,
 ]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     0e3,
