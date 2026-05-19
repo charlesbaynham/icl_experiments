@@ -102,8 +102,9 @@ class MeasureSingleXODTAbsFrag(
 
 class MeasureCooledXODTFrag(
     FLIRMeasurementMixin,
-    NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
+    NormalisedFastKineticsRepumpedMixin,  # turns on repumps
+    EMGain,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
@@ -111,7 +112,6 @@ class MeasureCooledXODTFrag(
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    EMGain,
 ):
     """
     Measure a Single XODT with adiabatic cooling and delta kick
