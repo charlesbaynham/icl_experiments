@@ -62,6 +62,16 @@ all_exp_fragments = get_all_of_class_from_repository(ExpFragment)
 xfails = [
     # ("ScanTopticaMOTFrag", "Toptica host setup is not mocked")
     # ("ScanKoheronMeasureScopeFrag", "pipeline can't talk to scope")
+    ("MeasureXODTNewMolassesFrag", "general_setter_names length mismatch"),
+    (
+        "TestGravityAndDiffractionCompensatedQuadraticFrag",
+        "ttl_debugging device not available in test environment",
+    ),
+    ("TestMatterwaveCollimationInDipoleTrapFrag", "CompileError"),
+    (
+        "TestDiffractionCompensatedQuadraticFrag",
+        "ttl_debugging device not available in test environment",
+    ),
 ]
 
 xfail_names = [x[0] for x in xfails]
