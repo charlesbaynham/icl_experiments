@@ -1428,7 +1428,7 @@ class LMTInterferometryMixin(
         first_lower_mirror_freq = self.first_lower_mirror_lmt_freq.get()
         lower_mirror_offset = self.lower_mirror_offset_detuning.get()
         bs_detuning_lower = self.lower_arm_bs_detuning.get()
-        self.last_selective_lower_bs_freq.get()
+        last_selective_lower_bs_freq = self.last_selective_lower_bs_freq.get()
         last_bs_frequency = self.last_bs_freq.get()
 
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
@@ -1456,8 +1456,8 @@ class LMTInterferometryMixin(
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
-        self.clock_down_dds.sw.off()
-        delay(t_pi_down)  # / 2)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down / 2)
         self.clock_down_dds.sw.off()
         delay(100e-6)
 
@@ -1607,81 +1607,81 @@ class LMTInterferometryMixin(
 
         if N > 2:
             # LMT sequence on lower arm, momentum downwards
-            self.lmt_series_start_down_launch_down_v2(
-                bs_detuning_lower, N_previous_pulses=N + N_launch, N=38  # N - 2
+            self.lmt_series_start_down_launch_down(
+                bs_detuning_lower, N_previous_pulses=N + N_launch, N=N - 2
             )
 
-        # if N > 1:
+        if N > 1:
 
-        #     # stark shift for low intensity up neam
-        #     self.clock_up_dds.set(
-        #         frequency=self.clock_switch_frequency_handle.get()
-        #         + self.up_switch_detuning_lower_intensity.get(),
-        #         amplitude=self.clock_switch_amplitude_handle.get(),
-        #         phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        #     )
+            # stark shift for low intensity up neam
+            self.clock_up_dds.set(
+                frequency=self.clock_switch_frequency_handle.get()
+                + self.up_switch_detuning_lower_intensity.get(),
+                amplitude=self.clock_switch_amplitude_handle.get(),
+                phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+            )
 
-        #     # Clear out the ground state
-        #     self.fluorescence_pulse.do_clearout_pulse(
-        #         duration=self.clearout_duration.get(),
-        #         ignore_final_shutters=True,
-        #     )
-        #     delay(8e-9)
+            # Clear out the ground state
+            self.fluorescence_pulse.do_clearout_pulse(
+                duration=self.clearout_duration.get(),
+                ignore_final_shutters=True,
+            )
+            delay(8e-9)
 
-        #     # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
-        #     self.do_selective_lmt_pulse(
-        #         last_selective_lower_bs_freq,
-        #         N_kicks=2 + N_launch,
-        #         att=10.5,
-        #         duration=t_first_pi,
-        #     )
+            # last lower arm bs pulse with a lower Rabi frequency, up beam pulse
+            self.do_selective_lmt_pulse(
+                last_selective_lower_bs_freq,
+                N_kicks=2 + N_launch,
+                att=10.5,
+                duration=t_first_pi,
+            )
 
-        #     delay(8e-9)
+            delay(8e-9)
 
-        # t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
-        #     100e-6
-        # )  # Add a tiny delay to give us enough time to write to the DDS
-        # self.clock_opll.clock_OPLL_offset.set(
-        #     start_opll_offset
-        #     + self.calculate_frequency_for_first_pi_by_2_pulse(
-        #         t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-        #     )
-        #     + last_bs_frequency
-        #     + N_launch * 9.4e3,
-        # )
+        t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
+            100e-6
+        )  # Add a tiny delay to give us enough time to write to the DDS
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3,
+        )
 
-        # self.clock_down_dds.set(
-        #     frequency=self.clock_switch_frequency_handle.get()
-        #     + self.down_switch_detuning.get(),
-        #     amplitude=self.clock_switch_amplitude_handle.get(),
-        #     phase=self.calculate_phase_for_second_pi_by_2_pulse(),
-        # )
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
+        )
 
-        # # PI/2 PULSE
+        # PI/2 PULSE
 
-        # at_mu(t_start_last_pulse_mu)
-        # delay_mu(8)
-        # self.clock_opll.clock_frequency_ramper.start_ramp(
-        #     ramp_rate,
-        #     start_opll_offset
-        #     + self.calculate_frequency_for_first_pi_by_2_pulse(
-        #         t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-        #     )
-        #     + last_bs_frequency
-        #     + N_launch * 9.4e3
-        #     - 1e6,
-        #     start_opll_offset
-        #     + self.calculate_frequency_for_first_pi_by_2_pulse(
-        #         t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-        #     )
-        #     + last_bs_frequency
-        #     + N_launch * 9.4e3,
-        #     wave_type=2,
-        # )
-        # delay_mu(8)
-        # self.clock_down_dds.sw.on()
-        # delay(t_pi_down)  # / 2)
-        # self.clock_down_dds.sw.off()
+        at_mu(t_start_last_pulse_mu)
+        delay_mu(8)
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3
+            - 1e6,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
+            )
+            + last_bs_frequency
+            + N_launch * 9.4e3,
+            wave_type=2,
+        )
+        delay_mu(8)
+        self.clock_down_dds.sw.on()
+        delay(t_pi_down / 2)
+        self.clock_down_dds.sw.off()
 
         # # TRANSFER PULSES GROUND STATE
         # # stark shift for low intensity up neam
