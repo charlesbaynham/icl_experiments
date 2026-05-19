@@ -139,6 +139,8 @@ class MatterwaveLensingVerticalBeam(DipoleTrapWithExperiment):
         self.dipole_beam_controller.turn_on_vertical_up_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.dipole_beam_controller.turn_off_painter_suservo()
 
         delay(self.matterwave_collimation_time_813.get())
         self.dipole_beam_controller.turn_off_vertical_up_suservo()
