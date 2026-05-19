@@ -886,6 +886,7 @@ _default_707 = 423_913_478e6 - 5e6  # 2025-08-07
 _default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6 - 4.0e6  # Measured empirically
+_default_641 = 467_677_870e6  # Found in literature
 _clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
@@ -1027,7 +1028,7 @@ WAND_SETPOINTS_88 = {
     #     False,
     # ),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
@@ -1046,7 +1047,7 @@ WAND_SETPOINTS_87 = {
     # ),
     "688": (435_731_700e6, False),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
