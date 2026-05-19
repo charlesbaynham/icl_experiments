@@ -99,7 +99,6 @@ class MeasureCooledXODTFrag(
     MatterwaveLensingVerticalBeam,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
-    # ClockShelvingAndClearoutDipoleTrapMixin,
 ):
     """
     Measure a Single XODT with adiabatic cooling and delta kick
