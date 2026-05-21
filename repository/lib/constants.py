@@ -56,7 +56,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.706e6,
+        frequency=364.686e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -1535,5 +1535,5 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
 DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
-LMT_OFFSET_DETUNING = -6e3
+LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3

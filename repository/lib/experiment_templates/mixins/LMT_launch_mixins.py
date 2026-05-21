@@ -413,7 +413,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
             "lmt_launch_pulses_number",
             IntParam,
             "Number of pulses for LMT launch",
-            default=8,
+            default=16,
         )
         self.lmt_launch_pulses_number: IntParamHandle
 
@@ -485,7 +485,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             "delay_between_launches",
             FloatParam,
             "Delay between the two launches",
-            default=4.0e-3,
+            default=2.0e-3,
             unit="ms",
         )
         self.delay_between_launches: FloatParamHandle
@@ -494,7 +494,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             "double_trap_launch_bs_detuning",
             FloatParam,
             "Detuning of the beam splitter in the double trap launch",
-            default=2.0e3,  # -0.3e3,
+            default=1.0e3,  # -0.3e3,
             unit="kHz",
         )
         self.double_trap_launch_bs_detuning: FloatParamHandle
@@ -504,7 +504,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
             self,
             original_name="lmt_launch_offset_detuning",
             description="Detuning for launch LMT series",
-            default=-0.3e3,
+            default=0.2e3,
         )
         self.lmt_launch_offset_detuning_double_cloud: FloatParamHandle
 
@@ -726,7 +726,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             "delay_between_launches",
             FloatParam,
             "Delay between the two launches",
-            default=5.0e-3,
+            default=2.0e-3,
             unit="ms",
         )
         self.delay_between_launches: FloatParamHandle
@@ -996,7 +996,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
             "delay_between_launches",
             FloatParam,
             "Delay between the two launches",
-            default=4.0e-3,
+            default=2.0e-3,
             unit="ms",
         )
         self.delay_between_launches: FloatParamHandle
@@ -1005,7 +1005,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
             "double_trap_launch_bs_detuning",
             FloatParam,
             "Detuning of the beam splitter in the double trap launch",
-            default=-0.3e3,
+            default=1e3,
             unit="kHz",
         )
         self.double_trap_launch_bs_detuning: FloatParamHandle
@@ -1015,7 +1015,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
             self,
             original_name="lmt_launch_offset_detuning",
             description="Detuning for launch LMT series",
-            default=-0.3e3,
+            default=0.2e3,
         )
         self.lmt_launch_offset_detuning_double_cloud: FloatParamHandle
 
@@ -1293,7 +1293,7 @@ class LMTInterferometryMixin(
             "lmt_pulses_number",
             IntParam,
             "Number of pulses for LMT interferometry",
-            default=7,
+            default=41,
         )
         self.lmt_pulses_number: IntParamHandle
 
@@ -1319,7 +1319,7 @@ class LMTInterferometryMixin(
             "bs1_lmt_offset_detuning",
             FloatParam,
             "LMT detuning after 1st BS",
-            default=0e3,
+            default=0.2e3,
             unit="kHz",
         )
         self.bs1_lmt_offset_detuning: FloatParamHandle
@@ -1346,7 +1346,7 @@ class LMTInterferometryMixin(
             "mirror_pulse_freq",
             FloatParam,
             "Frequency detuning for the mirror pulse",
-            default=0.0,
+            default=-0.2e3,
             unit="kHz",
         )
         self.mirror_pulse_freq: FloatParamHandle
@@ -1382,7 +1382,7 @@ class LMTInterferometryMixin(
             "last_selective_lower_bs_freq",
             FloatParam,
             "Frequency detuning for last selective lower BS",
-            default=0.0,
+            default=-1e3,
             unit="kHz",
         )
         self.last_selective_lower_bs_freq: FloatParamHandle
