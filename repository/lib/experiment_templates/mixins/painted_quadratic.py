@@ -110,6 +110,42 @@ class MatterwaveLensingInBothDirectionMixin(DipoleTrapWithExperimentBase):
         self.dipole_beam_controller.turn_off_painter_suservo()
 
 
+class MatterwaveLensingVerticalBeamMixin(DipoleTrapWithExperimentBase):
+    """
+    Mixin which switches on the up dipole potential during the dipole trap loading sequence to matterwave collimate them.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~matterwave_collimate_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "matterwave_collimation_time_813",
+            FloatParam,
+            description="Holding time for matterwave collimating in horizontal direction",
+            unit="ms",
+            default=1e-3,
+            min=0.0,
+            max=100,
+        )
+        self.matterwave_collimation_time_813: FloatParamHandle
+
+    @kernel
+    def matterwave_collimate_hook(self):
+
+        self.dipole_beam_controller.turn_on_vertical_up_suservo()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.dipole_beam_controller.turn_off_painter_suservo()
+
+        delay(self.matterwave_collimation_time_813.get())
+        self.dipole_beam_controller.turn_off_vertical_up_suservo()
+
+
 class PaintedMatterwaveLensingMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which switches on the painted quadratic potential during the dipole trap loading sequence.

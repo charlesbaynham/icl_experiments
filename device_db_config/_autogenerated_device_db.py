@@ -69,28 +69,28 @@ device_db["grabber0"] = {
 device_db["ttl0"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
-    "class": "TTLOut",
+    "class": "TTLInOut",
     "arguments": {"channel": 0x000002},
 }
 
 device_db["ttl1"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
-    "class": "TTLOut",
+    "class": "TTLInOut",
     "arguments": {"channel": 0x000003},
 }
 
 device_db["ttl2"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
-    "class": "TTLOut",
+    "class": "TTLInOut",
     "arguments": {"channel": 0x000004},
 }
 
 device_db["ttl3"] = {
     "type": "local",
     "module": "artiq.coredevice.ttl",
-    "class": "TTLOut",
+    "class": "TTLInOut",
     "arguments": {"channel": 0x000005},
 }
 

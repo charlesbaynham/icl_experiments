@@ -53,6 +53,9 @@ from repository.lib.experiment_templates.mixins.painted_quadratic import (
     AdiabaticCoolingWithPaintedQuadraticMixin,
 )
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    MatterwaveLensingVerticalBeam,
+)
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
     PaintedMatterwaveLensingMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
@@ -165,6 +168,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    MatterwaveLensingVerticalBeam,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     DipoleTrapWithExperimentBase,
@@ -186,6 +190,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
+        self.DMA_initialization_hook_painter_on()
 
     @kernel
     def post_sequence_cleanup_hook(self):

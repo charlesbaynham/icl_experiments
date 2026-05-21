@@ -51,6 +51,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
 )
+from repository.lib.experiment_templates.mixins.external_triggering import (
+    External50HzTriggerMixin,
+)
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
@@ -61,8 +64,9 @@ from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
 logger = logging.getLogger(__name__)
 
 
-# TODO: REMOVE CONSTANT BEAM MIXIN AFTER DILLEN IS DONE (WHICH WILL BE NEVER!!!!)
-class DipoleTrapWithExperimentBase(ConstantBeamsMixin, RedMOTWithExperimentBase):
+class DipoleTrapWithExperimentBase(
+    External50HzTriggerMixin, ConstantBeamsMixin, RedMOTWithExperimentBase
+):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
     does something to it (e.g. a spectroscopy or interferometry sequence) then

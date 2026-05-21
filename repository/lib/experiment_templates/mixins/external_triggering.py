@@ -8,7 +8,7 @@ from repository.lib.fragments.external_trigger import ExternalTriggerFrag
 logger = logging.getLogger(__name__)
 
 
-class ExternalTriggerMixin(RedMOTWithExperiment):
+class External50HzTriggerMixin(RedMOTWithExperiment):
     """
     Adds automatic external triggering for the experiment
 

@@ -58,7 +58,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.706e6,
+        frequency=364.686e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -870,6 +870,7 @@ _default_707 = 423_913_478e6 - 5e6  # 2025-08-07
 _default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6 - 4.0e6  # Measured empirically
+_default_641 = 467_677_870e6  # Found in literature
 _clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
@@ -934,7 +935,7 @@ TOPTICA_TO_WAND_NAMES = {
     "toptica_679": "679",
     "toptica_707": "707",
     "toptica_689": "689",
-    "toptica_698": "698",
+    "toptica_641": "641",
     "toptica_487": "487",
 }
 
@@ -1011,7 +1012,7 @@ WAND_SETPOINTS_88 = {
     #     False,
     # ),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
@@ -1030,7 +1031,7 @@ WAND_SETPOINTS_87 = {
     # ),
     "688": (435_731_700e6, False),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
@@ -1268,7 +1269,6 @@ XODT_MOLASSES_689_STIR_DETUNING = 585000.0
 # "suservo_aom_down_813"
 # "suservo_aom_singlepass_487_transparency"
 # "suservo_aom_1064_painted_delivery"
-# "suservo_aom_up_813"
 # Urukul: "urukul9910_aom_doublepass_689_red_injection"
 # # Chamber 2 bias coils in amps. Order: X,Y,Z
 if USE_SR87:
@@ -1290,7 +1290,6 @@ if USE_SR87:
         1.0,
         0.6,
         1.0,
-        0.0,
     ]
     XODT_MOLASSES_SETPOINT_MULTIPLES_END = [
         0.0007,
@@ -1301,7 +1300,6 @@ if USE_SR87:
         0.7,
         0.6,
         1.0,
-        0.0,
     ]
     XODT_MOLASSES_689_DETUNING_START = [
         260e3,
@@ -1360,9 +1358,9 @@ else:
 
 OPTICAL_PUMPING_BIAS_FIELD = add_field_offset(0.0, 0.5, 0.0)
 
-# order: 1064, 813, painter, up 813
-XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7, 1.0, 0.0]
-XODT_COOL_MOLASSES_MULTIPLE_END = [1.0, 0.7, 1.0, 0.0]
+# order: 1064, 813, painter
+XODT_COOL_MOLASSES_MULTIPLE_START = [1, 0.7, 1.0]
+XODT_COOL_MOLASSES_MULTIPLE_END = [1.0, 0.7, 1.0]
 
 XODT_EVAP_AND_FIELD_RAMP_DURATION = 200e-3
 XODT_EVAP_DURATION = 1400e-3
@@ -1385,19 +1383,19 @@ XODT_EVAP_2_END = [0.21, 0.7]
 XODT_EVAP_3_END = [0.18, 0.7]
 
 
-# SUServo order: [1064 delivery, down 813, painter, up 813]
-XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 0.0]
-XODT_ADIABATIC_END = [0.0, 0.2, 1.0, 0.0]
+# SUServo order: [1064 delivery, down 813, painter]
+XODT_ADIABATIC_START = [1.0, 0.7, 1.0]
+XODT_ADIABATIC_END = [0.0, 0.2, 1.0]
 
 PAINT_ADIABATIC_RAMP_DURATION = 50e-3
-PAINT_ADIABATIC_RAMP_START = [1.0, 0.7, 1.0, 0.0]
-PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0, 0.0]
+PAINT_ADIABATIC_RAMP_START = [1.0, 0.7, 1.0]
+PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0]
 
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
 
 # Single dipole trap loading phase
-# order diagonal, sigmaplus, sigmaminus, up, 1064, 813, painted 1064, up 813
+# order diagonal, sigmaplus, sigmaminus, up, 1064, 813, painted 1064,
 XODT_SINGLE_LOADING_DURATION = 90e-3
 
 
@@ -1409,7 +1407,6 @@ XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_START = [
     0.6,
     0.0,
     1.0,
-    0.0,
 ]
 XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [
     0.001,
@@ -1419,7 +1416,6 @@ XODT_SINGLE_LOADING_SETPOINT_MULTIPLES_END = [
     1.0,
     1.0,
     1.0,
-    0.0,
 ]
 XODT_SINGLE_LOADING_689_DETUNING_START = [
     0e3,
@@ -1523,5 +1519,5 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
 DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
-LMT_OFFSET_DETUNING = -6e3
+LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3

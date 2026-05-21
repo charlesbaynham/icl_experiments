@@ -42,8 +42,6 @@ SUSERVOS_CAVITY_LATTICE = [
     "suservo_aom_singlepass_1379_cavity_input",
 ]
 
-SUSERVO_UP_813 = ["suservo_aom_up_813"]
-
 
 class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     """
@@ -56,7 +54,7 @@ class _RedAndXODTBeamsBase(GeneralRampingPhaseWithBinding):
     urukuls = URUKUL_RED_IJD
     default_urukul_amplitudes_start = [1.0]
     default_urukul_amplitudes_end = [1.0]
-    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVO_PAINTER
 
     # These must be overridden / rebound by consumer fragments otherwise not
     # much will happen. This is done so that all the phases can share the same
@@ -214,13 +212,7 @@ class MolassesInXODT(_RedAndXODTBeamsBase, GeneralRampingPhaseWithBindingAndBias
 
     duration_default = constants.XODT_MOLASSES_DURATION
 
-    suservos = (
-        SUSERVOS_RED
-        + SUSERVOS_XODT
-        + SUSERVOS_TRANSPARENCY
-        + SUSERVO_PAINTER
-        + SUSERVO_UP_813
-    )
+    suservos = SUSERVOS_RED + SUSERVOS_XODT + SUSERVOS_TRANSPARENCY + SUSERVO_PAINTER
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_MOLASSES_SETPOINT_MULTIPLES_START
@@ -291,12 +283,10 @@ class MolassesDipoleRamp(GeneralRampingPhaseWithBinding):
     duration_default = 50e-3
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
+    suservos = SUSERVOS_XODT + SUSERVO_PAINTER
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(
-        SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
-    )
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVO_PAINTER)
 
     default_suservo_setpoint_multiples_start = (
         constants.XODT_COOL_MOLASSES_MULTIPLE_START
@@ -355,12 +345,10 @@ class XODTWithLinearRampAdiabaticCooling(GeneralRampingPhaseWithBinding):
     duration_default = constants.XODT_ADIABATIC_RAMP_DURATION
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
+    suservos = SUSERVOS_XODT + SUSERVO_PAINTER
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(
-        SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
-    )
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVO_PAINTER)
 
     default_suservo_setpoint_multiples_start = constants.XODT_ADIABATIC_START
     default_suservo_setpoint_multiples_end = constants.XODT_ADIABATIC_END
@@ -374,12 +362,10 @@ class PaintedLinearRamp(GeneralRampingPhaseWithBinding):
     duration_default = constants.PAINT_ADIABATIC_RAMP_DURATION
     time_step_default = 1e-3
 
-    suservos = SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
+    suservos = SUSERVOS_XODT + SUSERVO_PAINTER
 
     # self.bind_suservo_setpoint_params_to_default_beam_setter for this.
-    default_suservo_nominal_setpoints = [0.0] * len(
-        SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813
-    )
+    default_suservo_nominal_setpoints = [0.0] * len(SUSERVOS_XODT + SUSERVO_PAINTER)
 
     default_suservo_setpoint_multiples_start = constants.PAINT_ADIABATIC_RAMP_START
     default_suservo_setpoint_multiples_end = constants.PAINT_ADIABATIC_RAMP_END
