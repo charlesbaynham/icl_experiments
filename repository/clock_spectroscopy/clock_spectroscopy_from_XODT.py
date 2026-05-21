@@ -53,7 +53,7 @@ from repository.lib.experiment_templates.mixins.painted_quadratic import (
     AdiabaticCoolingWithPaintedQuadraticMixin,
 )
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
-    MatterwaveLensingVerticalBeam,
+    MatterwaveLensingVerticalBeamMixin,
 )
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
     PaintedMatterwaveLensingMixin,
@@ -168,7 +168,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    MatterwaveLensingVerticalBeam,
+    MatterwaveLensingVerticalBeamMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     DipoleTrapWithExperimentBase,
