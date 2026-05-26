@@ -1,9 +1,11 @@
 import logging
 
+from artiq.coredevice.core import now_mu
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.constants import PAINTING_URUKUL_CHANNEL
@@ -127,15 +129,18 @@ class MatterwaveLensingVerticalBeamMixin(DipoleTrapWithExperimentBase):
             FloatParam,
             description="Holding time for matterwave collimating in horizontal direction",
             unit="ms",
-            default=1e-3,
+            default=3e-3,
             min=0.0,
             max=100,
         )
         self.matterwave_collimation_time_813: FloatParamHandle
 
+        self.t_delta_kick = int64(0)
+
     @kernel
     def matterwave_collimate_hook(self):
 
+        self.t_delta_kick = now_mu()
         self.dipole_beam_controller.turn_on_vertical_up_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.dipole_beam_controller.turn_off_dipole_beams()
