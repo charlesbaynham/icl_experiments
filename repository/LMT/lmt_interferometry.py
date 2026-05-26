@@ -24,9 +24,6 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.doppler_compensation import (
-    DopplerCompensationForLMTDeltaKickMixin,
-)
-from repository.lib.experiment_templates.mixins.doppler_compensation import (
     DopplerCompensationForLMTMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
@@ -178,7 +175,7 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     LMTLaunchDoubleTrapShapedPulseMixin,
-    DopplerCompensationForLMTDeltaKickMixin,
+    DopplerCompensationForLMTMixin,
     DipoleTrapWithExperimentBase,
 ):
     """
