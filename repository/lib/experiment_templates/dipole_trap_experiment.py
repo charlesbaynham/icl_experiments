@@ -208,7 +208,9 @@ class DipoleTrapWithExperiment(
         """
         self.dipole_beam_controller.turn_off_dipole_beams()
         # maybe add delay
+        delay(8e-9)
         self.dipole_beam_controller.turn_off_painter_suservo()
+        delay(8e-9)
         self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
     @kernel

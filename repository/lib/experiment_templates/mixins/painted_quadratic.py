@@ -291,7 +291,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
             "duration",
             description="Duration of the HODT adiabatic ramp down time",
             unit="ms",
-            default=20e-3,
+            default=240e-3,
             min=0.0,
         )
         self.HODT_adiabatic_ramp_down_time: FloatParamHandle
