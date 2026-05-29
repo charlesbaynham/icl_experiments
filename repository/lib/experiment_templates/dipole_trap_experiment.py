@@ -204,6 +204,12 @@ class DipoleTrapWithExperimentBase(
                     self._pulse_record_start_times_mu[: self._pulse_record_num_pulses],
                     self._pulse_record_durations_mu[: self._pulse_record_num_pulses],
                 ]
+
+                # FIXME
+                print("Number of pulses recorded: ", self._pulse_record_num_pulses)
+                print("Saving pulse record: ", pulse_record)
+                # FIXME
+
                 self.pulse_record.push(pulse_record)
 
             @kernel
