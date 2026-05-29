@@ -230,9 +230,7 @@ class DipoleTrapWithExperimentBase(
                 needs from the full sequence record.
                 """
 
-                # FIXME
-                print("Pulse ", is_up, duration_s)
-                # FIXME
+                pulse_index = self._pulse_record_num_pulses
 
                 if self._pulse_record_num_pulses >= BUFFER_DEPTH:
                     raise RuntimeError(
@@ -240,7 +238,11 @@ class DipoleTrapWithExperimentBase(
                     )
 
                 duration_mu = self.core.seconds_to_mu(duration_s)
-                pulse_index = self._pulse_record_num_pulses
+
+                # FIXME
+                print("Pulse ", pulse_index, is_up, duration_s)
+                # FIXME
+
                 self._pulse_record_start_times_mu[pulse_index] = now_mu()
                 self._pulse_record_durations_mu[pulse_index] = duration_mu
                 self._pulse_record_directions[pulse_index] = int32(1 if is_up else 0)
