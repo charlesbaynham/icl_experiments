@@ -93,6 +93,7 @@ class ClockSpecFromSingleXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()  # FIXME I put this one in manually, but have missed many other places it should be
         self.DMA_initialization_hook_loading_xodt_mot()
 
 
