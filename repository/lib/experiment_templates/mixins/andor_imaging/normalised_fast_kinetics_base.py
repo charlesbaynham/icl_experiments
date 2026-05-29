@@ -354,7 +354,7 @@ class NormalisedFastKineticsBase(AndorImagingBase):
 
     def host_setup(self):
         super().host_setup()
-        default_rois = self.get_monitor_rois()
+        default_rois = np.array(self.get_monitor_rois()).tolist()
         self.ccb.issue(
             "create_applet",
             "Ground bg corrected",
