@@ -207,8 +207,12 @@ class DipoleTrapWithExperimentBase(
                 This forces us to store directions as int64s which is wasteful,
                 but oh well.
                 """
+
+                SAME_AS_LAST_TIME_SENTINEL = -1
+                DISABLED_SENTINEL = -2
+
                 if not self.enable_pulse_sequence_storage.get():
-                    self.pulse_record.push(None)
+                    self.pulse_record.push([[DISABLED_SENTINEL]])
                     return
 
                 pulse_record = [
@@ -238,8 +242,8 @@ class DipoleTrapWithExperimentBase(
                     # Record the updated pulse sequence
                     self.pulse_record.push(pulse_record)
                 else:
-                    # Save None as a sentinal value for "same as last time"
-                    self.pulse_record.push(None)
+                    # Save the disabled sentinel value for "same as last time"
+                    self.pulse_record.push([[SAME_AS_LAST_TIME_SENTINEL]])
 
                 self._pulse_record_checksum = checksum
 
