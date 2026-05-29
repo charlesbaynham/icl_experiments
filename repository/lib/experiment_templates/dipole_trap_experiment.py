@@ -193,7 +193,7 @@ class DipoleTrapWithExperimentBase(
                 """
                 if self._pulse_record_num_pulses >= BUFFER_DEPTH:
                     raise RuntimeError(
-                        f"Exceeded maximum number of pulses that can be recorded ({BUFFER_DEPTH}). Congratulations!!!"
+                        "Exceeded maximum number of pulses that can be recorded. Congratulations!!!"
                     )
 
                 half_mu = self.core.seconds_to_mu(duration_s / 2)
