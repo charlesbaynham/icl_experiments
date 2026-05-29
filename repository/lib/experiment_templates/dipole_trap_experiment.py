@@ -170,7 +170,7 @@ class DipoleTrapWithExperimentBase(
                 self._pulse_record_durations_mu = [int64(0)] * BUFFER_DEPTH
                 self._pulse_record_directions = [int32(0)] * BUFFER_DEPTH
                 self._pulse_record_num_pulses = 0
-                self._pulse_record_checksum = 0
+                self._pulse_record_checksum = int64(0)
 
                 # Add an opaque ResultChannel that is used to store these pulse records
                 self.setattr_result(
@@ -180,6 +180,9 @@ class DipoleTrapWithExperimentBase(
                     display_hints={"priority": -2},
                 )
                 self.pulse_record: OpaqueChannel
+
+                # Checksummer object
+                self.checksummer = FastIntChecksum(seed=0)
 
             @kernel
             def device_setup(self):
@@ -222,14 +225,10 @@ class DipoleTrapWithExperimentBase(
                 ]
 
                 # Calculate a checksum of this pulse record
-                checksum = FastIntChecksum(seed=0).checksum(
+                checksum = self.checksummer.checksum(
                     [int64(x) for x in pulse_record[0]]
-                )
-                checksum = FastIntChecksum(seed=checksum).checksum(
-                    [int64(x) for x in pulse_record[1]]
-                )
-                checksum = FastIntChecksum(seed=checksum).checksum(
-                    [int64(x) for x in pulse_record[2]]
+                    + [int64(x) for x in pulse_record[1]]
+                    + [int64(x) for x in pulse_record[2]]
                 )
 
                 # FIXME

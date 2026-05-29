@@ -84,7 +84,11 @@ class FastIntChecksum:
         self.kernel_invariants.add("multiplier")
         self.kernel_invariants.add("value_offset")
 
-    @portable
+    @portable(flags={"fast-math"})
+    def set_seed(self, seed: int64):
+        self.initial = int64(seed)
+
+    @portable(flags={"fast-math"})
     def checksum(self, values: TList(TInt64)) -> TInt64:  # type: ignore[misc, valid-type]
         checksum = self.initial
 
