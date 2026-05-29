@@ -30,3 +30,7 @@ def test_fast_int_checksum_python_side(experiment_factory):
     exp = experiment_factory(KernelChecksumExperiment)
     exp.build()
     assert exp.checksummer.checksum([1, 2, 3, 4]) == 17
+    assert exp.checksummer.checksum([1, 2, 3, 4]) != exp.checksummer.checksum(
+        [1, 2, 3, 5]
+    )
+    assert exp.checksummer.checksum([1, 2, 3, 4]) != exp.checksummer.checksum([1, 2, 3])
