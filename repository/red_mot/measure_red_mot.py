@@ -10,10 +10,10 @@ from repository.lib.experiment_templates.mixins.andor_imaging.atom_number_check 
     AtomNumberCheckMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImage,
+    BGCorrectedAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_andor_image import (
-    SingleAndorImage,
+    SingleAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.constant_lattice import (
     ConstantBeamsMixin,
@@ -27,12 +27,14 @@ from repository.lib.experiment_templates.mixins.flir_measurement import (
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class _MeasureNarrowbandMOTFrag(External50HzTriggerMixin, RedMOTWithExperiment):
+class _MeasureNarrowbandMOTFrag(External50HzTriggerMixin, RedMOTWithExperimentBase):
     def build_fragment(self):
         super().build_fragment()
 
@@ -49,7 +51,7 @@ class _MeasureNarrowbandMOTFrag(External50HzTriggerMixin, RedMOTWithExperiment):
 class MeasureNarrowbandMOTFrag(
     FLIRMeasurementMixin,
     ExponentialDecayMixin,
-    SingleAndorImage,
+    SingleAndorImageMixin,
     ConstantBeamsMixin,
     _MeasureNarrowbandMOTFrag,
 ):
@@ -59,7 +61,7 @@ class MeasureNarrowbandMOTFrag(
 
 
 class MeasureNarrowbandMOTBGCorrectedWithTrapsFrag(
-    BGCorrectedAndorImage,
+    BGCorrectedAndorImageMixin,
     FLIRMeasurementMixin,
     ConstantBeamsMixin,
     _MeasureNarrowbandMOTFrag,
@@ -71,7 +73,7 @@ class MeasureNarrowbandMOTBGCorrectedWithTrapsFrag(
 
 class MeasureNarrowbandMOTBGCorrectedFrag(
     AtomNumberCheckMixin,
-    BGCorrectedAndorImage,
+    BGCorrectedAndorImageMixin,
     FLIRMeasurementMixin,
     _MeasureNarrowbandMOTFrag,
 ):

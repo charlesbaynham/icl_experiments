@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
+import numpy as np
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 from scipy import constants as scipy_constants
@@ -41,6 +42,8 @@ ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}
 ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
+ANDOR_CAMERA_FACTS["sensor_width"] = 512
+ANDOR_CAMERA_FACTS["sensor_height"] = 512
 
 GRAVITY_DOPPLER_PER_SEC_CLOCK = (
     SR_FACTS["FREQUENCIES"]["698"] * scipy_constants.g / scipy_constants.c
@@ -48,6 +51,29 @@ GRAVITY_DOPPLER_PER_SEC_CLOCK = (
 
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
+
+# ── Ballistic predictor constants ────────────────────────────────────────────
+
+SR_ATOM_MASS_KG = scipy_constants.atomic_mass * (87 if USE_SR87 else 88)
+CLOCK_WAVELENGTH_M = scipy_constants.c / SR_FACTS["FREQUENCIES"]["698"]
+
+# Lab-frame convention: +x = horizontal (along imaging axis), +y = horizontal
+# (perpendicular), +z = up.  Gravity points downward.
+GRAVITY_VEC_M_PER_S2 = np.array([0.0, 0.0, -scipy_constants.g])
+
+# Side-view Andor camera: looks from the +y direction toward the trap.
+# Sensor +x maps to lab +x; sensor +y maps to lab +z so that falling atoms
+# appear to move in the -y direction on the sensor, matching experiment.
+ANDOR_OPTICAL_AXIS_DEFAULT = np.array([0.0, 1.0, 0.0])
+ANDOR_SENSOR_X_AXIS_DEFAULT = np.array([1.0, 0.0, 0.0])
+ANDOR_SENSOR_Y_AXIS_DEFAULT = np.array([0.0, 0.0, 1.0])
+
+# Clock beam direction: +is_up kick is in the +z (up) direction.
+CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
+
+# Default ROI dimensions for dynamic-ROI imaging (pixels).
+DEFAULT_ROI_WIDTH = 100
+DEFAULT_ROI_HEIGHT = 100
 
 USE_LATTICE_MODE = False
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
@@ -544,33 +570,15 @@ ANDOR_689_FAST_KINETICS_X1 = 160
 FLUORESCENCE_PULSE_DURATION_689 = 4e-6
 
 
-# IMAGING ROIS FOR SINGLE IMAGING
+# IMAGING ROIS FOR SINGLE IMAGING BACKGROUND SUBTRACTION
 
-_ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y = 290  # 4ms dropping time
+# Read obsidian labbook entry '2026-04-20 Redefining Dipole ROI for single background imaging' for
+# why it's defined like this
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = 166
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = 246
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = 250
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = 290
 
-_ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE = 40
-_ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE = (
-    0  # shift in the horizontal direction to have the streak not in the BG image
-)
-_ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE = 10
-_ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE = 2
-
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = (
-    round(_ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
-    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
-)
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = (
-    round(_ANDOR_DIPOLE_TRAP_FORWARD_X + _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
-    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
-)
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = round(
-    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
-    - _ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE
-)
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = round(
-    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
-    + _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE
-)
 ROI_SHIFT_EXCITED_STATE = 16
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
@@ -1221,7 +1229,7 @@ else:
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
-# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
+# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperimentBase, so effectively ignored
 # This should be confirmed and then these settings removed
 RED_BROADBAND_BIAS_FIELD_START = [
     B_FIELD_BIAS_BLUE_MOT_X,

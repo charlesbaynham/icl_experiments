@@ -1,5 +1,5 @@
 """
-This package provides a template experiment, :class:`~RedMOTWithExperiment` .
+This package provides a template experiment, :class:`~RedMOTWithExperimentBase` .
 Unlike other modules, it *does not* provide a Fragment which you should use via
 `self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
 converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
@@ -12,7 +12,7 @@ the functionality of these experiment. This allows you to reuse this code for
 multiple different experiments by implementing child classes which define these
 hooks in different ways.
 
-For example, see the documentation of :class:`~RedMOTWithExperiment` for the
+For example, see the documentation of :class:`~RedMOTWithExperimentBase` for the
 most basic implementation of hooks.
 
 Mixins
@@ -33,7 +33,7 @@ the same time::
     class MyAndorImagedLatticeExperiment(
         AndorImagingMixin,
         LatticeTrappingMixin,
-        RedMOTWithExperiment
+        RedMOTWithExperimentBase
     ):
         pass
 
@@ -64,7 +64,7 @@ from repository.lib.fragments.timestamp_synchronizer import Timestamper
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithExperiment(ExpFragment, abc.ABC):
+class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -191,7 +191,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
             "bias_field_z_end", self.red_mot.narrowband_bias_z
         )
 
-        self.hook_setup_andor()
+        self.setup_andor_hook()
 
         self._first_run = True
 
@@ -210,10 +210,10 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
 
     @kernel
-    def DMA_initialization_hook_default(self):
+    def DMA_initialization_hook_redmot_default(self):
         self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()
         self.red_mot.broadband_red_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_capture_phase.precalculate_dma_handle()
@@ -334,7 +334,7 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
     # allow you to construct children classes until those methods are
     # implemented
 
-    def hook_setup_andor(self):
+    def setup_andor_hook(self):
         """
         Setup the Andor camera
 
@@ -516,6 +516,17 @@ class RedMOTWithExperiment(ExpFragment, abc.ABC):
         completed.
         """
         raise NotImplementedError
+
+    @kernel
+    def register_pulse(self, is_up: bool, duration_s: float):
+        """
+        No-op base implementation. Overridden by DipoleTrapWithExperimentBase to
+        record the pulse for dynamic ROI positioning.
+
+        Call this immediately before turning the clock AOM on, passing the full
+        pulse duration. This will be used to record what sequence was run, and
+        used to predict the location of the atoms for imaging.
+        """
 
     @kernel
     def host_functions_after_experiment_hook(self):

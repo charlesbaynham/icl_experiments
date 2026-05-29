@@ -5,14 +5,16 @@ from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
 
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.relock_689_and_698 import Relock689Frag
 from repository.lib.fragments.relock_689_and_698 import Relock698Frag
 
 logger = logging.getLogger(__name__)
 
 
-class MonitorAndRelock689and698Mixin(RedMOTWithExperiment):
+class MonitorAndRelock689and698Mixin(RedMOTWithExperimentBase):
     """
     Mixin to monitor the 689 and 698 cavity locks and relock them if required
 

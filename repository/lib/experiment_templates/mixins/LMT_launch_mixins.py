@@ -15,7 +15,7 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
@@ -23,7 +23,9 @@ from repository.lib.experiment_templates.mixins.clock_interferometry import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
 from repository.lib.fragments.pulse_shaping import JessePulseLMTSeries
@@ -42,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 class LMTBase(
     ClockSpectroscopyBase,
-    RedMOTWithExperiment,
+    RedMOTWithExperimentBase,
 ):
     """
     Base for succession of clock pulses with up and down beams
@@ -287,8 +289,12 @@ class LMTBase(
             # delay_mu(8)
             # pulse the down beam
 
+            d = self.down_pulses_duration.get()
+            self.register_pulse(
+                duration_s=d, is_up=False
+            )  # FIXME needs to track frequency too
             self.clock_down_dds.sw.on()
-            delay(self.down_pulses_duration.get())
+            delay(d)
             self.clock_down_dds.sw.off()
 
         if type == "up":
@@ -304,8 +310,12 @@ class LMTBase(
 
             # pulse the up beam
 
+            d = self.spectroscopy_pulse_time.get()
+            self.register_pulse(
+                duration_s=d, is_up=True
+            )  # FIXME needs to track frequency too
             self.clock_up_dds.sw.on()
-            delay(self.spectroscopy_pulse_time.get())
+            delay(d)
             self.clock_up_dds.sw.off()
         delay(10e-6)
 
@@ -334,8 +344,12 @@ class LMTBase(
         )
         delay_mu(8)
 
+        d = duration
+        self.register_pulse(
+            duration_s=d, is_up=True
+        )  # FIXME needs to track frequency too
         self.clock_up_dds.sw.on()
-        delay(duration)
+        delay(d)
         self.clock_up_dds.sw.off()
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
@@ -366,8 +380,12 @@ class LMTBase(
         )
         delay_mu(8)
 
+        d = duration
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(duration)
+        delay(d)
         self.clock_down_dds.sw.off()
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
@@ -397,7 +415,7 @@ class LMTBase(
         return 0
 
 
-class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
+class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
     """
     Implements LMT launch after the dipole trap
 
@@ -469,7 +487,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         delay(10e-6)
 
 
-class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
+class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
     """
     Implements LMT launch after the dipole trap to create a double trap
 
@@ -574,8 +592,12 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
+        d = t_pi_down / 2
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(d)
         self.clock_down_dds.sw.off()
 
         # LMT series on the upper trap
@@ -681,8 +703,12 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         delay(8e-9)
 
         at_mu(t_start_last_pulse_mu)
+        d = t_pi_up / 2
+        self.register_pulse(
+            duration_s=d, is_up=True
+        )  # FIXME needs to track frequency too
         self.clock_up_dds.sw.on()
-        delay(t_pi_up / 2)
+        delay(d)
         self.clock_up_dds.sw.off()
 
         delay(1e-6)
@@ -694,7 +720,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
         # )
 
 
-class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
+class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
     """
     Implements LMT launch after the dipole trap to create a double trap. Uses a shaped pulse to
     address both clouds, with opposite momentum, after the beam splitter.
@@ -815,8 +841,12 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
+        d = t_pi_down / 2
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(d)
         self.clock_down_dds.sw.off()
 
         # Shaped pulse with up beam, common to both clouds
@@ -871,8 +901,12 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             wave_type=1,
         )
 
+        d = t_pi_up / 1.8
+        self.register_pulse(
+            duration_s=d, is_up=True
+        )  # FIXME needs to track frequency too
         self.clock_up_dds.sw.on()
-        delay(t_pi_up / 1.8)
+        delay(d)
         self.clock_up_dds.sw.off()
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self.clock_opll.clock_OPLL_offset.set(80e6)
@@ -934,7 +968,9 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
 
 
-class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExperiment):
+class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
+    LMTLaunchMixin, DipoleTrapWithExperimentBase
+):
     """
     Implements LMT launch after the dipole trap to create a double trap. Uses a shaped pulse to
     address both clouds, with opposite momentum, after the beam splitter, and shaped pulses for the LMT series
@@ -1167,8 +1203,12 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
+        d = t_pi_down
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)  # / 2)
+        delay(d)  # / 2)
         self.clock_down_dds.sw.off()
 
         # Shaped pulse with up beam, common to both clouds
@@ -1261,8 +1301,12 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
         # )
 
         # at_mu(t_start_last_pulse_mu)
+        # d = t_pi_up / 2
+        # self.register_pulse(
+        #     duration_s=d, is_up=True
+        # )  # FIXME needs to track frequency too
         # self.clock_up_dds.sw.on()
-        # delay(t_pi_up / 2)
+        # delay(d)
         # self.clock_up_dds.sw.off()
 
         # delay(1e-6)
@@ -1275,7 +1319,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(LMTLaunchMixin, DipoleTrapWithExpe
 
 
 class LMTInterferometryMixin(
-    LMTBase, ClockInterferometryBase, DipoleTrapWithExperiment
+    LMTBase, ClockInterferometryBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements LMT interferometry after the launch
@@ -1456,8 +1500,12 @@ class LMTInterferometryMixin(
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
+        d = t_pi_down / 2
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(d)
         self.clock_down_dds.sw.off()
         delay(100e-6)
 
@@ -1565,8 +1613,12 @@ class LMTInterferometryMixin(
             + N_launch * 9.4e3
         )
         at_mu(t_start_mirror_pulse_mu)
+        d = t_pi_down
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)
+        delay(d)
         self.clock_down_dds.sw.off()
 
         delay(50e-6)
@@ -1679,8 +1731,12 @@ class LMTInterferometryMixin(
             wave_type=2,
         )
         delay_mu(8)
+        d = t_pi_down / 2
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down / 2)
+        delay(d)
         self.clock_down_dds.sw.off()
 
         # # TRANSFER PULSES GROUND STATE
@@ -1759,12 +1815,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
     Implements LMT interferometry after the launch, starting with a shaped pulse addressing both clouds
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~do_experiment_after_dipole_trap`
     """
-
-    def build_fragment(self):
-        super().build_fragment()
 
     @kernel
     def do_clock_interferometry(self):
@@ -1812,8 +1863,12 @@ class ShapedFirstPulseLMTInterferometryMixin(
 
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
+        d = t_pi_down
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)  # / 2)
+        delay(d)  # / 2)
         self.clock_down_dds.sw.off()
 
         self.clock_up_dds.set(
@@ -1900,8 +1955,12 @@ class ShapedFirstPulseLMTInterferometryMixin(
             + 8 * 9.4e3
         )
         at_mu(t_start_mirror_pulse_mu)
+        d = t_pi_down
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
         self.clock_down_dds.sw.on()
-        delay(t_pi_down)
+        delay(d)
         self.clock_down_dds.sw.off()
 
         delay(1e-6)
@@ -1971,6 +2030,10 @@ class ShapedFirstPulseLMTInterferometryMixin(
 
         # # PI/2 PULSE
 
+        # d = t_pi_down / 2
+        # self.register_pulse(
+        #     duration_s=d, is_up=False
+        # )  # FIXME needs to track frequency too
         # self.clock_down_dds.sw.on()
-        # delay(t_pi_down / 2)
+        # delay(d)
         # self.clock_down_dds.sw.off()

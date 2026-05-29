@@ -13,17 +13,21 @@ from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
 
 from repository.lib import constants
+from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
+    BGCorrectedAndorImageConfig,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     ANDOR_MONITOR_DATASET,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.imaging_base import (
     AndorImagingBase,
 )
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 
 logger = logging.getLogger(__name__)
 
 
-class MidSequenceAndorImage(AndorImagingBase):
+class MidSequenceAndorImageMixin(AndorImagingBase):
     """
     Image midway through the sequence, expressed as time since the start of the
     broadband red MOT
@@ -57,6 +61,19 @@ class MidSequenceAndorImage(AndorImagingBase):
     num_images_per_series = 2
     num_grabber_readouts = 2
     num_grabber_rois = 1
+
+    def get_andor_camera_config_hook(self) -> AndorCameraConfig:
+        f = self.setattr_fragment(
+            "andor_camera_config",
+            BGCorrectedAndorImageConfig,
+            default_roi=[
+                constants.ANDOR_ROI_X0,
+                constants.ANDOR_ROI_Y0,
+                constants.ANDOR_ROI_X1,
+                constants.ANDOR_ROI_Y1,
+            ],
+        )
+        return f  # type: ignore
 
     def build_fragment(self):
         super().build_fragment()

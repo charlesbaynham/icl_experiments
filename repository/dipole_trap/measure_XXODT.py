@@ -7,9 +7,9 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
     AbsorptionDoubleDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingBGSubtracted,
+    DoubleTrapImagingBGSubtractedMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
     FLIRBlueMOTMeasurementMixin,
 )
@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 
 
 class MeasureXXODTWithTransparancyFrag(
-    DoubleTrapImagingBGSubtracted,
+    DoubleTrapImagingBGSubtractedMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadXXODTWithTransparencyBeamMixin,
-    EMGain,
+    EMGainMixin,
 ):
     """
     Measure a double XODT with transparency beam
@@ -38,10 +38,10 @@ class MeasureXXODTWithTransparancyFrag(
 
 
 class MeasureXXODTFrag(
-    DoubleTrapImagingBGSubtracted,
+    DoubleTrapImagingBGSubtractedMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadXXODTMixin,
-    EMGain,
+    EMGainMixin,
 ):
     """
     Measure a double XODT
@@ -56,10 +56,10 @@ class MeasureXXODTFrag(
 
 
 class StarkBlastXXODTFrag(
-    DoubleTrapImagingBGSubtracted,
+    DoubleTrapImagingBGSubtractedMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadXXODTMixin,
-    EMGain,
+    EMGainMixin,
 ):
     """
     Blast an XXODT with the Stark shifter

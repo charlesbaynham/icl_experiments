@@ -68,23 +68,23 @@ def make_experiment(
             )
 
             self.setattr_param_rebind(
-                "roi_0_x0",
-                self.andor_camera_control,
+                "roi_x0",
+                self.andor_camera_config,
                 default=roi_0_x0,
             )
             self.setattr_param_rebind(
-                "roi_0_x1",
-                self.andor_camera_control,
+                "roi_x1",
+                self.andor_camera_config,
                 default=roi_0_x1,
             )
             self.setattr_param_rebind(
-                "roi_0_y0",
-                self.andor_camera_control,
+                "roi_y0",
+                self.andor_camera_config,
                 default=roi_0_y0,
             )
             self.setattr_param_rebind(
-                "roi_0_y1",
-                self.andor_camera_control,
+                "roi_y1",
+                self.andor_camera_config,
                 default=roi_0_y1,
             )
 

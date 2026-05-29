@@ -1,14 +1,16 @@
 import logging
 
+from artiq.coredevice.core import now_mu
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import PaintedLinearRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
@@ -32,7 +34,7 @@ SUSERVO_PAINTER = ["suservo_aom_1064_painted_delivery"]
 SUSERVO_UP_813 = ["suservo_aom_up_813"]
 
 
-class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
+class MatterwaveLensingInBothDirectionMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which switches on both the painted quadratic and up dipole potential during the dipole trap loading sequence to matterwave collimate them.
 
@@ -110,7 +112,7 @@ class MatterwaveLensingInBothDirection(DipoleTrapWithExperiment):
         self.dipole_beam_controller.turn_off_painter_suservo()
 
 
-class MatterwaveLensingVerticalBeam(DipoleTrapWithExperiment):
+class MatterwaveLensingVerticalBeamMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which switches on the up dipole potential during the dipole trap loading sequence to matterwave collimate them.
 
@@ -127,15 +129,18 @@ class MatterwaveLensingVerticalBeam(DipoleTrapWithExperiment):
             FloatParam,
             description="Holding time for matterwave collimating in horizontal direction",
             unit="ms",
-            default=1e-3,
+            default=3e-3,
             min=0.0,
             max=100,
         )
         self.matterwave_collimation_time_813: FloatParamHandle
 
+        self.t_delta_kick = int64(0)
+
     @kernel
     def matterwave_collimate_hook(self):
 
+        self.t_delta_kick = now_mu()
         self.dipole_beam_controller.turn_on_vertical_up_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.dipole_beam_controller.turn_off_dipole_beams()
@@ -146,7 +151,7 @@ class MatterwaveLensingVerticalBeam(DipoleTrapWithExperiment):
         self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
 
-class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
+class PaintedMatterwaveLensingMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which switches on the painted quadratic potential during the dipole trap loading sequence.
 
@@ -188,7 +193,7 @@ class PaintedMatterwaveLensingMixin(DipoleTrapWithExperiment):
         delay(DELAY_BETWEEN_RTIO_EVENTS)
 
 
-class PainterRampMixin(DipoleTrapWithExperiment):
+class PainterRampMixin(DipoleTrapWithExperimentBase):
     """
     Mixin which adiabatically turns on the painter in the adiabatic cooling hook.
 
@@ -249,6 +254,7 @@ class PainterRampMixin(DipoleTrapWithExperiment):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_painter_on()
 
     @kernel
