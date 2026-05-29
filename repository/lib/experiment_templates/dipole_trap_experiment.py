@@ -205,11 +205,6 @@ class DipoleTrapWithExperimentBase(
                     self._pulse_record_durations_mu[: self._pulse_record_num_pulses],
                 ]
 
-                # FIXME
-                print("Number of pulses recorded: ", self._pulse_record_num_pulses)
-                print("Saving pulse record: ", pulse_record)
-                # FIXME
-
                 self.pulse_record.push(pulse_record)
 
             @kernel
@@ -243,10 +238,6 @@ class DipoleTrapWithExperimentBase(
 
                 duration_mu = self.core.seconds_to_mu(duration_s)
 
-                # FIXME
-                print("Pulse ", self._pulse_record_num_pulses, is_up, duration_s)
-                # FIXME
-
                 self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = (
                     now_mu()
                 )
@@ -257,12 +248,6 @@ class DipoleTrapWithExperimentBase(
                     1 if is_up else 0
                 )
                 self._pulse_record_num_pulses += 1
-
-                # FIXME
-                print(
-                    "New self._pulse_record_num_pulses = ",
-                    self._pulse_record_num_pulses,
-                )
 
         self.setattr_fragment(
             "dma_recording_fragment", PulseDMARecording, outer_self=self
