@@ -50,6 +50,7 @@ from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.result_channels import OpaqueChannel
 from numpy import int32
 from numpy import int64
 
@@ -159,6 +160,15 @@ class DipoleTrapWithExperimentBase(
                 self._pulse_record_directions = [int32(0)] * BUFFER_DEPTH
                 self._pulse_record_num_pulses = 0
 
+                # Add an opaque ResultChannel that is used to store these pulse records
+                self.setattr_result(
+                    "pulse_record",
+                    OpaqueChannel,
+                    description="Record of clock pulses",
+                    display_hints={"priority": -2},
+                )
+                self.pulse_record: OpaqueChannel
+
             @kernel
             def device_setup(self):
                 self.device_setup_subfragments()
@@ -167,6 +177,29 @@ class DipoleTrapWithExperimentBase(
                 # FIXME should not recalculate every shot?  maybe?
                 with self.core_dma.record(self.dma_name):
                     self.outer_self.actions_after_drop()
+
+            @kernel
+            def _save_pulse_sequence_to_dataset(self):
+                """
+                Save the recorded pulse sequence to the OpaqueChannel output
+
+                ARTIQ can't handle dicts etc, so we wrap this into a 2D array.
+                This forces us to store directions as int64s which is wasteful,
+                but oh well.
+                """
+                pulse_record = [
+                    [
+                        int64(x)
+                        for x in (
+                            self._pulse_record_directions[
+                                : self._pulse_record_num_pulses
+                            ]
+                        )
+                    ],
+                    self._pulse_record_start_times_mu[: self._pulse_record_num_pulses],
+                    self._pulse_record_durations_mu[: self._pulse_record_num_pulses],
+                ]
+                self.pulse_record.push(pulse_record)
 
             @kernel
             def DMA_initialization_hook_after_drop(self):
