@@ -207,9 +207,10 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         """
         Fire the clock shelving pulse onto the atoms.
         """
-        self.register_pulse(is_up=True, duration_s=self.shelving_pulse_time.get())
+        d = self.shelving_pulse_time.get()
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(self.shelving_pulse_time.get())
+        delay(d)
         self.clock_up_dds.sw.off()
 
     @kernel

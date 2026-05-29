@@ -286,9 +286,10 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
-        self.register_pulse(is_up=True, duration_s=self.spectroscopy_pulse_time.get())
+        d = self.spectroscopy_pulse_time.get()
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(self.spectroscopy_pulse_time.get())
+        delay(d)
         self.clock_up_dds.sw.off()
 
 
@@ -340,9 +341,10 @@ class ClockRabiSpectroscopyDownBeamBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
-        self.register_pulse(is_up=False, duration_s=self.spectroscopy_pulse_time.get())
+        d = self.spectroscopy_pulse_time.get()
+        self.register_pulse(is_up=False, duration_s=d)
         self.clock_down_dds.sw.on()
-        delay(self.spectroscopy_pulse_time.get())
+        delay(d)
         self.clock_down_dds.sw.off()
 
 
