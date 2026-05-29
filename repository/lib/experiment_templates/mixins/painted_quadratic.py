@@ -1,9 +1,11 @@
 import logging
 
+from artiq.coredevice.core import now_mu
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib.constants import DELAY_BETWEEN_RTIO_EVENTS
 from repository.lib.constants import PAINTING_URUKUL_CHANNEL
@@ -108,6 +110,45 @@ class MatterwaveLensingInBothDirectionMixin(DipoleTrapWithExperimentBase):
         self.dipole_beam_controller.turn_off_vertical_up_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.dipole_beam_controller.turn_off_painter_suservo()
+
+
+class MatterwaveLensingVerticalBeamMixin(DipoleTrapWithExperimentBase):
+    """
+    Mixin which switches on the up dipole potential during the dipole trap loading sequence to matterwave collimate them.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~matterwave_collimate_hook`
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "matterwave_collimation_time_813",
+            FloatParam,
+            description="Holding time for matterwave collimating in horizontal direction",
+            unit="ms",
+            default=3e-3,
+            min=0.0,
+            max=100,
+        )
+        self.matterwave_collimation_time_813: FloatParamHandle
+
+        self.t_delta_kick = int64(0)
+
+    @kernel
+    def matterwave_collimate_hook(self):
+
+        self.t_delta_kick = now_mu()
+        self.dipole_beam_controller.turn_on_vertical_up_suservo()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.dipole_beam_controller.turn_off_dipole_beams()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.dipole_beam_controller.turn_off_painter_suservo()
+
+        delay(self.matterwave_collimation_time_813.get())
+        self.dipole_beam_controller.turn_off_vertical_up_suservo()
 
 
 class PaintedMatterwaveLensingMixin(DipoleTrapWithExperimentBase):
@@ -219,6 +260,8 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
     def painter_ramp_on(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.dipole_beam_controller.turn_on_vertical_up_suservo()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.adiabatic_painter_ramp_on.do_phase()
 
     @kernel
@@ -253,7 +296,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
             "duration",
             description="Duration of the HODT adiabatic ramp down time",
             unit="ms",
-            default=20e-3,
+            default=240e-3,
             min=0.0,
         )
         self.HODT_adiabatic_ramp_down_time: FloatParamHandle

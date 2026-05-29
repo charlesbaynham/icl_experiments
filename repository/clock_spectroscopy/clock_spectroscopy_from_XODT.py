@@ -186,6 +186,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
+        self.DMA_initialization_hook_painter_on()
 
     @kernel
     def post_sequence_cleanup_hook(self):

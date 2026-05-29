@@ -234,6 +234,43 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
 
     @kernel
+    def lmt_series_start_down_launch_down_v2(self, offset_det, N_previous_pulses, N):
+        t_drop = self.get_t_start_shelving()
+
+        for i in range(N):
+
+            # start with down pulse
+            if i % 2 == 0:
+                down_offset = offset_det
+                pulse_type = "down"
+
+            else:
+                down_offset = 0.0
+                pulse_type = "up"
+
+            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
+            total_ramp_time = self.core.mu_to_seconds(t_start_lmt_2_pulse_mu - t_drop)
+
+            f_i = (
+                start_opll_offset
+                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i + 1) * momentum_kick
+                + N_previous_pulses * (-1) ** (i) * momentum_kick
+                + (-1) ** (i) * (down_offset)
+            )
+
+            # fire the pulse
+            self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
+
+            if pulse_type == "down":
+                # Clear out the ground state
+                self.fluorescence_pulse.do_clearout_pulse(
+                    duration=10e-6,
+                    ignore_final_shutters=True,
+                )
+                delay(8e-9)
+
+    @kernel
     def fire_lmt_pulse(self, start_freq, type, t_start):
         # stop the ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
@@ -378,7 +415,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
             "lmt_launch_pulses_number",
             IntParam,
             "Number of pulses for LMT launch",
-            default=8,
+            default=16,
         )
         self.lmt_launch_pulses_number: IntParamHandle
 
@@ -450,7 +487,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
             "delay_between_launches",
             FloatParam,
             "Delay between the two launches",
-            default=4.0e-3,
+            default=2.0e-3,
             unit="ms",
         )
         self.delay_between_launches: FloatParamHandle
@@ -459,7 +496,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
             "double_trap_launch_bs_detuning",
             FloatParam,
             "Detuning of the beam splitter in the double trap launch",
-            default=2.0e3,  # -0.3e3,
+            default=1.0e3,  # -0.3e3,
             unit="kHz",
         )
         self.double_trap_launch_bs_detuning: FloatParamHandle
@@ -469,7 +506,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
             self,
             original_name="lmt_launch_offset_detuning",
             description="Detuning for launch LMT series",
-            default=-0.3e3,
+            default=0.2e3,
         )
         self.lmt_launch_offset_detuning_double_cloud: FloatParamHandle
 
@@ -691,7 +728,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             "delay_between_launches",
             FloatParam,
             "Delay between the two launches",
-            default=5.0e-3,
+            default=2.0e-3,
             unit="ms",
         )
         self.delay_between_launches: FloatParamHandle
@@ -963,7 +1000,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
             "delay_between_launches",
             FloatParam,
             "Delay between the two launches",
-            default=4.0e-3,
+            default=2.0e-3,
             unit="ms",
         )
         self.delay_between_launches: FloatParamHandle
@@ -972,7 +1009,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
             "double_trap_launch_bs_detuning",
             FloatParam,
             "Detuning of the beam splitter in the double trap launch",
-            default=-0.3e3,
+            default=1e3,
             unit="kHz",
         )
         self.double_trap_launch_bs_detuning: FloatParamHandle
@@ -982,7 +1019,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
             self,
             original_name="lmt_launch_offset_detuning",
             description="Detuning for launch LMT series",
-            default=-0.3e3,
+            default=0.2e3,
         )
         self.lmt_launch_offset_detuning_double_cloud: FloatParamHandle
 
@@ -1260,7 +1297,7 @@ class LMTInterferometryMixin(
             "lmt_pulses_number",
             IntParam,
             "Number of pulses for LMT interferometry",
-            default=7,
+            default=41,
         )
         self.lmt_pulses_number: IntParamHandle
 
@@ -1286,7 +1323,7 @@ class LMTInterferometryMixin(
             "bs1_lmt_offset_detuning",
             FloatParam,
             "LMT detuning after 1st BS",
-            default=0e3,
+            default=0.2e3,
             unit="kHz",
         )
         self.bs1_lmt_offset_detuning: FloatParamHandle
@@ -1313,7 +1350,7 @@ class LMTInterferometryMixin(
             "mirror_pulse_freq",
             FloatParam,
             "Frequency detuning for the mirror pulse",
-            default=0.0,
+            default=-0.2e3,
             unit="kHz",
         )
         self.mirror_pulse_freq: FloatParamHandle
@@ -1349,7 +1386,7 @@ class LMTInterferometryMixin(
             "last_selective_lower_bs_freq",
             FloatParam,
             "Frequency detuning for last selective lower BS",
-            default=0.0,
+            default=-1e3,
             unit="kHz",
         )
         self.last_selective_lower_bs_freq: FloatParamHandle
@@ -1382,7 +1419,7 @@ class LMTInterferometryMixin(
         delay_mu(16)
 
         N = self.lmt_pulses_number.get()
-        N_launch = 16
+        N_launch = 18
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -1416,8 +1453,7 @@ class LMTInterferometryMixin(
 
         self.clock_down_dds.set(
             frequency=self.clock_switch_frequency_handle.get()
-            + self.down_switch_detuning.get()
-            + bs1_lmt_offset,
+            + self.down_switch_detuning.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
@@ -1520,7 +1556,7 @@ class LMTInterferometryMixin(
 
         # MIRROR PULSE DOWN BEAM
         t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            1e-6
+            50e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
 
         self.clock_opll.clock_OPLL_offset.set(
@@ -1537,7 +1573,7 @@ class LMTInterferometryMixin(
         delay(t_pi_down)
         self.clock_down_dds.sw.off()
 
-        delay(1e-6)
+        delay(50e-6)
 
         if N > 1:
             # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse

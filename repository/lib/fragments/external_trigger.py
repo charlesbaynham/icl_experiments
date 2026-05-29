@@ -4,7 +4,10 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLInOut
 from artiq.language import at_mu
 from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -24,10 +27,19 @@ class ExternalTriggerFrag(Fragment):
         self.ttl: TTLInOut = self.get_device(ttl_name)
 
         self.setattr_param(
+            "enabled",
+            BoolParam,
+            "Enable or disable external triggering",
+            default=True,
+        )
+        self.enabled: BoolParamHandle
+
+        self.setattr_param(
             "trigger_offset",
             FloatParam,
             "Delay after the external trigger edge before continuing the experiment",
-            default=0.0,
+            default=10e-3,
+            min=10e-6,
             unit="ms",
         )
         self.trigger_offset: FloatParamHandle
@@ -49,7 +61,7 @@ class ExternalTriggerFrag(Fragment):
             self.core.break_realtime()
             self.ttl.input()
 
-        if self.auto_wait:
+        if self.auto_wait and self.enabled.get():
             self.wait_for_trigger()
 
         self.device_setup_subfragments()
@@ -63,16 +75,26 @@ class ExternalTriggerFrag(Fragment):
         rounded forward by trigger periods if necessary to ensure the target
         lies in the future.
         """
-        timeout_mu = self.core.seconds_to_mu(0.2)
-        gate_end = self.ttl.gate_rising_mu(timeout_mu)
-        offset_mu = self.core.seconds_to_mu(self.trigger_offset.get())
+        if self.enabled.get():
+            max_wait_mu = now_mu() + self.core.seconds_to_mu(1.0)
+            offset_mu = self.core.seconds_to_mu(self.trigger_offset.get())
 
-        # Commence waiting for the trigger
-        t_mu = self.ttl.timestamp_mu(gate_end)
-        if t_mu < 0:
-            logger.error("No external trigger detected within 0.2s timeout")
-            return
+            # Configure ttl to start registering events. Use private functions
+            # of the TTL class since I don't want to also schedule the end event
+            # yet - this can cause sequence errors
+            self.ttl._set_sensitivity(1)
 
-        # Jump the cursor to the target time
-        target_mu = t_mu + offset_mu
-        at_mu(target_mu)
+            # Commence waiting for the trigger
+            t_mu = self.ttl.timestamp_mu(max_wait_mu)
+            if t_mu < 0:
+                logger.error("No external trigger detected within timeout")
+                self.core.break_realtime()
+                self.ttl._set_sensitivity(0)
+            else:
+                # Jump the cursor forward by enough that we can stop new triggers arriving
+                at_mu(t_mu + self.core.seconds_to_mu(10e-6))
+                self.ttl._set_sensitivity(0)
+
+                # Now jump to the actual offset we want for the rest of the experiment
+                target_mu = t_mu + offset_mu
+                at_mu(target_mu)

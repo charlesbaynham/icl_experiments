@@ -58,7 +58,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.706e6,
+        frequency=364.684e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -681,7 +681,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.7,
+        setpoint=0.5,
         servo_enabled=True,
     ),
     ### RED ###
@@ -766,7 +766,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.5435e6,
+        99.502e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -797,7 +797,7 @@ SUSERVOED_BEAMS = [
         attenuation=5.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
-        initial_amplitude=0.0,
+        initial_amplitude=1.0,
         setpoint=1.5,
     ),
     SUServoedBeam(
@@ -870,6 +870,7 @@ _default_707 = 423_913_478e6 - 5e6  # 2025-08-07
 _default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6 - 4.0e6  # Measured empirically
+_default_641 = 467_677_870e6  # Found in literature
 _clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
@@ -934,7 +935,7 @@ TOPTICA_TO_WAND_NAMES = {
     "toptica_679": "679",
     "toptica_707": "707",
     "toptica_689": "689",
-    "toptica_698": "698",
+    "toptica_641": "641",
     "toptica_487": "487",
 }
 
@@ -1011,7 +1012,7 @@ WAND_SETPOINTS_88 = {
     #     False,
     # ),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
@@ -1030,7 +1031,7 @@ WAND_SETPOINTS_87 = {
     # ),
     "688": (435_731_700e6, False),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
@@ -1386,12 +1387,12 @@ XODT_EVAP_3_END = [0.18, 0.7]
 
 
 # SUServo order: [1064 delivery, down 813, painter, up 813]
-XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 0.0]
-XODT_ADIABATIC_END = [0.0, 0.2, 1.0, 0.0]
+XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 0.4]
+XODT_ADIABATIC_END = [0.0, 0.0, 1.0, 0.4]
 
 PAINT_ADIABATIC_RAMP_DURATION = 50e-3
 PAINT_ADIABATIC_RAMP_START = [1.0, 0.7, 1.0, 0.0]
-PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0, 0.0]
+PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0, 0.4]
 
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
@@ -1523,5 +1524,5 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
 DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
-LMT_OFFSET_DETUNING = -6e3
+LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3

@@ -18,6 +18,9 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyBase,
 )
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTBase
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    MatterwaveLensingVerticalBeamMixin,
+)
 
 CLOCK_UP_BEAM_INFO = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -239,3 +242,22 @@ class DopplerCompensationForLMTMixin(ClockShelvingAndClearoutBase, LMTBase):
         return self.t_velocity_slicing_pulse_centre_mu - self.core.seconds_to_mu(
             self.shelving_pulse_time.get() / 2
         )
+
+
+class DopplerCompensationForLMTDeltaKickMixin(
+    MatterwaveLensingVerticalBeamMixin,
+    DopplerCompensationForLMTMixin,
+):
+    """
+    Adds detunings to the LMT pulses to compensate for Doppler shifts
+    accrued while the atoms fall.
+
+    Kernel hooks used:
+
+    * :meth:`~calculate_frequency_for_first_pi_by_2_pulse`
+    """
+
+    @kernel
+    def get_t_start_shelving(self) -> int64:
+        # return self.t_dipole_beams_off
+        return self.t_delta_kick
