@@ -1301,8 +1301,12 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
         # )
 
         # at_mu(t_start_last_pulse_mu)
+        # d = t_pi_up / 2
+        # self.register_pulse(
+        #     duration_s=d, is_up=True
+        # )  # FIXME needs to track frequency too
         # self.clock_up_dds.sw.on()
-        # delay(t_pi_up / 2)
+        # delay(d)
         # self.clock_up_dds.sw.off()
 
         # delay(1e-6)
@@ -2026,6 +2030,10 @@ class ShapedFirstPulseLMTInterferometryMixin(
 
         # # PI/2 PULSE
 
+        # d = t_pi_down / 2
+        # self.register_pulse(
+        #     duration_s=d, is_up=False
+        # )  # FIXME needs to track frequency too
         # self.clock_down_dds.sw.on()
-        # delay(t_pi_down / 2)
+        # delay(d)
         # self.clock_down_dds.sw.off()
