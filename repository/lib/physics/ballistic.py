@@ -168,6 +168,7 @@ def predict_position(
 
     Returns ``(x_pixel, y_pixel)`` via orthographic projection.
     """
+    # FIXME This logic is totally wrong
     pulse_times_s = list(pulse_times_s)
     pulse_is_up = list(pulse_is_up)
     if pulse_durations_s is None:
