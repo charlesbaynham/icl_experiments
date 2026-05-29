@@ -82,6 +82,7 @@ class LMTInterferometryFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
@@ -116,6 +117,7 @@ class LMTInterferometryWithDoubleLaunchFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
@@ -150,6 +152,7 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
@@ -186,6 +189,7 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_painter_on()
@@ -224,6 +228,7 @@ class LMTInterferometryWithLaunchFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
@@ -259,6 +264,7 @@ class ShapedFirstPulseLMTInterferometryFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()

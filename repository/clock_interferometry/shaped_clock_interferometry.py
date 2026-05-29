@@ -65,6 +65,7 @@ class ClockInterferometryFromSingleXODTEvaporatedShapedSlicingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 

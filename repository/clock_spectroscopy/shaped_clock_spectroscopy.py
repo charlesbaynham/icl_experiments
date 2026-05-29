@@ -82,6 +82,7 @@ class ShapedClockSpecFromSingleXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 
@@ -124,6 +125,7 @@ class ShapedClockSpecWithSlicingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
@@ -175,6 +177,7 @@ class ShapedClockSpecWithEvapAndSlicingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
@@ -222,6 +225,7 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
@@ -262,6 +266,7 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 

@@ -93,7 +93,7 @@ class ClockSpecFromSingleXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()  # FIXME I put this one in manually, but have missed many other places it should be
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
 
 
@@ -122,6 +122,7 @@ class ClockSpecFromSingleXODTEvaporatedFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 
@@ -152,6 +153,7 @@ class ClockSpecFromSingleXODTEvaporatedAndLensedFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
 
@@ -183,6 +185,7 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
@@ -225,6 +228,7 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 
@@ -262,6 +266,7 @@ class ClockSpecDownFromSingleXODTEvaporatedShelvingFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 
@@ -300,6 +305,7 @@ class ClockSpecFromXXODTFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
@@ -335,6 +341,7 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
 

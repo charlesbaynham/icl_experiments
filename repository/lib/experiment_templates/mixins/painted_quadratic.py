@@ -254,6 +254,7 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_painter_on()
 
     @kernel

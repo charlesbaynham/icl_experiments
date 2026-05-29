@@ -168,6 +168,7 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperimentBase):
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_linear_evap()
 
     @kernel
@@ -235,6 +236,7 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
     @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_linear_evap()
 
     @kernel
