@@ -173,6 +173,9 @@ class DipoleTrapWithExperimentBase(
             def device_setup(self):
                 self.device_setup_subfragments()
 
+                # Wipe the buffer. The new recording run will overwrite the old data
+                self._pulse_record_num_pulses = 0
+
                 # Record the actions_after_drop sequence in DMA
                 # FIXME should not recalculate every shot?  maybe?
                 with self.core_dma.record(self.dma_name):
