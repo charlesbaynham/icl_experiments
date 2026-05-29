@@ -1,5 +1,7 @@
 import numpy as np
 from artiq.experiment import HasEnvironment
+from artiq.experiment import TInt64
+from artiq.experiment import TList
 from artiq.language import portable
 from numpy import int64
 
@@ -60,3 +62,30 @@ class GaussianRandom(HasEnvironment):
         u2 = self.rng.next()
         z0 = (-2 * np.log(u1)) ** 0.5 * np.cos(2 * np.pi * u2)
         return z0
+
+
+class FastIntChecksum(HasEnvironment):
+    """
+    A minimal rolling checksum for integer lists.
+
+    This is intentionally just a 64-bit wrapping sum. It is not designed to be
+    collision-resistant; it is designed to be cheap to compile and fast to run
+    in ARTIQ kernels.
+    """
+
+    def build(self, seed: int = 0):
+        self.initial = int64(seed)
+        self.mask = int64(-1)
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("initial")
+        self.kernel_invariants.add("mask")
+
+    @portable
+    def checksum(self, values: TList(TInt64)) -> TInt64:  # type: ignore[misc, valid-type]
+        checksum = self.initial
+
+        for value in values:
+            checksum = (checksum + value) & self.mask
+
+        return checksum
