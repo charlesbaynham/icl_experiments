@@ -520,13 +520,12 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
     @kernel
     def register_pulse(self, is_up: bool, duration_s: float):
         """
-        No-op base implementation. Overridden by DipoleTrapWithExperimentBase
-        to record the pulse for dynamic ROI positioning.
+        No-op base implementation. Overridden by DipoleTrapWithExperimentBase to
+        record the pulse for dynamic ROI positioning.
 
-        Call this immediately before turning the clock AOM on, passing the
-        full pulse duration. The recorded timestamp is placed at the pulse
-        centre (now_mu() + duration/2), which is the best single-impulse
-        approximation of the momentum transfer.
+        Call this immediately before turning the clock AOM on, passing the full
+        pulse duration. This will be used to record what sequence was run, and
+        used to predict the location of the atoms for imaging.
         """
 
     @kernel

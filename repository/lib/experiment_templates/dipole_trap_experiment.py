@@ -197,7 +197,9 @@ class DipoleTrapWithExperimentBase(
                     )
 
                 half_mu = self.core.seconds_to_mu(duration_s / 2)
-                self._pulse_record_times_mu[self._pulse_record_num_pulses] = now_mu() + half_mu
+                self._pulse_record_times_mu[self._pulse_record_num_pulses] = (
+                    now_mu() + half_mu
+                )
                 self._pulse_record_is_up[self._pulse_record_num_pulses] = is_up
                 self._pulse_record_num_pulses += 1
 
@@ -302,9 +304,10 @@ class DipoleTrapWithExperimentBase(
     @kernel
     def register_pulse(self, is_up: bool, duration_s: float):
         """
-        Delegate to dma_recording_fragment.register_pulse so that clock-pulse
-        mixins can call self.register_pulse unconditionally without knowing
-        whether a DMA fragment exists.
+        Delegate to dma_recording_fragment.register_pulse. `register_pulse` is
+        defined on the RedMOTExperimentBase as a no-op, so experiments that use
+        clock-pulse mixins can call self.register_pulse unconditionally without
+        knowing whether a DMA fragment exists.
         """
         self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
 
