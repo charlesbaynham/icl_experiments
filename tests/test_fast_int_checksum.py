@@ -10,7 +10,7 @@ from repository.lib.utils import FastIntChecksum
 class KernelChecksumExperiment(EnvExperiment):
     def build(self):
         self.setattr_device("core")
-        self.checksummer = FastIntChecksum(self, 7)
+        self.checksummer = FastIntChecksum(seed=7)
         self.values = [int64(1), int64(2), int64(3), int64(4)]
 
     @kernel

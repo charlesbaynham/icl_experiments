@@ -64,7 +64,7 @@ class GaussianRandom(HasEnvironment):
         return z0
 
 
-class FastIntChecksum(HasEnvironment):
+class FastIntChecksum:
     """
     A minimal rolling checksum for integer lists.
 
@@ -73,7 +73,7 @@ class FastIntChecksum(HasEnvironment):
     in ARTIQ kernels.
     """
 
-    def build(self, seed: int = 0):
+    def __init__(self, seed: int = 0):
         self.initial = int64(seed)
         self.mask = int64(-1)
 
