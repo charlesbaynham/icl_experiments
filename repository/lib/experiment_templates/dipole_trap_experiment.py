@@ -282,12 +282,15 @@ class DipoleTrapWithExperimentBase(
     def actions_after_drop(self):
         """
         Split out the parts of the sequence that occur after the atoms are
-        dropped so that we can pre-record them in DMA. This allows us to :
+        dropped so that we can pre-record them in DMA. This allows us to:
 
         a) playback quickly
         b) know in advance the timings so we can calculate corrected ROI positions
+
+        Note that because this is DMA, we cannot use RPC here
         """
 
+        self.post_dipole_trap_hook()
         delay(self.before_launch_delay.get())
         self.launch_hook()
         delay(self.dipole_pre_experiment_delay.get())
@@ -302,8 +305,8 @@ class DipoleTrapWithExperimentBase(
         self.adiabatic_cooling_hook()
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
-        self.post_dipole_trap_hook()
 
+        # This plays back the pre-recorded version of `actions_after_drop`:
         self.dma_recording_fragment.playback()
 
     @kernel
