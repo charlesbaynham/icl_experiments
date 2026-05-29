@@ -236,8 +236,6 @@ class DipoleTrapWithExperimentBase(
                 needs from the full sequence record.
                 """
 
-                pulse_index = self._pulse_record_num_pulses
-
                 if self._pulse_record_num_pulses >= BUFFER_DEPTH:
                     raise RuntimeError(
                         "Exceeded maximum number of pulses that can be recorded. Congratulations!!!"
@@ -246,13 +244,25 @@ class DipoleTrapWithExperimentBase(
                 duration_mu = self.core.seconds_to_mu(duration_s)
 
                 # FIXME
-                print("Pulse ", pulse_index, is_up, duration_s)
+                print("Pulse ", self._pulse_record_num_pulses, is_up, duration_s)
                 # FIXME
 
-                self._pulse_record_start_times_mu[pulse_index] = now_mu()
-                self._pulse_record_durations_mu[pulse_index] = duration_mu
-                self._pulse_record_directions[pulse_index] = int32(1 if is_up else 0)
+                self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = (
+                    now_mu()
+                )
+                self._pulse_record_durations_mu[self._pulse_record_num_pulses] = (
+                    duration_mu
+                )
+                self._pulse_record_directions[self._pulse_record_num_pulses] = int32(
+                    1 if is_up else 0
+                )
                 self._pulse_record_num_pulses += 1
+
+                # FIXME
+                print(
+                    "New self._pulse_record_num_pulses = ",
+                    self._pulse_record_num_pulses,
+                )
 
         self.setattr_fragment(
             "dma_recording_fragment", PulseDMARecording, outer_self=self
