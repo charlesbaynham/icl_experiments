@@ -67,6 +67,7 @@ from repository.lib.experiment_templates.red_mot_experiment import (
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
+from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +160,7 @@ class DipoleTrapWithExperimentBase(
                 self._pulse_record_durations_mu = [int64(0)] * BUFFER_DEPTH
                 self._pulse_record_directions = [int32(0)] * BUFFER_DEPTH
                 self._pulse_record_num_pulses = 0
+                self._pulse_record_checksum = 0
 
                 # Add an opaque ResultChannel that is used to store these pulse records
                 self.setattr_result(
@@ -205,7 +207,25 @@ class DipoleTrapWithExperimentBase(
                     self._pulse_record_durations_mu[: self._pulse_record_num_pulses],
                 ]
 
-                self.pulse_record.push(pulse_record)
+                # Calculate a checksum of this pulse record
+                checksum = FastIntChecksum(seed=0).checksum(
+                    [int64(x) for x in pulse_record[0]]
+                )
+                checksum = FastIntChecksum(seed=checksum).checksum(
+                    [int64(x) for x in pulse_record[1]]
+                )
+                checksum = FastIntChecksum(seed=checksum).checksum(
+                    [int64(x) for x in pulse_record[2]]
+                )
+
+                if checksum != self._pulse_record_checksum:
+                    # Record the updated pulse sequence
+                    self.pulse_record.push(pulse_record)
+                else:
+                    # Save None as a sentinal value for "same as last time"
+                    self.pulse_record.push(None)
+
+                self._pulse_record_checksum = checksum
 
             @kernel
             def DMA_initialization_hook_after_drop(self):
