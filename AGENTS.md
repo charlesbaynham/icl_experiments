@@ -116,6 +116,7 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 ### Documentation
 
 - Use **Google-style docstrings** for Sphinx autodoc
+- Docstrings should describe the current behaviour only; do not keep change history in them
 - Documentation auto-generates from experiment files
 - Build docs locally: `nix run .#docs`
 - Documentation deploys to GitLab Pages on master branch
