@@ -14,6 +14,9 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperimentBase,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsClockPulseMixin,
 )
@@ -318,7 +321,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         )
 
 
-class NormalisedFastKineticsLMTCorrected(NormalisedFastKineticsClockPulseMixin):
+class NormalisedFastKineticsLMTCorrected(
+    NormalisedFastKineticsClockPulseMixin, DipoleTrapWithExperimentBase
+):
     """
     Variant of :class:`~.NormalisedFastKineticsClockPulseMixin` that uses
     :class:`~LMTCompensatedCameraConfig` to dynamically reposition the camera
