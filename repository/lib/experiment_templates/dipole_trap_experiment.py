@@ -48,6 +48,8 @@ from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
 from ndscan.experiment import Fragment
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.result_channels import OpaqueChannel
@@ -152,6 +154,14 @@ class DipoleTrapWithExperimentBase(
                 self.setattr_device("core_dma")
                 self.core_dma: CoreDMA
 
+                self.setattr_param(
+                    "enable_pulse_sequence_storage",
+                    BoolParam,
+                    description="Store recorded pulse sequences in results",
+                    default=True,
+                )
+                self.enable_pulse_sequence_storage: BoolParamHandle
+
                 self.dma_handle = (int32(0), int64(0), int32(0), False)
                 self.dma_handle_valid = False
 
@@ -194,6 +204,10 @@ class DipoleTrapWithExperimentBase(
                 This forces us to store directions as int64s which is wasteful,
                 but oh well.
                 """
+                if not self.enable_pulse_sequence_storage.get():
+                    self.pulse_record.push(None)
+                    return
+
                 pulse_record = [
                     [
                         int64(x)
