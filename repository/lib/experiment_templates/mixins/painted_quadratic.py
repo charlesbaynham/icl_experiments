@@ -260,6 +260,8 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
     def painter_ramp_on(self):
         self.dipole_beam_controller.turn_on_painter_suservo()
         delay(DELAY_BETWEEN_RTIO_EVENTS)
+        self.dipole_beam_controller.turn_on_vertical_up_suservo()
+        delay(DELAY_BETWEEN_RTIO_EVENTS)
         self.adiabatic_painter_ramp_on.do_phase()
 
     @kernel
@@ -294,7 +296,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
             "duration",
             description="Duration of the HODT adiabatic ramp down time",
             unit="ms",
-            default=20e-3,
+            default=240e-3,
             min=0.0,
         )
         self.HODT_adiabatic_ramp_down_time: FloatParamHandle

@@ -45,7 +45,9 @@ class DipoleBeamController(Fragment):
         self.setattr_fragment(
             "all_beam_default_setter",
             make_set_beams_to_default(
-                suservo_beam_infos=DIPOLE_SUSERVO_INFOS + PAINTED_SUSERVO_INFOS,
+                suservo_beam_infos=DIPOLE_SUSERVO_INFOS
+                + PAINTED_SUSERVO_INFOS
+                + VERTICAL_UP_BEAM,
                 urukul_beam_infos=DIPOLE_URUKUL_INFOS,
                 name="DipoleBeamSettings",
                 use_automatic_setup=True,  # Automatically configure the DDSs but do not turn the beams on
@@ -66,17 +68,6 @@ class DipoleBeamController(Fragment):
             ),
         )
         self.xodt_beam_default_setter: SetBeamsToDefaults
-
-        self.setattr_fragment(
-            "up_813_default_setter",
-            make_set_beams_to_default(
-                suservo_beam_infos=VERTICAL_UP_BEAM,
-                name="DipoleBeamSettings",
-                use_automatic_setup=True,  # Automatically configure the DDSs but do not turn the beams on
-                use_automatic_turnon=False,
-            ),
-        )
-        self.up_813_default_setter: SetBeamsToDefaults
 
         # Beam toggler - used for turning the beams on and off once the DDSs are
         # configured by the default setter
