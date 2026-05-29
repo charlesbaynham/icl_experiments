@@ -229,6 +229,11 @@ class DipoleTrapWithExperimentBase(
                 code can then reconstruct whichever effective timing model it
                 needs from the full sequence record.
                 """
+
+                # FIXME
+                print("Pulse ", is_up, duration_s)
+                # FIXME
+
                 if self._pulse_record_num_pulses >= BUFFER_DEPTH:
                     raise RuntimeError(
                         "Exceeded maximum number of pulses that can be recorded. Congratulations!!!"
