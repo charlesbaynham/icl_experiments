@@ -178,6 +178,8 @@ class DipoleTrapWithExperimentBase(
                 with self.core_dma.record(self.dma_name):
                     self.outer_self.actions_after_drop()
 
+                self._save_pulse_sequence_to_dataset()
+
             @kernel
             def _save_pulse_sequence_to_dataset(self):
                 """
