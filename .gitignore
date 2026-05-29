@@ -1,4 +1,5 @@
 ## added by CFAB:
+.claude/worktrees
 .claude/settings.local.json
 *.elf
 todo.txt
