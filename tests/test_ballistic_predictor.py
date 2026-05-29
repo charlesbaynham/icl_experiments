@@ -8,13 +8,11 @@ import numpy as np
 import pytest
 import scipy.constants
 
-from repository.lib.physics.ballistic import (
-    BallisticConfig,
-    CameraGeometry,
-    predict_position,
-    predict_positions_from_mu,
-    recoil_velocity,
-)
+from repository.lib.physics.ballistic import BallisticConfig
+from repository.lib.physics.ballistic import CameraGeometry
+from repository.lib.physics.ballistic import predict_position
+from repository.lib.physics.ballistic import predict_positions_from_mu
+from repository.lib.physics.ballistic import recoil_velocity
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -390,11 +388,18 @@ def test_mu_wrapper_matches_seconds_version():
     ref_period_s = 1e-9
     t_zero_mu = 1_000_000_000  # 1 second offset (arbitrary)
 
-    t_pulse_s = 5e-3
+    t_pulse_start_s = 4e-3
+    t_pulse_duration_s = 2e-3
+    t_pulse_start_s + t_pulse_duration_s / 2
     t_img1_s = 20e-3
     t_img2_s = 23e-3
 
-    pulse_mu = np.array([t_zero_mu + round(t_pulse_s / ref_period_s)], dtype=np.int64)
+    pulse_start_mu = np.array(
+        [t_zero_mu + round(t_pulse_start_s / ref_period_s)], dtype=np.int64
+    )
+    pulse_duration_mu = np.array(
+        [round(t_pulse_duration_s / ref_period_s)], dtype=np.int64
+    )
     pulse_up = np.array([True])
     img_mu = np.array(
         [
@@ -407,7 +412,8 @@ def test_mu_wrapper_matches_seconds_version():
     out = predict_positions_from_mu(
         site_offset_m=np.zeros(3),
         initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_mu=pulse_mu,
+        pulse_start_times_mu=pulse_start_mu,
+        pulse_durations_mu=pulse_duration_mu,
         pulse_is_up=pulse_up,
         image_times_mu=img_mu,
         t_zero_mu=t_zero_mu,
@@ -420,22 +426,76 @@ def test_mu_wrapper_matches_seconds_version():
     ):
         if state == "ground":
             xy_ref = predict_position(
-                np.zeros(3), np.zeros(3), [t_pulse_s], [True], t_img_s, SIDE_VIEW_CFG, "ground"
+                np.zeros(3),
+                np.zeros(3),
+                [t_pulse_start_s],
+                [True],
+                t_img_s,
+                SIDE_VIEW_CFG,
+                "ground",
+                pulse_durations_s=[t_pulse_duration_s],
             )
             assert out["ground"][0, 0] == pytest.approx(xy_ref[0], rel=1e-6)
             assert out["ground"][0, 1] == pytest.approx(xy_ref[1], rel=1e-6)
         elif i == 1:
             xy_ref = predict_position(
-                np.zeros(3), np.zeros(3), [t_pulse_s], [True], t_img_s, SIDE_VIEW_CFG, "excited"
+                np.zeros(3),
+                np.zeros(3),
+                [t_pulse_start_s],
+                [True],
+                t_img_s,
+                SIDE_VIEW_CFG,
+                "excited",
+                pulse_durations_s=[t_pulse_duration_s],
             )
             assert out["excited"][0, 0] == pytest.approx(xy_ref[0], rel=1e-6)
             assert out["excited"][0, 1] == pytest.approx(xy_ref[1], rel=1e-6)
         else:
             xy_ref = predict_position(
-                np.zeros(3), np.zeros(3), [t_pulse_s], [True], t_img2_s, SIDE_VIEW_CFG, "excited"
+                np.zeros(3),
+                np.zeros(3),
+                [t_pulse_start_s],
+                [True],
+                t_img2_s,
+                SIDE_VIEW_CFG,
+                "excited",
+                pulse_durations_s=[t_pulse_duration_s],
             )
             assert out["excited"][1, 0] == pytest.approx(xy_ref[0], rel=1e-6)
             assert out["excited"][1, 1] == pytest.approx(xy_ref[1], rel=1e-6)
+
+
+def test_pulse_duration_shifts_effective_kick_time():
+    """Longer duration delays the effective kick when the pulse start time is fixed."""
+    t_image_s = 20e-3
+    pulse_start_s = 5e-3
+    short_duration_s = 0.0
+    long_duration_s = 4e-3
+    v_r = recoil_velocity(SIDE_VIEW_CFG)
+
+    _, y_short = predict_position(
+        site_offset_m=np.zeros(3),
+        initial_velocity_m_per_s=np.zeros(3),
+        pulse_times_s=[pulse_start_s],
+        pulse_is_up=[True],
+        t_image_s=t_image_s,
+        cfg=SIDE_VIEW_CFG,
+        state="excited",
+        pulse_durations_s=[short_duration_s],
+    )
+    _, y_long = predict_position(
+        site_offset_m=np.zeros(3),
+        initial_velocity_m_per_s=np.zeros(3),
+        pulse_times_s=[pulse_start_s],
+        pulse_is_up=[True],
+        t_image_s=t_image_s,
+        cfg=SIDE_VIEW_CFG,
+        state="excited",
+        pulse_durations_s=[long_duration_s],
+    )
+
+    expected_delta = -v_r * ((long_duration_s - short_duration_s) / 2) * _scale()
+    assert y_long == pytest.approx(y_short + expected_delta, rel=1e-6)
 
 
 def test_monotonic_pulse_times_enforced():

@@ -2,14 +2,12 @@ import logging
 
 import numpy as np
 from artiq.language import TArray
-from artiq.language import TBool
 from artiq.language import TInt32
 from artiq.language import TInt64
 from artiq.language import TList
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import rpc
-from artiq.language.types import TFloat
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -81,9 +79,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             "trap_x_pixel",
             IntParam,
             "Pixel x coordinate of the trap centre",
-            default=int(
-                (constants.ANDOR_ROI_X0 + constants.ANDOR_ROI_X1) // 2
-            ),
+            default=int((constants.ANDOR_ROI_X0 + constants.ANDOR_ROI_X1) // 2),
             min=0,
             max=constants.ANDOR_CAMERA_FACTS["sensor_width"],
         )
@@ -93,9 +89,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             "trap_y_pixel",
             IntParam,
             "Pixel y coordinate of the trap centre",
-            default=int(
-                (constants.ANDOR_ROI_Y0 + constants.ANDOR_ROI_Y1) // 2
-            ),
+            default=int((constants.ANDOR_ROI_Y0 + constants.ANDOR_ROI_Y1) // 2),
             min=0,
             max=constants.ANDOR_CAMERA_FACTS["sensor_height"],
         )
@@ -104,27 +98,54 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         # Camera orientation — three lab-frame unit vectors
         # Defaults from constants; operators can fine-tune tilts from the ndscan UI.
         ax, ay, az = constants.ANDOR_OPTICAL_AXIS_DEFAULT
-        self.setattr_param("optical_axis_x", FloatParam, "Optical axis x (lab frame)", default=float(ax))
+        self.setattr_param(
+            "optical_axis_x",
+            FloatParam,
+            "Optical axis x (lab frame)",
+            default=float(ax),
+        )
         self.optical_axis_x: FloatParamHandle
-        self.setattr_param("optical_axis_y", FloatParam, "Optical axis y (lab frame)", default=float(ay))
+        self.setattr_param(
+            "optical_axis_y",
+            FloatParam,
+            "Optical axis y (lab frame)",
+            default=float(ay),
+        )
         self.optical_axis_y: FloatParamHandle
-        self.setattr_param("optical_axis_z", FloatParam, "Optical axis z (lab frame)", default=float(az))
+        self.setattr_param(
+            "optical_axis_z",
+            FloatParam,
+            "Optical axis z (lab frame)",
+            default=float(az),
+        )
         self.optical_axis_z: FloatParamHandle
 
         sx, sy, sz = constants.ANDOR_SENSOR_X_AXIS_DEFAULT
-        self.setattr_param("sensor_x_x", FloatParam, "Sensor +x axis x (lab frame)", default=float(sx))
+        self.setattr_param(
+            "sensor_x_x", FloatParam, "Sensor +x axis x (lab frame)", default=float(sx)
+        )
         self.sensor_x_x: FloatParamHandle
-        self.setattr_param("sensor_x_y", FloatParam, "Sensor +x axis y (lab frame)", default=float(sy))
+        self.setattr_param(
+            "sensor_x_y", FloatParam, "Sensor +x axis y (lab frame)", default=float(sy)
+        )
         self.sensor_x_y: FloatParamHandle
-        self.setattr_param("sensor_x_z", FloatParam, "Sensor +x axis z (lab frame)", default=float(sz))
+        self.setattr_param(
+            "sensor_x_z", FloatParam, "Sensor +x axis z (lab frame)", default=float(sz)
+        )
         self.sensor_x_z: FloatParamHandle
 
         yx, yy, yz = constants.ANDOR_SENSOR_Y_AXIS_DEFAULT
-        self.setattr_param("sensor_y_x", FloatParam, "Sensor +y axis x (lab frame)", default=float(yx))
+        self.setattr_param(
+            "sensor_y_x", FloatParam, "Sensor +y axis x (lab frame)", default=float(yx)
+        )
         self.sensor_y_x: FloatParamHandle
-        self.setattr_param("sensor_y_y", FloatParam, "Sensor +y axis y (lab frame)", default=float(yy))
+        self.setattr_param(
+            "sensor_y_y", FloatParam, "Sensor +y axis y (lab frame)", default=float(yy)
+        )
         self.sensor_y_y: FloatParamHandle
-        self.setattr_param("sensor_y_z", FloatParam, "Sensor +y axis z (lab frame)", default=float(yz))
+        self.setattr_param(
+            "sensor_y_z", FloatParam, "Sensor +y axis z (lab frame)", default=float(yz)
+        )
         self.sensor_y_z: FloatParamHandle
 
         # Kernel variables — pixel positions filled by calculate_atom_positions
@@ -157,7 +178,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
 
         self.roi_buffer[1][0] = max(0, self.excited_x - half_width)
         self.roi_buffer[1][1] = max(0, self.excited_y - half_height)
-        self.roi_buffer[1][2] = min(self.andor_sensor_width, self.excited_x + half_width)
+        self.roi_buffer[1][2] = min(
+            self.andor_sensor_width, self.excited_x + half_width
+        )
         self.roi_buffer[1][3] = min(
             2 * self.andor_sensor_height,
             self.excited_y + half_height,
@@ -182,8 +205,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         self,
         t1: TInt64,
         t2: TInt64,
-        pulse_times: TList(TInt64),
-        pulse_is_up: TList(TBool),
+        pulse_start_times: TList(TInt64),
+        pulse_durations: TList(TInt64),
+        pulse_directions: TList(TInt32),
         num_pulses: TInt32,
         t_zero_mu: TInt64,
     ) -> None:
@@ -196,17 +220,25 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         t1, t2:
             Machine-unit timestamps for the ground-state and excited-state
             imaging pulses respectively.
-        pulse_times:
-            Pre-allocated array of clock pulse centre timestamps (machine units).
-        pulse_is_up:
-            Pre-allocated bool array matching pulse_times.
+        pulse_start_times:
+            Pre-allocated array of clock pulse start timestamps (machine units).
+        pulse_durations:
+            Pre-allocated array of clock pulse durations (machine units).
+        pulse_directions:
+            Pre-allocated integer array where 1 means up and 0 means down.
         num_pulses:
-            Number of valid entries at the start of pulse_times/pulse_is_up.
+            Number of valid entries at the start of the pulse arrays.
         t_zero_mu:
             Machine-unit timestamp of atom release (the dipole trap turn-off).
         """
         packed = self._calculate_positions_host(
-            t1, t2, pulse_times, pulse_is_up, num_pulses, t_zero_mu
+            t1,
+            t2,
+            pulse_start_times,
+            pulse_durations,
+            pulse_directions,
+            num_pulses,
+            t_zero_mu,
         )
         self.gnd_x = packed[0]
         self.gnd_y = packed[1]
@@ -218,27 +250,34 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         self,
         t1_mu: TInt64,
         t2_mu: TInt64,
-        pulse_times_mu: TList(TInt64),
-        pulse_is_up: TList(TBool),
+        pulse_start_times_mu: TList(TInt64),
+        pulse_durations_mu: TList(TInt64),
+        pulse_directions: TList(TInt32),
         num_pulses: TInt32,
         t_zero_mu: TInt64,
     ) -> TArray(TInt32, 1):
         camera = CameraGeometry(
-            optical_axis=np.array([
-                self.optical_axis_x.get(),
-                self.optical_axis_y.get(),
-                self.optical_axis_z.get(),
-            ]),
-            sensor_x_axis=np.array([
-                self.sensor_x_x.get(),
-                self.sensor_x_y.get(),
-                self.sensor_x_z.get(),
-            ]),
-            sensor_y_axis=np.array([
-                self.sensor_y_x.get(),
-                self.sensor_y_y.get(),
-                self.sensor_y_z.get(),
-            ]),
+            optical_axis=np.array(
+                [
+                    self.optical_axis_x.get(),
+                    self.optical_axis_y.get(),
+                    self.optical_axis_z.get(),
+                ]
+            ),
+            sensor_x_axis=np.array(
+                [
+                    self.sensor_x_x.get(),
+                    self.sensor_x_y.get(),
+                    self.sensor_x_z.get(),
+                ]
+            ),
+            sensor_y_axis=np.array(
+                [
+                    self.sensor_y_x.get(),
+                    self.sensor_y_y.get(),
+                    self.sensor_y_z.get(),
+                ]
+            ),
             centre_pixel=(
                 float(self.trap_x_pixel.get()),
                 float(self.trap_y_pixel.get()),
@@ -256,8 +295,13 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         out = predict_positions_from_mu(
             site_offset_m=np.zeros(3),
             initial_velocity_m_per_s=np.zeros(3),
-            pulse_times_mu=np.asarray(pulse_times_mu[:num_pulses], dtype=np.int64),
-            pulse_is_up=np.asarray(pulse_is_up[:num_pulses], dtype=bool),
+            pulse_start_times_mu=np.asarray(
+                pulse_start_times_mu[:num_pulses], dtype=np.int64
+            ),
+            pulse_durations_mu=np.asarray(
+                pulse_durations_mu[:num_pulses], dtype=np.int64
+            ),
+            pulse_is_up=np.asarray(pulse_directions[:num_pulses], dtype=bool),
             image_times_mu=np.asarray([t1_mu, t2_mu], dtype=np.int64),
             t_zero_mu=int(t_zero_mu),
             ref_period_s=self.core.ref_period,
@@ -307,8 +351,9 @@ class NormalisedFastKineticsLMTCorrected(NormalisedFastKineticsClockPulseMixin):
         self.andor_camera_config.calculate_atom_positions(
             t1=t1_mu,
             t2=t2_mu,
-            pulse_times=self.dma_recording_fragment._pulse_record_times_mu,
-            pulse_is_up=self.dma_recording_fragment._pulse_record_is_up,
+            pulse_start_times=self.dma_recording_fragment._pulse_record_start_times_mu,
+            pulse_durations=self.dma_recording_fragment._pulse_record_durations_mu,
+            pulse_directions=self.dma_recording_fragment._pulse_record_directions,
             num_pulses=self.dma_recording_fragment._pulse_record_num_pulses,
             t_zero_mu=t_zero_mu,
         )

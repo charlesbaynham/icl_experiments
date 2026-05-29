@@ -43,13 +43,13 @@ Usage example::
         t_image_s=10e-3,
         cfg=cfg,
         state="ground",
+        pulse_durations_s=[],
     )
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from dataclasses import field
 from typing import Literal
 from typing import Sequence
 
@@ -124,7 +124,9 @@ class BallisticConfig:
 
     def __post_init__(self):
         object.__setattr__(
-            self, "gravity_vec_m_per_s2", np.asarray(self.gravity_vec_m_per_s2, dtype=float)
+            self,
+            "gravity_vec_m_per_s2",
+            np.asarray(self.gravity_vec_m_per_s2, dtype=float),
         )
         direction = np.asarray(self.clock_beam_direction, dtype=float)
         norm = np.linalg.norm(direction)
@@ -146,6 +148,7 @@ def predict_position(
     t_image_s: float,
     cfg: BallisticConfig,
     state: Literal["ground", "excited"],
+    pulse_durations_s: Sequence[float] | None = None,
 ) -> tuple[float, float]:
     """3-D ballistic integration → sensor pixel coordinates.
 
@@ -154,11 +157,12 @@ def predict_position(
     Each clock pulse contributes an instantaneous velocity kick:
         Δv = (+1 if is_up else -1) * v_r * clock_beam_direction
 
-    Applied at ``pulse_times_s[i]`` (which should be the pulse centre time).
+    Pulses are described by their start time and duration. The instantaneous
+    kick model applies the kick at ``pulse_times_s[i] + pulse_durations_s[i] / 2``.
 
     Position at imaging time::
 
-        r(t) = r0 + v0*t + ½·g·t²  +  Σ_{t_i ≤ t} Δv_i·(t − t_i)
+        r(t) = r0 + v0*t + ½·g·t²  +  Σ_{t_i + τ_i/2 ≤ t} Δv_i·(t − (t_i + τ_i/2))
 
     ``state="ground"`` ignores all kicks; ``state="excited"`` applies them all.
 
@@ -166,9 +170,16 @@ def predict_position(
     """
     pulse_times_s = list(pulse_times_s)
     pulse_is_up = list(pulse_is_up)
+    if pulse_durations_s is None:
+        pulse_durations_s = [0.0] * len(pulse_times_s)
+    pulse_durations_s = list(pulse_durations_s)
 
     if len(pulse_times_s) != len(pulse_is_up):
         raise ValueError("pulse_times_s and pulse_is_up must have the same length")
+    if len(pulse_times_s) != len(pulse_durations_s):
+        raise ValueError(
+            "pulse_times_s and pulse_durations_s must have the same length"
+        )
 
     if len(pulse_times_s) > 1:
         for i in range(1, len(pulse_times_s)):
@@ -188,7 +199,10 @@ def predict_position(
 
     if state == "excited":
         v_r = recoil_velocity(cfg)
-        for t_i, up_i in zip(pulse_times_s, pulse_is_up):
+        for start_i, duration_i, up_i in zip(
+            pulse_times_s, pulse_durations_s, pulse_is_up
+        ):
+            t_i = start_i + duration_i / 2
             if t_i <= t:
                 sign = 1.0 if up_i else -1.0
                 delta_v = sign * v_r * cfg.clock_beam_direction
@@ -202,7 +216,8 @@ def predict_position(
 def predict_positions_from_mu(
     site_offset_m: np.ndarray,
     initial_velocity_m_per_s: np.ndarray,
-    pulse_times_mu: np.ndarray,
+    pulse_start_times_mu: np.ndarray,
+    pulse_durations_mu: np.ndarray,
     pulse_is_up: np.ndarray,
     image_times_mu: np.ndarray,
     t_zero_mu: int,
@@ -213,10 +228,12 @@ def predict_positions_from_mu(
 
     Parameters
     ----------
-    pulse_times_mu:
-        1-D int64 array of pulse centre timestamps in ARTIQ machine units.
+    pulse_start_times_mu:
+        1-D int64 array of pulse start timestamps in ARTIQ machine units.
+    pulse_durations_mu:
+        1-D int64 array of pulse durations in ARTIQ machine units.
     pulse_is_up:
-        1-D bool array, same length as pulse_times_mu.
+        1-D bool array, same length as pulse_start_times_mu.
     image_times_mu:
         1-D int64 array of N imaging timestamps in machine units.
     t_zero_mu:
@@ -229,9 +246,14 @@ def predict_positions_from_mu(
     dict with keys ``"ground"`` and ``"excited"``, each an (N, 2) float64 array
     of (x_pixel, y_pixel) coordinates.
     """
-    pulse_times_s = (np.asarray(pulse_times_mu, dtype=np.int64) - t_zero_mu) * ref_period_s
+    pulse_times_s = (
+        np.asarray(pulse_start_times_mu, dtype=np.int64) - t_zero_mu
+    ) * ref_period_s
+    pulse_durations_s = np.asarray(pulse_durations_mu, dtype=np.int64) * ref_period_s
     pulse_is_up_list = list(bool(v) for v in pulse_is_up)
-    image_times_s = (np.asarray(image_times_mu, dtype=np.int64) - t_zero_mu) * ref_period_s
+    image_times_s = (
+        np.asarray(image_times_mu, dtype=np.int64) - t_zero_mu
+    ) * ref_period_s
 
     n = len(image_times_s)
     ground_pix = np.empty((n, 2), dtype=float)
@@ -246,6 +268,7 @@ def predict_positions_from_mu(
             t_image_s=float(t_img),
             cfg=cfg,
             state="ground",
+            pulse_durations_s=pulse_durations_s,
         )
         excited_pix[i] = predict_position(
             site_offset_m=site_offset_m,
@@ -255,6 +278,7 @@ def predict_positions_from_mu(
             t_image_s=float(t_img),
             cfg=cfg,
             state="excited",
+            pulse_durations_s=pulse_durations_s,
         )
 
     return {"ground": ground_pix, "excited": excited_pix}

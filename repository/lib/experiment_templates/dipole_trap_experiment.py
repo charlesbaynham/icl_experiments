@@ -154,8 +154,9 @@ class DipoleTrapWithExperimentBase(
                 self.dma_handle_valid = False
 
                 # Preallocate a buffer to record pulses
-                self._pulse_record_times_mu = [int64(0)] * BUFFER_DEPTH
-                self._pulse_record_is_up = [False] * BUFFER_DEPTH
+                self._pulse_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
+                self._pulse_record_durations_mu = [int64(0)] * BUFFER_DEPTH
+                self._pulse_record_directions = [int32(0)] * BUFFER_DEPTH
                 self._pulse_record_num_pulses = 0
 
             @kernel
@@ -185,22 +186,21 @@ class DipoleTrapWithExperimentBase(
                 """
                 Register a clock pulse about to be applied.
 
-                Call this IMMEDIATELY BEFORE turning the clock AOM on. The
-                impulse is recorded at the pulse centre — i.e. at
-                now_mu() + seconds_to_mu(duration_s / 2) — which is a better
-                approximation of the average momentum-imparting moment than the
-                leading edge.
+                Call this IMMEDIATELY BEFORE turning the clock AOM on so the
+                pulse start timestamp and duration are recorded together. Host
+                code can then reconstruct whichever effective timing model it
+                needs from the full sequence record.
                 """
                 if self._pulse_record_num_pulses >= BUFFER_DEPTH:
                     raise RuntimeError(
                         "Exceeded maximum number of pulses that can be recorded. Congratulations!!!"
                     )
 
-                half_mu = self.core.seconds_to_mu(duration_s / 2)
-                self._pulse_record_times_mu[self._pulse_record_num_pulses] = (
-                    now_mu() + half_mu
-                )
-                self._pulse_record_is_up[self._pulse_record_num_pulses] = is_up
+                duration_mu = self.core.seconds_to_mu(duration_s)
+                pulse_index = self._pulse_record_num_pulses
+                self._pulse_record_start_times_mu[pulse_index] = now_mu()
+                self._pulse_record_durations_mu[pulse_index] = duration_mu
+                self._pulse_record_directions[pulse_index] = int32(1 if is_up else 0)
                 self._pulse_record_num_pulses += 1
 
         self.setattr_fragment(
