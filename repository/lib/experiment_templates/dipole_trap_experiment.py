@@ -232,6 +232,9 @@ class DipoleTrapWithExperimentBase(
                     [int64(x) for x in pulse_record[2]]
                 )
 
+                # FIXME
+                print("Pulse record checksum:", checksum)
+
                 if checksum != self._pulse_record_checksum:
                     # Record the updated pulse sequence
                     self.pulse_record.push(pulse_record)
