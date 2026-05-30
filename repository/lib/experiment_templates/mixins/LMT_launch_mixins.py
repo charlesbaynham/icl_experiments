@@ -1129,7 +1129,10 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
             delay_mu(8)
             # pulse the down beam
             at_mu(t_start)
-            # FIXME Needs to be recorded
+            d = self.lmt_series_shaped_pulse_down.pulse_duration.get()
+            # TODO: Track shaped-pulse metadata separately instead of
+            # recording these as ordinary square pulses.
+            self.register_pulse(duration_s=d, is_up=False)
             self.lmt_series_shaped_pulse_down.trigger_pulse()
 
         if type == "up":
@@ -1144,7 +1147,10 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
 
             # pulse the up beam
             at_mu(t_start)
-            # FIXME Needs to be recorded
+            d = self.lmt_series_shaped_pulse_up.pulse_duration.get()
+            # TODO: Track shaped-pulse metadata separately instead of
+            # recording these as ordinary square pulses.
+            self.register_pulse(duration_s=d, is_up=True)
             self.lmt_series_shaped_pulse_up.trigger_pulse()
 
         delay(30e-6)
