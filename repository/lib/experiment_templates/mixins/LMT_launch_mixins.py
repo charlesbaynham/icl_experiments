@@ -1129,6 +1129,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
             delay_mu(8)
             # pulse the down beam
             at_mu(t_start)
+            # FIXME Needs to be recorded
             self.lmt_series_shaped_pulse_down.trigger_pulse()
 
         if type == "up":
