@@ -135,6 +135,18 @@ class PulseDMARecording(Fragment):
             self.pulse_record.push([[DISABLED_SENTINEL]])
             return
 
+        directions = [
+            int64(x)
+            for x in self._pulse_record_directions[: self._pulse_record_num_pulses]
+        ]
+        start_times_mu = [
+            int64(x)
+            for x in self._pulse_record_start_times_mu[: self._pulse_record_num_pulses]
+        ]
+        durations_mu = [
+            int64(x)
+            for x in self._pulse_record_durations_mu[: self._pulse_record_num_pulses]
+        ]
         opll_hz = [
             int64(x)
             for x in self._pulse_record_opll_freq_hz[: self._pulse_record_num_pulses]
@@ -145,27 +157,20 @@ class PulseDMARecording(Fragment):
                 : self._pulse_record_num_pulses
             ]
         ]
+
         pulse_record = [
-            [
-                int64(x)
-                for x in (
-                    self._pulse_record_directions[: self._pulse_record_num_pulses]
-                )
-            ],
-            self._pulse_record_start_times_mu[: self._pulse_record_num_pulses],
-            self._pulse_record_durations_mu[: self._pulse_record_num_pulses],
+            directions,
+            start_times_mu,
+            durations_mu,
             opll_hz,
             beam_hz,
         ]
 
         # Calculate a checksum of this pulse record
-        checksum = self.checksummer.checksum(
-            [int64(x) for x in pulse_record[0]]
-            + [int64(x) for x in pulse_record[1]]
-            + [int64(x) for x in pulse_record[2]]
-            + opll_hz
-            + beam_hz
-        )
+        checksum = int64(0)
+        for i in range(5):
+            self.checksummer.set_seed(checksum)
+            checksum = self.checksummer.checksum([int64(x) for x in pulse_record[i]])
 
         if checksum != self._pulse_record_checksum:
             # Record the updated pulse sequence
