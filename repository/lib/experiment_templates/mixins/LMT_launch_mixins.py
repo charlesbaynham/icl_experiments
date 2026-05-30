@@ -104,6 +104,45 @@ class LMTBase(
             self.setattr_fragment("clock_opll", ClockOPLLController)
             self.clock_opll: ClockOPLLController
 
+    # ------------------------------------------------------------------
+    # OPLL command wrappers. Thin wrappers around the clock_opll DDS /
+    # ramper that also update the frequency-tracking state read by
+    # PulseDMARecording.register_pulse, so call sites never have to track
+    # the OPLL frequency separately.
+    # ------------------------------------------------------------------
+
+    @kernel
+    def set_clock_opll(self, freq: float):
+        """Set the OPLL offset DDS to a static frequency (and track it)."""
+        self.clock_opll.clock_OPLL_offset.set(freq)
+        self._tracked_opll_freq = freq
+        self._tracked_opll_ramp_active = False
+
+    @kernel
+    def start_clock_opll_ramp(
+        self,
+        rate: float,
+        freq_low: float,
+        freq_high: float,
+        wave_type: int,
+    ):
+        """Start a DRG ramp on the OPLL offset DDS (and track it)."""
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            rate, freq_low, freq_high, wave_type=wave_type
+        )
+        self._tracked_opll_ramp_rate = rate
+        self._tracked_opll_ramp_low = freq_low
+        self._tracked_opll_ramp_high = freq_high
+        self._tracked_opll_ramp_wave = wave_type
+        self._tracked_opll_ramp_start_mu = now_mu()
+        self._tracked_opll_ramp_active = True
+
+    @kernel
+    def stop_clock_opll_ramp(self):
+        """Stop the OPLL DRG ramp (and track that it is no longer active)."""
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self._tracked_opll_ramp_active = False
+
     # use if we start in the excited state
     @kernel
     def lmt_series(self, offset_det, N_previous_pulses, N):

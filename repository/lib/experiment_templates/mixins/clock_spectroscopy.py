@@ -196,6 +196,30 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         return param_handles
 
     @kernel
+    def set_clock_up_dds(self, frequency: float, amplitude: float, phase: float = 0.0):
+        """
+        Set the up-beam clock DDS and record the commanded frequency.
+
+        Thin wrapper around ``clock_up_dds.set`` that also updates the
+        frequency-tracking state read by PulseDMARecording.register_pulse,
+        so call sites never have to track the frequency separately.
+        """
+        self.clock_up_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
+        self._tracked_up_dds_freq = frequency
+
+    @kernel
+    def set_clock_down_dds(
+        self, frequency: float, amplitude: float, phase: float = 0.0
+    ):
+        """
+        Set the down-beam clock DDS and record the commanded frequency.
+
+        See :meth:`set_clock_up_dds`.
+        """
+        self.clock_down_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
+        self._tracked_down_dds_freq = frequency
+
+    @kernel
     def calculate_clock_delivery_freq(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
     ) -> float:

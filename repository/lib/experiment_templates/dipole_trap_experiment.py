@@ -44,7 +44,6 @@ import logging
 
 from artiq.language import delay
 from artiq.language import kernel
-from artiq.language import now_mu
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
@@ -260,59 +259,15 @@ class DipoleTrapWithExperimentBase(
         self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
 
     # ------------------------------------------------------------------
-    # Clock-frequency command wrappers
-    #
-    # These thin wrappers issue the hardware command *and* update the
-    # tracking state in one call, so call sites never have to remember to
-    # track the frequency separately. register_pulse reads the tracked
-    # state to record the on-atom OPLL + beam offset of each pulse.
+    # Clock-frequency tracking state lives here (read by
+    # PulseDMARecording.register_pulse via a typed outer_self), but the
+    # command wrappers that update it are defined on the clock-specific
+    # bases next to the devices they drive:
+    #   * set_clock_up_dds / set_clock_down_dds -> ClockSpectroscopyBase
+    #   * set_clock_opll / start_clock_opll_ramp / stop_clock_opll_ramp
+    #     -> LMTBase
+    # This keeps clock hardware off non-clock dipole experiments.
     # ------------------------------------------------------------------
-
-    @kernel
-    def set_clock_opll(self, freq: float):
-        """Set the OPLL offset DDS to a static frequency (and track it)."""
-        self.clock_opll.clock_OPLL_offset.set(freq)
-        self._tracked_opll_freq = freq
-        self._tracked_opll_ramp_active = False
-
-    @kernel
-    def start_clock_opll_ramp(
-        self,
-        rate: float,
-        freq_low: float,
-        freq_high: float,
-        wave_type: int,
-    ):
-        """Start a DRG ramp on the OPLL offset DDS (and track it)."""
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            rate, freq_low, freq_high, wave_type=wave_type
-        )
-        self._tracked_opll_ramp_rate = rate
-        self._tracked_opll_ramp_low = freq_low
-        self._tracked_opll_ramp_high = freq_high
-        self._tracked_opll_ramp_wave = wave_type
-        self._tracked_opll_ramp_start_mu = now_mu()
-        self._tracked_opll_ramp_active = True
-
-    @kernel
-    def stop_clock_opll_ramp(self):
-        """Stop the OPLL DRG ramp (and track that it is no longer active)."""
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        self._tracked_opll_ramp_active = False
-
-    @kernel
-    def set_clock_up_dds(self, frequency: float, amplitude: float, phase: float = 0.0):
-        """Set the up-beam clock DDS (and track its commanded frequency)."""
-        self.clock_up_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
-        self._tracked_up_dds_freq = frequency
-
-    @kernel
-    def set_clock_down_dds(
-        self, frequency: float, amplitude: float, phase: float = 0.0
-    ):
-        """Set the down-beam clock DDS (and track its commanded frequency)."""
-        self.clock_down_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
-        self._tracked_down_dds_freq = frequency
 
     @kernel
     def _get_opll_instantaneous(self, t_mu: int) -> float:
