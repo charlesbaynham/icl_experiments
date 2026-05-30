@@ -12,7 +12,7 @@ from pyaion.models import SUServoedBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
@@ -146,8 +146,10 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_first_pulse_mu)
+        d = t_pi_pulse / 2
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(t_pi_pulse / 2)
+        delay(d)
         self.clock_up_dds.sw.off()
         t_end_pi_by_2_mu = now_mu()
         delay_mu(int64(self.core.ref_multiplier))
@@ -170,8 +172,10 @@ class ClockInterferometryBase(
 
         # PI PULSE
         at_mu(t_start_pi_pulse_mu)
+        d = t_pi_pulse
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(t_pi_pulse)
+        delay(d)
         self.clock_up_dds.sw.off()
 
         # Phase step
@@ -189,15 +193,17 @@ class ClockInterferometryBase(
 
         # PI/2 PULSE
         at_mu(t_start_final_pulse_mu)
+        d = t_pi_pulse / 2
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(t_pi_pulse / 2)
+        delay(d)
         self.clock_up_dds.sw.off()
 
         self.end_interferometry_hook()
 
 
 class ClockInterferometryDipoleTrapMixin(
-    ClockInterferometryBase, DipoleTrapWithExperiment
+    ClockInterferometryBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements clock interferometry after the dipole trap

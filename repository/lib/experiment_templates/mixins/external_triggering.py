@@ -2,13 +2,15 @@ import logging
 
 from artiq.language import kernel
 
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.external_trigger import ExternalTriggerFrag
 
 logger = logging.getLogger(__name__)
 
 
-class External50HzTriggerMixin(RedMOTWithExperiment):
+class External50HzTriggerMixin(RedMOTWithExperimentBase):
     """
     Adds automatic external triggering for the experiment
 

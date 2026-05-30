@@ -17,12 +17,14 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
@@ -35,7 +37,7 @@ CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 logger = logging.getLogger(__name__)
 
 
-class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
+class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
     """
     Sets up the clock beam for clock spectroscopy (including clock shelving or interferometry)
 
@@ -284,8 +286,10 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
+        d = self.spectroscopy_pulse_time.get()
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(self.spectroscopy_pulse_time.get())
+        delay(d)
         self.clock_up_dds.sw.off()
 
 
@@ -337,8 +341,10 @@ class ClockRabiSpectroscopyDownBeamBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
+        d = self.spectroscopy_pulse_time.get()
+        self.register_pulse(is_up=False, duration_s=d)
         self.clock_down_dds.sw.on()
-        delay(self.spectroscopy_pulse_time.get())
+        delay(d)
         self.clock_down_dds.sw.off()
 
 
@@ -358,7 +364,7 @@ class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
 
 
 class ClockRabiSpectroscopyDipoleTrapMixin(
-    ClockRabiSpectroscopyBase, DipoleTrapWithExperiment
+    ClockRabiSpectroscopyBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements clock Rabi spectroscopy after the dipole trap
@@ -375,7 +381,7 @@ class ClockRabiSpectroscopyDipoleTrapMixin(
 
 
 class ClockRabiSpectroscopyDownBeamDipoleTrapMixin(
-    ClockRabiSpectroscopyDownBeamBase, DipoleTrapWithExperiment
+    ClockRabiSpectroscopyDownBeamBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements down beam clock Rabi spectroscopy after the dipole trap

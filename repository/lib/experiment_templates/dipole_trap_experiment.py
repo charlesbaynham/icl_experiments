@@ -1,5 +1,5 @@
 """
-This package provides a template experiment, :class:`~RedMOTWithExperiment` .
+This package provides a template experiment, :class:`~RedMOTWithExperimentBase` .
 Unlike other modules, it *does not* provide a Fragment which you should use via
 `self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
 converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
@@ -12,7 +12,7 @@ the functionality of these experiment. This allows you to reuse this code for
 multiple different experiments by implementing child classes which define these
 hooks in different ways.
 
-For example, see the documentation of :class:`~RedMOTWithExperiment` for the
+For example, see the documentation of :class:`~RedMOTWithExperimentBase` for the
 most basic implementation of hooks.
 
 Mixins
@@ -33,7 +33,7 @@ the same time::
     class MyAndorImagedLatticeExperiment(
         AndorImagingMixin,
         LatticeTrappingMixin,
-        RedMOTWithExperiment
+        RedMOTWithExperimentBase
     ):
         pass
 
@@ -54,16 +54,21 @@ from repository.lib.experiment_templates.mixins.constant_lattice import (
 from repository.lib.experiment_templates.mixins.external_triggering import (
     External50HzTriggerMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
+from repository.lib.fragments.pulse_recorder_and_tracker import PulseDMARecording
 
 logger = logging.getLogger(__name__)
 
+BUFFER_DEPTH = 300
 
-class DipoleTrapWithExperiment(
-    External50HzTriggerMixin, ConstantBeamsMixin, RedMOTWithExperiment
+
+class DipoleTrapWithExperimentBase(
+    External50HzTriggerMixin, ConstantBeamsMixin, RedMOTWithExperimentBase
 ):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
@@ -128,6 +133,38 @@ class DipoleTrapWithExperiment(
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
+        self.setattr_fragment(
+            "dma_recording_fragment", PulseDMARecording, outer_self=self
+        )
+        self.dma_recording_fragment: PulseDMARecording
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+
+    @kernel
+    def DMA_initialization_hook_dipole_trap_default(self):
+        self.dma_recording_fragment.DMA_initialization_hook_after_drop()
+
+    @kernel
+    def actions_after_drop(self):
+        """
+        Split out the parts of the sequence that occur after the atoms are
+        dropped so that we can pre-record them in DMA. This allows us to:
+
+        a) playback quickly
+        b) know in advance the timings so we can calculate corrected ROI positions
+
+        Note that because this is DMA, we cannot use RPC here
+        """
+
+        self.post_dipole_trap_hook()
+        delay(self.before_launch_delay.get())
+        self.launch_hook()
+        delay(self.dipole_pre_experiment_delay.get())
+        self.do_experiment_after_dipole_trap_hook()
+
     @kernel
     def do_experiment_after_red_mot_hook(self):
         self.dipole_trap_loading_hook()
@@ -137,11 +174,9 @@ class DipoleTrapWithExperiment(
         self.adiabatic_cooling_hook()
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
-        self.post_dipole_trap_hook()
-        delay(self.before_launch_delay.get())
-        self.launch_hook()
-        delay(self.dipole_pre_experiment_delay.get())
-        self.do_experiment_after_dipole_trap_hook()
+
+        # This plays back the pre-recorded version of `actions_after_drop`:
+        self.dma_recording_fragment.playback()
 
     @kernel
     def launch_hook(self):
@@ -198,6 +233,16 @@ class DipoleTrapWithExperiment(
         Hook for matterwave collimation of the atoms.
         By default, do nothing.
         """
+
+    @kernel
+    def register_pulse(self, is_up: bool, duration_s: float):
+        """
+        Delegate to dma_recording_fragment.register_pulse. `register_pulse` is
+        defined on the RedMOTExperimentBase as a no-op, so experiments that use
+        clock-pulse mixins can call self.register_pulse unconditionally without
+        knowing whether a DMA fragment exists.
+        """
+        self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
 
     @kernel
     def post_dipole_trap_hook_default(self):

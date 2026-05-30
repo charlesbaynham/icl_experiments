@@ -19,9 +19,11 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -33,7 +35,7 @@ CLOCK_HIGH_RAMP_FREQ = 80.7e6  # Hz
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
-class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
+class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
@@ -205,8 +207,10 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
         """
         Fire the clock shelving pulse onto the atoms.
         """
+        d = self.shelving_pulse_time.get()
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(self.shelving_pulse_time.get())
+        delay(d)
         self.clock_up_dds.sw.off()
 
     @kernel
@@ -236,7 +240,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperiment):
 
 
 class ClockShelvingAndClearoutDipoleTrapMixin(
-    ClockShelvingAndClearoutBase, DipoleTrapWithExperiment
+    ClockShelvingAndClearoutBase, DipoleTrapWithExperimentBase
 ):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
