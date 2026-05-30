@@ -42,10 +42,12 @@ the same time::
 import abc
 import logging
 
+import numpy as np
 from artiq.language import delay
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.constant_lattice import (
@@ -141,16 +143,18 @@ class DipoleTrapWithExperimentBase(
         # Tracking state for clock-pulse frequency recording.
         # Updated by the set_clock_* / start_clock_opll_ramp wrappers below.
         # Read by PulseDMARecording.register_pulse via outer_self.
-        self._tracked_opll_freq = 80e6          # Hz, current static OPLL offset
+        self._tracked_opll_freq = 80e6  # Hz, current static OPLL offset
         self._tracked_opll_ramp_active = False  # whether a DRG ramp is running
-        self._tracked_opll_ramp_rate = 0.0      # Hz/s
-        self._tracked_opll_ramp_low = 80e6      # Hz, ramp lower bound
-        self._tracked_opll_ramp_high = 80e6     # Hz, ramp upper bound
-        self._tracked_opll_ramp_wave = 0        # 0=triangle, 1=pos saw, 2=neg saw
-        self._tracked_opll_ramp_start_mu = 0    # machine-unit timestamp of start_ramp
+        self._tracked_opll_ramp_rate = 0.0  # Hz/s
+        self._tracked_opll_ramp_low = 80e6  # Hz, ramp lower bound
+        self._tracked_opll_ramp_high = 80e6  # Hz, ramp upper bound
+        self._tracked_opll_ramp_wave = np.int32(0)  # 0=triangle, 1=pos saw, 2=neg saw
+        self._tracked_opll_ramp_start_mu = np.int64(
+            0
+        )  # machine-unit timestamp of start_ramp
         # Beam DDS defaults — overridden by ClockSpectroscopyBase to nominal values
-        self._tracked_up_dds_freq = 0.0         # Hz, last commanded up-beam DDS freq
-        self._tracked_down_dds_freq = 0.0       # Hz, last commanded down-beam DDS freq
+        self._tracked_up_dds_freq = 0.0  # Hz, last commanded up-beam DDS freq
+        self._tracked_down_dds_freq = 0.0  # Hz, last commanded down-beam DDS freq
 
     @kernel
     def DMA_initialization_hook(self):
@@ -270,7 +274,7 @@ class DipoleTrapWithExperimentBase(
     # ------------------------------------------------------------------
 
     @kernel
-    def _get_opll_instantaneous(self, t_mu: int) -> float:
+    def _get_opll_instantaneous(self, t_mu: int64) -> float:
         """
         Return the instantaneous OPLL offset frequency (Hz) at timeline
         position t_mu.  For a static setting this is trivial; for an active

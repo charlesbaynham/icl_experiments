@@ -9,6 +9,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from numpy import int32
 from numpy import int64
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
@@ -124,7 +125,7 @@ class LMTBase(
         rate: float,
         freq_low: float,
         freq_high: float,
-        wave_type: int,
+        wave_type: int32,
     ):
         """Start a DRG ramp on the OPLL offset DDS (and track it)."""
         self.clock_opll.clock_frequency_ramper.start_ramp(
@@ -329,9 +330,7 @@ class LMTBase(
             # pulse the down beam
 
             d = self.down_pulses_duration.get()
-            self.register_pulse(
-                duration_s=d, is_up=False
-            )
+            self.register_pulse(duration_s=d, is_up=False)
             self.clock_down_dds.sw.on()
             delay(d)
             self.clock_down_dds.sw.off()
@@ -350,9 +349,7 @@ class LMTBase(
             # pulse the up beam
 
             d = self.spectroscopy_pulse_time.get()
-            self.register_pulse(
-                duration_s=d, is_up=True
-            )
+            self.register_pulse(duration_s=d, is_up=True)
             self.clock_up_dds.sw.on()
             delay(d)
             self.clock_up_dds.sw.off()
@@ -384,9 +381,7 @@ class LMTBase(
         delay_mu(8)
 
         d = duration
-        self.register_pulse(
-            duration_s=d, is_up=True
-        )
+        self.register_pulse(duration_s=d, is_up=True)
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
@@ -420,9 +415,7 @@ class LMTBase(
         delay_mu(8)
 
         d = duration
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -632,9 +625,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pi_down / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -743,9 +734,7 @@ class LMTLaunchDoubleTrapMixin(LMTLaunchMixin, DipoleTrapWithExperimentBase):
 
         at_mu(t_start_last_pulse_mu)
         d = t_pi_up / 2
-        self.register_pulse(
-            duration_s=d, is_up=True
-        )
+        self.register_pulse(duration_s=d, is_up=True)
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
@@ -881,9 +870,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pi_down / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -941,9 +928,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         )
 
         d = t_pi_up / 1.8
-        self.register_pulse(
-            duration_s=d, is_up=True
-        )
+        self.register_pulse(duration_s=d, is_up=True)
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
@@ -1243,9 +1228,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pi_down
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)  # / 2)
         self.clock_down_dds.sw.off()
@@ -1540,9 +1523,7 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pi_down / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1653,9 +1634,7 @@ class LMTInterferometryMixin(
         )
         at_mu(t_start_mirror_pulse_mu)
         d = t_pi_down
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1771,9 +1750,7 @@ class LMTInterferometryMixin(
         )
         delay_mu(8)
         d = t_pi_down / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1903,9 +1880,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pi_down
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)  # / 2)
         self.clock_down_dds.sw.off()
@@ -1995,9 +1970,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         )
         at_mu(t_start_mirror_pulse_mu)
         d = t_pi_down
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
