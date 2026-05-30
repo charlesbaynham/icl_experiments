@@ -1143,6 +1143,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
 
             # pulse the up beam
             at_mu(t_start)
+            # FIXME Needs to be recorded
             self.lmt_series_shaped_pulse_up.trigger_pulse()
 
         delay(30e-6)
