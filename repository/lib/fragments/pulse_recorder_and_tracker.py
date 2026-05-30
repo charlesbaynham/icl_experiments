@@ -52,9 +52,6 @@ from ndscan.experiment.result_channels import OpaqueChannel
 from numpy import int32
 from numpy import int64
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperimentBase,
-)
 from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
@@ -144,7 +141,9 @@ class PulseDMARecording(Fragment):
         ]
         beam_hz = [
             int64(x)
-            for x in self._pulse_record_beam_dds_freq_hz[: self._pulse_record_num_pulses]
+            for x in self._pulse_record_beam_dds_freq_hz[
+                : self._pulse_record_num_pulses
+            ]
         ]
         pulse_record = [
             [
