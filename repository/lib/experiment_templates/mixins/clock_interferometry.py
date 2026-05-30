@@ -136,15 +136,13 @@ class ClockInterferometryBase(
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
             1e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
-        _up_freq_1 = self.calculate_frequency_for_first_pi_by_2_pulse(
-            t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_pulse
-        )
-        self.clock_up_dds.set(
-            frequency=_up_freq_1,
+        self.set_clock_up_dds(
+            frequency=self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_pulse
+            ),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_first_pi_by_2_pulse(),
         )
-        self._notify_up_dds_set(_up_freq_1)
 
         # PI/2 PULSE
         at_mu(t_start_first_pulse_mu)
@@ -164,15 +162,13 @@ class ClockInterferometryBase(
             self.delay_between_interferometry_pulses.get()
         )
 
-        _up_freq_2 = self.calculate_frequency_for_pi_pulse(
-            t_pulse_start_mu=t_start_pi_pulse_mu, t_pi_pulse=t_pi_pulse
-        )
-        self.clock_up_dds.set(
-            frequency=_up_freq_2,
+        self.set_clock_up_dds(
+            frequency=self.calculate_frequency_for_pi_pulse(
+                t_pulse_start_mu=t_start_pi_pulse_mu, t_pi_pulse=t_pi_pulse
+            ),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_pi_pulse(),
         )
-        self._notify_up_dds_set(_up_freq_2)
 
         # PI PULSE
         at_mu(t_start_pi_pulse_mu)
@@ -187,15 +183,13 @@ class ClockInterferometryBase(
         t_start_final_pulse_mu = t_end_pi_mu + self.core.seconds_to_mu(
             self.delay_between_interferometry_pulses.get()
         )
-        _up_freq_3 = self.calculate_frequency_for_second_pi_by_2_pulse(
-            t_pulse_start_mu=t_start_final_pulse_mu, t_pi_pulse=t_pi_pulse
-        )
-        self.clock_up_dds.set(
-            frequency=_up_freq_3,
+        self.set_clock_up_dds(
+            frequency=self.calculate_frequency_for_second_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_final_pulse_mu, t_pi_pulse=t_pi_pulse
+            ),
             amplitude=self.clock_switch_amplitude_handle.get(),
             phase=self.calculate_phase_for_second_pi_by_2_pulse(),
         )
-        self._notify_up_dds_set(_up_freq_3)
 
         # PI/2 PULSE
         at_mu(t_start_final_pulse_mu)
