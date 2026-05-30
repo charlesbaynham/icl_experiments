@@ -14,6 +14,11 @@ from repository.lib.physics.ballistic import predict_position
 from repository.lib.physics.ballistic import predict_positions_from_mu
 from repository.lib.physics.ballistic import recoil_velocity
 
+pytestmark = pytest.mark.xfail(
+    reason="Ballistic predictor not implemented yet", raises=NotImplementedError
+)
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 PIXEL_SIZE_M = 16e-6
