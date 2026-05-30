@@ -1400,7 +1400,7 @@ class LMTInterferometryMixin(
             "first_lmt_duration",
             FloatParam,
             "Duration of the selective LMT pulse",
-            default=95e-6,
+            default=100e-6,
             unit="us",
         )
         self.first_lmt_duration: FloatParamHandle
@@ -1415,7 +1415,7 @@ class LMTInterferometryMixin(
         delay_mu(16)
 
         N = self.lmt_pulses_number.get()
-        N_launch = 18
+        N_launch = 22
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -1728,14 +1728,13 @@ class LMTInterferometryMixin(
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_last_ramp_mu, t_pi_pulse=t_pi_down
             )
-            + last_bs_frequency
-            + N_launch * 9.4e3
-            - 1e6,
+            # + last_bs_frequency
+            + N_launch * 9.4e3 - 1e6,
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_last_ramp_mu, t_pi_pulse=t_pi_down
             )
-            + last_bs_frequency
+            # + last_bs_frequency
             + N_launch * 9.4e3,
             wave_type=2,
         )
