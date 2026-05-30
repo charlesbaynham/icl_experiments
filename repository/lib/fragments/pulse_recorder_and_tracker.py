@@ -89,6 +89,9 @@ class PulseDMARecording(Fragment):
         self._pulse_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
         self._pulse_record_durations_mu = [int64(0)] * BUFFER_DEPTH
         self._pulse_record_directions = [int32(0)] * BUFFER_DEPTH
+        # Frequencies stored as float Hz; saved as int64 Hz in the OpaqueChannel
+        self._pulse_record_opll_freq_hz = [0.0] * BUFFER_DEPTH
+        self._pulse_record_beam_dds_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_num_pulses = 0
         self._pulse_record_checksum = int64(0)
 
@@ -135,6 +138,14 @@ class PulseDMARecording(Fragment):
             self.pulse_record.push([[DISABLED_SENTINEL]])
             return
 
+        opll_hz = [
+            int64(x)
+            for x in self._pulse_record_opll_freq_hz[: self._pulse_record_num_pulses]
+        ]
+        beam_hz = [
+            int64(x)
+            for x in self._pulse_record_beam_dds_freq_hz[: self._pulse_record_num_pulses]
+        ]
         pulse_record = [
             [
                 int64(x)
@@ -144,6 +155,8 @@ class PulseDMARecording(Fragment):
             ],
             self._pulse_record_start_times_mu[: self._pulse_record_num_pulses],
             self._pulse_record_durations_mu[: self._pulse_record_num_pulses],
+            opll_hz,
+            beam_hz,
         ]
 
         # Calculate a checksum of this pulse record
@@ -151,6 +164,8 @@ class PulseDMARecording(Fragment):
             [int64(x) for x in pulse_record[0]]
             + [int64(x) for x in pulse_record[1]]
             + [int64(x) for x in pulse_record[2]]
+            + opll_hz
+            + beam_hz
         )
 
         if checksum != self._pulse_record_checksum:
@@ -192,10 +207,19 @@ class PulseDMARecording(Fragment):
             )
 
         duration_mu = self.core.seconds_to_mu(duration_s)
+        t_now = now_mu()
 
-        self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = now_mu()
+        self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = t_now
         self._pulse_record_durations_mu[self._pulse_record_num_pulses] = duration_mu
         self._pulse_record_directions[self._pulse_record_num_pulses] = int32(
             1 if is_up else 0
+        )
+        self._pulse_record_opll_freq_hz[self._pulse_record_num_pulses] = (
+            self.outer_self._get_opll_instantaneous(t_now)
+        )
+        self._pulse_record_beam_dds_freq_hz[self._pulse_record_num_pulses] = (
+            self.outer_self._tracked_up_dds_freq
+            if is_up
+            else self.outer_self._tracked_down_dds_freq
         )
         self._pulse_record_num_pulses += 1

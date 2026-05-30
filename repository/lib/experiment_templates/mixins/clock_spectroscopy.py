@@ -90,6 +90,13 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
             CLOCK_DOWN_BEAM_INFO.urukul_device
         )
 
+        # Set nominal DDS frequencies so the pulse recorder has correct defaults
+        # even for experiments that never explicitly call clock_up/down_dds.set()
+        # (e.g. simple Rabi spectroscopy where the DDS is configured only in
+        # device_setup, not immediately before each pulse).
+        self._tracked_up_dds_freq = CLOCK_UP_BEAM_INFO.frequency
+        self._tracked_down_dds_freq = CLOCK_DOWN_BEAM_INFO.frequency
+
         # Init of the clock OPLL without glitching
         self.setattr_fragment(
             "GlitchFreeUrukulClock",
