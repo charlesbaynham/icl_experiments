@@ -272,14 +272,12 @@ class PulseDMARecording(Fragment):
         self.set_dataset(
             "pulse_record_flat",
             np.array(flat_data, dtype=np.int64),
-            broadcast=True,
-            # broadcast=False, FIXME
+            broadcast=False,
             archive=True,
         )
         self.set_dataset(
             "pulse_record_offsets",
             np.array(offsets, dtype=np.int64),
-            broadcast=True,
-            # broadcast=False, FIXME
+            broadcast=False,
             archive=True,
         )
