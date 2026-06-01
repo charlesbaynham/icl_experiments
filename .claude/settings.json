@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'mkdir -p vendor && ([ -d vendor/ndscan/.git ] || git clone --depth=1 https://github.com/OxfordIonTrapGroup/ndscan.git vendor/ndscan) && ([ -d vendor/artiq/.git ] || git clone --depth=1 https://github.com/m-labs/artiq.git vendor/artiq)'",
+            "timeout": 120,
+            "statusMessage": "Cloning ndscan and ARTIQ reference repositories into vendor/..."
+          }
+        ]
+      }
+    ]
+  }
+}
