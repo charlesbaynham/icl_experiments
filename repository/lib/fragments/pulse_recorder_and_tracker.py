@@ -211,16 +211,18 @@ class PulseDMARecording(Fragment):
             )
 
         duration_mu = self.core.seconds_to_mu(duration_s)
-        t_now = now_mu()
+        t_now_mu = now_mu()
 
-        self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = t_now
+        self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = t_now_mu
         self._pulse_record_durations_mu[self._pulse_record_num_pulses] = duration_mu
         self._pulse_record_directions[self._pulse_record_num_pulses] = int32(
             1 if is_up else 0
         )
+        # Report the OPLL frequency at the centre of the pulse
         self._pulse_record_opll_freq_hz[self._pulse_record_num_pulses] = (
-            self.outer_self._get_opll_instantaneous(t_now)
-        )
+            self.outer_self._get_opll_instantaneous(t_now_mu)
+            + self.outer_self._get_opll_instantaneous(t_now_mu + duration_mu)
+        ) / 2.0
         self._pulse_record_beam_dds_freq_hz[self._pulse_record_num_pulses] = (
             self.outer_self._tracked_up_dds_freq
             if is_up
