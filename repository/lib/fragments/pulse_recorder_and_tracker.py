@@ -249,7 +249,7 @@ class PulseDMARecording(Fragment):
           ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, beam_0, …]``
           (length ``1 + 5 * num_pulses``)
         """
-        records = self.get_dataset("pulse_record")
+        records = self.get_dataset("pulse_record", archive=False)
         if not records:
             return
 
