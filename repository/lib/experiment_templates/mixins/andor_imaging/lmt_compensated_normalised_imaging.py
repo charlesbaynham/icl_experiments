@@ -321,7 +321,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         )
 
 
-class NormalisedFastKineticsLMTCorrected(
+class NormalisedFastKineticsLMTCorrectedMixin(
     NormalisedFastKineticsClockPulseMixin, DipoleTrapWithExperimentBase
 ):
     """

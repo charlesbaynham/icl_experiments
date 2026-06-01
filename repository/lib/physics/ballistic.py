@@ -162,13 +162,15 @@ def predict_position(
 
     Position at imaging time::
 
-        r(t) = r0 + v0*t + ½·g·t²  +  Σ_{t_i + τ_i/2 ≤ t} Δv_i·(t − (t_i + τ_i/2))
+        r(t) = r0 + v0*t + ½·g·t²  +  Σ_{t_i + τ_i/2 ≤ t} Δv_i·(t - (t_i + τ_i/2))
 
     ``state="ground"`` ignores all kicks; ``state="excited"`` applies them all.
 
     Returns ``(x_pixel, y_pixel)`` via orthographic projection.
     """
-    # FIXME This logic is totally wrong
+    # TODO This logic is totally wrong
+    raise NotImplementedError
+
     pulse_times_s = list(pulse_times_s)
     pulse_is_up = list(pulse_is_up)
     if pulse_durations_s is None:

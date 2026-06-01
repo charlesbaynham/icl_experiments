@@ -136,7 +136,7 @@ class ClockInterferometryBase(
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
             1e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
-        self.clock_up_dds.set(
+        self.set_clock_up_dds(
             frequency=self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_first_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -162,7 +162,7 @@ class ClockInterferometryBase(
             self.delay_between_interferometry_pulses.get()
         )
 
-        self.clock_up_dds.set(
+        self.set_clock_up_dds(
             frequency=self.calculate_frequency_for_pi_pulse(
                 t_pulse_start_mu=t_start_pi_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
@@ -183,7 +183,7 @@ class ClockInterferometryBase(
         t_start_final_pulse_mu = t_end_pi_mu + self.core.seconds_to_mu(
             self.delay_between_interferometry_pulses.get()
         )
-        self.clock_up_dds.set(
+        self.set_clock_up_dds(
             frequency=self.calculate_frequency_for_second_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_final_pulse_mu, t_pi_pulse=t_pi_pulse
             ),
