@@ -42,10 +42,13 @@ the same time::
 import abc
 import logging
 
+import numpy as np
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import portable
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.constant_lattice import (
@@ -137,6 +140,22 @@ class DipoleTrapWithExperimentBase(
             "dma_recording_fragment", PulseDMARecording, outer_self=self
         )
         self.dma_recording_fragment: PulseDMARecording
+
+        # Tracking state for clock-pulse frequency recording.
+        # Updated by the set_clock_* / start_clock_opll_ramp wrappers below.
+        # Read by PulseDMARecording.register_pulse via outer_self.
+        self._tracked_opll_freq = 80e6  # Hz, current static OPLL offset
+        self._tracked_opll_ramp_active = False  # whether a DRG ramp is running
+        self._tracked_opll_ramp_rate = 0.0  # Hz/s
+        self._tracked_opll_ramp_low = 80e6  # Hz, ramp lower bound
+        self._tracked_opll_ramp_high = 80e6  # Hz, ramp upper bound
+        self._tracked_opll_ramp_wave = np.int32(0)  # 0=triangle, 1=pos saw, 2=neg saw
+        self._tracked_opll_ramp_start_mu = np.int64(
+            0
+        )  # machine-unit timestamp of start_ramp
+        # Beam DDS defaults — overridden by ClockSpectroscopyBase to nominal values
+        self._tracked_up_dds_freq = 0.0  # Hz, last commanded up-beam DDS freq
+        self._tracked_down_dds_freq = 0.0  # Hz, last commanded down-beam DDS freq
 
     @kernel
     def DMA_initialization_hook(self):
@@ -243,6 +262,43 @@ class DipoleTrapWithExperimentBase(
         knowing whether a DMA fragment exists.
         """
         self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
+
+    # ------------------------------------------------------------------
+    # Clock-frequency tracking state lives here (read by
+    # PulseDMARecording.register_pulse via a typed outer_self), but the
+    # command wrappers that update it are defined on the clock-specific
+    # bases next to the devices they drive:
+    #   * set_clock_up_dds / set_clock_down_dds -> ClockSpectroscopyBase
+    #   * set_clock_opll / start_clock_opll_ramp / stop_clock_opll_ramp
+    #     -> LMTBase
+    # This keeps clock hardware off non-clock dipole experiments.
+    # ------------------------------------------------------------------
+
+    @portable
+    def _get_opll_instantaneous(self, t_mu: int64) -> float:
+        """
+        Return the instantaneous OPLL offset frequency (Hz) at timeline
+        position t_mu.  For a static setting this is trivial; for an active
+        DRG ramp the frequency is extrapolated linearly from the ramp start.
+
+        wave_type 2 (negative sawtooth) ramps down from freq_high;
+        all other wave types ramp up from freq_low.
+        The ramp spans used for gravity compensation are ~2 MHz wide at
+        ~5 kHz/s, so wrapping never occurs within a single experiment shot.
+        """
+        if not self._tracked_opll_ramp_active:
+            return self._tracked_opll_freq
+        dt_s = self.core.mu_to_seconds(t_mu - self._tracked_opll_ramp_start_mu)
+        if self._tracked_opll_ramp_wave == 2:
+            f = self._tracked_opll_ramp_high - self._tracked_opll_ramp_rate * dt_s
+            if f < self._tracked_opll_ramp_low:
+                return self._tracked_opll_ramp_low
+            return f
+        else:
+            f = self._tracked_opll_ramp_low + self._tracked_opll_ramp_rate * dt_s
+            if f > self._tracked_opll_ramp_high:
+                return self._tracked_opll_ramp_high
+            return f
 
     @kernel
     def post_dipole_trap_hook_default(self):
