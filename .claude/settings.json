@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/clone_vendor_repos.py",
+            "timeout": 120,
+            "statusMessage": "Cloning locked ndscan and ARTIQ versions into vendor/..."
+          }
+        ]
+      }
+    ]
+  }
+}
