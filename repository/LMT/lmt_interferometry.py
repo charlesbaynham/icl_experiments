@@ -12,9 +12,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsClockPulseMixin,
-)
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
@@ -31,9 +28,6 @@ from repository.lib.experiment_templates.mixins.evaporation_mixin import (
 )
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
     LMTInterferometryMixin,
-)
-from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
-    LMTLaunchDoubleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import (
     LMTLaunchDoubleTrapShapedPulseMixin,
@@ -60,79 +54,9 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 )
 
 
-class LMTInterferometryFrag(
-    LMTInterferometryMixin,
-    NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsClockPulseMixin,
-    EMGainMixin,
-    # FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampInEvapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
-    DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperimentBase,
-):
-    """
-    LMT interferometry without launch
-
-    """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_lmt()
-
-
-class LMTInterferometryWithDoubleLaunchFrag(
-    LMTInterferometryMixin,
-    LMTLaunchDoubleTrapMixin,
-    DoubleTrapImagingClockPulseNormalisedMixin,
-    EMGainMixin,
-    # FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTWithPainterMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampInEvapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
-    DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperimentBase,
-):
-    """
-    LMT interferometry with double trap launch
-
-    """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_lmt()
-
-
 class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     LMTInterferometryMixin,
-    LMTLaunchDoubleTrapMixin,
+    LMTLaunchDoubleTrapShapedPulseMixin,
     SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
@@ -276,15 +200,9 @@ class ShapedFirstPulseLMTInterferometryFrag(
         self.post_sequence_cleanup_hook_shelving()
 
 
-LMTInterferometryExp = make_fragment_scan_exp(
-    LMTInterferometryFrag, max_rtio_underflow_retries=0
-)
-LMTInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)
+TInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)
 ShapedFirstPulseLMTInterferometry = make_fragment_scan_exp(
     ShapedFirstPulseLMTInterferometryFrag, max_rtio_underflow_retries=0
-)
-LMTInterferometryWithDoubleLaunch = make_fragment_scan_exp(
-    LMTInterferometryWithDoubleLaunchFrag, max_rtio_underflow_retries=0
 )
 
 LMTInterferometryWithDoubleLaunchSingleImage = make_fragment_scan_exp(
