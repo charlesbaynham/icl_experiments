@@ -41,6 +41,7 @@ the same time::
 
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.language import kernel
@@ -49,6 +50,7 @@ from artiq.language import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
+from ndscan.experiment.result_channels import ArraySink
 from ndscan.experiment.result_channels import OpaqueChannel
 from numpy import int32
 from numpy import int64
@@ -93,14 +95,20 @@ class PulseDMARecording(Fragment):
         self._pulse_record_num_pulses = 0
         self._pulse_record_checksum = int64(0)
 
-        # Add an opaque ResultChannel that is used to store these pulse records
+        # Add an opaque ResultChannel to store pulse records. save_by_default=False
+        # prevents ndscan from assigning an AppendingDatasetSink, which would cause
+        # h5py to fail when archiving ragged arrays. Records are instead accumulated in
+        # _pulse_record_sink and encoded into flat arrays during host_cleanup.
         self.setattr_result(
             "pulse_record",
             OpaqueChannel,
             description="Record of clock pulses",
             display_hints={"priority": -2},
+            save_by_default=False,
         )
         self.pulse_record: OpaqueChannel
+        self._pulse_record_sink = ArraySink()
+        self.pulse_record.set_sink(self._pulse_record_sink)
 
         # Checksummer object
         self.checksummer = FastIntChecksum(seed=0)
@@ -230,3 +238,56 @@ class PulseDMARecording(Fragment):
             else self.outer_self._tracked_down_dds_freq
         )
         self._pulse_record_num_pulses += 1
+
+    def host_cleanup(self):
+        self._archive_encoded_pulse_records()
+        super().host_cleanup()
+
+    def _archive_encoded_pulse_records(self):
+        """Encode accumulated pulse records as flat int64 arrays and archive them.
+
+        Each record is encoded as a flat 1D array:
+
+        - Sentinel record (``[[sentinel_value]]``): ``[sentinel_value]`` (length 1)
+        - Regular record (5 rows of ``num_pulses`` values each):
+          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, beam_0, …]``
+          (length ``1 + 5 * num_pulses``)
+
+        Two datasets are written:
+
+        - ``pulse_record_flat``: concatenation of all per-record flat arrays.
+        - ``pulse_record_offsets``: starting index in ``pulse_record_flat`` for each
+          record, allowing the original records to be reconstructed.
+        """
+        records = self._pulse_record_sink.get_all()
+        if not records:
+            return
+
+        flat_data = []
+        offsets = []
+        current_offset = 0
+
+        for record in records:
+            offsets.append(current_offset)
+            if len(record) == 1 and len(record[0]) == 1:
+                flat_data.append(int(record[0][0]))
+                current_offset += 1
+            else:
+                num_pulses = len(record[0])
+                flat_data.append(num_pulses)
+                for row in record:
+                    flat_data.extend(int(x) for x in row)
+                current_offset += 1 + 5 * num_pulses
+
+        self.set_dataset(
+            "pulse_record_flat",
+            np.array(flat_data, dtype=np.int64),
+            broadcast=False,
+            archive=True,
+        )
+        self.set_dataset(
+            "pulse_record_offsets",
+            np.array(offsets, dtype=np.int64),
+            broadcast=False,
+            archive=True,
+        )
