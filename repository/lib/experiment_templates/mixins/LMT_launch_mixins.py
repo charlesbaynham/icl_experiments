@@ -232,6 +232,35 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
 
     @kernel
+    def lmt_series_start_up_launch_down(self, offset_det, N_previous_pulses, N):
+        t_drop = self.get_t_start_shelving()
+
+        for i in range(N):
+
+            # start with up pulse
+            if i % 2 == 0:
+                up_offset = offset_det
+                pulse_type = "up"
+
+            else:
+                up_offset = 0.0
+                pulse_type = "down"
+
+            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(50e-6)
+            total_ramp_time = self.core.mu_to_seconds(t_start_lmt_2_pulse_mu - t_drop)
+
+            f_i = (
+                start_opll_offset
+                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
+                + i * (-1) ** (i + 1) * momentum_kick
+                + N_previous_pulses * (-1) ** (i) * momentum_kick
+                + (-1) ** (i) * (up_offset)
+            )
+
+            # fire the pulse
+            self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
+
+    @kernel
     def lmt_series_start_down_launch_down_v2(self, offset_det, N_previous_pulses, N):
         t_drop = self.get_t_start_shelving()
 
@@ -866,13 +895,12 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
         self.do_clock_interferometry()
 
     @kernel
     def do_clock_interferometry(self):
-        self.prepare_clock_delivery_aom()
-        delay_mu(16)
-
         N = self.lmt_pulses_number.get()
         N_launch = 22
         t_pi_down = self.down_pulses_duration.get()
@@ -890,38 +918,8 @@ class LMTInterferometryMixin(
         last_selective_lower_bs_freq = self.last_selective_lower_bs_freq.get()
         last_bs_frequency = self.last_bs_freq.get()
 
-        t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            2e-6
-        )  # Add a tiny delay to give us enough time to write to the DDS
-
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        delay_mu(8)
-
-        self.clock_opll.clock_OPLL_offset.set(
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_first_pulse_mu,
-                t_pi_pulse=t_pi_down,
-            )
-            + N_launch * 9.4e3
-        )
-
-        self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.down_switch_detuning.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
-        )
-
-        # PI/2 PULSE DOWN BEAM
-        at_mu(t_start_first_pulse_mu)
-        d = t_pi_down / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )  # FIXME needs to track frequency too
-        self.clock_down_dds.sw.on()
-        delay(d)
-        self.clock_down_dds.sw.off()
+        # PI/2 PULSE
+        self.first_beam_splitter(t_first_pi, N_launch)
         delay(100e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse
@@ -1002,39 +1000,8 @@ class LMTInterferometryMixin(
             )
 
         delay(8e-9)
-        # Phase step
-        self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.down_switch_detuning.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-            phase=self.calculate_phase_for_pi_pulse(),
-        )
 
-        # delay to write onto the dds
-        # delay(1e-6)
-
-        # MIRROR PULSE DOWN BEAM
-        t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            50e-6
-        )  # Add a tiny delay to give us enough time to write to the DDS
-
-        self.clock_opll.clock_OPLL_offset.set(
-            start_opll_offset
-            + self.calculate_frequency_for_pi_pulse(
-                t_pulse_start_mu=t_start_mirror_pulse_mu,
-                t_pi_pulse=t_pi_down,
-            )
-            + mirror_freq
-            + N_launch * 9.4e3
-        )
-        at_mu(t_start_mirror_pulse_mu)
-        d = t_pi_down
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )  # FIXME needs to track frequency too
-        self.clock_down_dds.sw.on()
-        delay(d)
-        self.clock_down_dds.sw.off()
+        self.mirror_pulse(t_pi_down, N_launch, mirror_freq)
 
         delay(50e-6)
 
@@ -1105,54 +1072,7 @@ class LMTInterferometryMixin(
 
             delay(8e-9)
 
-        t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            100e-6
-        )  # Add a tiny delay to give us enough time to write to the DDS
-        self.clock_opll.clock_OPLL_offset.set(
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-            )
-            + last_bs_frequency
-            + N_launch * 9.4e3,
-        )
-
-        self.clock_down_dds.set(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.down_switch_detuning.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
-        )
-
-        # PI/2 PULSE
-
-        at_mu(t_start_last_pulse_mu)
-        delay_mu(8)
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            ramp_rate,
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-            )
-            + last_bs_frequency
-            + N_launch * 9.4e3
-            - 1e6,
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
-            )
-            + last_bs_frequency
-            + N_launch * 9.4e3,
-            wave_type=2,
-        )
-        delay_mu(8)
-        d = t_pi_down / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )  # FIXME needs to track frequency too
-        self.clock_down_dds.sw.on()
-        delay(d)
-        self.clock_down_dds.sw.off()
+        self.last_beam_splitter(t_pi_down, N_launch, last_bs_frequency)
 
         # # TRANSFER PULSES GROUND STATE
         # # stark shift for low intensity up neam
@@ -1209,6 +1129,132 @@ class LMTInterferometryMixin(
             + N_launch * 9.4e3,
             wave_type=2,
         )
+
+    @kernel
+    def first_beam_splitter(self, t_pulse, launch_number):
+        t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(
+            2e-6
+        )  # Add a tiny delay to give us enough time to write to the DDS
+
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        delay_mu(8)
+
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_first_pulse_mu,
+                t_pi_pulse=t_pulse,
+            )
+            + launch_number * 9.4e3
+        )
+
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_first_pi_by_2_pulse(),
+        )
+
+        # PI/2 PULSE DOWN BEAM
+        at_mu(t_start_first_pulse_mu)
+        d = t_pulse / 2
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
+        self.clock_down_dds.sw.on()
+        delay(d)
+        self.clock_down_dds.sw.off()
+
+    @kernel
+    def mirror_pulse(self, t_pulse, launch_number, freq):
+        # MIRROR PULSE DOWN BEAM
+        # Phase step
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_pi_pulse(),
+        )
+
+        t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(
+            50e-6
+        )  # Add a tiny delay to give us enough time to write to the DDS
+
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_pi_pulse(
+                t_pulse_start_mu=t_start_mirror_pulse_mu,
+                t_pi_pulse=t_pulse,
+            )
+            + freq
+            + launch_number * 9.4e3
+        )
+        at_mu(t_start_mirror_pulse_mu)
+        d = t_pulse
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
+        self.clock_down_dds.sw.on()
+        delay(d)
+        self.clock_down_dds.sw.off()
+
+    @kernel
+    def last_beam_splitter(self, t_pulse, launch_number, freq):
+        t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
+            100e-6
+        )  # Add a tiny delay to give us enough time to write to the DDS
+        self.clock_opll.clock_OPLL_offset.set(
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pulse
+            )
+            + freq
+            + launch_number * 9.4e3,
+        )
+
+        self.clock_down_dds.set(
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+            phase=self.calculate_phase_for_second_pi_by_2_pulse(),
+        )
+
+        # PI/2 PULSE
+
+        at_mu(t_start_last_pulse_mu)
+        delay_mu(8)
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            ramp_rate,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pulse
+            )
+            + freq
+            + launch_number * 9.4e3
+            - 1e6,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pulse
+            )
+            + freq
+            + launch_number * 9.4e3
+            - 1e6,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pulse
+            )
+            + freq
+            + launch_number * 9.4e3,
+            wave_type=2,
+        )
+        delay_mu(8)
+        d = t_pulse / 2
+        self.register_pulse(
+            duration_s=d, is_up=False
+        )  # FIXME needs to track frequency too
+        self.clock_down_dds.sw.on()
+        delay(d)
+        self.clock_down_dds.sw.off()
 
     @kernel
     def post_sequence_cleanup_hook(self):
