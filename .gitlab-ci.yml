@@ -90,6 +90,7 @@ update_test_durations:
         - nix run .#pytest -- --runslow --store-durations
         - echo "Durations updated in cache"
     needs: []
+    allow_failure: true
 
 ### Documentation ###
 
