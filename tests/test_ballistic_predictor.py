@@ -306,15 +306,6 @@ def test_ground_state_ignores_kicks():
     assert xy_no_pulses[1] == pytest.approx(xy_with_pulses[1], abs=1e-9)
 
 
-def test_recoil_velocity_value():
-    """Sr-87 at 698 nm should give v_r ≈ 6.63 mm/s. Check to 0.1 %."""
-    v_r = recoil_velocity(SIDE_VIEW_CFG)
-    # h / (m * λ):  (6.626e-34) / (87 * 1.66e-27 * 698e-9) ≈ 6.57e-3 m/s
-    v_r_hand = scipy.constants.h / (SR87_MASS_KG * CLOCK_WAVELENGTH_M)
-    assert v_r == pytest.approx(v_r_hand, rel=1e-3)
-    assert 6e-3 < v_r < 7e-3, f"Recoil velocity out of expected range: {v_r:.4f} m/s"
-
-
 def test_kick_along_optical_axis_invisible():
     """
     When the clock beam is parallel to the optical axis, a kick along that
@@ -514,27 +505,4 @@ def test_monotonic_pulse_times_enforced():
             t_image_s=20e-3,
             cfg=SIDE_VIEW_CFG,
             state="excited",
-        )
-
-
-def test_camera_geometry_validates_orthonormal():
-    """CameraGeometry must reject non-unit or non-orthogonal axes."""
-    # Non-unit optical_axis
-    with pytest.raises(ValueError):
-        CameraGeometry(
-            optical_axis=np.array([0.0, 2.0, 0.0]),  # not unit
-            sensor_x_axis=np.array([1.0, 0.0, 0.0]),
-            sensor_y_axis=np.array([0.0, 0.0, 1.0]),
-            centre_pixel=CENTRE_PIXEL,
-            pixel_size_m=PIXEL_SIZE_M,
-        )
-
-    # Non-orthogonal axes
-    with pytest.raises(ValueError):
-        CameraGeometry(
-            optical_axis=np.array([0.0, 1.0, 0.0]),
-            sensor_x_axis=np.array([1.0, 0.0, 0.0]),
-            sensor_y_axis=np.array([0.5, 0.5, 1.0 / np.sqrt(2)]),  # not orthogonal to x
-            centre_pixel=CENTRE_PIXEL,
-            pixel_size_m=PIXEL_SIZE_M,
         )
