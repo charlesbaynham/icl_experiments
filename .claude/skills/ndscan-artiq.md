@@ -5,12 +5,12 @@ description: Use when understanding ndscan or artiq code, reading ndscan experim
 
 # Understanding ndscan and ARTIQ Code
 
-Reference source for the ndscan and ARTIQ libraries is available locally in the `vendor/` directory, cloned at session start.
+Reference source for ndscan and ARTIQ is cloned at session start into `vendor/`, at the exact commits locked in `poetry.lock` (ndscan) and `flake.lock` (artiq).
 
 ## Source locations
 
-- `vendor/ndscan/` — ndscan experiment scanning framework (Oxford Ion Trap Group)
-- `vendor/artiq/` — ARTIQ core framework (M-Labs)
+- `vendor/ndscan/` — ndscan fork (aion-physics GitLab), commit from `poetry.lock`
+- `vendor/artiq/` — ARTIQ fork (aion-physics GitLab), commit from `flake.lock`
 
 ## Key ndscan paths
 
@@ -43,4 +43,4 @@ cat vendor/ndscan/ndscan/experiment/fragment.py
 grep -n "class.*Param" vendor/ndscan/ndscan/experiment/parameters.py
 ```
 
-If `vendor/` is missing (network unavailable at session start), fall back to the GitHub sources linked in AGENTS.md.
+If `vendor/` is missing (e.g. network unavailable at session start, or GitLab authentication not configured), fall back to the GitHub mirror of upstream ndscan: https://github.com/OxfordIonTrapGroup/ndscan
