@@ -112,7 +112,7 @@ class PulseDMARecording(Fragment):
         self._pulse_record_num_pulses = 0
 
         # Record the actions_after_drop sequence in DMA
-        # FIXME should not recalculate every shot?  maybe?
+        # TODO should not recalculate every shot?  maybe?
         with self.core_dma.record(self.dma_name):
             self.outer_self.actions_after_drop()
 

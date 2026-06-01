@@ -1300,7 +1300,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
         # # LMT series on the lower trap
         # self.lmt_series_start_up(lmt_detuning, N_previous_pulses=0, N=N_launch + 1)
 
-        # self.clock_up_dds.set(
+        # self.set_clock_up_dds(
         #     frequency=self.clock_switch_frequency_handle.get()
         #     + self.up_switch_detuning_lower_intensity.get(),
         #     amplitude=self.clock_switch_amplitude_handle.get(),
@@ -1321,7 +1321,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
 
         # # last pulse, pi/2 with down beam and then throw away ground state
         # t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
-        # self.clock_opll.clock_OPLL_offset.set(
+        # self.set_clock_opll(
         #     start_opll_offset
         #     - self.calculate_frequency_for_first_pi_by_2_pulse(
         #         t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
@@ -1334,7 +1334,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
         # d = t_pi_up / 2
         # self.register_pulse(
         #     duration_s=d, is_up=True
-        # )  # FIXME needs to track frequency too
+        # )
         # self.clock_up_dds.sw.on()
         # delay(d)
         # self.clock_up_dds.sw.off()
@@ -1991,7 +1991,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         # )
 
         # # stark shift for high intensity up beam
-        # self.clock_up_dds.set(
+        # self.set_clock_up_dds(
         #     frequency=self.clock_switch_frequency_handle.get()
         #     + self.up_switch_detuning_higher_intensity.get(),
         #     amplitude=self.clock_switch_amplitude_handle.get(),
@@ -2011,7 +2011,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         # )
 
         # # stark shift for low intensity up neam
-        # self.clock_up_dds.set(
+        # self.set_clock_up_dds(
         #     frequency=self.clock_switch_frequency_handle.get()
         #     + self.up_switch_detuning_lower_intensity.get(),
         #     amplitude=self.clock_switch_amplitude_handle.get(),
@@ -2029,7 +2029,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         #     2e-6
         # )  # Add a tiny delay to give us enough time to write to the DDS
 
-        # self.clock_opll.clock_OPLL_offset.set(
+        # self.set_clock_opll(
         #     start_opll_offset
         #     + self.calculate_frequency_for_first_pi_by_2_pulse(
         #         t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pi_down
@@ -2039,7 +2039,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         # )
         # delay_mu(8)
 
-        # self.clock_down_dds.set(
+        # self.set_clock_down_dds(
         #     frequency=self.clock_switch_frequency_handle.get()
         #     + self.down_switch_detuning.get(),
         #     amplitude=self.clock_switch_amplitude_handle.get(),
@@ -2051,9 +2051,7 @@ class ShapedFirstPulseLMTInterferometryMixin(
         # # PI/2 PULSE
 
         # d = t_pi_down / 2
-        # self.register_pulse(
-        #     duration_s=d, is_up=False
-        # )  # FIXME needs to track frequency too
+        # self.register_pulse(duration_s=d, is_up=False)
         # self.clock_down_dds.sw.on()
         # delay(d)
         # self.clock_down_dds.sw.off()
