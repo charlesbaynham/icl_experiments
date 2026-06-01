@@ -41,5 +41,6 @@
     "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
     "nixEnvSelector.useFlakes": true,
     "python.analysis.typeCheckingMode": "basic",
-    "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "[ ]"]
+    "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "[ ]"],
+    "nixEnvSelector.flakeShell": "default"
 }
