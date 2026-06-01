@@ -5,6 +5,7 @@ from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -195,7 +196,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         param_handles.remove(self.spectroscopy_clock_delivery_setpoint)
         return param_handles
 
-    @kernel
+    @portable
     def set_clock_up_dds(self, frequency: float, amplitude: float, phase: float = 0.0):
         """
         Set the up-beam clock DDS and record the commanded frequency.
@@ -207,7 +208,7 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         self.clock_up_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
         self._tracked_up_dds_freq = frequency
 
-    @kernel
+    @portable
     def set_clock_down_dds(
         self, frequency: float, amplitude: float, phase: float = 0.0
     ):

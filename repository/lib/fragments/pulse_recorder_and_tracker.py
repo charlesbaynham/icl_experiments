@@ -45,6 +45,7 @@ from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -194,7 +195,7 @@ class PulseDMARecording(Fragment):
             )
         return self.core_dma.playback_handle(self.dma_handle)
 
-    @kernel
+    @portable
     def register_pulse(self, is_up: bool, duration_s: float):
         """
         Register a clock pulse about to be applied.

@@ -45,6 +45,7 @@ import logging
 import numpy as np
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import portable
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -273,7 +274,7 @@ class DipoleTrapWithExperimentBase(
     # This keeps clock hardware off non-clock dipole experiments.
     # ------------------------------------------------------------------
 
-    @kernel
+    @portable
     def _get_opll_instantaneous(self, t_mu: int64) -> float:
         """
         Return the instantaneous OPLL offset frequency (Hz) at timeline
