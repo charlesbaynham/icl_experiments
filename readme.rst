@@ -205,7 +205,8 @@ be updated periodically to ensure optimal test distribution. To update it, run::
 
 Then commit the updated `.test_durations` file.
 
-
+This happens automatically in the CI pipeline every week, but the file is not
+committed, only cached in the cloud.
 
 Dependencies
 ============
