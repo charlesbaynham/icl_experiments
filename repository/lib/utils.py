@@ -73,24 +73,23 @@ class FastIntChecksum:
     """
 
     def __init__(self, seed: int = 0):
-        self.initial = int64(seed)
+        self.seed = int64(seed)
         self.mask = int64(-1)
         self.multiplier = int64(6364136223846793005)
         self.value_offset = int64(2654435761)
 
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
-        self.kernel_invariants.add("initial")
         self.kernel_invariants.add("mask")
         self.kernel_invariants.add("multiplier")
         self.kernel_invariants.add("value_offset")
 
     @portable(flags={"fast-math"})
     def set_seed(self, seed: int64):
-        self.initial = int64(seed)
+        self.seed = int64(seed)
 
     @portable(flags={"fast-math"})
     def checksum(self, values: TList(TInt64)) -> TInt64:  # type: ignore[misc, valid-type]
-        checksum = self.initial
+        checksum = self.seed
 
         for value in values:
             checksum = (
