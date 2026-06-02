@@ -64,7 +64,7 @@ class MeasureSingleXODTBGCorrectedFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
@@ -174,7 +174,7 @@ class MeasureSingleXODTAbsFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
@@ -197,7 +197,7 @@ class MeasureCooledXODTFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_painter_on()
         self.DMA_initialization_hook_evap_with_field_ramp()

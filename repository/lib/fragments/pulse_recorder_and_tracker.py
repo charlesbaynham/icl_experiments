@@ -41,20 +41,18 @@ the same time::
 
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.dma import CoreDMA
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
-from ndscan.experiment.result_channels import OpaqueChannel
 from numpy import int32
 from numpy import int64
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperimentBase,
-)
 from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
@@ -89,20 +87,20 @@ class PulseDMARecording(Fragment):
         self._pulse_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
         self._pulse_record_durations_mu = [int64(0)] * BUFFER_DEPTH
         self._pulse_record_directions = [int32(0)] * BUFFER_DEPTH
+        # Frequencies stored as float Hz; saved as int64 Hz in the OpaqueChannel
+        self._pulse_record_opll_freq_hz = [0.0] * BUFFER_DEPTH
+        self._pulse_record_beam_dds_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_num_pulses = 0
         self._pulse_record_checksum = int64(0)
 
-        # Add an opaque ResultChannel that is used to store these pulse records
-        self.setattr_result(
-            "pulse_record",
-            OpaqueChannel,
-            description="Record of clock pulses",
-            display_hints={"priority": -2},
-        )
-        self.pulse_record: OpaqueChannel
-
         # Checksummer object
         self.checksummer = FastIntChecksum(seed=0)
+
+    def host_setup(self):
+        # Create the broadcast dataset for live monitoring. archive=False avoids
+        # h5py ragged-array errors; host_cleanup encodes it to flat arrays for archiving.
+        self.set_dataset("pulse_record", [], broadcast=True, archive=False)
+        super().host_setup()
 
     @kernel
     def device_setup(self):
@@ -112,7 +110,7 @@ class PulseDMARecording(Fragment):
         self._pulse_record_num_pulses = 0
 
         # Record the actions_after_drop sequence in DMA
-        # FIXME should not recalculate every shot?  maybe?
+        # TODO should not recalculate every shot?  maybe?
         with self.core_dma.record(self.dma_name):
             self.outer_self.actions_after_drop()
 
@@ -121,7 +119,7 @@ class PulseDMARecording(Fragment):
     @kernel
     def _save_pulse_sequence_to_dataset(self):
         """
-        Save the recorded pulse sequence to the OpaqueChannel output
+        Save the recorded pulse sequence to the pulse_record dataset.
 
         ARTIQ can't handle dicts etc, so we wrap this into a 2D array.
         This forces us to store directions as int64s which is wasteful,
@@ -132,33 +130,52 @@ class PulseDMARecording(Fragment):
         DISABLED_SENTINEL = -2
 
         if not self.enable_pulse_sequence_storage.get():
-            self.pulse_record.push([[DISABLED_SENTINEL]])
+            self.append_to_dataset("pulse_record", [[DISABLED_SENTINEL]])
             return
 
+        directions = [
+            int64(x)
+            for x in self._pulse_record_directions[: self._pulse_record_num_pulses]
+        ]
+        start_times_mu = [
+            int64(x)
+            for x in self._pulse_record_start_times_mu[: self._pulse_record_num_pulses]
+        ]
+        durations_mu = [
+            int64(x)
+            for x in self._pulse_record_durations_mu[: self._pulse_record_num_pulses]
+        ]
+        opll_hz = [
+            int64(x)
+            for x in self._pulse_record_opll_freq_hz[: self._pulse_record_num_pulses]
+        ]
+        beam_hz = [
+            int64(x)
+            for x in self._pulse_record_beam_dds_freq_hz[
+                : self._pulse_record_num_pulses
+            ]
+        ]
+
         pulse_record = [
-            [
-                int64(x)
-                for x in (
-                    self._pulse_record_directions[: self._pulse_record_num_pulses]
-                )
-            ],
-            self._pulse_record_start_times_mu[: self._pulse_record_num_pulses],
-            self._pulse_record_durations_mu[: self._pulse_record_num_pulses],
+            directions,
+            start_times_mu,
+            durations_mu,
+            opll_hz,
+            beam_hz,
         ]
 
         # Calculate a checksum of this pulse record
-        checksum = self.checksummer.checksum(
-            [int64(x) for x in pulse_record[0]]
-            + [int64(x) for x in pulse_record[1]]
-            + [int64(x) for x in pulse_record[2]]
-        )
+        checksum = int64(0)
+        for i in range(5):
+            self.checksummer.set_seed(checksum)
+            checksum = self.checksummer.checksum([int64(x) for x in pulse_record[i]])
 
         if checksum != self._pulse_record_checksum:
             # Record the updated pulse sequence
-            self.pulse_record.push(pulse_record)
+            self.append_to_dataset("pulse_record", pulse_record)
         else:
-            # Save the disabled sentinel value for "same as last time"
-            self.pulse_record.push([[SAME_AS_LAST_TIME_SENTINEL]])
+            # Save the sentinel value for "same as last time"
+            self.append_to_dataset("pulse_record", [[SAME_AS_LAST_TIME_SENTINEL]])
 
         self._pulse_record_checksum = checksum
 
@@ -175,7 +192,7 @@ class PulseDMARecording(Fragment):
             )
         return self.core_dma.playback_handle(self.dma_handle)
 
-    @kernel
+    @portable
     def register_pulse(self, is_up: bool, duration_s: float):
         """
         Register a clock pulse about to be applied.
@@ -192,10 +209,75 @@ class PulseDMARecording(Fragment):
             )
 
         duration_mu = self.core.seconds_to_mu(duration_s)
+        t_now_mu = now_mu()
 
-        self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = now_mu()
+        self._pulse_record_start_times_mu[self._pulse_record_num_pulses] = t_now_mu
         self._pulse_record_durations_mu[self._pulse_record_num_pulses] = duration_mu
         self._pulse_record_directions[self._pulse_record_num_pulses] = int32(
             1 if is_up else 0
         )
+        # Report the OPLL frequency at the centre of the pulse
+        self._pulse_record_opll_freq_hz[self._pulse_record_num_pulses] = (
+            self.outer_self._get_opll_instantaneous(t_now_mu)
+            + self.outer_self._get_opll_instantaneous(t_now_mu + duration_mu)
+        ) / 2.0
+        self._pulse_record_beam_dds_freq_hz[self._pulse_record_num_pulses] = (
+            self.outer_self._tracked_up_dds_freq
+            if is_up
+            else self.outer_self._tracked_down_dds_freq
+        )
         self._pulse_record_num_pulses += 1
+
+    def host_cleanup(self):
+        self._archive_encoded_pulse_records()
+        super().host_cleanup()
+
+    def _archive_encoded_pulse_records(self):
+        """Encode accumulated pulse records as flat int64 arrays and archive them.
+
+        Reads records from the ``pulse_record`` broadcast dataset and writes two
+        archivable datasets:
+
+        - ``pulse_record_flat``: concatenation of all per-record flat arrays.
+        - ``pulse_record_offsets``: starting index in ``pulse_record_flat`` for each
+          record, allowing the original records to be reconstructed.
+
+        Each record is encoded as a flat 1D array:
+
+        - Sentinel record (``[[sentinel_value]]``): ``[sentinel_value]`` (length 1)
+        - Regular record (5 rows of ``num_pulses`` values each):
+          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, beam_0, …]``
+          (length ``1 + 5 * num_pulses``)
+        """
+        records = self.get_dataset("pulse_record", archive=False)
+        if not records:
+            return
+
+        flat_data = []
+        offsets = []
+        current_offset = 0
+
+        for record in records:
+            offsets.append(current_offset)
+            if len(record) == 1 and len(record[0]) == 1:
+                flat_data.append(int(record[0][0]))
+                current_offset += 1
+            else:
+                num_pulses = len(record[0])
+                flat_data.append(num_pulses)
+                for row in record:
+                    flat_data.extend(int(x) for x in row)
+                current_offset += 1 + 5 * num_pulses
+
+        self.set_dataset(
+            "pulse_record_flat",
+            np.array(flat_data, dtype=np.int64),
+            broadcast=False,
+            archive=True,
+        )
+        self.set_dataset(
+            "pulse_record_offsets",
+            np.array(offsets, dtype=np.int64),
+            broadcast=False,
+            archive=True,
+        )
