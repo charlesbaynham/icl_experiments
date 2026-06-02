@@ -301,43 +301,6 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
 
     @kernel
-    def lmt_series_start_down_launch_down_v2(self, offset_det, N_previous_pulses, N):
-        t_drop = self.get_t_start_shelving()
-
-        for i in range(N):
-
-            # start with down pulse
-            if i % 2 == 0:
-                down_offset = offset_det
-                pulse_type = "down"
-
-            else:
-                down_offset = 0.0
-                pulse_type = "up"
-
-            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(1e-6)
-            total_ramp_time = self.core.mu_to_seconds(t_start_lmt_2_pulse_mu - t_drop)
-
-            f_i = (
-                start_opll_offset
-                + (-1) ** (i + 1) * total_ramp_time * ramp_rate
-                + i * (-1) ** (i + 1) * momentum_kick
-                + N_previous_pulses * (-1) ** (i) * momentum_kick
-                + (-1) ** (i) * (down_offset)
-            )
-
-            # fire the pulse
-            self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
-
-            if pulse_type == "down":
-                # Clear out the ground state
-                self.fluorescence_pulse.do_clearout_pulse(
-                    duration=10e-6,
-                    ignore_final_shutters=True,
-                )
-                delay(8e-9)
-
-    @kernel
     def fire_lmt_pulse(self, start_freq, type, t_start):
         # stop the ramp
         self.stop_clock_opll_ramp()
