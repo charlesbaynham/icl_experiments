@@ -84,7 +84,7 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
 
         # Lower Rabi frequency on lower arm, up beam pulse
         if N > 1:
-            self.set_clock_up_dds(
+            self.clock_up_dds.set(
                 frequency=self.clock_switch_frequency_handle.get()
                 + self.up_switch_detuning_lower_intensity.get(),
                 amplitude=self.clock_switch_amplitude_handle.get(),
