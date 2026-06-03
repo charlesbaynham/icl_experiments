@@ -57,7 +57,7 @@ class ClockSpecPulseRatioFrag(
     Clock spectroscopy from dropped single XODT with OPLL-based gravity
     compensation and auto-scaled clock delivery setpoint.
 
-    Selection pulse duration = clock pulse duration / pulse_ratio.
+    Selection pulse duration = clock pulse duration * pulse_ratio.
     Clock delivery setpoint auto-calculated: V = V_ref * (T_ref / T_clock)^2.
     OPLL exclusively controls clock frequency; switch DDSes are constant.
     """

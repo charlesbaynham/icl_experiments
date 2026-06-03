@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
-start_opll_offset = 80e6
+start_opll_offset = constants.URUKULED_BEAMS["698_clock_OPLL_offset"].frequency
 
 
 class ClockSpecWithPulseRatioMixin(
@@ -36,7 +36,7 @@ class ClockSpecWithPulseRatioMixin(
     linked by a ratio, and the clock delivery setpoint is auto-calculated.
 
     Sequence (called from do_experiment_after_dipole_trap_hook):
-      1. Velocity-selective pulse, duration T_sel = T_clock / pulse_ratio
+      1. Velocity-selective pulse, duration T_sel = T_clock * pulse_ratio
       2. Clock spectroscopy pulse via fire_lmt_pulse with gravity-compensated
          static OPLL (same mechanism as LMT series)
 
@@ -54,8 +54,9 @@ class ClockSpecWithPulseRatioMixin(
         self.setattr_param(
             "pulse_ratio",
             FloatParam,
-            "Ratio T_clock / T_sel: selection duration = clock duration / pulse_ratio",
-            default=constants.CLOCK_PI_TIME / constants.CLOCK_SHELVING_PULSE_TIME,
+            "Ratio T_sel / T_clock: selection duration = clock duration * pulse_ratio",
+            default=constants.CLOCK_SHELVING_PULSE_TIME / constants.CLOCK_PI_TIME,
+            min=1e-9,
         )
         self.pulse_ratio: FloatParamHandle
 
@@ -126,23 +127,19 @@ class ClockSpecWithPulseRatioMixin(
     def clock_shelving(self):
         """
         Override ClockShelvingAndClearoutBase.clock_shelving to use
-        T_sel = spectroscopy_pulse_time / pulse_ratio instead of shelving_pulse_time.
+        T_sel = spectroscopy_pulse_time * pulse_ratio instead of shelving_pulse_time.
 
         Also uses stop_clock_opll_ramp() (tracking wrapper) instead of calling
         the ramper directly.
         """
-        T_sel = self.spectroscopy_pulse_time.get() / self.pulse_ratio.get()
+        T_sel = self.spectroscopy_pulse_time.get() * self.pulse_ratio.get()
 
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
-        self.clock_delivery_setter.set_suservo(
+        self.set_clock_delivery_aom(
             freq=self.clock_delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
-            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
-            enable_iir=True,
         )
         at_mu(_t_start)
 
@@ -174,7 +171,7 @@ class ClockSpecWithPulseRatioMixin(
         velocity-selection pulse, so that fire_lmt_pulse computes the correct
         gravity-compensation total_ramp_time.
         """
-        T_sel = self.spectroscopy_pulse_time.get() / self.pulse_ratio.get()
+        T_sel = self.spectroscopy_pulse_time.get() * self.pulse_ratio.get()
         return self.t_velocity_slicing_pulse_centre_mu - self.core.seconds_to_mu(
             T_sel / 2
         )
@@ -184,7 +181,7 @@ class ClockSpecWithPulseRatioMixin(
         self.t_dipole_beams_off = now_mu()
         delay_mu(int64(self.core.ref_multiplier))
 
-        # Velocity-selective pulse (duration = T_clock / pulse_ratio)
+        # Velocity-selective pulse (duration = T_clock * pulse_ratio)
         self.clock_shelving()
 
         # Reconfigure delivery AOM for spectroscopy (auto-calculated setpoint)

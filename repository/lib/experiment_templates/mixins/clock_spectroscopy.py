@@ -236,6 +236,17 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         )
 
     @kernel
+    def set_clock_delivery_aom(self, freq: float, setpoint_v: float):
+        self.clock_delivery_setter.set_suservo(
+            freq=freq,
+            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
+            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
+            rf_switch_state=True,
+            setpoint_v=setpoint_v,
+            enable_iir=True,
+        )
+
+    @kernel
     def prepare_clock_delivery_aom(self):
         """
         Ensure's the clock delivery AOM is on, configured and settled. Does not
@@ -243,15 +254,11 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         """
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
-        self.clock_delivery_setter.set_suservo(
+        self.set_clock_delivery_aom(
             freq=self.calculate_clock_delivery_freq(
                 _t_start, self.spectroscopy_pulse_time.get()
             ),
-            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
             setpoint_v=self.spectroscopy_clock_delivery_setpoint.get(),
-            enable_iir=True,
         )
         self.after_clock_delivery_setup_hook(_t_start)
         at_mu(_t_start)
