@@ -115,7 +115,14 @@ class NormalisedFKConfig(FastKineticsCameraConfig):
         )
         self.roi_y1: IntParamHandle
 
-        self._excited_shift = np.int32(excited_shift)
+        self.setattr_param(
+            "excited_shift",
+            IntParam,
+            "Excited state ROI shift in pixels",
+            default=np.int32(excited_shift),
+        )
+        self.excited_shift: IntParamHandle
+
         self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
 
     @portable
@@ -127,7 +134,7 @@ class NormalisedFKConfig(FastKineticsCameraConfig):
         x1 = self.roi_x1.get()
         y1_minus_offset = self.roi_y1.get()
 
-        step = height - self._excited_shift
+        step = height - self.excited_shift.get()
 
         self.roi_buffer[0][0] = x0
         self.roi_buffer[0][1] = y0_minus_offset
@@ -244,13 +251,19 @@ class NormalisedFKDoubleTrapConfig(FastKineticsCameraConfig):
         )
         self.bwd_roi_y1: IntParamHandle
 
-        self._excited_shift = np.int32(excited_shift)
+        self.setattr_param(
+            "excited_shift",
+            IntParam,
+            "Excited state ROI shift in pixels",
+            default=np.int32(excited_shift),
+        )
+        self.excited_shift: IntParamHandle
         self.roi_buffer = np.zeros((self.num_grabber_rois, 4), dtype=np.int32)
 
     @portable
     def get_rois(self):
         height = self.fast_kinetics_height
-        step = height - self._excited_shift
+        step = height - self.excited_shift.get()
 
         fwd_x0 = self.fwd_roi_x0.get()
         fwd_y0_minus_offset = self.fwd_roi_y0.get()
