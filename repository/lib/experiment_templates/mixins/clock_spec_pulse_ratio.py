@@ -5,6 +5,7 @@ from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
+from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -26,14 +27,13 @@ ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 start_opll_offset = constants.URUKULED_BEAMS["698_clock_OPLL_offset"].frequency
 
 
-class ClockSpecWithPulseRatioMixin(
+class CompensatedClockSpecFrag(
     ClockShelvingAndClearoutBase,
     LMTBase,
     DipoleTrapWithExperimentBase,
 ):
     """
-    Clock spectroscopy mixin where selection and clock pulse durations are
-    linked by a ratio, and the clock delivery setpoint is auto-calculated.
+    Clock spectroscopy from XODT with gravity compensation and calibrated intensity
 
     Sequence (called from do_experiment_after_dipole_trap_hook):
       1. Velocity-selective pulse, duration T_sel = T_clock * pulse_ratio
@@ -41,7 +41,7 @@ class ClockSpecWithPulseRatioMixin(
          static OPLL (same mechanism as LMT series)
 
     The clock delivery AOM setpoint is derived from reference parameters via
-    the Rabi-frequency / power relationship (Omega ∝ sqrt(P)):
+    the Rabi-frequency / power relationship (Omega \\propto sqrt(P)):
       V_clock = V_ref * (T_ref / T_clock)^2
 
     OPLL exclusively controls the clock frequency; switch DDSes are kept at
@@ -79,6 +79,10 @@ class ClockSpecWithPulseRatioMixin(
         )
         self.reference_clock_setpoint: FloatParamHandle
 
+        # Disable delivery AOM detuning for simplicity
+        self.override_param("spectroscopy_pulse_aom_detuning", 0.0)
+        self.override_param("shelving_pulse_aom_detuning", 0.0)
+
         self.setattr_param(
             "extra_clock_detuning",
             FloatParam,
@@ -111,14 +115,20 @@ class ClockSpecWithPulseRatioMixin(
 
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
+
+        # Set delivery suservo to configure the attenuation and setpoint state
         self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get()
-            + self.spectroscopy_pulse_aom_detuning.get(),
+            freq=self.clock_delivery_handles.frequency_handle.get(),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
             attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
             rf_switch_state=True,
             setpoint_v=auto_setpoint,
             enable_iir=True,
+        )
+
+        # Set OPLL for the frequency
+        self.set_clock_opll(
+            freq=start_opll_offset + self.extra_clock_detuning.get(),
         )
         self.after_clock_delivery_setup_hook(_t_start)
         at_mu(_t_start)
@@ -137,13 +147,21 @@ class ClockSpecWithPulseRatioMixin(
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
         self.set_clock_delivery_aom(
-            freq=self.clock_delivery_handles.frequency_handle.get()
-            + self.shelving_pulse_aom_detuning.get(),
+            freq=self.clock_delivery_handles.frequency_handle.get(),
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+        )
+        self.set_clock_opll(
+            freq=start_opll_offset + self.extra_clock_detuning.get(),
         )
         at_mu(_t_start)
 
-        self.start_clock_frequency_ramp()
+        # Ramp upwards to compensate gravity
+        self.start_clock_opll_ramp(
+            ramp_rate,
+            start_opll_offset + self.extra_clock_detuning.get(),
+            start_opll_offset + self.extra_clock_detuning.get() + 2e6,
+            wave_type=1,
+        )
 
         self.t_velocity_slicing_pulse_centre_mu = _t_start + self.core.seconds_to_mu(
             T_sel / 2
@@ -191,9 +209,7 @@ class ClockSpecWithPulseRatioMixin(
         # total_ramp_time is measured from the start of the selection pulse,
         # matching the convention used by lmt_series / lmt_series_start_up.
         t_start = now_mu() + self.core.seconds_to_mu(50e-6)
-        total_ramp_time = self.core.mu_to_seconds(
-            t_start - self.get_t_start_shelving()
-        )
+        total_ramp_time = self.core.mu_to_seconds(t_start - self.get_t_start_shelving())
         opll_freq = (
             start_opll_offset
             + total_ramp_time * ramp_rate
@@ -211,3 +227,6 @@ class ClockSpecWithPulseRatioMixin(
         """
         self.stop_clock_opll_ramp()
         self.set_clock_opll(start_opll_offset)
+
+
+CompensatedClockSpec = make_fragment_scan_exp(CompensatedClockSpecFrag)
