@@ -167,7 +167,7 @@ class LMTInterferometrySymmetricFrag(
     LMTSymmetricInterferometryMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGainMixin,
+    EMGain,
     # FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -176,7 +176,7 @@ class LMTInterferometrySymmetricFrag(
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperimentBase,
+    DipoleTrapWithExperiment,
 ):
     """
     Symmetric LMT interferometry
