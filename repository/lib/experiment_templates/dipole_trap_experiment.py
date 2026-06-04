@@ -1,5 +1,5 @@
 """
-This package provides a template experiment, :class:`~RedMOTWithExperiment` .
+This package provides a template experiment, :class:`~RedMOTWithExperimentBase` .
 Unlike other modules, it *does not* provide a Fragment which you should use via
 `self.setattr_fragment`. Instead, it defines an :class:`~ExpFragment` which should be
 converted into an :class:`~EnvExperiment` using :meth:`~make_fragment_scan_exp`.
@@ -12,7 +12,7 @@ the functionality of these experiment. This allows you to reuse this code for
 multiple different experiments by implementing child classes which define these
 hooks in different ways.
 
-For example, see the documentation of :class:`~RedMOTWithExperiment` for the
+For example, see the documentation of :class:`~RedMOTWithExperimentBase` for the
 most basic implementation of hooks.
 
 Mixins
@@ -33,7 +33,7 @@ the same time::
     class MyAndorImagedLatticeExperiment(
         AndorImagingMixin,
         LatticeTrappingMixin,
-        RedMOTWithExperiment
+        RedMOTWithExperimentBase
     ):
         pass
 
@@ -42,10 +42,13 @@ the same time::
 import abc
 import logging
 
+import numpy as np
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import portable
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.constant_lattice import (
@@ -54,16 +57,21 @@ from repository.lib.experiment_templates.mixins.constant_lattice import (
 from repository.lib.experiment_templates.mixins.external_triggering import (
     External50HzTriggerMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
+from repository.lib.fragments.pulse_recorder_and_tracker import PulseDMARecording
 
 logger = logging.getLogger(__name__)
 
+BUFFER_DEPTH = 300
 
-class DipoleTrapWithExperiment(
-    External50HzTriggerMixin, ConstantBeamsMixin, RedMOTWithExperiment
+
+class DipoleTrapWithExperimentBase(
+    External50HzTriggerMixin, ConstantBeamsMixin, RedMOTWithExperimentBase
 ):
     """
     Run a sequence that makes a red MOT, dipole trap, and then
@@ -128,6 +136,54 @@ class DipoleTrapWithExperiment(
         # Get rid of irrelevant delay after narrowband MOT
         self.override_param("expansion_time", 0)
 
+        self.setattr_fragment(
+            "dma_recording_fragment", PulseDMARecording, outer_self=self
+        )
+        self.dma_recording_fragment: PulseDMARecording
+
+        # Tracking state for clock-pulse frequency recording.
+        # Updated by the set_clock_* / start_clock_opll_ramp wrappers below.
+        # Read by PulseDMARecording.register_pulse via outer_self.
+        self._tracked_opll_freq = 80e6  # Hz, current static OPLL offset
+        self._tracked_opll_ramp_active = False  # whether a DRG ramp is running
+        self._tracked_opll_ramp_rate = 0.0  # Hz/s
+        self._tracked_opll_ramp_low = 80e6  # Hz, ramp lower bound
+        self._tracked_opll_ramp_high = 80e6  # Hz, ramp upper bound
+        self._tracked_opll_ramp_wave = np.int32(0)  # 0=triangle, 1=pos saw, 2=neg saw
+        self._tracked_opll_ramp_start_mu = np.int64(
+            0
+        )  # machine-unit timestamp of start_ramp
+        # Beam DDS defaults — overridden by ClockSpectroscopyBase to nominal values
+        self._tracked_up_dds_freq = 0.0  # Hz, last commanded up-beam DDS freq
+        self._tracked_down_dds_freq = 0.0  # Hz, last commanded down-beam DDS freq
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+
+    @kernel
+    def DMA_initialization_hook_dipole_trap_default(self):
+        self.dma_recording_fragment.DMA_initialization_hook_after_drop()
+
+    @kernel
+    def actions_after_drop(self):
+        """
+        Split out the parts of the sequence that occur after the atoms are
+        dropped so that we can pre-record them in DMA. This allows us to:
+
+        a) playback quickly
+        b) know in advance the timings so we can calculate corrected ROI positions
+
+        Note that because this is DMA, we cannot use RPC here
+        """
+
+        self.post_dipole_trap_hook()
+        delay(self.before_launch_delay.get())
+        self.launch_hook()
+        delay(self.dipole_pre_experiment_delay.get())
+        self.do_experiment_after_dipole_trap_hook()
+
     @kernel
     def do_experiment_after_red_mot_hook(self):
         self.dipole_trap_loading_hook()
@@ -137,11 +193,9 @@ class DipoleTrapWithExperiment(
         self.adiabatic_cooling_hook()
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
-        self.post_dipole_trap_hook()
-        delay(self.before_launch_delay.get())
-        self.launch_hook()
-        delay(self.dipole_pre_experiment_delay.get())
-        self.do_experiment_after_dipole_trap_hook()
+
+        # This plays back the pre-recorded version of `actions_after_drop`:
+        self.dma_recording_fragment.playback()
 
     @kernel
     def launch_hook(self):
@@ -198,6 +252,53 @@ class DipoleTrapWithExperiment(
         Hook for matterwave collimation of the atoms.
         By default, do nothing.
         """
+
+    @kernel
+    def register_pulse(self, is_up: bool, duration_s: float):
+        """
+        Delegate to dma_recording_fragment.register_pulse. `register_pulse` is
+        defined on the RedMOTExperimentBase as a no-op, so experiments that use
+        clock-pulse mixins can call self.register_pulse unconditionally without
+        knowing whether a DMA fragment exists.
+        """
+        self.dma_recording_fragment.register_pulse(is_up=is_up, duration_s=duration_s)
+
+    # ------------------------------------------------------------------
+    # Clock-frequency tracking state lives here (read by
+    # PulseDMARecording.register_pulse via a typed outer_self), but the
+    # command wrappers that update it are defined on the clock-specific
+    # bases next to the devices they drive:
+    #   * set_clock_up_dds / set_clock_down_dds -> ClockSpectroscopyBase
+    #   * set_clock_opll / start_clock_opll_ramp / stop_clock_opll_ramp
+    #     -> LMTBase
+    # This keeps clock hardware off non-clock dipole experiments.
+    # ------------------------------------------------------------------
+
+    @portable
+    def _get_opll_instantaneous(self, t_mu: int64) -> float:
+        """
+        Return the instantaneous OPLL offset frequency (Hz) at timeline
+        position t_mu.  For a static setting this is trivial; for an active
+        DRG ramp the frequency is extrapolated linearly from the ramp start.
+
+        wave_type 2 (negative sawtooth) ramps down from freq_high;
+        all other wave types ramp up from freq_low.
+        The ramp spans used for gravity compensation are ~2 MHz wide at
+        ~5 kHz/s, so wrapping never occurs within a single experiment shot.
+        """
+        if not self._tracked_opll_ramp_active:
+            return self._tracked_opll_freq
+        dt_s = self.core.mu_to_seconds(t_mu - self._tracked_opll_ramp_start_mu)
+        if self._tracked_opll_ramp_wave == 2:
+            f = self._tracked_opll_ramp_high - self._tracked_opll_ramp_rate * dt_s
+            if f < self._tracked_opll_ramp_low:
+                return self._tracked_opll_ramp_low
+            return f
+        else:
+            f = self._tracked_opll_ramp_low + self._tracked_opll_ramp_rate * dt_s
+            if f > self._tracked_opll_ramp_high:
+                return self._tracked_opll_ramp_high
+            return f
 
     @kernel
     def post_dipole_trap_hook_default(self):

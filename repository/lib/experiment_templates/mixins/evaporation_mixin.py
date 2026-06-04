@@ -10,7 +10,7 @@ from pyaion.fragments.ramping_phase import GeneralRampingPhase
 
 import repository.lib.constants as constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingBase,
@@ -25,7 +25,7 @@ from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLine
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import XODTWithLinearRamp_3
 
 
-class _RampDuringEvapHookBase(DipoleTrapWithExperiment, abc.ABC):
+class _RampDuringEvapHookBase(DipoleTrapWithExperimentBase, abc.ABC):
     """
     Framework for implementing a ramping phase during the evaporation phase
 
@@ -128,7 +128,7 @@ class FieldOnlyRampInEvapMixin(_RampDuringEvapHookBase):
         self.ramp_during_evap_phase: EvapFieldRamp
 
 
-class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
+class EvaporationSingleRampMixin(DipoleTrapWithExperimentBase):
     """
     Loads atoms into a dipole trap after the narrowband red MOT, and implements a
     single stage of ramping dipole trap power.
@@ -167,7 +167,8 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperiment):
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_linear_evap()
 
     @kernel
@@ -234,7 +235,8 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_linear_evap()
 
     @kernel
@@ -316,7 +318,7 @@ class EvaporationThreeRampsWithFieldRampMixin(EvapAndFieldRampBase):
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_evap_with_field_ramp(self)
 
     @kernel

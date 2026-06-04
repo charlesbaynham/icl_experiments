@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class TripleImageBasicMixin(AndorImagingBase):
     """
-    Implements normalized readout for a :py:class:`~RedMOTWithExperiment`
+    Implements normalized readout for a :py:class:`~RedMOTWithExperimentBase`
     experiment by just taking multiple images.
 
     Contrast with the Fast Kinetics triple imaging.

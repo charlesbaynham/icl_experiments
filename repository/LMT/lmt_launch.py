@@ -2,9 +2,9 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -46,7 +46,7 @@ class LaunchFromXODTFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # XODTRetroedMolassesPlusDipoleRampMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -56,7 +56,7 @@ class LaunchFromXODTFrag(
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Launch from XODT
@@ -69,7 +69,8 @@ class LaunchFromXODTFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_adiabatic_cooling()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
@@ -91,7 +92,7 @@ class DoubleLaunchFromXODTFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -99,7 +100,7 @@ class DoubleLaunchFromXODTFrag(
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Double launch from XODT
@@ -112,7 +113,8 @@ class DoubleLaunchFromXODTFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
@@ -132,7 +134,7 @@ class LaunchFromXODTShapedShelvingFrag(
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -140,7 +142,7 @@ class LaunchFromXODTShapedShelvingFrag(
     FieldOnlyRampInEvapMixin,
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
     DopplerCompensationForLMTMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Launch from XODT with shaped shelving
@@ -153,7 +155,8 @@ class LaunchFromXODTShapedShelvingFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()

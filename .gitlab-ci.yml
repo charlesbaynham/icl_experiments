@@ -34,7 +34,7 @@ pre-commit:
     needs: []
     stage: Static Analysis
     script:
-        - nix flake check --print-build-logs
+        - nix develop -c pre-commit run --all-files
     allow_failure: true
 
 check_for_fixme:
@@ -85,9 +85,11 @@ update_test_durations:
     rules:
         - if: $CI_PIPELINE_SOURCE == "schedule"
         - if: $UPDATE_TEST_DURATIONS == "true"
+    cache:
+        when: "always"
     timeout: 3h
     script:
-        - nix run .#pytest -- --runslow --store-durations
+        - nix run .#pytest -- --runslow --store-durations || true
         - echo "Durations updated in cache"
     needs: []
 

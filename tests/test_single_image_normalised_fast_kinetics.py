@@ -1,0 +1,91 @@
+import numpy as np
+
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    _background_correct_trap_block,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    _copy_trap_roi_block,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics_base import (
+    _single_trap_roi_block,
+)
+
+
+def test_single_trap_roi_block_builds_ground_excited_and_background_rois():
+    rois = _single_trap_roi_block(
+        x0=100,
+        y0=200,
+        x1=120,
+        y1=230,
+        offset=7,
+        step=40,
+        bg_width=8,
+    )
+
+    assert np.array_equal(
+        rois,
+        np.array(
+            [
+                [100, 193, 120, 223],
+                [100, 233, 120, 263],
+                [92, 193, 100, 223],
+                [92, 233, 100, 263],
+                [120, 193, 128, 223],
+                [120, 233, 128, 263],
+            ],
+            dtype=np.int32,
+        ),
+    )
+
+
+def test_copy_trap_roi_block_matches_single_trap_roi_block():
+    roi_buffer = np.zeros((6, 4), dtype=np.int32)
+
+    x0 = 100
+    y0 = 200
+    x1 = 120
+    y1 = 230
+    offset = 7
+    step = 40
+    bg_width = 8
+
+    y0_minus_offset = y0 - offset
+    y1_minus_offset = y1 - offset
+
+    _copy_trap_roi_block(
+        roi_buffer=roi_buffer,
+        start_index=0,
+        x0=x0,
+        y0_minus_offset=y0_minus_offset,
+        x1=x1,
+        y1_minus_offset=y1_minus_offset,
+        step=step,
+        bg_width=bg_width,
+    )
+
+    assert np.array_equal(
+        roi_buffer,
+        _single_trap_roi_block(
+            x0=x0,
+            y0=y0,
+            x1=x1,
+            y1=y1,
+            offset=offset,
+            step=step,
+            bg_width=bg_width,
+        ),
+    )
+
+
+def test_background_correct_trap_block_scales_background_by_roi_area():
+    areas = np.array([60, 60, 30, 30, 30, 30], dtype=np.int32)
+    sums = np.array([150, 90, 10, 20, 5, 10], dtype=np.int32)
+
+    ground_atom_number, excited_atom_number = _background_correct_trap_block(
+        sums=sums,
+        areas=areas,
+        start_index=0,
+    )
+
+    assert ground_atom_number == 135.0
+    assert excited_atom_number == 60.0

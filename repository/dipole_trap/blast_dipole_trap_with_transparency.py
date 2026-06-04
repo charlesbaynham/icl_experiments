@@ -12,7 +12,7 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_measurement import (
     FLIRMeasurementMixin,
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class BlastSingleDipoleWithTransparencyFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTMixin,
 ):
     """

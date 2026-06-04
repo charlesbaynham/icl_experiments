@@ -11,14 +11,16 @@ from pyaion.fragments.suservo import LibSetSUServoStatic
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class OpticalPumpingBase(RedMOTWithExperiment):
+class OpticalPumpingBase(RedMOTWithExperimentBase):
     """
     Defines a spin_polarize() method for use in optical pumping Mixins
     """
@@ -125,7 +127,7 @@ class OpticalPumpingWithFieldSettingBase(OpticalPumpingBase):
 
 
 class OpticalPumpingWithFieldSettingDipoleTrapMixin(
-    OpticalPumpingWithFieldSettingBase, DipoleTrapWithExperiment
+    OpticalPumpingWithFieldSettingBase, DipoleTrapWithExperimentBase
 ):
     """
     Mixin for optical pumping in a dipole trap
@@ -143,7 +145,7 @@ class OpticalPumpingWithFieldSettingDipoleTrapMixin(
 
 # TODO: Refactor DroppedPumpedLatticeMixin to use Base classes above
 # Note: fields aren't set in this Mixin, so it only works with FieldBoostMixin
-class DroppedPumpedLatticeMixin(RedMOTWithExperiment):
+class DroppedPumpedLatticeMixin(RedMOTWithExperimentBase):
     """
     Loads atoms into a lattice, pumps them into a stretched state then drops
     them by quickly ramping down the lattice intensity
