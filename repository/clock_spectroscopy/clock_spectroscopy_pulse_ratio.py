@@ -6,9 +6,7 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import (
-    EMGainMixin,
-)
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -16,7 +14,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsRepumpedMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_spec_pulse_ratio import (
-    ClockSpecWithPulseRatioMixin,
+    CompensatedClockSpecMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
@@ -41,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 class ClockSpecPulseRatioFrag(
-    ClockSpecWithPulseRatioMixin,
+    CompensatedClockSpecMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGainMixin,

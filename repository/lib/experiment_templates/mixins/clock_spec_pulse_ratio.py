@@ -5,7 +5,6 @@ from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
-from ndscan.experiment import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -27,7 +26,7 @@ ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 start_opll_offset = constants.URUKULED_BEAMS["698_clock_OPLL_offset"].frequency
 
 
-class CompensatedClockSpecFrag(
+class CompensatedClockSpecMixin(
     ClockShelvingAndClearoutBase,
     LMTBase,
     DipoleTrapWithExperimentBase,
@@ -227,6 +226,3 @@ class CompensatedClockSpecFrag(
         """
         self.stop_clock_opll_ramp()
         self.set_clock_opll(start_opll_offset)
-
-
-CompensatedClockSpec = make_fragment_scan_exp(CompensatedClockSpecFrag)
