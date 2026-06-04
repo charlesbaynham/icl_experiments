@@ -117,7 +117,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
 
-            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(50e-6)
+            t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
 
             f_i = (
@@ -217,7 +217,7 @@ class LMTBase(
                 down_offset = 0.0
                 pulse_type = "up"
 
-            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(50e-6)
+            t_start_lmt_2_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
             total_ramp_time = self.core.mu_to_seconds(t_start_lmt_2_pulse_mu - t_drop)
 
             f_i = (
@@ -306,7 +306,7 @@ class LMTBase(
         self.clock_up_dds.set_att(att)
 
         delay_mu(8)
-        t_pulse = now_mu() + self.core.seconds_to_mu(50e-6)
+        t_pulse = now_mu() + self.core.seconds_to_mu(2e-6)
 
         opll_frequency = (
             start_opll_offset
@@ -447,7 +447,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
-        self.fluorescence_pulse.do_imaging_pulse(
+        self.fluorescence_pulse.do_clearout_pulse(
             duration=50e-6,  # self.clearout_duration.get(),
             ignore_final_shutters=True,
         )
@@ -1427,7 +1427,7 @@ class LMTInterferometryMixin(
 
         # PI/2 PULSE
         self.first_beam_splitter(t_first_pi, N_launch)
-        delay(100e-6)
+        delay(2e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
@@ -1510,7 +1510,7 @@ class LMTInterferometryMixin(
 
         self.mirror_pulse(t_pi_down, N_launch, mirror_freq)
 
-        delay(50e-6)
+        delay(2e-6)
 
         if N > 1:
             # first lower arm mirror pulse with a lower Rabi frequency, up beam pulse
@@ -1681,7 +1681,7 @@ class LMTInterferometryMixin(
         )
 
         t_start_mirror_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            50e-6
+            2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
 
         self.clock_opll.clock_OPLL_offset.set(
@@ -1702,7 +1702,7 @@ class LMTInterferometryMixin(
     @kernel
     def last_beam_splitter(self, t_pulse, launch_number, freq):
         t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
-            100e-6
+            2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
         self.clock_opll.clock_OPLL_offset.set(
             start_opll_offset

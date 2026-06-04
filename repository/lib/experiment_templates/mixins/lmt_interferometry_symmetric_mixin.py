@@ -61,7 +61,7 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
     def do_clock_interferometry(self):
 
         N = self.lmt_pulses_number.get()
-        N_launch = 0
+        N_launch = 8
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -80,7 +80,7 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
 
         # PI/2 PULSE
         self.first_beam_splitter(t_pi_down, N_launch)
-        delay(100e-6)
+        delay(2e-6)
 
         if N > 1:
             self.clock_up_dds.set(
