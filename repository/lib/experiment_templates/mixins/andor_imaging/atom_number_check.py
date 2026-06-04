@@ -10,7 +10,7 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImage,
+    BGCorrectedAndorImageMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ class _AtomNumberCheckFrag(Fragment):
             )
 
 
-class AtomNumberCheckMixin(BGCorrectedAndorImage):
+class AtomNumberCheckMixin(BGCorrectedAndorImageMixin):
     """Mixin that raises a :class:`~ndscan.experiment.fragment.TransitoryError`
     when the atom number is too low.
 

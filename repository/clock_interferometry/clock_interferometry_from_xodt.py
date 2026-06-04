@@ -3,17 +3,14 @@ import logging
 from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
-from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
-)
 from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging import (
     AbsorptionDoubleDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.count_convert import (
-    CountConvertWithEMGain,
+    CountConvertWithEMGainMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingRepumpedNormalised,
+    DoubleTrapImagingRepumpedNormalisedMixin,
 )
 from repository.lib.experiment_templates.mixins.cavity_relocking import (
     MonitorAndRelock689and698Mixin,
@@ -57,8 +54,8 @@ logger = logging.getLogger(__name__)
 
 
 class _DifferentialClockInterferometryImaging(
-    DoubleTrapImagingRepumpedNormalised,
-    CountConvertWithEMGain,
+    DoubleTrapImagingRepumpedNormalisedMixin,
+    CountConvertWithEMGainMixin,
     FLIRBlueMOTMeasurementMixin,
 ):
     """
@@ -81,11 +78,10 @@ class _DifferentialClockInterferometry(
     LoadXXODTWithTransparencyBeamMixin,
     # Base:
     ClockInterferometryBase,
-    DipoleTrapWithExperiment,
 ):
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
 

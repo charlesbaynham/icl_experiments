@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 EM_GAIN_DISABLE_DATASET = "DISABLE_EM_GAIN"
 
 
-class EMGain(AndorImagingBase):
+class EMGainMixin(AndorImagingBase):
     """
     Adds EM gain control to the Andor camera
 

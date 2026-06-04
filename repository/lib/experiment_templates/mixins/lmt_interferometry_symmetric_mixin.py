@@ -83,7 +83,7 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
         delay(2e-6)
 
         if N > 1:
-            self.clock_up_dds.set(
+            self.set_clock_up_dds(
                 frequency=self.clock_switch_frequency_handle.get()
                 + self.up_switch_detuning_lower_intensity.get(),
                 amplitude=self.clock_switch_amplitude_handle.get(),
@@ -151,7 +151,7 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
 
         self.mirror_pulse(t_pi_down, N_launch, mirror_freq)
 
-        delay(50e-6)
+        delay(2e-6)
 
         if N > 1:
 

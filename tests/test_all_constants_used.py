@@ -70,6 +70,10 @@ def test_all_constants_used(all_module_files):
         "SLACK_FOR_GRAVITY",
         # Used internally within constants.py itself (for conditional logic)
         "USE_LATTICE_MODE",
+        # Accessed dynamically via getattr() in red_mot_three_phases.py
+        "RED_NARROWBAND_BIAS_FIELD_X",
+        "RED_NARROWBAND_BIAS_FIELD_Y",
+        "RED_NARROWBAND_BIAS_FIELD_Z",
     }
 
     print("Number of constants found: ", len(all_constants))

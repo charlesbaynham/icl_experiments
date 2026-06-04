@@ -5,6 +5,7 @@ from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -17,12 +18,14 @@ from pyaion.models import UrukuledBeam
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.ndscan_analysis_exponential_decay import (
     ExponentialDecayMixin,
 )
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 from repository.lib.fragments.beams.glitchfree_urukul_default_attenuation import (
     GlitchFreeUrukulDefaultAttenuation,
 )
@@ -35,7 +38,7 @@ CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 logger = logging.getLogger(__name__)
 
 
-class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
+class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
     """
     Sets up the clock beam for clock spectroscopy (including clock shelving or interferometry)
 
@@ -87,6 +90,13 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         self.clock_down_dds: AD9910 = self.get_device(
             CLOCK_DOWN_BEAM_INFO.urukul_device
         )
+
+        # Set nominal DDS frequencies so the pulse recorder has correct defaults
+        # even for experiments that never explicitly call clock_up/down_dds.set()
+        # (e.g. simple Rabi spectroscopy where the DDS is configured only in
+        # device_setup, not immediately before each pulse).
+        self._tracked_up_dds_freq = CLOCK_UP_BEAM_INFO.frequency
+        self._tracked_down_dds_freq = CLOCK_DOWN_BEAM_INFO.frequency
 
         # Init of the clock OPLL without glitching
         self.setattr_fragment(
@@ -186,6 +196,30 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperiment):
         param_handles.remove(self.spectroscopy_clock_delivery_setpoint)
         return param_handles
 
+    @portable
+    def set_clock_up_dds(self, frequency: float, amplitude: float, phase: float = 0.0):
+        """
+        Set the up-beam clock DDS and record the commanded frequency.
+
+        Thin wrapper around ``clock_up_dds.set`` that also updates the
+        frequency-tracking state read by PulseDMARecording.register_pulse,
+        so call sites never have to track the frequency separately.
+        """
+        self.clock_up_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
+        self._tracked_up_dds_freq = frequency
+
+    @portable
+    def set_clock_down_dds(
+        self, frequency: float, amplitude: float, phase: float = 0.0
+    ):
+        """
+        Set the down-beam clock DDS and record the commanded frequency.
+
+        See :meth:`set_clock_up_dds`.
+        """
+        self.clock_down_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
+        self._tracked_down_dds_freq = frequency
+
     @kernel
     def calculate_clock_delivery_freq(
         self, t_pulse_start_mu: int64, t_pi_pulse: float
@@ -284,8 +318,10 @@ class ClockRabiSpectroscopyBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
+        d = self.spectroscopy_pulse_time.get()
+        self.register_pulse(is_up=True, duration_s=d)
         self.clock_up_dds.sw.on()
-        delay(self.spectroscopy_pulse_time.get())
+        delay(d)
         self.clock_up_dds.sw.off()
 
 
@@ -337,8 +373,10 @@ class ClockRabiSpectroscopyDownBeamBase(ClockSpectroscopyBase):
 
     @kernel
     def fire_clock_spec_pulse(self):
+        d = self.spectroscopy_pulse_time.get()
+        self.register_pulse(is_up=False, duration_s=d)
         self.clock_down_dds.sw.on()
-        delay(self.spectroscopy_pulse_time.get())
+        delay(d)
         self.clock_down_dds.sw.off()
 
 
@@ -358,7 +396,7 @@ class ClockRabiSpectroscopyRedMotMixin(ClockRabiSpectroscopyBase):
 
 
 class ClockRabiSpectroscopyDipoleTrapMixin(
-    ClockRabiSpectroscopyBase, DipoleTrapWithExperiment
+    ClockRabiSpectroscopyBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements clock Rabi spectroscopy after the dipole trap
@@ -375,7 +413,7 @@ class ClockRabiSpectroscopyDipoleTrapMixin(
 
 
 class ClockRabiSpectroscopyDownBeamDipoleTrapMixin(
-    ClockRabiSpectroscopyDownBeamBase, DipoleTrapWithExperiment
+    ClockRabiSpectroscopyDownBeamBase, DipoleTrapWithExperimentBase
 ):
     """
     Implements down beam clock Rabi spectroscopy after the dipole trap

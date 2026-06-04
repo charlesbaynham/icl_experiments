@@ -7,7 +7,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.absorption_imaging
     AbsorptionDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.bg_corrected_andor_image import (
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     EvaporationThreeRampsMixin,
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 class MeasureEvaporatedXODTFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     EvaporationThreeRampsMixin,
@@ -46,7 +46,7 @@ class MeasureEvaporatedXODTFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
@@ -58,7 +58,7 @@ class MeasureEvaporatedXODTFrag(
 
 class MeasureXODTNewMolassesFrag(
     FLIRMeasurementMixin,
-    BGCorrectedAndorImageSingleXODT,
+    BGCorrectedAndorImageSingleXODTMixin,
     LoadSingleXODTMixin,
     XODTRetroedMolassesPlusDipoleRampMixin,
 ):
@@ -68,7 +68,7 @@ class MeasureXODTNewMolassesFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
 
@@ -90,7 +90,7 @@ class MeasureExaporatedXODTAbsFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_linear_evap()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
