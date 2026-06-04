@@ -1130,10 +1130,10 @@ class LMTInterferometryMixin(
             2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
 
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.stop_clock_opll_ramp()
         delay_mu(8)
 
-        self.clock_opll.clock_OPLL_offset.set(
+        self.set_clock_opll(
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_first_pulse_mu,
@@ -1142,7 +1142,7 @@ class LMTInterferometryMixin(
             + launch_number * 9.4e3
         )
 
-        self.clock_down_dds.set(
+        self.set_clock_down_dds(
             frequency=self.clock_switch_frequency_handle.get()
             + self.down_switch_detuning.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
@@ -1163,7 +1163,7 @@ class LMTInterferometryMixin(
     def mirror_pulse(self, t_pulse, launch_number, freq):
         # MIRROR PULSE DOWN BEAM
         # Phase step
-        self.clock_down_dds.set(
+        self.set_clock_down_dds(
             frequency=self.clock_switch_frequency_handle.get()
             + self.down_switch_detuning.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
@@ -1174,7 +1174,7 @@ class LMTInterferometryMixin(
             2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
 
-        self.clock_opll.clock_OPLL_offset.set(
+        self.set_clock_opll(
             start_opll_offset
             + self.calculate_frequency_for_pi_pulse(
                 t_pulse_start_mu=t_start_mirror_pulse_mu,
@@ -1197,7 +1197,7 @@ class LMTInterferometryMixin(
         t_start_last_pulse_mu = now_mu() + self.core.seconds_to_mu(
             2e-6
         )  # Add a tiny delay to give us enough time to write to the DDS
-        self.clock_opll.clock_OPLL_offset.set(
+        self.set_clock_opll(
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pulse
@@ -1206,7 +1206,7 @@ class LMTInterferometryMixin(
             + launch_number * 9.4e3,
         )
 
-        self.clock_down_dds.set(
+        self.set_clock_down_dds(
             frequency=self.clock_switch_frequency_handle.get()
             + self.down_switch_detuning.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),

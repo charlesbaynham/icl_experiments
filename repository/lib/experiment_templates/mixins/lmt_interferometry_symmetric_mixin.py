@@ -115,9 +115,6 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
             )
             delay(8e-9)
 
-        # if N > 2:
-        # lmt sequence
-
         t_end_bs_mu = now_mu()
         # Do a Stark shifting pulse in the first dark time
         self.stark_shifter.do_stark_pulse()
