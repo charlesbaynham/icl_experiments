@@ -329,8 +329,11 @@ class LMTBase(
         self.clock_up_dds.sw.on()
         delay(duration)
         self.clock_up_dds.sw.off()
+        delay_mu(8)
         self.clock_opll.clock_frequency_ramper.stop_ramp()
+        delay_mu(8)
         self.clock_opll.clock_OPLL_offset.set(80e6)
+        delay_mu(8)
         self.clock_up_dds.set_att(0.0)
 
     @kernel
@@ -443,12 +446,12 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperiment):
         lmt_number = self.lmt_launch_pulses_number.get()
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
-        # # Clear out the ground state
-        # self.fluorescence_pulse.do_imaging_pulse(
-        #     duration=50e-6,  # self.clearout_duration.get(),
-        #     ignore_final_shutters=True,
-        # )
-        # delay_mu(8)
+        # Clear out the ground state
+        self.fluorescence_pulse.do_imaging_pulse(
+            duration=50e-6,  # self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
+        delay_mu(8)
 
         # delay_mu(8)
         # self.clock_opll.clock_frequency_ramper.start_ramp(
@@ -1723,13 +1726,6 @@ class LMTInterferometryMixin(
         delay_mu(8)
         self.clock_opll.clock_frequency_ramper.start_ramp(
             ramp_rate,
-            start_opll_offset
-            + self.calculate_frequency_for_first_pi_by_2_pulse(
-                t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pulse
-            )
-            + freq
-            + launch_number * 9.4e3
-            - 1e6,
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_last_pulse_mu, t_pi_pulse=t_pulse

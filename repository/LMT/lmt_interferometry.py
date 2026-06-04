@@ -165,6 +165,7 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
 
 class LMTInterferometrySymmetricFrag(
     LMTSymmetricInterferometryMixin,
+    LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
     EMGain,
