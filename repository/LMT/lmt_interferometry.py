@@ -205,7 +205,7 @@ class LMTInterferometryWithLaunchFrag(
     LMTInterferometryMixin,
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGain,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
