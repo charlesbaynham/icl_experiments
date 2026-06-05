@@ -1269,7 +1269,7 @@ class LMTInterferometryMixin(
         self.register_pulse(
             duration_s=d, is_up=False
         )  # FIXME needs to track frequency too
-        self.clock_down_dds.sw.off()
+        self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
 
