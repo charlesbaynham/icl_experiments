@@ -101,6 +101,9 @@ class CompensatedClockSpecMixin(
         self.override_param("spectroscopy_pulse_aom_detuning", 0.0)
         self.override_param("shelving_pulse_aom_detuning", 0.0)
 
+        # This parameter is unused - we do it manually:
+        self.override_param("down_pulses_duration", 0.0)
+
         self.setattr_param(
             "extra_clock_detuning",
             FloatParam,
