@@ -96,8 +96,12 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
                 0.0, N_kicks=N_launch, att=10.5, duration=t_first_pi
             )
 
-            # wait to make it symmetric with the clearout
-            delay(self.clearout_duration.get())
+            # Clear out the ground state
+            self.fluorescence_pulse.do_clearout_pulse(
+                duration=self.clearout_duration.get(),
+                ignore_final_shutters=True,
+            )
+            delay(8e-9)
 
             delay_mu(8)
             # Lower Rabi frequency on upper arm, up beam pulse
