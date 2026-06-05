@@ -270,11 +270,20 @@ class CompensatedClockSpecMixin(
         t_start = now_mu() + self.core.seconds_to_mu(50e-6)
         total_ramp_time = self.core.mu_to_seconds(t_start - self.get_t_start_shelving())
         T_clock = self.spectroscopy_pulse_time.get()
-        opll_freq = (
-            start_opll_offset
-            + total_ramp_time * ramp_rate
-            + self.extra_clock_detuning.get()
-        )
+
+        if self.use_down_beam.get():
+            opll_freq = (
+                start_opll_offset
+                - total_ramp_time * ramp_rate
+                + self.extra_clock_detuning.get()
+            )
+        else:
+            opll_freq = (
+                start_opll_offset
+                + total_ramp_time * ramp_rate
+                + self.extra_clock_detuning.get()
+            )
+
         if self.use_down_beam.get():
             # ramp the offset downwards TODO: For some reason the OPLL setting
             # is commented out in the `fire_lmt_pulse` method in the LMT module.
