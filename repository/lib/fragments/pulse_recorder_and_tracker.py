@@ -89,7 +89,9 @@ class PulseDMARecording(Fragment):
         self._pulse_record_directions = [int32(0)] * BUFFER_DEPTH
         # Frequencies stored as float Hz; saved as int64 Hz in the OpaqueChannel
         self._pulse_record_opll_freq_hz = [0.0] * BUFFER_DEPTH
-        self._pulse_record_beam_dds_freq_hz = [0.0] * BUFFER_DEPTH
+        self._pulse_record_switch_freq_hz = [0.0] * BUFFER_DEPTH
+        self._pulse_record_delivery_freq_hz = [0.0] * BUFFER_DEPTH
+        self._pulse_record_delivery_setpoint = [0.0] * BUFFER_DEPTH
         self._pulse_record_num_pulses = 0
         self._pulse_record_checksum = int64(0)
 
@@ -149,9 +151,21 @@ class PulseDMARecording(Fragment):
             int64(x)
             for x in self._pulse_record_opll_freq_hz[: self._pulse_record_num_pulses]
         ]
-        beam_hz = [
+        switch_hz = [
             int64(x)
-            for x in self._pulse_record_beam_dds_freq_hz[
+            for x in self._pulse_record_switch_freq_hz[
+                : self._pulse_record_num_pulses
+            ]
+        ]
+        delivery_hz = [
+            int64(x)
+            for x in self._pulse_record_delivery_freq_hz[
+                : self._pulse_record_num_pulses
+            ]
+        ]
+        delivery_setpoint = [
+            int64(x)
+            for x in self._pulse_record_delivery_setpoint[
                 : self._pulse_record_num_pulses
             ]
         ]
@@ -161,12 +175,14 @@ class PulseDMARecording(Fragment):
             start_times_mu,
             durations_mu,
             opll_hz,
-            beam_hz,
+            switch_hz,
+            delivery_hz,
+            delivery_setpoint,
         ]
 
         # Calculate a checksum of this pulse record
         checksum = int64(0)
-        for i in range(5):
+        for i in range(7):
             self.checksummer.set_seed(checksum)
             checksum = self.checksummer.checksum([int64(x) for x in pulse_record[i]])
 
@@ -221,10 +237,16 @@ class PulseDMARecording(Fragment):
             self.outer_self._get_opll_instantaneous(t_now_mu)
             + self.outer_self._get_opll_instantaneous(t_now_mu + duration_mu)
         ) / 2.0
-        self._pulse_record_beam_dds_freq_hz[self._pulse_record_num_pulses] = (
-            self.outer_self._tracked_up_dds_freq
+        self._pulse_record_switch_freq_hz[self._pulse_record_num_pulses] = (
+            self.outer_self._tracked_up_switch_freq
             if is_up
-            else self.outer_self._tracked_down_dds_freq
+            else self.outer_self._tracked_down_switch_freq
+        )
+        self._pulse_record_delivery_freq_hz[self._pulse_record_num_pulses] = (
+            self.outer_self._tracked_delivery_aom_freq
+        )
+        self._pulse_record_delivery_setpoint[self._pulse_record_num_pulses] = (
+            self.outer_self._tracked_delivery_aom_setpoint
         )
         self._pulse_record_num_pulses += 1
 
@@ -245,9 +267,9 @@ class PulseDMARecording(Fragment):
         Each record is encoded as a flat 1D array:
 
         - Sentinel record (``[[sentinel_value]]``): ``[sentinel_value]`` (length 1)
-        - Regular record (5 rows of ``num_pulses`` values each):
-          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, beam_0, …]``
-          (length ``1 + 5 * num_pulses``)
+        - Regular record (7 rows of ``num_pulses`` values each):
+          ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
+          (length ``1 + 7 * num_pulses``)
         """
         records = self.get_dataset("pulse_record", archive=False)
         if not records:
@@ -267,7 +289,7 @@ class PulseDMARecording(Fragment):
                 flat_data.append(num_pulses)
                 for row in record:
                     flat_data.extend(int(x) for x in row)
-                current_offset += 1 + 5 * num_pulses
+                current_offset += 1 + 7 * num_pulses
 
         self.set_dataset(
             "pulse_record_flat",

@@ -153,9 +153,12 @@ class DipoleTrapWithExperimentBase(
         self._tracked_opll_ramp_start_mu = np.int64(
             0
         )  # machine-unit timestamp of start_ramp
-        # Beam DDS defaults — overridden by ClockSpectroscopyBase to nominal values
-        self._tracked_up_dds_freq = 0.0  # Hz, last commanded up-beam DDS freq
-        self._tracked_down_dds_freq = 0.0  # Hz, last commanded down-beam DDS freq
+        # Switch DDS defaults — overridden by ClockSpectroscopyBase to nominal values
+        self._tracked_up_switch_freq = 0.0  # Hz, last commanded up-beam switch DDS freq
+        self._tracked_down_switch_freq = 0.0  # Hz, last commanded down-beam switch DDS freq
+        # Delivery AOM tracking — overridden by ClockSpectroscopyBase to nominal values
+        self._tracked_delivery_aom_freq = 0.0  # Hz, delivery AOM frequency
+        self._tracked_delivery_aom_setpoint = 0.0  # V, delivery AOM SUServo setpoint
 
     @kernel
     def DMA_initialization_hook(self):
