@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 
 from artiq.language import at_mu
 from artiq.language import delay
@@ -48,6 +49,22 @@ class CompensatedClockSpecMixin(
     OPLL exclusively controls the clock frequency; switch DDSes are kept at
     their default frequencies throughout.
     """
+
+    if TYPE_CHECKING:
+
+        def DMA_initialization_hook_evap_with_field_ramp(self) -> None: ...
+
+        def DMA_initialization_hook_loading_xodt_mot(self) -> None: ...
+
+        def DMA_initialization_hook_xodt_molasses(self) -> None: ...
+
+        def DMA_initialization_hook_adiabatic_cooling(self) -> None: ...
+
+        def DMA_initialization_hook_painter_on(self) -> None: ...
+
+        def post_sequence_cleanup_hook_andor(self) -> None: ...
+
+        def post_sequence_cleanup_hook_loading(self) -> None: ...
 
     def build_fragment(self):
         super().build_fragment()
@@ -135,7 +152,7 @@ class CompensatedClockSpecMixin(
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
 
-        # Set delivery suservo to configure the attenuation and setpoint state
+        # Set delivery suservo to configure the attenuation and lock state - setpoint and freq and handled by set_clock_delivery_aom
         self.clock_delivery_setter.set_suservo(
             freq=self.clock_delivery_handles.frequency_handle.get(),
             amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
@@ -143,6 +160,10 @@ class CompensatedClockSpecMixin(
             rf_switch_state=True,
             setpoint_v=auto_setpoint,
             enable_iir=True,
+        )
+        self.set_clock_delivery_aom(
+            freq=self.clock_delivery_handles.frequency_handle.get(),
+            setpoint_v=auto_setpoint,
         )
 
         # Set OPLL for the frequency
@@ -162,36 +183,47 @@ class CompensatedClockSpecMixin(
         the ramper directly.
         """
         T_sel = self.spectroscopy_pulse_time.get() * self.pulse_ratio.get()
+        T_ref = self.reference_pi_pulse_duration.get()
+        V_ref = self.reference_clock_setpoint.get()
+
+        auto_setpoint = V_ref * (T_ref / T_sel) * (T_ref / T_sel)
+        opll_frequency = start_opll_offset + self.extra_clock_detuning.get()
 
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
         self.set_clock_delivery_aom(
             freq=self.clock_delivery_handles.frequency_handle.get(),
-            setpoint_v=self.shelving_clock_delivery_setpoint.get(),
+            setpoint_v=auto_setpoint,
         )
         self.set_clock_opll(
-            freq=start_opll_offset + self.extra_clock_detuning.get(),
+            freq=opll_frequency,
         )
         at_mu(_t_start)
-
-        # Ramp upwards to compensate gravity
-        self.start_clock_opll_ramp(
-            ramp_rate,
-            start_opll_offset + self.extra_clock_detuning.get(),
-            start_opll_offset + self.extra_clock_detuning.get() + 2e6,
-            wave_type=1,
-        )
 
         self.t_velocity_slicing_pulse_centre_mu = _t_start + self.core.seconds_to_mu(
             T_sel / 2
         )
 
         if self.use_down_beam.get():
+            # Ramp to compensate gravity
+            self.start_clock_opll_ramp(
+                ramp_rate,
+                opll_frequency - 1e6,
+                opll_frequency,
+                wave_type=2,
+            )
             self.register_pulse(is_up=False, duration_s=T_sel)
             self.clock_down_dds.sw.on()
             delay(T_sel)
             self.clock_down_dds.sw.off()
         else:
+            # Ramp to compensate gravity
+            self.start_clock_opll_ramp(
+                ramp_rate,
+                opll_frequency,
+                opll_frequency + 2e6,
+                wave_type=1,
+            )
             self.register_pulse(is_up=True, duration_s=T_sel)
             self.clock_up_dds.sw.on()
             delay(T_sel)
