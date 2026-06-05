@@ -23,7 +23,7 @@ class Steer641StartPiezoScanFrag(ExpFragment):
     """
 
     def build_fragment(self):
-        self.set_default_scheduling(pipeline_name="wand")
+        self.set_default_scheduling(pipeline_name="scan_641")
 
         self.setattr_param(
             "detuning",
