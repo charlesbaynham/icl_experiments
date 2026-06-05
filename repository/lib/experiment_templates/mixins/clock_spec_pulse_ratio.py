@@ -285,7 +285,7 @@ class CompensatedClockSpecMixin(
                 opll_freq,
                 wave_type=2,
             )
-            self.register_pulse(is_up=True, duration_s=T_clock)
+            self.register_pulse(is_up=False, duration_s=T_clock)
             self.clock_down_dds.sw.on()
             delay(T_clock)
             self.clock_down_dds.sw.off()
