@@ -123,13 +123,17 @@
 
       # Add pre-commit hooks and WSL display fix to the default shell
       devShells = let
-        newDefaultShell = overriddenOutputs.devShells.default.overrideAttrs (prev: {
-          shellHook = ''
-            ${self.checks.${system}.pre-commit-check.shellHook}
-            source ${self}/scripts/wsl_display_fix.sh
-          '';
-          buildInputs = prev.buildInputs ++ self.checks.${system}.pre-commit-check.enabledPackages;
-        });
+        newDefaultShell =
+          overriddenOutputs.devShells.default.overrideAttrs
+          (prev: {
+            shellHook = ''
+              ${self.checks.${system}.pre-commit-check.shellHook}
+              source ${self}/scripts/wsl_display_fix.sh
+            '';
+            buildInputs =
+              prev.buildInputs
+              ++ self.checks.${system}.pre-commit-check.enabledPackages;
+          });
       in
         overriddenOutputs.devShells // {default = newDefaultShell;};
 
@@ -150,7 +154,11 @@
           hooks = {
             alejandra.enable = true;
             autoflake.enable = true;
-            autoflake.args = ["--remove-all-unused-imports" "--remove-unused-variables" "--in-place"];
+            autoflake.args = [
+              "--remove-all-unused-imports"
+              "--remove-unused-variables"
+              "--in-place"
+            ];
             black.enable = true;
             check-case-conflicts.enable = true;
             check-merge-conflicts.enable = true;
@@ -297,8 +305,13 @@
                 commands =
                   prev.commands
                   // {
-                    inherit backup_database backup_datasets moninj_proxy_ctlmgr monitor_launcher;
-                    ndscan_janitor = "ndscan_dataset_janitor --timeout 7200"; # 2 hours
+                    inherit
+                      backup_database
+                      backup_datasets
+                      moninj_proxy_ctlmgr
+                      monitor_launcher
+                      ;
+                    ndscan_janitor = "ndscan_dataset_janitor --timeout 7200 --server ${bind_settings.connection_ip}"; # 2 hours
                   };
               }
               // bind_settings);
