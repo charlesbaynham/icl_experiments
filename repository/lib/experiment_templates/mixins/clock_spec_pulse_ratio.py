@@ -187,7 +187,9 @@ class CompensatedClockSpecMixin(
         V_ref = self.reference_clock_setpoint.get()
 
         auto_setpoint = V_ref * (T_ref / T_sel) * (T_ref / T_sel)
-        opll_frequency = start_opll_offset + self.extra_clock_detuning.get()
+        opll_frequency = (
+            start_opll_offset  # No extra offset - that's just for the spectroscopy
+        )
 
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
