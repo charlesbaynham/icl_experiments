@@ -45,9 +45,6 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
     AdiabaticCoolingWithPaintedQuadraticMixin,
 )
-from repository.lib.experiment_templates.mixins.painted_quadratic import (
-    MatterwaveLensingVerticalBeamMixin,
-)
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import (
     LoadSingleXODTWithPainterMixin,
@@ -101,7 +98,6 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    MatterwaveLensingVerticalBeamMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     LMTLaunchDoubleTrapShapedPulseMixin,
