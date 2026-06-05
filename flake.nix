@@ -295,7 +295,7 @@
             # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
             # since we must hard-code the IP of the labserver in the moninj proxy otherwise
             # dashboards don't know where to connect to it.
-            moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
+            moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr  --server ${bind_settings.connection_ip} --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
 
             # Automatic startup of database monitors
             monitor_launcher = "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
