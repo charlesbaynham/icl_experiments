@@ -99,9 +99,12 @@ class LMTBase(
         )
         self.down_pulses_duration: FloatParamHandle
 
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
+        if not hasattr(self, "clock_opll_dontuseme"):
+            # Do not use this fragment directly otherwise you'll break the pulse
+            # frequency tracking. Use set_clock_opll, start_clock_opll_ramp,
+            # stop_clock_opll_ramp instead.
+            self.setattr_fragment("clock_opll_dontuseme", ClockOPLLController)
+            self.clock_opll_dontuseme: ClockOPLLController
 
     # ------------------------------------------------------------------
     # OPLL command wrappers. Thin wrappers around the clock_opll DDS /
@@ -113,7 +116,7 @@ class LMTBase(
     @kernel
     def set_clock_opll(self, freq: float):
         """Set the OPLL offset DDS to a static frequency (and track it)."""
-        self.clock_opll.clock_OPLL_offset.set(freq)
+        self.clock_opll_dontuseme.clock_OPLL_offset.set(freq)
         self._tracked_opll_freq = freq
         self._tracked_opll_ramp_active = False
 
@@ -126,7 +129,7 @@ class LMTBase(
         wave_type: int32,
     ):
         """Start a DRG ramp on the OPLL offset DDS (and track it)."""
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self.clock_opll_dontuseme.clock_frequency_ramper.start_ramp(
             rate, freq_low, freq_high, wave_type=wave_type
         )
         self._tracked_opll_ramp_rate = rate
@@ -139,7 +142,7 @@ class LMTBase(
     @kernel
     def stop_clock_opll_ramp(self):
         """Stop the OPLL DRG ramp (and track that it is no longer active)."""
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll_dontuseme.clock_frequency_ramper.stop_ramp()
         self._tracked_opll_ramp_active = False
 
     # use if we start in the excited state
@@ -1214,7 +1217,7 @@ class LMTInterferometryMixin(
 
         at_mu(t_start_last_pulse_mu)
         delay_mu(8)
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self.clock_opll_dontuseme.clock_frequency_ramper.start_ramp(
             ramp_rate,
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(

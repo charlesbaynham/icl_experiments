@@ -152,14 +152,14 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
     @kernel
     def fire_shaped_lmt_pulse(self, start_freq, type, t_start):
         # stop the ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll_dontuseme.clock_frequency_ramper.stop_ramp()
 
         # set the offset frequency
-        self.clock_opll.clock_OPLL_offset.set(start_freq)
+        self.clock_opll_dontuseme.clock_OPLL_offset.set(start_freq)
 
         if type == "down":
             # ramp the offset downwards
-            self.clock_opll.clock_frequency_ramper.start_ramp(
+            self.clock_opll_dontuseme.clock_frequency_ramper.start_ramp(
                 ramp_rate,
                 start_freq - 1e6,
                 start_freq,
@@ -172,7 +172,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
 
         if type == "up":
             # ramp the offset upwards
-            self.clock_opll.clock_frequency_ramper.start_ramp(
+            self.clock_opll_dontuseme.clock_frequency_ramper.start_ramp(
                 ramp_rate,
                 start_freq,
                 start_freq + 2e6,
@@ -245,11 +245,11 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
         self.launch_lower_selective_cloud_detuning.get()
         self.double_launch_last_pulse_detuning.get()
 
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll_dontuseme.clock_frequency_ramper.stop_ramp()
         delay_mu(8)
 
         t_start_first_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
-        self.clock_opll.clock_OPLL_offset.set(
+        self.clock_opll_dontuseme.clock_OPLL_offset.set(
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
                 t_pulse_start_mu=t_start_first_pulse_mu,
@@ -303,7 +303,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
 
         at_mu(t_pulse)
         # ramp the offset upwards
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self.clock_opll_dontuseme.clock_frequency_ramper.start_ramp(
             ramp_rate,
             opll_frequency,
             opll_frequency + 2e6,
@@ -314,7 +314,7 @@ class LMTLaunchDoubleTrapTwoShapedPulsesMixin(
         self.first_lmt_shaped_pulse.trigger_pulse()
 
         # stop the frequency ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.clock_opll_dontuseme.clock_frequency_ramper.stop_ramp()
 
         # LMT series on the upper trap with shaped pulses
 
