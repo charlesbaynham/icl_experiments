@@ -153,9 +153,7 @@ class PulseDMARecording(Fragment):
         ]
         switch_hz = [
             int64(x)
-            for x in self._pulse_record_switch_freq_hz[
-                : self._pulse_record_num_pulses
-            ]
+            for x in self._pulse_record_switch_freq_hz[: self._pulse_record_num_pulses]
         ]
         delivery_hz = [
             int64(x)

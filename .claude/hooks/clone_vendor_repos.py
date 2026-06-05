@@ -14,9 +14,11 @@ def run(cmd: list[str]) -> None:
 def checkout_vendor(name: str, url: str, rev: str) -> None:
     d = f"vendor/{name}"
     if os.path.isdir(f"{d}/.git"):
-        current = subprocess.check_output(
-            ["git", "-C", d, "rev-parse", "HEAD"]
-        ).decode().strip()
+        current = (
+            subprocess.check_output(["git", "-C", d, "rev-parse", "HEAD"])
+            .decode()
+            .strip()
+        )
         if current == rev:
             print(f"  {name}: already at {rev[:8]}", flush=True)
             return
