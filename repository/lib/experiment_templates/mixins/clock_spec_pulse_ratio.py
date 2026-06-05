@@ -269,15 +269,37 @@ class CompensatedClockSpecMixin(
         # matching the convention used by lmt_series / lmt_series_start_up.
         t_start = now_mu() + self.core.seconds_to_mu(50e-6)
         total_ramp_time = self.core.mu_to_seconds(t_start - self.get_t_start_shelving())
+        T_clock = self.spectroscopy_pulse_time.get()
         opll_freq = (
             start_opll_offset
             + total_ramp_time * ramp_rate
             + self.extra_clock_detuning.get()
         )
         if self.use_down_beam.get():
-            self.fire_lmt_pulse(opll_freq, "down", t_start)
+            # ramp the offset downwards TODO: For some reason the OPLL setting
+            # is commented out in the `fire_lmt_pulse` method in the LMT module.
+            # Until it's restored, we do it manually here
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                opll_freq - 1e6,
+                opll_freq,
+                wave_type=2,
+            )
+            self.register_pulse(is_up=True, duration_s=T_clock)
+            self.clock_down_dds.sw.on()
+            delay(T_clock)
+            self.clock_down_dds.sw.off()
         else:
-            self.fire_lmt_pulse(opll_freq, "up", t_start)
+            self.clock_opll.clock_frequency_ramper.start_ramp(
+                ramp_rate,
+                opll_freq,
+                opll_freq + 2e6,
+                wave_type=1,
+            )
+            self.register_pulse(is_up=True, duration_s=T_clock)
+            self.clock_up_dds.sw.on()
+            delay(T_clock)
+            self.clock_up_dds.sw.off()
 
         delay(self.delay_after_spectroscopy.get())
 
