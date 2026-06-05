@@ -926,7 +926,7 @@ class LMTInterferometryMixin(
     @kernel
     def do_clock_interferometry(self):
         N = self.lmt_pulses_number.get()
-        N_launch = 22
+        N_launch = 8
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -1269,7 +1269,7 @@ class LMTInterferometryMixin(
         self.register_pulse(
             duration_s=d, is_up=False
         )  # FIXME needs to track frequency too
-        self.clock_down_dds.sw.on()
+        self.clock_down_dds.sw.off()
         delay(d)
         self.clock_down_dds.sw.off()
 
