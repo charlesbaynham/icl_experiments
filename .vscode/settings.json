@@ -30,7 +30,8 @@
         "**/.git/**",
         "**/.claude/plans/*.md",
         "**/.vscode/**",
-        "**/AGENTS.md"
+        "**/AGENTS.md",
+        "**/archived_experiments/**"
     ],
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,

@@ -33,10 +33,13 @@ from repository.lib.fragments.pulse_shaping import JessePulseLMT
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_DOWN_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_down"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
+CLOCK_OPLL_BEAM_INFO: SUServoedBeam = constants.URUKULED_BEAMS["698_clock_OPLL_offset"]
+
 
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 momentum_kick = constants.MOMENTUM_KICK_DETUNING
-start_opll_offset = 80e6
+start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
+
 
 logger = logging.getLogger(__name__)
 

@@ -103,6 +103,23 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Device definitions come from `device_db_config`
 - Use descriptive device names and aliases
 
+#### Clock Pulse Interactions
+
+All interactions with the clock beam (OPLL, switch DDSes, and pulse firing) **must** go through the dedicated tracking wrapper methods. Never call the underlying hardware objects directly, as this will desynchronise the pulse recorder, timing state, and frequency tracking used by other parts of the experiment.
+
+Use these methods instead of their raw counterparts:
+
+| Task | Use this method | Never use |
+|------|----------------|-----------|
+| Set OPLL frequency | `set_clock_opll(freq)` | `clock_opll.clock_frequency_ramper.set(...)` |
+| Start OPLL ramp | `start_clock_opll_ramp(...)` | `clock_opll.clock_frequency_ramper.start_ramp(...)` |
+| Stop OPLL ramp | `stop_clock_opll_ramp()` | `clock_opll.clock_frequency_ramper.stop_ramp()` |
+| Set up-beam DDS | `set_clock_up_dds(freq, amp)` | `clock_up_dds.set(...)` directly |
+| Set down-beam DDS | `set_clock_down_dds(freq, amp)` | `clock_down_dds.set(...)` directly |
+| Fire a spectroscopy pulse | `fire_lmt_pulse(freq, type, t_start)` | `clock_up_dds.sw.on/off` manually |
+
+These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_freq`, OPLL frequency records) that is read back by the pulse recorder and by gravity-compensation calculations (e.g. `get_t_start_shelving`). Bypassing them produces silently incorrect results.
+
 ### Testing
 
 - Write unit tests in `tests/` directory
