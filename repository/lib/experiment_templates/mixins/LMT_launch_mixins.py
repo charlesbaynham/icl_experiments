@@ -142,6 +142,36 @@ class LMTBase(
         self.clock_opll.clock_frequency_ramper.stop_ramp()
         self._tracked_opll_ramp_active = False
 
+    @kernel
+    def down_pulse(self, N_previous_pulses):
+        t_drop = self.get_t_start_shelving()
+        t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
+        total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
+
+        f_i = (
+            start_opll_offset
+            - total_ramp_time * ramp_rate
+            + (N_previous_pulses) * momentum_kick
+        )
+
+        # fire the pulse
+        self.fire_lmt_pulse(f_i, "down", t_start_lmt_pulse_mu)
+
+    @kernel
+    def up_pulse(self, N_previous_pulses):
+        t_drop = self.get_t_start_shelving()
+        t_start_lmt_pulse_mu = now_mu() + self.core.seconds_to_mu(2e-6)
+        total_ramp_time = self.core.mu_to_seconds(t_start_lmt_pulse_mu - t_drop)
+
+        f_i = (
+            start_opll_offset
+            + total_ramp_time * ramp_rate
+            - (N_previous_pulses) * momentum_kick
+        )
+
+        # fire the pulse
+        self.fire_lmt_pulse(f_i, "up", t_start_lmt_pulse_mu)
+
     # use if we start in the excited state
     @kernel
     def lmt_series(self, offset_det, N_previous_pulses, N):
