@@ -12,7 +12,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
     SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
@@ -136,7 +136,7 @@ class LMTInterferometrySymmetricFrag(
     LMTSymmetricInterferometryMixin,
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -176,7 +176,7 @@ class LMTInterferometryWithLaunchFrag(
     LMTInterferometryMixin,
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
@@ -212,7 +212,7 @@ class ShapedFirstPulseLMTInterferometryFrag(
     ShapedFirstPulseLMTInterferometryMixin,
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
