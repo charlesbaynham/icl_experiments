@@ -12,7 +12,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedDipoleTrapFastKineticsMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
     SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
@@ -44,9 +44,6 @@ from repository.lib.experiment_templates.mixins.optical_pumping import (
 )
 from repository.lib.experiment_templates.mixins.painted_quadratic import (
     AdiabaticCoolingWithPaintedQuadraticMixin,
-)
-from repository.lib.experiment_templates.mixins.painted_quadratic import (
-    MatterwaveLensingVerticalBeamMixin,
 )
 from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
 from repository.lib.experiment_templates.mixins.XODT_loading import (
@@ -101,7 +98,6 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    MatterwaveLensingVerticalBeamMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
     LMTLaunchDoubleTrapShapedPulseMixin,
@@ -128,14 +124,15 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_lmt()
         self.post_sequence_cleanup_hook_loading()
+        self.post_sequence_cleanup_hook_lmt()
 
 
 class LMTInterferometrySymmetricFrag(
     LMTSymmetricInterferometryMixin,
+    LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -175,7 +172,7 @@ class LMTInterferometryWithLaunchFrag(
     LMTInterferometryMixin,
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
@@ -211,7 +208,7 @@ class ShapedFirstPulseLMTInterferometryFrag(
     ShapedFirstPulseLMTInterferometryMixin,
     LMTLaunchMixin,
     NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
+    NormalisedFastKineticsClockPulseMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
@@ -254,5 +251,7 @@ LMTInterferometryWithDoubleLaunchSingleImage = make_fragment_scan_exp(
 LMTInterferometryWithShapedDoubleLaunch = make_fragment_scan_exp(
     LMTInterferometryWithShapedDoubleLaunchFrag, max_rtio_underflow_retries=0
 )
+
+LMTInterferometrySymmetric = make_fragment_scan_exp(LMTInterferometrySymmetricFrag)
 
 LMTInterferometrySymmetric = make_fragment_scan_exp(LMTInterferometrySymmetricFrag)
