@@ -5,6 +5,8 @@ from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int64
@@ -100,6 +102,24 @@ class CompensatedClockSpecMixin(
         )
         self.delay_after_spectroscopy: FloatParamHandle
 
+        self.setattr_param(
+            "use_down_beam",
+            BoolParam,
+            "Use the down beam instead of the up beam for clock pulses",
+            default=False,
+        )
+        self.use_down_beam: BoolParamHandle
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_adiabatic_cooling()
+        self.DMA_initialization_hook_painter_on()
+
     @kernel
     def prepare_clock_delivery_aom(self):
         """
@@ -166,10 +186,16 @@ class CompensatedClockSpecMixin(
             T_sel / 2
         )
 
-        self.register_pulse(is_up=True, duration_s=T_sel)
-        self.clock_up_dds.sw.on()
-        delay(T_sel)
-        self.clock_up_dds.sw.off()
+        if self.use_down_beam.get():
+            self.register_pulse(is_up=False, duration_s=T_sel)
+            self.clock_down_dds.sw.on()
+            delay(T_sel)
+            self.clock_down_dds.sw.off()
+        else:
+            self.register_pulse(is_up=True, duration_s=T_sel)
+            self.clock_up_dds.sw.on()
+            delay(T_sel)
+            self.clock_up_dds.sw.off()
 
         delay_mu(int64(self.core.ref_multiplier))
         self.stop_clock_opll_ramp()
@@ -214,7 +240,10 @@ class CompensatedClockSpecMixin(
             + total_ramp_time * ramp_rate
             + self.extra_clock_detuning.get()
         )
-        self.fire_lmt_pulse(opll_freq, "up", t_start)
+        if self.use_down_beam.get():
+            self.fire_lmt_pulse(opll_freq, "down", t_start)
+        else:
+            self.fire_lmt_pulse(opll_freq, "up", t_start)
 
         delay(self.delay_after_spectroscopy.get())
 
@@ -226,3 +255,10 @@ class CompensatedClockSpecMixin(
         """
         self.stop_clock_opll_ramp()
         self.set_clock_opll(start_opll_offset)
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_shelving()
+        self.post_sequence_cleanup_hook_loading()
