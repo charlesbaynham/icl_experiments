@@ -43,5 +43,6 @@
     "nixEnvSelector.useFlakes": true,
     "python.analysis.typeCheckingMode": "basic",
     "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "[ ]"],
-    "nixEnvSelector.flakeShell": "default"
+    "nixEnvSelector.flakeShell": "default",
+    "nix.formatterPath": "nixfmt"
 }
