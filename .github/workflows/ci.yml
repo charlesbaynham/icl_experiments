@@ -6,10 +6,13 @@ on:
 
 # The nix flake pulls private GitLab repos (gitlab.com/aion-physics/...).
 # GitLab CI authenticates via ~/.netrc + CI_JOB_TOKEN in .gitlab-ci.yml's
-# `.deps` before_script; the GitHub equivalent writes ~/.netrc from a
-# GITLAB_TOKEN secret. Create a GitLab personal/group access token with the
-# read_repository scope and add it as an Actions secret named GITLAB_TOKEN.
-# (Jobs that don't build the full env — e.g. check-fixme — don't need it.)
+# `.deps` before_script. On GitHub we do the equivalent, but flake evaluation
+# runs in *pure* mode where nix ignores ~/.netrc and ~/.gitconfig — so we must
+# point nix's own `netrc-file` setting at the credentials we write.
+#
+# Requires a repo Actions secret GITLAB_TOKEN: a GitLab personal/group access
+# token with the read_repository scope.
+# (check-fixme doesn't build the env, so it needs no credentials.)
 
 jobs:
   pre-commit:
@@ -18,13 +21,16 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      - name: Configure GitLab access for private flake inputs
+      - name: Write netrc for private GitLab flake inputs
         run: |
           umask 077
           printf 'machine gitlab.com\nlogin oauth2\npassword %s\n' \
             "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            netrc-file = /home/runner/.netrc
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - run: nix develop -c pre-commit run --all-files
 
   check-fixme:
@@ -45,13 +51,16 @@ jobs:
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      - name: Configure GitLab access for private flake inputs
+      - name: Write netrc for private GitLab flake inputs
         run: |
           umask 077
           printf 'machine gitlab.com\nlogin oauth2\npassword %s\n' \
             "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            netrc-file = /home/runner/.netrc
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Restore test durations cache
         uses: actions/cache/restore@v4
         with:
