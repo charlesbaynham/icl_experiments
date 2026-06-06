@@ -165,19 +165,51 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         param_handles.remove(self.shelving_clock_delivery_setpoint)
         return param_handles
 
+    # ------------------------------------------------------------------
+    # TODO: Unify with LMTBase — these are lightweight copies of the OPLL
+    # tracking wrappers so that ClockShelvingAndClearoutBase (which does not
+    # inherit LMTBase) can still keep _tracked_opll_* state consistent.
+    # When the class hierarchy is refactored, replace these with calls to
+    # the canonical wrappers on a shared mixin.
+    # ------------------------------------------------------------------
+
+    @kernel
+    def _set_clock_opll_shelving(self, freq: float):
+        """Lightweight copy of LMTBase.set_clock_opll."""
+        self.clock_opll.clock_OPLL_offset.set(freq)
+        self._tracked_opll_freq = freq
+        self._tracked_opll_ramp_active = False
+
+    @kernel
+    def _start_clock_opll_ramp_shelving(
+        self, rate: float, freq_low: float, freq_high: float, wave_type: int64
+    ):
+        """Lightweight copy of LMTBase.start_clock_opll_ramp."""
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            rate, freq_low, freq_high, wave_type=wave_type
+        )
+        self._tracked_opll_ramp_rate = rate
+        self._tracked_opll_ramp_low = freq_low
+        self._tracked_opll_ramp_high = freq_high
+        self._tracked_opll_ramp_wave = wave_type
+        self._tracked_opll_ramp_start_mu = now_mu()
+        self._tracked_opll_ramp_active = True
+
+    @kernel
+    def _stop_clock_opll_ramp_shelving(self):
+        """Lightweight copy of LMTBase.stop_clock_opll_ramp."""
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self._tracked_opll_ramp_active = False
+
     @kernel
     def clock_shelving(self):
         # Prepare the clock beam
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time_shelving.get())
-        self.clock_delivery_setter.set_suservo(
+        self.set_clock_delivery_aom(
             freq=self.clock_delivery_handles.frequency_handle.get()
             + self.shelving_pulse_aom_detuning.get(),
-            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
             setpoint_v=self.shelving_clock_delivery_setpoint.get(),
-            enable_iir=True,
         )
         at_mu(_t_start)
 
@@ -192,7 +224,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()
         delay_mu(int64(self.core.ref_multiplier))
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self._stop_clock_opll_ramp_shelving()
 
         delay(constants.DEFAULT_DELIVERY_SETTLING_DURATION)
 
@@ -220,12 +252,11 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
 
         Advances the timeline by the duration of SPI writes
         """
-
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self._start_clock_opll_ramp_shelving(
             ramp_rate,
             CLOCK_LOW_RAMP_FREQ,
             CLOCK_HIGH_RAMP_FREQ,
-            wave_type=0,
+            wave_type=int64(0),
         )
 
     @kernel
@@ -236,7 +267,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
     @kernel
     def post_sequence_cleanup_hook_shelving(self):
         # stop the clock laser ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self._stop_clock_opll_ramp_shelving()
 
 
 class ClockShelvingAndClearoutDipoleTrapMixin(

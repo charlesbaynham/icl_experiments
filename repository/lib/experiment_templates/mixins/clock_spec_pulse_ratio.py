@@ -155,15 +155,6 @@ class CompensatedClockSpecMixin(
         _t_start = now_mu()
         delay(-self.clock_delivery_preempt_time.get())
 
-        # Set delivery suservo to configure the attenuation and lock state - setpoint and freq and handled by set_clock_delivery_aom
-        self.clock_delivery_setter.set_suservo(
-            freq=self.clock_delivery_handles.frequency_handle.get(),
-            amplitude=self.clock_delivery_handles.initial_amplitude_handle.get(),
-            attenuation=CLOCK_BEAM_DELIVERY_INFO.attenuation,
-            rf_switch_state=True,
-            setpoint_v=auto_setpoint,
-            enable_iir=True,
-        )
         self.set_clock_delivery_aom(
             freq=self.clock_delivery_handles.frequency_handle.get(),
             setpoint_v=auto_setpoint,
