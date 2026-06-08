@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
 
+import numpy as np
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 from scipy import constants as scipy_constants
@@ -41,6 +42,8 @@ ANDOR_CAMERA_FACTS = {"pixel_size": 16e-6, "magnification": 1}
 ANDOR_CAMERA_FACTS["A_pixel"] = (
     ANDOR_CAMERA_FACTS["pixel_size"] / ANDOR_CAMERA_FACTS["magnification"]
 ) ** 2
+ANDOR_CAMERA_FACTS["sensor_width"] = 512
+ANDOR_CAMERA_FACTS["sensor_height"] = 512
 
 GRAVITY_DOPPLER_PER_SEC_CLOCK = (
     SR_FACTS["FREQUENCIES"]["698"] * scipy_constants.g / scipy_constants.c
@@ -49,6 +52,29 @@ GRAVITY_DOPPLER_PER_SEC_CLOCK = (
 USE_SR87 = True
 "Are we using strontium-87 or strontium-88 at the moment? For now, we simply alter this constant and recommit the code to swap isotopes"
 
+# ── Ballistic predictor constants ────────────────────────────────────────────
+
+SR_ATOM_MASS_KG = scipy_constants.atomic_mass * (87 if USE_SR87 else 88)
+CLOCK_WAVELENGTH_M = scipy_constants.c / SR_FACTS["FREQUENCIES"]["698"]
+
+# Lab-frame convention: +x = horizontal (along imaging axis), +y = horizontal
+# (perpendicular), +z = up.  Gravity points downward.
+GRAVITY_VEC_M_PER_S2 = np.array([0.0, 0.0, -scipy_constants.g])
+
+# Side-view Andor camera: looks from the +y direction toward the trap.
+# Sensor +x maps to lab +x; sensor +y maps to lab +z so that falling atoms
+# appear to move in the -y direction on the sensor, matching experiment.
+ANDOR_OPTICAL_AXIS_DEFAULT = np.array([0.0, 1.0, 0.0])
+ANDOR_SENSOR_X_AXIS_DEFAULT = np.array([1.0, 0.0, 0.0])
+ANDOR_SENSOR_Y_AXIS_DEFAULT = np.array([0.0, 0.0, 1.0])
+
+# Clock beam direction: +is_up kick is in the +z (up) direction.
+CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
+
+# Default ROI dimensions for dynamic-ROI imaging (pixels).
+DEFAULT_ROI_WIDTH = 100
+DEFAULT_ROI_HEIGHT = 100
+
 USE_LATTICE_MODE = False
 "Are we trying to load a lattice or just make a MOT? TODO: This should not be in this file."
 
@@ -56,7 +82,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.8e6,
+        frequency=364.684e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -479,7 +505,7 @@ _ANDOR_ROI_DIPOLE_WIDTH = 80
 FAST_KINETICS_DELAY_BETWEEN_PULSES = (
     3.5e-3  # Time enough for the ground-state atoms to exit
 )
-SLACK_FOR_GRAVITY = 20
+SLACK_FOR_GRAVITY = 25
 
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
@@ -487,7 +513,8 @@ _ANDOR_DIPOLE_TRAP_BACKWARD_Y = 246
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 298
+# _ANDOR_DIPOLE_TRAP_FORWARD_Y = 298  # FIXME changed by charles
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 290
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
@@ -544,33 +571,15 @@ ANDOR_689_FAST_KINETICS_X1 = 160
 FLUORESCENCE_PULSE_DURATION_689 = 4e-6
 
 
-# IMAGING ROIS FOR SINGLE IMAGING
+# IMAGING ROIS FOR SINGLE IMAGING BACKGROUND SUBTRACTION
 
-_ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y = 290  # 4ms dropping time
+# Read obsidian labbook entry '2026-04-20 Redefining Dipole ROI for single background imaging' for
+# why it's defined like this
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = 166
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = 246
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = 250
+ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = 290
 
-_ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE = 40
-_ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE = (
-    0  # shift in the horizontal direction to have the streak not in the BG image
-)
-_ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE = 10
-_ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE = 2
-
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X0 = (
-    round(_ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
-    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
-)
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1 = (
-    round(_ANDOR_DIPOLE_TRAP_FORWARD_X + _ANDOR_ROI_DIPOLE_WIDTH_SINGLE_IMAGE / 2)
-    + _ANDOR_ROI_DIPOLE_X_SHIFT_SINGLE_IMAGE
-)
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0 = round(
-    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
-    - _ANDOR_ROI_DIPOLE_HEIGHT_BELOW_SINGLE_IMAGE
-)
-ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1 = round(
-    _ANDOR_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y
-    + _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE_SINGLE_IMAGE
-)
 ROI_SHIFT_EXCITED_STATE = 16
 
 DEFAULT_CAMERA_EXPOSURE_TIME = 200e-6
@@ -697,7 +706,7 @@ SUSERVOED_BEAMS = [
         80e6,
         20,
         "suservo_aom_singlepass_487_transparency",
-        setpoint=0.7,
+        setpoint=0.5,
         servo_enabled=True,
     ),
     ### RED ###
@@ -782,7 +791,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.606e6,
+        99.4853e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -813,7 +822,7 @@ SUSERVOED_BEAMS = [
         attenuation=5.0,
         suservo_device="suservo_aom_up_813",
         servo_enabled=True,
-        initial_amplitude=0.0,
+        initial_amplitude=1.0,
         setpoint=1.5,
     ),
     SUServoedBeam(
@@ -848,7 +857,7 @@ SUSERVOED_BEAMS = [
     SUServoedBeam(
         "squeezing_cavity_698_transmission",
         frequency=80e6,
-        attenuation=14.0,
+        attenuation=4.0,
         suservo_device="suservo_aom_698_squeezing_cavity_transmission",
         servo_enabled=True,
         initial_amplitude=0.5,
@@ -886,6 +895,7 @@ _default_707 = 423_913_478e6 - 5e6  # 2025-08-07
 _default_679 = 441_332_627e6 + 20e6  # 2025-08-07
 _default_487 = 615_103_493e6 + 25e9  # From NIST + blue detuning
 _default_698 = 429_228_387.3e6 - 4.0e6  # Measured empirically
+_default_641 = 467_677_870e6  # Found in literature
 _clock_laser_offset = -80e6
 
 # Calibrated empirically - I know it's not right but we seem to optimize here
@@ -950,7 +960,7 @@ TOPTICA_TO_WAND_NAMES = {
     "toptica_679": "679",
     "toptica_707": "707",
     "toptica_689": "689",
-    "toptica_698": "698",
+    "toptica_641": "641",
     "toptica_487": "487",
 }
 
@@ -1027,7 +1037,7 @@ WAND_SETPOINTS_88 = {
     #     False,
     # ),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
@@ -1046,7 +1056,7 @@ WAND_SETPOINTS_87 = {
     # ),
     "688": (435_731_700e6, False),
     # "689_doubled1379": (_default_689, False),
-    "698": (_default_698, False),
+    "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
 }
 
@@ -1220,7 +1230,7 @@ else:
 RED_NARROWBAND_GRADIENT_FIELD_BACKWARD = 10
 
 
-# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperiment, so effectively ignored
+# TODO: the broadband biases are bound to blue MOT currents in RedMOTWithExperimentBase, so effectively ignored
 # This should be confirmed and then these settings removed
 RED_BROADBAND_BIAS_FIELD_START = [
     B_FIELD_BIAS_BLUE_MOT_X,
@@ -1402,12 +1412,12 @@ XODT_EVAP_3_END = [0.18, 0.7]
 
 
 # SUServo order: [1064 delivery, down 813, painter, up 813]
-XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 0.0]
-XODT_ADIABATIC_END = [0.0, 0.2, 1.0, 0.0]
+XODT_ADIABATIC_START = [1.0, 0.7, 1.0, 0.4]
+XODT_ADIABATIC_END = [0.0, 0.0, 1.0, 0.4]
 
 PAINT_ADIABATIC_RAMP_DURATION = 50e-3
 PAINT_ADIABATIC_RAMP_START = [1.0, 0.7, 1.0, 0.0]
-PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0, 0.0]
+PAINT_ADIABATIC_RAMP_END = [1.0, 0.7, 1.0, 0.4]
 
 
 CLOCK_LASER_BEATNOTE_FREQUENCY = 80e6  # this is set on the rigol for the clock laser lock. if you change that, change this.
@@ -1445,7 +1455,6 @@ XODT_SINGLE_LOADING_689_DETUNING_END = [
 ]
 RED_COMPRESSION_MOT_UP_BEAM_SETPOINT_FOR_SINGLE_XODT = 3.5
 XODT_SINGLE_LOADING_STIR_DETUNING = -8e3
-XODT_SINGLE_NARROWBAND_COMPRESSION_GRADIENT = 10.0
 
 TOTAL_EVAP_HOLD_TIME = 0.01
 
@@ -1473,7 +1482,7 @@ _CAVITY_RAMP_RATE = (
 )
 
 
-_CAVITY_OFFSET_689 = 331.543688e6
+_CAVITY_OFFSET_689 = 335.543688e6
 _REFERENCE_TIME_689 = 1739450287
 _CAVITY_RAMP_RATE_689 = _CAVITY_RAMP_RATE
 
@@ -1539,5 +1548,5 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
 DOWN_CLOCK_BEAM_PI_TIME = 68e-6
 MOMENTUM_KICK_DETUNING = 9400
-LMT_OFFSET_DETUNING = -6e3
+LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3

@@ -123,13 +123,20 @@
 
       # Add pre-commit hooks and WSL display fix to the default shell
       devShells = let
-        newDefaultShell = overriddenOutputs.devShells.default.overrideAttrs (prev: {
-          shellHook = ''
-            ${self.checks.${system}.pre-commit-check.shellHook}
-            source ${self}/scripts/wsl_display_fix.sh
-          '';
-          buildInputs = prev.buildInputs ++ self.checks.${system}.pre-commit-check.enabledPackages;
-        });
+        preCommitPkg = pkgs.lib.findFirst (p: p.name == "pre-commit-4.5.1") null self.checks.${system}.pre-commit-check.buildInputs;
+        preCommitWrapper = pkgs.writeShellScriptBin "pre-commit" ''
+          unset PYTHONPATH
+          exec ${preCommitPkg}/bin/pre-commit "$@"
+        '';
+        newDefaultShell =
+          overriddenOutputs.devShells.default.overrideAttrs
+          (prev: {
+            shellHook = ''
+              ${self.checks.${system}.pre-commit-check.shellHook}
+              export PATH="${preCommitWrapper}/bin:${pkgs.lib.makeBinPath self.checks.${system}.pre-commit-check.enabledPackages}:$PATH"
+              source ${self}/scripts/wsl_display_fix.sh
+            '';
+          });
       in
         overriddenOutputs.devShells // {default = newDefaultShell;};
 
@@ -150,6 +157,11 @@
           hooks = {
             alejandra.enable = true;
             autoflake.enable = true;
+            autoflake.args = [
+              "--remove-all-unused-imports"
+              "--remove-unused-variables"
+              "--in-place"
+            ];
             black.enable = true;
             check-case-conflicts.enable = true;
             check-merge-conflicts.enable = true;
@@ -199,7 +211,7 @@
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
 
-              if rg FIXME "${self}" -g "!nix" -g !flake.nix -g !readme.rst -g !AGENTS.md; then
+              if rg FIXME "${self}" -g "!nix" -g !flake.nix -g !readme.rst -g !AGENTS.md -g "!archived_experiments"; then
                 echo \"FIXME\" found in files
                 exit 1
               else
@@ -286,7 +298,7 @@
             # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
             # since we must hard-code the IP of the labserver in the moninj proxy otherwise
             # dashboards don't know where to connect to it.
-            moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
+            moninj_proxy_ctlmgr = "sleep 5 && artiq_ctlmgr  --server ${bind_settings.connection_ip} --bind \\* -v --host-filter ${bind_settings.connection_ip} --port-control 32490";
 
             # Automatic startup of database monitors
             monitor_launcher = "sleep 30 && artiq_client -s ${bind_settings.connection_ip} submit -p monitors -P -10 -R --flush -c MonitorMaster repository/monitors/monitor_master.py && sleep infinity";
@@ -296,8 +308,13 @@
                 commands =
                   prev.commands
                   // {
-                    inherit backup_database backup_datasets moninj_proxy_ctlmgr monitor_launcher;
-                    ndscan_janitor = "ndscan_dataset_janitor --timeout 7200"; # 2 hours
+                    inherit
+                      backup_database
+                      backup_datasets
+                      moninj_proxy_ctlmgr
+                      monitor_launcher
+                      ;
+                    ndscan_janitor = "ndscan_dataset_janitor --timeout 7200 --server ${bind_settings.connection_ip}"; # 2 hours
                   };
               }
               // bind_settings);

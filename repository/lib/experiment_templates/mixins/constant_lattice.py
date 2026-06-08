@@ -3,13 +3,14 @@ import logging
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 
-from repository.lib import constants
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class ConstantBeamsMixin(RedMOTWithExperiment):
+class ConstantBeamsMixin(RedMOTWithExperimentBase):
     """
     Leaves a list of SUServo beams on throughout the entire sequence.
 
@@ -33,10 +34,10 @@ class ConstantBeamsMixin(RedMOTWithExperiment):
             make_set_beams_to_default(
                 suservo_beam_infos=[
                     # constants.SUSERVOED_BEAMS["lattice_input_1379"],
-                    constants.SUSERVOED_BEAMS["down_813"],
+                    # constants.SUSERVOED_BEAMS["down_813"],
                     # constants.SUSERVOED_BEAMS["up_813"],
                     # constants.SUSERVOED_BEAMS["dipole_trap_1064_delivery"],
-                    constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"],
+                    # constants.SUSERVOED_BEAMS["dipole_trap_painted_1064_delivery"],
                     # constants.SUSERVOED_BEAMS["clock_delivery"],
                     # constants.SUSERVOED_BEAMS["stark_shifter_689_delivery"],
                     # constants.SUSERVOED_BEAMS["squeezing_cavity_698_transmission"],

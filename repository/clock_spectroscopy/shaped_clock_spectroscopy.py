@@ -6,9 +6,9 @@ from ndscan.experiment.entry_point import make_fragment_scan_exp
 from numpy import int64
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
     NormalisedDipoleTrapFastKineticsMixin,
 )
@@ -31,12 +31,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy_shaped import
     ShapedRabiSpectroscopyDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsMixin,
-)
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
-    EvaporationThreeRampsWithFieldRampMixin,
-)
-from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
 )
 from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
@@ -45,51 +39,17 @@ from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import
 from repository.lib.experiment_templates.mixins.optical_pumping import (
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.painted_quadratic import (
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+)
+from repository.lib.experiment_templates.mixins.XODT_loading import (
+    LoadSingleXODTWithPainterMixin,
+)
 from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 
 logger = logging.getLogger(__name__)
-
-
-class ShapedClockSpecFromSingleXODTFrag(
-    # Clock spec:
-    ShapedRabiSpectroscopyDipoleTrapMixin,
-    # Spin polarisation:
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    FieldOnlyRampInEvapMixin,
-    # Imaging:
-    NormalisedDipoleTrapFastKineticsMixin,
-    EMGain,
-    FLIRBlueMOTMeasurementMixin,
-    # Loading:
-    LoadSingleXODTMixin,
-    # Base:
-    DipoleTrapWithExperiment,
-):
-    """
-    Shaped clock spectroscopy from dropped single XODT
-
-    Load into an XODT, then use the up clock beam for spectroscopy, altering the
-    (single-pass) SUServo AOM's frequency and shaping the pulse with the final
-    switch AOM.
-
-    Image the ground state atoms, repump and image the excited state, then image
-    once more for background.
-    """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shaped_pulses()
 
 
 class ShapedClockSpecWithSlicingFrag(
@@ -103,12 +63,15 @@ class ShapedClockSpecWithSlicingFrag(
     # Imaging:
     NormalisedDipoleTrapFastKineticsMixin,
     NormalisedFastKineticsRepumpedMixin,
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
     # Loading:
-    LoadSingleXODTMixin,
+    LoadSingleXODTWithPainterMixin,
+    # Cooling
+    XODTSingleMolassesPlusDipoleRampMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
     # Base:
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Shaped clock spectroscopy from dropped, velocity-sliced single XODT
@@ -123,58 +86,8 @@ class ShapedClockSpecWithSlicingFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_dipole_trap_hook(self):
-        self.post_dipole_trap_hook_shaped_pulses()
-        delay_mu(int64(self.core.ref_multiplier))
-        self.post_dipole_trap_hook_default()
-        self.post_dipole_trap_hook_shelving_and_clearout()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_shaped_pulses()
-
-
-class ShapedClockSpecWithEvapAndSlicingFrag(
-    # Clock spec:
-    ShapedRabiSpectroscopyDipoleTrapMixin,
-    # Velocity slicing:
-    ClockShelvingAndClearoutDipoleTrapMixin,
-    # Spin polarisation:
-    OpticalPumpingWithFieldSettingDipoleTrapMixin,
-    XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsWithFieldRampMixin,
-    # Imaging:
-    NormalisedDipoleTrapFastKineticsMixin,
-    NormalisedFastKineticsRepumpedMixin,
-    EMGain,
-    FLIRBlueMOTMeasurementMixin,
-    # Loading:
-    LoadSingleXODTMixin,
-    # Base:
-    DipoleTrapWithExperiment,
-):
-    """
-    Shaped clock spectroscopy from dropped, velocity-sliced and evaporated single XODT
-
-    Load into an XODT, evaporate, drop the atoms, state-prepare, velocity-slice (unshaped)
-    then use the up clock beam for spectroscopy, altering the (single-pass)
-    SUServo AOM's frequency and shaping the pulse with the final switch AOM.
-
-    Image the ground state atoms, repump and image the excited state, then image
-    once more for background.
-    """
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_evap_with_field_ramp()
 
@@ -198,16 +111,18 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
     # Imaging
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
-    # Loading and state preparation
-    LoadSingleXODTMixin,
+    # Loading:
+    LoadSingleXODTWithPainterMixin,
+    # Cooling
     XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    # State prep
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # Slicing
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Down beam clock spectroscopy from dropped single XODT with evaporation, shaped shelving and clearout
@@ -221,9 +136,12 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_linear_evap()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_adiabatic_cooling()
+        self.DMA_initialization_hook_painter_on()
+        self.DMA_initialization_hook_xodt_molasses()
 
     @kernel
     def post_sequence_cleanup_hook(self):
@@ -231,6 +149,7 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
         self.post_dipole_trap_hook_shaped_pulses()
+        self.post_sequence_cleanup_hook_loading()
 
 
 class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
@@ -238,16 +157,19 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     # Imaging
     NormalisedDipoleTrapFastKineticsMixin,  # defines ROI
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
-    EMGain,
+    EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
-    # Loading and state preparation
-    LoadSingleXODTMixin,
+    # Loading:
+    LoadSingleXODTWithPainterMixin,
+    # Cooling
     XODTSingleMolassesPlusDipoleRampMixin,
-    EvaporationThreeRampsWithFieldRampMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    FieldOnlyRampInEvapMixin,
+    # State prep
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     # Slicing
     ShapedClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Clock spectroscopy from dropped single XODT with evaporation, shaped shelving and clearout
@@ -261,9 +183,14 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
 
     @kernel
     def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_evap_with_field_ramp()
         self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_adiabatic_cooling()
+        self.DMA_initialization_hook_painter_on()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
 
     @kernel
     def post_sequence_cleanup_hook(self):
@@ -271,11 +198,8 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
         self.post_dipole_trap_hook_shaped_pulses()
+        self.post_sequence_cleanup_hook_loading()
 
-
-ShapedClockSpecFromSingleXODT = make_fragment_scan_exp(
-    ShapedClockSpecFromSingleXODTFrag, max_rtio_underflow_retries=0
-)
 
 ShapedClockSpecWithSlicing = make_fragment_scan_exp(
     ShapedClockSpecWithSlicingFrag, max_rtio_underflow_retries=0
@@ -284,11 +208,6 @@ ShapedClockSpecWithSlicing = make_fragment_scan_exp(
 ClockSpecFromSingleXODTEvaporatedShapedSlicing = make_fragment_scan_exp(
     ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag
 )
-
-ShapedClockSpecWithEvapAndSlicing = make_fragment_scan_exp(
-    ShapedClockSpecWithEvapAndSlicingFrag, max_rtio_underflow_retries=0
-)
-
 ClockSpecDownFromSingleXODTEvaporatedShapedSlicing = make_fragment_scan_exp(
     ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag
 )

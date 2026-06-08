@@ -111,7 +111,7 @@ class BroadbandRedPhaseWithBiasRamp(RedRampingPhaseWithAllFieldsAndSUServoBindin
     default_suservo_setpoint_multiples_end = (
         constants.RED_BROADBAND_SUSERVO_MULTIPLES_END
     )
-    # Note: these setter starts are bound to blue MOT currents in RedMOTWithExperiment
+    # Note: these setter starts are bound to blue MOT currents in RedMOTWithExperimentBase
     general_setter_default_starts = (
         constants.RED_BROADBAND_MOT_CURRENT_START
         + constants.RED_BROADBAND_BIAS_FIELD_START

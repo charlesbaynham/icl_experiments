@@ -120,14 +120,14 @@
             "locked": false,
             "locked_at": 0,
             "target": "",
-            "host": "10.137.2.4",
-            "port": 3284,
-            "type": "virtual",
+            "host": "10.137.2.10",
+            "port": 4001,
+            "type": "gaio",
             "v_pzt_min": 0.0,
             "v_pzt_max": 4.0,
             "v_step_max": 0.01
         },
-        "698": {
+        "641": {
             "auto_exposure": true,
             "channel": 3,
             "display_colour": "red",
@@ -140,7 +140,7 @@
             "fast_mode": false,
             "fast_mode_set_at": 1683033885.65985,
             "lock_capture_range": 3000000000.0,
-            "lock_gain": 1e-10,
+            "lock_gain": 0.3e-10,
             "lock_owner": "",
             "lock_poll_time": 20.0,
             "lock_ready": true,
@@ -148,7 +148,7 @@
             "lock_timeout": null,
             "locked": false,
             "locked_at": 0,
-            "host": "10.137.1.11",
+            "host": "10.137.1.12",
             "target": "laser2",
             "v_pzt_min": 5
         },

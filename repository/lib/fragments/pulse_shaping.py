@@ -4,16 +4,25 @@ import logging
 import artiq.coredevice.ad9910 as ad9910
 import artiq.coredevice.urukul as urukul
 import numpy as np
+from artiq.coredevice import spi2 as spi
+from artiq.coredevice import urukul
+from artiq.coredevice.ad9910 import _AD9910_REG_RAM
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.urukul import CFG_RST
 from artiq.coredevice.urukul import CPLD
+from artiq.experiment import RTIOUnderflow
 from artiq.language import TInt32
 from artiq.language import TList
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import portable
 from artiq.language import rpc
+from artiq.language.core import delay
+from artiq.language.core import kernel
+from artiq.language.core import portable
+from artiq.language.types import TInt32
+from artiq.language.types import TList
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -355,11 +364,7 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         else:
             if break_realtime:
-                duration_of_write = len(data) * 32 * (1 / 125e6)  # 32 bits at 125 MHz
-                # Allow 5x this for safety, since underflows here will corrupt the
-                # AD9910's state in a way that can't be recovered without a RESET.
                 self.core.break_realtime()
-                delay(5 * duration_of_write)
 
             # Configure RAM mode for this DDS. We'll use profile 0 for writing, but
             # it could be reconfigured later after the data has been stored.
@@ -376,10 +381,62 @@ class _ShapedPulse(Fragment, abc.ABC):
             # user has taken control themselves. So it's commented out with a check
             assert RAM_PROFILE == urukul.DEFAULT_PROFILE
 
-            self.dds.write_ram(data)
+            if break_realtime:
+                self.write_ram_with_breakrealtimes(self.dds, data)
+            else:
+                try:
+                    self.dds.write_ram(data)
+                except RTIOUnderflow:
+                    logger.error(
+                        "Underflow error and break_realtime is disabled. AD9910 state may be corrupted and require a reset"
+                    )
+                    raise
 
             # Here we would restore ARTIQ's default profile setting, but it's not
             # needed, since we never changed
+
+    @kernel
+    def write_ram_with_breakrealtimes(self, dds, data: TList(TInt32)):
+        """Write data to RAM.
+
+        This is copied from the ARTIQ ad9910 module, but with guard logic for
+        break realtimes added
+        """
+
+        retry = True
+        while retry:
+            try:
+                dds.bus.set_config_mu(
+                    urukul.SPI_CONFIG, 8, urukul.SPIT_DDS_WR, dds.chip_select
+                )
+                dds.bus.write(_AD9910_REG_RAM << 24)
+                dds.bus.set_config_mu(
+                    urukul.SPI_CONFIG, 32, urukul.SPIT_DDS_WR, dds.chip_select
+                )
+                retry = False
+            except RTIOUnderflow:
+                self.core.break_realtime()
+
+        for i in range(len(data) - 1):
+            try:
+                dds.bus.write(data[i])
+            except RTIOUnderflow:
+                self.core.break_realtime()
+                dds.bus.write(data[i])
+
+        retry = True
+        while retry:
+            try:
+                dds.bus.set_config_mu(
+                    urukul.SPI_CONFIG | spi.SPI_END,
+                    32,
+                    urukul.SPIT_DDS_WR,
+                    dds.chip_select,
+                )
+                dds.bus.write(data[len(data) - 1])
+                retry = False
+            except RTIOUnderflow:
+                self.core.break_realtime()
 
     @kernel
     def device_cleanup(self):
@@ -405,7 +462,7 @@ class _ShapedPulse(Fragment, abc.ABC):
         state that needs a power-cycle to fix (though I have never observed
         this).
         """
-        # type:(CPLD) -> None
+        # type: (CPLD) -> None
 
         """Pulse MASTER_RESET"""
 
@@ -650,6 +707,7 @@ class JessePulse(PhasorShapedPulse):
     "Jesse's velocity selection pulse (phase only)"
 
     def build_fragment(self, *args, **kwargs):
+        self.ram_offset = 0
         self._old_num_steps = -1
 
         super().build_fragment(*args, **kwargs)

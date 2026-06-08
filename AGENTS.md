@@ -103,17 +103,37 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Device definitions come from `device_db_config`
 - Use descriptive device names and aliases
 
+#### Clock Pulse Interactions
+
+All interactions with the clock beam (OPLL, switch DDSes, and pulse firing) **must** go through the dedicated tracking wrapper methods. Never call the underlying hardware objects directly, as this will desynchronise the pulse recorder, timing state, and frequency tracking used by other parts of the experiment.
+
+Use these methods instead of their raw counterparts:
+
+| Task                      | Use this method                       | Never use                                           |
+| ------------------------- | ------------------------------------- | --------------------------------------------------- |
+| Set OPLL frequency        | `set_clock_opll(freq)`                | `clock_opll.clock_frequency_ramper.set(...)`        |
+| Start OPLL ramp           | `start_clock_opll_ramp(...)`          | `clock_opll.clock_frequency_ramper.start_ramp(...)` |
+| Stop OPLL ramp            | `stop_clock_opll_ramp()`              | `clock_opll.clock_frequency_ramper.stop_ramp()`     |
+| Set up-beam DDS           | `set_clock_up_dds(freq, amp)`         | `clock_up_dds.set(...)` directly                    |
+| Set down-beam DDS         | `set_clock_down_dds(freq, amp)`       | `clock_down_dds.set(...)` directly                  |
+| Fire a spectroscopy pulse | `fire_lmt_pulse(freq, type, t_start)` | `clock_up_dds.sw.on/off` manually                   |
+
+These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_freq`, OPLL frequency records) that is read back by the pulse recorder and by gravity-compensation calculations (e.g. `get_t_start_shelving`). Bypassing them produces silently incorrect results.
+
 ### Testing
 
 - Write unit tests in `tests/` directory
+- Or, add valid experiment Fragments into `repository/tests`. These must be runnable on the live system, but will also be compile by the unit tests
 - Use `pytest` as the test runner
 - Tests run in parallel (`-n 16` by default)
 - Mark expected failures with `@pytest.mark.xfail`
 - Test non-kernel utility functions (kernel testing is difficult)
+- The `test_compile_all.py` test will compile every Fragment in the repo. It's very useful for catching errors, but also very expensive to run - it takes >1h. Only run the whole thing if explicitly requested, otherwise use pytest selectors to choose which tests from it you need.
 
 ### Documentation
 
 - Use **Google-style docstrings** for Sphinx autodoc
+- Docstrings should describe the current behaviour only; do not keep change history in them
 - Documentation auto-generates from experiment files
 - Build docs locally: `nix run .#docs`
 - Documentation deploys to GitLab Pages on master branch
@@ -132,6 +152,8 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - **The master branch should always be deployable** - no broken code or failing tests allowed
 
 ## Nix Environment
+
+Used for all dependencies. Never make a python venv yourself.
 
 ### Key Commands
 
@@ -398,10 +420,6 @@ Key differences:
 - No FIXME markers allowed in commits on the master branch
 - Document new experiments thoroughly
 
-### AI commits
-
-- When commiting code authored by AI assistants, prefix commits with "[AI]"
-
 ### Type annotation
 
 - ARTIQ and ndscan make heavy use of `setattr_xxxxxx` methods. These follow the convention that `self.setattr_xxxxx("name", ObjectType)` will make an object of type `ObjectType` and save it as `self.name`.
@@ -490,7 +508,7 @@ from artiq.master.worker_impl import CCB
     - Where appropriate, sensible "max" and "min" values should be added when making new parameters
 
 3. **External Libraries**:
-    - Where external libraries require non-base units (e.g. a laser library that takes current in "mA", do the conversion as close as possible to the call to the external library
+    - Where external libraries require non-base units (e.g. a laser library that takes current in "mA"), do the conversion as close as possible to the call to the external library
     - Example:
         ```python
         current = self.current_param.get()  # Get in Amperes (base SI)

@@ -1,5 +1,5 @@
 {
-    "python.testing.pytestArgs": ["tests"],
+    "python.testing.pytestArgs": ["."],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "cSpell.words": [
@@ -27,7 +27,11 @@
         "**/node_modules/*/**",
         "**/nix/aravis/**",
         "**/flake.nix",
-        "**/.git/**"
+        "**/.git/**",
+        "**/.claude/plans/*.md",
+        "**/.vscode/**",
+        "**/AGENTS.md",
+        "**/archived_experiments/**"
     ],
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
@@ -37,5 +41,7 @@
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
     "nixEnvSelector.useFlakes": true,
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "[ ]"],
+    "nixEnvSelector.flakeShell": "default"
 }

@@ -4,11 +4,11 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGain
+from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.midway_imaging import (
-    MidSequenceAndorImage,
+    MidSequenceAndorImageMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -24,12 +24,12 @@ logger = logging.getLogger(__name__)
 
 
 class ClockSpecMidwayImagingFrag(
-    MidSequenceAndorImage,
-    EMGain,
+    MidSequenceAndorImageMixin,
+    EMGainMixin,
     XODTSingleMolassesPlusFieldRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
-    DipoleTrapWithExperiment,
+    DipoleTrapWithExperimentBase,
 ):
     """
     Midway imaging of clock sequence

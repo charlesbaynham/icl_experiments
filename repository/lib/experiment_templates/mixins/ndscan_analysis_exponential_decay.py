@@ -1,9 +1,11 @@
 from ndscan.experiment import OnlineFit
 
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 
-class ExponentialDecayMixin(RedMOTWithExperiment):
+class ExponentialDecayMixin(RedMOTWithExperimentBase):
     def get_default_analyses(self):
         super_analysis = super().get_default_analyses()
 
