@@ -192,8 +192,8 @@ class ClockSpecDownFromSingleXODTEvaporatedShelvingFrag(
     NormalisedFastKineticsRepumpedMixin,  # turns on repumps
     EMGainMixin,
     FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTWithPainterMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
+    LoadSingleXODTWithPainterMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     FieldOnlyRampInEvapMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
