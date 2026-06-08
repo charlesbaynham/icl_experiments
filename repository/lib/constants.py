@@ -960,6 +960,7 @@ TOPTICA_TO_WAND_NAMES = {
     "toptica_679": "679",
     "toptica_707": "707",
     "toptica_689": "689",
+    "toptica_698": "698",
     "toptica_641": "641",
     "toptica_487": "487",
 }
