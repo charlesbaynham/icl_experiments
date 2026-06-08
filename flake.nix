@@ -123,19 +123,21 @@
 
       # Add pre-commit hooks and WSL display fix to the default shell
       devShells = let
-        preCommitPkg = pkgs.lib.findFirst (p: p.name == "pre-commit-4.5.1") null self.checks.${system}.pre-commit-check.buildInputs;
+        preCommitPkg = pkgs.pre-commit;
         preCommitWrapper = pkgs.writeShellScriptBin "pre-commit" ''
           unset PYTHONPATH
           exec ${preCommitPkg}/bin/pre-commit "$@"
         '';
+
         newDefaultShell =
           overriddenOutputs.devShells.default.overrideAttrs
           (prev: {
-            shellHook = ''
-              ${self.checks.${system}.pre-commit-check.shellHook}
-              export PATH="${preCommitWrapper}/bin:${pkgs.lib.makeBinPath self.checks.${system}.pre-commit-check.enabledPackages}:$PATH"
-              source ${self}/scripts/wsl_display_fix.sh
-            '';
+            shellHook =
+              ''
+                source ${self}/scripts/wsl_display_fix.sh
+                export PATH="${preCommitWrapper}/bin:${pkgs.lib.makeBinPath self.checks.${system}.pre-commit-check.enabledPackages}:$PATH"
+              ''
+              + self.checks.${system}.pre-commit-check.shellHook;
           });
       in
         overriddenOutputs.devShells // {default = newDefaultShell;};
