@@ -130,6 +130,31 @@
         "641": {
             "auto_exposure": true,
             "channel": 3,
+            "display_colour": "blue",
+            "exposure": [
+                70,
+                70
+            ],
+            "f_ref": 0.0,
+            "fast_enabled_at": 0,
+            "fast_mode": false,
+            "fast_mode_set_at": 1683033885.65985,
+            "lock_capture_range": 3000000000.0,
+            "lock_gain": 0.3e-10,
+            "lock_owner": "",
+            "lock_poll_time": 20.0,
+            "lock_ready": true,
+            "lock_set_point": 0,
+            "lock_timeout": null,
+            "locked": false,
+            "locked_at": 0,
+            "host": "10.137.1.12",
+            "target": "laser2",
+            "v_pzt_min": 5
+        },
+        "698": {
+            "auto_exposure": true,
+            "channel": 3,
             "display_colour": "red",
             "exposure": [
                 70,
