@@ -8,6 +8,10 @@ This repository holds the ARTIQ experiments, imported by ARTIQ as an
 also includes a complete Nix definition of the working environment
 required to run ARTIQ, thus pinning all dependencies as well.
 
+Note that this repository is configued for use with Claude Code and other AI
+harnesses. Just open it in your harness of preference to benefit from various
+hooks, skills and guidance.
+
 Overview
 ========
 
