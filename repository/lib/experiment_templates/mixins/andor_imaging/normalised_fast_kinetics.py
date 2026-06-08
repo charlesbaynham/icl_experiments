@@ -77,7 +77,7 @@ class NormalisedDipoleTrapFastKineticsMixin(NormalisedFastKineticsBase):
             y0=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y0,
             x1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_X1,
             y1=constants.ANDOR_ROI_DIPOLE_TRAP_FORWARD_SINGLE_IMAGE_Y1,
-            excited_shift=5,  # constants.ROI_SHIFT_EXCITED_STATE,
+            excited_shift=0,  # constants.ROI_SHIFT_EXCITED_STATE,
         )
         self.andor_camera_config: NormalisedDipoleTrapFKConfig
         return f
