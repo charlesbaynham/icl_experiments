@@ -12,16 +12,12 @@ class VRS_Probe_Ramper(Fragment):
     of the 689 AM to probe the VRS in the squeezing setup
     """
 
-    def build_fragment(self):
+    def build_fragment(self, ad9910_name=None):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment(
-            "probe_ramper",
-            AD9910Ramper,
-            # We need to still fill in the correct urukul for this device
-            # constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
-        )
+        self.setattr_fragment("probe_ramper", AD9910Ramper, ad9910_name)
+
         self.probe_ramper: AD9910Ramper
 
         self.setattr_argument(
@@ -51,7 +47,8 @@ class VRS_Probe_Ramper(Fragment):
             neg_delay_mu=delay_mu,
         )
 
-        # The main difference in this is that the probe ramper has the no-dwell modes on low
+        # The main difference compared with the pyaion is that the probe ramper has the no-dwell modes on low
+        # and is not triggered
         self.probe_ramper._extended_set_cfr2(
             drg_enable=1, no_dwell_low=0, no_dwell_high=0
         )
