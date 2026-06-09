@@ -777,6 +777,20 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             wave_type=1,
         )
 
+        # The RAM playback carrier was set by prepare_pulse, which bypasses
+        # set_clock_up_dds, so without this the record would report the
+        # (unused) single-tone profile frequency for this pulse.
+        self._tracked_up_switch_freq = CLOCK_UP_BEAM_INFO.frequency
+
+        # TODO: The pulse record has no notion of shaped pulses, so this is
+        # registered as a square pulse with the same duration and carrier
+        # frequency. Extend the record format to describe the envelope (and
+        # the OPLL ramp during the pulse) properly.
+        self.register_pulse(
+            duration_s=self.first_lmt_shaped_pulse.pulse_duration.get(),
+            is_up=True,
+        )
+
         # pulse
         self.first_lmt_shaped_pulse.trigger_pulse()
 
