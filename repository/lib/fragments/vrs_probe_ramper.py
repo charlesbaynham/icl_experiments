@@ -1,0 +1,69 @@
+from artiq.coredevice.core import Core
+from artiq.experiment import NumberValue
+from ndscan.experiment import Fragment
+from numpy import ceil
+from numpy import int32
+from pyaion.fragments.ad9910_ramper import AD9910Ramper
+
+
+class VRS_Probe_Ramper(Fragment):
+    """
+    This fragment controls the DDS that generates RF ramp that shifts the frequency
+    of the 689 AM to probe the VRS in the squeezing setup
+    """
+
+    def build_fragment(self):
+        self.setattr_device("core")
+        self.core: Core
+
+        self.setattr_fragment(
+            "probe_ramper",
+            AD9910Ramper,
+            # We need to still fill in the correct urukul for this device
+            # constants.URUKULED_BEAMS["698_clock_OPLL_offset"].urukul_device,
+        )
+        self.probe_ramper: AD9910Ramper
+
+        self.setattr_argument(
+            "dF_dt", NumberValue(default=20e3, unit="KHz", precision=3)
+        )
+
+        # set the maximum frequency, this needs to be larger than the VRS as we
+        # plan on overshooting this value.
+        self.setattr_argument(
+            "max_f", NumberValue(default=50e6, unit="MHz", precision=6)
+        )
+
+        # Now we want to set the parameters of the AD9910 Ramper manually
+        self.probe_ramper.set_ramp_limits(frequency_low=0, frequency_high=self.max_f)
+
+        # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
+        M_factor = (4.0 * (2.0**32.0)) * self.dF_dt / self.probe_ramper.dds.sysclk**2.0
+
+        # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
+        freq_step_mu = int32(max(ceil(M_factor), 1000.0))
+        delay_mu = int32(round(freq_step_mu / M_factor))
+
+        self.probe_ramper.set_ramp_parameters_mu(
+            pos_freq_step_mu=freq_step_mu,
+            pos_delay_mu=delay_mu,
+            neg_freq_step_mu=freq_step_mu,
+            neg_delay_mu=delay_mu,
+        )
+
+        # The main difference in this is that the probe ramper has the no-dwell modes on low
+        self.probe_ramper._extended_set_cfr2(
+            drg_enable=1, no_dwell_low=0, no_dwell_high=0
+        )
+
+    def trigger(self):
+        """
+        Trigger the ramp
+        """
+        self.probe_ramper._pulse_io_update()
+
+    def stop(self):
+        """
+        Stop the ramp
+        """
+        self.probe_ramper.stop_ramp()
