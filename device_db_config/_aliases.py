@@ -57,6 +57,7 @@ aliases = {
     "urukul9910_OPLL_698_clock": "urukul8_ch2",
     "suservo_aom_698_clock_delivery": "suservo0_ch0",
     "suservo_aom_698_squeezing_cavity_transmission": "suservo0_ch2",
+    "urukul_squeezing_probe": "urukul5_ch1",
     # %% TTLs
     "TTL_shutter_461_pushbeam": "ttl8",
     "TTL_shutter_461_2dmot_is_it_a": "ttl9",
