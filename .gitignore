@@ -15,6 +15,13 @@ _build
 html_out
 report.xml
 
+# Scratch benchmark / diff-test harnesses for compile-time optimization work
+_diff_harness.py
+_run_diff.sh
+_sweep.sh
+_difftests/
+bench_*.py
+
 # Generated automatically by nix git-hooks
 # See https://github.com/cachix/git-hooks.nix
 .pre-commit-config.yaml
