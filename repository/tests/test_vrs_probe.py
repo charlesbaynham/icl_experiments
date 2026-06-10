@@ -1,6 +1,8 @@
 import logging
 
+from RsInstrument import *
 from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
@@ -23,7 +25,6 @@ class TestVRSProbeRamperFrag(ExpFragment):
 
         self.dds: AD9910 = self.get_device(URUKUL)
         self.setattr_device
-
         # Params
 
         # Fragments
@@ -52,6 +53,41 @@ class TestVRSProbeRamperFrag(ExpFragment):
         logger.info("Probe min frequency: %f", self.probe_ramper.min_f.get())
 
 
+class TestRTBSetupFrag(ExpFragment):
+
+    def build_fragment(self):
+        # devices
+        self.setattr_device("core")
+        self.core: Core
+
+        # setup the TTL
+        # FILL IN WITH THE CORRECT NAME!
+        self.ttl = self.get_device("ttl_shutter_repump_707")
+        self.ttl: TTLOut
+
+        self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
+        # Set the trigger to an external signal
+        self.rtb.write_str("TRIG:A:SOUR EXT")
+        # Set the trigger to be the positive edge
+        self.rtb.write_str("TRIG:A:TYPE EDGE")
+        self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
+        # Set the trigger height to be 3 V
+        self.rtb.write_str("TRIG:A:LEV5 3")
+
+        # Set the acquisition settings CH1 is the PMT signal
+        self.rtb.write_str("TIM:ACQT 0.01")  # 10ms Acquisition time
+        self.rtb.write_str("CHAN1:RANG 5.0")  # Horizontal range 5V (0.5V/div)
+        self.rtb.write_str("CHAN1:OFFS 0.0")  # Offset 0
+        self.rtb.write_str("CHAN1:STAT ON")  # Switch Channel 1 ON
+
+    def run_once(self) -> None:
+        # Pulse the TTL for 10 ms
+        self.ttl.pulse(10e-3)
+        delay(10e-3)
+
+
 TestVRSProbeRamper = make_fragment_scan_exp(
     TestVRSProbeRamperFrag, max_rtio_underflow_retries=0
 )
+
+TestRTBSetup = make_fragment_scan_exp(TestRTBSetupFrag)
