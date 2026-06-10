@@ -963,6 +963,13 @@ class LMTInterferometryMixin(
         self.first_beam_splitter(t_pi_down, N_launch)
         delay(2e-6)
 
+        t_start_selective_pulse = now_mu() + self.core.seconds_to_mu(10e-6)
+
+        # Do a Stark shifting pulse in the first dark time
+        self.stark_shifter.do_stark_pulse()
+
+        at_mu(t_start_selective_pulse)
+
         # First pulse with a lower Rabi frequency, up beam pulse
         if N > 1:
             self.set_clock_up_dds(
@@ -997,9 +1004,6 @@ class LMTInterferometryMixin(
 
         delay_mu(8)
         t_end_bs_mu = now_mu()
-
-        # Do a Stark shifting pulse in the first dark time
-        self.stark_shifter.do_stark_pulse()
 
         # dark time
         t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
@@ -1112,6 +1116,8 @@ class LMTInterferometryMixin(
             )
 
             delay(8e-9)
+
+        delay(10e-6)
 
         self.last_beam_splitter(t_pi_down, N_launch, last_bs_frequency)
 
