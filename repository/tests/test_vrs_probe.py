@@ -1,3 +1,5 @@
+import logging
+
 from artiq.coredevice.core import Core
 from artiq.language import kernel
 from ndscan.experiment import ExpFragment
