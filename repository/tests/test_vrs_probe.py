@@ -11,6 +11,8 @@ from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
 
+URUKUL = "urukul_squeezing_probe"
+
 
 class TestVRSProbeRamperFrag(ExpFragment):
 
@@ -18,14 +20,10 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_device("urukul_squeezing_probe")
+        self.setattr_device(URUKUL)
         self.dds: AD9910
 
-        self.setattr_fragment(
-            "probe_ramper",
-            VRS_Probe_Ramper,
-            # I need an ad9910 name
-        )
+        self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, URUKUL)
         self.probe_ramper: VRS_Probe_Ramper
 
     @kernel
