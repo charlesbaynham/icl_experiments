@@ -146,9 +146,10 @@ class _ShapedPulse(Fragment, abc.ABC):
         # Done in host_setup so that dds.cpld exists:
         self.cpld: CPLD = self.dds.cpld
 
-        # for replacement in kernel
-        self._step_mu = 0
-        self._step_duration = 0.0
+        # Initialise from params so trigger_pulse never silently advances by 0.
+        # device_setup_base recomputes per shot for scanned params.
+        self._step_duration = self.pulse_duration.get() / self.num_steps.get()
+        self._step_mu = min(self._seconds_to_ram_mu(self._step_duration), 0xFFFF)
 
     @abc.abstractmethod
     def _get_ram_words(self) -> TList(TInt32):
@@ -285,6 +286,10 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         Advances the timeline by the duration of the pulse
         """
+        if self._step_duration == 0.0:
+            logger.error("Step duration is zero, device_setup was not called")
+            raise RuntimeError("Step duration is zero")
+
         self.start_output()
         delay(self._step_duration * self.num_steps.get())
         self.stop_output()
