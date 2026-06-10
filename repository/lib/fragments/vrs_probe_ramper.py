@@ -1,5 +1,4 @@
 from artiq.coredevice.core import Core
-from artiq.experiment import NumberValue
 from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
