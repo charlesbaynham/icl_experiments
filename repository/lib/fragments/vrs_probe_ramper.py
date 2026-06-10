@@ -1,6 +1,8 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import NumberValue
 from artiq.language import kernel
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment import Fragment
 from numpy import ceil
 from numpy import int32
@@ -20,20 +22,38 @@ class VRS_Probe_Ramper(Fragment):
         self.setattr_fragment("probe_ramper", AD9910Ramper, ad9910_name)
         self.probe_ramper: AD9910Ramper
 
-        self.setattr_argument(
-            "dF_dt", NumberValue(default=20e3, unit="kHz", precision=3)
+        self.setattr_param(
+            "dF_dt",
+            FloatParam,
+            description="Rate of change of frequency",
+            default=20e3,
+            min=1,
+            unit="kHz",
+        )
+
+        self.setattr_param(
+            "max_f",
+            FloatParam,
+            description="Final scan frequency",
+            default=50e6,
+            min=1,
+            unit="MHz",
+        )
+
+        self.setattr_param(
+            "min_f",
+            FloatParam,
+            description="Initial scan frequency",
+            default=0.0,
+            unit="MHz",
         )
 
         # set the maximum frequency, this needs to be larger than the VRS as we
         # plan on overshooting this value.
-        self.setattr_argument(
-            "max_f", NumberValue(default=50e6, unit="MHz", precision=6)
-        )
 
-        self.setattr_argument(
-            "min_f", NumberValue(default=0.0, unit="MHz", precision=6)
-        )
-        self.min_f: float
+        self.dF_dt: FloatParamHandle
+        self.max_f: FloatParamHandle
+        self.min_f: FloatParamHandle
 
     @kernel
     def device_setup(self) -> None:
@@ -43,11 +63,13 @@ class VRS_Probe_Ramper(Fragment):
 
         # Now we want to set the parameters of the AD9910 Ramper manually
         self.probe_ramper.set_ramp_limits(
-            frequency_low=self.min_f, frequency_high=self.max_f
+            frequency_low=self.min_f.get(), frequency_high=self.max_f.get()
         )
 
         # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
-        M_factor = (4.0 * (2.0**32.0)) * self.dF_dt / self.probe_ramper.dds.sysclk**2.0
+        M_factor = (
+            (4.0 * (2.0**32.0)) * self.dF_dt.get() / self.probe_ramper.dds.sysclk**2.0
+        )
 
         # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
         freq_step_mu = int32(max(ceil(M_factor), 1000.0))
