@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# The nix flake pulls private GitLab repos (gitlab.com/aion-physics/...).
+# Mirror .gitlab-ci.yml's `.deps` before_script: write ~/.netrc with a token so
+# the flake fetch can authenticate. Requires a repository Actions secret
+# GITLAB_TOKEN (GitLab personal/group access token with read_repository scope).
+# (check-fixme doesn't build the env, so it needs no credentials.)
+
+jobs:
+  pre-commit:
+    name: Static analysis (pre-commit)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write netrc for private GitLab flake inputs
+        run: |
+          umask 077
+          printf 'machine gitlab.com\nlogin oauth2\npassword %s\n' \
+            "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix develop -c pre-commit run --all-files
+
+  check-fixme:
+    name: Check for FIXME
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix run .#check_for_fixme
+
+  pytest:
+    name: pytest (${{ matrix.group }}/16)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write netrc for private GitLab flake inputs
+        run: |
+          umask 077
+          printf 'machine gitlab.com\nlogin oauth2\npassword %s\n' \
+            "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Restore test durations cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.run_id }}-${{ matrix.group }}
+          restore-keys: |
+            test-durations-${{ github.run_id }}-
+            test-durations-
+      - name: Run pytest
+        run: >
+          nix run .#pytest --
+          --runslow
+          --splitting-algorithm least_duration
+          --splits 16
+          --group ${{ matrix.group }}
+      - name: Save test durations cache
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.run_id }}-${{ matrix.group }}
+      - name: Upload junit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report-${{ matrix.group }}
+          path: report.xml
+          if-no-files-found: ignore

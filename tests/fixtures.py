@@ -99,10 +99,24 @@ def experiment_factory(
 def fragment_precompiler(fragment_factory):
     def do(exp):
         def precompile(self):
-            for func in [self.device_setup, self.run_once, self.device_cleanup]:
-                if hasattr(func, "artiq_embedded"):
-                    precompiled = self.core.precompile(func)
-                    print(precompiled)
+            from artiq.language import kernel, kernel_from_string
+
+            # Compile device_setup -> run_once -> device_cleanup as a single kernel,
+            # mirroring how _FragmentRunner runs them in one kernel invocation in
+            # production (rather than compiling each method separately). This is a
+            # compile-only test: only the methods that are actually kernels/portables
+            # are included, and non-kernel lifecycle methods are skipped (never
+            # executed), matching the previous fixture's behaviour.
+            kernel_calls = [
+                f"self.{name}()"
+                for name in ("device_setup", "run_once", "device_cleanup")
+                if hasattr(getattr(self, name), "artiq_embedded")
+                and not getattr(self, name).artiq_embedded.forbidden
+            ]
+            if kernel_calls:
+                combined = kernel_from_string(["self"], "\n".join(kernel_calls), kernel)
+                precompiled = self.core.precompile(combined, self)
+                print(precompiled)
 
         setattr(exp, "precompile", precompile)
 
