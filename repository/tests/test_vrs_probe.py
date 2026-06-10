@@ -71,14 +71,16 @@ class TestRTBSetupFrag(ExpFragment):
         # Set the trigger to be the positive edge
         self.rtb.write_str("TRIG:A:TYPE EDGE")
         self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
-        # Set the trigger height to be 3 V
-        self.rtb.write_str("TRIG:A:LEV5 3")
+        # Set the trigger height to be 1 V
+        self.rtb.write_str("TRIG:A:LEV5 1")
 
         # Set the acquisition settings CH1 is the PMT signal
-        self.rtb.write_str("TIM:ACQT 0.01")  # 10ms Acquisition time
-        self.rtb.write_str("CHAN1:RANG 5.0")  # Horizontal range 5V (0.5V/div)
+        self.rtb.write_float("TIM:ACQT", 0.01)  # 10ms Acquisition time
+        self.rtb.write_str("CHAN1:RANG 5.0")  # Total Vertical range 5V (0.5V/div)
         self.rtb.write_str("CHAN1:OFFS 0.0")  # Offset 0
         self.rtb.write_str("CHAN1:STAT ON")  # Switch Channel 1 ON
+        # Sample Data, we want the max of 20 MSa per segment
+        self.rtb.write_float("ACQ:POIN", 20e6)
 
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms

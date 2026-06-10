@@ -60,6 +60,7 @@ aliases = {
     "urukul_squeezing_probe": "urukul8_ch3",
     # %% TTLs
     # ttl0-3 bank set to In/Out
+    "ttl_vrs_scope_trigger": "ttl0",
     "ttl_50hz_trigger": "ttl1",
     # other TTLs are all set to Output:
     "ttl_camera_trigger_andor": "ttl4",
