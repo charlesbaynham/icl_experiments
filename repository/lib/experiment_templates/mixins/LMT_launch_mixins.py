@@ -960,7 +960,7 @@ class LMTInterferometryMixin(
         last_bs_frequency = self.last_bs_freq.get()
 
         # PI/2 PULSE
-        self.first_beam_splitter(t_first_pi, N_launch)
+        self.first_beam_splitter(t_pi_down, N_launch)
         delay(2e-6)
 
         # First pulse with a lower Rabi frequency, up beam pulse

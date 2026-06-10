@@ -163,6 +163,10 @@ class DipoleTrapWithExperimentBase(
         self._tracked_delivery_aom_setpoint = 0.0  # V, delivery AOM SUServo setpoint
 
     @kernel
+    def DMA_record_hook(self):
+        self.dma_recording_fragment.record_pulse_sequence()
+
+    @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_dipole_trap_default()
