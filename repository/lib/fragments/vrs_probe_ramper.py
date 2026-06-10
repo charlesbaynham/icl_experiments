@@ -30,8 +30,14 @@ class VRS_Probe_Ramper(Fragment):
             "max_f", NumberValue(default=50e6, unit="MHz", precision=6)
         )
 
+        self.setattr_argument(
+            "min_f", NumberValue(default=0.0, unit="MHz", precision=6)
+        )
+
         # Now we want to set the parameters of the AD9910 Ramper manually
-        self.probe_ramper.set_ramp_limits(frequency_low=0, frequency_high=self.max_f)
+        self.probe_ramper.set_ramp_limits(
+            frequency_low=self.min_f, frequency_high=self.max_f
+        )
 
         # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
         M_factor = (4.0 * (2.0**32.0)) * self.dF_dt / self.probe_ramper.dds.sysclk**2.0
