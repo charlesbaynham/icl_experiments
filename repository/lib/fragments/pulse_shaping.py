@@ -285,6 +285,10 @@ class _ShapedPulse(Fragment, abc.ABC):
 
         Advances the timeline by the duration of the pulse
         """
+        if self._step_duration == 0.0:
+            logger.error("Step duration is zero, device_setup was not called")
+            raise RuntimeError("Step duration is zero")
+
         self.start_output()
         delay(self._step_duration * self.num_steps.get())
         self.stop_output()
