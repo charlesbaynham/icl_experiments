@@ -1,61 +1,81 @@
 name: CI
 
-# DEBUG MODE: trimmed to a single smoke-test job while we sort out GitLab auth
-# for the nix flake fetch. The full matrix (pre-commit / check-fixme / 16-way
-# pytest) is preserved in git history and will be restored once auth is green.
-#
-# Only `push` is wired up (not pull_request) to avoid firing two runs per push.
-
 on:
   push:
+  pull_request:
+
+# The nix flake pulls private GitLab repos (gitlab.com/aion-physics/...).
+# Mirror .gitlab-ci.yml's `.deps` before_script: write ~/.netrc with a token so
+# the flake fetch can authenticate. Requires a repository Actions secret
+# GITLAB_TOKEN (GitLab personal/group access token with read_repository scope).
+# (check-fixme doesn't build the env, so it needs no credentials.)
 
 jobs:
-  auth-smoke-test:
-    name: Auth smoke test
+  pre-commit:
+    name: Static analysis (pre-commit)
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-
       - name: Write netrc for private GitLab flake inputs
         run: |
           umask 077
           printf 'machine gitlab.com\nlogin oauth2\npassword %s\n' \
             "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
-
-      - name: Diagnose netrc presence
-        run: |
-          echo "whoami: $(whoami)"
-          echo "HOME: $HOME"
-          echo "--- ls -la \$HOME/.netrc ---"
-          ls -la "$HOME/.netrc" || echo "MISSING: $HOME/.netrc"
-          echo "--- netrc contents (password masked) ---"
-          sed 's/^password .*/password ***MASKED***/' "$HOME/.netrc"
-          echo "--- GITLAB_TOKEN secret present? ---"
-          if [ -n "${{ secrets.GITLAB_TOKEN }}" ]; then
-            echo "GITLAB_TOKEN is set (non-empty)"
-          else
-            echo "GITLAB_TOKEN is EMPTY — secret missing or not exposed"
-          fi
-
-      - name: Test raw git auth via netrc (no nix involved)
-        run: |
-          echo "Attempting git ls-remote using ~/.netrc ..."
-          if git ls-remote https://gitlab.com/aion-physics/code/artiq/drivers/andor_windows_ndsp.git HEAD; then
-            echo "RAW GIT AUTH: success — git reads ~/.netrc in this environment"
-          else
-            echo "RAW GIT AUTH: FAILED — git did not authenticate via ~/.netrc"
-            exit 1
-          fi
-
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix develop -c pre-commit run --all-files
 
-      - name: Show nix netrc-related config
+  check-fixme:
+    name: Check for FIXME
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix run .#check_for_fixme
+
+  pytest:
+    name: pytest (${{ matrix.group }}/16)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write netrc for private GitLab flake inputs
         run: |
-          echo "--- /etc/nix/nix.conf ---"
-          cat /etc/nix/nix.conf || true
-          echo "--- nix show-config | grep -i netrc ---"
-          nix show-config 2>/dev/null | grep -i netrc || true
-
-      - name: Test nix flake eval (builds the env / triggers the gitlab fetch)
-        run: nix develop -c true
+          umask 077
+          printf 'machine gitlab.com\nlogin oauth2\npassword %s\n' \
+            "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Restore test durations cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.run_id }}-${{ matrix.group }}
+          restore-keys: |
+            test-durations-${{ github.run_id }}-
+            test-durations-
+      - name: Run pytest
+        run: >
+          nix run .#pytest --
+          --runslow
+          --splitting-algorithm least_duration
+          --splits 16
+          --group ${{ matrix.group }}
+      - name: Save test durations cache
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.run_id }}-${{ matrix.group }}
+      - name: Upload junit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report-${{ matrix.group }}
+          path: report.xml
+          if-no-files-found: ignore
