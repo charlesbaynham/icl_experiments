@@ -1,5 +1,6 @@
 from artiq.coredevice.core import Core
 from artiq.experiment import NumberValue
+from artiq.language import kernel
 from ndscan.experiment import Fragment
 from numpy import ceil
 from numpy import int32
@@ -17,11 +18,10 @@ class VRS_Probe_Ramper(Fragment):
         self.core: Core
 
         self.setattr_fragment("probe_ramper", AD9910Ramper, ad9910_name)
-
         self.probe_ramper: AD9910Ramper
 
         self.setattr_argument(
-            "dF_dt", NumberValue(default=20e3, unit="KHz", precision=3)
+            "dF_dt", NumberValue(default=20e3, unit="kHz", precision=3)
         )
 
         # set the maximum frequency, this needs to be larger than the VRS as we
@@ -33,6 +33,13 @@ class VRS_Probe_Ramper(Fragment):
         self.setattr_argument(
             "min_f", NumberValue(default=0.0, unit="MHz", precision=6)
         )
+        self.min_f: float
+
+    @kernel
+    def device_setup(self) -> None:
+        self.device_setup_subfragments()
+
+        self.core.break_realtime()
 
         # Now we want to set the parameters of the AD9910 Ramper manually
         self.probe_ramper.set_ramp_limits(
@@ -59,12 +66,14 @@ class VRS_Probe_Ramper(Fragment):
             drg_enable=1, no_dwell_low=0, no_dwell_high=0
         )
 
+    @kernel
     def trigger(self):
         """
         Trigger the ramp
         """
         self.probe_ramper._pulse_io_update()
 
+    @kernel
     def stop(self):
         """
         Stop the ramp
