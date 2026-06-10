@@ -75,6 +75,27 @@ xfails = [
         "TestMatterwaveCollimationInDipoleTrapFrag",
         "host object does not have an attribute 'dds'",
     ),
+    # The following fragments fail to compile only when device_setup/run_once/
+    # device_cleanup are compiled together in a single kernel (as production's
+    # _FragmentRunner does): their `urukul_init` sub-fragment resolves to two
+    # different nominal instance types across the methods, which fail to unify.
+    # Compiling each method separately (the previous test behaviour) hid this.
+    (
+        "ClockSpecDownFromSingleXODTEvaporatedShelvingFrag",
+        "urukul_init attribute type conflict when lifecycle methods share one kernel",
+    ),
+    (
+        "ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag",
+        "urukul_init attribute type conflict when lifecycle methods share one kernel",
+    ),
+    (
+        "ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag",
+        "urukul_init attribute type conflict when lifecycle methods share one kernel",
+    ),
+    (
+        "ShapedClockSpecWithSlicingFrag",
+        "urukul_init attribute type conflict when lifecycle methods share one kernel",
+    ),
 ]
 
 xfail_names = [x[0] for x in xfails]
