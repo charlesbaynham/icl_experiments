@@ -2,7 +2,6 @@ import logging
 
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
-from artiq.coredevice.ttl import TTLOut
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import now_mu
@@ -38,8 +37,6 @@ class TestDiffractionCompensatedQuadraticFrag(ExpFragment):
             ad9910_name=PAINTING_URUKUL_CHANNEL,
         )
         self.painter: DiffractionCompensatedQuadraticShapedPulse
-
-        self.ttl_trigger: TTLOut = self.get_device("ttl_debugging")
 
     @kernel
     def run_once(self) -> None:
@@ -81,8 +78,6 @@ class TestGravityAndDiffractionCompensatedQuadraticFrag(ExpFragment):
             ad9910_name=PAINTING_URUKUL_CHANNEL,
         )
         self.painter: GravityAndDiffractionCompensatedQuadraticShapedPulse
-
-        self.ttl_trigger: TTLOut = self.get_device("ttl_debugging")
 
     @kernel
     def run_once(self) -> None:

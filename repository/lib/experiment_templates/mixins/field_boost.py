@@ -4,14 +4,16 @@ from artiq.language import kernel
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 
-from repository.lib.experiment_templates.red_mot_experiment import RedMOTWithExperiment
+from repository.lib.experiment_templates.red_mot_experiment import (
+    RedMOTWithExperimentBase,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class FieldBoostMixin(RedMOTWithExperiment):
+class FieldBoostMixin(RedMOTWithExperimentBase):
     """
-    Mixin for :class:`~RedMOTWithExperiment` to boost the compensation fields at
+    Mixin for :class:`~RedMOTWithExperimentBase` to boost the compensation fields at
     the start of the expansion time
 
     Kernel hooks used (multiple mixins cannot use the same hooks):

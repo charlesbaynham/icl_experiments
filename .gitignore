@@ -1,5 +1,7 @@
 ## added by CFAB:
+.claude/worktrees
 .claude/settings.local.json
+vendor/
 *.elf
 todo.txt
 *.swp

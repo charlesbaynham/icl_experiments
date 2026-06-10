@@ -1,11 +1,29 @@
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.experiment import *
+from artiq.language import portable
 from ndscan.experiment import FloatParam
 from ndscan.experiment import *
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import IntParamHandle
 
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+
+
+class _DummySingleROIConfig(AndorCameraConfig):
+    num_andor_images = 1
+    num_images_per_series = 1
+    num_grabber_readouts = 1
+    num_grabber_rois = 1
+
+    def build_fragment(self):
+        super().build_fragment()
+        self.roi_buffer = np.array([[0, 0, 1, 1]], dtype=np.int32)
+
+    @portable
+    def get_rois(self):
+        return self.roi_buffer
 
 
 class MultipleGrabs(ExpFragment):
@@ -13,7 +31,14 @@ class MultipleGrabs(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_fragment("andor_interface", AndorCameraControl)
+        self.setattr_fragment("andor_camera_config", _DummySingleROIConfig)
+        self.andor_camera_config: _DummySingleROIConfig
+
+        self.setattr_fragment(
+            "andor_interface",
+            AndorCameraControl,
+            camera_config=self.andor_camera_config,
+        )
         self.andor_interface: AndorCameraControl
 
         self.setattr_param(

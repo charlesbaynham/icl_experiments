@@ -1,14 +1,17 @@
 import logging
 
+import numpy as np
 from artiq.coredevice.core import Core
 from artiq.coredevice.grabber import GrabberTimeoutException
 from artiq.experiment import NumberValue
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import make_fragment_scan_exp
 
+from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
 
 logger = logging.getLogger(__name__)
@@ -44,19 +47,35 @@ class TestFastKineticsUSBFrag(ExpFragment):
         if self.height is None:
             self.height = 10
 
-        # Nx ROIs
+        n_rois_local = self.N_ROIs
+        height_local = self.height
+
+        class _StackedROITestConfig(AndorCameraConfig):
+            num_andor_images = 1
+            num_images_per_series = 1
+            num_grabber_readouts = 1
+            num_grabber_rois = n_rois_local
+
+            def build_fragment(self):
+                super().build_fragment()
+                self.roi_buffer = np.zeros((n_rois_local, 4), dtype=np.int32)
+                for i in range(n_rois_local):
+                    self.roi_buffer[i][0] = 0
+                    self.roi_buffer[i][1] = i * height_local
+                    self.roi_buffer[i][2] = 512
+                    self.roi_buffer[i][3] = (i + 1) * height_local
+
+            @portable
+            def get_rois(self):
+                return self.roi_buffer
+
+        self.setattr_fragment("andor_camera_config", _StackedROITestConfig)
+        self.andor_camera_config: _StackedROITestConfig
+
         self.setattr_fragment(
             "andor_camera_control",
             AndorCameraControl,
-            roi_defaults=[
-                [
-                    0,
-                    i * self.height,
-                    512,
-                    (i + 1) * self.height,
-                ]
-                for i in range(self.N_ROIs)
-            ],
+            camera_config=self.andor_camera_config,
             add_pre_trigger_delay=True,
         )
         self.andor_camera_control: AndorCameraControl

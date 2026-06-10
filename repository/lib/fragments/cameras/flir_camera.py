@@ -349,7 +349,7 @@ class Chamber2VerticalCamera(CameraFrag):
     ttl_trigger_device = "ttl_camera_trigger_vertical"
 
 
-class MonitorCameraExp(ExpFragment, abc.ABC):
+class MonitorCameraExpBase(ExpFragment, abc.ABC):
     @property
     @abc.abstractmethod
     def camera_class(self) -> Type[CameraFrag]:
@@ -410,3 +410,6 @@ class MonitorCameraExp(ExpFragment, abc.ABC):
         t_end = time.time()
 
         time.sleep(max(self.delay.get() - (t_end - t_start), 0))
+
+
+MonitorCameraExp = MonitorCameraExpBase

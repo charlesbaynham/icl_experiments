@@ -8,6 +8,10 @@ This repository holds the ARTIQ experiments, imported by ARTIQ as an
 also includes a complete Nix definition of the working environment
 required to run ARTIQ, thus pinning all dependencies as well.
 
+Note that this repository is configued for use with Claude Code and other AI
+harnesses. Just open it in your harness of preference to benefit from various
+hooks, skills and guidance.
+
 Overview
 ========
 
@@ -205,7 +209,8 @@ be updated periodically to ensure optimal test distribution. To update it, run::
 
 Then commit the updated `.test_durations` file.
 
-
+This happens automatically in the CI pipeline every week, but the file is not
+committed, only cached in the cloud.
 
 Dependencies
 ============
