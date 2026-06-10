@@ -231,6 +231,11 @@ class ArgumentInterface(HasEnvironment):
 
 
 class TopLevelRunner(HasEnvironment):
+    kernel_invariants = {
+        "core", "scheduler", "ccb", "dataset_prefix", "fragment", "spec",
+        "max_rtio_underflow_retries", "max_transitory_error_retries"
+    }
+
     def build(self,
               fragment: ExpFragment,
               spec: ScanSpec,

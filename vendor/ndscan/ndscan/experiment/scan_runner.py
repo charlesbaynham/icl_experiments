@@ -61,6 +61,10 @@ class ScanRunner(HasEnvironment):
     """Runs the actual loop that executes an :class:`.ExpFragment` for a specified list
     of scan axes (on either the host or core device, as appropriate).
     """
+    kernel_invariants = {
+        "core", "scheduler", "max_rtio_underflow_retries", "max_transitory_error_retries"
+    }
+
     def build(self,
               max_rtio_underflow_retries: int = 3,
               max_transitory_error_retries: int = 10,
@@ -241,6 +245,11 @@ class KernelScanRunner(ScanRunner):
     # Note: ARTIQ Python is currently severely limited in its support for generics or
     # metaprogramming. While the interface for this class is effortlessly generic, the
     # implementation might well be a long-forgotten ritual for invoking Cthulhu.
+
+    kernel_invariants = {
+        "core", "scheduler", "max_rtio_underflow_retries", "max_transitory_error_retries",
+        "_pause_check_interval_mu"
+    }
 
     def setup(self, fragment: ExpFragment, axes: list[ScanAxis],
               axis_sinks: list[ResultSink]) -> None:
