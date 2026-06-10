@@ -17,14 +17,24 @@ URUKUL = "urukul_squeezing_probe"
 class TestVRSProbeRamperFrag(ExpFragment):
 
     def build_fragment(self):
+        # devices
         self.setattr_device("core")
         self.core: Core
 
-        self.setattr_device(URUKUL)
-        self.dds: AD9910
+        self.dds: AD9910 = self.get_device(URUKUL)
+        self.setattr_device
 
+        # Params
+
+        # Fragments
         self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, URUKUL)
         self.probe_ramper: VRS_Probe_Ramper
+
+        # Variable
+
+        # Invariants
+        self.kernel_invariants = getattr(self, "kernel_invariants", set())
+        self.kernel_invariants.add("dds")
 
     @kernel
     def run_once(self) -> None:
@@ -37,9 +47,9 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.probe_ramper.trigger()
         delay(10.0)
         self.probe_ramper.stop()
-        logger.info("Probe ramp: %f" % self.probe_ramper.dF_dt)
-        logger.info("Probe max frequency: %f" % self.probe_ramper.max_f)
-        logger.info("Probe min frequency: %f" % self.probe_ramper.min_f)
+        logger.info("Probe ramp: %f", self.probe_ramper.dF_dt)
+        logger.info("Probe max frequency: %f", self.probe_ramper.max_f)
+        logger.info("Probe min frequency: %f", self.probe_ramper.min_f)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
