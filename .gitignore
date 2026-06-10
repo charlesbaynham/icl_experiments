@@ -1,7 +1,7 @@
 ## added by CFAB:
 .claude/worktrees
 .claude/settings.local.json
-vendor/
+# vendor/ is now checked in as source (artiq + ndscan for profiling/optimization)
 *.elf
 todo.txt
 *.swp
