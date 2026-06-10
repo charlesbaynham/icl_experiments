@@ -81,10 +81,6 @@ xfails = [
     # different nominal instance types across the methods, which fail to unify.
     # Compiling each method separately (the previous test behaviour) hid this.
     (
-        "ClockSpecDownFromSingleXODTEvaporatedShelvingFrag",
-        "urukul_init attribute type conflict when lifecycle methods share one kernel",
-    ),
-    (
         "ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag",
         "urukul_init attribute type conflict when lifecycle methods share one kernel",
     ),
