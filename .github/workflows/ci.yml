@@ -24,6 +24,14 @@ jobs:
                     "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
             - uses: DeterminateSystems/nix-installer-action@main
             - uses: DeterminateSystems/magic-nix-cache-action@main
+            # Pull pre-built artiq environment binaries (populated by the
+            # GitLab CI) so a throttled GitHub Actions cache does not force
+            # an hours-long cold rebuild.
+            - name: Use the aion-physics Cachix cache
+              uses: cachix/cachix-action@v15
+              with:
+                  name: aion-physics
+                  skipPush: true
             - run: nix develop -c pre-commit run --all-files
 
     check-fixme:
@@ -51,6 +59,14 @@ jobs:
                     "${{ secrets.GITLAB_TOKEN }}" > "$HOME/.netrc"
             - uses: DeterminateSystems/nix-installer-action@main
             - uses: DeterminateSystems/magic-nix-cache-action@main
+            # Pull pre-built artiq environment binaries (populated by the
+            # GitLab CI) so a throttled GitHub Actions cache does not force
+            # an hours-long cold rebuild.
+            - name: Use the aion-physics Cachix cache
+              uses: cachix/cachix-action@v15
+              with:
+                  name: aion-physics
+                  skipPush: true
             - name: Restore test durations cache
               uses: actions/cache/restore@v4
               with:
