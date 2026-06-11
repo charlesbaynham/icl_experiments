@@ -231,12 +231,12 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
             # Clear out the ground state
-            # if pulse_type == "up":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
+            if pulse_type == "up":
+                self.fluorescence_pulse.do_imaging_pulse(
+                    duration=self.clearout_duration.get(),
+                    ignore_final_shutters=True,
+                )
+                delay(8e-9)
 
     # use if we start in the ground state
     @kernel
@@ -268,12 +268,12 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
             # Clear out the ground state
-            # if pulse_type == "down":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
+            if pulse_type == "up":
+                self.fluorescence_pulse.do_imaging_pulse(
+                    duration=self.clearout_duration.get(),
+                    ignore_final_shutters=True,
+                )
+                delay(8e-9)
 
     @kernel
     def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
@@ -740,6 +740,10 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             ignore_final_shutters=True,
         )
 
+        # self.blue_3d_mot.turn_on_repumpers()
+        # delay(2e-3)
+        # self.blue_3d_mot.turn_off_repumpers()
+
     @kernel
     def first_shaped_lmt_pulse(self, detuning, N_kicks):
         self.set_clock_up_dds(
@@ -936,9 +940,10 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        self.prepare_clock_delivery_aom()
-        delay_mu(16)
-        self.do_clock_interferometry()
+        # self.prepare_clock_delivery_aom()
+        # delay_mu(16)
+        # self.do_clock_interferometry()
+        pass
 
     @kernel
     def do_clock_interferometry(self):
