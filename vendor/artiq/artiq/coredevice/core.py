@@ -133,7 +133,15 @@ class Core:
             _t0 = _time.monotonic()
             stitcher.stitch_call(function, args, kwargs, set_result)
             _t1 = _time.monotonic()
-            stitcher.finalize()
+            if os.getenv("ARTIQ_PROFILE_FINALIZE"):
+                import cProfile, pstats
+                _pr = cProfile.Profile()
+                _pr.enable()
+                stitcher.finalize()
+                _pr.disable()
+                pstats.Stats(_pr).sort_stats("cumulative").print_stats(25)
+            else:
+                stitcher.finalize()
             _t2 = _time.monotonic()
 
             module = Module(stitcher,
