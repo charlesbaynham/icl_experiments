@@ -829,6 +829,11 @@ class StitchingInferencer(Inferencer):
                                     self_loc=node.self_loc)
 
 class TypedtreeHasher(algorithm.Visitor):
+    def __init__(self, value_map=None):
+        # Optional map of type -> quoted host values of that type, used to
+        # make host value discovery visible in the hash (see freeze below).
+        self.value_map = value_map
+
     def generic_visit(self, node):
         def freeze(obj):
             if isinstance(obj, ast.AST):
@@ -837,14 +842,21 @@ class TypedtreeHasher(algorithm.Visitor):
                 return hash(tuple(freeze(elem) for elem in obj))
             elif isinstance(obj, types.Type):
                 typ = obj.find()
-                # Attribute discovery must be visible in the hash: a node
-                # accessing an attribute that has not been discovered yet
-                # simply waits, and is only resolved when re-visited after
-                # the attribute appears on the type. Type attribute dicts
-                # only ever grow during inference, so including their size
-                # dirties every function referencing the type exactly when
-                # a new attribute is discovered.
-                return hash((typ, len(getattr(typ, "attributes", ()))))
+                # Inference state that is not stored in type variables must be
+                # visible in the hash, otherwise dirty-set inference would skip
+                # re-visiting functions whose resolution depends on it:
+                #   * a node accessing a not-yet-discovered attribute waits
+                #     silently and is only resolved when re-visited after the
+                #     attribute appears in the type's attribute dict;
+                #   * _unify_attribute computes attribute types for every host
+                #     value of the object's type, so quoting a new instance of
+                #     an already-known type requires re-visiting that type's
+                #     attribute accesses.
+                # Both attribute dicts and value lists only ever grow during
+                # inference, so including their sizes dirties every function
+                # referencing the type exactly when either grows.
+                n_values = len(self.value_map.get(typ, ())) if self.value_map is not None else 0
+                return hash((typ, len(getattr(typ, "attributes", ())), n_values))
             else:
                 # We don't care; only types change during inference.
                 pass
@@ -901,7 +913,7 @@ class Stitcher:
         inferencer = StitchingInferencer(engine=self.engine,
                                          value_map=self.value_map,
                                          quote=self._quote)
-        typedtree_hasher = TypedtreeHasher()
+        typedtree_hasher = TypedtreeHasher(value_map=self.value_map)
 
         # Iterate inference to fixed point, visiting only "dirty" functions.
         #
