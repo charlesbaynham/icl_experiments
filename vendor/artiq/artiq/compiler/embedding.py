@@ -833,6 +833,17 @@ class TypedtreeHasher(algorithm.Visitor):
         # Optional map of type -> quoted host values of that type, used to
         # make host value discovery visible in the hash (see freeze below).
         self.value_map = value_map
+        # Per-round cache of type-object hashes, keyed by id. ARTIQ type
+        # hashes are structural (recursing through parameters), and the same
+        # type objects are referenced from a very large number of AST nodes,
+        # so caching them is a substantial saving. Nothing the hasher does
+        # can change a type, so the cache is valid within a round; callers
+        # must invoke begin_round() whenever inference may have run since
+        # the last hash.
+        self._type_hash_cache = {}
+
+    def begin_round(self):
+        self._type_hash_cache.clear()
 
     def generic_visit(self, node):
         def freeze(obj):
@@ -842,21 +853,28 @@ class TypedtreeHasher(algorithm.Visitor):
                 return hash(tuple(freeze(elem) for elem in obj))
             elif isinstance(obj, types.Type):
                 typ = obj.find()
-                # Inference state that is not stored in type variables must be
-                # visible in the hash, otherwise dirty-set inference would skip
-                # re-visiting functions whose resolution depends on it:
-                #   * a node accessing a not-yet-discovered attribute waits
-                #     silently and is only resolved when re-visited after the
-                #     attribute appears in the type's attribute dict;
-                #   * _unify_attribute computes attribute types for every host
-                #     value of the object's type, so quoting a new instance of
-                #     an already-known type requires re-visiting that type's
-                #     attribute accesses.
-                # Both attribute dicts and value lists only ever grow during
-                # inference, so including their sizes dirties every function
-                # referencing the type exactly when either grows.
-                n_values = len(self.value_map.get(typ, ())) if self.value_map is not None else 0
-                return hash((typ, len(getattr(typ, "attributes", ())), n_values))
+                key = id(typ)
+                cached = self._type_hash_cache.get(key)
+                if cached is None:
+                    # Inference state that is not stored in type variables
+                    # must be visible in the hash, otherwise dirty-set
+                    # inference would skip re-visiting functions whose
+                    # resolution depends on it:
+                    #   * a node accessing a not-yet-discovered attribute
+                    #     waits silently and is only resolved when re-visited
+                    #     after the attribute appears in the type's attribute
+                    #     dict;
+                    #   * _unify_attribute computes attribute types for every
+                    #     host value of the object's type, so quoting a new
+                    #     instance of an already-known type requires
+                    #     re-visiting that type's attribute accesses.
+                    # Both attribute dicts and value lists only ever grow
+                    # during inference, so including their sizes dirties every
+                    # function referencing the type exactly when either grows.
+                    n_values = len(self.value_map.get(typ, ())) if self.value_map is not None else 0
+                    cached = hash((typ, len(getattr(typ, "attributes", ())), n_values))
+                    self._type_hash_cache[key] = cached
+                return cached
             else:
                 # We don't care; only types change during inference.
                 pass
@@ -961,6 +979,7 @@ class Stitcher:
             # unification performed while visiting one function is reflected
             # in the hash of every function sharing that type variable).
             _hash_rounds += 1
+            typedtree_hasher.begin_round()
             cur_hashes = [typedtree_hasher.visit(node) for node in self.typedtree]
             attr_count = self.embedding_map.attribute_count()
             dirty = [node for node, node_hash in zip(self.typedtree, cur_hashes)
