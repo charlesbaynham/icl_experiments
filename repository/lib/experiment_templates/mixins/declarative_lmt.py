@@ -10,19 +10,27 @@ cannot be combined in one experiment.
 Principles
 ----------
 
+- The whole pulse sequence is declared, including the velocity-selective
+  pulse: it is a normal pulse, just longer and with a lower delivery set
+  point. The gravity-Doppler reference (t=0, defining which velocity class
+  is "v = 0") is the centre of the first pulse in the sequence.
 - The switch AOMs stay at their nominal frequency and amplitude; they only
   gate pulses on and off.
 - All frequency control happens on the OPLL offset DDS. Every pulse is fired
   at ``f = START + s * D(t) - m_term + offset`` where ``D(t)`` is the gravity
-  Doppler accumulated since release (evaluated at the pulse centre) and
+  Doppler accumulated since the reference (evaluated at the pulse centre) and
   ``m_term`` is the model-predicted resonance term of the addressed momentum
   class, including the photon-recoil energy - both are always applied.
+  During each pulse the OPLL is chirped at the gravity rate so long pulses
+  (e.g. the velocity-selective one) stay on resonance; the chirp crosses the
+  model-predicted frequency at the pulse centre.
   Relative to the legacy formulas the recoil term shifts every pulse by
   ``-s * kick / 2`` (~4.7 kHz); per-pulse offset parameters (default 0)
   absorb any residual during commissioning.
 - Beam intensity is controlled through the delivery AOM SUServo set point,
   carried per beam as sticky sequence state (see
-  :class:`~repository.lib.lmt_sequence.SetPoint`).
+  :class:`~repository.lib.lmt_sequence.SetPoint`). Put a ``Wait`` (or other
+  dead time) after a ``SetPoint`` to give the servo time to settle.
 """
 
 import logging
@@ -38,9 +46,6 @@ from numpy import int32
 from numpy import int64
 
 from repository.lib import constants
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutBase,
-)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
@@ -61,21 +66,31 @@ start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
-class DeclarativeLMTBase(ClockSpectroscopyBase, ClockShelvingAndClearoutBase):
+class DeclarativeLMTBase(ClockSpectroscopyBase):
     """
     Runs an LMT pulse sequence declared as a list of event dataclasses.
 
     Subclasses declare the sequence and the initial atomic population as
-    class attributes::
+    class attributes. The sequence contains everything from the
+    velocity-selective pulse onwards - the slicer is just a normal pulse
+    with a longer duration and a lower delivery set point::
 
         class MyInterferometerFrag(DeclarativeLMTBase, ...):
-            lmt_initial_population = {("e", 1)}
+            lmt_initial_population = {("g", 0)}
             lmt_sequence = [
+                SetPoint(Beam.UP, setpoint=0.012, rabi_frequency=1.3e3),
+                Wait(t=200e-6, label="servo_settle"),
+                pi(Beam.UP, m=0, label="slice"),
                 SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=9.1e3),
                 SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7.4e3),
+                Clearout(),
                 *ladder(start_m=1, n=12, first_beam=Beam.DOWN),
                 ...
             ]
+
+    The centre of the first pulse is t=0 for the gravity Doppler: the
+    velocity class selected by that pulse defines "v = 0" for every later
+    resonance prediction.
 
     At build time the sequence is validated (momentum-class bookkeeping, see
     :func:`~repository.lib.lmt_sequence.compile_sequence`) and one ndscan
@@ -306,13 +321,6 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, ClockShelvingAndClearoutBase):
     # ------------------------------------------------------------------
 
     @kernel
-    def get_t_start_shelving(self) -> int64:
-        """Timestamp of atom release, used as t=0 for the gravity Doppler."""
-        return self.t_velocity_slicing_pulse_centre_mu - self.core.seconds_to_mu(
-            self.shelving_pulse_time.get() / 2
-        )
-
-    @kernel
     def _set_delivery_setpoint(self, setpoint_v: float):
         """Write the delivery AOM SUServo set point (tracked)."""
         self.set_clock_delivery_aom(
@@ -339,11 +347,28 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, ClockShelvingAndClearoutBase):
         delay_mu(8)
 
     @kernel
-    def _fire_pulse(self, freq: float, t_start: int64, is_up: bool, duration: float):
-        """Fire one square pulse: OPLL at ``freq``, gated by the switch AOM."""
+    def _fire_pulse(
+        self, freq_centre: float, t_start: int64, is_up: bool, duration: float
+    ):
+        """Fire one pulse gated by the switch AOM.
+
+        The OPLL is chirped at the gravity rate for the duration of the
+        pulse so that long pulses stay on resonance with the falling atoms;
+        the chirp crosses ``freq_centre`` at the centre of the pulse. The
+        ramp is programmed before ``t_start``, so it starts running slightly
+        early - at ~14 MHz/s the resulting frequency error is negligible.
+        """
         self.stop_clock_opll_ramp()
         delay_mu(8)
-        self.set_clock_opll(freq)
+        if is_up:
+            # The resonance drifts upwards for the up beam
+            f_on = freq_centre - ramp_rate * duration / 2
+            self.start_clock_opll_ramp(ramp_rate, f_on, f_on + 2e6, wave_type=1)
+        else:
+            # ... and downwards for the down beam (wave_type 2 ramps down
+            # from freq_high)
+            f_on = freq_centre + ramp_rate * duration / 2
+            self.start_clock_opll_ramp(ramp_rate, f_on - 2e6, f_on, wave_type=2)
 
         at_mu(t_start)
         self.register_pulse(duration_s=duration, is_up=is_up)
@@ -355,6 +380,8 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, ClockShelvingAndClearoutBase):
             self.clock_down_dds.sw.on()
             delay(duration)
             self.clock_down_dds.sw.off()
+        delay_mu(8)
+        self.stop_clock_opll_ramp()
         delay(10e-6)
 
     @kernel
@@ -377,8 +404,14 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, ClockShelvingAndClearoutBase):
 
     @kernel
     def run_lmt_sequence(self):
-        """Execute the declared sequence."""
-        t_drop = self.get_t_start_shelving()
+        """Execute the declared sequence.
+
+        The centre of the first pulse is the gravity-Doppler reference: the
+        velocity class that pulse selects defines "v = 0" for the resonance
+        prediction of every subsequent pulse.
+        """
+        t_ref_mu = int64(0)
+        have_ref = False
         # prepare_clock_delivery_aom (called by the hook before this method)
         # leaves the delivery set point at the spectroscopy default
         last_setpoint = self.spectroscopy_clock_delivery_setpoint.get()
@@ -395,17 +428,25 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, ClockShelvingAndClearoutBase):
                     delay_mu(8)
 
                 duration = self._lmt_duration_handles[i].get()
-                t_start = now_mu() + self.core.seconds_to_mu(2e-6)
+                # Margin for programming the OPLL ramp before the switch opens
+                t_start = now_mu() + self.core.seconds_to_mu(10e-6)
+                t_centre_mu = t_start + self.core.seconds_to_mu(duration / 2)
+                if not have_ref:
+                    t_ref_mu = t_centre_mu
+                    have_ref = True
 
-                # Gravity Doppler evaluated at the pulse centre
-                t_fall = self.core.mu_to_seconds(t_start - t_drop) + duration / 2
-                freq = (
+                # Gravity Doppler evaluated at the pulse centre, relative to
+                # the centre of the first (velocity-selective) pulse
+                t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
+                freq_centre = (
                     start_opll_offset
                     + self._lmt_beam_sign[i] * t_fall * ramp_rate
                     - self._lmt_m_term_hz[i]
                     + self._lmt_offset_handles[i].get()
                 )
-                self._fire_pulse(freq, t_start, self._lmt_beam_is_up[i], duration)
+                self._fire_pulse(
+                    freq_centre, t_start, self._lmt_beam_is_up[i], duration
+                )
 
             elif kind == EVENT_WAIT:
                 delay(self._lmt_duration_handles[i].get())
