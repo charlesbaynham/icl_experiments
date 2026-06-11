@@ -200,7 +200,7 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~adiabatic_cooling_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     * :meth:`~DMA_initialisation_hook`
     """
 
@@ -244,18 +244,19 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
         # Set the time to the parameter value
 
     @kernel
-    def DMA_initialization_hook_painter_on(self):
+    def DMA_initialization_checkpoint_painter_on(self):
         self.adiabatic_painter_ramp_on.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook(self):
+    def DMA_initialization_checkpoint(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_painter_on()
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_painter_on()
 
     @kernel
     def painter_ramp_on(self):
@@ -277,7 +278,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~adiabatic_cooling_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     * :meth:`~DMA_initialisation_hook`
     """
 
@@ -310,18 +311,19 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
         # Set the time to the parameter value
 
     @kernel
-    def DMA_initialization_hook_adiabatic_cooling(self):
+    def DMA_initialization_checkpoint_adiabatic_cooling(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
         dma handle is valid.
         """
-        self.DMA_initialization_hook_painter_on()
+        self.DMA_initialization_checkpoint_painter_on()
         self.adiabatic_cooling_ramp.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_adiabatic_cooling()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
 
     @kernel
     def adiabatic_cooling_hook(self):

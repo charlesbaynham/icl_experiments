@@ -43,7 +43,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     def build_fragment(self):
@@ -229,12 +229,13 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         )
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
     @kernel
-    def post_sequence_cleanup_hook_shelving(self):
+    def post_sequence_cleanup_checkpoint_shelving(self):
         # stop the clock laser ramp
         self.clock_opll.clock_frequency_ramper.stop_ramp()
 
@@ -249,7 +250,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     * :meth:`~before_start_hook`
     * :meth:`~post_dipole_trap_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     @kernel

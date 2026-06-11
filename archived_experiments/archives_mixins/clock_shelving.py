@@ -15,7 +15,7 @@ class ClockShelvingAndClearoutRedMOTMixin(ClockShelvingAndClearoutBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     @kernel

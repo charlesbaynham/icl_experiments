@@ -66,9 +66,10 @@ class SingleXODTSloshedFrag(
         super().build_fragment()
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
 
     @kernel
     def post_dipole_trap_hook(self):

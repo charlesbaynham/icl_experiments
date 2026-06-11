@@ -22,7 +22,7 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperimentBase):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~end_of_broadband_mot_hook`
+    * :meth:`~end_of_broadband_mot_checkpoint`
     * :meth:`~save_flir_data_hook`
     """
 
@@ -57,9 +57,10 @@ class FLIRBlueMOTMeasurementMixin(RedMOTWithExperimentBase):
         self.exposure_vert: FloatParamHandle
 
     @kernel
-    def end_of_blue_3d_mot_loading_hook(self):
+    def end_of_blue_3d_mot_loading_checkpoint(self):
         # The FLIR cameras are not useful for the final imaging, so use them to
         # image the blue MOT instead
+        self.end_of_blue_3d_mot_loading_checkpoint_subfragments()
         delay(-10e-3)
         self.camera_interface.trigger()
         delay(10e-3)

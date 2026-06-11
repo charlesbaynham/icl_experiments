@@ -44,15 +44,17 @@ class ClockSpecMidwayImagingFrag(
     """
 
     @kernel
-    def start_of_red_broadband_hook(self):
-        self.start_of_red_broadband_hook_imaging_base()
-        self.start_of_red_broadband_hook_midway_imaging()
+    def start_of_red_broadband_checkpoint(self):
+        self.start_of_red_broadband_checkpoint_subfragments()
+        self.start_of_red_broadband_checkpoint_imaging_base()
+        self.start_of_red_broadband_checkpoint_midway_imaging()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 ClockSpecMidwayImaging = make_fragment_scan_exp(ClockSpecMidwayImagingFrag)

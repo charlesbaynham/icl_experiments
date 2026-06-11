@@ -32,7 +32,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperimentBase):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 
@@ -74,13 +74,14 @@ class LoadSingleXODTMixin(DipoleTrapWithExperimentBase):
         )
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
 
     @kernel
-    def DMA_initialization_hook_loading_xodt_mot(self):
+    def DMA_initialization_checkpoint_loading_xodt_mot(self):
         """
         Preload phases' handles. These have to be grouped together, instead of
         handled in separate subfragment setups, otherwise only the last-compiled
@@ -123,7 +124,7 @@ class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 
@@ -148,14 +149,15 @@ class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
         )
 
     @kernel
-    def post_sequence_cleanup_hook_loading(self):
+    def post_sequence_cleanup_checkpoint_loading(self):
         self.dipole_beam_controller.turn_off_painter_suservo()
         self.painter_driver_loading.stop_output()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_loading()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_loading()
 
     @kernel
     def dipole_trap_loading_hook(self):
@@ -170,7 +172,7 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 
@@ -240,7 +242,7 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
         self.mot_in_second_xodt.daisy_chain_with_previous_phase(self.mot_in_xodt)
 
     @kernel
-    def DMA_initialization_hook_loading_xodt_mot(self):
+    def DMA_initialization_checkpoint_loading_xodt_mot(self):
         """
         Override the DMA calculation for the single XODT to save the user having to write two hooks
         """
@@ -295,7 +297,7 @@ class LoadXXODTWithTransparencyBeamMixin(LoadXXODTMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 

@@ -36,7 +36,7 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperimentBase, abc.ABC):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~dipole_trap_evaporation_hook`
     """
 
@@ -64,14 +64,15 @@ class _RampDuringEvapHookBase(DipoleTrapWithExperimentBase, abc.ABC):
         pass
 
     @kernel
-    def DMA_initialization_hook_evap_with_field_ramp(self):
+    def DMA_initialization_checkpoint_evap_with_field_ramp(self):
         self.ramp_during_evap_phase.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook(self):
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
         raise NotImplementedError(
             "All the DMA handle calculations must be combined into one \
-                DMA_initialization_hook() method after Mixins are combined"
+                DMA_initialization_checkpoint() method after Mixins are combined"
         )
 
     @kernel
@@ -135,7 +136,7 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperimentBase):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~dipole_trap_evaporation_hook`
     """
 
@@ -162,14 +163,15 @@ class EvaporationSingleRampMixin(DipoleTrapWithExperimentBase):
         self.total_evap_hold_time: FloatParamHandle
 
     @kernel
-    def DMA_initialization_hook_linear_evap(self):
+    def DMA_initialization_checkpoint_linear_evap(self):
         self.linear_evap_ramp.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_linear_evap()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_linear_evap()
 
     @kernel
     def dipole_trap_evaporation_hook(self):
@@ -190,7 +192,7 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~dipole_trap_evaporation_hook`
     """
 
@@ -228,16 +230,17 @@ class EvaporationThreeRampsMixin(EvaporationSingleRampMixin):
         self.evap_bool: BoolParamHandle
 
     @kernel
-    def DMA_initialization_hook_linear_evap(self):
+    def DMA_initialization_checkpoint_linear_evap(self):
         self.linear_evap_ramp.precalculate_dma_handle()
         self.linear_evap_ramp_2.precalculate_dma_handle()
         self.linear_evap_ramp_3.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_linear_evap()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_linear_evap()
 
     @kernel
     def dipole_trap_evaporation_hook(self):
@@ -266,7 +269,7 @@ class EvaporationThreeRampsWithFieldRampMixin(EvapAndFieldRampBase):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~dipole_trap_evaporation_hook`
     """
 
@@ -310,16 +313,17 @@ class EvaporationThreeRampsWithFieldRampMixin(EvapAndFieldRampBase):
         self.evap_bool: BoolParamHandle
 
     @kernel
-    def DMA_initialization_hook_evap_with_field_ramp(self):
+    def DMA_initialization_checkpoint_evap_with_field_ramp(self):
         self.ramp_during_evap_phase.precalculate_dma_handle()
         self.field_only_ramp.precalculate_dma_handle()
         self.linear_evap_ramp_2.precalculate_dma_handle()
         self.linear_evap_ramp_3.precalculate_dma_handle()
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_evap_with_field_ramp(self)
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp(self)
 
     @kernel
     def dipole_trap_evaporation_hook(self):

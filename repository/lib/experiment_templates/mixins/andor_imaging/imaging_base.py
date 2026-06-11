@@ -56,7 +56,7 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_imaging_hook_andor`
-    * :meth:`~start_of_red_broadband_hook`
+    * :meth:`~start_of_red_broadband_checkpoint`
     * :meth:`~save_grabber_data_hook`
     """
 
@@ -272,11 +272,12 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         self.image_store = []
 
     @kernel
-    def start_of_red_broadband_hook(self):
-        self.start_of_red_broadband_hook_imaging_base()
+    def start_of_red_broadband_checkpoint(self):
+        self.start_of_red_broadband_checkpoint_subfragments()
+        self.start_of_red_broadband_checkpoint_imaging_base()
 
     @kernel
-    def start_of_red_broadband_hook_imaging_base(self):
+    def start_of_red_broadband_checkpoint_imaging_base(self):
         # The Andor camera shutter needs ~120ms to open, so start this at the
         # beginning of the red stages. If the total red mot sequence takes less
         # time than this then we'll have problems
@@ -318,12 +319,13 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         pass
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
 
     @kernel
-    def post_sequence_cleanup_hook_andor(self):
+    def post_sequence_cleanup_checkpoint_andor(self):
         # Ensure shutter is closed, though it should be anyway
         self.core.break_realtime()
         self.andor_camera_control.set_shutter(False)

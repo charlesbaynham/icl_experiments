@@ -84,19 +84,21 @@ class ClockSpecFromSingleXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
+        self.DMA_initialization_checkpoint_painter_on()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_loading()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_loading()
 
 
 class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
@@ -124,21 +126,23 @@ class ClockSpecFromSingleXODTAdiabaticallyCooledFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_painter_on()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
+        self.DMA_initialization_checkpoint_painter_on()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_loading()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_loading()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
@@ -168,21 +172,23 @@ class ClockSpecFromSingleXODTEvaporatedShelvingFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
+        self.DMA_initialization_checkpoint_painter_on()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_loading()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
+        self.post_sequence_cleanup_checkpoint_loading()
 
 
 class ClockSpecDownFromSingleXODTEvaporatedShelvingFrag(
@@ -211,21 +217,23 @@ class ClockSpecDownFromSingleXODTEvaporatedShelvingFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
+        self.DMA_initialization_checkpoint_painter_on()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_loading()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
+        self.post_sequence_cleanup_checkpoint_loading()
 
 
 class ClockSpecFromXXODTFrag(
@@ -254,11 +262,12 @@ class ClockSpecFromXXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
 
 
 class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
@@ -290,17 +299,19 @@ class ClockSpecFromXXODTWithShelvingAndClearoutFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
@@ -328,16 +339,18 @@ class AbsImagingFromXXODTWithShelvingAndClearoutFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 AbsImagingFromXXODTWithShelvingAndClearout = make_fragment_scan_exp(

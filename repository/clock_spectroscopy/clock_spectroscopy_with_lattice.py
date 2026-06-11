@@ -49,10 +49,11 @@ class ClockSpecFromVerticalLatticeFrag(
         pass
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
 
 
 ClockSpecFromVerticalLattice = make_fragment_scan_exp(ClockSpecFromVerticalLatticeFrag)

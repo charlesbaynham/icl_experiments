@@ -63,10 +63,11 @@ class MeasureSingleXODTBGCorrectedFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -106,10 +107,11 @@ class SingleXODTSloshedFrag(
         super().build_fragment()
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
 
     @kernel
     def post_dipole_trap_hook(self):
@@ -175,10 +177,11 @@ class MeasureSingleXODTAbsFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_dipole_trap_default()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -199,20 +202,22 @@ class MeasureCooledXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_dipole_trap_default()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
+        self.DMA_initialization_checkpoint_painter_on()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
         self.post_narrowband_hook_default()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_loading()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_loading()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

@@ -45,11 +45,12 @@ class MeasureEvaporatedXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_linear_evap()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -67,10 +68,11 @@ class MeasureXODTNewMolassesFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -89,11 +91,12 @@ class MeasureExaporatedXODTAbsFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_linear_evap()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_linear_evap()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

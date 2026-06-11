@@ -68,20 +68,22 @@ class LaunchFromXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_loading()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_loading()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -112,18 +114,20 @@ class DoubleLaunchFromXODTFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -154,18 +158,20 @@ class LaunchFromXODTShapedShelvingFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):

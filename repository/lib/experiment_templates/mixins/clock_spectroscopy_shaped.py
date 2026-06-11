@@ -28,7 +28,7 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
     * :meth:`~before_start_hook`
     * :meth:`~do_first_pulse`
     * :meth:`~post_dipole_trap_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     def build_fragment(self):
@@ -66,12 +66,13 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
         )
 
     @kernel
-    def post_sequence_cleanup_hook(self):
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
         self.post_dipole_trap_hook_shaped_pulses()
-        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_checkpoint_base()
 
     @kernel
-    def post_sequence_cleanup_hook_shaped_pulses(self):
+    def post_sequence_cleanup_checkpoint_shaped_pulses(self):
         self.core.break_realtime()
         self.clock_spectroscopy_shaped_pulse.disable_ram_mode()
 

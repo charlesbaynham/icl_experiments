@@ -52,19 +52,19 @@ class CompensatedClockSpecMixin(
 
     if TYPE_CHECKING:
 
-        def DMA_initialization_hook_evap_with_field_ramp(self) -> None: ...
+        def DMA_initialization_checkpoint_evap_with_field_ramp(self) -> None: ...
 
-        def DMA_initialization_hook_loading_xodt_mot(self) -> None: ...
+        def DMA_initialization_checkpoint_loading_xodt_mot(self) -> None: ...
 
-        def DMA_initialization_hook_xodt_molasses(self) -> None: ...
+        def DMA_initialization_checkpoint_xodt_molasses(self) -> None: ...
 
-        def DMA_initialization_hook_adiabatic_cooling(self) -> None: ...
+        def DMA_initialization_checkpoint_adiabatic_cooling(self) -> None: ...
 
-        def DMA_initialization_hook_painter_on(self) -> None: ...
+        def DMA_initialization_checkpoint_painter_on(self) -> None: ...
 
-        def post_sequence_cleanup_hook_andor(self) -> None: ...
+        def post_sequence_cleanup_checkpoint_andor(self) -> None: ...
 
-        def post_sequence_cleanup_hook_loading(self) -> None: ...
+        def post_sequence_cleanup_checkpoint_loading(self) -> None: ...
 
     def build_fragment(self):
         super().build_fragment()
@@ -131,14 +131,15 @@ class CompensatedClockSpecMixin(
         self.use_down_beam: BoolParamHandle
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
+        self.DMA_initialization_checkpoint_evap_with_field_ramp()
+        self.DMA_initialization_checkpoint_loading_xodt_mot()
+        self.DMA_initialization_checkpoint_xodt_molasses()
+        self.DMA_initialization_checkpoint_adiabatic_cooling()
+        self.DMA_initialization_checkpoint_painter_on()
 
     @kernel
     def prepare_clock_delivery_aom(self):
@@ -316,7 +317,7 @@ class CompensatedClockSpecMixin(
         delay(self.delay_after_spectroscopy.get())
 
     @kernel
-    def post_sequence_cleanup_hook_shelving(self):
+    def post_sequence_cleanup_checkpoint_shelving(self):
         """
         Extended cleanup: stop any DRG ramp and reset static OPLL to 80 MHz
         via tracking wrappers (not the raw ramper).
@@ -325,8 +326,9 @@ class CompensatedClockSpecMixin(
         self.set_clock_opll(start_opll_offset)
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_loading()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_andor()
+        self.post_sequence_cleanup_checkpoint_shelving()
+        self.post_sequence_cleanup_checkpoint_loading()

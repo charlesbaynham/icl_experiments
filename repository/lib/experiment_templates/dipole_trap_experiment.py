@@ -167,13 +167,14 @@ class DipoleTrapWithExperimentBase(
         self.dma_recording_fragment.record_pulse_sequence()
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
+    def DMA_initialization_checkpoint(self):
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
+        self.DMA_initialization_checkpoint_dipole_trap_default()
 
     @kernel
-    def DMA_initialization_hook_dipole_trap_default(self):
-        self.dma_recording_fragment.DMA_initialization_hook_after_drop()
+    def DMA_initialization_checkpoint_dipole_trap_default(self):
+        self.dma_recording_fragment.DMA_initialization_checkpoint_after_drop()
 
     @kernel
     def actions_after_drop(self):
