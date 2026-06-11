@@ -836,7 +836,15 @@ class TypedtreeHasher(algorithm.Visitor):
             elif isinstance(obj, list):
                 return hash(tuple(freeze(elem) for elem in obj))
             elif isinstance(obj, types.Type):
-                return hash(obj.find())
+                typ = obj.find()
+                # Attribute discovery must be visible in the hash: a node
+                # accessing an attribute that has not been discovered yet
+                # simply waits, and is only resolved when re-visited after
+                # the attribute appears on the type. Type attribute dicts
+                # only ever grow during inference, so including their size
+                # dirties every function referencing the type exactly when
+                # a new attribute is discovered.
+                return hash((typ, len(getattr(typ, "attributes", ()))))
             else:
                 # We don't care; only types change during inference.
                 pass
