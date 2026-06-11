@@ -12,15 +12,26 @@ Principles
 
 - The whole pulse sequence is declared, including the velocity-selective
   pulse: it is a normal pulse, just longer and with a lower delivery set
-  point. The gravity-Doppler reference (t=0, defining which velocity class
-  is "v = 0") is the centre of the first pulse in the sequence.
+  point.
+- t=0 for the gravity Doppler is the moment the atoms are dropped from the
+  dipole trap (``t_dipole_beams_off``, recorded by this mixin's
+  ``post_dipole_trap_hook``). The atoms addressed by the velocity slice are
+  already falling, so every pulse - including the slicer - carries the full
+  Doppler term ``s * D(t)`` accumulated since the drop. Because the term is
+  proportional to the beam sign ``s``, the pre-slice fall shifts the up and
+  down beams asymmetrically (the legacy stack absorbed this into empirical
+  per-beam offsets). Fired this way, an un-offset slicer selects the class
+  that was at rest at the drop, which is also the assumption the ballistic
+  camera-ROI predictor makes (see
+  :class:`~repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging.NormalisedFastKineticsLMTCorrectedMixin`,
+  which reads the same ``t_dipole_beams_off`` as its trajectory t=0).
 - The switch AOMs stay at their nominal frequency and amplitude; they only
   gate pulses on and off.
 - All frequency control happens on the OPLL offset DDS. Every pulse is fired
   at ``f = START + s * D(t) - m_term + offset`` where ``D(t)`` is the gravity
-  Doppler accumulated since the reference (evaluated at the pulse centre) and
-  ``m_term`` is the model-predicted resonance term of the addressed momentum
-  class, including the photon-recoil energy - both are always applied.
+  Doppler (evaluated at the pulse centre) and ``m_term`` is the
+  model-predicted resonance term of the addressed momentum class, including
+  the photon-recoil energy - both are always applied.
   During each pulse the OPLL is chirped at the gravity rate so long pulses
   (e.g. the velocity-selective one) stay on resonance; the chirp crosses the
   model-predicted frequency at the pulse centre.
@@ -46,6 +57,9 @@ from numpy import int32
 from numpy import int64
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperimentBase,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
@@ -66,7 +80,7 @@ start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
-class DeclarativeLMTBase(ClockSpectroscopyBase):
+class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
     """
     Runs an LMT pulse sequence declared as a list of event dataclasses.
 
@@ -88,9 +102,11 @@ class DeclarativeLMTBase(ClockSpectroscopyBase):
                 ...
             ]
 
-    The centre of the first pulse is t=0 for the gravity Doppler: the
-    velocity class selected by that pulse defines "v = 0" for every later
-    resonance prediction.
+    t=0 for the gravity Doppler is the moment the atoms are dropped from
+    the dipole trap, recorded by :meth:`post_dipole_trap_hook` as
+    ``t_dipole_beams_off``. The same timestamp is read by the
+    trajectory-corrected camera-ROI machinery, keeping the frequency
+    bookkeeping and the imaging predictions consistent.
 
     At build time the sequence is validated (momentum-class bookkeeping, see
     :func:`~repository.lib.lmt_sequence.compile_sequence`) and one ndscan
@@ -106,7 +122,12 @@ class DeclarativeLMTBase(ClockSpectroscopyBase):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
+    * :meth:`~post_dipole_trap_hook`
     * :meth:`~do_experiment_after_dipole_trap_hook`
+
+    In particular this means the legacy shelving mixin
+    (``ClockShelvingAndClearoutDipoleTrapMixin``) cannot be combined with
+    this one - velocity selection belongs in the declared sequence instead.
     """
 
     lmt_sequence: list = None
@@ -140,6 +161,11 @@ class DeclarativeLMTBase(ClockSpectroscopyBase):
             min=0.0,
         )
         self.clearout_duration: FloatParamHandle
+
+        # Timestamp of the dipole-trap drop, recorded each shot by
+        # post_dipole_trap_hook; t=0 for the gravity Doppler and for the
+        # ballistic camera-ROI predictor.
+        self.t_dipole_beams_off = int64(0)
 
         if not self.lmt_sequence:
             raise TypeError(
@@ -403,15 +429,23 @@ class DeclarativeLMTBase(ClockSpectroscopyBase):
         )
 
     @kernel
+    def post_dipole_trap_hook(self):
+        # Record the drop time: t=0 for the gravity Doppler of every pulse
+        # and for the ballistic camera-ROI predictor
+        self.t_dipole_beams_off = now_mu()
+        self.post_dipole_trap_hook_default()
+
+    @kernel
     def run_lmt_sequence(self):
         """Execute the declared sequence.
 
-        The centre of the first pulse is the gravity-Doppler reference: the
-        velocity class that pulse selects defines "v = 0" for the resonance
-        prediction of every subsequent pulse.
+        The gravity Doppler of every pulse is referenced to the dipole-trap
+        drop (``t_dipole_beams_off``): the atoms addressed by the
+        velocity-selective pulse are already falling, so the slicer too
+        carries its accumulated Doppler term, and an un-offset slicer
+        selects the class that was at rest at the drop.
         """
-        t_ref_mu = int64(0)
-        have_ref = False
+        t_ref_mu = self.t_dipole_beams_off
         # prepare_clock_delivery_aom (called by the hook before this method)
         # leaves the delivery set point at the spectroscopy default
         last_setpoint = self.spectroscopy_clock_delivery_setpoint.get()
@@ -431,12 +465,9 @@ class DeclarativeLMTBase(ClockSpectroscopyBase):
                 # Margin for programming the OPLL ramp before the switch opens
                 t_start = now_mu() + self.core.seconds_to_mu(10e-6)
                 t_centre_mu = t_start + self.core.seconds_to_mu(duration / 2)
-                if not have_ref:
-                    t_ref_mu = t_centre_mu
-                    have_ref = True
 
-                # Gravity Doppler evaluated at the pulse centre, relative to
-                # the centre of the first (velocity-selective) pulse
+                # Gravity Doppler evaluated at the pulse centre, accumulated
+                # since the dipole-trap drop
                 t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
                 freq_centre = (
                     start_opll_offset
