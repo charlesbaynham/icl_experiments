@@ -115,7 +115,7 @@ for i in 1 2 3; do
     BENCH_ARTIQ_PATH=/tmp/vendor_baseline/vendor/artiq \
         BENCH_NDSCAN_PATH=/tmp/vendor_baseline/vendor/ndscan \
         nix develop -c python3 /tmp/bench_ab.py 2>&1 | grep -E "BENCH|\[infer\]|PASSED|FAILED"
-    
+
     echo "=== OPTIMIZED RUN $i ==="
     BENCH_ARTIQ_PATH=/home/user/icl_experiments/vendor/artiq \
         BENCH_NDSCAN_PATH=/home/user/icl_experiments/vendor/ndscan \

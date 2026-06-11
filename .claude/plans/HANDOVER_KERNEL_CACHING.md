@@ -58,10 +58,10 @@ Implement content-addressed compilation cache to reuse compiled LLVM IR across r
 ```python
 def compile_and_link(self, modules):
     code_hash = self._compute_code_hash(modules)
-    
+
     if code_hash in self.cache:
         return self.cache[code_hash]  # Early return
-    
+
     # ... existing compile + assemble + link ...
     compiled = self.link([self.assemble(self.compile(m)) for m in modules])
     self.cache[code_hash] = compiled
