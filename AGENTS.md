@@ -155,6 +155,37 @@ These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_
 
 Used for all dependencies. Never make a python venv yourself.
 
+### Environment setup (required before running tests)
+
+The test suite can only be run from inside the Nix development shell. On a
+fresh machine (e.g. an ephemeral CI or agent container) you must first:
+
+1. **Install Nix** (e.g. `sh <(curl -L https://nixos.org/nix/install) --no-daemon`)
+   and enable flakes (`experimental-features = nix-command flakes` in
+   `~/.config/nix/nix.conf`).
+2. **Configure the `aion-physics` Cachix cache** so that the (large) build
+   closure is substituted instead of built locally: `cachix use aion-physics`,
+   or add to `nix.conf` directly:
+
+    ```
+    substituters = https://cache.nixos.org https://aion-physics.cachix.org
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= aion-physics.cachix.org-1:6nSnNuBFRf4kl9EPG6hAMQHBjcrrKEfHG2BpHBE2DVs=
+    ```
+
+3. **Provide GitLab credentials if needed**: some poetry git dependencies
+   (e.g. `andor-artiq-ndsp`) live in private GitLab repositories and are
+   fetched at flake evaluation time. Without credentials `nix develop` will
+   fail with "Failed to fetch git repository". Write a `~/.netrc` with a token
+   that has `read_repository` scope, as the CI does:
+
+    ```
+    machine gitlab.com
+    login oauth2
+    password <GITLAB_TOKEN>
+    ```
+
+4. Then run tests with `nix develop -c pytest tests/ -n 16`.
+
 ### Key Commands
 
 - `nix develop` - Enter development shell with all dependencies

@@ -40,12 +40,12 @@ class TestCheckpointExpFragBase(TestCheckpointFrag, ExpFragment):
         self.test_checkpoint_2()
 
 
-def test_can_run_with_default_implementations(fragment_precompiler):
-    frag = fragment_precompiler(TestCheckpointExpFragBase)
+def test_can_run_with_default_implementations(fragment_factory):
+    frag = fragment_factory(TestCheckpointExpFragBase)
     run_fragment_once(frag)
 
 
-def test_default_implementations_call_subfragments(fragment_precompiler):
+def test_default_implementations_call_subfragments(fragment_factory):
     sentinel = False
 
     class SubfragWithCheckpoint(TestCheckpointFrag):
@@ -66,13 +66,13 @@ def test_default_implementations_call_subfragments(fragment_precompiler):
             self.setattr_fragment("subfrag", SubfragWithCheckpoint)
             self.subfrag: SubfragWithCheckpoint
 
-    frag = fragment_precompiler(TestCheckpointExpFrag)
+    frag = fragment_factory(TestCheckpointExpFrag)
     assert not sentinel
     run_fragment_once(frag)
     assert sentinel
 
 
-def test_default_implementations_call_subfragments_squared(fragment_precompiler):
+def test_default_implementations_call_subfragments_squared(fragment_factory):
     sentinel_1 = False
     sentinel_2 = False
 
@@ -107,7 +107,7 @@ def test_default_implementations_call_subfragments_squared(fragment_precompiler)
 
             self.setattr_fragment("subfrag", Middle)
 
-    frag = fragment_precompiler(Top)
+    frag = fragment_factory(Top)
     assert not sentinel_1
     assert not sentinel_2
     run_fragment_once(frag)
