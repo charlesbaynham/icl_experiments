@@ -4,14 +4,14 @@ Tests for the declarative LMT sequence language and compiler.
 
 import pytest
 
-from repository.lib.lmt_sequence import Beam
-from repository.lib.lmt_sequence import Callback
-from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import EVENT_CALLBACK
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
+from repository.lib.lmt_sequence import Beam
+from repository.lib.lmt_sequence import Callback
+from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import Pulse
 from repository.lib.lmt_sequence import SequenceError
 from repository.lib.lmt_sequence import SetPoint
