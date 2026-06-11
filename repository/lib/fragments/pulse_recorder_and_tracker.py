@@ -59,6 +59,14 @@ logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
+# The delivery AOM setpoint is an O(1) V float, so - unlike the Hz-scale
+# frequency fields, where int64(x) is effectively lossless - it must be scaled
+# before the int64 conversion used for the OpaqueChannel, otherwise sub-volt
+# precision is truncated away (e.g. a 2.6 V setpoint would be stored as 2, and a
+# 0.05 V velocity-selection setpoint as 0). It is therefore stored as int64
+# microvolts; decoders must divide the setpoint row by this factor to recover V.
+DELIVERY_SETPOINT_SCALE = 1_000_000  # int64 microvolts per volt
+
 
 class PulseDMARecording(Fragment):
     dma_name = "actions_after_drop"
@@ -155,8 +163,10 @@ class PulseDMARecording(Fragment):
                 : self._pulse_record_num_pulses
             ]
         ]
+        # Scale to microvolts so the int64 conversion preserves sub-volt
+        # precision (see DELIVERY_SETPOINT_SCALE).
         delivery_setpoint = [
-            int64(x)
+            int64(round(x * DELIVERY_SETPOINT_SCALE))
             for x in self._pulse_record_delivery_setpoint[
                 : self._pulse_record_num_pulses
             ]
@@ -262,6 +272,9 @@ class PulseDMARecording(Fragment):
         - Regular record (7 rows of ``num_pulses`` values each):
           ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
           (length ``1 + 7 * num_pulses``)
+
+        The setpoint row is stored in microvolts (see ``DELIVERY_SETPOINT_SCALE``);
+        divide it by that factor to recover the setpoint in volts.
         """
         records = self.get_dataset("pulse_record", archive=False)
         if not records:
