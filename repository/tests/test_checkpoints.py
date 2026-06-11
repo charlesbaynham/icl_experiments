@@ -41,11 +41,14 @@ class _CallAllHooksBase(RedMOTCheckpoints, ExpFragment):
 
     @kernel
     def run_once(self):
+        self.DMA_initialization_checkpoint()
+        self.pre_sequence_checkpoint()
         self.end_of_blue_3d_mot_loading_checkpoint()
         self.start_of_red_broadband_checkpoint()
         self.end_of_broadband_mot_checkpoint()
         self.post_narrowband_checkpoint()
         self.pre_expansion_checkpoint()
+        self.after_first_imaging_pulse_checkpoint()
         self.post_sequence_cleanup_checkpoint()
         self.after_data_saved_checkpoint()
 
