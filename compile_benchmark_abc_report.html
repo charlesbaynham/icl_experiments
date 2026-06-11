@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>
+            ARTIQ compile-time A/B/C benchmark — upstream vs optimized branch
+            (cold/warm kernel cache)
+        </title>
+        <style>
+            :root {
+                --ink: #1a2332;
+                --muted: #5b6677;
+                --accent-a: #94a3b8;
+                --accent-b: #3b82f6;
+                --accent-c: #10b981;
+                --bg: #f8fafc;
+                --card: #ffffff;
+                --border: #e2e8f0;
+            }
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Helvetica, Arial, sans-serif;
+                color: var(--ink);
+                background: var(--bg);
+                margin: 0;
+                line-height: 1.55;
+            }
+            .wrap {
+                max-width: 980px;
+                margin: 0 auto;
+                padding: 2rem 1.5rem 4rem;
+            }
+            h1 {
+                font-size: 1.7rem;
+                margin-bottom: 0.2rem;
+            }
+            h2 {
+                font-size: 1.25rem;
+                margin-top: 2.5rem;
+                border-bottom: 2px solid var(--border);
+                padding-bottom: 0.3rem;
+            }
+            h3 {
+                font-size: 1.05rem;
+                margin-top: 1.5rem;
+            }
+            .sub {
+                color: var(--muted);
+                margin-top: 0;
+            }
+            .cards {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 1rem;
+                margin: 1.5rem 0;
+            }
+            .card {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 1rem 1.2rem;
+            }
+            .card .label {
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--muted);
+            }
+            .card .big {
+                font-size: 1.9rem;
+                font-weight: 700;
+                margin: 0.1rem 0;
+            }
+            .card .delta {
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+            .delta.good {
+                color: #059669;
+            }
+            .a {
+                border-top: 4px solid var(--accent-a);
+            }
+            .b {
+                border-top: 4px solid var(--accent-b);
+            }
+            .c {
+                border-top: 4px solid var(--accent-c);
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                background: var(--card);
+                font-size: 0.92rem;
+            }
+            th,
+            td {
+                border: 1px solid var(--border);
+                padding: 0.45rem 0.7rem;
+                text-align: right;
+            }
+            th:first-child,
+            td:first-child {
+                text-align: left;
+            }
+            thead th {
+                background: #eef2f7;
+            }
+            .chart {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 1rem;
+                margin: 1rem 0;
+            }
+            .note {
+                background: #fffbeb;
+                border: 1px solid #fde68a;
+                border-radius: 8px;
+                padding: 0.8rem 1rem;
+                font-size: 0.92rem;
+            }
+            code {
+                background: #eef2f7;
+                padding: 0.1em 0.35em;
+                border-radius: 4px;
+                font-size: 0.88em;
+            }
+            .fallback {
+                color: var(--muted);
+                font-size: 0.9rem;
+                font-style: italic;
+            }
+            ul {
+                padding-left: 1.3rem;
+            }
+            .small {
+                font-size: 0.85rem;
+                color: var(--muted);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <h1>ARTIQ kernel compile time: A/B/C benchmark</h1>
+            <p class="sub">
+                Pristine upstream ARTIQ vs the optimized
+                <code>claude/brave-carson-3qrud7</code> branch with cold and
+                warm kernel cache &middot; measured 2026-06-11 &middot;
+                benchmark fragment:
+                <code>LMTInterferometryWithDoubleLaunchSingleImageFrag</code>
+                (deepest LMT fragment tree, 742 embedded kernel functions)
+            </p>
+
+            <div class="cards">
+                <div class="card a">
+                    <div class="label">A &middot; upstream (pinned)</div>
+                    <div class="big">37.9 s</div>
+                    <div class="delta">median of 3 runs — baseline</div>
+                </div>
+                <div class="card b">
+                    <div class="label">B &middot; this branch, cold cache</div>
+                    <div class="big">32.9 s</div>
+                    <div class="delta good">−13.0% vs upstream</div>
+                </div>
+                <div class="card c">
+                    <div class="label">C &middot; this branch, warm cache</div>
+                    <div class="big">28.0 s</div>
+                    <div class="delta good">
+                        −26.2% vs upstream &middot; −15.1% vs cold
+                    </div>
+                </div>
+            </div>
+
+            <p>
+                Every optimized run beat every upstream run, and every
+                warm-cache run beat every cold-cache run — there is no overlap
+                between the three distributions. The warm-cache hit was
+                confirmed explicitly (<code
+                    >[phase] kernel_cache=hit code_hash=4682b914…</code
+                >), and the hit came from a cache populated by a
+                <em>different process</em>, demonstrating that the emitted LLVM
+                IR is byte-identical across processes (the prerequisite this
+                branch had to engineer; see below).
+            </p>
+
+            <h2>Per-run wall times</h2>
+            <div class="chart">
+                <div id="chart-runs" style="width: 100%; height: 320px">
+                    <p class="fallback">
+                        (Interactive chart requires network access for the
+                        React/Recharts CDN; the data is in the table below.)
+                    </p>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Configuration</th>
+                        <th>Run 1</th>
+                        <th>Run 2</th>
+                        <th>Run 3</th>
+                        <th>Median</th>
+                        <th>vs A</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>A — upstream pinned artiq + ndscan</td>
+                        <td>36.93 s</td>
+                        <td>37.92 s</td>
+                        <td>37.87 s</td>
+                        <td><b>37.87 s</b></td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td>B — optimized branch, cold kernel cache</td>
+                        <td>31.83 s</td>
+                        <td>32.93 s</td>
+                        <td>32.93 s</td>
+                        <td><b>32.93 s</b></td>
+                        <td>−13.0%</td>
+                    </tr>
+                    <tr>
+                        <td>C — optimized branch, warm kernel cache</td>
+                        <td>27.27 s</td>
+                        <td>27.96 s</td>
+                        <td>29.13 s</td>
+                        <td><b>27.96 s</b></td>
+                        <td>−26.2%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="small">
+                Timing is the pytest <code>call</code> duration of the single
+                compile test (fragment build + host_setup + full kernel compile;
+                excludes pytest collection). Runs were interleaved A→B→C ×3 on
+                an otherwise idle 4-core Xeon to cancel load drift. "Cold" used
+                a fresh empty <code>ARTIQ_KERNEL_CACHE_DIR</code> per run;
+                "warm" used a directory populated once beforehand by a separate
+                process.
+            </p>
+
+            <h2>Where the time goes: compile-phase breakdown</h2>
+            <div class="chart">
+                <div id="chart-phases" style="width: 100%; height: 340px">
+                    <p class="fallback">
+                        (Interactive chart requires network access for the
+                        React/Recharts CDN; the data is in the table below.)
+                    </p>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phase</th>
+                        <th>B — cold cache</th>
+                        <th>C — warm cache</th>
+                        <th>What happens</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Embedding + type inference (finalize)</td>
+                        <td>13.2 s</td>
+                        <td>12.8 s</td>
+                        <td style="text-align: left">
+                            Discover/embed kernel functions, fixed-point type
+                            inference
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>ARTIQ IR generation</td>
+                        <td>4.8 s</td>
+                        <td>4.8 s</td>
+                        <td style="text-align: left">
+                            Typed AST → ARTIQ SSA IR + transforms
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>LLVM IR generation</td>
+                        <td>10.9 s</td>
+                        <td>10.9 s</td>
+                        <td style="text-align: left">
+                            ARTIQ IR → LLVM IR text (this text is the cache key)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>LLVM parse + verify</td>
+                        <td>0.8 s</td>
+                        <td rowspan="4"><b>0.1 s</b> (cache load)</td>
+                        <td style="text-align: left" rowspan="4">
+                            <b>Skipped on a warm hit</b> — the linked ELF (~840
+                            KB) is loaded from
+                            <code>.artiq_kernel_cache/</code> instead
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>LLVM optimize</td>
+                        <td>1.4 s</td>
+                    </tr>
+                    <tr>
+                        <td>Assemble (codegen)</td>
+                        <td>2.3 s</td>
+                    </tr>
+                    <tr>
+                        <td>Link</td>
+                        <td>0.1 s</td>
+                    </tr>
+                    <tr>
+                        <td><b>Compile total</b></td>
+                        <td><b>33.4 s</b></td>
+                        <td><b>28.6 s</b></td>
+                        <td style="text-align: left">
+                            From instrumented diagnostic runs; the remaining ~3
+                            s of the test's wall time is fragment construction +
+                            host_setup, identical in all legs
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="small">
+                Upstream ARTIQ (leg A) has no phase instrumentation, so only its
+                total is measurable; its breakdown is qualitatively the same
+                shape as B but with substantially more inference work (see next
+                section).
+            </p>
+
+            <h2>Where the improvements come from</h2>
+
+            <h3>
+                A → B (−4.9 s, −13%): front-end and middle-end optimizations
+            </h3>
+            <p>
+                These changes live in the vendored
+                <code>vendor/artiq</code> and <code>vendor/ndscan</code> trees
+                and reduce the work done on <em>every</em> compile, cached or
+                not:
+            </p>
+            <ul>
+                <li>
+                    <b>Dirty-set type inference</b>
+                    (<code>artiq/compiler/embedding.py</code>): the embedding
+                    fixed-point loop tracks per-function typed-AST hashes and
+                    re-visits only functions whose types actually changed,
+                    instead of sweeping all functions every round. Measured on
+                    this fragment: <b>4,789 function visits</b> (32 discovery
+                    cascades + 17 hash rounds) vs upstream's ~18 full passes ×
+                    861 functions ≈ <b>15,500 visits</b> — a 3.2× reduction in
+                    inference work. It reaches the same fixed point; correctness
+                    was regression-tested across all LMT and a sample of non-LMT
+                    fragments.
+                </li>
+                <li>
+                    <b>Per-(value, attribute) interrogation cache</b>:
+                    <code>_unify_attribute</code> no longer re-loops over all
+                    host values on every visit of every attribute node (was ~55k
+                    redundant calls).
+                </li>
+                <li>
+                    <b>Visitor dispatch + type-hash caching</b>: resolved
+                    <code>visit_*</code> methods are cached per (visitor, node)
+                    class pair — the compiler visits millions of AST nodes per
+                    LMT compile — and typed-tree hashes are cached within a hash
+                    round.
+                </li>
+                <li>
+                    <b>ndscan forwarder deduplication</b>:
+                    <code>kernel_from_string</code> results for the synthesized
+                    setup/cleanup forwarders are shared per class instead of
+                    regenerated per fragment instance, shrinking the embedded
+                    set from <b>861 to 742 functions</b>. Fewer functions means
+                    less work in every later phase (ARTIQ IR, LLVM IR, codegen)
+                    too.
+                </li>
+            </ul>
+
+            <h3>B → C (−5.0 s, −15%): content-addressed kernel cache</h3>
+            <p>
+                The branch adds
+                <code>artiq.compiler.kernel_cache</code>: after LLVM IR
+                generation, the IR text plus an environment fingerprint
+                (compiler-source digest, llvmlite/LLVM versions, target/linker
+                options) is hashed with blake2b; on a hit the linked ELF is
+                loaded from disk and
+                <b
+                    >LLVM parse, verify, optimize, codegen and link are
+                    skipped</b
+                >
+                (15.4 s → 11.0 s backend in the diagnostic runs). Host attribute
+                values are embedded in the IR as global initializers, so the key
+                covers values as well as code — a stale hit is impossible.
+            </p>
+            <p>
+                Making this work cross-process was the hard part: a
+                content-addressed cache requires byte-identical IR for identical
+                input, and three sources of memory-address-dependent
+                nondeterminism had to be fixed (string-kernel names derived from
+                <code>id()</code>, set-ordered constant hoisting, set-ordered
+                exception-phi predecessor choice). This benchmark exercised that
+                path for real — every warm hit came from a cache written by a
+                different process, with identical code hashes.
+            </p>
+
+            <h3>Why a warm hit is 28 s and not 3 s</h3>
+            <p>
+                The cache key <em>is</em> the LLVM IR text, so everything
+                upstream of it — inference (12.8 s), ARTIQ IR (4.8 s) and LLVM
+                IR generation (10.9 s) — must still run on every compile just to
+                compute the key. Skipping those phases would require a key
+                computable <em>before</em> inference (covering the transitive
+                closure of kernel sources and all embedded host values) plus
+                separate upload of parameter values to the device; the core
+                device protocol has no memory-write command today, so that is
+                firmware + protocol work, not a compiler patch.
+            </p>
+
+            <h2>Caveats and deployment notes</h2>
+            <ul>
+                <li>
+                    <b>pyaion blocker for production caching</b>:
+                    <code>UrukulInit.host_setup</code> embeds
+                    <code>hash(device)</code> (a memory address) into kernel
+                    data and orders CPLDs via <code>list(set(...))</code>, so
+                    any Urukul-touching experiment compiles to different bytes
+                    per process. The test suite patches this in
+                    <code>tests/conftest.py</code>; the same one-method fix is
+                    needed in pyaion before live re-runs hit the cache.
+                </li>
+                <li>
+                    <b>Parameter-value changes are cache misses</b>: values are
+                    baked into the IR globals, so re-running the same experiment
+                    with the same values hits, but changing any embedded host
+                    value recompiles the backend. (Scanned ndscan parameters are
+                    uploaded at runtime and do not invalidate.)
+                </li>
+                <li>
+                    <b>The nix dev shell still pins pristine artiq/ndscan</b>;
+                    the optimized trees are exercised via
+                    <code>sys.path</code> injection
+                    (<code>scripts/pytest_vendored.py</code>). Deployment means
+                    pushing the vendored changes to the aion-physics forks and
+                    updating <code>flake.lock</code>.
+                </li>
+                <li>
+                    Leg A is the pinned baseline the branch forked from
+                    (aion-physics artiq fork @ <code>e98dbf5a</code>,
+                    <code>make-event-spreading-optional</code>), i.e. exactly
+                    what production compiles with today.
+                </li>
+            </ul>
+
+            <h2>Methodology</h2>
+            <ul>
+                <li>
+                    <b>Machine</b>: 4-core Intel Xeon @ 2.80 GHz, 15 GB RAM,
+                    Linux container; Python 3.10.12 from the project nix
+                    environment; branch at <code>bf2c09dc</code>.
+                </li>
+                <li>
+                    <b>Workload</b>: single deepest-tree LMT compile test,
+                    <code
+                        >tests/test_compile_all.py -k
+                        LMTInterferometryWithDoubleLaunchSingleImageFrag</code
+                    >
+                    (compiles device_setup → run_once → device_cleanup as one
+                    kernel, as production does). All 9 runs passed.
+                </li>
+                <li>
+                    <b>Design</b>: interleaved A→B→C, 3 iterations, fresh pytest
+                    process per run; warm directory populated once by a separate
+                    untimed run. Loaded module paths are asserted per run
+                    (vendored legs refuse to run against /nix/store packages and
+                    vice versa).
+                </li>
+                <li>
+                    <b>Phase breakdowns</b> come from two additional
+                    instrumented diagnostic runs
+                    (<code>ARTIQ_PHASE_TIMING=1</code>, output capture
+                    disabled), not from the timed runs.
+                </li>
+                <li>
+                    Raw logs: <code>/tmp/bench_logs/</code> in the benchmark
+                    container.
+                </li>
+            </ul>
+        </div>
+
+        <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+        <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+        <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+        <script>
+            (function () {
+                if (!window.React || !window.ReactDOM || !window.Recharts)
+                    return; // offline: static tables remain
+                var h = React.createElement;
+                var R = Recharts;
+
+                var runData = [
+                    { name: "Run 1", A: 36.93, B: 31.83, C: 27.27 },
+                    { name: "Run 2", A: 37.92, B: 32.93, C: 27.96 },
+                    { name: "Run 3", A: 37.87, B: 32.93, C: 29.13 },
+                ];
+                var legendNames = {
+                    A: "A · upstream",
+                    B: "B · branch, cold cache",
+                    C: "C · branch, warm cache",
+                };
+                var runsChart = h(
+                    R.ResponsiveContainer,
+                    { width: "100%", height: 300 },
+                    h(
+                        R.BarChart,
+                        { data: runData, margin: { top: 10, right: 20 } },
+                        h(R.CartesianGrid, { strokeDasharray: "3 3" }),
+                        h(R.XAxis, { dataKey: "name" }),
+                        h(R.YAxis, {
+                            domain: [0, 40],
+                            label: {
+                                value: "wall time (s)",
+                                angle: -90,
+                                position: "insideLeft",
+                            },
+                        }),
+                        h(R.Tooltip, {
+                            formatter: function (v, k) {
+                                return [v + " s", legendNames[k]];
+                            },
+                        }),
+                        h(R.Legend, {
+                            formatter: function (k) {
+                                return legendNames[k];
+                            },
+                        }),
+                        h(R.Bar, { dataKey: "A", fill: "#94a3b8" }),
+                        h(R.Bar, { dataKey: "B", fill: "#3b82f6" }),
+                        h(R.Bar, { dataKey: "C", fill: "#10b981" }),
+                    ),
+                );
+                ReactDOM.createRoot(
+                    document.getElementById("chart-runs"),
+                ).render(runsChart);
+
+                var phaseData = [
+                    {
+                        name: "B · cold cache",
+                        inference: 13.19,
+                        artiq_ir: 4.8,
+                        llvm_ir_gen: 10.87,
+                        backend_rest: 4.51,
+                        cache_load: 0,
+                    },
+                    {
+                        name: "C · warm cache",
+                        inference: 12.82,
+                        artiq_ir: 4.77,
+                        llvm_ir_gen: 10.9,
+                        backend_rest: 0,
+                        cache_load: 0.07,
+                    },
+                ];
+                var phaseNames = {
+                    inference: "Embedding + type inference",
+                    artiq_ir: "ARTIQ IR",
+                    llvm_ir_gen: "LLVM IR generation",
+                    backend_rest: "LLVM parse/verify/optimize/assemble/link",
+                    cache_load: "Cache lookup + ELF load",
+                };
+                var phaseColors = {
+                    inference: "#6366f1",
+                    artiq_ir: "#0ea5e9",
+                    llvm_ir_gen: "#f59e0b",
+                    backend_rest: "#ef4444",
+                    cache_load: "#10b981",
+                };
+                var bars = Object.keys(phaseNames).map(function (k) {
+                    return h(R.Bar, {
+                        dataKey: k,
+                        stackId: "s",
+                        fill: phaseColors[k],
+                        name: phaseNames[k],
+                    });
+                });
+                var phasesChart = h(
+                    R.ResponsiveContainer,
+                    { width: "100%", height: 320 },
+                    h(
+                        R.BarChart,
+                        {
+                            data: phaseData,
+                            layout: "vertical",
+                            margin: { top: 10, right: 30, left: 90 },
+                        },
+                        h(R.CartesianGrid, { strokeDasharray: "3 3" }),
+                        h(R.XAxis, {
+                            type: "number",
+                            domain: [0, 36],
+                            label: {
+                                value: "seconds",
+                                position: "insideBottom",
+                                offset: -5,
+                            },
+                        }),
+                        h(R.YAxis, {
+                            type: "category",
+                            dataKey: "name",
+                            width: 130,
+                        }),
+                        h(R.Tooltip, {
+                            formatter: function (v, k) {
+                                return [v + " s", phaseNames[k] || k];
+                            },
+                        }),
+                        h(R.Legend, {}),
+                        bars,
+                    ),
+                );
+                ReactDOM.createRoot(
+                    document.getElementById("chart-phases"),
+                ).render(phasesChart);
+            })();
+        </script>
+    </body>
+</html>
