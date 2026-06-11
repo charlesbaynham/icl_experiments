@@ -332,7 +332,8 @@ class NormalisedFastKineticsLMTCorrectedMixin(
     Must be combined with a class that provides:
 
     * ``dma_recording_fragment`` (from :class:`~DipoleTrapWithExperimentBase`)
-    * ``t_dipole_beams_off`` (from :class:`~ClockShelvingAndClearoutDipoleTrapMixin`)
+    * ``t_dipole_beams_off`` (from :class:`~ClockShelvingAndClearoutDipoleTrapMixin`
+      or :class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`)
 
     Kernel hooks overridden:
 
