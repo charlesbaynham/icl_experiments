@@ -21,9 +21,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMG
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
     NormalisedFastKineticsLMTCorrectedMixin,
 )
-from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
-    NormalisedDipoleTrapFastKineticsMixin,
-)
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
 )
@@ -55,10 +52,12 @@ M_TOP = 1 + N_LAUNCH
 
 class DeclarativeLMTMachZehnderFrag(
     DeclarativeLMTBase,
-    NormalisedDipoleTrapFastKineticsMixin,
     # Repositions the camera ROIs along the ballistic trajectory predicted
     # from the recorded pulse sequence, with t=0 at the dipole-trap drop
-    # recorded by DeclarativeLMTBase
+    # recorded by DeclarativeLMTBase. NB: do not also mix in one of the
+    # static-config imaging mixins (e.g. NormalisedDipoleTrapFastKineticsMixin)
+    # - it would win get_andor_camera_config_hook in the MRO and install a
+    # config without calculate_atom_positions.
     NormalisedFastKineticsLMTCorrectedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
