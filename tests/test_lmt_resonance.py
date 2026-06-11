@@ -110,8 +110,7 @@ def new_pulse_frequency(doppler, compiled_event):
 
 def _compile_ladder(start_m, n, first_beam, initial_population):
     sequence = [
-        SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=9e3),
-        SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7e3),
+        SetPoint(setpoint=2.6, rabi_up=9e3, rabi_down=7e3),
         *ladder(start_m=start_m, n=n, first_beam=first_beam),
     ]
     compiled = compile_sequence(sequence, initial_population=initial_population)

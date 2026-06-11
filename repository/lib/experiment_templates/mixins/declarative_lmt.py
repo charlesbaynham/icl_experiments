@@ -39,12 +39,13 @@ Principles
   ``-s * kick / 2`` (~4.7 kHz); per-pulse offset parameters (default 0)
   absorb any residual during commissioning.
 - Beam intensity is controlled exclusively through the delivery AOM SUServo
-  set point, carried per beam as sticky sequence state (see
-  :class:`~repository.lib.lmt_sequence.SetPoint`). Every ``SetPoint`` event
-  spawns a scannable ndscan parameter which all subsequent pulses on that
-  beam pick up. Put a ``Wait`` (or other dead time) after a ``SetPoint`` to
-  give the servo time to settle. Note that the legacy stack instead varied
-  the switch AOM's RF attenuation for low-intensity pulses
+  set point, which changes ONLY at
+  :class:`~repository.lib.lmt_sequence.SetPoint` events: the engine writes
+  the new value there and then waits ``clock_delivery_preempt_time`` for the
+  servo to recapture before continuing, so pulses never carry hidden
+  set-point writes or settling waits. Every ``SetPoint`` spawns a scannable
+  ndscan parameter. Note that the legacy stack instead varied the switch
+  AOM's RF attenuation for low-intensity pulses
   (``LMT_launch_mixins.do_selective_lmt_pulse``); attenuation in dB has an
   uncalibrated nonlinear relationship to optical power, so equivalent set
   points must be calibrated on atoms when porting tuned values.
@@ -98,11 +99,9 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         class MyInterferometerFrag(DeclarativeLMTBase, ...):
             lmt_initial_population = {("g", 0)}
             lmt_sequence = [
-                SetPoint(Beam.UP, setpoint=0.012, rabi_frequency=1.3e3),
-                Wait(t=200e-6, label="servo_settle"),
+                SetPoint(setpoint=0.012, rabi_up=1.3e3, label="slice"),
                 pi(Beam.UP, m=0, label="slice"),
-                SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=9.1e3),
-                SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7.4e3),
+                SetPoint(setpoint=2.6, rabi_up=9.1e3, rabi_down=7.4e3),
                 Clearout(),
                 *ladder(start_m=1, n=12, first_beam=Beam.DOWN),
                 ...
@@ -223,8 +222,6 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         # builds after this one in the MRO.
         self._lmt_duration_param_refs = []
 
-        setpoint_handles_by_event = {}
-
         for event in compiled.events:
             self._lmt_event_kind.append(int32(event.kind))
             self._lmt_beam_is_up.append(event.beam_sign > 0)
@@ -273,13 +270,7 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                     unit=spec.unit,
                     min=spec.min,
                 )
-                setpoint_handles_by_event[event.index] = handle
                 self._lmt_setpoint_handles.append(handle)
-            elif event.governing_setpoint_index >= 0:
-                # SetPoint events always precede the pulses they govern
-                self._lmt_setpoint_handles.append(
-                    setpoint_handles_by_event[event.governing_setpoint_index]
-                )
             else:
                 self._lmt_setpoint_handles.append(pad_handle)
 
@@ -450,23 +441,17 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         velocity-selective pulse are already falling, so the slicer too
         carries its accumulated Doppler term, and an un-offset slicer
         selects the class that was at rest at the drop.
+
+        The delivery set point changes only at SETPOINT events, each of
+        which waits ``clock_delivery_preempt_time`` for the servo to
+        recapture; pulses never touch the set point.
         """
         t_ref_mu = self.t_dipole_beams_off
-        # prepare_clock_delivery_aom (called by the hook before this method)
-        # leaves the delivery set point at the spectroscopy default
-        last_setpoint = self.spectroscopy_clock_delivery_setpoint.get()
 
         for i in range(self._lmt_n_events):
             kind = self._lmt_event_kind[i]
 
             if kind == EVENT_PULSE:
-                # Ensure the governing set point for this beam is applied
-                setpoint = self._lmt_setpoint_handles[i].get()
-                if setpoint != last_setpoint:
-                    self._set_delivery_setpoint(setpoint)
-                    last_setpoint = setpoint
-                    delay_mu(8)
-
                 duration = self._lmt_duration_handles[i].get()
                 # Margin for programming the OPLL ramp before the switch opens
                 t_start = now_mu() + self.core.seconds_to_mu(10e-6)
@@ -496,13 +481,11 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                 delay(8e-9)
 
             elif kind == EVENT_SETPOINT:
-                # Applied immediately so the servo can settle during any
-                # following dark time. If the next pulse is on the other
-                # beam its own set point is re-applied in its prep window.
-                setpoint = self._lmt_setpoint_handles[i].get()
-                self._set_delivery_setpoint(setpoint)
-                last_setpoint = setpoint
-                delay_mu(8)
+                # The only place the delivery set point changes. Write the
+                # new value, then wait for the servo to recapture before
+                # anything else happens.
+                self._set_delivery_setpoint(self._lmt_setpoint_handles[i].get())
+                delay(self.clock_delivery_preempt_time.get())
 
             else:  # EVENT_CALLBACK
                 self.lmt_sequence_callback(self._lmt_callback_id[i])

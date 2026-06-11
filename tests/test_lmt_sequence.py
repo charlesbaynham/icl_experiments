@@ -23,10 +23,8 @@ from repository.lib.lmt_sequence import pi2
 
 
 def setpoints(rabi_up=9e3, rabi_down=7e3):
-    return [
-        SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=rabi_up),
-        SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=rabi_down),
-    ]
+    """A full-intensity SetPoint declaring both beams' Rabi frequencies."""
+    return [SetPoint(setpoint=2.6, rabi_up=rabi_up, rabi_down=rabi_down)]
 
 
 def test_beam_coercion():
@@ -36,6 +34,15 @@ def test_beam_coercion():
     assert Beam.DOWN.sign == -1
     with pytest.raises(ValueError):
         Pulse(1.0, "sideways", 0)
+
+
+def test_setpoint_validation():
+    with pytest.raises(ValueError, match="at least one beam"):
+        SetPoint(setpoint=2.6)
+    with pytest.raises(ValueError, match="rabi_down"):
+        SetPoint(setpoint=2.6, rabi_down=-1.0)
+    with pytest.raises(ValueError, match="non-negative"):
+        SetPoint(setpoint=-0.1, rabi_up=1e3)
 
 
 def test_ladder_helper():
@@ -66,10 +73,10 @@ def test_mach_zehnder_compiles_and_closes():
     assert compiled.final_population == frozenset({("e", 13), ("g", 14)})
 
     kinds = [e.kind for e in compiled.events]
-    assert kinds[:2] == [EVENT_SETPOINT, EVENT_SETPOINT]
-    assert kinds[2:14] == [EVENT_PULSE] * 12
-    assert kinds[14] == EVENT_CLEAROUT
-    assert kinds[15:] == [
+    assert kinds[0] == EVENT_SETPOINT
+    assert kinds[1:13] == [EVENT_PULSE] * 12
+    assert kinds[13] == EVENT_CLEAROUT
+    assert kinds[14:] == [
         EVENT_PULSE,
         EVENT_WAIT,
         EVENT_PULSE,
@@ -84,14 +91,12 @@ def test_velocity_selective_slice_sequence():
     (from its low-set-point Rabi frequency), followed by launch and MZ."""
     slice_rabi = 1 / (2 * 380e-6)
     sequence = [
-        SetPoint(Beam.UP, setpoint=0.012, rabi_frequency=slice_rabi, label="slice"),
-        Wait(t=200e-6, label="servo_settle"),
-        pi(Beam.UP, m=0, label="slice"),
-        SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=9e3),
-        SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7e3),
-        Clearout(),
-        *ladder(start_m=1, n=12, first_beam=Beam.DOWN),
-        Clearout(),
+        SetPoint(setpoint=0.012, rabi_up=slice_rabi, label="slice"),  # 0
+        pi(Beam.UP, m=0, label="slice"),  # 1
+        SetPoint(setpoint=2.6, rabi_up=9e3, rabi_down=7e3),  # 2
+        Clearout(),  # 3
+        *ladder(start_m=1, n=12, first_beam=Beam.DOWN),  # 4..15
+        Clearout(),  # 16
         pi2(Beam.DOWN, m=13),
         Wait(t=1e-3),
         pi(Beam.DOWN, m=13),
@@ -101,20 +106,20 @@ def test_velocity_selective_slice_sequence():
     compiled = compile_sequence(sequence, initial_population={("g", 0)})
     assert compiled.final_population == frozenset({("e", 13), ("g", 14)})
 
-    slice_pulse = compiled.events[2]
+    slice_pulse = compiled.events[1]
     assert slice_pulse.kind == EVENT_PULSE
     # Duration default follows the slice SetPoint's declared Rabi frequency
     assert slice_pulse.duration_param.default == pytest.approx(380e-6)
     assert slice_pulse.governing_setpoint_index == 0
     # Labels make the generated parameters recognisable in the ndscan UI
     slice_setpoint = compiled.events[0]
+    assert slice_setpoint.setpoint_param.attr_name == "p00_setpoint_slice"
     assert "'slice'" in slice_setpoint.setpoint_param.description
-    assert "up-beam" in slice_setpoint.setpoint_param.description
     assert "'slice'" in slice_pulse.offset_param.description
-    # Later pulses are governed by the full-intensity set points instead
-    first_launch_pulse = compiled.events[6]
+    # Later pulses are governed by the full-intensity set point instead
+    first_launch_pulse = compiled.events[4]
     assert first_launch_pulse.kind == EVENT_PULSE
-    assert first_launch_pulse.governing_setpoint_index == 4  # SetPoint(DOWN)
+    assert first_launch_pulse.governing_setpoint_index == 2
 
 
 def test_pi_swaps_and_pi2_branches():
@@ -140,7 +145,7 @@ def test_pi_swaps_and_pi2_branches():
 
 def test_unpopulated_pulse_raises_with_index():
     sequence = [*setpoints(), pi(Beam.UP, m=5)]
-    with pytest.raises(SequenceError, match="Event 2.*m=5"):
+    with pytest.raises(SequenceError, match="Event 1.*m=5"):
         compile_sequence(sequence, initial_population={("g", 0)})
 
 
@@ -165,9 +170,8 @@ def test_unpopulated_pulse_without_state_always_raises():
 
 
 def test_ambiguous_pulse_requires_state():
-    # After pi2 on (g,0) with the up beam, both (g,0) and (e,1) are populated.
-    # A down pulse at m=1... is unambiguous; create real ambiguity instead:
-    # populate (g,1) and (e,1) directly.
+    # Populate both internal states at the same m: the pulse cannot know
+    # which transition is meant without an explicit state.
     sequence = [*setpoints(), pi(Beam.UP, m=1)]
     with pytest.raises(SequenceError, match="disambiguate"):
         compile_sequence(sequence, initial_population={("g", 1), ("e", 1)})
@@ -183,20 +187,21 @@ def test_ambiguous_pulse_requires_state():
 def test_pulse_before_setpoint_raises():
     with pytest.raises(SequenceError, match="SetPoint"):
         compile_sequence([pi(Beam.UP, m=0)], initial_population={("g", 0)})
-    # A set point for one beam does not enable the other
-    with pytest.raises(SequenceError, match="SetPoint"):
+    # A set point that does not declare this beam's Rabi frequency is an
+    # error too: the pulse's default duration would be undefined
+    with pytest.raises(SequenceError, match="rabi_up"):
         compile_sequence(
-            [SetPoint(Beam.DOWN, 2.6, 7e3), pi(Beam.UP, m=0)],
+            [SetPoint(setpoint=2.6, rabi_down=7e3), pi(Beam.UP, m=0)],
             initial_population={("g", 0)},
         )
 
 
 def test_durations_follow_governing_setpoint():
     sequence = [
-        SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=10e3),
+        SetPoint(setpoint=2.6, rabi_up=10e3),
         pi(Beam.UP, m=0),
         pi2(Beam.UP, m=1, state="e"),
-        SetPoint(Beam.UP, setpoint=0.5, rabi_frequency=2e3),
+        SetPoint(setpoint=0.5, rabi_up=2e3),
         pi(Beam.UP, m=1, state="e"),
     ]
     compiled = compile_sequence(sequence, initial_population={("g", 0)})
@@ -262,8 +267,8 @@ def test_callback_bookkeeping():
         pi(Beam.UP, m=2),  # input must now be (g, 2)
     ]
     compiled = compile_sequence(sequence, initial_population={("e", 0)})
-    assert compiled.events[2].kind == EVENT_CALLBACK
-    assert compiled.events[2].callback_id == 1
+    assert compiled.events[1].kind == EVENT_CALLBACK
+    assert compiled.events[1].callback_id == 1
     assert compiled.final_population == frozenset({("e", 3)})
 
     with pytest.raises(ValueError):
@@ -272,20 +277,21 @@ def test_callback_bookkeeping():
 
 def test_param_naming():
     sequence = [
-        SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=10e3),
-        SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7e3),
+        SetPoint(setpoint=2.6, rabi_up=10e3, rabi_down=7e3),
         pi2(Beam.DOWN, m=12),
         Wait(t=1e-3, label="dark"),
         pi(Beam.UP, m=13, label="mirror"),
     ]
     compiled = compile_sequence(sequence, initial_population={("e", 12)})
     events = compiled.events
-    assert events[0].setpoint_param.attr_name == "p00_setpoint_u"
-    assert events[1].setpoint_param.attr_name == "p01_setpoint_d"
-    assert events[2].offset_param.attr_name == "p02_pi2_d_m12_offset"
-    assert events[2].duration_param.attr_name == "p02_pi2_d_m12_duration"
-    assert events[3].duration_param.attr_name == "p03_wait_dark_duration"
-    assert events[4].offset_param.attr_name == "p04_pi_u_m13_mirror_offset"
+    assert events[0].setpoint_param.attr_name == "p00_setpoint"
+    assert events[1].offset_param.attr_name == "p01_pi2_d_m12_offset"
+    assert events[1].duration_param.attr_name == "p01_pi2_d_m12_duration"
+    assert events[2].duration_param.attr_name == "p02_wait_dark_duration"
+    assert events[3].offset_param.attr_name == "p03_pi_u_m13_mirror_offset"
+    # The set-point description records both declared Rabi frequencies
+    assert "up 10 kHz" in events[0].setpoint_param.description
+    assert "down 7 kHz" in events[0].setpoint_param.description
     # All generated names are valid identifiers and group by event when
     # sorted alphabetically (the p{index:02d} prefix dominates the sort)
     names = [
@@ -304,7 +310,7 @@ def test_negative_m_naming():
         [*setpoints(), pi(Beam.DOWN, m=-3, state="g")],
         initial_population={("g", -3)},
     )
-    assert compiled.events[-1].offset_param.attr_name == "p02_pi_d_mn3_offset"
+    assert compiled.events[-1].offset_param.attr_name == "p01_pi_d_mn3_offset"
 
 
 def test_wait_validation():

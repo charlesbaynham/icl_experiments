@@ -76,41 +76,35 @@ class DeclarativeLMTMachZehnderFrag(
 
     lmt_sequence = [
         # Velocity selection: a normal pulse, just longer and with a lower
-        # delivery set point.
+        # delivery set point. Each SetPoint event writes the new set point
+        # and waits clock_delivery_preempt_time for the servo to recapture;
+        # the set point never changes anywhere else.
         #
-        # TODO: experimentally scan this set point (p00_setpoint_u_slice) to
+        # TODO: experimentally scan this set point (p00_setpoint_slice) to
         # find the value giving the intended slicing Rabi frequency, then
-        # update the default and the declared rabi_frequency. Reduced
-        # intensity is now always done through the delivery SUServo set
-        # point; the legacy stack instead varied the RF attenuation of the
-        # switch AOM (LMT_launch_mixins.do_selective_lmt_pulse, att=10.5 dB
-        # on clock_up_dds), whose relationship to optical power is nonlinear
+        # update the default and the declared rabi_up. Reduced intensity is
+        # now always done through the delivery SUServo set point; the legacy
+        # stack instead varied the RF attenuation of the switch AOM
+        # (LMT_launch_mixins.do_selective_lmt_pulse, att=10.5 dB on
+        # clock_up_dds), whose relationship to optical power is nonlinear
         # and uncalibrated, so the conversion to set points must be
         # calibrated on atoms. The same applies to any future low-intensity
         # "selective" pulses: give them their own SetPoint and calibrate.
         SetPoint(
-            Beam.UP,
             setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
-            rabi_frequency=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+            rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
             label="slice",
         ),
-        Wait(t=constants.CLOCK_DELIVERY_PREEMPT_TIME, label="servo_settle"),
         pi(Beam.UP, m=0, label="slice"),
-        # Full-intensity set points for the launch and interferometer; the
-        # declared Rabi frequencies set the default pulse durations
+        # Full intensity for the launch and interferometer; the declared
+        # Rabi frequencies set the default pulse durations
         # (pi time = 1 / (2 * Rabi))
         SetPoint(
-            Beam.UP,
             setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            rabi_frequency=1 / (2 * constants.CLOCK_PI_TIME),
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
         ),
-        SetPoint(
-            Beam.DOWN,
-            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
-            rabi_frequency=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
-        ),
-        # Blast away the unselected ground-state atoms (also gives the
-        # delivery servo time to settle at the new set point)
+        # Blast away the unselected ground-state atoms
         Clearout(),
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
