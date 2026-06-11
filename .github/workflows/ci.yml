@@ -2,7 +2,11 @@ name: CI
 
 on:
     push:
-    pull_request:
+
+# One CI run per branch: a new push cancels the previous in-flight run.
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
 
 # The nix flake pulls private GitLab repos (gitlab.com/aion-physics/...).
 # Mirror .gitlab-ci.yml's `.deps` before_script: write ~/.netrc with a token so
