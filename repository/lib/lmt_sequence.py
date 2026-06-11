@@ -10,8 +10,7 @@ sequences. A sequence is a plain Python list of event dataclasses::
     )
 
     lmt_sequence = [
-        SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=9.1e3),
-        SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7.4e3),
+        SetPoint(setpoint=2.6, rabi_up=9.1e3, rabi_down=7.4e3),
         *ladder(start_m=1, n=12, first_beam=Beam.DOWN),  # launch
         Clearout(),
         pi2(Beam.DOWN, m=13),                            # beam splitter
@@ -40,13 +39,14 @@ is ambiguous and ``Pulse.state`` must be given explicitly.
 Set points
 ----------
 
-The sequence carries one delivery-AOM set point per beam, declared with
-:class:`SetPoint` and sticky until the next :class:`SetPoint` for the same
-beam. Each :class:`SetPoint` must declare the Rabi frequency obtained at that
-set point; this is compile-time metadata used to derive the default duration
-of subsequent pulses on that beam (``duration = area / (2 * rabi)``). Note
-that scanning the spawned set-point parameter does *not* rescale the pulse
-durations - durations are independent parameters.
+The delivery-AOM SUServo set point is global sequence state: it changes ONLY
+at :class:`SetPoint` events (where the execution engine also waits for the
+servo to recapture) and applies to every pulse until the next one. Each
+:class:`SetPoint` declares the Rabi frequency obtained at that set point for
+each beam used before the next change; this is compile-time metadata used to
+derive the default duration of those pulses (``duration = area / (2 * rabi)``).
+Note that scanning the spawned set-point parameter does *not* rescale the
+pulse durations - durations are independent parameters.
 """
 
 from __future__ import annotations
@@ -162,33 +162,51 @@ class Clearout:
 
 @dataclass(frozen=True)
 class SetPoint:
-    """Set the delivery-AOM SUServo set point used for one beam from here on.
+    """Change the delivery-AOM SUServo set point from here on.
 
-    The set point is sticky: subsequent pulses on this beam use it until the
-    next :class:`SetPoint` for the same beam. The declared ``rabi_frequency``
-    sets the default duration of those pulses (``area / (2 * rabi)``).
+    The delivery AOM is one physical device, so the set point is global
+    sequence state: it changes ONLY at :class:`SetPoint` events and applies
+    to every pulse until the next one. The execution engine writes the new
+    set point at the event's position in the timeline and then waits for the
+    servo to recapture (the fragment's ``clock_delivery_preempt_time``
+    parameter), so no extra settling ``Wait`` is needed.
+
+    Because the up and down beams reach the atoms with different efficiency,
+    they have different Rabi frequencies at the same delivery power: declare
+    the Rabi frequency for each beam you intend to use before the next
+    :class:`SetPoint`. These set the default durations of those pulses
+    (``duration = area / (2 * rabi)``); a pulse on a beam with no declared
+    Rabi at the current set point is a compile error. Note that scanning the
+    spawned set-point parameter does *not* rescale the pulse durations -
+    durations are their own parameters.
 
     Args:
-        beam: Which beam this set point governs.
         setpoint: Delivery SUServo set point in volts (spawns a scannable
             parameter with this default).
-        rabi_frequency: Rabi frequency in Hz obtained at this set point.
-        label: Optional tag appended to the generated parameter name.
+        rabi_up: Rabi frequency in Hz of up-beam pulses at this set point.
+        rabi_down: Rabi frequency in Hz of down-beam pulses at this set point.
+        label: Optional tag appended to the generated parameter name and
+            description.
     """
 
-    beam: Beam
     setpoint: float
-    rabi_frequency: float
+    rabi_up: float | None = None
+    rabi_down: float | None = None
     label: str = ""
 
     def __post_init__(self):
-        object.__setattr__(self, "beam", Beam.coerce(self.beam))
         if self.setpoint < 0:
             raise ValueError(f"Set point must be non-negative, got {self.setpoint}")
-        if self.rabi_frequency <= 0:
+        if self.rabi_up is None and self.rabi_down is None:
             raise ValueError(
-                f"Rabi frequency must be positive, got {self.rabi_frequency}"
+                "SetPoint must declare the Rabi frequency for at least one beam"
             )
+        for name, value in (("rabi_up", self.rabi_up), ("rabi_down", self.rabi_down)):
+            if value is not None and value <= 0:
+                raise ValueError(f"{name} must be positive, got {value}")
+
+    def rabi_for(self, beam: Beam) -> "float | None":
+        return self.rabi_up if beam is Beam.UP else self.rabi_down
 
 
 @dataclass(frozen=True)
@@ -382,15 +400,16 @@ def compile_sequence(
     if not population:
         raise SequenceError("The initial population is empty")
 
-    # Per-beam set-point state: Beam -> (sequence index of SetPoint, rabi Hz)
-    beam_setpoints: dict[Beam, tuple[int, float]] = {}
+    # The delivery set point is global state, changed only at SetPoint
+    # events: (sequence index of the governing SetPoint, the SetPoint)
+    current_setpoint: "tuple[int, SetPoint] | None" = None
 
     compiled: list[CompiledEvent] = []
 
     for index, event in enumerate(events):
         if isinstance(event, Pulse):
             compiled.append(
-                _compile_pulse(index, event, population, beam_setpoints, strict)
+                _compile_pulse(index, event, population, current_setpoint, strict)
             )
         elif isinstance(event, Wait):
             if event.param is not None:
@@ -453,22 +472,22 @@ def compile_sequence(
                     )
                 )
         elif isinstance(event, SetPoint):
-            beam_setpoints[event.beam] = (index, event.rabi_frequency)
+            current_setpoint = (index, event)
+            rabi_bits = []
+            if event.rabi_up is not None:
+                rabi_bits.append(f"up {event.rabi_up / 1e3:.3g} kHz")
+            if event.rabi_down is not None:
+                rabi_bits.append(f"down {event.rabi_down / 1e3:.3g} kHz")
             compiled.append(
                 CompiledEvent(
                     index=index,
                     kind=EVENT_SETPOINT,
-                    beam_sign=event.beam.sign,
                     setpoint_param=ParamSpec(
-                        attr_name=_event_name(
-                            index, f"setpoint_{event.beam.value}", event.label
-                        ),
+                        attr_name=_event_name(index, "setpoint", event.label),
                         description=(
                             f"{_event_prefix(index, event.label)}: delivery AOM "
-                            f"set point for {event.beam.name.lower()}-beam pulses "
-                            "from here until the next SetPoint for this beam "
-                            f"(declared Rabi frequency "
-                            f"{event.rabi_frequency / 1e3:.3g} kHz)"
+                            "set point from here until the next SetPoint "
+                            f"(declared Rabi: {', '.join(rabi_bits)})"
                         ),
                         default=event.setpoint,
                         unit="V",
@@ -497,16 +516,24 @@ def _compile_pulse(
     index: int,
     event: Pulse,
     population: set,
-    beam_setpoints: dict,
+    current_setpoint: "tuple[int, SetPoint] | None",
     strict: bool,
 ) -> CompiledEvent:
     """Resolve, validate and compile a single Pulse, updating ``population``."""
-    if event.beam not in beam_setpoints:
+    if current_setpoint is None:
         raise SequenceError(
-            f"Event {index}: pulse on the {event.beam.name.lower()} beam "
-            "before any SetPoint for that beam - declare a SetPoint first"
+            f"Event {index}: pulse before any SetPoint - the sequence must "
+            "declare the delivery set point first"
         )
-    setpoint_index, rabi_frequency = beam_setpoints[event.beam]
+    setpoint_index, setpoint = current_setpoint
+    rabi_frequency = setpoint.rabi_for(event.beam)
+    if rabi_frequency is None:
+        raise SequenceError(
+            f"Event {index}: pulse on the {event.beam.name.lower()} beam, but "
+            f"the governing SetPoint (event {setpoint_index}) declares no "
+            f"rabi_{event.beam.name.lower()} - declare the Rabi frequency of "
+            "this beam at the current set point"
+        )
 
     # Resolve which internal state this pulse addresses
     populated_states = [s for s in (GROUND, EXCITED) if (s, event.m) in population]
