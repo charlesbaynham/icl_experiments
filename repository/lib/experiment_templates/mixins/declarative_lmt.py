@@ -76,12 +76,11 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
-from repository.lib.lmt_sequence import CompiledSequence
-from repository.lib.lmt_sequence import EVENT_CALLBACK
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
+from repository.lib.lmt_sequence import CompiledSequence
 from repository.lib.lmt_sequence import compile_sequence
 
 logger = logging.getLogger(__name__)
