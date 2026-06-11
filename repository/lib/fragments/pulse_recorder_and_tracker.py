@@ -59,15 +59,14 @@ logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
-# The pulse record stores physical quantities (frequencies in Hz, the delivery
-# setpoint in V) that are genuinely floats, alongside a few integer-valued
-# fields (direction, machine-unit times). They are all stored as float64, which
-# represents the integer fields exactly while preserving full precision for the
-# floats. The per-shot dedup checksum, however, needs integers, so values are
-# scaled by this factor and rounded before being fed to the integer checksum.
-# This keeps the checksum sensitive to sub-unit changes (e.g. a sub-volt
-# setpoint change) that an int64 cast would otherwise hide.
-CHECKSUM_SCALE = 1000
+# The pulse record stores physical quantities as floats: times in s,
+# frequencies in Hz and the delivery setpoint in V (plus the integer-valued
+# direction flag). They are all stored as float64. The per-shot dedup checksum,
+# however, needs integers, so values are scaled by this factor before the int64
+# cast. The scale is large enough to keep the checksum sensitive to the smallest
+# meaningful changes across every field - e.g. sub-microsecond times and
+# sub-millivolt setpoints - that an unscaled int64 cast would otherwise hide.
+CHECKSUM_SCALE = 1_000_000
 
 
 class PulseDMARecording(Fragment):
@@ -129,9 +128,10 @@ class PulseDMARecording(Fragment):
 
         ARTIQ can't handle dicts etc, so we wrap this into a 2D array. ARTIQ
         also requires that array to be homogeneously typed, so every row is
-        stored as float64: the integer-valued fields (direction, machine-unit
-        times) are exactly representable, and the physical quantities
-        (frequencies in Hz, setpoint in V) keep their full precision.
+        stored as float64 in physical units: start times and durations in s
+        (converted from machine units via mu_to_seconds), frequencies in Hz and
+        the setpoint in V. The direction flag is integer-valued but exactly
+        representable as a float.
         """
 
         SAME_AS_LAST_TIME_SENTINEL = -1.0
@@ -145,12 +145,12 @@ class PulseDMARecording(Fragment):
             float(x)
             for x in self._pulse_record_directions[: self._pulse_record_num_pulses]
         ]
-        start_times_mu = [
-            float(x)
+        start_times_s = [
+            self.core.mu_to_seconds(x)
             for x in self._pulse_record_start_times_mu[: self._pulse_record_num_pulses]
         ]
-        durations_mu = [
-            float(x)
+        durations_s = [
+            self.core.mu_to_seconds(x)
             for x in self._pulse_record_durations_mu[: self._pulse_record_num_pulses]
         ]
         opll_hz = [
@@ -176,8 +176,8 @@ class PulseDMARecording(Fragment):
 
         pulse_record = [
             directions,
-            start_times_mu,
-            durations_mu,
+            start_times_s,
+            durations_s,
             opll_hz,
             switch_hz,
             delivery_hz,
@@ -280,9 +280,9 @@ class PulseDMARecording(Fragment):
           ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
           (length ``1 + 7 * num_pulses``)
 
-        Frequencies are in Hz and the setpoint is in V, both stored at full
-        float precision. The machine-unit times and the direction/num_pulses
-        fields are integer-valued but stored as float64 like everything else.
+        All values are stored as float64 in physical units: start times and
+        durations in s, frequencies in Hz and the setpoint in V. The direction
+        and num_pulses fields are integer-valued but stored as float64 too.
         """
         records = self.get_dataset("pulse_record", archive=False)
         if not records:
