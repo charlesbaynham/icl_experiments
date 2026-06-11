@@ -73,7 +73,13 @@ assert "vendor" in ndscan.__file__, f"ndscan loaded from wrong path: {ndscan.__f
 
 ### Testing vendored code with pytest
 
-Create a wrapper script that injects sys.path, then runs pytest:
+A committed wrapper exists for the common case:
+
+```bash
+nix develop -c python scripts/pytest_vendored.py tests/test_kernel_cache.py -v
+```
+
+For custom setups, create a wrapper script that injects sys.path, then runs pytest:
 
 ```bash
 #!/usr/bin/env bash
@@ -169,16 +175,62 @@ Caches the resolution of `visit_<NodeType>` methods per (visitor_class, node_cla
 
 **Impact:** ~2-3% speedup, one-line install in `vendor/artiq/artiq/compiler/__init__.py`
 
-## Kernel Caching Strategy (Next Phase)
+## Kernel Caching (Implemented)
 
-**NOT implemented in this PR.** Identified as 10-100× speedup opportunity.
+`artiq.compiler.kernel_cache` + `Target.compile_and_link` implement a
+content-addressed cache for linked kernel binaries.
 
-**Concept:**
-1. Cache compiled LLVM IR by content hash of code structure (types, AST, not values)
-2. Upload parameter values separately to device
-3. Reuse compiled kernel for repeated experiment runs with different params
+**Key:** blake2b of the LLVM IR text + environment fingerprint (compiler
+sources digest, llvmlite/LLVM versions, target triple/features/linker
+options). Host attribute values are embedded in the IR as global
+initializers, so the key covers values as well as code; stale hits are
+impossible, but a changed parameter value is a miss.
 
-**Expected speedup:** 30s compile time → 2-3s for cached re-runs
+**What a hit skips:** parse/verify/optimize/assemble/link (~4s for LMT).
+Inference + ARTIQ IR + LLVM IR generation (~26s) still run, because the IR
+text is the key. Measured (interleaved A/B, 3 runs each, all 9 LMT
+fragments, single process, this container): cache off 277.4s mean vs warm
+cache 237.6s mean = 14.4% faster, ~4.4s per experiment; 27/27 cross-process
+hits. Non-LMT sample (5 fragments): 93.6s → 79.8s. The original "30s →
+2-3s" estimate would require a pre-inference cache key plus device-side
+parameter upload, which the core device protocol does not support (no
+memory-write command; see `Core.set_parameter_values`).
+
+**Env vars:**
+
+```bash
+ARTIQ_KERNEL_CACHE=0            # disable
+ARTIQ_KERNEL_CACHE_DIR=path     # default ./.artiq_kernel_cache
+ARTIQ_DUMP_HASHED_IR=/tmp/x     # dump exact hashed text -> /tmp/x_hashed.ll
+```
+
+**Phase timing lines:** `[phase] kernel_cache=hit|miss code_hash=...`.
+
+### IR determinism (prerequisite for cross-process hits)
+
+Cross-process cache hits require byte-identical IR text from identical
+input. Two address-dependent nondeterminism sources were fixed:
+
+1. `embedding.py` `_quote_embedded_function`: string-kernels were named
+   `__eval_{id(host_function)}` (a memory address). Now a per-Stitcher
+   sequence number.
+2. `constant_hoister.py`: the worklist was a `set` of instructions, so
+   hoisted loads entered the entry block in address order. Now a
+   program-order fixed-point loop.
+3. `transforms/llvm_ir_generator.py`: `llpred_map` used sets of blocks; the
+   exception-phi fixup emits the first matching predecessor, so the choice
+   was address-ordered. Now insertion-ordered dicts.
+4. **pyaion (test-suite patch only; needs the real fix upstream)**:
+   `UrukulInit.host_setup` embeds `hash(device)` (memory addresses) as
+   kernel data and orders CPLDs via `list(set(...))`. Patched
+   deterministically in `tests/conftest.py`; production caching of
+   Urukul-touching experiments stays broken until pyaion itself is fixed.
+
+To debug a new nondeterminism source: run the same compile twice with
+`ARTIQ_DUMP_HASHED_IR`, diff the dumps, and look for `id()`-derived names or
+set/dict-of-objects iteration in whichever transform emitted the differing
+lines. Note that `ir.Value.uses` is an unordered `set`, so any transform
+whose *output order* follows `uses` iteration is a latent risk.
 
 ## Verification Checklist
 
