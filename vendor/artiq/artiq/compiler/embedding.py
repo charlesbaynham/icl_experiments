@@ -684,6 +684,9 @@ class StitchingInferencer(Inferencer):
         self.value_map = value_map
         self.quote = quote
         self.attr_type_cache = {}
+        # (id(object_type), attr_name) -> number of entries of
+        # value_map[object_type] already interrogated for this attribute.
+        self._attr_values_processed = {}
 
     def _compute_attr_type(self, object_value, object_type, object_loc, attr_name, loc):
         if not hasattr(object_value, attr_name):
@@ -788,8 +791,20 @@ class StitchingInferencer(Inferencer):
         # its type, we now interrogate every host object we have to ensure
         # that we can successfully serialize the value of the attribute we
         # are now adding at the code generation stage.
+        #
+        # Each (host value, attribute) pair only needs to be interrogated
+        # once: the computed attribute type is unified into the type's
+        # attribute dict at that point, and re-unifying it is an idempotent
+        # no-op. Attribute access nodes are visited many times over the
+        # inference fixed point, so track how many values of this type have
+        # already been processed for this attribute and only interrogate
+        # values quoted since.
         object_type = value_node.type.find()
-        for object_value, object_loc in self.value_map[object_type]:
+        values = self.value_map[object_type]
+        processed_key = (id(object_type), attr_name)
+        n_processed = self._attr_values_processed.get(processed_key, 0)
+        self._attr_values_processed[processed_key] = len(values)
+        for object_value, object_loc in values[n_processed:]:
             attr_type_key = (id(object_value), attr_name)
             try:
                 attributes, attr_value_type = self.attr_type_cache[attr_type_key]
