@@ -129,15 +129,24 @@ class Core:
                                 print_as_rpc=print_as_rpc,
                                 destination=destination, subkernel_arg_types=subkernel_arg_types,
                                 old_embedding_map=old_embedding_map)
+            import time as _time
+            _t0 = _time.monotonic()
             stitcher.stitch_call(function, args, kwargs, set_result)
+            _t1 = _time.monotonic()
             stitcher.finalize()
+            _t2 = _time.monotonic()
 
             module = Module(stitcher,
                 ref_period=self.ref_period,
                 attribute_writeback=attribute_writeback)
+            _t3 = _time.monotonic()
             target = target if target is not None else self.target_cls()
 
             library = target.compile_and_link([module])
+            _t4 = _time.monotonic()
+            if os.getenv("ARTIQ_PHASE_TIMING"):
+                print("[phase] stitch_call=%.2fs finalize=%.2fs artiq_ir=%.2fs backend=%.2fs" %
+                      (_t1 - _t0, _t2 - _t1, _t3 - _t2, _t4 - _t3))
             stripped_library = target.strip(library)
 
             return stitcher.embedding_map, stripped_library, \

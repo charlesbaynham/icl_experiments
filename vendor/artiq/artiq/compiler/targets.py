@@ -1,4 +1,4 @@
-import os, sys, tempfile, subprocess, io
+import os, sys, tempfile, subprocess, io, time
 from artiq.compiler import types, ir
 from llvmlite import ir as ll, binding as llvm
 
@@ -153,7 +153,9 @@ class Target:
         _dump(os.getenv("ARTIQ_DUMP_IR"), "ARTIQ IR", suffix + ".txt",
               lambda: "\n".join(fn.as_entity(type_printer) for fn in module.artiq_ir))
 
+        _phase_t0 = time.monotonic()
         llmod = module.build_llvm_ir(self)
+        _phase_t1 = time.monotonic()
 
         try:
             llparsedmod = llvm.parse_assembly(str(llmod))
@@ -161,11 +163,16 @@ class Target:
         except RuntimeError:
             _dump("", "LLVM IR (broken)", ".ll", lambda: str(llmod))
             raise
+        _phase_t2 = time.monotonic()
 
         _dump(os.getenv("ARTIQ_DUMP_UNOPT_LLVM"), "LLVM IR (generated)", suffix + "_unopt.ll",
               lambda: str(llparsedmod))
 
         self.optimize(llparsedmod)
+        _phase_t3 = time.monotonic()
+        if os.getenv("ARTIQ_PHASE_TIMING"):
+            print("[phase] llvm_ir_gen=%.2fs parse_verify=%.2fs optimize=%.2fs" %
+                  (_phase_t1 - _phase_t0, _phase_t2 - _phase_t1, _phase_t3 - _phase_t2))
 
         _dump(os.getenv("ARTIQ_DUMP_LLVM"), "LLVM IR (optimized)", suffix + ".ll",
               lambda: str(llparsedmod))
@@ -202,7 +209,14 @@ class Target:
             return library
 
     def compile_and_link(self, modules):
-        return self.link([self.assemble(self.compile(module)) for module in modules])
+        t0 = time.monotonic()
+        compiled = [self.assemble(self.compile(module)) for module in modules]
+        t1 = time.monotonic()
+        linked = self.link(compiled)
+        t2 = time.monotonic()
+        if os.getenv("ARTIQ_PHASE_TIMING"):
+            print("[phase] compile+assemble=%.2fs link=%.2fs" % (t1 - t0, t2 - t1))
+        return linked
 
     def strip(self, library):
         with RunTool([self.tool_strip, "--strip-debug", "{library}", "-o", "{output}"],

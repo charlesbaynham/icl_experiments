@@ -873,12 +873,6 @@ class Stitcher:
         self.value_map = defaultdict(lambda: [])
         self.definitely_changed = False
 
-        # Incremental inference bookkeeping: indices (into self.typedtree) of
-        # functions injected during the current fixed-point iteration. These are
-        # the only nodes that need to be (re-)visited on the next pass when the
-        # sole change was the discovery of new functions.
-        self._new_functions_this_iteration = []
-
         self.destination = destination
         self.first_call = True
         # for non-annotated subkernels: 
@@ -901,72 +895,55 @@ class Stitcher:
                                          quote=self._quote)
         typedtree_hasher = TypedtreeHasher()
 
-        # Iterate inference to fixed point.
+        # Iterate inference to fixed point, visiting only "dirty" functions.
         #
-        # Profiling showed this loop re-running the inferencer over *all*
-        # embedded functions on every iteration, even ones that were fully
-        # inferred on the first pass and never changed again. For large
-        # experiments this dominated compile time (~17 iterations over ~1000
-        # functions). We instead infer incrementally:
+        # The original algorithm re-ran the inferencer over *all* embedded
+        # functions on every iteration until nothing changed; for large
+        # experiments this meant ~18 full passes over ~1000 functions and
+        # dominated compile time. Instead, we track a per-function hash of its
+        # typed AST (resolved through the type variable union-find, so a
+        # unification performed while visiting one function is reflected in
+        # the hash of every function sharing that type variable) and only
+        # re-visit functions whose hash differs from when they were last
+        # visited. Newly injected functions have no recorded hash and are
+        # therefore automatically dirty.
         #
-        #   * A single "cold start" pass over the functions present before the
-        #     loop discovers the bulk of the call graph (each visited call site
-        #     may inject new functions via the quote callback).
-        #   * While new functions keep getting discovered we visit *only* those
-        #     newly injected functions, not the whole tree.
-        #   * When a pass discovers no new functions but the typed tree still
-        #     changed (e.g. a newly inferred return type propagated to a call
-        #     site elsewhere), we do one full pass to propagate the change to
-        #     every function, and keep iterating until a full pass leaves the
-        #     tree unchanged.
-        #
-        # The result is identical types to the original full-sweep algorithm,
-        # just reached in far fewer total node visits (typically 2-4 passes).
-        old_typedtree_hash = None
+        # Convergence requires every function's current hash to equal the hash
+        # it had going into its most recent visit, and the discovered
+        # attribute count to be stable. At that point a full pass would be a
+        # no-op (inference is idempotent on unchanged input types), so this
+        # reaches the same fixed point as the original full-sweep algorithm.
         old_attr_count = None
-
-        # Cold start: visit everything we have so far. New functions discovered
-        # during this pass are recorded in self._new_functions_this_iteration.
-        self._new_functions_this_iteration = []
-        self.definitely_changed = False
-        inferencer.visit(self.typedtree)
-
-        _pass_count = 1
+        last_visit_hash = {}
+        _round_count = 0
+        _visit_count = 0
         while True:
-            _pass_count += 1
-            if self.definitely_changed:
-                # New functions were injected on the previous pass. Visit only
-                # those; previously inferred functions are unaffected unless a
-                # type actually changes (detected via the hash below).
-                self.definitely_changed = False
-                new_indices = self._new_functions_this_iteration
-                self._new_functions_this_iteration = []
-                if new_indices:
-                    inferencer.visit([self.typedtree[idx] for idx in new_indices])
-                changed = True
-            else:
-                # No new functions discovered. Determine whether any type or
-                # attribute changed; if so, propagate with a single full pass.
-                typedtree_hash = typedtree_hasher.visit(self.typedtree)
-                attr_count = self.embedding_map.attribute_count()
-                changed = old_attr_count != attr_count or \
-                          old_typedtree_hash != typedtree_hash
-                old_typedtree_hash = typedtree_hash
-                old_attr_count = attr_count
+            _round_count += 1
+            # TypedtreeHasher.visit on a list returns per-node hashes.
+            cur_hashes = [typedtree_hasher.visit(node) for node in self.typedtree]
+            attr_count = self.embedding_map.attribute_count()
+            dirty = [node for node, node_hash in zip(self.typedtree, cur_hashes)
+                     if last_visit_hash.get(id(node)) != node_hash]
+            if not dirty:
+                if attr_count == old_attr_count:
+                    if os.environ.get("ARTIQ_INFER_PASS_DEBUG"):
+                        print("[infer] %r converged in %d rounds, %d function visits (n_funcs=%d)" %
+                              (self.name, _round_count, _visit_count, len(self.typedtree)))
+                    break
+                # The attribute count changed even though no function's types
+                # did. Be conservative and re-visit everything once.
+                dirty = list(self.typedtree)
+            old_attr_count = attr_count
 
-                if changed:
-                    # A type change must be propagated to all functions (call
-                    # sites in other functions may depend on it). This full pass
-                    # may itself discover new functions, which the next loop
-                    # iteration will handle incrementally.
-                    self._new_functions_this_iteration = []
-                    inferencer.visit(self.typedtree)
+            # Record the hash each function has going into this visit; if the
+            # visit (or a later unification elsewhere) changes it, the function
+            # becomes dirty again and is re-visited on a subsequent round.
+            for node, node_hash in zip(self.typedtree, cur_hashes):
+                if last_visit_hash.get(id(node)) != node_hash:
+                    last_visit_hash[id(node)] = node_hash
 
-            if not changed:
-                if os.environ.get("ARTIQ_INFER_PASS_DEBUG"):
-                    print("[infer] %r converged in %d inference passes (n_funcs=%d)" %
-                          (self.name, _pass_count, len(self.typedtree)))
-                break
+            _visit_count += len(dirty)
+            inferencer.visit(dirty)
 
         # After we've discovered every referenced attribute, check if any kernel_invariant
         # specifications refers to ones we didn't encounter.
@@ -1003,13 +980,6 @@ class Stitcher:
             body=self.typedtree, loc=source.Range(source_buffer, 0, 0))
 
     def _inject(self, node):
-        # New functions are inserted at strictly increasing positions
-        # (self.inject_at only ever grows), so the index recorded here remains
-        # valid for the lifetime of the (list) typedtree: a later insert never
-        # shifts an earlier injected function. Record it for incremental
-        # inference so finalize() can re-visit only the newly discovered
-        # functions instead of the whole tree.
-        self._new_functions_this_iteration.append(self.inject_at)
         self.typedtree.insert(self.inject_at, node)
         self.inject_at += 1
 
