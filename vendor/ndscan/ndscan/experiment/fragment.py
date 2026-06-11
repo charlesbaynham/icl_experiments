@@ -11,6 +11,23 @@ from .result_channels import ResultChannel, FloatChannel
 from .utils import is_kernel, path_matches_spec
 from ..utils import strip_prefix
 
+#: Cache of synthesised subfragment device_setup()/device_cleanup() forwarding
+#: functions, keyed by (fragment class, parameter names, source code). The
+#: ARTIQ compiler embeds every distinct function object separately, so reusing
+#: one function per class avoids compiling identical copies for every instance
+#: of a fragment type. Sharing is restricted to a single class (instances of
+#: one class share one ARTIQ instance type), keeping inference type-safe.
+_subfragment_impl_cache = {}
+
+
+def _cached_kernel_from_string(cls, params, code):
+    key = (cls, tuple(params), code)
+    fn = _subfragment_impl_cache.get(key)
+    if fn is None:
+        fn = kernel_from_string(list(params), code, portable)
+        _subfragment_impl_cache[key] = fn
+    return fn
+
 __all__ = [
     "Fragment", "ExpFragment", "AggregateExpFragment", "TransitoryError",
     "RestartKernelTransitoryError"
@@ -111,15 +128,12 @@ class Fragment(HasEnvironment):
             code += f"self.{s._fragment_path[-1]}.device_setup()\n"
         if code:
             self._all_subfragment_setup_trivial = False
-            self._device_setup_subfragments_impl = kernel_from_string(["self"],
-                                                                      code[:-1],
-                                                                      portable)
+            self._device_setup_subfragments_impl = _cached_kernel_from_string(
+                type(self), ["self"], code[:-1])
         else:
             self._all_subfragment_setup_trivial = True
-            # TODO: Make this work across multiple types to save on empty …_impl().
-            # self.device_setup_subfragments = self._noop
-            self._device_setup_subfragments_impl = kernel_from_string(["self"], "pass",
-                                                                      portable)
+            self._device_setup_subfragments_impl = _cached_kernel_from_string(
+                type(self), ["self"], "pass")
 
         code = ""
         for s in self._subfragments[::-1]:
@@ -134,14 +148,12 @@ class Fragment(HasEnvironment):
             code += f"    log_failed_cleanup('{s._stringize_path()}')\n"
         if code:
             self._all_subfragment_cleanup_trivial = False
-            self._device_cleanup_subfragments_impl = kernel_from_string(
-                ["self", "log_failed_cleanup"], code[:-1], portable)
+            self._device_cleanup_subfragments_impl = _cached_kernel_from_string(
+                type(self), ["self", "log_failed_cleanup"], code[:-1])
         else:
             self._all_subfragment_cleanup_trivial = True
-            # TODO: Make this work across multiple types to save on empty …_impl().
-            # self.device_cleanup_subfragments = self._noop
-            self._device_cleanup_subfragments_impl = kernel_from_string(
-                ["self", "log_failed_cleanup"], "pass", portable)
+            self._device_cleanup_subfragments_impl = _cached_kernel_from_string(
+                type(self), ["self", "log_failed_cleanup"], "pass")
 
     def _has_trivial_device_setup(self):
         assert not self._building
