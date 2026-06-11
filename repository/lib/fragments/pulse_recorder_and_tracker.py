@@ -105,17 +105,11 @@ class PulseDMARecording(Fragment):
         super().host_setup()
 
     @kernel
-    def device_setup(self):
-        self.device_setup_subfragments()
-
-        # Wipe the buffer. The new recording run will overwrite the old data
+    def record_pulse_sequence(self):
+        # Wipe the buffer; register_pulse() repopulates it during recording
         self._pulse_record_num_pulses = 0
-
-        # Record the actions_after_drop sequence in DMA
-        # TODO should not recalculate every shot?  maybe?
         with self.core_dma.record(self.dma_name):
             self.outer_self.actions_after_drop()
-
         self._save_pulse_sequence_to_dataset()
 
     @kernel

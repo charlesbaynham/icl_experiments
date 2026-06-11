@@ -114,7 +114,7 @@ class DipoleTrapWithExperimentBase(
             "dipole_pre_experiment_delay",
             FloatParam,
             "Time to delay experiment after dipole trap or launch",
-            default=0.0e-6,
+            default=1550e-6,
             unit="us",
         )
         self.dipole_pre_experiment_delay: FloatParamHandle
@@ -161,6 +161,10 @@ class DipoleTrapWithExperimentBase(
         # Delivery AOM tracking — overridden by ClockSpectroscopyBase to nominal values
         self._tracked_delivery_aom_freq = 0.0  # Hz, delivery AOM frequency
         self._tracked_delivery_aom_setpoint = 0.0  # V, delivery AOM SUServo setpoint
+
+    @kernel
+    def DMA_record_hook(self):
+        self.dma_recording_fragment.record_pulse_sequence()
 
     @kernel
     def DMA_initialization_hook(self):
