@@ -964,8 +964,8 @@ class Stitcher:
 
             if not changed:
                 if os.environ.get("ARTIQ_INFER_PASS_DEBUG"):
-                    print("[infer] %r converged in %d inference passes" %
-                          (self.name, _pass_count))
+                    print("[infer] %r converged in %d inference passes (n_funcs=%d)" %
+                          (self.name, _pass_count, len(self.typedtree)))
                 break
 
         # After we've discovered every referenced attribute, check if any kernel_invariant
