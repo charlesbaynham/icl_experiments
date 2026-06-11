@@ -1,0 +1,443 @@
+"""
+Execution mixin for declarative LMT sequences.
+
+This is a new, parallel implementation of LMT pulse sequences driven by the
+declaration language in :mod:`repository.lib.lmt_sequence`. It shares no code
+with the legacy LMT stack in ``LMT_launch_mixins.py`` (which is preserved
+unchanged and headed for deprecation); the two use the same kernel hook and
+cannot be combined in one experiment.
+
+Principles
+----------
+
+- The switch AOMs stay at their nominal frequency and amplitude; they only
+  gate pulses on and off.
+- All frequency control happens on the OPLL offset DDS. Every pulse is fired
+  at ``f = START + s * D(t) - m_term + offset`` where ``D(t)`` is the gravity
+  Doppler accumulated since release (evaluated at the pulse centre) and
+  ``m_term`` is the model-predicted resonance term of the addressed momentum
+  class, including the photon-recoil energy - both are always applied.
+  Relative to the legacy formulas the recoil term shifts every pulse by
+  ``-s * kick / 2`` (~4.7 kHz); per-pulse offset parameters (default 0)
+  absorb any residual during commissioning.
+- Beam intensity is controlled through the delivery AOM SUServo set point,
+  carried per beam as sticky sequence state (see
+  :class:`~repository.lib.lmt_sequence.SetPoint`).
+"""
+
+import logging
+
+from artiq.language import at_mu
+from artiq.language import delay
+from artiq.language import delay_mu
+from artiq.language import kernel
+from artiq.language import now_mu
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+from numpy import int32
+from numpy import int64
+
+from repository.lib import constants
+from repository.lib.experiment_templates.mixins.clock_shelving import (
+    ClockShelvingAndClearoutBase,
+)
+from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
+    ClockSpectroscopyBase,
+)
+from repository.lib.fragments.clock_opll_controller import ClockOPLLController
+from repository.lib.lmt_sequence import CompiledSequence
+from repository.lib.lmt_sequence import EVENT_CALLBACK
+from repository.lib.lmt_sequence import EVENT_CLEAROUT
+from repository.lib.lmt_sequence import EVENT_PULSE
+from repository.lib.lmt_sequence import EVENT_SETPOINT
+from repository.lib.lmt_sequence import EVENT_WAIT
+from repository.lib.lmt_sequence import compile_sequence
+
+logger = logging.getLogger(__name__)
+
+CLOCK_OPLL_BEAM_INFO = constants.URUKULED_BEAMS["698_clock_OPLL_offset"]
+
+start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
+ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
+
+
+class DeclarativeLMTBase(ClockSpectroscopyBase, ClockShelvingAndClearoutBase):
+    """
+    Runs an LMT pulse sequence declared as a list of event dataclasses.
+
+    Subclasses declare the sequence and the initial atomic population as
+    class attributes::
+
+        class MyInterferometerFrag(DeclarativeLMTBase, ...):
+            lmt_initial_population = {("e", 1)}
+            lmt_sequence = [
+                SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=9.1e3),
+                SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7.4e3),
+                *ladder(start_m=1, n=12, first_beam=Beam.DOWN),
+                ...
+            ]
+
+    At build time the sequence is validated (momentum-class bookkeeping, see
+    :func:`~repository.lib.lmt_sequence.compile_sequence`) and one ndscan
+    parameter is spawned per knob: a detuning offset (default 0, relative to
+    the model-predicted resonance) and a duration (default derived from the
+    declared Rabi frequency) per pulse, a set point per
+    :class:`~repository.lib.lmt_sequence.SetPoint`, and durations for waits
+    and clearouts.
+
+    Callback events dispatch to :meth:`lmt_sequence_callback`, which
+    subclasses override with an ``if``/``elif`` on the callback id (ARTIQ
+    kernels have no function pointers).
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_experiment_after_dipole_trap_hook`
+    """
+
+    lmt_sequence: list = None
+    lmt_initial_population: set = None
+    lmt_strict_validation: bool = True
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        if not hasattr(self, "clock_opll"):
+            self.setattr_fragment("clock_opll", ClockOPLLController)
+            self.clock_opll: ClockOPLLController
+
+        # Required by ClockSpectroscopyBase.prepare_clock_delivery_aom
+        if not hasattr(self, "spectroscopy_pulse_time"):
+            self.setattr_param(
+                "spectroscopy_pulse_time",
+                FloatParam,
+                "Duration of an up beam pulse",
+                default=constants.CLOCK_PI_TIME,
+                unit="us",
+            )
+            self.spectroscopy_pulse_time: FloatParamHandle
+
+        self.setattr_param(
+            "clearout_duration",
+            FloatParam,
+            "Duration of 461 clearout pulses in the LMT sequence",
+            default=constants.LMT_PULSE_CLEAROUT_DURATION,
+            unit="us",
+            min=0.0,
+        )
+        self.clearout_duration: FloatParamHandle
+
+        if not self.lmt_sequence:
+            raise TypeError(
+                f"{type(self).__name__} must declare a non-empty 'lmt_sequence' "
+                "class attribute"
+            )
+        if not self.lmt_initial_population:
+            raise TypeError(
+                f"{type(self).__name__} must declare a non-empty "
+                "'lmt_initial_population' class attribute, e.g. {('e', 1)}"
+            )
+
+        # Build-time validation happens here
+        compiled = compile_sequence(
+            list(self.lmt_sequence),
+            initial_population=set(self.lmt_initial_population),
+            strict=self.lmt_strict_validation,
+        )
+        self._lmt_compiled: CompiledSequence = compiled
+        logger.info(
+            "Compiled LMT sequence with %d events; final population: %s",
+            len(compiled.events),
+            sorted(compiled.final_population),
+        )
+
+        # Dummy parameter used to pad handle-list slots for events that do
+        # not own that kind of parameter (the kernel lists must stay
+        # homogeneous and non-sparse).
+        pad_handle = self.setattr_param(
+            "lmt_unused_pad",
+            FloatParam,
+            "Padding parameter for the LMT sequence engine - ignored, do not scan",
+            default=0.0,
+        )
+        self.lmt_unused_pad: FloatParamHandle
+
+        # Parallel per-event arrays read by the kernel
+        self._lmt_n_events = len(compiled.events)
+        self._lmt_event_kind = []
+        self._lmt_beam_is_up = []
+        self._lmt_beam_sign = []
+        self._lmt_m_term_hz = []
+        self._lmt_callback_id = []
+        self._lmt_offset_handles = []
+        self._lmt_duration_handles = []
+        self._lmt_setpoint_handles = []
+        # (slot index, fragment attribute name) pairs resolved in host_setup,
+        # because the referenced parameter may be created by a mixin that
+        # builds after this one in the MRO.
+        self._lmt_duration_param_refs = []
+
+        setpoint_handles_by_event = {}
+
+        for event in compiled.events:
+            self._lmt_event_kind.append(int32(event.kind))
+            self._lmt_beam_is_up.append(event.beam_sign > 0)
+            self._lmt_beam_sign.append(float(event.beam_sign))
+            self._lmt_m_term_hz.append(float(event.m_term_hz))
+            self._lmt_callback_id.append(int32(event.callback_id))
+
+            if event.offset_param is not None:
+                handle = self.setattr_param(
+                    event.offset_param.attr_name,
+                    FloatParam,
+                    event.offset_param.description,
+                    default=event.offset_param.default,
+                    unit=event.offset_param.unit,
+                )
+                self._lmt_offset_handles.append(handle)
+            else:
+                self._lmt_offset_handles.append(pad_handle)
+
+            if event.duration_param is not None:
+                spec = event.duration_param
+                handle = self.setattr_param(
+                    spec.attr_name,
+                    FloatParam,
+                    spec.description,
+                    default=spec.default,
+                    unit=spec.unit,
+                    min=spec.min,
+                )
+                self._lmt_duration_handles.append(handle)
+            elif event.duration_param_ref is not None:
+                self._lmt_duration_param_refs.append(
+                    (len(self._lmt_duration_handles), event.duration_param_ref)
+                )
+                self._lmt_duration_handles.append(pad_handle)
+            else:
+                self._lmt_duration_handles.append(pad_handle)
+
+            if event.setpoint_param is not None:
+                spec = event.setpoint_param
+                handle = self.setattr_param(
+                    spec.attr_name,
+                    FloatParam,
+                    spec.description,
+                    default=spec.default,
+                    unit=spec.unit,
+                    min=spec.min,
+                )
+                setpoint_handles_by_event[event.index] = handle
+                self._lmt_setpoint_handles.append(handle)
+            elif event.governing_setpoint_index >= 0:
+                # SetPoint events always precede the pulses they govern
+                self._lmt_setpoint_handles.append(
+                    setpoint_handles_by_event[event.governing_setpoint_index]
+                )
+            else:
+                self._lmt_setpoint_handles.append(pad_handle)
+
+        self.kernel_invariants = getattr(self, "kernel_invariants", set()) | {
+            "_lmt_n_events",
+            "_lmt_event_kind",
+            "_lmt_beam_is_up",
+            "_lmt_beam_sign",
+            "_lmt_m_term_hz",
+            "_lmt_callback_id",
+        }
+
+    def host_setup(self):
+        super().host_setup()
+
+        # Late resolution of duration parameters that reference existing
+        # handles (Wait(param=...) and shared clearouts): the referenced
+        # parameter may only exist after every mixin has built.
+        for slot, attr_name in self._lmt_duration_param_refs:
+            handle = getattr(self, attr_name, None)
+            if not isinstance(handle, FloatParamHandle):
+                raise TypeError(
+                    f"LMT sequence event {slot} references parameter "
+                    f"'{attr_name}', which is not a FloatParamHandle on "
+                    f"{type(self).__name__} (got {type(handle).__name__})"
+                )
+            self._lmt_duration_handles[slot] = handle
+
+    # ------------------------------------------------------------------
+    # OPLL command wrappers. Thin wrappers around the clock_opll DDS /
+    # ramper that also update the frequency-tracking state read by
+    # PulseDMARecording.register_pulse, so call sites never have to track
+    # the OPLL frequency separately. (Local copies - this stack does not
+    # import from the legacy LMT mixins.)
+    # ------------------------------------------------------------------
+
+    @kernel
+    def set_clock_opll(self, freq: float):
+        """Set the OPLL offset DDS to a static frequency (and track it)."""
+        self.clock_opll.clock_OPLL_offset.set(freq)
+        self._tracked_opll_freq = freq
+        self._tracked_opll_ramp_active = False
+
+    @kernel
+    def start_clock_opll_ramp(
+        self,
+        rate: float,
+        freq_low: float,
+        freq_high: float,
+        wave_type: int32,
+    ):
+        """Start a DRG ramp on the OPLL offset DDS (and track it)."""
+        self.clock_opll.clock_frequency_ramper.start_ramp(
+            rate, freq_low, freq_high, wave_type=wave_type
+        )
+        self._tracked_opll_ramp_rate = rate
+        self._tracked_opll_ramp_low = freq_low
+        self._tracked_opll_ramp_high = freq_high
+        self._tracked_opll_ramp_wave = wave_type
+        self._tracked_opll_ramp_start_mu = now_mu()
+        self._tracked_opll_ramp_active = True
+
+    @kernel
+    def stop_clock_opll_ramp(self):
+        """Stop the OPLL DRG ramp (and track that it is no longer active)."""
+        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self._tracked_opll_ramp_active = False
+
+    # ------------------------------------------------------------------
+    # Sequence execution
+    # ------------------------------------------------------------------
+
+    @kernel
+    def get_t_start_shelving(self) -> int64:
+        """Timestamp of atom release, used as t=0 for the gravity Doppler."""
+        return self.t_velocity_slicing_pulse_centre_mu - self.core.seconds_to_mu(
+            self.shelving_pulse_time.get() / 2
+        )
+
+    @kernel
+    def _set_delivery_setpoint(self, setpoint_v: float):
+        """Write the delivery AOM SUServo set point (tracked)."""
+        self.set_clock_delivery_aom(
+            freq=self.calculate_clock_delivery_freq(now_mu(), 0.0),
+            setpoint_v=setpoint_v,
+        )
+
+    @kernel
+    def _prepare_switch_dds_nominal(self):
+        """Set both switch DDSes to nominal frequency and amplitude.
+
+        The switches only gate pulses on and off; all frequency control
+        happens on the OPLL.
+        """
+        self.set_clock_up_dds(
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+        delay_mu(8)
+        self.set_clock_down_dds(
+            frequency=self.clock_switch_frequency_handle.get(),
+            amplitude=self.clock_switch_amplitude_handle.get(),
+        )
+        delay_mu(8)
+
+    @kernel
+    def _fire_pulse(self, freq: float, t_start: int64, is_up: bool, duration: float):
+        """Fire one square pulse: OPLL at ``freq``, gated by the switch AOM."""
+        self.stop_clock_opll_ramp()
+        delay_mu(8)
+        self.set_clock_opll(freq)
+
+        at_mu(t_start)
+        self.register_pulse(duration_s=duration, is_up=is_up)
+        if is_up:
+            self.clock_up_dds.sw.on()
+            delay(duration)
+            self.clock_up_dds.sw.off()
+        else:
+            self.clock_down_dds.sw.on()
+            delay(duration)
+            self.clock_down_dds.sw.off()
+        delay(10e-6)
+
+    @kernel
+    def lmt_sequence_callback(self, callback_id: int32):
+        """Dispatch target for Callback events. Override in the experiment.
+
+        Subclasses dispatch on the id::
+
+            @kernel
+            def lmt_sequence_callback(self, callback_id: int32):
+                if callback_id == 1:
+                    self.my_shaped_pulse()
+                else:
+                    raise ValueError("Unknown LMT sequence callback id")
+        """
+        raise ValueError(
+            "Unhandled LMT sequence Callback - override lmt_sequence_callback() "
+            "in the experiment class and dispatch on the callback id"
+        )
+
+    @kernel
+    def run_lmt_sequence(self):
+        """Execute the declared sequence."""
+        t_drop = self.get_t_start_shelving()
+        # prepare_clock_delivery_aom (called by the hook before this method)
+        # leaves the delivery set point at the spectroscopy default
+        last_setpoint = self.spectroscopy_clock_delivery_setpoint.get()
+
+        for i in range(self._lmt_n_events):
+            kind = self._lmt_event_kind[i]
+
+            if kind == EVENT_PULSE:
+                # Ensure the governing set point for this beam is applied
+                setpoint = self._lmt_setpoint_handles[i].get()
+                if setpoint != last_setpoint:
+                    self._set_delivery_setpoint(setpoint)
+                    last_setpoint = setpoint
+                    delay_mu(8)
+
+                duration = self._lmt_duration_handles[i].get()
+                t_start = now_mu() + self.core.seconds_to_mu(2e-6)
+
+                # Gravity Doppler evaluated at the pulse centre
+                t_fall = self.core.mu_to_seconds(t_start - t_drop) + duration / 2
+                freq = (
+                    start_opll_offset
+                    + self._lmt_beam_sign[i] * t_fall * ramp_rate
+                    - self._lmt_m_term_hz[i]
+                    + self._lmt_offset_handles[i].get()
+                )
+                self._fire_pulse(freq, t_start, self._lmt_beam_is_up[i], duration)
+
+            elif kind == EVENT_WAIT:
+                delay(self._lmt_duration_handles[i].get())
+
+            elif kind == EVENT_CLEAROUT:
+                self.fluorescence_pulse.do_clearout_pulse(
+                    duration=self._lmt_duration_handles[i].get(),
+                    ignore_final_shutters=True,
+                )
+                delay(8e-9)
+
+            elif kind == EVENT_SETPOINT:
+                # Applied immediately so the servo can settle during any
+                # following dark time. If the next pulse is on the other
+                # beam its own set point is re-applied in its prep window.
+                setpoint = self._lmt_setpoint_handles[i].get()
+                self._set_delivery_setpoint(setpoint)
+                last_setpoint = setpoint
+                delay_mu(8)
+
+            else:  # EVENT_CALLBACK
+                self.lmt_sequence_callback(self._lmt_callback_id[i])
+
+    @kernel
+    def do_experiment_after_dipole_trap_hook(self):
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
+        self._prepare_switch_dds_nominal()
+        self.run_lmt_sequence()
+
+    @kernel
+    def post_sequence_cleanup_hook_declarative_lmt(self):
+        # Stop any OPLL ramp and restore the nominal offset
+        self.stop_clock_opll_ramp()
+        self.set_clock_opll(start_opll_offset)
