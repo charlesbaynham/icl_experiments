@@ -59,13 +59,15 @@ logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
-# The delivery AOM setpoint is an O(1) V float, so - unlike the Hz-scale
-# frequency fields, where int64(x) is effectively lossless - it must be scaled
-# before the int64 conversion used for the OpaqueChannel, otherwise sub-volt
-# precision is truncated away (e.g. a 2.6 V setpoint would be stored as 2, and a
-# 0.05 V velocity-selection setpoint as 0). It is therefore stored as int64
-# microvolts; decoders must divide the setpoint row by this factor to recover V.
-DELIVERY_SETPOINT_SCALE = 1_000_000  # int64 microvolts per volt
+# The pulse record stores physical quantities (frequencies in Hz, the delivery
+# setpoint in V) that are genuinely floats, alongside a few integer-valued
+# fields (direction, machine-unit times). They are all stored as float64, which
+# represents the integer fields exactly while preserving full precision for the
+# floats. The per-shot dedup checksum, however, needs integers, so values are
+# scaled by this factor and rounded before being fed to the integer checksum.
+# This keeps the checksum sensitive to sub-unit changes (e.g. a sub-volt
+# setpoint change) that an int64 cast would otherwise hide.
+CHECKSUM_SCALE = 1000
 
 
 class PulseDMARecording(Fragment):
@@ -125,48 +127,48 @@ class PulseDMARecording(Fragment):
         """
         Save the recorded pulse sequence to the pulse_record dataset.
 
-        ARTIQ can't handle dicts etc, so we wrap this into a 2D array.
-        This forces us to store directions as int64s which is wasteful,
-        but oh well.
+        ARTIQ can't handle dicts etc, so we wrap this into a 2D array. ARTIQ
+        also requires that array to be homogeneously typed, so every row is
+        stored as float64: the integer-valued fields (direction, machine-unit
+        times) are exactly representable, and the physical quantities
+        (frequencies in Hz, setpoint in V) keep their full precision.
         """
 
-        SAME_AS_LAST_TIME_SENTINEL = -1
-        DISABLED_SENTINEL = -2
+        SAME_AS_LAST_TIME_SENTINEL = -1.0
+        DISABLED_SENTINEL = -2.0
 
         if not self.enable_pulse_sequence_storage.get():
             self.append_to_dataset("pulse_record", [[DISABLED_SENTINEL]])
             return
 
         directions = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_directions[: self._pulse_record_num_pulses]
         ]
         start_times_mu = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_start_times_mu[: self._pulse_record_num_pulses]
         ]
         durations_mu = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_durations_mu[: self._pulse_record_num_pulses]
         ]
         opll_hz = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_opll_freq_hz[: self._pulse_record_num_pulses]
         ]
         switch_hz = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_switch_freq_hz[: self._pulse_record_num_pulses]
         ]
         delivery_hz = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_delivery_freq_hz[
                 : self._pulse_record_num_pulses
             ]
         ]
-        # Scale to microvolts so the int64 conversion preserves sub-volt
-        # precision (see DELIVERY_SETPOINT_SCALE).
         delivery_setpoint = [
-            int64(round(x * DELIVERY_SETPOINT_SCALE))
+            float(x)
             for x in self._pulse_record_delivery_setpoint[
                 : self._pulse_record_num_pulses
             ]
@@ -182,11 +184,16 @@ class PulseDMARecording(Fragment):
             delivery_setpoint,
         ]
 
-        # Calculate a checksum of this pulse record
+        # Calculate a checksum of this pulse record. The checksum needs
+        # integers, so each (float) value is scaled before the int64 cast - this
+        # keeps it sensitive to sub-unit changes (e.g. a sub-volt setpoint
+        # change) that an unscaled int64 cast would hide.
         checksum = int64(0)
         for i in range(7):
             self.checksummer.set_seed(checksum)
-            checksum = self.checksummer.checksum([int64(x) for x in pulse_record[i]])
+            checksum = self.checksummer.checksum(
+                [int64(x * CHECKSUM_SCALE) for x in pulse_record[i]]
+            )
 
         if checksum != self._pulse_record_checksum:
             # Record the updated pulse sequence
@@ -257,7 +264,7 @@ class PulseDMARecording(Fragment):
         super().host_cleanup()
 
     def _archive_encoded_pulse_records(self):
-        """Encode accumulated pulse records as flat int64 arrays and archive them.
+        """Encode accumulated pulse records as flat float64 arrays and archive them.
 
         Reads records from the ``pulse_record`` broadcast dataset and writes two
         archivable datasets:
@@ -273,8 +280,9 @@ class PulseDMARecording(Fragment):
           ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
           (length ``1 + 7 * num_pulses``)
 
-        The setpoint row is stored in microvolts (see ``DELIVERY_SETPOINT_SCALE``);
-        divide it by that factor to recover the setpoint in volts.
+        Frequencies are in Hz and the setpoint is in V, both stored at full
+        float precision. The machine-unit times and the direction/num_pulses
+        fields are integer-valued but stored as float64 like everything else.
         """
         records = self.get_dataset("pulse_record", archive=False)
         if not records:
@@ -287,18 +295,18 @@ class PulseDMARecording(Fragment):
         for record in records:
             offsets.append(current_offset)
             if len(record) == 1 and len(record[0]) == 1:
-                flat_data.append(int(record[0][0]))
+                flat_data.append(float(record[0][0]))
                 current_offset += 1
             else:
                 num_pulses = len(record[0])
-                flat_data.append(num_pulses)
+                flat_data.append(float(num_pulses))
                 for row in record:
-                    flat_data.extend(int(x) for x in row)
+                    flat_data.extend(float(x) for x in row)
                 current_offset += 1 + 7 * num_pulses
 
         self.set_dataset(
             "pulse_record_flat",
-            np.array(flat_data, dtype=np.int64),
+            np.array(flat_data, dtype=np.float64),
             broadcast=False,
             archive=True,
         )
