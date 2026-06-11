@@ -111,7 +111,16 @@ class DeclarativeLMTMachZehnderFrag(
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
         # Remove any ground-state population left behind by imperfect pulses
         Clearout(),
-        # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>
+        # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.
+        #
+        # GOTCHA: the interferometer must be symmetric about the mirror
+        # pulse or it will not close. SetPoint events cost time (servo
+        # write + clock_delivery_preempt_time settle), so keep them outside
+        # the interferometer as done here - or, if one is needed inside
+        # (e.g. for a selective pulse on one arm), balance it with a
+        # mirrored SetPoint at the corresponding position on the other side
+        # of the mirror (re-declaring the current value costs exactly the
+        # same time).
         pi2(Beam.DOWN, m=M_TOP, label="bs1"),
         Wait(t=1e-3, label="dark1"),
         pi(Beam.DOWN, m=M_TOP, label="mirror"),

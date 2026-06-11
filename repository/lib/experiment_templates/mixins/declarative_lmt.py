@@ -44,7 +44,12 @@ Principles
   the new value there and then waits ``clock_delivery_preempt_time`` for the
   servo to recapture before continuing, so pulses never carry hidden
   set-point writes or settling waits. Every ``SetPoint`` spawns a scannable
-  ndscan parameter. Note that the legacy stack instead varied the switch
+  ndscan parameter. GOTCHA: a ``SetPoint`` therefore costs time on the
+  timeline. A ``SetPoint`` between an interferometer's beam splitters makes
+  the dark times asymmetric and the interferometer will not close unless it
+  is balanced on the other side of the mirror pulse - ideally by a mirrored
+  ``SetPoint`` (re-declaring the current value costs exactly the same
+  time). Note that the legacy stack instead varied the switch
   AOM's RF attenuation for low-intensity pulses
   (``LMT_launch_mixins.do_selective_lmt_pulse``); attenuation in dB has an
   uncalibrated nonlinear relationship to optical power, so equivalent set
@@ -483,7 +488,10 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
             elif kind == EVENT_SETPOINT:
                 # The only place the delivery set point changes. Write the
                 # new value, then wait for the servo to recapture before
-                # anything else happens.
+                # anything else happens. NB this advances the timeline:
+                # inside an interferometer it must be balanced by a mirrored
+                # SetPoint (or equal Wait) on the other side of the mirror
+                # pulse, or the interferometer will not close.
                 self._set_delivery_setpoint(self._lmt_setpoint_handles[i].get())
                 delay(self.clock_delivery_preempt_time.get())
 
