@@ -125,7 +125,7 @@ class TestRTBSetupFrag(ExpFragment):
     def get_data_from_scope(self):
         # Save the data in ascii format and save
         data = self.rtb.query_bin_or_ascii_float_list(
-            "FORM ASC; CHAN1:DATA:POINT MAX; CHAN1:DATA?"
+            "FORM ASC;:CHAN1:DATA:POINT MAX;:CHAN1:DATA?"
         )
         self.scope_data.push(data)
 
