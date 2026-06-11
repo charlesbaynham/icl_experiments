@@ -78,6 +78,40 @@ def test_mach_zehnder_compiles_and_closes():
     ]
 
 
+def test_velocity_selective_slice_sequence():
+    """The canonical full sequence starting from release: the
+    velocity-selective pulse is just a normal pulse with a longer duration
+    (from its low-set-point Rabi frequency), followed by launch and MZ."""
+    slice_rabi = 1 / (2 * 380e-6)
+    sequence = [
+        SetPoint(Beam.UP, setpoint=0.012, rabi_frequency=slice_rabi, label="slice"),
+        Wait(t=200e-6, label="servo_settle"),
+        pi(Beam.UP, m=0, label="slice"),
+        SetPoint(Beam.UP, setpoint=2.6, rabi_frequency=9e3),
+        SetPoint(Beam.DOWN, setpoint=2.6, rabi_frequency=7e3),
+        Clearout(),
+        *ladder(start_m=1, n=12, first_beam=Beam.DOWN),
+        Clearout(),
+        pi2(Beam.DOWN, m=13),
+        Wait(t=1e-3),
+        pi(Beam.DOWN, m=13),
+        Wait(t=1e-3),
+        pi2(Beam.DOWN, m=13),
+    ]
+    compiled = compile_sequence(sequence, initial_population={("g", 0)})
+    assert compiled.final_population == frozenset({("e", 13), ("g", 14)})
+
+    slice_pulse = compiled.events[2]
+    assert slice_pulse.kind == EVENT_PULSE
+    # Duration default follows the slice SetPoint's declared Rabi frequency
+    assert slice_pulse.duration_param.default == pytest.approx(380e-6)
+    assert slice_pulse.governing_setpoint_index == 0
+    # Later pulses are governed by the full-intensity set points instead
+    first_launch_pulse = compiled.events[6]
+    assert first_launch_pulse.kind == EVENT_PULSE
+    assert first_launch_pulse.governing_setpoint_index == 4  # SetPoint(DOWN)
+
+
 def test_pi_swaps_and_pi2_branches():
     # pi/2 populates both sides of the pair
     compiled = compile_sequence(

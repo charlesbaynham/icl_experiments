@@ -4,9 +4,10 @@ LMT interferometry driven by the declarative sequence language.
 This is the reference experiment for the declarative LMT stack
 (:mod:`repository.lib.lmt_sequence` +
 :class:`~repository.lib.experiment_templates.mixins.declarative_lmt.DeclarativeLMTBase`):
-the launch and a Mach-Zehnder interferometer are declared as a single list of
-pulse descriptions, from which scannable per-pulse parameters (detuning
-offsets and durations) are generated with model-predicted defaults.
+the velocity-selective pulse, the launch and a Mach-Zehnder interferometer
+are declared as a single list of pulse descriptions, from which scannable
+per-pulse parameters (detuning offsets and durations) are generated with
+model-predicted defaults.
 """
 
 from artiq.language import kernel
@@ -22,9 +23,6 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (
     NormalisedFastKineticsClockPulseMixin,
-)
-from repository.lib.experiment_templates.mixins.clock_shelving import (
-    ClockShelvingAndClearoutDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
@@ -49,9 +47,8 @@ from repository.lib.lmt_sequence import pi2
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
-# Number of launch pulses; the shelving pulse provides the first kick, so the
-# atoms start the sequence at |e, 1> and the launch ladder ends at
-# m = 1 + N_LAUNCH.
+# Number of launch pulses; the velocity-selective pulse provides the first
+# kick, so the launch ladder runs from m = 1 and ends at m = 1 + N_LAUNCH.
 N_LAUNCH = 12
 M_TOP = 1 + N_LAUNCH
 
@@ -65,19 +62,30 @@ class DeclarativeLMTMachZehnderFrag(
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
-    ClockShelvingAndClearoutDipoleTrapMixin,
     DipoleTrapWithExperimentBase,
 ):
     """
-    Launch plus Mach-Zehnder interferometer from a declared pulse sequence
+    Velocity selection, launch and Mach-Zehnder from a declared pulse sequence
     """
 
-    # After the shelving kick the atoms are excited with one recoil
-    lmt_initial_population = {("e", 1)}
+    # Atoms are released from the trap in the ground state with no kicks
+    lmt_initial_population = {("g", 0)}
 
     lmt_sequence = [
-        # Per-beam delivery set points; the declared Rabi frequencies set the
-        # default pulse durations (pi time = 1 / (2 * Rabi))
+        # Velocity selection: a normal pulse, just longer and with a lower
+        # delivery set point. Its centre is t=0 for the gravity Doppler -
+        # the class it selects defines "v = 0" for all later pulses.
+        SetPoint(
+            Beam.UP,
+            setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+            rabi_frequency=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+            label="slice",
+        ),
+        Wait(t=constants.CLOCK_DELIVERY_PREEMPT_TIME, label="servo_settle"),
+        pi(Beam.UP, m=0, label="slice"),
+        # Full-intensity set points for the launch and interferometer; the
+        # declared Rabi frequencies set the default pulse durations
+        # (pi time = 1 / (2 * Rabi))
         SetPoint(
             Beam.UP,
             setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
@@ -88,6 +96,9 @@ class DeclarativeLMTMachZehnderFrag(
             setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
             rabi_frequency=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
         ),
+        # Blast away the unselected ground-state atoms (also gives the
+        # delivery servo time to settle at the new set point)
+        Clearout(),
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
         *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
@@ -117,7 +128,6 @@ class DeclarativeLMTMachZehnderFrag(
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
