@@ -47,6 +47,15 @@ each beam used before the next change; this is compile-time metadata used to
 derive the default duration of those pulses (``duration = area / (2 * rabi)``).
 Note that scanning the spawned set-point parameter does *not* rescale the
 pulse durations - durations are independent parameters.
+
+.. warning::
+    A :class:`SetPoint` event COSTS TIME: the timeline advances by the servo
+    write plus the settle wait (``clock_delivery_preempt_time``). An
+    interferometer must be symmetric about its mirror pulse or it will not
+    close, so a ``SetPoint`` on one side of the mirror must be compensated
+    on the other side. The cleanest way is a mirrored ``SetPoint`` at the
+    corresponding position - re-declaring the current value is fine and
+    costs exactly the same time.
 """
 
 from __future__ import annotations
@@ -170,6 +179,15 @@ class SetPoint:
     set point at the event's position in the timeline and then waits for the
     servo to recapture (the fragment's ``clock_delivery_preempt_time``
     parameter), so no extra settling ``Wait`` is needed.
+
+    .. warning::
+        This means a ``SetPoint`` is NOT free: it advances the timeline by
+        the servo write plus the settle wait. If you put one between an
+        interferometer's beam splitters, the dark times become asymmetric
+        and the interferometer will not close unless you compensate on the
+        other side of the mirror pulse - ideally with a mirrored
+        ``SetPoint`` at the corresponding position (re-declaring the
+        current value is fine and costs exactly the same time).
 
     Because the up and down beams reach the atoms with different efficiency,
     they have different Rabi frequencies at the same delivery power: declare
