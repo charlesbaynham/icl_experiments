@@ -364,4 +364,6 @@ class NormalisedFastKineticsLMTCorrectedMixin(
             t_zero_mu=t_zero_mu,
         )
 
-        super().do_imaging_hook_andor()
+        # ARTIQ kernels do not support super(); call the base implementation
+        # by name instead
+        self.do_imaging_hook_andor_default()
