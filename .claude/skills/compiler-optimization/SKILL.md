@@ -17,6 +17,7 @@ nix develop -c pytest repository/tests/test_compile_lmt.py::test_lmt_interferome
 ```
 
 Expected output:
+
 ```
 [infer] LMTInterferometrySymmetric converged: 32 visit rounds, 17 hash rounds, 3456 function visits (n_funcs=860)
 [phase] llvm_ir_gen=6.52s parse_verify=0.13s optimize=0.89s
@@ -24,6 +25,7 @@ Expected output:
 ```
 
 **Legend:**
+
 - `[infer]` lines: type inference fixed-point loop stats (lines from `vendor/artiq/artiq/compiler/embedding.py`)
 - `[phase]` lines: wall-clock timing for backend phases (lines from `vendor/artiq/artiq/coredevice/core.py` and `vendor/artiq/artiq/compiler/targets.py`)
 - Inference loop converges in `visit_rounds` (discovery cascades) + `hash_rounds` (full type propagation)
@@ -230,7 +232,7 @@ To debug a new nondeterminism source: run the same compile twice with
 `ARTIQ_DUMP_HASHED_IR`, diff the dumps, and look for `id()`-derived names or
 set/dict-of-objects iteration in whichever transform emitted the differing
 lines. Note that `ir.Value.uses` is an unordered `set`, so any transform
-whose *output order* follows `uses` iteration is a latent risk.
+whose _output order_ follows `uses` iteration is a latent risk.
 
 ## Verification Checklist
 
@@ -256,14 +258,14 @@ nix develop -c pytest repository/tests/test_compile_all.py::test_lmt_cooling -xv
 ## Common Pitfalls
 
 1. **Forgetting sys.path injection**: Script silently loads system ARTIQ instead of vendored
-   - **Fix:** Add assertion checks to verify `__file__` contains `"vendor"`
+    - **Fix:** Add assertion checks to verify `__file__` contains `"vendor"`
 
 2. **Running A/B with same baseline twice**: Invalidates comparison
-   - **Fix:** Always clone baseline to separate directory before first run
+    - **Fix:** Always clone baseline to separate directory before first run
 
 3. **Benchmarking wall-clock without interleaving**: Machine load swings ±5-10s
-   - **Fix:** Alternate baseline/optimized in same test loop
+    - **Fix:** Alternate baseline/optimized in same test loop
 
 4. **Convergence looking worse (32 vs 17 rounds)**: Discovery cascades trade round count for per-round speed
-   - **FIX:** Check hash rounds and function visit count, not just visit_rounds
-   - **Expected:** visit_rounds ↑ (more discovery), hash_rounds ↓ or stable, total time ↓
+    - **FIX:** Check hash rounds and function visit count, not just visit_rounds
+    - **Expected:** visit_rounds ↑ (more discovery), hash_rounds ↓ or stable, total time ↓

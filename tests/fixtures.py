@@ -99,7 +99,8 @@ def experiment_factory(
 def fragment_precompiler(fragment_factory):
     def do(exp):
         def precompile(self):
-            from artiq.language import kernel, kernel_from_string
+            from artiq.language import kernel
+            from artiq.language import kernel_from_string
 
             # Compile device_setup -> run_once -> device_cleanup as a single kernel,
             # mirroring how _FragmentRunner runs them in one kernel invocation in

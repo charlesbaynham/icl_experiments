@@ -223,14 +223,14 @@ cache for compiled kernel binaries (`artiq.compiler.kernel_cache`):
 - **Key**: blake2b of the generated LLVM IR text + an environment fingerprint
   (compiler sources, llvmlite/LLVM version, target triple/features/linker
   options). Host attribute values are embedded in the IR as global
-  initializers, so the key covers parameter *values* as well as code
+  initializers, so the key covers parameter _values_ as well as code
   structure - a stale hit is impossible, but changing any embedded value is a
   cache miss.
 - **Storage**: `.artiq_kernel_cache/{code_hash}.elf` plus a `.json` metadata
   file (gitignored). A linked LMT kernel is ~840 KB.
 - **What a hit skips**: LLVM parse/verify/optimize/assemble/link (~4 s for an
   LMT experiment). Type inference, ARTIQ IR and LLVM IR generation still run
-  on every compile because the IR text *is* the cache key, so a hit reduces an
+  on every compile because the IR text _is_ the cache key, so a hit reduces an
   LMT compile from ~32 s to ~29 s (measured 14.4% on the full LMT compile
   suite, interleaved A/B with 3 runs each). Skipping the earlier phases would
   require a key computable before inference (and separate upload of parameter
@@ -251,7 +251,7 @@ cache for compiled kernel binaries (`artiq.compiler.kernel_cache`):
   suite; the equivalent fix is needed in pyaion itself before production
   re-runs hit the cache.
 - **Tests**: `nix develop -c python scripts/pytest_vendored.py
-  tests/test_kernel_cache.py` (skips under plain pytest, which imports the
+tests/test_kernel_cache.py` (skips under plain pytest, which imports the
   /nix/store artiq instead of the vendored tree).
 
 ## Common Patterns

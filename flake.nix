@@ -156,6 +156,9 @@
         # options
         pre-commit-check = git-hooks.lib.${system}.run {
           src = ./.;
+          # vendor/ is third-party code checked in as source (artiq, ndscan);
+          # keep upstream formatting so diffs against upstream stay clean.
+          excludes = ["^vendor/"];
           hooks = {
             alejandra.enable = true;
             autoflake.enable = true;
@@ -213,7 +216,7 @@
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
 
-              if rg FIXME "${self}" -g "!nix" -g !flake.nix -g !readme.rst -g !AGENTS.md -g "!archived_experiments"; then
+              if rg FIXME "${self}" -g "!nix" -g !flake.nix -g !readme.rst -g !AGENTS.md -g "!archived_experiments" -g "!vendor"; then
                 echo \"FIXME\" found in files
                 exit 1
               else

@@ -21,7 +21,8 @@ kernel_cache = pytest.importorskip(
 
 import pythonparser  # noqa: E402
 from artiq.compiler import module as compiler_module  # noqa: E402
-from artiq.compiler.module import Module, Source  # noqa: E402
+from artiq.compiler.module import Module  # noqa: E402
+from artiq.compiler.module import Source
 from artiq.compiler.targets import RV32GTarget  # noqa: E402
 
 

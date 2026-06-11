@@ -90,7 +90,11 @@ xfails = [
     # combined into a single kernel (see URUKUL_INIT_REASON). The failure is
     # flaky, so they are non-strict.
     ("ClockSpecDownFromSingleXODTEvaporatedShelvingFrag", URUKUL_INIT_REASON, False),
-    ("ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag", URUKUL_INIT_REASON, False),
+    (
+        "ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag",
+        URUKUL_INIT_REASON,
+        False,
+    ),
     ("ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag", URUKUL_INIT_REASON, False),
     ("ShapedClockSpecWithSlicingFrag", URUKUL_INIT_REASON, False),
 ]

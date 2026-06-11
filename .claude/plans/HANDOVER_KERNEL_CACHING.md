@@ -8,6 +8,7 @@
 ## Session Context
 
 **Previous work (Session N):** Optimized ARTIQ compiler from 30.7s → 27.9s (9.2% speedup) via:
+
 - Dirty-set type inference with per-round hashing (embedded function discovery)
 - Visitor dispatch caching (AST node visit optimization)
 - Per-class kernel_from_string caching in ndscan (deduplication of forwarder functions)
@@ -32,20 +33,21 @@ Implement content-addressed compilation cache to reuse compiled LLVM IR across r
 #### 1. Cache Key: Code Structure (Not Values)
 
 - Hash the **LLVM IR code**, which depends on:
-  - Kernel source text (methods, type signatures)
-  - ARTIQ AST (control flow, decorators)
-  - Type structure (int32 vs float64 field widths, function signatures)
+    - Kernel source text (methods, type signatures)
+    - ARTIQ AST (control flow, decorators)
+    - Type structure (int32 vs float64 field widths, function signatures)
 
 - **NOT** hashed:
-  - Parameter values (frequency=100MHz vs 200MHz)
-  - Dataset initial values
-  - Attribute instance values
+    - Parameter values (frequency=100MHz vs 200MHz)
+    - Dataset initial values
+    - Attribute instance values
 
 **Rationale:** Same kernel code with different parameter values produces identical compiled object code; only the data payload differs.
 
 #### 2. Two-Phase Upload
 
 **Phase A: Compile-time (per-code-structure)**
+
 1. Build LLVM IR as usual
 2. Compute code hash: `blake2b(repr(llvm_module.as_string()))`
 3. Check if hash exists in cache (local disk or shared S3)
@@ -53,6 +55,7 @@ Implement content-addressed compilation cache to reuse compiled LLVM IR across r
 5. If not cached: compile as usual, store `.elf` in cache
 
 **Phase B: Runtime (per-experiment)**
+
 1. Upload compiled binary to device (fast, small)
 2. Upload parameter values separately (core.set_parameter_values {...})
 3. Run kernel with uploaded values
@@ -60,6 +63,7 @@ Implement content-addressed compilation cache to reuse compiled LLVM IR across r
 #### 3. Implementation Points
 
 **File: `vendor/artiq/artiq/compiler/targets.py`** (Target.compile_and_link)
+
 ```python
 def compile_and_link(self, modules):
     code_hash = self._compute_code_hash(modules)
@@ -74,6 +78,7 @@ def compile_and_link(self, modules):
 ```
 
 **File: `vendor/artiq/artiq/coredevice/core.py`** (Core.compile_and_run)
+
 ```python
 # Add method to extract parameter values from experiment
 def set_parameter_values(self, **kwargs):
@@ -85,12 +90,14 @@ def set_parameter_values(self, **kwargs):
 #### 4. Cache Storage
 
 **Option A: Local disk (session/repository)**
+
 - Path: `.artiq_kernel_cache/` (gitignored)
 - File: `{code_hash}.elf`
 - Pros: Simple, deterministic, no network
 - Cons: Per-repository, no sharing across users
 
 **Option B: Shared S3 (team/cloud)**
+
 - S3 bucket: `s3://aion-physics/artiq-kernel-cache/`
 - File: `{code_hash}.elf`
 - Pros: Share across all users, all machines
@@ -101,15 +108,18 @@ def set_parameter_values(self, **kwargs):
 #### 5. Cache Invalidation
 
 Cache is valid if:
+
 - Vendored ARTIQ version is unchanged (check `vendor/artiq/.git/HEAD`)
-- Compiler flags unchanged (ARTIQ_DUMP_*, optimization settings)
+- Compiler flags unchanged (ARTIQ*DUMP*\*, optimization settings)
 - Target triple unchanged (RV32IMA, CortexA9, etc.)
 
 Invalidate if:
+
 - Pushing updated ARTIQ vendored code
 - Changing ARTIQ environment variables
 
 **Pattern:** Store metadata alongside cache
+
 ```python
 cache_metadata = {
     "artiq_commit": "abc123...",
@@ -122,6 +132,7 @@ cache_metadata = {
 #### 6. Testing
 
 **Unit tests:**
+
 ```python
 # test_kernel_cache.py
 def test_same_code_same_hash():
@@ -138,6 +149,7 @@ def test_cache_retrieval():
 ```
 
 **Integration test:**
+
 ```bash
 # Compile same experiment twice, second run should be ~50ms (cache lookup)
 time nix develop -c pytest repository/tests/test_compile_lmt.py::test_lmt_interferometry_symmetric -xvs
@@ -150,6 +162,7 @@ time nix develop -c pytest repository/tests/test_compile_lmt.py::test_lmt_interf
 ## Key Files from Previous Session
 
 Consult the **compiler-optimization** workspace skill for:
+
 - Phase timing instrumentation (how to measure backend LLVM cost)
 - Profiling methodology (cProfile top-25 functions in finalize)
 - A/B benchmarking pattern (validate optimization doesn't regress other experiments)
@@ -162,6 +175,7 @@ Consult the **compiler-optimization** workspace skill for:
 ## Dependency Chain
 
 This caching work depends on:
+
 1. ✅ Dirty-set type inference optimization (previous session)
 2. ✅ Visitor dispatch caching (previous session)
 3. ✅ Per-class kernel_from_string caching (previous session)
@@ -230,15 +244,15 @@ These reduce per-compile time to 27.9s, making the backend LLVM step dominant an
 ## The headline number is NOT 10-100×
 
 The plan's "30s → 2-3s" / "<0.1s identical compile" success criteria are
-unachievable *within the plan's own design*: the cache key is the LLVM IR
+unachievable _within the plan's own design_: the cache key is the LLVM IR
 text, so inference (~11s), ARTIQ IR (~4s) and LLVM IR generation (~11s) must
 run on every compile to produce the key. A hit skips only parse/verify/
 optimize/assemble/link. Measured on LMTInterferometrySymmetricFrag (this
 machine compiles it in ~32s, vs 27.9s in the previous session's environment):
 miss ≈ 32s, hit ≈ 29s (~12% saving; backend phase 15.0s → 11.1s). A 10-100×
-speedup requires a cache key computable *before* inference plus device-side
+speedup requires a cache key computable _before_ inference plus device-side
 value upload — a different, much larger project (key would have to cover the
-transitive closure of kernel sources *and* all embedded host values without
+transitive closure of kernel sources _and_ all embedded host values without
 running discovery, which is exactly what stitching/inference is).
 
 ## IR determinism: the real battle (and the main value of this session)
