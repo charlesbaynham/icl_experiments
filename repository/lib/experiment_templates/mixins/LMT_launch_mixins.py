@@ -489,7 +489,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
             "lmt_launch_pulses_number",
             IntParam,
             "Number of pulses for LMT launch",
-            default=16,
+            default=10,
         )
         self.lmt_launch_pulses_number: IntParamHandle
 
@@ -577,7 +577,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             "delay_between_launches",
             FloatParam,
             "Delay between the two launches",
-            default=2.0e-3,
+            default=4.5e-3,
             unit="ms",
         )
         self.delay_between_launches: FloatParamHandle
@@ -1045,9 +1045,11 @@ class LMTInterferometryMixin(
             )
 
         delay(8e-9)
+        delay(10e-6)
 
         self.mirror_pulse(t_pi_down, N_launch, mirror_freq)
 
+        delay(10e-6)
         delay(2e-6)
 
         if N > 1:
