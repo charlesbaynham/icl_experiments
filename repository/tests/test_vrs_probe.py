@@ -6,8 +6,13 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import host_only
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
+from ndscan.experiment.parameters import FloatParam
+from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment import ResultChannel
+from typing import List
 
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
@@ -60,11 +65,30 @@ class TestRTBSetupFrag(ExpFragment):
         self.setattr_device("core")
         self.core: Core
 
+        self.rtb_data = float
+
+        self.setattr_param(
+            "acquisition_time",
+            FloatParam,
+            "Scope Acquisition Time",
+            default=0.3,
+            unit="ms",
+            min=0.0,
+        )
+        self.acquisition_time: FloatParamHandle
+
+        self.setattr_result("scope_data", ResultChannel)
+        self.scope_data: ResultChannel
+
         # setup the TTL
         # FILL IN WITH THE CORRECT NAME!
         self.ttl = self.get_device("ttl_shutter_repump_707")
         self.ttl: TTLOut
 
+        ### This stuff should not be done in build fragment but probably somewhere later... needs to be done from the computer
+
+    @host_only
+    def host_setup(self):
         self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
         # Set the trigger to an external signal
         self.rtb.write_str("TRIG:A:SOUR EXT")
@@ -75,17 +99,35 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_str("TRIG:A:LEV5 1")
 
         # Set the acquisition settings CH1 is the PMT signal
-        self.rtb.write_float("TIM:ACQT", 0.01)  # 10ms Acquisition time
-        self.rtb.write_str("CHAN1:RANG 5.0")  # Total Vertical range 5V (0.5V/div)
-        self.rtb.write_str("CHAN1:OFFS 0.0")  # Offset 0
-        self.rtb.write_str("CHAN1:STAT ON")  # Switch Channel 1 ON
+        self.rtb.write_float(
+            "TIM:ACQT", self.acquisition_time.get()
+        )  # Scope Acquisition time
+        self.rtb.write_float("CHAN1:RANG", 5.0)  # Total Vertical range 5V (0.5V/div)
+        self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
+        self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
         self.rtb.write_float("ACQ:POIN", 20e6)
+        # Setup a single shot
+        self.rtb.write_str("SING")
 
+    @kernel
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
         self.ttl.pulse(10e-3)
-        delay(10e-3)
+        delay(self.acquisition_time.get())
+
+        # Get the data from the scope and save it in the results channel
+        self.get_data_from_scope()
+
+    # Does this need to be done on the PC?, how else would it manage to save the data
+    # Also this is quite a large data set...
+    # We can save this data on the scope internally and rerun the experiment
+    def get_data_from_scope(self):
+        # Save the data in ascii format and save
+        data = self.rtb.query_bin_or_ascii_float_list(
+            "FORM ASC; CHAN1:DATA:POINT MAX; CHAN1:DATA?"
+        )
+        self.scope_data.push(data)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
