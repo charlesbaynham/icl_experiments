@@ -187,9 +187,14 @@ class LLVMIRGenerator:
         ))
 
     def add_pred(self, pred, block):
+        # The inner dict is used as an insertion-ordered set: the exception
+        # phi fixup iterates it and emits the first matching predecessor into
+        # the IR, so iteration order must not depend on object addresses
+        # (which would make the IR text vary between otherwise identical
+        # processes and defeat the content-addressed kernel cache).
         if block not in self.llpred_map:
-            self.llpred_map[block] = set()
-        self.llpred_map[block].add(pred)
+            self.llpred_map[block] = {}
+        self.llpred_map[block][pred] = None
 
     def needs_sret(self, lltyp, may_be_large=True):
         if isinstance(lltyp, ll.VoidType):
@@ -2025,9 +2030,6 @@ class LLVMIRGenerator:
         for dest in insn.destinations():
             dest = self.map(dest)
             self.add_pred(self.llbuilder.basic_block, dest)
-            if dest not in self.llpred_map:
-                self.llpred_map[dest] = set()
-            self.llpred_map[dest].add(self.llbuilder.basic_block)
             llinsn.add_destination(dest)
         return llinsn
 

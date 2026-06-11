@@ -922,6 +922,7 @@ class Stitcher:
         self.prelude.pop("array")
 
         self.functions = {}
+        self._eval_module_names = {}
 
         self.embedding_map = EmbeddingMap(old_embedding_map)
         self.value_map = defaultdict(lambda: [])
@@ -1177,12 +1178,19 @@ class Stitcher:
         embedded_function = host_function.artiq_embedded.function
         if isinstance(embedded_function, str):
             # This is a function to be eval'd from the given source code in string form.
-            # Mangle the host function's id() into the fully qualified name to make sure
-            # there are no collisions.
+            # Mangle a sequence number into the fully qualified name to make sure
+            # there are no collisions between string-kernels with identical source
+            # (e.g. per-class forwarders). A per-Stitcher sequence number is used
+            # rather than id(host_function): id() is a memory address, which would
+            # make the generated IR text differ between otherwise identical
+            # processes and defeat the content-addressed kernel cache.
             source_code = embedded_function
             embedded_function = host_function
             filename = "<string>"
-            module_name = "__eval_{}".format(id(host_function))
+            module_name = self._eval_module_names.get(host_function)
+            if module_name is None:
+                module_name = "__eval_{}".format(len(self._eval_module_names))
+                self._eval_module_names[host_function] = module_name
             first_line = 1
         else:
             source_code = inspect.getsource(embedded_function)
