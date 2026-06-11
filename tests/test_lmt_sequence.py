@@ -106,6 +106,11 @@ def test_velocity_selective_slice_sequence():
     # Duration default follows the slice SetPoint's declared Rabi frequency
     assert slice_pulse.duration_param.default == pytest.approx(380e-6)
     assert slice_pulse.governing_setpoint_index == 0
+    # Labels make the generated parameters recognisable in the ndscan UI
+    slice_setpoint = compiled.events[0]
+    assert "'slice'" in slice_setpoint.setpoint_param.description
+    assert "up-beam" in slice_setpoint.setpoint_param.description
+    assert "'slice'" in slice_pulse.offset_param.description
     # Later pulses are governed by the full-intensity set points instead
     first_launch_pulse = compiled.events[6]
     assert first_launch_pulse.kind == EVENT_PULSE

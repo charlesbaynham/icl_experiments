@@ -328,6 +328,15 @@ def _event_name(index: int, stem: str, label: str = "") -> str:
     return name
 
 
+def _event_prefix(index: int, label: str = "") -> str:
+    """Human-readable event prefix for parameter descriptions, including the
+    user's label so the parameter is recognisable in the ndscan UI."""
+    prefix = f"Event {index}"
+    if label:
+        prefix += f" '{label}'"
+    return prefix
+
+
 def compile_sequence(
     events: list,
     *,
@@ -400,7 +409,8 @@ def compile_sequence(
                         duration_param=ParamSpec(
                             attr_name=_event_name(index, "wait", event.label)
                             + "_duration",
-                            description=f"Event {index}: dark time",
+                            description=f"{_event_prefix(index, event.label)}: "
+                            "dark time",
                             default=event.t,
                             unit="us",
                             min=0.0,
@@ -426,7 +436,8 @@ def compile_sequence(
                         duration_param=ParamSpec(
                             attr_name=_event_name(index, "clearout", event.label)
                             + "_duration",
-                            description=f"Event {index}: clearout pulse duration",
+                            description=f"{_event_prefix(index, event.label)}: "
+                            "clearout pulse duration",
                             default=event.duration,
                             unit="us",
                             min=0.0,
@@ -453,8 +464,9 @@ def compile_sequence(
                             index, f"setpoint_{event.beam.value}", event.label
                         ),
                         description=(
-                            f"Event {index}: delivery AOM set point for "
-                            f"{event.beam.name.lower()}-beam pulses "
+                            f"{_event_prefix(index, event.label)}: delivery AOM "
+                            f"set point for {event.beam.name.lower()}-beam pulses "
+                            "from here until the next SetPoint for this beam "
                             f"(declared Rabi frequency "
                             f"{event.rabi_frequency / 1e3:.3g} kHz)"
                         ),
@@ -578,15 +590,15 @@ def _compile_pulse(
         offset_param=ParamSpec(
             attr_name=name + "_offset",
             description=(
-                f"Event {index}: {human} - detuning offset added to the "
-                "model-predicted resonance"
+                f"{_event_prefix(index, event.label)}: {human} - detuning "
+                "offset added to the model-predicted resonance"
             ),
             default=0.0,
             unit="kHz",
         ),
         duration_param=ParamSpec(
             attr_name=name + "_duration",
-            description=f"Event {index}: {human} - duration",
+            description=f"{_event_prefix(index, event.label)}: {human} - duration",
             default=duration_default,
             unit="us",
             min=0.0,

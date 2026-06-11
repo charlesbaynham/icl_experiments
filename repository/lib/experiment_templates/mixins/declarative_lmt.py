@@ -38,10 +38,16 @@ Principles
   Relative to the legacy formulas the recoil term shifts every pulse by
   ``-s * kick / 2`` (~4.7 kHz); per-pulse offset parameters (default 0)
   absorb any residual during commissioning.
-- Beam intensity is controlled through the delivery AOM SUServo set point,
-  carried per beam as sticky sequence state (see
-  :class:`~repository.lib.lmt_sequence.SetPoint`). Put a ``Wait`` (or other
-  dead time) after a ``SetPoint`` to give the servo time to settle.
+- Beam intensity is controlled exclusively through the delivery AOM SUServo
+  set point, carried per beam as sticky sequence state (see
+  :class:`~repository.lib.lmt_sequence.SetPoint`). Every ``SetPoint`` event
+  spawns a scannable ndscan parameter which all subsequent pulses on that
+  beam pick up. Put a ``Wait`` (or other dead time) after a ``SetPoint`` to
+  give the servo time to settle. Note that the legacy stack instead varied
+  the switch AOM's RF attenuation for low-intensity pulses
+  (``LMT_launch_mixins.do_selective_lmt_pulse``); attenuation in dB has an
+  uncalibrated nonlinear relationship to optical power, so equivalent set
+  points must be calibrated on atoms when porting tuned values.
 """
 
 import logging

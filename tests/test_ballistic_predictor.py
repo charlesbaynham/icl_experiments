@@ -14,11 +14,6 @@ from repository.lib.physics.ballistic import predict_position
 from repository.lib.physics.ballistic import predict_positions_from_mu
 from repository.lib.physics.ballistic import recoil_velocity
 
-pytestmark = pytest.mark.xfail(
-    reason="Ballistic predictor not implemented yet", raises=NotImplementedError
-)
-
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 PIXEL_SIZE_M = 16e-6
@@ -184,9 +179,10 @@ def test_out_of_plane_tilt():
 
 def test_upward_kick_partially_cancels_gravity():
     """
-    is_up=True pulse at t=0 on side-view camera.
-    The +z kick means sensor_y increases by +v_r * t, partially offsetting the
-    downward free-fall.
+    is_up=True pulse at t=0 on ground atoms (side-view camera): the branch is
+    transferred to the excited state with a +z kick, so the excited port's
+    sensor_y increases by +v_r * t relative to free fall. The ground port is
+    the branch that missed the (only) transfer, i.e. pure free fall.
     """
     t = 20e-3
     v_r = recoil_velocity(SIDE_VIEW_CFG)
@@ -209,10 +205,20 @@ def test_upward_kick_partially_cancels_gravity():
         cfg=SIDE_VIEW_CFG,
         state="excited",
     )
+    _, y_missed = predict_position(
+        site_offset_m=np.zeros(3),
+        initial_velocity_m_per_s=np.zeros(3),
+        pulse_times_s=[0.0],
+        pulse_is_up=[True],
+        t_image_s=t,
+        cfg=SIDE_VIEW_CFG,
+        state="ground",
+    )
 
     expected_dy_kick = v_r * t * _scale()
     assert y_kick == pytest.approx(y_free + expected_dy_kick, rel=1e-6)
     assert x_kick == pytest.approx(x_free, abs=1e-9)
+    assert y_missed == pytest.approx(y_free, abs=1e-9)
 
 
 def test_downward_kick_adds_to_fall():
@@ -245,25 +251,19 @@ def test_downward_kick_adds_to_fall():
     assert y_kick == pytest.approx(y_free + expected_dy_kick, rel=1e-6)
 
 
-def test_two_opposite_kicks_leave_position_offset():
+def test_two_up_pulses_kick_then_unkick():
     """
-    +ℏk at t₁, −ℏk at t₂ (t₂ > t₁). Net Δv = 0, but residual displacement is
-    +v_r*(t−t₁) − v_r*(t−t₂) = v_r*(t₂−t₁) along the clock direction.
+    Two up-beam pulses on ground atoms: the first transfers g→e with +ℏk,
+    the second transfers e→g with −ℏk (stimulated emission into the same
+    beam). Net Δv = 0 but a residual displacement v_r*(t₂−t₁) remains along
+    the clock direction. The excited port missed the second transfer and
+    keeps the full +ℏk velocity.
     """
     t = 30e-3
     t1 = 5e-3
     t2 = 15e-3
     v_r = recoil_velocity(SIDE_VIEW_CFG)
 
-    _, y_pix = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[t1, t2],
-        pulse_is_up=[True, False],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="excited",
-    )
     _, y_free = predict_position(
         site_offset_m=np.zeros(3),
         initial_velocity_m_per_s=np.zeros(3),
@@ -273,17 +273,44 @@ def test_two_opposite_kicks_leave_position_offset():
         cfg=SIDE_VIEW_CFG,
         state="ground",
     )
+    _, y_ground = predict_position(
+        site_offset_m=np.zeros(3),
+        initial_velocity_m_per_s=np.zeros(3),
+        pulse_times_s=[t1, t2],
+        pulse_is_up=[True, True],
+        t_image_s=t,
+        cfg=SIDE_VIEW_CFG,
+        state="ground",
+    )
+    _, y_excited = predict_position(
+        site_offset_m=np.zeros(3),
+        initial_velocity_m_per_s=np.zeros(3),
+        pulse_times_s=[t1, t2],
+        pulse_is_up=[True, True],
+        t_image_s=t,
+        cfg=SIDE_VIEW_CFG,
+        state="excited",
+    )
 
-    # Residual displacement = v_r * (t2 - t1) along +z → +y_sensor
-    expected_dy = v_r * (t2 - t1) * _scale()
-    assert y_pix == pytest.approx(y_free + expected_dy, rel=1e-6)
+    # Tracked branch ends in the ground state with displacement v_r*(t2−t1)
+    assert y_ground == pytest.approx(y_free + v_r * (t2 - t1) * _scale(), rel=1e-6)
+    # The excited port missed the second transfer: still moving at +v_r
+    assert y_excited == pytest.approx(y_free + v_r * (t - t1) * _scale(), rel=1e-6)
 
 
-def test_ground_state_ignores_kicks():
-    """state='ground' must give the same result regardless of the pulse log."""
-    t = 20e-3
+def test_alternating_ladder_kicks_all_up():
+    """
+    An alternating up/down ladder on ground atoms transfers +ℏk on every
+    pulse (absorb up, emit into down, absorb up, ...) - the launch. The old
+    (broken) model applied kick signs from the beam direction alone, which
+    would wrongly cancel alternate kicks.
+    """
+    t = 30e-3
+    times = [2e-3, 6e-3, 10e-3, 14e-3]
+    beams = [True, False, True, False]  # up, down, up, down
+    v_r = recoil_velocity(SIDE_VIEW_CFG)
 
-    xy_no_pulses = predict_position(
+    _, y_free = predict_position(
         site_offset_m=np.zeros(3),
         initial_velocity_m_per_s=np.zeros(3),
         pulse_times_s=[],
@@ -292,18 +319,63 @@ def test_ground_state_ignores_kicks():
         cfg=SIDE_VIEW_CFG,
         state="ground",
     )
-    xy_with_pulses = predict_position(
+    # The tracked branch ends in the ground state (4 transfers from ground)
+    _, y_full = predict_position(
         site_offset_m=np.zeros(3),
         initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[2e-3, 10e-3, 18e-3],
-        pulse_is_up=[True, False, True],
+        pulse_times_s=times,
+        pulse_is_up=beams,
         t_image_s=t,
         cfg=SIDE_VIEW_CFG,
         state="ground",
     )
 
-    assert xy_no_pulses[0] == pytest.approx(xy_with_pulses[0], abs=1e-9)
-    assert xy_no_pulses[1] == pytest.approx(xy_with_pulses[1], abs=1e-9)
+    expected_dy = sum(v_r * (t - t_i) for t_i in times) * _scale()
+    assert y_full == pytest.approx(y_free + expected_dy, rel=1e-6)
+
+
+def test_initial_state_excited_down_pulse_kicks_up():
+    """A down-beam pulse on excited atoms (stimulated emission into the down
+    beam) kicks them upward - the first launch pulse after a slice."""
+    t = 20e-3
+    t1 = 1e-3
+    v_r = recoil_velocity(SIDE_VIEW_CFG)
+
+    _, y_free = predict_position(
+        site_offset_m=np.zeros(3),
+        initial_velocity_m_per_s=np.zeros(3),
+        pulse_times_s=[],
+        pulse_is_up=[],
+        t_image_s=t,
+        cfg=SIDE_VIEW_CFG,
+        state="ground",
+    )
+    _, y_kick = predict_position(
+        site_offset_m=np.zeros(3),
+        initial_velocity_m_per_s=np.zeros(3),
+        pulse_times_s=[t1],
+        pulse_is_up=[False],
+        t_image_s=t,
+        cfg=SIDE_VIEW_CFG,
+        state="ground",
+        initial_state="excited",
+    )
+
+    assert y_kick == pytest.approx(y_free + v_r * (t - t1) * _scale(), rel=1e-6)
+
+
+def test_invalid_states_raise():
+    for kwargs in ({"state": "both"}, {"state": "ground", "initial_state": "x"}):
+        with pytest.raises(ValueError, match="ground"):
+            predict_position(
+                site_offset_m=np.zeros(3),
+                initial_velocity_m_per_s=np.zeros(3),
+                pulse_times_s=[],
+                pulse_is_up=[],
+                t_image_s=1e-3,
+                cfg=SIDE_VIEW_CFG,
+                **kwargs,
+            )
 
 
 def test_kick_along_optical_axis_invisible():
@@ -386,7 +458,6 @@ def test_mu_wrapper_matches_seconds_version():
 
     t_pulse_start_s = 4e-3
     t_pulse_duration_s = 2e-3
-    t_pulse_start_s + t_pulse_duration_s / 2
     t_img1_s = 20e-3
     t_img2_s = 23e-3
 

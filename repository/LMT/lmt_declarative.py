@@ -76,8 +76,18 @@ class DeclarativeLMTMachZehnderFrag(
 
     lmt_sequence = [
         # Velocity selection: a normal pulse, just longer and with a lower
-        # delivery set point. Its centre is t=0 for the gravity Doppler -
-        # the class it selects defines "v = 0" for all later pulses.
+        # delivery set point.
+        #
+        # TODO: experimentally scan this set point (p00_setpoint_u_slice) to
+        # find the value giving the intended slicing Rabi frequency, then
+        # update the default and the declared rabi_frequency. Reduced
+        # intensity is now always done through the delivery SUServo set
+        # point; the legacy stack instead varied the RF attenuation of the
+        # switch AOM (LMT_launch_mixins.do_selective_lmt_pulse, att=10.5 dB
+        # on clock_up_dds), whose relationship to optical power is nonlinear
+        # and uncalibrated, so the conversion to set points must be
+        # calibrated on atoms. The same applies to any future low-intensity
+        # "selective" pulses: give them their own SetPoint and calibrate.
         SetPoint(
             Beam.UP,
             setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
