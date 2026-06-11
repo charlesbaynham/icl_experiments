@@ -287,6 +287,36 @@ class Core:
 
         return run_precompiled
 
+    def set_parameter_values(self, obj, **values):
+        """Set host attribute values to be embedded in the next kernel
+        compilation of ``obj``.
+
+        Attribute values are materialized as global initializers during LLVM
+        IR generation, so they are part of the compiled binary (and of the
+        kernel cache key, see :mod:`artiq.compiler.kernel_cache`): re-running
+        a kernel with a previously seen (code, values) combination reuses the
+        cached binary, while new values trigger a recompile.
+
+        Uploading values to an *already compiled* kernel without recompiling
+        is not currently possible: the core device protocol
+        (:class:`artiq.coredevice.comm_kernel.Request`) only supports
+        ``LoadKernel``/``RunKernel``/RPC and has no command for writing
+        kernel globals, so a true device-side parameter upload requires
+        firmware support.
+
+        :param obj: the object (e.g. experiment or fragment) whose attributes
+            are referenced from kernel code.
+        :param values: attribute name/value pairs to set.
+        :raises AttributeError: if ``obj`` has no attribute of a given name,
+            to catch typos that would otherwise silently create unused
+            attributes.
+        """
+        for name, value in values.items():
+            if not hasattr(obj, name):
+                raise AttributeError(
+                    "{} has no attribute {!r}".format(obj, name))
+            setattr(obj, name, value)
+
     @portable
     def seconds_to_mu(self, seconds):
         """Convert seconds to the corresponding number of machine units

@@ -1,5 +1,5 @@
-import os, sys, tempfile, subprocess, io, time
-from artiq.compiler import types, ir
+import os, sys, tempfile, subprocess, io, time, hashlib, json
+from artiq.compiler import types, ir, kernel_cache
 from llvmlite import ir as ll, binding as llvm
 
 llvm.initialize()
@@ -62,6 +62,8 @@ def _dump(target, kind, suffix, content):
         file.write(content_value)
         file.close()
         print("{} dumped as {}".format(kind, file.name), file=sys.stderr)
+
+_hashed_ir_dump_index = 0
 
 class Target:
     """
@@ -138,8 +140,8 @@ class Target:
 
         llpassmgr.run(llmodule)
 
-    def compile(self, module):
-        """Compile the module to a relocatable object for this target."""
+    def build_llvm_ir(self, module):
+        """Lower the module to LLVM IR and return its textual representation."""
 
         if os.getenv("ARTIQ_DUMP_SIG"):
             print("====== MODULE_SIGNATURE DUMP ======", file=sys.stderr)
@@ -155,13 +157,35 @@ class Target:
 
         _phase_t0 = time.monotonic()
         llmod = module.build_llvm_ir(self)
+        ir_text = str(llmod)
         _phase_t1 = time.monotonic()
+        if os.getenv("ARTIQ_PHASE_TIMING"):
+            print("[phase] llvm_ir_gen=%.2fs" % (_phase_t1 - _phase_t0))
 
+        # The exact text the kernel cache hashes; for debugging cache misses.
+        # Each compile in the process gets its own numbered dump so that
+        # multi-experiment sessions can be diffed pairwise.
+        if os.getenv("ARTIQ_DUMP_HASHED_IR"):
+            global _hashed_ir_dump_index
+            _dump(os.getenv("ARTIQ_DUMP_HASHED_IR"), "LLVM IR (as hashed)",
+                  "{}_hashed_{}.ll".format(suffix, _hashed_ir_dump_index),
+                  lambda: ir_text)
+            _hashed_ir_dump_index += 1
+
+        return ir_text
+
+    def compile_llvm_ir(self, ir_text):
+        """Parse, verify and optimize textual LLVM IR, returning the
+        optimized binding-layer module ready for :meth:`assemble`."""
+
+        suffix = "_subkernel_{}".format(self.subkernel_id) if self.subkernel_id is not None else ""
+
+        _phase_t1 = time.monotonic()
         try:
-            llparsedmod = llvm.parse_assembly(str(llmod))
+            llparsedmod = llvm.parse_assembly(ir_text)
             llparsedmod.verify()
         except RuntimeError:
-            _dump("", "LLVM IR (broken)", ".ll", lambda: str(llmod))
+            _dump("", "LLVM IR (broken)", ".ll", lambda: ir_text)
             raise
         _phase_t2 = time.monotonic()
 
@@ -171,13 +195,17 @@ class Target:
         self.optimize(llparsedmod)
         _phase_t3 = time.monotonic()
         if os.getenv("ARTIQ_PHASE_TIMING"):
-            print("[phase] llvm_ir_gen=%.2fs parse_verify=%.2fs optimize=%.2fs" %
-                  (_phase_t1 - _phase_t0, _phase_t2 - _phase_t1, _phase_t3 - _phase_t2))
+            print("[phase] parse_verify=%.2fs optimize=%.2fs" %
+                  (_phase_t2 - _phase_t1, _phase_t3 - _phase_t2))
 
         _dump(os.getenv("ARTIQ_DUMP_LLVM"), "LLVM IR (optimized)", suffix + ".ll",
               lambda: str(llparsedmod))
 
         return llparsedmod
+
+    def compile(self, module):
+        """Compile the module to a relocatable object for this target."""
+        return self.compile_llvm_ir(self.build_llvm_ir(module))
 
     def assemble(self, llmodule):
         llmachine = self.target_machine()
@@ -208,14 +236,57 @@ class Target:
 
             return library
 
+    def compute_code_hash(self, ir_texts):
+        """Content hash identifying the linked output of the given LLVM IR
+        modules under the current compiler environment.
+
+        Host attribute values are embedded in the IR as global initializers,
+        so the hash covers parameter values as well as code structure; the
+        environment fingerprint covers the compiler sources, llvmlite/LLVM
+        version and the target description (triple, features, linker options).
+        """
+        h = hashlib.blake2b(digest_size=32)
+        h.update(kernel_cache.environment_fingerprint())
+        h.update(json.dumps({
+            "triple": self.triple,
+            "data_layout": self.data_layout,
+            "features": self.features,
+            "additional_linker_options": self.additional_linker_options,
+            "tool_ld": self.tool_ld,
+        }, sort_keys=True).encode())
+        for ir_text in ir_texts:
+            h.update(b"%d\0" % len(ir_text))
+            h.update(ir_text.encode())
+        return h.hexdigest()
+
     def compile_and_link(self, modules):
         t0 = time.monotonic()
-        compiled = [self.assemble(self.compile(module)) for module in modules]
+        ir_texts = [self.build_llvm_ir(module) for module in modules]
+
+        cache = kernel_cache.KernelCache.from_env()
+        code_hash = None
+        if cache is not None:
+            code_hash = self.compute_code_hash(ir_texts)
+            library = cache.get(code_hash)
+            if library is not None:
+                if os.getenv("ARTIQ_PHASE_TIMING"):
+                    print("[phase] kernel_cache=hit code_hash=%s lookup=%.2fs" %
+                          (code_hash[:16], time.monotonic() - t0))
+                return library
+
         t1 = time.monotonic()
-        linked = self.link(compiled)
+        compiled = [self.assemble(self.compile_llvm_ir(ir_text)) for ir_text in ir_texts]
         t2 = time.monotonic()
+        linked = self.link(compiled)
+        t3 = time.monotonic()
+
+        if cache is not None:
+            cache.put(code_hash, linked, {"triple": self.triple})
+            if os.getenv("ARTIQ_PHASE_TIMING"):
+                print("[phase] kernel_cache=miss code_hash=%s" % code_hash[:16])
+
         if os.getenv("ARTIQ_PHASE_TIMING"):
-            print("[phase] compile+assemble=%.2fs link=%.2fs" % (t1 - t0, t2 - t1))
+            print("[phase] compile+assemble=%.2fs link=%.2fs" % (t2 - t1, t3 - t2))
         return linked
 
     def strip(self, library):

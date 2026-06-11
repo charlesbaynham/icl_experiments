@@ -195,3 +195,6 @@ cython_debug/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Content-addressed kernel compilation cache (artiq.compiler.kernel_cache)
+.artiq_kernel_cache/
