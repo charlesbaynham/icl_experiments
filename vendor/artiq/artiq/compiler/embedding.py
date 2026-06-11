@@ -877,6 +877,7 @@ class Stitcher:
 
         self.name = ""
         self.typedtree = []
+        self._injected_nodes = []
         self.inject_at = 0
         self.globals = {}
 
@@ -935,20 +936,43 @@ class Stitcher:
         # reaches the same fixed point as the original full-sweep algorithm.
         old_attr_count = None
         last_visit_hash = {}
-        _round_count = 0
-        _visit_count = 0
+        # Functions visited since their hash was last recorded; they must be
+        # re-visited once with a recorded pre-visit hash before they can be
+        # considered converged (a visit may change a function's own types,
+        # requiring further visits to reach the intra-function fixed point).
+        unconverged = set()
+        self._injected_nodes = list(self.typedtree)
+        _visit_rounds = _hash_rounds = _visit_count = 0
         while True:
-            _round_count += 1
-            # TypedtreeHasher.visit on a list returns per-node hashes.
+            # Discovery cascade: visit newly injected functions only. This
+            # needs no hashing at all -- injection is tracked directly -- and
+            # covers the (dominant) call-graph discovery part of inference.
+            while self._injected_nodes:
+                batch = self._injected_nodes
+                self._injected_nodes = []
+                unconverged.update(map(id, batch))
+                _visit_rounds += 1
+                _visit_count += len(batch)
+                inferencer.visit(batch)
+
+            # Propagation round: find functions whose typed AST changed since
+            # they were last visited (TypedtreeHasher.visit returns a per-node
+            # hash, resolved through the type variable union-find, so a
+            # unification performed while visiting one function is reflected
+            # in the hash of every function sharing that type variable).
+            _hash_rounds += 1
             cur_hashes = [typedtree_hasher.visit(node) for node in self.typedtree]
             attr_count = self.embedding_map.attribute_count()
             dirty = [node for node, node_hash in zip(self.typedtree, cur_hashes)
-                     if last_visit_hash.get(id(node)) != node_hash]
+                     if id(node) in unconverged or
+                        last_visit_hash.get(id(node)) != node_hash]
             if not dirty:
                 if attr_count == old_attr_count:
                     if os.environ.get("ARTIQ_INFER_PASS_DEBUG"):
-                        print("[infer] %r converged in %d rounds, %d function visits (n_funcs=%d)" %
-                              (self.name, _round_count, _visit_count, len(self.typedtree)))
+                        print("[infer] %r converged: %d visit rounds, %d hash rounds, "
+                              "%d function visits (n_funcs=%d)" %
+                              (self.name, _visit_rounds, _hash_rounds, _visit_count,
+                               len(self.typedtree)))
                     break
                 # The attribute count changed even though no function's types
                 # did. Be conservative and re-visit everything once.
@@ -959,9 +983,10 @@ class Stitcher:
             # visit (or a later unification elsewhere) changes it, the function
             # becomes dirty again and is re-visited on a subsequent round.
             for node, node_hash in zip(self.typedtree, cur_hashes):
-                if last_visit_hash.get(id(node)) != node_hash:
-                    last_visit_hash[id(node)] = node_hash
+                last_visit_hash[id(node)] = node_hash
+            unconverged.clear()
 
+            _visit_rounds += 1
             _visit_count += len(dirty)
             inferencer.visit(dirty)
 
@@ -1000,6 +1025,7 @@ class Stitcher:
             body=self.typedtree, loc=source.Range(source_buffer, 0, 0))
 
     def _inject(self, node):
+        self._injected_nodes.append(node)
         self.typedtree.insert(self.inject_at, node)
         self.inject_at += 1
 
