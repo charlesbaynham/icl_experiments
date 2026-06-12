@@ -211,10 +211,12 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         )
         self.lmt_unused_pad: FloatParamHandle
 
-        # Parallel per-event arrays read by the kernel
+        # Parallel per-event arrays read by the kernel. NB no bool lists:
+        # the ARTIQ compiler quotes host lists of Python bools as integer
+        # lists (bool is an int subclass); beam direction is carried as a
+        # float sign and compared in the kernel instead.
         self._lmt_n_events = len(compiled.events)
         self._lmt_event_kind = []
-        self._lmt_beam_is_up = []
         self._lmt_beam_sign = []
         self._lmt_m_term_hz = []
         self._lmt_callback_id = []
@@ -228,7 +230,6 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
 
         for event in compiled.events:
             self._lmt_event_kind.append(int32(event.kind))
-            self._lmt_beam_is_up.append(event.beam_sign > 0)
             self._lmt_beam_sign.append(float(event.beam_sign))
             self._lmt_m_term_hz.append(float(event.m_term_hz))
             self._lmt_callback_id.append(int32(event.callback_id))
@@ -281,7 +282,6 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         self.kernel_invariants = getattr(self, "kernel_invariants", set()) | {
             "_lmt_n_events",
             "_lmt_event_kind",
-            "_lmt_beam_is_up",
             "_lmt_beam_sign",
             "_lmt_m_term_hz",
             "_lmt_callback_id",
@@ -471,7 +471,7 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                     + self._lmt_offset_handles[i].get()
                 )
                 self._fire_pulse(
-                    freq_centre, t_start, self._lmt_beam_is_up[i], duration
+                    freq_centre, t_start, self._lmt_beam_sign[i] > 0.0, duration
                 )
 
             elif kind == EVENT_WAIT:
