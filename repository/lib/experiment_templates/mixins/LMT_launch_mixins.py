@@ -762,9 +762,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         self.up_pulse(N_previous_pulses=N_launch + 4)
 
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(80e6)
-
         # Clear out the ground state
         self.fluorescence_pulse.do_clearout_pulse(
             duration=self.clearout_duration.get(),
@@ -967,10 +964,9 @@ class LMTInterferometryMixin(
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
-        # self.prepare_clock_delivery_aom()
-        # delay_mu(16)
-        # self.do_clock_interferometry()
-        pass
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
+        self.do_clock_interferometry()
 
     @kernel
     def do_clock_interferometry(self):
