@@ -7,6 +7,7 @@ from artiq.coredevice.core import Core
 from artiq.language import delay
 from artiq.language import kernel
 from artiq.language import host_only
+from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
@@ -122,6 +123,7 @@ class TestRTBSetupFrag(ExpFragment):
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
     # We can save this data on the scope internally and rerun the experiment
+    @rpc
     def get_data_from_scope(self):
         # Save the data in ascii format and save
         data = self.rtb.query_bin_or_ascii_float_list(
