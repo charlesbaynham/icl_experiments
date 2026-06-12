@@ -129,6 +129,7 @@ These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_
 - Mark expected failures with `@pytest.mark.xfail`
 - Test non-kernel utility functions (kernel testing is difficult)
 - The `test_compile_all.py` test will compile every Fragment in the repo. It's very useful for catching errors, but also very expensive to run - it takes >1h. Only run the whole thing if explicitly requested, otherwise use pytest selectors to choose which tests from it you need.
+- See [Running tests locally](#running-tests-locally) below for the exact commands, including how to set up Nix in an ephemeral container.
 
 ### Documentation
 
@@ -154,6 +155,59 @@ These methods update internal state (`_tracked_up_dds_freq`, `_tracked_down_dds_
 ## Nix Environment
 
 Used for all dependencies. Never make a python venv yourself.
+
+### Running tests locally
+
+All tests run through Nix. With Nix available (see the container setup below
+if it is not), run **targeted** tests like this:
+
+```bash
+# Fast host-side unit tests (seconds)
+nix run .#pytest -- tests/test_lmt_sequence.py -q
+
+# Compile a single experiment Fragment for the core device (~1 min each,
+# provided the aion-physics binary cache is configured)
+nix run .#pytest -- tests/test_compile_all.py::test_build_all_fragments -k "lmt_declarative"
+```
+
+- **Do NOT run the whole test suite or all of `test_compile_all.py` locally.**
+  It compiles every Fragment in the repository and takes well over an hour.
+  Always select the tests relevant to your change with file paths and/or `-k`
+  selectors - a targeted Fragment compile takes about a minute and catches
+  the same errors.
+- Do not pass `--no-cov`: the pinned pytest does not accept it and aborts
+  before collecting any tests, printing only a cryptic "No data to report.".
+
+### Setting up Nix in an ephemeral container
+
+For agent sandboxes / fresh containers (e.g. Claude Code cloud sessions,
+which have no systemd). The aion-physics Cachix cache makes this fast: the
+full artiq environment downloads in a few minutes instead of building for
+hours. As root:
+
+```bash
+# 1. Install Determinate Nix without an init system
+curl -fsSL -o /tmp/nix-install https://install.determinate.systems/nix
+sh /tmp/nix-install install linux --init none --no-confirm \
+    --extra-conf "experimental-features = nix-command flakes"
+
+# 2. Register the aion-physics Cachix cache (pre-built artiq environment,
+#    populated by the GitLab CI)
+cat >> /etc/nix/nix.conf <<'EOF'
+extra-substituters = https://aion-physics.cachix.org
+extra-trusted-public-keys = aion-physics.cachix.org-1:6nSnNuBFRf4kl9EPG6hAMQHBjcrrKEfHG2BpHBE2DVs=
+EOF
+
+# 3. Start the daemon by hand (no systemd in containers) and set PATH
+nohup /nix/var/nix/profiles/default/bin/nix-daemon >/tmp/nix-daemon.log 2>&1 &
+export PATH=/nix/var/nix/profiles/default/bin:$PATH
+
+# 4. Run a targeted test - the first invocation downloads the environment
+nix run .#pytest -- tests/test_lmt_sequence.py -q
+```
+
+The flake's GitLab inputs (pyaion, the artiq fork) are publicly readable, so
+no credentials are needed to fetch them.
 
 ### Key Commands
 
