@@ -9,7 +9,6 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from numpy import int32
 from numpy import int64
 from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
     ControlBeamsWithoutCoolingAOM,
@@ -24,13 +23,15 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
+from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
+    ClockOPLLTrackingMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -48,6 +49,7 @@ logger = logging.getLogger(__name__)
 
 
 class LMTBase(
+    ClockOPLLTrackingMixin,
     ClockSpectroscopyBase,
     RedMOTWithExperimentBase,
 ):
@@ -115,48 +117,13 @@ class LMTBase(
         )
         self.down_pulses_duration: FloatParamHandle
 
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
-
     # ------------------------------------------------------------------
-    # OPLL command wrappers. Thin wrappers around the clock_opll DDS /
-    # ramper that also update the frequency-tracking state read by
-    # PulseDMARecording.register_pulse, so call sites never have to track
-    # the OPLL frequency separately.
+    # OPLL command wrappers (set_clock_opll / start_clock_opll_ramp /
+    # stop_clock_opll_ramp) are provided by ClockOPLLTrackingMixin so that
+    # they can be shared with non-LMT clock experiments (e.g. the clock
+    # shelving pulse). They update the frequency-tracking state read by
+    # PulseDMARecording.register_pulse.
     # ------------------------------------------------------------------
-
-    @kernel
-    def set_clock_opll(self, freq: float):
-        """Set the OPLL offset DDS to a static frequency (and track it)."""
-        self.clock_opll.clock_OPLL_offset.set(freq)
-        self._tracked_opll_freq = freq
-        self._tracked_opll_ramp_active = False
-
-    @kernel
-    def start_clock_opll_ramp(
-        self,
-        rate: float,
-        freq_low: float,
-        freq_high: float,
-        wave_type: int32,
-    ):
-        """Start a DRG ramp on the OPLL offset DDS (and track it)."""
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            rate, freq_low, freq_high, wave_type=wave_type
-        )
-        self._tracked_opll_ramp_rate = rate
-        self._tracked_opll_ramp_low = freq_low
-        self._tracked_opll_ramp_high = freq_high
-        self._tracked_opll_ramp_wave = wave_type
-        self._tracked_opll_ramp_start_mu = now_mu()
-        self._tracked_opll_ramp_active = True
-
-    @kernel
-    def stop_clock_opll_ramp(self):
-        """Stop the OPLL DRG ramp (and track that it is no longer active)."""
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        self._tracked_opll_ramp_active = False
 
     @kernel
     def down_pulse(self, N_previous_pulses):
@@ -364,7 +331,7 @@ class LMTBase(
         if type == "down":
             at_mu(t_start)
             # ramp the offset downwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            # self.start_clock_opll_ramp(
             #     ramp_rate,
             #     start_freq - 1e6,
             #     start_freq,
@@ -382,7 +349,7 @@ class LMTBase(
         if type == "up":
             at_mu(t_start)
             # ramp the offset upwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            # self.start_clock_opll_ramp(
             #     ramp_rate,
             #     start_freq,
             #     start_freq + 2e6,
@@ -556,7 +523,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
         delay_mu(8)
 
         # delay_mu(8)
-        # self.clock_opll.clock_frequency_ramper.start_ramp(
+        # self.start_clock_opll_ramp(
         #     ramp_rate,
         #     80e6 - 1e6,
         #     80e6,
@@ -1301,7 +1268,7 @@ class LMTInterferometryMixin(
 
         at_mu(t_start_last_pulse_mu)
         delay_mu(8)
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self.start_clock_opll_ramp(
             ramp_rate,
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
