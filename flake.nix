@@ -136,6 +136,7 @@
             shellHook =
               ''
                 source ${self}/scripts/wsl_display_fix.sh
+                source ${self}/scripts/gitlab_ssh_rewrite.sh
               ''
               + precommit.shellHook;
           });

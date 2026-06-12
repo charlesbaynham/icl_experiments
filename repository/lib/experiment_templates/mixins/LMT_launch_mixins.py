@@ -1231,9 +1231,7 @@ class LMTInterferometryMixin(
         # PI/2 PULSE DOWN BEAM
         at_mu(t_start_first_pulse_mu)
         d = t_pulse / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )  # FIXME needs to track frequency too
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1264,9 +1262,7 @@ class LMTInterferometryMixin(
         )
         at_mu(t_start_mirror_pulse_mu)
         d = t_pulse
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )  # FIXME needs to track frequency too
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
@@ -1315,9 +1311,7 @@ class LMTInterferometryMixin(
         )
         delay_mu(8)
         d = t_pulse / 2
-        self.register_pulse(
-            duration_s=d, is_up=False
-        )  # FIXME needs to track frequency too
+        self.register_pulse(duration_s=d, is_up=False)
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
