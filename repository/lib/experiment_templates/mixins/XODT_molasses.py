@@ -8,6 +8,9 @@ from ndscan.experiment.parameters import FloatParamHandle
 from pyaion.fragments.default_beam_setter import SetBeamsToDefaults
 from pyaion.fragments.default_beam_setter import make_set_beams_to_default
 from pyaion.fragments.suservo import LibSetSUServoStatic
+from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
+    ControlBeamsWithoutCoolingAOM,
+)
 
 from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -220,7 +223,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperimentBase):
             ignore_shutters=True
         )
         self.transparency_setter.turn_on_all()
-
+        self.blue_3d_mot.repump_beam_setter.turn_beams_on()
         # Step the 689 stir frequency
         self.blue_3d_mot.mirny_eom_sidebands.set_689_stir_sideband_detuning(
             detuning=self.stir_beam_detuning_molasses_1.get()
@@ -232,6 +235,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperimentBase):
         self.transparency_suservo.set_channel_state(
             rf_switch_state=False, enable_iir=False
         )
+        self.blue_3d_mot.repump_beam_setter.turn_beams_off()
 
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
             ignore_shutters=True
