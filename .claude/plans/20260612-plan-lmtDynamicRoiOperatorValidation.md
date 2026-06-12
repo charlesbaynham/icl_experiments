@@ -335,3 +335,56 @@ confirm the ROIs actually capture the clouds where static ROIs would fail.
 - **Intermittent `ValueError` from the RPC after touching tilt params** → F7.
 - **`RTIOUnderflow` at the first camera trigger** → F8; move the RPC earlier
   or add slack.
+
+## 6. Fix vs rewrite assessment
+
+Question raised after review: is this code unsalvageable — would implementing
+from scratch be cheaper than fixing it? Assessment: **no, but only because the
+salvage value is very uneven across components.** Recommended approach:
+*rewrite the two broken leaves, keep the tree.*
+
+### Worth keeping (battle-tested or close to it)
+
+- **Pulse recording machinery** (`PulseDMARecording`, `register_pulse`, the
+  tracked-frequency plumbing). Wired into all the LMT mixins, archives to
+  datasets with dedup checksums, already in production use for the
+  pulse-record output. Probably the largest chunk of work in the feature and
+  it needs zero changes.
+- **The architecture.** Record the sequence into DMA at the start of the shot
+  → timings known in advance → host-side RPC predicts positions → camera
+  config builds ROIs. The `actions_after_drop` docstring states this design
+  exists specifically so ROIs can be computed in advance — the architecture
+  *anticipates* the fix for F5; the implementation just didn't follow through.
+- **The scaffolding in `ballistic.py`**: `CameraGeometry`, `BallisticConfig`,
+  the mu-conversion wrapper, and the 13 unit tests with sensible expected
+  values. The dataclasses and projection code are fine.
+
+### Genuinely needs rewriting
+
+- **The predictor body** — never written, so there is nothing to salvage or
+  fight with. Delete the dead "ground = no kicks, excited = all kicks" code
+  below the `raise` rather than patching it.
+- **`LMTCompensatedCameraConfig` + the mixin** — where F2–F6 and F8 all live,
+  ~150 lines total. Rewrite fresh against the `NormalisedFKConfig` conventions
+  (which handle the FK geometry correctly); roughly a day of work.
+
+### Why "from scratch" doesn't help
+
+"Implement from scratch" and "fix" converge on nearly the same task list.
+Either way one must (a) derive the correct port-trajectory physics for the
+actual LMT sequences — the hard, irreducible part, identical in both
+scenarios — and (b) write a correct ~350 lines of predictor + camera config.
+A true from-scratch rewrite would *additionally* redo the pulse recorder and
+the test suite, i.e. throw away the best parts. The timebase mismatch (F4)
+looks architectural but is a few-line fix (capture `now_mu()` immediately
+before `playback()` and rebase) — it only looks scary because the lab symptom
+would have been incomprehensible.
+
+Where the "unsalvageable" instinct is right: do **not** minimally patch the
+existing lines one finding at a time. The author stopped mid-thought (the
+TODO says so), and patching half-finished code line-by-line costs more than
+rewriting the affected files cleanly.
+
+**Cost estimate either way:** ~1 day for the integration layer, plus the
+physics derivation — which is the same effort in both scenarios and so should
+not drive the fix-vs-rewrite decision.
