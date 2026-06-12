@@ -335,9 +335,9 @@ class EvaporationThreeRampsWithFieldRampMixin(EvapAndFieldRampBase):
         )
         self.evap_bool: BoolParamHandle
 
-        # Preload the DMA handles for this mixin's phases. These have to be
-        # grouped together in one subfragment, otherwise only the last-compiled
-        # dma handle is valid.
+        # Load the pre-recorded DMA handles for this mixin's phases. Recording
+        # all happens earlier in DMA_record_hook, so by the time this runs every
+        # sequence is recorded; load order does not matter.
         class _EvapWithFieldRampDMAFrag(RedMOTCheckpoints):
             def build_fragment(
                 self,

@@ -155,9 +155,11 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperimentBase):
             @kernel
             def DMA_initialization_checkpoint(self):
                 """
-                Preload phases' handles. These have to be grouped together,
-                instead of handled in separate subfragment setups, otherwise only
-                the last-compiled dma handle is valid.
+                Load this stage's pre-recorded DMA handle.
+
+                All recording happens earlier in DMA_record_hook, so every
+                sequence is recorded before any handle is loaded; load order
+                (and re-loading) does not matter.
                 """
                 self.DMA_initialization_checkpoint_subfragments()
                 self.molasses_xodt_1.precalculate_dma_handle()
@@ -283,35 +285,25 @@ class XODTSingleMolassesPlusDipoleRampMixin(XODTSingleMolassesMixin):
             self.molasses_xodt_1, SUSERVO_IN_DIPOLE_RAMP
         )
 
-        # The molasses_xodt_1 and cool_molasses dma handle precalculations have
-        # to be grouped together in a single checkpoint, otherwise only the
-        # last-compiled dma handle is valid. Detach the parent's single-phase DMA
-        # frag and register a combined one.
-        self.detach_fragment(self.xodt_molasses_dma)
-
+        # Load this stage's pre-recorded DMA handle. The parent
+        # XODTSingleMolassesMixin's xodt_molasses_dma already loads
+        # molasses_xodt_1 via the cascade; all recording happens earlier in
+        # DMA_record_hook, so loading from a separate subfragment (in any order)
+        # is fine.
         class XODTMolassesPlusDipoleRampDMAFrag(RedMOTCheckpoints):
-            def build_fragment(self, molasses_xodt_1, cool_molasses):
-                self.molasses_xodt_1 = molasses_xodt_1
+            def build_fragment(self, cool_molasses):
                 self.cool_molasses = cool_molasses
                 self.kernel_invariants = getattr(self, "kernel_invariants", set())
-                self.kernel_invariants.add("molasses_xodt_1")
                 self.kernel_invariants.add("cool_molasses")
 
             @kernel
             def DMA_initialization_checkpoint(self):
-                """
-                Preload phases' handles. These have to be grouped together,
-                instead of handled in separate subfragment setups, otherwise only
-                the last-compiled dma handle is valid.
-                """
                 self.DMA_initialization_checkpoint_subfragments()
-                self.molasses_xodt_1.precalculate_dma_handle()
                 self.cool_molasses.precalculate_dma_handle()
 
         self.setattr_fragment(
             "xodt_molasses_dipole_ramp_dma",
             XODTMolassesPlusDipoleRampDMAFrag,
-            molasses_xodt_1=self.molasses_xodt_1,
             cool_molasses=self.cool_molasses,
         )
         self.xodt_molasses_dipole_ramp_dma: XODTMolassesPlusDipoleRampDMAFrag
@@ -581,9 +573,11 @@ class MolassesRetroedBeamMixin(DipoleTrapWithExperimentBase):
             @kernel
             def DMA_initialization_checkpoint(self):
                 """
-                Preload phases' handles. These have to be grouped together,
-                instead of handled in separate subfragment setups, otherwise only
-                the last-compiled dma handle is valid.
+                Load this stage's pre-recorded DMA handle.
+
+                All recording happens earlier in DMA_record_hook, so every
+                sequence is recorded before any handle is loaded; load order
+                (and re-loading) does not matter.
                 """
                 self.DMA_initialization_checkpoint_subfragments()
                 self.molasses_xodt_retroed.precalculate_dma_handle()
@@ -699,35 +693,25 @@ class XODTRetroedMolassesPlusDipoleRampMixin(MolassesRetroedBeamMixin):
         #     self.molasses_xodt_1, suservos=suservos_XODT
         # )
 
-        # The molasses_xodt_retroed and cool_molasses dma handle precalculations
-        # have to be grouped together in a single checkpoint, otherwise only the
-        # last-compiled dma handle is valid. Detach the parent's single-phase DMA
-        # frag and register a combined one.
-        self.detach_fragment(self.molasses_retroed_dma)
-
+        # Load this stage's pre-recorded DMA handle. The parent
+        # MolassesRetroedBeamMixin's molasses_retroed_dma already loads
+        # molasses_xodt_retroed via the cascade; all recording happens earlier in
+        # DMA_record_hook, so loading from a separate subfragment (in any order)
+        # is fine.
         class MolassesRetroedPlusDipoleRampDMAFrag(RedMOTCheckpoints):
-            def build_fragment(self, molasses_xodt_retroed, cool_molasses):
-                self.molasses_xodt_retroed = molasses_xodt_retroed
+            def build_fragment(self, cool_molasses):
                 self.cool_molasses = cool_molasses
                 self.kernel_invariants = getattr(self, "kernel_invariants", set())
-                self.kernel_invariants.add("molasses_xodt_retroed")
                 self.kernel_invariants.add("cool_molasses")
 
             @kernel
             def DMA_initialization_checkpoint(self):
-                """
-                Preload phases' handles. These have to be grouped together,
-                instead of handled in separate subfragment setups, otherwise only
-                the last-compiled dma handle is valid.
-                """
                 self.DMA_initialization_checkpoint_subfragments()
-                self.molasses_xodt_retroed.precalculate_dma_handle()
                 self.cool_molasses.precalculate_dma_handle()
 
         self.setattr_fragment(
             "molasses_retroed_dipole_ramp_dma",
             MolassesRetroedPlusDipoleRampDMAFrag,
-            molasses_xodt_retroed=self.molasses_xodt_retroed,
             cool_molasses=self.cool_molasses,
         )
         self.molasses_retroed_dipole_ramp_dma: MolassesRetroedPlusDipoleRampDMAFrag

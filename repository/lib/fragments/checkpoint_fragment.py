@@ -152,9 +152,16 @@ class RedMOTCheckpoints(CheckpointFragment):
     @portable
     def DMA_initialization_checkpoint(self):
         """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
+        Load the pre-recorded DMA handles for all subfragments.
+
+        Called from run_once *after* DMA_record_hook, so every sequence has
+        already been recorded by the time this runs. ARTIQ only invalidates
+        handles when DMA is recorded or erased, never when one is loaded. The
+        only hard rule is therefore that all recording must finish before any
+        handle is loaded: this checkpoint must only load handles (never record).
+        Given that, the order handles are loaded in -- and loading the same
+        handle more than once, or from different kernels -- does not matter,
+        which is exactly why this works as an ordinary cascading checkpoint.
         """
         self.DMA_initialization_checkpoint_subfragments()
 

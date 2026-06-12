@@ -83,9 +83,11 @@ class LoadSingleXODTMixin(DipoleTrapWithExperimentBase):
             @kernel
             def DMA_initialization_checkpoint(self):
                 """
-                Preload phases' handles. These have to be grouped together,
-                instead of handled in separate subfragment setups, otherwise only
-                the last-compiled dma handle is valid.
+                Load this stage's pre-recorded DMA handle.
+
+                All recording happens earlier in DMA_record_hook, so every
+                sequence is recorded before any handle is loaded; load order
+                (and re-loading) does not matter.
                 """
                 self.DMA_initialization_checkpoint_subfragments()
                 self.mot_in_xodt.precalculate_dma_handle()
@@ -260,36 +262,24 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
         # Bind the nominal setpoints and frequencies for this stage only - we want to be able to jump discontinuously
         self.mot_in_second_xodt.daisy_chain_with_previous_phase(self.mot_in_xodt)
 
-        # The mot_in_xodt and mot_in_second_xodt dma handle precalculations have
-        # to be grouped together in a single checkpoint, otherwise only the
-        # last-compiled dma handle is valid. Detach the parent's single-phase DMA
-        # frag and register a combined one.
-        self.detach_fragment(self.load_single_xodt_dma)
-
+        # Load this stage's pre-recorded DMA handle. The parent
+        # LoadSingleXODTMixin's load_single_xodt_dma already loads mot_in_xodt
+        # via the cascade; all recording happens earlier in DMA_record_hook, so
+        # loading from a separate subfragment (in any order) is fine.
         class LoadXXODTDMAFrag(RedMOTCheckpoints):
-            def build_fragment(self, mot_in_xodt, mot_in_second_xodt):
-                self.mot_in_xodt = mot_in_xodt
+            def build_fragment(self, mot_in_second_xodt):
                 self.mot_in_second_xodt = mot_in_second_xodt
                 self.kernel_invariants = getattr(self, "kernel_invariants", set())
-                self.kernel_invariants.add("mot_in_xodt")
                 self.kernel_invariants.add("mot_in_second_xodt")
 
             @kernel
             def DMA_initialization_checkpoint(self):
-                """
-                Override the DMA calculation for the single XODT to save the user
-                having to write two hooks. These have to be grouped together,
-                instead of handled in separate subfragment setups, otherwise only
-                the last-compiled dma handle is valid.
-                """
                 self.DMA_initialization_checkpoint_subfragments()
-                self.mot_in_xodt.precalculate_dma_handle()
                 self.mot_in_second_xodt.precalculate_dma_handle()
 
         self.setattr_fragment(
             "load_xxodt_dma",
             LoadXXODTDMAFrag,
-            mot_in_xodt=self.mot_in_xodt,
             mot_in_second_xodt=self.mot_in_second_xodt,
         )
         self.load_xxodt_dma: LoadXXODTDMAFrag
