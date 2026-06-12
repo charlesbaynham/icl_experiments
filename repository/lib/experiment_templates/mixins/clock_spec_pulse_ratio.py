@@ -1,5 +1,4 @@
 import logging
-from typing import TYPE_CHECKING
 
 from artiq.language import at_mu
 from artiq.language import delay
@@ -21,6 +20,7 @@ from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutBase,
 )
 from repository.lib.experiment_templates.mixins.LMT_launch_mixins import LMTBase
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 
 logger = logging.getLogger(__name__)
 
@@ -49,22 +49,6 @@ class CompensatedClockSpecMixin(
     OPLL exclusively controls the clock frequency; switch DDSes are kept at
     their default frequencies throughout.
     """
-
-    if TYPE_CHECKING:
-
-        def DMA_initialization_checkpoint_evap_with_field_ramp(self) -> None: ...
-
-        def DMA_initialization_checkpoint_loading_xodt_mot(self) -> None: ...
-
-        def DMA_initialization_checkpoint_xodt_molasses(self) -> None: ...
-
-        def DMA_initialization_checkpoint_adiabatic_cooling(self) -> None: ...
-
-        def DMA_initialization_checkpoint_painter_on(self) -> None: ...
-
-        def post_sequence_cleanup_checkpoint_andor(self) -> None: ...
-
-        def post_sequence_cleanup_checkpoint_loading(self) -> None: ...
 
     def build_fragment(self):
         super().build_fragment()
@@ -130,16 +114,28 @@ class CompensatedClockSpecMixin(
         )
         self.use_down_beam: BoolParamHandle
 
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_redmot_default()
-        self.DMA_initialization_checkpoint_dipole_trap_default()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
-        self.DMA_initialization_checkpoint_loading_xodt_mot()
-        self.DMA_initialization_checkpoint_xodt_molasses()
-        self.DMA_initialization_checkpoint_adiabatic_cooling()
-        self.DMA_initialization_checkpoint_painter_on()
+        # Self-registering cleanup: stop any OPLL ramp and reset the static
+        # OPLL offset. Cascaded automatically via post_sequence_cleanup_checkpoint
+        # (operates on the clock_opll device directly; the _tracked_opll_* state
+        # written by the LMTBase wrappers is irrelevant once the sequence is over).
+        class _CompensatedClockSpecCleanupFrag(RedMOTCheckpoints):
+            def build_fragment(self, clock_opll):
+                self.clock_opll = clock_opll
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("clock_opll")
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+                self.clock_opll.clock_frequency_ramper.stop_ramp()
+                self.clock_opll.clock_OPLL_offset.set(start_opll_offset)
+
+        self.setattr_fragment(
+            "_compensated_clock_spec_cleanup",
+            _CompensatedClockSpecCleanupFrag,
+            clock_opll=self.clock_opll,
+        )
+        self._compensated_clock_spec_cleanup: _CompensatedClockSpecCleanupFrag
 
     @kernel
     def prepare_clock_delivery_aom(self):
@@ -315,20 +311,3 @@ class CompensatedClockSpecMixin(
             self.clock_up_dds.sw.off()
 
         delay(self.delay_after_spectroscopy.get())
-
-    @kernel
-    def post_sequence_cleanup_checkpoint_shelving(self):
-        """
-        Extended cleanup: stop any DRG ramp and reset static OPLL to 80 MHz
-        via tracking wrappers (not the raw ramper).
-        """
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(start_opll_offset)
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
-        self.post_sequence_cleanup_checkpoint_loading()

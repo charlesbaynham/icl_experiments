@@ -32,7 +32,7 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
     * :meth:`~do_experiment_after_dipole_trap`
-    * :meth:`~post_sequence_cleanup_checkpoint_lmt`
+    * :meth:`~post_sequence_cleanup_checkpoint`
 
     """
 
@@ -203,7 +203,7 @@ class LMTHobsonInterferometerMixin(LMTInterferometryMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
     * :meth:`~do_experiment_after_dipole_trap`
-    * :meth:`~post_sequence_cleanup_checkpoint_lmt`
+    * :meth:`~post_sequence_cleanup_checkpoint`
 
     """
 

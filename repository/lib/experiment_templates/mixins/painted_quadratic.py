@@ -12,6 +12,7 @@ from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import PaintedLinearRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
     XODTWithLinearRampAdiabaticCooling,
@@ -243,20 +244,22 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
 
         # Set the time to the parameter value
 
-    @kernel
-    def DMA_initialization_checkpoint_painter_on(self):
-        self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+        class _PainterDMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, adiabatic_painter_ramp_on):
+                self.adiabatic_painter_ramp_on = adiabatic_painter_ramp_on
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("adiabatic_painter_ramp_on")
 
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
-        """
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_dipole_trap_default()
-        self.DMA_initialization_checkpoint_painter_on()
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
+                self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+
+        self.setattr_fragment(
+            "_painter_dma",
+            _PainterDMAFrag,
+            adiabatic_painter_ramp_on=self.adiabatic_painter_ramp_on,
+        )
 
     @kernel
     def painter_ramp_on(self):
@@ -285,6 +288,12 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
     def build_fragment(self):
         super().build_fragment()
 
+        # This mixin preloads the painter ramp together with the adiabatic
+        # cooling ramp in one grouped subfragment (see below), so detach the
+        # parent PainterRampMixin's standalone painter-ramp DMA subfragment to
+        # avoid preloading the painter handle twice.
+        self.detach_fragment(self._painter_dma)
+
         self.setattr_fragment(
             "adiabatic_cooling_ramp",
             XODTWithLinearRampAdiabaticCooling,
@@ -310,20 +319,33 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
 
         # Set the time to the parameter value
 
-    @kernel
-    def DMA_initialization_checkpoint_adiabatic_cooling(self):
-        """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
-        """
-        self.DMA_initialization_checkpoint_painter_on()
-        self.adiabatic_cooling_ramp.precalculate_dma_handle()
+        # Preload this mixin's phases. The painter ramp
+        # (adiabatic_painter_ramp_on) and the adiabatic cooling ramp must be
+        # grouped together, otherwise only the last-compiled dma handle is
+        # valid. We preload BOTH here (rather than relying on the parent
+        # PainterRampMixin's _painter_dma subfragment to preload the painter
+        # ramp separately) so that the two handles are compiled back-to-back in
+        # a single subfragment, preserving the original grouping invariant.
+        class _AdiabaticCoolingDMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, adiabatic_painter_ramp_on, adiabatic_cooling_ramp):
+                self.adiabatic_painter_ramp_on = adiabatic_painter_ramp_on
+                self.adiabatic_cooling_ramp = adiabatic_cooling_ramp
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("adiabatic_painter_ramp_on")
+                self.kernel_invariants.add("adiabatic_cooling_ramp")
 
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_adiabatic_cooling()
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
+                self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+                self.adiabatic_cooling_ramp.precalculate_dma_handle()
+
+        self.setattr_fragment(
+            "_adiabatic_cooling_dma",
+            _AdiabaticCoolingDMAFrag,
+            adiabatic_painter_ramp_on=self.adiabatic_painter_ramp_on,
+            adiabatic_cooling_ramp=self.adiabatic_cooling_ramp,
+        )
 
     @kernel
     def adiabatic_cooling_hook(self):

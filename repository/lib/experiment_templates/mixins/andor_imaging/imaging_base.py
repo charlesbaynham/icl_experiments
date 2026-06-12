@@ -13,7 +13,6 @@ from artiq.language import rpc
 from artiq.language.core import delay
 from artiq.master.worker_impl import CCB
 from ndscan.experiment import FloatChannel
-from ndscan.experiment import Fragment
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment.fragment import TransitoryError
 from ndscan.experiment.parameters import BoolParam
@@ -30,6 +29,7 @@ from repository.lib.experiment_templates.red_mot_experiment import (
 )
 from repository.lib.fragments.cameras.andor_camera import AndorCameraConfig
 from repository.lib.fragments.cameras.andor_camera import AndorCameraControl
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.set_toptica_analog import SetTopticaAnalogFrag
 
 logger = logging.getLogger(__name__)
@@ -97,12 +97,20 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("do_gauss_fit")
 
-        class ImagingDeviceSetup(Fragment):
+        class ImagingDeviceSetup(RedMOTCheckpoints):
             """
-            define a device_setup to clear out the grabber and empty the image store at the start of the shot
+            Checkpoint fragment for access to device_setup and checkpoints
+
+            Define a device_setup to clear out the grabber and empty the image
+            store at the start of the shot. Also self-cascades the Andor shutter
+            open/close work onto the appropriate checkpoints.
             """
 
-            def build_fragment(self, num_grabber_rois):
+            def build_fragment(
+                self, num_grabber_rois, andor_camera_control: AndorCameraControl
+            ):
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+
                 self.setattr_device("grabber0")
                 self.grabber0: Grabber
 
@@ -120,6 +128,9 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
 
                 self.setattr_fragment("set_toptica_analog", SetTopticaAnalogFrag)
                 self.set_toptica_analog: SetTopticaAnalogFrag
+
+                self.andor_camera_control = andor_camera_control
+                self.kernel_invariants.add("andor_camera_control")
 
                 self.num_grabber_rois = num_grabber_rois
 
@@ -142,10 +153,28 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
                     except GrabberTimeoutException:
                         break
 
+            @kernel
+            def start_of_red_broadband_checkpoint(self):
+                self.start_of_red_broadband_checkpoint_subfragments()
+
+                # The Andor camera shutter needs ~120ms to open, so start this at
+                # the beginning of the red stages. If the total red mot sequence
+                # takes less time than this then we'll have problems
+                self.andor_camera_control.set_shutter(True)
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+
+                # Ensure shutter is closed, though it should be anyway
+                self.core.break_realtime()
+                self.andor_camera_control.set_shutter(False)
+
         self.setattr_fragment(
             "imagingsetup",
             ImagingDeviceSetup,
             self.andor_camera_config.num_grabber_rois,
+            andor_camera_control=self.andor_camera_control,
         )
         self.imagingsetup: ImagingDeviceSetup
 
@@ -272,18 +301,6 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
         self.image_store = []
 
     @kernel
-    def start_of_red_broadband_checkpoint(self):
-        self.start_of_red_broadband_checkpoint_subfragments()
-        self.start_of_red_broadband_checkpoint_imaging_base()
-
-    @kernel
-    def start_of_red_broadband_checkpoint_imaging_base(self):
-        # The Andor camera shutter needs ~120ms to open, so start this at the
-        # beginning of the red stages. If the total red mot sequence takes less
-        # time than this then we'll have problems
-        self.andor_camera_control.set_shutter(True)
-
-    @kernel
     def do_pulse(self, with_light=True):
         """
         Default implementation of a fluorescence pulse, available for use by
@@ -317,18 +334,6 @@ class AndorImagingBase(RedMOTWithExperimentBase, abc.ABC):
     @abc.abstractmethod
     def do_imaging_hook_andor(self):
         pass
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint_andor(self):
-        # Ensure shutter is closed, though it should be anyway
-        self.core.break_realtime()
-        self.andor_camera_control.set_shutter(False)
 
     @rpc  # this isn't async any more because the ndscan "try again" doesn't work with async rpcs
     def _call_camera_rpc(self):

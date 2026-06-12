@@ -79,12 +79,7 @@ class _DifferentialClockInterferometry(
     # Base:
     ClockInterferometryBase,
 ):
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_redmot_default()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
-        self.DMA_initialization_checkpoint_loading_xodt_mot()
+    pass
 
 
 class DifferentialClockInterferometryFrag(
@@ -94,13 +89,6 @@ class DifferentialClockInterferometryFrag(
     """
     Clock interferometry from a double XODT
     """
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 class DifferentialClockInterferometryWithNoiseFrag(
@@ -112,13 +100,6 @@ class DifferentialClockInterferometryWithNoiseFrag(
     """
     Clock interferometry from a double XODT with added noise
     """
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 class DifferentialClockInterferometryWithNoiseAndSignalFrag(
@@ -138,13 +119,6 @@ class DifferentialClockInterferometryWithNoiseAndSignalFrag(
         self.host_functions_after_experiment_hook_signal_injection()
         # self.host_functions_after_experiment_hook_glitch_counter()
 
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
-
 
 class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     _DifferentialClockInterferometry,
@@ -155,13 +129,6 @@ class AbsImagingDifferentialClockInterferometryWithNoiseFrag(
     """
     Absorption imaging clock interferometry from a double XODT with added noise
     """
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 DifferentialClockInterferometry = make_fragment_scan_exp(

@@ -1,6 +1,5 @@
 import logging
 
-from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
@@ -42,19 +41,6 @@ class ClockSpecMidwayImagingFrag(
 
     Finally, take a background image at the end of the sequence.
     """
-
-    @kernel
-    def start_of_red_broadband_checkpoint(self):
-        self.start_of_red_broadband_checkpoint_subfragments()
-        self.start_of_red_broadband_checkpoint_imaging_base()
-        self.start_of_red_broadband_checkpoint_midway_imaging()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 ClockSpecMidwayImaging = make_fragment_scan_exp(ClockSpecMidwayImagingFrag)

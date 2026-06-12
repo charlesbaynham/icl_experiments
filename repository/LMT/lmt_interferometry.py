@@ -1,11 +1,9 @@
-from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingClockPulseNormalisedMixin,
     DoubleTrapImagingRepumpedNormalisedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
@@ -74,23 +72,6 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
 
     """
 
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_redmot_default()
-        self.DMA_initialization_checkpoint_dipole_trap_default()
-        self.DMA_initialization_checkpoint_loading_xodt_mot()
-        self.DMA_initialization_checkpoint_xodt_molasses()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
-        self.post_sequence_cleanup_checkpoint_lmt()
-
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
     LMTInterferometryMixin,
@@ -111,26 +92,6 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     LMT interferometry with double trap launch and shaped first pulse
 
     """
-
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_redmot_default()
-        self.DMA_initialization_checkpoint_dipole_trap_default()
-        self.DMA_initialization_checkpoint_loading_xodt_mot()
-        self.DMA_initialization_checkpoint_xodt_molasses()
-        self.DMA_initialization_checkpoint_painter_on()
-        self.DMA_initialization_checkpoint_adiabatic_cooling()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
-        self.post_sequence_cleanup_checkpoint_loading()
-        self.post_sequence_cleanup_checkpoint_lmt()
 
 
 class LMTInterferometrySymmetricFrag(
@@ -154,26 +115,6 @@ class LMTInterferometrySymmetricFrag(
 
     """
 
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_redmot_default()
-        self.DMA_initialization_checkpoint_dipole_trap_default()
-        self.DMA_initialization_checkpoint_loading_xodt_mot()
-        self.DMA_initialization_checkpoint_xodt_molasses()
-        self.DMA_initialization_checkpoint_painter_on()
-        self.DMA_initialization_checkpoint_adiabatic_cooling()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
-        self.post_sequence_cleanup_checkpoint_lmt()
-        self.post_sequence_cleanup_checkpoint_loading()
-
 
 class LMTInterferometryWithLaunchFrag(
     LMTInterferometryMixin,
@@ -195,23 +136,6 @@ class LMTInterferometryWithLaunchFrag(
 
     """
 
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_redmot_default()
-        self.DMA_initialization_checkpoint_dipole_trap_default()
-        self.DMA_initialization_checkpoint_loading_xodt_mot()
-        self.DMA_initialization_checkpoint_xodt_molasses()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
-        self.post_sequence_cleanup_checkpoint_lmt()
-
 
 class ShapedFirstPulseLMTInterferometryFrag(
     ShapedFirstPulseLMTInterferometryMixin,
@@ -232,22 +156,6 @@ class ShapedFirstPulseLMTInterferometryFrag(
     LMT interferometry with shaped selective pulses
 
     """
-
-    @kernel
-    def DMA_initialization_checkpoint(self):
-        self.DMA_initialization_checkpoint_subfragments()
-        self.DMA_initialization_checkpoint_redmot_default()
-        self.DMA_initialization_checkpoint_dipole_trap_default()
-        self.DMA_initialization_checkpoint_loading_xodt_mot()
-        self.DMA_initialization_checkpoint_xodt_molasses()
-        self.DMA_initialization_checkpoint_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_checkpoint(self):
-        self.post_sequence_cleanup_checkpoint_subfragments()
-        self.post_sequence_cleanup_checkpoint_base()
-        self.post_sequence_cleanup_checkpoint_andor()
-        self.post_sequence_cleanup_checkpoint_shelving()
 
 
 TInterferometryWithLaunch = make_fragment_scan_exp(LMTInterferometryWithLaunchFrag)
