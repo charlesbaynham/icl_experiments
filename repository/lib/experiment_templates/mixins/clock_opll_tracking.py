@@ -35,19 +35,34 @@ class ClockOPLLTrackingMixin(RedMOTWithExperimentBase):
     """
     OPLL command wrappers that keep the pulse-recorder tracking state in sync.
 
-    Provides :meth:`set_clock_opll`, :meth:`start_clock_opll_ramp` and
-    :meth:`stop_clock_opll_ramp`. A concrete experiment must also mix in
-    :class:`~repository.lib.experiment_templates.dipole_trap_experiment.DipoleTrapWithExperimentBase`
-    (which creates the ``_tracked_opll_*`` state these wrappers update) and must
-    create a ``clock_opll`` fragment.
+    Owns the ``ClockOPLLController`` device (as the deliberately-internal
+    ``_clock_opll``) and exposes the *only* convenient way to drive it:
+    :meth:`set_clock_opll`, :meth:`start_clock_opll_ramp` and
+    :meth:`stop_clock_opll_ramp`. Driving the raw ramper/DDS means reaching
+    through ``self._clock_opll`` by hand, which is intentionally awkward so that
+    the tracked path is the path of least resistance and the pulse recorder
+    never silently desyncs.
+
+    A concrete experiment must also mix in
+    :class:`~repository.lib.experiment_templates.dipole_trap_experiment.DipoleTrapWithExperimentBase`,
+    which creates the ``_tracked_opll_*`` state these wrappers update.
     """
 
-    clock_opll: ClockOPLLController
+    _clock_opll: ClockOPLLController
+
+    def build_fragment(self):
+        super().build_fragment()
+        # Create the OPLL controller here, under a private name, so the device
+        # lives next to the wrappers that are meant to drive it rather than as a
+        # prominent top-level attribute that invites bypassing the tracker.
+        if not hasattr(self, "_clock_opll"):
+            self.setattr_fragment("_clock_opll", ClockOPLLController)
+            self._clock_opll: ClockOPLLController
 
     @kernel
     def set_clock_opll(self, freq: float):
         """Set the OPLL offset DDS to a static frequency (and track it)."""
-        self.clock_opll.clock_OPLL_offset.set(freq)
+        self._clock_opll.clock_OPLL_offset.set(freq)
         self._tracked_opll_freq = freq
         self._tracked_opll_ramp_active = False
 
@@ -60,7 +75,7 @@ class ClockOPLLTrackingMixin(RedMOTWithExperimentBase):
         wave_type: int32,
     ):
         """Start a DRG ramp on the OPLL offset DDS (and track it)."""
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self._clock_opll.clock_frequency_ramper.start_ramp(
             rate, freq_low, freq_high, wave_type=wave_type
         )
         self._tracked_opll_ramp_rate = rate
@@ -73,5 +88,5 @@ class ClockOPLLTrackingMixin(RedMOTWithExperimentBase):
     @kernel
     def stop_clock_opll_ramp(self):
         """Stop the OPLL DRG ramp (and track that it is no longer active)."""
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self._clock_opll.clock_frequency_ramper.stop_ramp()
         self._tracked_opll_ramp_active = False

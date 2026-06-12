@@ -27,7 +27,6 @@ from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
 CLOCK_BEAM_DELIVERY_INFO: SUServoedBeam = constants.SUSERVOED_BEAMS["clock_delivery"]
@@ -51,10 +50,6 @@ class ClockShelvingAndClearoutBase(ClockOPLLTrackingMixin, RedMOTWithExperimentB
 
     def build_fragment(self):
         super().build_fragment()
-
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
 
         self.setattr_param(
             "shelving_pulse_time",

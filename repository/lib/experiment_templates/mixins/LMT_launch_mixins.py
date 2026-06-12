@@ -32,7 +32,6 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -117,10 +116,6 @@ class LMTBase(
             unit="us",
         )
         self.down_pulses_duration: FloatParamHandle
-
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
 
     # ------------------------------------------------------------------
     # OPLL command wrappers (set_clock_opll / start_clock_opll_ramp /
@@ -336,7 +331,7 @@ class LMTBase(
         if type == "down":
             at_mu(t_start)
             # ramp the offset downwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            # self.start_clock_opll_ramp(
             #     ramp_rate,
             #     start_freq - 1e6,
             #     start_freq,
@@ -354,7 +349,7 @@ class LMTBase(
         if type == "up":
             at_mu(t_start)
             # ramp the offset upwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            # self.start_clock_opll_ramp(
             #     ramp_rate,
             #     start_freq,
             #     start_freq + 2e6,
@@ -528,7 +523,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
         delay_mu(8)
 
         # delay_mu(8)
-        # self.clock_opll.clock_frequency_ramper.start_ramp(
+        # self.start_clock_opll_ramp(
         #     ramp_rate,
         #     80e6 - 1e6,
         #     80e6,

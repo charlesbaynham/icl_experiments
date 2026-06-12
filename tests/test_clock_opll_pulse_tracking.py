@@ -107,7 +107,7 @@ class _Outer:
 
     def __init__(self, core):
         self.core = core
-        self.clock_opll = MagicMock()
+        self._clock_opll = MagicMock()
         # Mirror the tracking-state defaults set in
         # DipoleTrapWithExperimentBase.build_fragment.
         self._tracked_opll_freq = STATIC_OPLL
