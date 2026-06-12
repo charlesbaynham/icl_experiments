@@ -245,7 +245,7 @@ class LMTBase(
 
             # Clear out the ground state
             if pulse_type == "up":
-                self.fluorescence_pulse.do_imaging_pulse(
+                self.fluorescence_pulse.do_clearout_pulse(
                     duration=self.clearout_duration.get(),
                     ignore_final_shutters=True,
                 )
@@ -282,7 +282,7 @@ class LMTBase(
 
             # Clear out the ground state
             if pulse_type == "up":
-                self.fluorescence_pulse.do_imaging_pulse(
+                self.fluorescence_pulse.do_clearout_pulse(
                     duration=self.clearout_duration.get(),
                     ignore_final_shutters=True,
                 )
