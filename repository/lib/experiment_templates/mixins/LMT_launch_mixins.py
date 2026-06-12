@@ -243,14 +243,6 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
-            # Clear out the ground state
-            if pulse_type == "up":
-                self.fluorescence_pulse.do_clearout_pulse(
-                    duration=self.clearout_duration.get(),
-                    ignore_final_shutters=True,
-                )
-                delay(8e-9)
-
     # use if we start in the ground state
     @kernel
     def lmt_series_start_up(self, offset_det, N_previous_pulses, N):
@@ -697,7 +689,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # LMT sequence on upper trap
 
-        self.lmt_series(lmt_detuning, N_previous_pulses=3, N=N_launch)
+        self.launch_series(lmt_detuning, N_previous_pulses=3, N=N_launch)
 
         delay(self.delay_between_launches.get())
 
@@ -705,14 +697,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.lmt_series_start_up(
             lower_selective_det, N_previous_pulses=0, N=N_launch + 2
         )
-
-        self.set_clock_up_dds(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.up_switch_detuning_lower_intensity.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
-
-        delay_mu(8)
 
         delay(8e-9)
 
