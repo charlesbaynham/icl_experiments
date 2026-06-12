@@ -50,8 +50,8 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 2
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height_default = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset_default = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
 
     def build_fragment(self):
         super().build_fragment()
