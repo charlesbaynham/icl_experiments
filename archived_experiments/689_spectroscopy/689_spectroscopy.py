@@ -101,9 +101,10 @@ class SpectroscopyWithKinetics_UpBeam(
         ]
 
     @kernel
-    def pre_expansion_hook(self):
+    def pre_expansion_checkpoint(self):
         # Disable servoing, turn off the switch, configure the amplitude and
         # open the shutter in preparation for a quick pulse
+        self.pre_expansion_checkpoint_subfragments()
         with parallel:
             self.red_mot.red_beam_controller.set_mot_detuning(
                 self.spectroscopy_pulse_aom_detuning.get()
@@ -151,9 +152,10 @@ class SpectroscopySingleImage_UpBeam(
         super().build_fragment()
 
     @kernel
-    def pre_expansion_hook(self):
+    def pre_expansion_checkpoint(self):
         # Disable servoing, turn off the switch, configure the amplitude and
         # open the shutter in preparation for a quick pulse
+        self.pre_expansion_checkpoint_subfragments()
         with parallel:
             self.red_mot.red_beam_controller.set_mot_detuning(
                 self.spectroscopy_pulse_aom_detuning.get()
@@ -174,10 +176,11 @@ class SpectroscopySingleImage_UpBeam(
         self.up_beam_suservo.set_channel_state(rf_switch_state=False, enable_iir=False)
 
     @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_lattice()
-        self.post_sequence_cleanup_hook_andor()
+    def post_sequence_cleanup_checkpoint(self):
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
+        self.post_sequence_cleanup_checkpoint_lattice()
+        self.post_sequence_cleanup_checkpoint_andor()
 
 
 # SpectroscopyWithKineticsMOTExp = make_fragment_scan_exp(

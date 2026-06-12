@@ -24,6 +24,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -43,7 +44,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
 
     * :meth:`~before_start_hook`
     * :meth:`~post_narrowband_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     def build_fragment(self):
@@ -155,6 +156,25 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
 
         self.setattr_fragment("reset_slicing_time", _ResetSlicingTime, self)
 
+        # Self-cascading cleanup: stop the clock laser ramp at the end of the
+        # sequence. Registered as a child RedMOTCheckpoints subfragment so its
+        # post_sequence_cleanup_checkpoint runs automatically via the cascade.
+        class _ShelvingCleanupFrag(RedMOTCheckpoints):
+            def build_fragment(self, clock_opll: ClockOPLLController):
+                self.clock_opll = clock_opll
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("clock_opll")
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+                # stop the clock laser ramp
+                self.clock_opll.clock_frequency_ramper.stop_ramp()
+
+        self.setattr_fragment(
+            "_shelving_cleanup", _ShelvingCleanupFrag, clock_opll=self.clock_opll
+        )
+
     def get_always_shown_params(self):
         # Expose the clock base frequency for convenience
         param_handles = super().get_always_shown_params()
@@ -228,16 +248,6 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
             wave_type=0,
         )
 
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_shelving()
-
-    @kernel
-    def post_sequence_cleanup_hook_shelving(self):
-        # stop the clock laser ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-
 
 class ClockShelvingAndClearoutDipoleTrapMixin(
     ClockShelvingAndClearoutBase, DipoleTrapWithExperimentBase
@@ -249,7 +259,7 @@ class ClockShelvingAndClearoutDipoleTrapMixin(
 
     * :meth:`~before_start_hook`
     * :meth:`~post_dipole_trap_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     @kernel

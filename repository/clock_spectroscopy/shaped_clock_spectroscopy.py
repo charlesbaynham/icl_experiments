@@ -85,25 +85,11 @@ class ShapedClockSpecWithSlicingFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
     def post_dipole_trap_hook(self):
         self.post_dipole_trap_hook_shaped_pulses()
         delay_mu(int64(self.core.ref_multiplier))
         self.post_dipole_trap_hook_default()
         self.post_dipole_trap_hook_shelving_and_clearout()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
-        self.post_sequence_cleanup_hook_shaped_pulses()
 
 
 class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
@@ -135,21 +121,13 @@ class ClockSpecDownFromSingleXODTEvaporatedShapedSlicingFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_xodt_molasses()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        # andor / shelving / loading cleanups now cascade automatically via
+        # post_sequence_cleanup_checkpoint_subfragments(). This override is
+        # retained only for the experiment-specific shaped-pulse re-prep.
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
         self.post_dipole_trap_hook_shaped_pulses()
-        self.post_sequence_cleanup_hook_loading()
 
 
 class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
@@ -182,23 +160,13 @@ class ClockSpecFromSingleXODTEvaporatedShapedSlicingFrag(
     """
 
     @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-        self.DMA_initialization_hook_loading_xodt_mot()
-        self.DMA_initialization_hook_adiabatic_cooling()
-        self.DMA_initialization_hook_painter_on()
-        self.DMA_initialization_hook_xodt_molasses()
-        self.DMA_initialization_hook_evap_with_field_ramp()
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_andor()
-        self.post_sequence_cleanup_hook_shelving()
+    def post_sequence_cleanup_checkpoint(self):
+        # andor / shelving / loading cleanups now cascade automatically via
+        # post_sequence_cleanup_checkpoint_subfragments(). This override is
+        # retained only for the experiment-specific shaped-pulse re-prep.
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
         self.post_dipole_trap_hook_shaped_pulses()
-        self.post_sequence_cleanup_hook_loading()
 
 
 ShapedClockSpecWithSlicing = make_fragment_scan_exp(

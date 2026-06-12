@@ -15,6 +15,24 @@ hooks in different ways.
 For example, see the documentation of :class:`~RedMOTWithExperimentBase` for the
 most basic implementation of hooks.
 
+Checkpoints
+-----------
+
+In addition to hooks, the well-defined phases of the experiment lifecycle are
+exposed as "checkpoints" - see
+:class:`~repository.lib.fragments.checkpoint_fragment.CheckpointFragment`.
+Unlike hooks (which are overridden in mixin classes and composed via the class
+hierarchy), checkpoints cascade through the fragment tree: any subfragment which
+subclasses :class:`~repository.lib.fragments.checkpoint_fragment.RedMOTCheckpoints`
+and implements a checkpoint method will automatically have it called at the
+corresponding point in the sequence, without the experiment class needing to
+know about it.
+
+Checkpoints can also be overridden directly in mixin / experiment classes, just
+like hooks. In that case the override should normally call
+``self.<checkpoint_name>_subfragments()`` so that subfragment implementations
+still run.
+
 Mixins
 ------
 
@@ -57,6 +75,7 @@ from ndscan.experiment.parameters import FloatParamHandle
 
 from repository.lib.fragments.blue_3d_mot import Blue3DMOTFrag
 from repository.lib.fragments.check_for_relocks import CheckForRelocksFrag
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.fluorescence_pulse import ToggleableFluorescencePulse
 from repository.lib.fragments.red_mot import RedMOTThreePhaseFrag
 from repository.lib.fragments.timestamp_synchronizer import Timestamper
@@ -64,7 +83,7 @@ from repository.lib.fragments.timestamp_synchronizer import Timestamper
 logger = logging.getLogger(__name__)
 
 
-class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
+class RedMOTWithExperimentBase(RedMOTCheckpoints, ExpFragment, abc.ABC):
     """
     Run a sequence that makes a red MOT, allows setting of expansion and coils,
     does something to it (e.g. a spectroscopy or interferometry sequence) then
@@ -200,17 +219,18 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         self.device_setup_subfragments()
 
     @kernel
-    def DMA_initialization_hook(self):
+    def DMA_initialization_checkpoint(self):
         """
         Fetch DMA handles for all pre-recorded sequences. Called from run_once
         after DMA_record_hook so that all core_dma.record() calls have already
         happened (ARTIQ invalidates handles on any subsequent record/erase).
         Only fetch handles here — never record.
         """
-        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_checkpoint_subfragments()
+        self.DMA_initialization_checkpoint_redmot_default()
 
     @kernel
-    def DMA_initialization_hook_redmot_default(self):
+    def DMA_initialization_checkpoint_redmot_default(self):
         self.blue_3d_mot.blue_transfer_MOT.precalculate_dma_handle()
         self.red_mot.broadband_red_phase.precalculate_dma_handle()
         self.red_mot.narrow_red_capture_phase.precalculate_dma_handle()
@@ -224,13 +244,13 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
 
         self.core.break_realtime()
 
-        self.DMA_initialization_hook()
+        self.DMA_initialization_checkpoint()
 
         self.before_start_hook()
 
         self.core.break_realtime()
 
-        self.pre_sequence_hook()
+        self.pre_sequence_checkpoint()
 
         self.timestamper.mark_timestamp()
 
@@ -238,7 +258,7 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
             self.blue_3d_mot.load_magnetic_trap()
         else:
             self.blue_3d_mot.load_mot(clearout=True)
-        self.end_of_blue_3d_mot_loading_hook()
+        self.end_of_blue_3d_mot_loading_checkpoint()
 
         # The ordering here looks odd because we're working around lane
         # constraints. The blue transfer MOT phase will queue lots of events
@@ -263,8 +283,8 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
             with sequential:
                 # Turn on the red beams and start ramping them
                 self.red_mot.prepare_for_broadband_phase()
-                # Hook for mixins to use - default nothing
-                self.start_of_red_broadband_hook()
+                # Checkpoint for mixins / subfragments to use - default nothing
+                self.start_of_red_broadband_checkpoint()
                 # Save the time now so we can come back to it
                 t_red_light_on = now_mu()
             # Turn off the blue beams, a little after the red MOT starts
@@ -283,7 +303,7 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         at_mu(t_red_light_on)
         self.red_mot.broadband_red_phase.do_phase()
 
-        self.end_of_broadband_mot_hook()
+        self.end_of_broadband_mot_checkpoint()
 
         self.red_mot.terminate_broadband_mot()
         self.set_narrowband_fields_hook()
@@ -292,12 +312,15 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         # Could be merged with post_narrowband_hook, but fairly harmless to leave as is for legacy code
         self.set_postnarrowband_fields_hook()
         # Do the post-narrowband actions. By default, turn off the red MOT light
+        # in the hook, then run whatever checkpoint actions were defined by
+        # mixins / subfragments
         self.post_narrowband_hook()
+        self.post_narrowband_checkpoint()
 
         # Do any other pre-expansion actions. By default, none
         t_light_off_mu = now_mu()
 
-        self.pre_expansion_hook()
+        self.pre_expansion_checkpoint()
 
         # Ensure that the expansion time isn't affected by durations of SPI
         # transfers etc.
@@ -311,7 +334,7 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
 
         delay(self.delay_after_experiment.get())
         self.do_imaging_hook()
-        self.post_sequence_cleanup_hook()
+        self.post_sequence_cleanup_checkpoint()
 
         self.core.wait_until_mu(now_mu())
         # Normally I'd only have one hook for a given purpose, but since we
@@ -326,6 +349,8 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
 
         # Do extra functions at end of experiment
         self.host_functions_after_experiment_hook()
+
+        self.after_data_saved_checkpoint()
 
     # %% Hooks / overridable methods
     #
@@ -382,14 +407,15 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         """
 
     @kernel
-    def post_sequence_cleanup_hook(self):
+    def post_sequence_cleanup_checkpoint(self):
         """
         Run after each sequence is completed
         """
-        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_checkpoint_subfragments()
+        self.post_sequence_cleanup_checkpoint_base()
 
     @kernel
-    def post_sequence_cleanup_hook_base(self):
+    def post_sequence_cleanup_checkpoint_base(self):
         self.core.break_realtime()
         self.blue_3d_mot.all_beam_default_setter.turn_on_all(light_enabled=False)
         self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
@@ -401,8 +427,9 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         """
         Record any DMA sequences needed for this shot. Called at the start of
         run_once, after device_setup (so all parameter-derived state such as
-        shaped-pulse step durations is valid) and before DMA_initialization_hook
-        (which fetches handles). Every core_dma.record() call must precede every
+        shaped-pulse step durations is valid) and before
+        DMA_initialization_checkpoint (which fetches handles). Every
+        core_dma.record() call must precede every
         get_handle() call — ARTIQ invalidates handles on any later record/erase.
         By default, do nothing.
         """
@@ -417,44 +444,10 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         """
 
     @kernel
-    def pre_sequence_hook(self):
-        """
-        Hook for core actions that can affect the timeline at the start of the sequence
-
-        In contrast to :meth:`~before_start_hook`, break_realtimes will affect the sequence timeline from this point onwards.
-        """
-
-    @kernel
-    def end_of_blue_3d_mot_loading_hook(self):
-        """
-        Executed when the loading blue MOT ends, as the ramping blue MOT phase begins.
-
-        This will clash with the blue ramping phase: only add events here if you include a negative delay
-        """
-
-    @kernel
-    def start_of_red_broadband_hook(self):
-        """
-        Executed as the broadband MOT stage starts.
-
-        This hook is just before the broadband MOT starts. It should take
-        negligible duration (i.e. just a few coarse RTIO cycles) otherwise
-        assumptions about the broadband MOT duration will be wrong
-        """
-
-    @kernel
-    def end_of_broadband_mot_hook(self):
-        """
-        Executed immediately after the broadband MOT stage ends, before the
-        broadband ramping is disabled. No timeline correction is performed, so
-        changes here will delay the narrowband red MOT.
-        """
-
-    @kernel
     def set_narrowband_fields_hook(self):
         """
         Hook for setting magnetic fields after the broadband for use in the narrowband MOT. This
-        fires at the same cursor position as the pre_expansion_hook, and runs
+        fires at the same cursor position as the pre_expansion_checkpoint, and runs
         after it.
 
         Any changes to the cursor made by this function will be respected, i.e.
@@ -483,6 +476,10 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         the rest of the sequence CAN be delayed by this hook
 
         By default, just turn off the red light
+
+        Note that there is also a checkpoint which will usually be more useful.
+        See :meth:`~.post_narrowband_checkpoint`. The checkpoint is called just
+        after this hook.
         """
         self.post_narrowband_hook_default()
 
@@ -496,19 +493,10 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         self.red_mot.red_beam_controller.turn_off_mot_beams(ignore_shutters=True)
 
     @kernel
-    def pre_expansion_hook(self):
-        """
-        Hook for core actions after the narrowband red mot is completed, after
-        the light is turned off and cloud expansion begins
-
-        Any changes to the cursor made by this hook will be ignored
-        """
-
-    @kernel
     def set_postnarrowband_fields_hook(self):
         """
         Hook for setting magnetic fields immediately after end of red MOT. This
-        fires at the same cursor position as the pre_expansion_hook, and runs
+        fires at the same cursor position as the pre_expansion_checkpoint, and runs
         after it.
 
         Any changes to the cursor made by this function will be respected, i.e.

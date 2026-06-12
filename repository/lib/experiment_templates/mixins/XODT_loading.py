@@ -15,6 +15,7 @@ from repository.lib.fragments.beams.toggling_beam_setter import ToggleListOfBeam
 from repository.lib.fragments.beams.toggling_beam_setter import (
     make_toggle_list_of_beams,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInBottomXODT
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import MOTInSingleXODT
 from repository.lib.fragments.painted_pulse import (
@@ -32,7 +33,7 @@ class LoadSingleXODTMixin(DipoleTrapWithExperimentBase):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 
@@ -73,20 +74,30 @@ class LoadSingleXODTMixin(DipoleTrapWithExperimentBase):
             [self.red_mot.injection_aom_static_frequency]
         )
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_loading_xodt_mot()
+        class LoadSingleXODTDMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, mot_in_xodt):
+                self.mot_in_xodt = mot_in_xodt
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("mot_in_xodt")
 
-    @kernel
-    def DMA_initialization_hook_loading_xodt_mot(self):
-        """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
-        """
-        self.mot_in_xodt.precalculate_dma_handle()
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                """
+                Load this stage's pre-recorded DMA handle.
+
+                All recording happens earlier in DMA_record_hook, so every
+                sequence is recorded before any handle is loaded; load order
+                (and re-loading) does not matter.
+                """
+                self.DMA_initialization_checkpoint_subfragments()
+                self.mot_in_xodt.precalculate_dma_handle()
+
+        self.setattr_fragment(
+            "load_single_xodt_dma",
+            LoadSingleXODTDMAFrag,
+            mot_in_xodt=self.mot_in_xodt,
+        )
+        self.load_single_xodt_dma: LoadSingleXODTDMAFrag
 
     @kernel
     def post_narrowband_hook(self):
@@ -123,7 +134,7 @@ class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 
@@ -147,15 +158,27 @@ class LoadSingleXODTWithPainterMixin(LoadSingleXODTMixin):
             GravityAndDiffractionCompensatedQuadraticShapedPulse
         )
 
-    @kernel
-    def post_sequence_cleanup_hook_loading(self):
-        self.dipole_beam_controller.turn_off_painter_suservo()
-        self.painter_driver_loading.stop_output()
+        class LoadSingleXODTPainterCleanupFrag(RedMOTCheckpoints):
+            def build_fragment(self, dipole_beam_controller, painter_driver_loading):
+                self.dipole_beam_controller = dipole_beam_controller
+                self.painter_driver_loading = painter_driver_loading
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("dipole_beam_controller")
+                self.kernel_invariants.add("painter_driver_loading")
 
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_sequence_cleanup_hook_base()
-        self.post_sequence_cleanup_hook_loading()
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+                self.dipole_beam_controller.turn_off_painter_suservo()
+                self.painter_driver_loading.stop_output()
+
+        self.setattr_fragment(
+            "load_single_xodt_painter_cleanup",
+            LoadSingleXODTPainterCleanupFrag,
+            dipole_beam_controller=self.dipole_beam_controller,
+            painter_driver_loading=self.painter_driver_loading,
+        )
+        self.load_single_xodt_painter_cleanup: LoadSingleXODTPainterCleanupFrag
 
     @kernel
     def dipole_trap_loading_hook(self):
@@ -170,7 +193,7 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 
@@ -239,13 +262,27 @@ class LoadXXODTMixin(LoadSingleXODTMixin):
         # Bind the nominal setpoints and frequencies for this stage only - we want to be able to jump discontinuously
         self.mot_in_second_xodt.daisy_chain_with_previous_phase(self.mot_in_xodt)
 
-    @kernel
-    def DMA_initialization_hook_loading_xodt_mot(self):
-        """
-        Override the DMA calculation for the single XODT to save the user having to write two hooks
-        """
-        self.mot_in_xodt.precalculate_dma_handle()
-        self.mot_in_second_xodt.precalculate_dma_handle()
+        # Load this stage's pre-recorded DMA handle. The parent
+        # LoadSingleXODTMixin's load_single_xodt_dma already loads mot_in_xodt
+        # via the cascade; all recording happens earlier in DMA_record_hook, so
+        # loading from a separate subfragment (in any order) is fine.
+        class LoadXXODTDMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, mot_in_second_xodt):
+                self.mot_in_second_xodt = mot_in_second_xodt
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("mot_in_second_xodt")
+
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
+                self.mot_in_second_xodt.precalculate_dma_handle()
+
+        self.setattr_fragment(
+            "load_xxodt_dma",
+            LoadXXODTDMAFrag,
+            mot_in_second_xodt=self.mot_in_second_xodt,
+        )
+        self.load_xxodt_dma: LoadXXODTDMAFrag
 
     @kernel
     def dipole_trap_loading_hook(self):
@@ -295,7 +332,7 @@ class LoadXXODTWithTransparencyBeamMixin(LoadXXODTMixin):
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
-    * :meth:`~DMA_initialization_hook`
+    * :meth:`~DMA_initialization_checkpoint`
     * :meth:`~post_narrowband_hook`
     * :meth:`~dipole_trap_loading_hook`
 

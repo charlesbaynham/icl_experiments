@@ -60,6 +60,7 @@ from repository.lib.experiment_templates.mixins.external_triggering import (
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.dipole_trap.dipole_trap_beam_controller import (
     DipoleBeamController,
 )
@@ -132,6 +133,24 @@ class DipoleTrapWithExperimentBase(
         )
         self.dma_recording_fragment: PulseDMARecording
 
+        class _DipoleTrapDMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, dma_recording_fragment):
+                self.dma_recording_fragment = dma_recording_fragment
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("dma_recording_fragment")
+
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
+                self.dma_recording_fragment.DMA_initialization_checkpoint_after_drop()
+
+        self.setattr_fragment(
+            "_dipole_trap_dma",
+            _DipoleTrapDMAFrag,
+            dma_recording_fragment=self.dma_recording_fragment,
+        )
+        self._dipole_trap_dma: _DipoleTrapDMAFrag  # type: ignore
+
         # Tracking state for clock-pulse frequency recording.
         # Updated by the set_clock_* / start_clock_opll_ramp wrappers below.
         # Read by PulseDMARecording.register_pulse via outer_self.
@@ -156,15 +175,6 @@ class DipoleTrapWithExperimentBase(
     @kernel
     def DMA_record_hook(self):
         self.dma_recording_fragment.record_pulse_sequence()
-
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_redmot_default()
-        self.DMA_initialization_hook_dipole_trap_default()
-
-    @kernel
-    def DMA_initialization_hook_dipole_trap_default(self):
-        self.dma_recording_fragment.DMA_initialization_hook_after_drop()
 
     @kernel
     def actions_after_drop(self):

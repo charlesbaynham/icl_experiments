@@ -13,6 +13,7 @@ from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockRabiSpectroscopyDipoleTrapMixin,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.pulse_shaping import JessePulse
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
     * :meth:`~before_start_hook`
     * :meth:`~do_first_pulse`
     * :meth:`~post_dipole_trap_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     """
 
     def build_fragment(self):
@@ -44,6 +45,31 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
         self.clock_spectroscopy_shaped_pulse.bind_param(
             "pulse_duration", self.spectroscopy_pulse_time
         )
+
+        # Self-cascading cleanup: re-prepare the shaped clock pulse for RAM-mode
+        # playback at the end of the sequence. Registered as a child
+        # RedMOTCheckpoints subfragment so its post_sequence_cleanup_checkpoint
+        # runs automatically via the cascade.
+        class _ShapedPulsesCleanupFrag(RedMOTCheckpoints):
+            def build_fragment(self, clock_spectroscopy_shaped_pulse: JessePulse):
+                self.clock_spectroscopy_shaped_pulse = clock_spectroscopy_shaped_pulse
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("clock_spectroscopy_shaped_pulse")
+
+            @kernel
+            def post_sequence_cleanup_checkpoint(self):
+                self.post_sequence_cleanup_checkpoint_subfragments()
+                # set up the clock beam for RAM mode
+                self.clock_spectroscopy_shaped_pulse.prepare_pulse(
+                    frequency=CLOCK_UP_BEAM_INFO.frequency
+                )
+
+        self.setattr_fragment(
+            "_shaped_pulses_cleanup",
+            _ShapedPulsesCleanupFrag,
+            clock_spectroscopy_shaped_pulse=self.clock_spectroscopy_shaped_pulse,
+        )
+        self._shaped_pulses_cleanup: _ShapedPulsesCleanupFrag
 
     @kernel
     def fire_clock_spec_pulse(self):
@@ -64,16 +90,6 @@ class ShapedRabiSpectroscopyDipoleTrapMixin(ClockRabiSpectroscopyDipoleTrapMixin
         self.clock_spectroscopy_shaped_pulse.prepare_pulse(
             frequency=CLOCK_UP_BEAM_INFO.frequency
         )
-
-    @kernel
-    def post_sequence_cleanup_hook(self):
-        self.post_dipole_trap_hook_shaped_pulses()
-        self.post_sequence_cleanup_hook_base()
-
-    @kernel
-    def post_sequence_cleanup_hook_shaped_pulses(self):
-        self.core.break_realtime()
-        self.clock_spectroscopy_shaped_pulse.disable_ram_mode()
 
 
 class ShapedClockShelvingAndClearoutDipoleTrapMixin(

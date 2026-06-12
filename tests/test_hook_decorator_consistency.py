@@ -1,9 +1,11 @@
 """
-Test to validate decorator consistency in ARTIQ experiment hook method overrides.
+Test to validate decorator consistency in ARTIQ experiment hook and checkpoint
+method overrides.
 
 This test discovers all ARTIQ experiment classes, finds hook method overrides
-(methods matching xxx_yyy_hook pattern), and checks that the decorator matches
-the base class definition.
+(methods matching the xxx_yyy_hook pattern) and checkpoint method overrides
+(methods matching the xxx_yyy_checkpoint pattern), and checks that the
+decorator matches the base class definition.
 """
 
 import ast
@@ -17,6 +19,11 @@ from typing import Set
 from typing import Tuple
 
 import pytest
+
+# Patterns for overridable methods whose ARTIQ decorator must be consistent
+# across the class hierarchy
+HOOK_METHOD_PATTERN = r"^[a-zA-Z_][a-zA-Z0-9_]*_hook$"
+CHECKPOINT_METHOD_PATTERN = r"^[a-zA-Z_][a-zA-Z0-9_]*_checkpoint$"
 
 
 def get_decorator_name(decorator_node) -> Optional[str]:
@@ -84,11 +91,15 @@ class HookMethodInfo:
         return f"HookMethodInfo({self.class_name}.{self.method_name}, decorators={self.decorators})"
 
 
-def find_hook_methods_in_file(filepath: Path) -> List[HookMethodInfo]:
+def find_hook_methods_in_file(
+    filepath: Path, method_pattern: str = HOOK_METHOD_PATTERN
+) -> List[HookMethodInfo]:
     """
-    Parse a Python file and find all hook methods with their decorators.
+    Parse a Python file and find all hook/checkpoint methods with their
+    decorators.
 
-    Hook methods are defined as methods matching the pattern: xxx_yyy_hook
+    The methods of interest are those matching ``method_pattern``, e.g.
+    methods matching the pattern xxx_yyy_hook or xxx_yyy_checkpoint.
     """
     hook_methods = []
 
@@ -108,9 +119,10 @@ def find_hook_methods_in_file(filepath: Path) -> List[HookMethodInfo]:
                 if isinstance(item, ast.FunctionDef):
                     method_name = item.name
 
-                    # Check if this is a hook method (matches xxx_yyy_hook pattern)
-                    # Pattern: something ending in _hook but not _hook_default or _hook_base
-                    if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*_hook$", method_name):
+                    # Check if this is a hook/checkpoint method. Note that
+                    # e.g. xxx_hook_default or xxx_checkpoint_base helper
+                    # methods do not match these patterns.
+                    if re.match(method_pattern, method_name):
                         decorators = []
                         for decorator in item.decorator_list:
                             dec_name, dec_args = get_decorator_with_args(decorator)
@@ -177,9 +189,11 @@ def get_all_python_files(repository_path: Path) -> List[Path]:
     return python_files
 
 
-def collect_all_hook_methods(repository_path: Path) -> Dict[str, List[HookMethodInfo]]:
+def collect_all_hook_methods(
+    repository_path: Path, method_pattern: str = HOOK_METHOD_PATTERN
+) -> Dict[str, List[HookMethodInfo]]:
     """
-    Collect all hook methods from all Python files in the repository.
+    Collect all hook/checkpoint methods from all Python files in the repository.
 
     Returns a dict mapping fully qualified class names to lists of HookMethodInfo.
     """
@@ -193,7 +207,7 @@ def collect_all_hook_methods(repository_path: Path) -> Dict[str, List[HookMethod
         relative_path = filepath.relative_to(repository_path.parent)
         list(relative_path.with_suffix("").parts)
 
-        hook_methods = find_hook_methods_in_file(filepath)
+        hook_methods = find_hook_methods_in_file(filepath, method_pattern)
 
         for hook in hook_methods:
             # Create a fully qualified class name
@@ -245,16 +259,20 @@ def find_base_class_method(
     )
 
 
-def check_decorator_consistency(repository_path: Path) -> List[str]:
+def check_decorator_consistency(
+    repository_path: Path, method_pattern: str = HOOK_METHOD_PATTERN
+) -> List[str]:
     """
-    Check decorator consistency across hook method overrides.
+    Check decorator consistency across hook/checkpoint method overrides.
 
     Returns a list of error messages describing any inconsistencies found.
     """
     errors = []
 
     # Collect all hook methods from all files
-    all_hooks, class_locations = collect_all_hook_methods(repository_path)
+    all_hooks, class_locations = collect_all_hook_methods(
+        repository_path, method_pattern
+    )
 
     # Build class hierarchy for each file
     class_hierarchy = {}
@@ -331,9 +349,15 @@ def repository_path():
     return possible_paths[0]
 
 
-def test_hook_decorator_consistency(repository_path):
+@pytest.mark.parametrize(
+    "method_pattern",
+    [HOOK_METHOD_PATTERN, CHECKPOINT_METHOD_PATTERN],
+    ids=["hooks", "checkpoints"],
+)
+def test_hook_decorator_consistency(repository_path, method_pattern):
     """
-    Test that hook method overrides have consistent decorators with their base classes.
+    Test that hook / checkpoint method overrides have consistent decorators
+    with their base classes.
 
     This test validates that when a subclass overrides a hook method from a base class,
     the decorator must match the base class's decorator. For example:
@@ -347,7 +371,7 @@ def test_hook_decorator_consistency(repository_path):
     context (kernel, RPC, subkernel) a method runs in, and mismatches can cause
     runtime errors or unexpected behavior.
     """
-    errors = check_decorator_consistency(repository_path)
+    errors = check_decorator_consistency(repository_path, method_pattern)
 
     if errors:
         error_message = "Found hook method decorator inconsistencies:\n\n"

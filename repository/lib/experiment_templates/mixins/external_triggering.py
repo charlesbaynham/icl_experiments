@@ -36,9 +36,10 @@ class External50HzTriggerMixin(RedMOTWithExperimentBase):
         self.external_trigger: ExternalTriggerFrag
 
     @kernel
-    def pre_sequence_hook(self):
+    def pre_sequence_checkpoint(self):
         """
         Wait for the external trigger before starting the sequence, but after
         all setup is done and we're ready to run the sequence.
         """
+        self.pre_sequence_checkpoint_subfragments()
         self.external_trigger.wait_for_trigger()

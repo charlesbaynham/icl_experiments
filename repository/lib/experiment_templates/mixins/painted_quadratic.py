@@ -12,6 +12,7 @@ from repository.lib.constants import PAINTING_URUKUL_CHANNEL
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
+from repository.lib.fragments.checkpoint_fragment import RedMOTCheckpoints
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import PaintedLinearRamp
 from repository.lib.fragments.dipole_trap.dipole_trap_phases import (
     XODTWithLinearRampAdiabaticCooling,
@@ -200,7 +201,7 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~adiabatic_cooling_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     * :meth:`~DMA_initialisation_hook`
     """
 
@@ -243,19 +244,23 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
 
         # Set the time to the parameter value
 
-    @kernel
-    def DMA_initialization_hook_painter_on(self):
-        self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+        class PainterDMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, adiabatic_painter_ramp_on):
+                self.adiabatic_painter_ramp_on = adiabatic_painter_ramp_on
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("adiabatic_painter_ramp_on")
 
-    @kernel
-    def DMA_initialization_hook(self):
-        """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
-        """
-        self.DMA_initialization_hook_dipole_trap_default()
-        self.DMA_initialization_hook_painter_on()
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
+                self.adiabatic_painter_ramp_on.precalculate_dma_handle()
+
+        self.setattr_fragment(
+            "painter_dma",
+            PainterDMAFrag,
+            adiabatic_painter_ramp_on=self.adiabatic_painter_ramp_on,
+        )
+        self.painter_dma: PainterDMAFrag
 
     @kernel
     def painter_ramp_on(self):
@@ -277,7 +282,7 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~adiabatic_cooling_hook`
-    * :meth:`~post_sequence_cleanup_hook`
+    * :meth:`~post_sequence_cleanup_checkpoint`
     * :meth:`~DMA_initialisation_hook`
     """
 
@@ -307,21 +312,27 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
             SUSERVOS_XODT + SUSERVO_PAINTER + SUSERVO_UP_813,
         )
 
-        # Set the time to the parameter value
+        # Load this mixin's pre-recorded DMA handle. The parent
+        # PainterRampMixin's painter_dma already loads adiabatic_painter_ramp_on
+        # via the cascade; all recording happens earlier in DMA_record_hook, so
+        # loading from a separate subfragment (in any order) is fine.
+        class AdiabaticCoolingDMAFrag(RedMOTCheckpoints):
+            def build_fragment(self, adiabatic_cooling_ramp):
+                self.adiabatic_cooling_ramp = adiabatic_cooling_ramp
+                self.kernel_invariants = getattr(self, "kernel_invariants", set())
+                self.kernel_invariants.add("adiabatic_cooling_ramp")
 
-    @kernel
-    def DMA_initialization_hook_adiabatic_cooling(self):
-        """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
-        """
-        self.DMA_initialization_hook_painter_on()
-        self.adiabatic_cooling_ramp.precalculate_dma_handle()
+            @kernel
+            def DMA_initialization_checkpoint(self):
+                self.DMA_initialization_checkpoint_subfragments()
+                self.adiabatic_cooling_ramp.precalculate_dma_handle()
 
-    @kernel
-    def DMA_initialization_hook(self):
-        self.DMA_initialization_hook_adiabatic_cooling()
+        self.setattr_fragment(
+            "adiabatic_cooling_dma",
+            AdiabaticCoolingDMAFrag,
+            adiabatic_cooling_ramp=self.adiabatic_cooling_ramp,
+        )
+        self.adiabatic_cooling_dma: AdiabaticCoolingDMAFrag
 
     @kernel
     def adiabatic_cooling_hook(self):
