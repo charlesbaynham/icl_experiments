@@ -753,15 +753,22 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             ignore_final_shutters=True,
         )
 
-        # self.down_pulse(N_previous_pulses=N_launch + 3)
+        # clear out the excited state ladder
+        self.down_pulse(N_previous_pulses=N_launch + 3)
 
-        # self.repump_beam_setter.turn_beams_on()
-        # delay(500e-3)
-        # self.repump_beam_setter.turn_beams_off()
+        self.repump_beam_setter.turn_beams_on(ignore_shutters=True)
+        delay(500e-6)
+        self.repump_beam_setter.turn_beams_off(ignore_shutters=True)
 
-        # delay(10e-6)
+        delay(1e-6)
 
-        # self.up_pulse(N_previous_pulses=N_launch + 4)
+        self.up_pulse(N_previous_pulses=N_launch + 4)
+
+        # Clear out the ground state
+        self.fluorescence_pulse.do_clearout_pulse(
+            duration=self.clearout_duration.get(),
+            ignore_final_shutters=True,
+        )
 
     @kernel
     def first_shaped_lmt_pulse(self, detuning, N_kicks):
