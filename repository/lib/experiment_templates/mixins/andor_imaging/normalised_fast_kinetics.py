@@ -214,7 +214,7 @@ class NormalisedXXODTFastKineticsMixin(NormalisedXXODTFastKineticsBase):
         # will be wrong. It does this because this fragment is configured in
         # build_fragment where parameter values are not yet set. This ought to
         # be updated.
-        pixels_dropped_between_pulses = 15  # _gravity_pixels_dropped_interferometry()
+        pixels_dropped_between_pulses = 33  # _gravity_pixels_dropped_interferometry()
 
         logger.debug(
             "Compensating gravity drop with an offset of %s pixels",

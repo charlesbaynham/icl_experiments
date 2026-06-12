@@ -742,8 +742,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(80e6)
 
         delay(1e-6)
 
@@ -763,6 +761,9 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         delay(1e-6)
 
         self.up_pulse(N_previous_pulses=N_launch + 4)
+
+        self.stop_clock_opll_ramp()
+        self.set_clock_opll(80e6)
 
         # Clear out the ground state
         self.fluorescence_pulse.do_clearout_pulse(
