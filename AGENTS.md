@@ -2,6 +2,19 @@
 
 # ICL ARTIQ Experiments Repository
 
+## Maintaining this file: prefer skills
+
+This file is loaded into context on **every** agent run, so keep it lean -
+only conventions that apply to most tasks belong here. Anything situational
+(setup recipes, niche workflows, deep reference material) belongs in a Claude
+Code skill under `.claude/skills/`, which agents load on demand; see
+`nix-setup`, `running-tests` and `ndscan-artiq` for examples.
+
+If a user asks you to "remember" something - even if they explicitly say to
+add it to this file - and it would not be used in every run, suggest making a
+skill instead and explain why: lean always-on context plus progressive
+disclosure through skills gets noticeably better performance out of agents.
+
 ## Project Overview
 
 This is the Imperial College London (ICL) ARTIQ experiments repository for controlling quantum physics experiments. ARTIQ (Advanced Real-Time Infrastructure for Quantum physics) is a leading-edge control system for quantum information experiments.
