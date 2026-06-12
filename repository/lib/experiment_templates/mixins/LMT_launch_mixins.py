@@ -216,13 +216,13 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
-            if pulse_type == "up":
-                # Clear out the ground state after up pulses
-                self.fluorescence_pulse.do_clearout_pulse(
-                    duration=50e-6,
-                    ignore_final_shutters=True,
-                )
-                delay(8e-9)
+            # if pulse_type == "up":
+            #     # Clear out the ground state after up pulses
+            #     self.fluorescence_pulse.do_clearout_pulse(
+            #         duration=50e-6,
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
 
     @kernel
     def launch_series(self, offset_det, N_previous_pulses, N):
@@ -317,13 +317,13 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
 
-            if pulse_type == "down":
-                # Clear out the ground state after up pulses
-                self.fluorescence_pulse.do_clearout_pulse(
-                    duration=50e-6,
-                    ignore_final_shutters=True,
-                )
-                delay(8e-9)
+            # if pulse_type == "down":
+            #     # Clear out the ground state after up pulses
+            #     self.fluorescence_pulse.do_clearout_pulse(
+            #         duration=50e-6,
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
 
     @kernel
     def lmt_series_start_up_launch_down(self, offset_det, N_previous_pulses, N):
@@ -993,7 +993,7 @@ class LMTInterferometryMixin(
 
         t_start_selective_pulse = now_mu() + self.core.seconds_to_mu(10e-6)
 
-        now_mu()
+        t_stark = now_mu()
 
         at_mu(t_start_selective_pulse)
 
@@ -1032,8 +1032,8 @@ class LMTInterferometryMixin(
         delay_mu(8)
         t_end_bs_mu = now_mu()
 
-        now_mu()
-        # print(self.core.mu_to_seconds(t_random - t_stark))
+        t_random = now_mu()
+        print(self.core.mu_to_seconds(t_random - t_stark))
 
         # dark time
         t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
