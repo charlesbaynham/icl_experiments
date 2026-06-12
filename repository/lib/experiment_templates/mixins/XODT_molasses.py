@@ -235,7 +235,7 @@ class XODTSingleMolassesMixin(DipoleTrapWithExperimentBase):
         self.transparency_suservo.set_channel_state(
             rf_switch_state=False, enable_iir=False
         )
-        self.blue_3d_mot.repump_beam_setter.turn_beams_off()
+        self.blue_3d_mot.repump_beam_setter.turn_beams_off(ignore_shutters=True)
 
         self.red_mot.red_beam_controller.all_mot_beams_setter.turn_beams_off(
             ignore_shutters=True
