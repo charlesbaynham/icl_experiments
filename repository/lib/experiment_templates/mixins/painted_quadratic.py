@@ -244,7 +244,7 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
 
         # Set the time to the parameter value
 
-        class _PainterDMAFrag(RedMOTCheckpoints):
+        class PainterDMAFrag(RedMOTCheckpoints):
             def build_fragment(self, adiabatic_painter_ramp_on):
                 self.adiabatic_painter_ramp_on = adiabatic_painter_ramp_on
                 self.kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -256,10 +256,11 @@ class PainterRampMixin(DipoleTrapWithExperimentBase):
                 self.adiabatic_painter_ramp_on.precalculate_dma_handle()
 
         self.setattr_fragment(
-            "_painter_dma",
-            _PainterDMAFrag,
+            "painter_dma",
+            PainterDMAFrag,
             adiabatic_painter_ramp_on=self.adiabatic_painter_ramp_on,
         )
+        self.painter_dma: PainterDMAFrag
 
     @kernel
     def painter_ramp_on(self):
@@ -312,10 +313,10 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
         )
 
         # Load this mixin's pre-recorded DMA handle. The parent
-        # PainterRampMixin's _painter_dma already loads adiabatic_painter_ramp_on
+        # PainterRampMixin's painter_dma already loads adiabatic_painter_ramp_on
         # via the cascade; all recording happens earlier in DMA_record_hook, so
         # loading from a separate subfragment (in any order) is fine.
-        class _AdiabaticCoolingDMAFrag(RedMOTCheckpoints):
+        class AdiabaticCoolingDMAFrag(RedMOTCheckpoints):
             def build_fragment(self, adiabatic_cooling_ramp):
                 self.adiabatic_cooling_ramp = adiabatic_cooling_ramp
                 self.kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -327,10 +328,11 @@ class AdiabaticCoolingWithPaintedQuadraticMixin(PainterRampMixin):
                 self.adiabatic_cooling_ramp.precalculate_dma_handle()
 
         self.setattr_fragment(
-            "_adiabatic_cooling_dma",
-            _AdiabaticCoolingDMAFrag,
+            "adiabatic_cooling_dma",
+            AdiabaticCoolingDMAFrag,
             adiabatic_cooling_ramp=self.adiabatic_cooling_ramp,
         )
+        self.adiabatic_cooling_dma: AdiabaticCoolingDMAFrag
 
     @kernel
     def adiabatic_cooling_hook(self):
