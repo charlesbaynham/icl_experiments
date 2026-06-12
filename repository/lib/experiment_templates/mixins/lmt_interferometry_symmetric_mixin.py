@@ -196,6 +196,24 @@ class LMTSymmetricInterferometryMixin(LMTInterferometryMixin):
 
         self.last_beam_splitter(t_pi_down, N_launch, last_bs_frequency)
 
+        t_start_last_ramp_mu = now_mu()
+        self.start_clock_opll_ramp(
+            ramp_rate,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_ramp_mu, t_pi_pulse=t_pi_down
+            )
+            # + last_bs_frequency
+            + N_launch * 9.4e3 - 1e6,
+            start_opll_offset
+            + self.calculate_frequency_for_first_pi_by_2_pulse(
+                t_pulse_start_mu=t_start_last_ramp_mu, t_pi_pulse=t_pi_down
+            )
+            # + last_bs_frequency
+            + N_launch * 9.4e3,
+            wave_type=2,
+        )
+
 
 class LMTHobsonInterferometerMixin(LMTInterferometryMixin):
     """

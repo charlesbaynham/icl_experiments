@@ -4,7 +4,7 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
-    DoubleTrapImagingRepumpedNormalisedMixin,
+    DoubleTrapImagingClockPulseNormalisedMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics import (
@@ -75,7 +75,7 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
     LMTInterferometryMixin,
-    DoubleTrapImagingRepumpedNormalisedMixin,
+    DoubleTrapImagingClockPulseNormalisedMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
     XODTSingleMolassesPlusDipoleRampMixin,

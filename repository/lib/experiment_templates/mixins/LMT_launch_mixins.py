@@ -11,6 +11,9 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy import int32
 from numpy import int64
+from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
+    ControlBeamsWithoutCoolingAOM,
+)
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -56,6 +59,16 @@ class LMTBase(
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment(
+            "repump_beam_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["repump_679"],
+                constants.SUSERVOED_BEAMS["repump_707"],
+            ],
+        )
+        self.repump_beam_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_param(
             "down_switch_detuning",
@@ -204,6 +217,14 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
+            # if pulse_type == "up":
+            #     # Clear out the ground state after up pulses
+            #     self.fluorescence_pulse.do_clearout_pulse(
+            #         duration=50e-6,
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
+
     @kernel
     def launch_series(self, offset_det, N_previous_pulses, N):
 
@@ -230,14 +251,6 @@ class LMTBase(
 
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
-
-            # Clear out the ground state
-            # if pulse_type == "up":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
 
     # use if we start in the ground state
     @kernel
@@ -269,12 +282,12 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
             # Clear out the ground state
-            # if pulse_type == "down":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
+            if pulse_type == "up":
+                self.fluorescence_pulse.do_clearout_pulse(
+                    duration=self.clearout_duration.get(),
+                    ignore_final_shutters=True,
+                )
+                delay(8e-9)
 
     @kernel
     def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
@@ -304,6 +317,14 @@ class LMTBase(
 
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
+
+            # if pulse_type == "down":
+            #     # Clear out the ground state after up pulses
+            #     self.fluorescence_pulse.do_clearout_pulse(
+            #         duration=50e-6,
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
 
     @kernel
     def lmt_series_start_up_launch_down(self, offset_det, N_previous_pulses, N):
@@ -490,7 +511,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
             "lmt_launch_pulses_number",
             IntParam,
             "Number of pulses for LMT launch",
-            default=10,
+            default=8,
         )
         self.lmt_launch_pulses_number: IntParamHandle
 
@@ -685,7 +706,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # LMT sequence on upper trap
 
-        self.lmt_series(lmt_detuning, N_previous_pulses=3, N=N_launch)
+        self.launch_series(lmt_detuning, N_previous_pulses=3, N=N_launch)
 
         delay(self.delay_between_launches.get())
 
@@ -693,14 +714,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.lmt_series_start_up(
             lower_selective_det, N_previous_pulses=0, N=N_launch + 2
         )
-
-        self.set_clock_up_dds(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.up_switch_detuning_lower_intensity.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
-
-        delay_mu(8)
 
         delay(8e-9)
 
@@ -730,14 +743,29 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(80e6)
 
         delay(1e-6)
 
         # Clear out the ground state
         self.fluorescence_pulse.do_clearout_pulse(
             duration=200e-6,
+            ignore_final_shutters=True,
+        )
+
+        # clear out the excited state ladder
+        self.down_pulse(N_previous_pulses=N_launch + 3)
+
+        self.repump_beam_setter.turn_beams_on(ignore_shutters=True)
+        delay(500e-6)
+        self.repump_beam_setter.turn_beams_off(ignore_shutters=True)
+
+        delay(1e-6)
+
+        self.up_pulse(N_previous_pulses=N_launch + 4)
+
+        # Clear out the ground state
+        self.fluorescence_pulse.do_clearout_pulse(
+            duration=self.clearout_duration.get(),
             ignore_final_shutters=True,
         )
 
@@ -823,7 +851,7 @@ class LMTInterferometryMixin(
             "lmt_pulses_number",
             IntParam,
             "Number of pulses for LMT interferometry",
-            default=41,
+            default=19,
         )
         self.lmt_pulses_number: IntParamHandle
 
@@ -963,7 +991,7 @@ class LMTInterferometryMixin(
     @kernel
     def do_clock_interferometry(self):
         N = self.lmt_pulses_number.get()
-        N_launch = 12
+        N_launch = 20
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -985,8 +1013,7 @@ class LMTInterferometryMixin(
 
         t_start_selective_pulse = now_mu() + self.core.seconds_to_mu(10e-6)
 
-        # Do a Stark shifting pulse in the first dark time
-        self.stark_shifter.do_stark_pulse()
+        t_stark = now_mu()
 
         at_mu(t_start_selective_pulse)
 
@@ -1025,10 +1052,16 @@ class LMTInterferometryMixin(
         delay_mu(8)
         t_end_bs_mu = now_mu()
 
+        t_random = now_mu()
+        print(self.core.mu_to_seconds(t_random - t_stark))
+
         # dark time
         t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
             self.delay_between_interferometry_pulses.get()
         )
+
+        # Do a Stark shifting pulse in the first dark time
+        self.stark_shifter.do_stark_pulse()
 
         at_mu(t_start_lmt_mirror_mu)
         # LMT sequence on upper arm, momentum downwards

@@ -115,19 +115,10 @@ class DipoleTrapWithExperimentBase(
             "dipole_pre_experiment_delay",
             FloatParam,
             "Time to delay experiment after dipole trap or launch",
-            default=1550e-6,
+            default=925e-6,
             unit="us",
         )
         self.dipole_pre_experiment_delay: FloatParamHandle
-
-        self.setattr_param(
-            "before_launch_delay",
-            FloatParam,
-            "Time to wait after launch",
-            default=0.0,
-            unit="us",
-        )
-        self.before_launch_delay: FloatParamHandle
 
         # %% Fragments
 
@@ -198,7 +189,6 @@ class DipoleTrapWithExperimentBase(
         """
 
         self.post_dipole_trap_hook()
-        delay(self.before_launch_delay.get())
         self.launch_hook()
         delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
