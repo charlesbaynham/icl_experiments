@@ -11,6 +11,9 @@ from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
 from numpy import int32
 from numpy import int64
+from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
+    ControlBeamsWithoutCoolingAOM,
+)
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -55,6 +58,16 @@ class LMTBase(
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment(
+            "repump_beam_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["repump_679"],
+                constants.SUSERVOED_BEAMS["repump_707"],
+            ],
+        )
+        self.repump_beam_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_param(
             "down_switch_detuning",
@@ -740,9 +753,15 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
             ignore_final_shutters=True,
         )
 
-        # self.blue_3d_mot.turn_on_repumpers()
-        # delay(2e-3)
-        # self.blue_3d_mot.turn_off_repumpers()
+        # self.down_pulse(N_previous_pulses=N_launch + 3)
+
+        # self.repump_beam_setter.turn_beams_on()
+        # delay(500e-3)
+        # self.repump_beam_setter.turn_beams_off()
+
+        # delay(10e-6)
+
+        # self.up_pulse(N_previous_pulses=N_launch + 4)
 
     @kernel
     def first_shaped_lmt_pulse(self, detuning, N_kicks):
