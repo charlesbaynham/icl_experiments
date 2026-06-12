@@ -114,7 +114,7 @@ class DipoleTrapWithExperimentBase(
             "dipole_pre_experiment_delay",
             FloatParam,
             "Time to delay experiment after dipole trap or launch",
-            default=0.0e-6,
+            default=1550e-6,
             unit="us",
         )
         self.dipole_pre_experiment_delay: FloatParamHandle

@@ -82,7 +82,7 @@ USE_LATTICE_MODE = False
 URUKULED_BEAMS = [
     UrukuledBeam(
         name="red_doublepass_injection",
-        frequency=364.665e6,
+        frequency=364.675e6,
         amplitude=1.0,
         attenuation=0.0,
         urukul_device="urukul9910_aom_doublepass_689_red_injection",
@@ -790,7 +790,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4806e6,
+        99.4762e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -851,7 +851,7 @@ SUSERVOED_BEAMS = [
         suservo_device="suservo_aom_singlepass_689_stark_shifter",
         servo_enabled=True,
         initial_amplitude=0.3,
-        setpoint=3.0,
+        setpoint=2.2,
     ),
     SUServoedBeam(
         "squeezing_cavity_698_transmission",
@@ -1283,7 +1283,7 @@ else:
 
 # Unused in Sr88 so only one setting needed
 XODT_2ND_MOLASSES_689_STIR_DETUNING = 0.0e3
-XODT_MOLASSES_689_STIR_DETUNING = 585000.0
+XODT_MOLASSES_689_STIR_DETUNING = 605000.0
 
 # Order of suservos:
 # "suservo_aom_singlepass_689_red_mot_sigmaplus",

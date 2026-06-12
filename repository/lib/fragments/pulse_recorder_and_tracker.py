@@ -59,6 +59,15 @@ logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
+# The pulse record stores physical quantities as floats: times in s,
+# frequencies in Hz and the delivery setpoint in V (plus the integer-valued
+# direction flag). They are all stored as float64. The per-shot dedup checksum,
+# however, needs integers, so values are scaled by this factor before the int64
+# cast. The scale is large enough to keep the checksum sensitive to the smallest
+# meaningful changes across every field - e.g. sub-microsecond times and
+# sub-millivolt setpoints - that an unscaled int64 cast would otherwise hide.
+CHECKSUM_SCALE = 1_000_000
+
 
 class PulseDMARecording(Fragment):
     dma_name = "actions_after_drop"
@@ -117,46 +126,49 @@ class PulseDMARecording(Fragment):
         """
         Save the recorded pulse sequence to the pulse_record dataset.
 
-        ARTIQ can't handle dicts etc, so we wrap this into a 2D array.
-        This forces us to store directions as int64s which is wasteful,
-        but oh well.
+        ARTIQ can't handle dicts etc, so we wrap this into a 2D array. ARTIQ
+        also requires that array to be homogeneously typed, so every row is
+        stored as float64 in physical units: start times and durations in s
+        (converted from machine units via mu_to_seconds), frequencies in Hz and
+        the setpoint in V. The direction flag is integer-valued but exactly
+        representable as a float.
         """
 
-        SAME_AS_LAST_TIME_SENTINEL = -1
-        DISABLED_SENTINEL = -2
+        SAME_AS_LAST_TIME_SENTINEL = -1.0
+        DISABLED_SENTINEL = -2.0
 
         if not self.enable_pulse_sequence_storage.get():
             self.append_to_dataset("pulse_record", [[DISABLED_SENTINEL]])
             return
 
         directions = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_directions[: self._pulse_record_num_pulses]
         ]
-        start_times_mu = [
-            int64(x)
+        start_times_s = [
+            self.core.mu_to_seconds(x)
             for x in self._pulse_record_start_times_mu[: self._pulse_record_num_pulses]
         ]
-        durations_mu = [
-            int64(x)
+        durations_s = [
+            self.core.mu_to_seconds(x)
             for x in self._pulse_record_durations_mu[: self._pulse_record_num_pulses]
         ]
         opll_hz = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_opll_freq_hz[: self._pulse_record_num_pulses]
         ]
         switch_hz = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_switch_freq_hz[: self._pulse_record_num_pulses]
         ]
         delivery_hz = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_delivery_freq_hz[
                 : self._pulse_record_num_pulses
             ]
         ]
         delivery_setpoint = [
-            int64(x)
+            float(x)
             for x in self._pulse_record_delivery_setpoint[
                 : self._pulse_record_num_pulses
             ]
@@ -164,19 +176,24 @@ class PulseDMARecording(Fragment):
 
         pulse_record = [
             directions,
-            start_times_mu,
-            durations_mu,
+            start_times_s,
+            durations_s,
             opll_hz,
             switch_hz,
             delivery_hz,
             delivery_setpoint,
         ]
 
-        # Calculate a checksum of this pulse record
+        # Calculate a checksum of this pulse record. The checksum needs
+        # integers, so each (float) value is scaled before the int64 cast - this
+        # keeps it sensitive to sub-unit changes (e.g. a sub-volt setpoint
+        # change) that an unscaled int64 cast would hide.
         checksum = int64(0)
         for i in range(7):
             self.checksummer.set_seed(checksum)
-            checksum = self.checksummer.checksum([int64(x) for x in pulse_record[i]])
+            checksum = self.checksummer.checksum(
+                [int64(x * CHECKSUM_SCALE) for x in pulse_record[i]]
+            )
 
         if checksum != self._pulse_record_checksum:
             # Record the updated pulse sequence
@@ -247,7 +264,7 @@ class PulseDMARecording(Fragment):
         super().host_cleanup()
 
     def _archive_encoded_pulse_records(self):
-        """Encode accumulated pulse records as flat int64 arrays and archive them.
+        """Encode accumulated pulse records as flat float64 arrays and archive them.
 
         Reads records from the ``pulse_record`` broadcast dataset and writes two
         archivable datasets:
@@ -262,6 +279,10 @@ class PulseDMARecording(Fragment):
         - Regular record (7 rows of ``num_pulses`` values each):
           ``[num_pulses, dir_0, …, start_0, …, dur_0, …, opll_0, …, switch_0, …, delivery_0, …, setpoint_0, …]``
           (length ``1 + 7 * num_pulses``)
+
+        All values are stored as float64 in physical units: start times and
+        durations in s, frequencies in Hz and the setpoint in V. The direction
+        and num_pulses fields are integer-valued but stored as float64 too.
         """
         records = self.get_dataset("pulse_record", archive=False)
         if not records:
@@ -274,18 +295,18 @@ class PulseDMARecording(Fragment):
         for record in records:
             offsets.append(current_offset)
             if len(record) == 1 and len(record[0]) == 1:
-                flat_data.append(int(record[0][0]))
+                flat_data.append(float(record[0][0]))
                 current_offset += 1
             else:
                 num_pulses = len(record[0])
-                flat_data.append(num_pulses)
+                flat_data.append(float(num_pulses))
                 for row in record:
-                    flat_data.extend(int(x) for x in row)
+                    flat_data.extend(float(x) for x in row)
                 current_offset += 1 + 7 * num_pulses
 
         self.set_dataset(
             "pulse_record_flat",
-            np.array(flat_data, dtype=np.int64),
+            np.array(flat_data, dtype=np.float64),
             broadcast=False,
             archive=True,
         )
