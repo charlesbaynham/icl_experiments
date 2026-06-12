@@ -21,6 +21,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
+from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
+    ClockOPLLTrackingMixin,
+)
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
@@ -35,7 +38,7 @@ CLOCK_HIGH_RAMP_FREQ = 80.7e6  # Hz
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
-class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
+class ClockShelvingAndClearoutBase(ClockOPLLTrackingMixin, RedMOTWithExperimentBase):
     """
     Uses a clock pulse to state-prepare atoms, then blast away the ground state before spectroscopy
 
@@ -192,7 +195,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         # Pulse it onto the atoms
         self.fire_clock_shelving_pulse()
         delay_mu(int64(self.core.ref_multiplier))
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.stop_clock_opll_ramp()
 
         delay(constants.DEFAULT_DELIVERY_SETTLING_DURATION)
 
@@ -221,7 +224,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
         Advances the timeline by the duration of SPI writes
         """
 
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self.start_clock_opll_ramp(
             ramp_rate,
             CLOCK_LOW_RAMP_FREQ,
             CLOCK_HIGH_RAMP_FREQ,
@@ -236,7 +239,7 @@ class ClockShelvingAndClearoutBase(RedMOTWithExperimentBase):
     @kernel
     def post_sequence_cleanup_hook_shelving(self):
         # stop the clock laser ramp
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
+        self.stop_clock_opll_ramp()
 
 
 class ClockShelvingAndClearoutDipoleTrapMixin(
