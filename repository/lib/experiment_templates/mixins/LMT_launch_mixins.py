@@ -502,7 +502,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
             "lmt_launch_pulses_number",
             IntParam,
             "Number of pulses for LMT launch",
-            default=10,
+            default=8,
         )
         self.lmt_launch_pulses_number: IntParamHandle
 
@@ -850,7 +850,7 @@ class LMTInterferometryMixin(
             "lmt_pulses_number",
             IntParam,
             "Number of pulses for LMT interferometry",
-            default=41,
+            default=19,
         )
         self.lmt_pulses_number: IntParamHandle
 
