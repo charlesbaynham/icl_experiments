@@ -53,11 +53,26 @@ from ndscan.experiment.parameters import BoolParamHandle
 from numpy import int32
 from numpy import int64
 
+from repository.lib import pulse_intent
 from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
+
+# Intent-record codes, re-bound locally so kernel code can reference them as
+# compile-time integer constants. The vocabulary (and the archive schema) is
+# defined in repository.lib.pulse_intent.
+INTENT_KIND_PULSE = pulse_intent.KIND_PULSE
+INTENT_KIND_CLEAROUT = pulse_intent.KIND_CLEAROUT
+INTENT_KIND_CALLBACK = pulse_intent.KIND_CALLBACK
+INTENT_EFFECT_FLIP = pulse_intent.EFFECT_FLIP
+INTENT_EFFECT_SUPERPOSE = pulse_intent.EFFECT_SUPERPOSE
+INTENT_EFFECT_NONE = pulse_intent.EFFECT_NONE
+INTENT_STATE_AUTO = pulse_intent.STATE_AUTO
+INTENT_STATE_GROUND = pulse_intent.STATE_GROUND
+INTENT_STATE_EXCITED = pulse_intent.STATE_EXCITED
+INTENT_M_AUTO = pulse_intent.M_AUTO
 
 # The pulse record stores physical quantities as floats: times in s,
 # frequencies in Hz and the delivery setpoint in V (plus the integer-valued
@@ -104,22 +119,39 @@ class PulseDMARecording(Fragment):
         self._pulse_record_num_pulses = 0
         self._pulse_record_checksum = int64(0)
 
+        # Preallocate the intent stream: one entry per atom-affecting event
+        # (clock pulses, clearouts, callbacks), appended at fire time next to
+        # the facts. Schema in repository.lib.pulse_intent.
+        self._intent_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
+        self._intent_record_durations_mu = [int64(0)] * BUFFER_DEPTH
+        self._intent_record_kinds = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_state_effects = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_addressed_states = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_addressed_m = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_delta_m = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_num_events = 0
+        self._intent_record_checksum = int64(0)
+
         # Checksummer object
         self.checksummer = FastIntChecksum(seed=0)
 
     def host_setup(self):
-        # Create the broadcast dataset for live monitoring. archive=False avoids
-        # h5py ragged-array errors; host_cleanup encodes it to flat arrays for archiving.
+        # Create the broadcast datasets for live monitoring. archive=False avoids
+        # h5py ragged-array errors; host_cleanup encodes them to flat arrays for archiving.
         self.set_dataset("pulse_record", [], broadcast=True, archive=False)
+        self.set_dataset("pulse_intent_record", [], broadcast=True, archive=False)
         super().host_setup()
 
     @kernel
     def record_pulse_sequence(self):
-        # Wipe the buffer; register_pulse() repopulates it during recording
+        # Wipe the buffers; register_pulse() / register_clearout() /
+        # register_intent_callback() repopulate them during recording
         self._pulse_record_num_pulses = 0
+        self._intent_record_num_events = 0
         with self.core_dma.record(self.dma_name):
             self.outer_self.actions_after_drop()
         self._save_pulse_sequence_to_dataset()
+        self._save_intent_record_to_dataset()
 
     @kernel
     def _save_pulse_sequence_to_dataset(self):
@@ -205,6 +237,64 @@ class PulseDMARecording(Fragment):
         self._pulse_record_checksum = checksum
 
     @kernel
+    def _save_intent_record_to_dataset(self):
+        """
+        Save the recorded intent stream to the pulse_intent_record dataset.
+
+        Same conventions as :meth:`_save_pulse_sequence_to_dataset`: a 2D
+        float64 array (homogeneous typing for ARTIQ), one row per field, with
+        times converted to seconds and the integer-coded fields exactly
+        representable as floats. Deduplicated per shot with the same sentinel
+        scheme.
+        """
+
+        SAME_AS_LAST_TIME_SENTINEL = -1.0
+        DISABLED_SENTINEL = -2.0
+
+        if not self.enable_pulse_sequence_storage.get():
+            self.append_to_dataset("pulse_intent_record", [[DISABLED_SENTINEL]])
+            return
+
+        n = self._intent_record_num_events
+        start_times_s = [
+            self.core.mu_to_seconds(x) for x in self._intent_record_start_times_mu[:n]
+        ]
+        durations_s = [
+            self.core.mu_to_seconds(x) for x in self._intent_record_durations_mu[:n]
+        ]
+        kinds = [float(x) for x in self._intent_record_kinds[:n]]
+        state_effects = [float(x) for x in self._intent_record_state_effects[:n]]
+        addressed_states = [float(x) for x in self._intent_record_addressed_states[:n]]
+        addressed_m = [float(x) for x in self._intent_record_addressed_m[:n]]
+        delta_m = [float(x) for x in self._intent_record_delta_m[:n]]
+
+        intent_record = [
+            kinds,
+            start_times_s,
+            durations_s,
+            state_effects,
+            addressed_states,
+            addressed_m,
+            delta_m,
+        ]
+
+        checksum = int64(0)
+        for i in range(7):
+            self.checksummer.set_seed(checksum)
+            checksum = self.checksummer.checksum(
+                [int64(x * CHECKSUM_SCALE) for x in intent_record[i]]
+            )
+
+        if checksum != self._intent_record_checksum:
+            self.append_to_dataset("pulse_intent_record", intent_record)
+        else:
+            self.append_to_dataset(
+                "pulse_intent_record", [[SAME_AS_LAST_TIME_SENTINEL]]
+            )
+
+        self._intent_record_checksum = checksum
+
+    @kernel
     def DMA_initialization_hook_after_drop(self):
         self.dma_handle = self.core_dma.get_handle(self.dma_name)
         self.dma_handle_valid = True
@@ -220,12 +310,45 @@ class PulseDMARecording(Fragment):
     @portable
     def register_pulse(self, is_up: bool, duration_s: float):
         """
-        Register a clock pulse about to be applied.
+        Register a clock pulse about to be applied, with default intent.
 
         Call this IMMEDIATELY BEFORE turning the clock AOM on so the
         pulse start timestamp and duration are recorded together. Host
         code can then reconstruct whichever effective timing model it
         needs from the full sequence record.
+
+        The default intent is a resonant pi transfer of whichever pair the
+        pulse addresses (resolved from the population walk at prediction
+        time), with ``delta_m`` equal to the beam sign. Use
+        :meth:`register_pulse_with_intent` to declare anything else.
+        """
+        self.register_pulse_with_intent(
+            is_up=is_up,
+            duration_s=duration_s,
+            state_effect=INTENT_EFFECT_FLIP,
+            addressed_state=INTENT_STATE_AUTO,
+            addressed_m=INTENT_M_AUTO,
+            delta_m=1 if is_up else -1,
+        )
+
+    @portable
+    def register_pulse_with_intent(
+        self,
+        is_up: bool,
+        duration_s: float,
+        state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
+        delta_m: int32,
+    ):
+        """
+        Register a clock pulse about to be applied, declaring its intent.
+
+        The facts (timestamp, duration, beam, tracked frequencies) and the
+        intent (what the pulse is meant to do to the atomic populations,
+        assumed 100 % efficient) are appended by this single call, so they
+        can never misalign - even for conditional or per-shot-varying
+        sequences. Field semantics: :mod:`repository.lib.pulse_intent`.
         """
 
         if self._pulse_record_num_pulses >= BUFFER_DEPTH:
@@ -259,8 +382,88 @@ class PulseDMARecording(Fragment):
         )
         self._pulse_record_num_pulses += 1
 
+        self._append_intent(
+            t_start_mu=t_now_mu,
+            duration_mu=duration_mu,
+            kind=INTENT_KIND_PULSE,
+            state_effect=state_effect,
+            addressed_state=addressed_state,
+            addressed_m=addressed_m,
+            delta_m=delta_m,
+        )
+
+    @portable
+    def register_clearout(self, duration_s: float):
+        """
+        Register a 461 nm clearout pulse about to be applied.
+
+        Call IMMEDIATELY BEFORE firing the clearout. Records an intent-stream
+        entry meaning "remove all ground-state population"; there are no
+        pulse facts for clearouts (they are not clock pulses).
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=self.core.seconds_to_mu(duration_s),
+            kind=INTENT_KIND_CLEAROUT,
+            state_effect=INTENT_EFFECT_NONE,
+            addressed_state=INTENT_STATE_GROUND,
+            addressed_m=INTENT_M_AUTO,
+            delta_m=0,
+        )
+
+    @portable
+    def register_intent_callback(
+        self,
+        duration_s: float,
+        state_effect: int32,
+        delta_m: int32,
+    ):
+        """
+        Register the declared effect of a non-standard pulse (shaped/Jesse
+        pulses, anything fired outside the square-pulse path).
+
+        ``delta_m`` and ``state_effect`` are applied to every populated
+        branch at prediction time (matching the declarative language's
+        ``Callback`` semantics), assumed 100 % efficient.
+        """
+        self._append_intent(
+            t_start_mu=now_mu(),
+            duration_mu=self.core.seconds_to_mu(duration_s),
+            kind=INTENT_KIND_CALLBACK,
+            state_effect=state_effect,
+            addressed_state=INTENT_STATE_AUTO,
+            addressed_m=INTENT_M_AUTO,
+            delta_m=delta_m,
+        )
+
+    @portable
+    def _append_intent(
+        self,
+        t_start_mu: int64,
+        duration_mu: int64,
+        kind: int32,
+        state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
+        delta_m: int32,
+    ):
+        if self._intent_record_num_events >= BUFFER_DEPTH:
+            raise RuntimeError(
+                "Exceeded maximum number of intent events that can be recorded."
+            )
+        n = self._intent_record_num_events
+        self._intent_record_start_times_mu[n] = t_start_mu
+        self._intent_record_durations_mu[n] = duration_mu
+        self._intent_record_kinds[n] = int32(kind)
+        self._intent_record_state_effects[n] = int32(state_effect)
+        self._intent_record_addressed_states[n] = int32(addressed_state)
+        self._intent_record_addressed_m[n] = int32(addressed_m)
+        self._intent_record_delta_m[n] = int32(delta_m)
+        self._intent_record_num_events += 1
+
     def host_cleanup(self):
         self._archive_encoded_pulse_records()
+        self._archive_encoded_intent_records()
         super().host_cleanup()
 
     def _archive_encoded_pulse_records(self):
@@ -284,7 +487,20 @@ class PulseDMARecording(Fragment):
         durations in s, frequencies in Hz and the setpoint in V. The direction
         and num_pulses fields are integer-valued but stored as float64 too.
         """
-        records = self.get_dataset("pulse_record", archive=False)
+        self._archive_flat_encoded("pulse_record", "pulse_record")
+
+    def _archive_encoded_intent_records(self):
+        """Archive the intent stream with the same flat encoding as the facts.
+
+        Writes ``pulse_intent_record_flat`` / ``pulse_intent_record_offsets``;
+        each regular record is ``[num_events, kind_0, …, start_0, …, dur_0, …,
+        effect_0, …, addressed_state_0, …, addressed_m_0, …, delta_m_0, …]``.
+        Field semantics: :mod:`repository.lib.pulse_intent`.
+        """
+        self._archive_flat_encoded("pulse_intent_record", "pulse_intent_record")
+
+    def _archive_flat_encoded(self, source_dataset: str, dest_prefix: str):
+        records = self.get_dataset(source_dataset, archive=False)
         if not records:
             return
 
@@ -298,20 +514,20 @@ class PulseDMARecording(Fragment):
                 flat_data.append(float(record[0][0]))
                 current_offset += 1
             else:
-                num_pulses = len(record[0])
-                flat_data.append(float(num_pulses))
+                num_entries = len(record[0])
+                flat_data.append(float(num_entries))
                 for row in record:
                     flat_data.extend(float(x) for x in row)
-                current_offset += 1 + 7 * num_pulses
+                current_offset += 1 + len(record) * num_entries
 
         self.set_dataset(
-            "pulse_record_flat",
+            f"{dest_prefix}_flat",
             np.array(flat_data, dtype=np.float64),
             broadcast=False,
             archive=True,
         )
         self.set_dataset(
-            "pulse_record_offsets",
+            f"{dest_prefix}_offsets",
             np.array(offsets, dtype=np.int64),
             broadcast=False,
             archive=True,
