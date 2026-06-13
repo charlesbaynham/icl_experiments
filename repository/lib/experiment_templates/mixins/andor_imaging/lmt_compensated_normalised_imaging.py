@@ -570,7 +570,10 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
             "roi_prediction_budget",
             FloatParam,
             "Timeline slack reserved for the ROI prediction RPC",
-            default=10e-3,
+            # The RPC is warmed up (off-budget) before the timed call, so a few
+            # ms is ample. Kept small to minimise the added time-of-flight: the
+            # cloud falls during this budget before the first image.
+            default=5e-3,
             unit="ms",
             min=0,
         )
@@ -612,23 +615,15 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.prediction_slack_after: FloatChannel
 
     @kernel
-    def do_imaging_hook_andor(self):
-        # Pin the first imaging time now, so the wall-clock duration of the
-        # prediction RPC cannot shift it: everything below runs inside the
-        # slack reserved by roi_prediction_budget.
-        t_image_mu = now_mu() + self.core.seconds_to_mu(
-            self.roi_prediction_budget.get()
-        )
-        t2_mu = t_image_mu + self.core.seconds_to_mu(
-            self.andor_camera_config.fast_kinetics_time_between_shots.get()
-        )
+    def _predict_atom_positions(self, t1_mu: TInt64, t2_mu: TInt64):
+        """Run the host-side ROI prediction for imaging times t1/t2.
 
-        self.prediction_slack_before.push(
-            self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu())
-        )
-
+        Shared by the warm-up call and the real, budget-timed call in
+        :meth:`do_imaging_hook_andor` so the long intent-buffer argument list
+        lives in one place.
+        """
         self.andor_camera_config.calculate_atom_positions(
-            t1=t_image_mu,
+            t1=t1_mu,
             t2=t2_mu,
             intent_start_times_mu=(
                 self.dma_recording_fragment._intent_record_start_times_mu
@@ -649,6 +644,36 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
             t_playback_start_mu=self.get_t_playback_start_mu(),
             t_release_mu=self.get_t_release_mu(),
         )
+
+    @kernel
+    def do_imaging_hook_andor(self):
+        # Warm up the prediction RPC path with generous slack BEFORE the timed
+        # section. The first prediction call on a fresh ARTIQ worker is slow
+        # (host-side imports/JIT and the kernel<->host round-trip the first
+        # time), which would otherwise have to be covered by - and so inflate -
+        # roi_prediction_budget (and hence the time-of-flight). Running one
+        # throwaway prediction here, bracketed by break_realtime so its latency
+        # cannot underflow, makes the real timed call below fast. The throwaway
+        # result is immediately overwritten by the real call.
+        self.core.break_realtime()
+        self._predict_atom_positions(now_mu(), now_mu())
+        self.core.break_realtime()
+
+        # Pin the first imaging time now, so the wall-clock duration of the
+        # prediction RPC cannot shift it: everything below runs inside the
+        # slack reserved by roi_prediction_budget.
+        t_image_mu = now_mu() + self.core.seconds_to_mu(
+            self.roi_prediction_budget.get()
+        )
+        t2_mu = t_image_mu + self.core.seconds_to_mu(
+            self.andor_camera_config.fast_kinetics_time_between_shots.get()
+        )
+
+        self.prediction_slack_before.push(
+            self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu())
+        )
+
+        self._predict_atom_positions(t_image_mu, t2_mu)
 
         self.prediction_slack_after.push(
             self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu())
