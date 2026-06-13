@@ -13,6 +13,11 @@ def run(cmd: list[str]) -> None:
 
 def checkout_vendor(name: str, url: str, rev: str) -> None:
     d = f"vendor/{name}"
+    if os.path.isdir(d) and not os.path.isdir(f"{d}/.git"):
+        # Vendored as plain source (checked into this repository); do not
+        # overwrite with a fresh clone.
+        print(f"  {name}: vendored as source, skipping", flush=True)
+        return
     if os.path.isdir(f"{d}/.git"):
         current = (
             subprocess.check_output(["git", "-C", d, "rev-parse", "HEAD"])

@@ -1,7 +1,7 @@
 ## added by CFAB:
 .claude/worktrees
 .claude/settings.local.json
-vendor/
+# vendor/ is now checked in as source (artiq + ndscan for profiling/optimization)
 *.elf
 todo.txt
 *.swp
@@ -14,6 +14,13 @@ _build
 .direnv
 html_out
 report.xml
+
+# Scratch benchmark / diff-test harnesses for compile-time optimization work
+_diff_harness.py
+_run_diff.sh
+_sweep.sh
+_difftests/
+bench_*.py
 
 # Generated automatically by nix git-hooks
 # See https://github.com/cachix/git-hooks.nix
@@ -188,3 +195,6 @@ cython_debug/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Content-addressed kernel compilation cache (artiq.compiler.kernel_cache)
+.artiq_kernel_cache/

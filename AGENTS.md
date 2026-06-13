@@ -215,6 +215,45 @@ Edit `flake.nix` to add system dependencies or override package builds.
 
 - Uses custom ARTIQ fork with minimal changes from the m-labs upstream version
 
+### Kernel Caching
+
+The vendored compiler (`vendor/artiq/artiq/compiler/`) has a content-addressed
+cache for compiled kernel binaries (`artiq.compiler.kernel_cache`):
+
+- **Key**: blake2b of the generated LLVM IR text + an environment fingerprint
+  (compiler sources, llvmlite/LLVM version, target triple/features/linker
+  options). Host attribute values are embedded in the IR as global
+  initializers, so the key covers parameter _values_ as well as code
+  structure - a stale hit is impossible, but changing any embedded value is a
+  cache miss.
+- **Storage**: `.artiq_kernel_cache/{code_hash}.elf` plus a `.json` metadata
+  file (gitignored). A linked LMT kernel is ~840 KB.
+- **What a hit skips**: LLVM parse/verify/optimize/assemble/link (~4 s for an
+  LMT experiment). Type inference, ARTIQ IR and LLVM IR generation still run
+  on every compile because the IR text _is_ the cache key, so a hit reduces an
+  LMT compile from ~32 s to ~29 s (measured 14.4% on the full LMT compile
+  suite, interleaved A/B with 3 runs each). Skipping the earlier phases would
+  require a key computable before inference (and separate upload of parameter
+  values to the device, which the core device protocol does not currently
+  support - see `Core.set_parameter_values`).
+- **Env vars**: `ARTIQ_KERNEL_CACHE=0` disables; `ARTIQ_KERNEL_CACHE_DIR`
+  relocates (default `./.artiq_kernel_cache`); `ARTIQ_DUMP_HASHED_IR=<path>`
+  dumps the exact text being hashed, for debugging unexpected misses.
+- **Determinism**: cross-process cache hits require the emitted IR to be
+  byte-identical between processes. Two sources of address-dependent
+  nondeterminism were fixed for this (`id()`-based string-kernel names in
+  `embedding.py`, set-ordered hoisting in `constant_hoister.py`). If hits stop
+  working, diff two `ARTIQ_DUMP_HASHED_IR` dumps.
+- **Known blocker for live use**: pyaion's `UrukulInit.host_setup` embeds
+  `hash(device)` (a memory address) into kernel data and orders its CPLD list
+  by `list(set(...))`, so any Urukul-touching experiment compiles to
+  different bytes per process. `tests/conftest.py` patches this for the test
+  suite; the equivalent fix is needed in pyaion itself before production
+  re-runs hit the cache.
+- **Tests**: `nix develop -c python scripts/pytest_vendored.py
+tests/test_kernel_cache.py` (skips under plain pytest, which imports the
+  /nix/store artiq instead of the vendored tree).
+
 ## Common Patterns
 
 ### Creating a basic Experiment

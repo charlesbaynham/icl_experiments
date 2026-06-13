@@ -1,0 +1,80 @@
+[tool.poetry]
+name = "ndscan"
+version = "v0.4.1"
+description = "Composable experiment fragments and multi-dimensional scans for ARTIQ"
+authors = ["David Nadlinger <code@klickverbot.at>"]
+license = "LGPLv3+"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.24.2"
+h5py = "^3.8.0"
+pyqtgraph = "^0.13.3"
+
+# qasync 0.24.2 has horrendous threading issues on Windows, which (for not entirely
+# obvious reasons) mostly show up on Python 3.10 and up. For the time being, depend
+# on a pre-release version with those issues fixed.
+qasync = { git = "https://github.com/dnadlinger/qasync.git", branch = "windows-fixes" }
+
+sipyco = { git = "https://github.com/m-labs/sipyco.git" }
+oitg = { git = "https://github.com/oxfordiontrapgroup/oitg.git" }
+
+# For ARTIQ, we are running into an annoying Poetry limitation (?): We would like to be
+# able to specify a Git repository source, as ARTIQ is not on PyPI, and additionally we
+# tend to depend on unreleased versions. Additionally, however, we want to be able to
+# use ndscan as a dependency, e.g. from downstream metapackages, where we might also
+# want to depend on a particular version of ARTIQ (for instance, an Oxford-internal
+# development branch for things that have not made it upstream yet). Currently, there
+# does not seem a way for us to just specify a "fallback" Git source; Poetry appears to
+# always consider two differing Git dependencies to be in conflict with each other.
+#
+# On macOS, there are two additional issues: Qt 5 is not packaged (at least not for
+# ARM64), and window embedding is broken, causing upstream ARTIQ to crash when launching
+# applets. There is a temporary branch fixing this at
+# { platform = "darwin", git = "https://github.com/dnadlinger/artiq.git", branch = "mac-applets" },
+# but adding this dependency again somehow causes the Git source to be used for the
+# other platforms (with the aforementioned issues).
+#
+# Thus, for the time being, we leave it up to the user to provide a suitable version of
+# ARTIQ and only specify the Qt dependencies (which could be further refined into
+# optional dependencies of some kind, as in theory, ndscan can run against either Qt
+# version on every platform).
+artiq = { version = "8.*" }
+pyqt5 = { version = "^5.15.9", markers = "sys_platform != 'darwin'" }
+pyqt6 = { version = "^6.5.2", markers = "sys_platform == 'darwin'" }
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.22.1"
+toml = "^0.10.2"
+
+# Pin exact versions of linters to avoid inconsistencies between CI environments.
+# YAPF 0.33–0.40 split before comparison operators, rather than after, not matching the
+# default behaviour for arithmetic operators, so stay on 0.32 for now – though at some
+# point we might just update and not care.
+yapf = "0.32.0"
+flake8 = "6.1.0"
+
+# To generate documentation.
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "^1.3.0"
+matplotlib = "^3.8.0"
+
+[tool.poetry.scripts]
+ndscan_dataset_janitor = "ndscan.dataset_janitor:main"
+ndscan_to_txt = "ndscan.to_txt:main"
+ndscan_show = "ndscan.show:main"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+fmt = "yapf -i -r examples ndscan test"
+fmt-test = "yapf -d -r examples ndscan test"
+lint = "flake8 examples ndscan test"
+test = "python -m unittest discover -v test"
