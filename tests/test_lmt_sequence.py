@@ -4,6 +4,7 @@ Tests for the declarative LMT sequence language and compiler.
 
 import pytest
 
+from repository.lib import pulse_intent
 from repository.lib.lmt_sequence import EVENT_CALLBACK
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
@@ -257,6 +258,60 @@ def test_clearout_population_rules():
         [*setpoints(), Clearout()], initial_population={("e", 0)}
     )
     assert compiled.events[-1].duration_param_ref == "clearout_duration"
+
+
+def test_compiled_pulse_intent_fields():
+    """Pulses carry their resolved intent: a pi pulse is a FLIP, anything
+    else a SUPERPOSE, with the addressed state/m as resolved by the
+    population walk and delta_m equal to the beam sign."""
+    compiled = compile_sequence(
+        [*setpoints(), pi(Beam.UP, m=0), pi2(Beam.DOWN, m=1)],
+        initial_population={("g", 0)},
+    )
+    pi_event = compiled.events[1]
+    assert pi_event.state_effect == pulse_intent.EFFECT_FLIP
+    assert pi_event.addressed_state == pulse_intent.STATE_GROUND
+    assert pi_event.addressed_m == 0
+    assert pi_event.delta_m == 1
+
+    # After the pi the population is {(e, 1)}; the down-beam pi/2 addresses it
+    pi2_event = compiled.events[2]
+    assert pi2_event.state_effect == pulse_intent.EFFECT_SUPERPOSE
+    assert pi2_event.addressed_state == pulse_intent.STATE_EXCITED
+    assert pi2_event.addressed_m == 1
+    assert pi2_event.delta_m == -1
+
+    # Non-pulse events keep the inert defaults
+    setpoint_event = compiled.events[0]
+    assert setpoint_event.state_effect == pulse_intent.EFFECT_NONE
+    assert setpoint_event.addressed_state == pulse_intent.STATE_AUTO
+    assert setpoint_event.addressed_m == pulse_intent.M_AUTO
+    assert setpoint_event.delta_m == 0
+    assert setpoint_event.declared_duration_s == 0.0
+
+
+def test_compiled_callback_intent_fields():
+    """Callbacks carry their declared intent, with the state_effect string
+    mapped to the integer intent codes."""
+    compiled = compile_sequence(
+        [
+            *setpoints(),
+            Callback(callback_id=7, delta_m=2, state_effect="flip", duration=1.5e-3),
+            Callback(callback_id=8, state_effect="superpose"),
+            Callback(callback_id=9),
+        ],
+        initial_population={("e", 0)},
+    )
+    flip = compiled.events[1]
+    assert flip.kind == EVENT_CALLBACK
+    assert flip.state_effect == pulse_intent.EFFECT_FLIP
+    assert flip.delta_m == 2
+    assert flip.declared_duration_s == pytest.approx(1.5e-3)
+
+    assert compiled.events[2].state_effect == pulse_intent.EFFECT_SUPERPOSE
+    assert compiled.events[3].state_effect == pulse_intent.EFFECT_NONE
+    assert compiled.events[3].delta_m == 0
+    assert compiled.events[3].declared_duration_s == 0.0
 
 
 def test_callback_bookkeeping():

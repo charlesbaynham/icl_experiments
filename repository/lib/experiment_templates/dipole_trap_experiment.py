@@ -45,6 +45,7 @@ import logging
 import numpy as np
 from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import now_mu
 from artiq.language import portable
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -154,6 +155,17 @@ class DipoleTrapWithExperimentBase(
         self._tracked_delivery_aom_freq = 0.0  # Hz, delivery AOM frequency
         self._tracked_delivery_aom_setpoint = 0.0  # V, delivery AOM SUServo setpoint
 
+        # Timebase anchors for the dynamic-ROI predictor. The dipole drop
+        # (t_dipole_beams_off) is stamped by the active clock mixin INSIDE the
+        # DMA recording, so it is recording-relative; t_playback_start_mu is
+        # the live-timeline cursor captured immediately before playback. The
+        # live release time is therefore their sum (see get_t_release_mu).
+        # Defaulted here so non-clock dipole experiments still construct; the
+        # clock mixins overwrite t_dipole_beams_off each shot.
+        if not hasattr(self, "t_dipole_beams_off"):
+            self.t_dipole_beams_off = int64(0)
+        self.t_playback_start_mu = int64(0)
+
     @kernel
     def DMA_record_hook(self):
         self.dma_recording_fragment.record_pulse_sequence()
@@ -193,6 +205,11 @@ class DipoleTrapWithExperimentBase(
         self.adiabatic_cooling_hook()
         delay(self.dipole_hold_time.get())
         self.matterwave_collimate_hook()
+
+        # Live-timeline cursor at the start of playback: the anchor that maps
+        # the recording-relative pulse/intent timestamps onto the live
+        # timeline for the dynamic-ROI predictor.
+        self.t_playback_start_mu = now_mu()
 
         # This plays back the pre-recorded version of `actions_after_drop`:
         self.dma_recording_fragment.playback()
@@ -298,6 +315,25 @@ class DipoleTrapWithExperimentBase(
             state_effect=state_effect,
             delta_m=delta_m,
         )
+
+    # ------------------------------------------------------------------
+    # Timebase accessors for the dynamic-ROI predictor (DynamicROIImagingMixin).
+    # ------------------------------------------------------------------
+
+    @portable
+    def get_t_playback_start_mu(self) -> int64:
+        """Live-timeline cursor captured just before DMA playback."""
+        return self.t_playback_start_mu
+
+    @portable
+    def get_t_release_mu(self) -> int64:
+        """Live-timeline time the atoms were released (dipole beams off).
+
+        The drop is stamped by the active clock mixin inside the DMA
+        recording, so ``t_dipole_beams_off`` is recording-relative; its live
+        time is the playback-start cursor plus that offset.
+        """
+        return self.t_playback_start_mu + self.t_dipole_beams_off
 
     # ------------------------------------------------------------------
     # Clock-frequency tracking state lives here (read by

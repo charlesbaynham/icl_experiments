@@ -125,9 +125,12 @@ class _Outer:
 
 class _Recorder:
     """Stands in for the PulseDMARecording fragment: holds the record buffers
-    plus the real ``register_pulse`` recorder."""
+    plus the real ``register_pulse`` recorder (which now records the pulse
+    facts and a default-intent entry together)."""
 
     register_pulse = _raw(PulseDMARecording.register_pulse)
+    register_pulse_with_intent = _raw(PulseDMARecording.register_pulse_with_intent)
+    _append_intent = _raw(PulseDMARecording._append_intent)
 
     def __init__(self, core, outer):
         self.core = core
@@ -140,6 +143,15 @@ class _Recorder:
         self._pulse_record_delivery_freq_hz = [0.0] * BUFFER_DEPTH
         self._pulse_record_delivery_setpoint = [0.0] * BUFFER_DEPTH
         self._pulse_record_num_pulses = 0
+        # Intent stream buffers (register_pulse appends a default-intent entry)
+        self._intent_record_start_times_mu = [int64(0)] * BUFFER_DEPTH
+        self._intent_record_durations_mu = [int64(0)] * BUFFER_DEPTH
+        self._intent_record_kinds = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_state_effects = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_addressed_states = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_addressed_m = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_delta_m = [int32(0)] * BUFFER_DEPTH
+        self._intent_record_num_events = 0
 
 
 @pytest.fixture
