@@ -571,6 +571,21 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
     def build_fragment(self):
         super().build_fragment()
 
+        # Re-expose the camera-config tuning params at the experiment level so
+        # they can be set/scanned from the dashboard and the submit API (the
+        # sub-fragment params are otherwise only reachable at a nested override
+        # path). The trap pixel position in particular is source-specific (the
+        # red MOT and dipole trap sit at different sensor positions) and needs
+        # commissioning per source.
+        self.setattr_param_rebind(
+            "trap_x_pixel", self.andor_camera_config, "trap_x_pixel"
+        )
+        self.setattr_param_rebind(
+            "trap_y_pixel", self.andor_camera_config, "trap_y_pixel"
+        )
+        self.setattr_param_rebind("roi_width", self.andor_camera_config, "roi_width")
+        self.setattr_param_rebind("roi_height", self.andor_camera_config, "roi_height")
+
         self.setattr_param(
             "roi_prediction_budget",
             FloatParam,
