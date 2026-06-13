@@ -363,16 +363,21 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             t_release_mu: Live-timeline timestamp of the atom release (t=0
                 for the trajectory).
         """
+        # Slice to the populated entries BEFORE the RPC: the intent buffers are
+        # BUFFER_DEPTH (300) long, and marshalling all of them kernel->host on
+        # every call costs several ms of timeline slack (enough to underflow
+        # the imaging budget). Only num_events entries are valid, so send just
+        # those - typically 0 (a plain drop) to a few tens (a launch ladder).
         packed = self._calculate_positions_host(
             t1,
             t2,
-            intent_start_times_mu,
-            intent_durations_mu,
-            intent_kinds,
-            intent_state_effects,
-            intent_addressed_states,
-            intent_addressed_m,
-            intent_delta_m,
+            intent_start_times_mu[:num_events],
+            intent_durations_mu[:num_events],
+            intent_kinds[:num_events],
+            intent_state_effects[:num_events],
+            intent_addressed_states[:num_events],
+            intent_addressed_m[:num_events],
+            intent_delta_m[:num_events],
             num_events,
             t_playback_start_mu,
             t_release_mu,
