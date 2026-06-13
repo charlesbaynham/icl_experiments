@@ -484,30 +484,15 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         gnd = out["ground"]
         exc = out["excited"]
 
-        logger.info(
-            "Predicted ports: ground (%.1f, %.1f) px (multiplicity %d), "
-            "excited (%.1f, %.1f) px (multiplicity %d)",
-            gnd.x_pixel,
-            gnd.y_pixel,
-            gnd.multiplicity,
-            exc.x_pixel,
-            exc.y_pixel,
-            exc.multiplicity,
-        )
-        if gnd.multiplicity != 1:
-            logger.warning(
-                "Ground port multiplicity is %d, not 1 - the ROI is centred "
-                "on the branch mean (0 = empty port, pointed at the other "
-                "port's cloud)",
-                gnd.multiplicity,
-            )
-        if exc.multiplicity != 1:
-            logger.warning(
-                "Excited port multiplicity is %d, not 1 - the ROI is centred "
-                "on the branch mean (0 = empty port, pointed at the other "
-                "port's cloud)",
-                exc.multiplicity,
-            )
+        # NB: no logging in this hot path. It runs as a blocking RPC inside the
+        # imaging slack budget, and emitting a log record per shot to the
+        # master's (potentially slow) handlers can cost several ms of timeline
+        # slack - enough to underflow the first camera trigger. Predicted
+        # positions and multiplicities are published on the diagnostics result
+        # channels instead (predicted_*_x/y, *_port_multiplicity). A
+        # multiplicity of 0 (empty port -> centred on the other port's cloud)
+        # or >1 (open interferometer -> centred on the branch mean) is visible
+        # there; the ROIs are still placed sensibly in both cases.
 
         return np.array(
             [
