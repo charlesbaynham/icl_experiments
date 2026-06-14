@@ -7,24 +7,36 @@ with the legacy LMT stack in ``LMT_launch_mixins.py`` (which is preserved
 unchanged and headed for deprecation); the two use the same kernel hook and
 cannot be combined in one experiment.
 
+The engine (:class:`DeclarativeLMTCoreBase`) is independent of how the atoms are
+prepared; two concrete bases bind it to a release mechanism:
+
+* :class:`DeclarativeLMTBase` - runs the declared sequence after release from
+  the dipole trap
+  (:class:`~repository.lib.experiment_templates.dipole_trap_experiment.DipoleTrapWithExperimentBase`).
+* :class:`DeclarativeLMTRedMOTBase` - runs it directly from the red MOT
+  (:class:`~repository.lib.experiment_templates.red_mot_dma_experiment.RedMOTWithDMAExperimentBase`),
+  for when the dipole laser is unavailable.
+
 Principles
 ----------
 
 - The whole pulse sequence is declared, including the velocity-selective
   pulse: it is a normal pulse, just longer and with a lower delivery set
   point.
-- t=0 for the gravity Doppler is the moment the atoms are dropped from the
-  dipole trap (``t_dipole_beams_off``, recorded by this mixin's
-  ``post_dipole_trap_hook``). The atoms addressed by the velocity slice are
-  already falling, so every pulse - including the slicer - carries the full
-  Doppler term ``s * D(t)`` accumulated since the drop. Because the term is
-  proportional to the beam sign ``s``, the pre-slice fall shifts the up and
-  down beams asymmetrically (the legacy stack absorbed this into empirical
-  per-beam offsets). Fired this way, an un-offset slicer selects the class
-  that was at rest at the drop, which is also the assumption the ballistic
-  camera-ROI predictor makes (see
+- t=0 for the gravity Doppler is the moment the atoms are released, provided
+  by the base's :meth:`~DeclarativeLMTCoreBase.get_doppler_t_ref_mu`: the
+  dipole-trap drop (``t_dipole_beams_off``) for :class:`DeclarativeLMTBase`,
+  red-MOT light-off for :class:`DeclarativeLMTRedMOTBase`. The atoms
+  addressed by the velocity slice are already falling, so every pulse -
+  including the slicer - carries the full Doppler term ``s * D(t)``
+  accumulated since the release. Because the term is proportional to the beam
+  sign ``s``, the pre-slice fall shifts the up and down beams asymmetrically
+  (the legacy stack absorbed this into empirical per-beam offsets). Fired
+  this way, an un-offset slicer selects the class that was at rest at the
+  release, which is also the assumption the ballistic camera-ROI predictor
+  makes (see
   :class:`~repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging.NormalisedFastKineticsLMTCorrectedMixin`,
-  which reads the same ``t_dipole_beams_off`` as its trajectory t=0).
+  which reads the same release timestamp as its trajectory t=0).
 - The switch AOMs stay at their nominal frequency and amplitude; they only
   gate pulses on and off.
 - All frequency control happens on the OPLL offset DDS. Every pulse is fired
@@ -54,8 +66,14 @@ Principles
   (``LMT_launch_mixins.do_selective_lmt_pulse``); attenuation in dB has an
   uncalibrated nonlinear relationship to optical power, so equivalent set
   points must be calibrated on atoms when porting tuned values.
+- Every atom-affecting event self-describes to the pulse recorder as it
+  fires: pulses register their build-time intent (pi transfer or
+  superposition of the resolved pair), clearouts and callbacks register
+  theirs too, so the recorded intent stream always matches what actually ran
+  (see :mod:`repository.lib.pulse_intent`).
 """
 
+import abc
 import logging
 
 from artiq.language import at_mu
@@ -63,6 +81,7 @@ from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import kernel
 from artiq.language import now_mu
+from artiq.language import portable
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from numpy import int32
@@ -74,6 +93,9 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 )
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
+)
+from repository.lib.experiment_templates.red_mot_dma_experiment import (
+    RedMOTWithDMAExperimentBase,
 )
 from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
@@ -91,9 +113,13 @@ start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
-class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
+class DeclarativeLMTCoreBase(ClockSpectroscopyBase, abc.ABC):
     """
-    Runs an LMT pulse sequence declared as a list of event dataclasses.
+    Engine that runs an LMT pulse sequence declared as a list of event
+    dataclasses. Release-mechanism agnostic: use one of the concrete bases
+    (:class:`DeclarativeLMTBase` for the dipole trap,
+    :class:`DeclarativeLMTRedMOTBase` for release straight from the red MOT)
+    rather than this class directly.
 
     Subclasses declare the sequence and the initial atomic population as
     class attributes. The sequence contains everything from the
@@ -111,11 +137,11 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                 ...
             ]
 
-    t=0 for the gravity Doppler is the moment the atoms are dropped from
-    the dipole trap, recorded by :meth:`post_dipole_trap_hook` as
-    ``t_dipole_beams_off``. The same timestamp is read by the
-    trajectory-corrected camera-ROI machinery, keeping the frequency
-    bookkeeping and the imaging predictions consistent.
+    t=0 for the gravity Doppler is the moment the atoms are released, read
+    each shot from :meth:`get_doppler_t_ref_mu`, which the concrete base
+    implements in the timebase its pulses fire in. The same release time is
+    used by the trajectory-corrected camera-ROI machinery, keeping the
+    frequency bookkeeping and the imaging predictions consistent.
 
     At build time the sequence is validated (momentum-class bookkeeping, see
     :func:`~repository.lib.lmt_sequence.compile_sequence`) and one ndscan
@@ -123,20 +149,13 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
     the model-predicted resonance) and a duration (default derived from the
     declared Rabi frequency) per pulse, a set point per
     :class:`~repository.lib.lmt_sequence.SetPoint`, and durations for waits
-    and clearouts.
+    and clearouts. The compiled per-event intent (pi transfer or
+    superposition of the resolved pair, momentum kick) is shipped to the
+    kernel and registered with the pulse recorder as each event fires.
 
     Callback events dispatch to :meth:`lmt_sequence_callback`, which
     subclasses override with an ``if``/``elif`` on the callback id (ARTIQ
     kernels have no function pointers).
-
-    Kernel hooks used (multiple mixins cannot use the same hooks):
-
-    * :meth:`~post_dipole_trap_hook`
-    * :meth:`~do_experiment_after_dipole_trap_hook`
-
-    In particular this means the legacy shelving mixin
-    (``ClockShelvingAndClearoutDipoleTrapMixin``) cannot be combined with
-    this one - velocity selection belongs in the declared sequence instead.
     """
 
     lmt_sequence: list = None
@@ -170,11 +189,6 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
             min=0.0,
         )
         self.clearout_duration: FloatParamHandle
-
-        # Timestamp of the dipole-trap drop, recorded each shot by
-        # post_dipole_trap_hook; t=0 for the gravity Doppler and for the
-        # ballistic camera-ROI predictor.
-        self.t_dipole_beams_off = int64(0)
 
         if not self.lmt_sequence:
             raise TypeError(
@@ -223,6 +237,14 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         self._lmt_offset_handles = []
         self._lmt_duration_handles = []
         self._lmt_setpoint_handles = []
+        # Build-time intent shipped to the kernel and registered with the
+        # pulse recorder as each event fires (integer codes from
+        # repository.lib.pulse_intent, filled in by the sequence compiler)
+        self._lmt_intent_state_effect = []
+        self._lmt_intent_addressed_state = []
+        self._lmt_intent_addressed_m = []
+        self._lmt_intent_delta_m = []
+        self._lmt_intent_duration_s = []
         # (slot index, fragment attribute name) pairs resolved in host_setup,
         # because the referenced parameter may be created by a mixin that
         # builds after this one in the MRO.
@@ -233,6 +255,11 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
             self._lmt_beam_sign.append(float(event.beam_sign))
             self._lmt_m_term_hz.append(float(event.m_term_hz))
             self._lmt_callback_id.append(int32(event.callback_id))
+            self._lmt_intent_state_effect.append(int32(event.state_effect))
+            self._lmt_intent_addressed_state.append(int32(event.addressed_state))
+            self._lmt_intent_addressed_m.append(int32(event.addressed_m))
+            self._lmt_intent_delta_m.append(int32(event.delta_m))
+            self._lmt_intent_duration_s.append(float(event.declared_duration_s))
 
             if event.offset_param is not None:
                 handle = self.setattr_param(
@@ -285,6 +312,11 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
             "_lmt_beam_sign",
             "_lmt_m_term_hz",
             "_lmt_callback_id",
+            "_lmt_intent_state_effect",
+            "_lmt_intent_addressed_state",
+            "_lmt_intent_addressed_m",
+            "_lmt_intent_delta_m",
+            "_lmt_intent_duration_s",
         }
 
     def host_setup(self):
@@ -347,6 +379,18 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
     # Sequence execution
     # ------------------------------------------------------------------
 
+    @abc.abstractmethod
+    def get_doppler_t_ref_mu(self) -> int64:
+        """
+        Timeline position of the atoms' release - t=0 for the gravity
+        Doppler of every pulse in the declared sequence.
+
+        Implemented by the concrete bases as a ``@portable`` method, in the
+        same timebase that ``now_mu()`` reads when the sequence fires (for
+        DMA-recorded sequences that is the recording-relative timebase).
+        """
+        raise NotImplementedError
+
     @kernel
     def _set_delivery_setpoint(self, setpoint_v: float):
         """Write the delivery AOM SUServo set point (tracked)."""
@@ -375,15 +419,27 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
 
     @kernel
     def _fire_pulse(
-        self, freq_centre: float, t_start: int64, is_up: bool, duration: float
+        self,
+        freq_centre: float,
+        t_start: int64,
+        is_up: bool,
+        duration: float,
+        state_effect: int32,
+        addressed_state: int32,
+        addressed_m: int32,
+        delta_m: int32,
     ):
-        """Fire one pulse gated by the switch AOM.
+        """Fire one pulse gated by the switch AOM, registering its intent.
 
         The OPLL is chirped at the gravity rate for the duration of the
         pulse so that long pulses stay on resonance with the falling atoms;
         the chirp crosses ``freq_centre`` at the centre of the pulse. The
         ramp is programmed before ``t_start``, so it starts running slightly
         early - at ~14 MHz/s the resulting frequency error is negligible.
+
+        The intent arguments are the compile-time-resolved effect of the
+        pulse (see :mod:`repository.lib.pulse_intent`), registered with the
+        pulse recorder alongside the pulse facts.
         """
         self.stop_clock_opll_ramp()
         delay_mu(8)
@@ -398,7 +454,14 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
             self.start_clock_opll_ramp(ramp_rate, f_on - 2e6, f_on, wave_type=2)
 
         at_mu(t_start)
-        self.register_pulse(duration_s=duration, is_up=is_up)
+        self.register_pulse_with_intent(
+            is_up=is_up,
+            duration_s=duration,
+            state_effect=state_effect,
+            addressed_state=addressed_state,
+            addressed_m=addressed_m,
+            delta_m=delta_m,
+        )
         if is_up:
             self.clock_up_dds.sw.on()
             delay(duration)
@@ -423,6 +486,14 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                     self.my_shaped_pulse()
                 else:
                     raise ValueError("Unknown LMT sequence callback id")
+
+        The engine registers the Callback's declared intent (its
+        ``state_effect``/``delta_m``/``duration``) with the pulse recorder
+        immediately BEFORE dispatching here, so the fired pulse
+        self-describes even though it bypasses the square-pulse path. The
+        implementation must therefore NOT also call ``register_pulse`` /
+        ``register_pulse_with_intent`` / ``register_intent_callback`` -
+        doing so would double-count the event in the intent stream.
         """
         raise ValueError(
             "Unhandled LMT sequence Callback - override lmt_sequence_callback() "
@@ -430,27 +501,26 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         )
 
     @kernel
-    def post_dipole_trap_hook(self):
-        # Record the drop time: t=0 for the gravity Doppler of every pulse
-        # and for the ballistic camera-ROI predictor
-        self.t_dipole_beams_off = now_mu()
-        self.post_dipole_trap_hook_default()
-
-    @kernel
     def run_lmt_sequence(self):
         """Execute the declared sequence.
 
-        The gravity Doppler of every pulse is referenced to the dipole-trap
-        drop (``t_dipole_beams_off``): the atoms addressed by the
+        The gravity Doppler of every pulse is referenced to the atoms'
+        release (:meth:`get_doppler_t_ref_mu`): the atoms addressed by the
         velocity-selective pulse are already falling, so the slicer too
         carries its accumulated Doppler term, and an un-offset slicer
-        selects the class that was at rest at the drop.
+        selects the class that was at rest at the release.
 
         The delivery set point changes only at SETPOINT events, each of
         which waits ``clock_delivery_preempt_time`` for the servo to
         recapture; pulses never touch the set point.
+
+        Every atom-affecting event registers its intent with the pulse
+        recorder as it fires: pulses via
+        :meth:`~repository.lib.experiment_templates.red_mot_experiment.RedMOTWithExperimentBase.register_pulse_with_intent`,
+        clearouts via ``register_clearout`` and callbacks via
+        ``register_intent_callback``.
         """
-        t_ref_mu = self.t_dipole_beams_off
+        t_ref_mu = self.get_doppler_t_ref_mu()
 
         for i in range(self._lmt_n_events):
             kind = self._lmt_event_kind[i]
@@ -462,7 +532,7 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                 t_centre_mu = t_start + self.core.seconds_to_mu(duration / 2)
 
                 # Gravity Doppler evaluated at the pulse centre, accumulated
-                # since the dipole-trap drop
+                # since the release
                 t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
                 freq_centre = (
                     start_opll_offset
@@ -471,15 +541,24 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                     + self._lmt_offset_handles[i].get()
                 )
                 self._fire_pulse(
-                    freq_centre, t_start, self._lmt_beam_sign[i] > 0.0, duration
+                    freq_centre,
+                    t_start,
+                    self._lmt_beam_sign[i] > 0.0,
+                    duration,
+                    self._lmt_intent_state_effect[i],
+                    self._lmt_intent_addressed_state[i],
+                    self._lmt_intent_addressed_m[i],
+                    self._lmt_intent_delta_m[i],
                 )
 
             elif kind == EVENT_WAIT:
                 delay(self._lmt_duration_handles[i].get())
 
             elif kind == EVENT_CLEAROUT:
+                clearout_duration = self._lmt_duration_handles[i].get()
+                self.register_clearout(duration_s=clearout_duration)
                 self.fluorescence_pulse.do_clearout_pulse(
-                    duration=self._lmt_duration_handles[i].get(),
+                    duration=clearout_duration,
                     ignore_final_shutters=True,
                 )
                 delay(8e-9)
@@ -495,7 +574,67 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
                 delay(self.clock_delivery_preempt_time.get())
 
             else:  # EVENT_CALLBACK
+                # Register the declared intent first, so the custom pulse
+                # self-describes; the callback implementation must not also
+                # call register_* (see lmt_sequence_callback)
+                self.register_intent_callback(
+                    duration_s=self._lmt_intent_duration_s[i],
+                    state_effect=self._lmt_intent_state_effect[i],
+                    delta_m=self._lmt_intent_delta_m[i],
+                )
                 self.lmt_sequence_callback(self._lmt_callback_id[i])
+
+    @kernel
+    def post_sequence_cleanup_hook_declarative_lmt(self):
+        # Stop any OPLL ramp and restore the nominal offset
+        self.stop_clock_opll_ramp()
+        self.set_clock_opll(start_opll_offset)
+
+
+class DeclarativeLMTBase(DeclarativeLMTCoreBase, DipoleTrapWithExperimentBase):
+    """
+    Runs a declared LMT sequence after release from the dipole trap.
+
+    t=0 for the gravity Doppler is the moment the atoms are dropped from
+    the dipole trap, recorded by :meth:`post_dipole_trap_hook` as
+    ``t_dipole_beams_off``. The same timestamp is read by the
+    trajectory-corrected camera-ROI machinery, keeping the frequency
+    bookkeeping and the imaging predictions consistent. Because the dipole
+    base DMA-records ``actions_after_drop`` (which contains both the stamp
+    and the sequence), the stamp and every pulse share the
+    recording-relative timebase.
+
+    See :class:`DeclarativeLMTCoreBase` for the sequence language and engine.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~post_dipole_trap_hook`
+    * :meth:`~do_experiment_after_dipole_trap_hook`
+
+    In particular this means the legacy shelving mixin
+    (``ClockShelvingAndClearoutDipoleTrapMixin``) cannot be combined with
+    this one - velocity selection belongs in the declared sequence instead.
+    """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        # Timestamp of the dipole-trap drop, recorded each shot by
+        # post_dipole_trap_hook; t=0 for the gravity Doppler and for the
+        # ballistic camera-ROI predictor.
+        self.t_dipole_beams_off = int64(0)
+
+    @kernel
+    def post_dipole_trap_hook(self):
+        # Record the drop time: t=0 for the gravity Doppler of every pulse
+        # and for the ballistic camera-ROI predictor
+        self.t_dipole_beams_off = now_mu()
+        self.post_dipole_trap_hook_default()
+
+    @portable
+    def get_doppler_t_ref_mu(self) -> int64:
+        """The dipole-trap drop time stamped by :meth:`post_dipole_trap_hook`."""
+        return self.t_dipole_beams_off
 
     @kernel
     def do_experiment_after_dipole_trap_hook(self):
@@ -504,8 +643,45 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
         self._prepare_switch_dds_nominal()
         self.run_lmt_sequence()
 
+
+class DeclarativeLMTRedMOTBase(DeclarativeLMTCoreBase, RedMOTWithDMAExperimentBase):
+    """
+    Runs a declared LMT sequence directly from the red MOT (no dipole trap),
+    via :class:`~repository.lib.experiment_templates.red_mot_dma_experiment.RedMOTWithDMAExperimentBase`.
+    For when the 1064 nm dipole laser is unavailable.
+
+    t=0 for the gravity Doppler is the red-MOT light-off (the atoms'
+    release). The sequence runs inside the DMA-recorded
+    ``actions_after_drop``, whose timeline cursor starts at zero at what
+    will be the playback start - which run_once schedules ``expansion_time``
+    AFTER light-off. In the recording-relative timebase the release
+    therefore happened at ``-expansion_time``, which is what
+    :meth:`get_doppler_t_ref_mu` returns (the ``pre_experiment_delay``
+    between the post-drop actions and the experiment is *inside* the
+    recording, so it needs no correction).
+
+    See :class:`DeclarativeLMTCoreBase` for the sequence language and engine.
+
+    Kernel hooks used (multiple mixins cannot use the same hooks):
+
+    * :meth:`~do_experiment_after_drop_hook`
+    """
+
+    @portable
+    def get_doppler_t_ref_mu(self) -> int64:
+        """
+        Release time in the recording-relative timebase the sequence runs in.
+
+        run_once: light-off (release) -> delay(expansion_time) -> playback
+        starts. The DMA recording's cursor starts at zero at the playback
+        start, so the release sits at ``-expansion_time`` in the recording
+        frame.
+        """
+        return -self.core.seconds_to_mu(self.expansion_time.get())
+
     @kernel
-    def post_sequence_cleanup_hook_declarative_lmt(self):
-        # Stop any OPLL ramp and restore the nominal offset
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(start_opll_offset)
+    def do_experiment_after_drop_hook(self):
+        self.prepare_clock_delivery_aom()
+        delay_mu(16)
+        self._prepare_switch_dds_nominal()
+        self.run_lmt_sequence()

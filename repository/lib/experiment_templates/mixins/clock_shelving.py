@@ -195,6 +195,7 @@ class ClockShelvingAndClearoutBase(ClockOPLLTrackingMixin, RedMOTWithExperimentB
         delay(constants.DEFAULT_DELIVERY_SETTLING_DURATION)
 
         # Clear out the ground state
+        self.register_clearout(duration_s=self.shelving_pulse_clearout_duration.get())
         self.fluorescence_pulse.do_imaging_pulse(
             duration=self.shelving_pulse_clearout_duration.get(),
             ignore_final_shutters=True,

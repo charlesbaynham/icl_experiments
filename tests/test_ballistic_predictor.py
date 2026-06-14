@@ -1,18 +1,24 @@
 """
-Unit tests for repository.lib.physics.ballistic.
+Unit tests for the intent-driven trajectory predictor
+(repository.lib.physics.trajectory) and its geometry building blocks
+(repository.lib.physics.ballistic).
 
-All tests are pure Python/NumPy — no ARTIQ fixtures required.
+All tests are pure Python/NumPy - no ARTIQ fixtures required.
 """
 
 import numpy as np
 import pytest
 import scipy.constants
 
+from repository.lib import pulse_intent
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import CameraGeometry
-from repository.lib.physics.ballistic import predict_position
-from repository.lib.physics.ballistic import predict_positions_from_mu
 from repository.lib.physics.ballistic import recoil_velocity
+from repository.lib.physics.trajectory import predict_port_pixels
+from repository.lib.physics.trajectory import rebase_record_times_mu
+from repository.lib.physics.trajectory import walk_intent_events
+from repository.lib.pulse_intent import IntentEvent
+from repository.lib.pulse_intent import intent_events_from_arrays
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -44,536 +50,444 @@ SIDE_VIEW_CFG = BallisticConfig(
     camera=SIDE_VIEW_CAM,
 )
 
-# Bottom-up camera: looks upward (+z optical axis); sensor axes in lab x-y plane.
-BOTTOM_UP_CAM = CameraGeometry(
-    optical_axis=np.array([0.0, 0.0, 1.0]),
-    sensor_x_axis=np.array([1.0, 0.0, 0.0]),
-    sensor_y_axis=np.array([0.0, 1.0, 0.0]),
-    centre_pixel=CENTRE_PIXEL,
-    pixel_size_m=PIXEL_SIZE_M,
-    magnification=MAGNIFICATION,
-)
-
-BOTTOM_UP_CFG = BallisticConfig(
-    mass_kg=SR87_MASS_KG,
-    gravity_vec_m_per_s2=np.array([0.0, 0.0, -GRAVITY]),
-    clock_beam_direction=np.array([0.0, 0.0, 1.0]),
-    clock_wavelength_m=CLOCK_WAVELENGTH_M,
-    camera=BOTTOM_UP_CAM,
-)
-
 
 def _scale() -> float:
     """Pixel scale: metres → pixels."""
     return MAGNIFICATION / PIXEL_SIZE_M
 
 
-# ── Tests ─────────────────────────────────────────────────────────────────────
+def _free_fall_y(t_s: float) -> float:
+    """Expected sensor y of an unkicked cloud at time t (side-view camera)."""
+    return CENTRE_PIXEL[1] - 0.5 * GRAVITY * t_s * t_s * _scale()
 
 
-def test_free_fall_side_view():
-    """After 10 ms free fall, sensor y changes by −½g t² * scale; x unchanged."""
-    t = 10e-3
-    x_pix, y_pix = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
+def pulse_event(
+    t_start_s: float,
+    is_up: bool,
+    duration_s: float = 55e-6,
+    state_effect: int = pulse_intent.EFFECT_FLIP,
+    addressed_state: int = pulse_intent.STATE_AUTO,
+    addressed_m: int = pulse_intent.M_AUTO,
+    delta_m: "int | None" = None,
+) -> IntentEvent:
+    """An intent entry as register_pulse records it (defaults = pi transfer)."""
+    return IntentEvent(
+        t_start_s=t_start_s,
+        duration_s=duration_s,
+        kind=pulse_intent.KIND_PULSE,
+        state_effect=state_effect,
+        addressed_state=addressed_state,
+        addressed_m=addressed_m,
+        delta_m=delta_m if delta_m is not None else (1 if is_up else -1),
     )
-    expected_dy = -0.5 * GRAVITY * t**2 * _scale()
-    assert x_pix == pytest.approx(CENTRE_PIXEL[0], abs=1e-9)
-    assert y_pix == pytest.approx(CENTRE_PIXEL[1] + expected_dy, rel=1e-6)
 
 
-def test_zero_time_returns_centre():
-    """At t=0 the prediction must equal the trap centre pixel regardless of state."""
-    for state in ("ground", "excited"):
-        x_pix, y_pix = predict_position(
-            site_offset_m=np.zeros(3),
-            initial_velocity_m_per_s=np.zeros(3),
-            pulse_times_s=[],
-            pulse_is_up=[],
-            t_image_s=0.0,
-            cfg=SIDE_VIEW_CFG,
-            state=state,
-        )
-        assert x_pix == pytest.approx(CENTRE_PIXEL[0], abs=1e-9)
-        assert y_pix == pytest.approx(CENTRE_PIXEL[1], abs=1e-9)
-
-
-def test_bottom_view_no_apparent_fall():
-    """Bottom-up camera: gravity is along the optical axis, so pixel coords are unchanged."""
-    t = 50e-3
-    x_pix, y_pix = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=BOTTOM_UP_CFG,
-        state="ground",
+def clearout_event(t_start_s: float, duration_s: float = 50e-6) -> IntentEvent:
+    return IntentEvent(
+        t_start_s=t_start_s,
+        duration_s=duration_s,
+        kind=pulse_intent.KIND_CLEAROUT,
+        state_effect=pulse_intent.EFFECT_NONE,
+        addressed_state=pulse_intent.STATE_GROUND,
+        addressed_m=pulse_intent.M_AUTO,
+        delta_m=0,
     )
-    # Gravity is purely along optical_axis (+z), so both sensor projections = 0.
-    assert x_pix == pytest.approx(CENTRE_PIXEL[0], abs=1e-9)
-    assert y_pix == pytest.approx(CENTRE_PIXEL[1], abs=1e-9)
 
 
-def test_out_of_plane_tilt():
-    """
-    Side camera tilted θ=5° so optical_axis has a −z component.
-    The sensor_y_axis is no longer perfectly aligned with lab +z, so
-    vertical pixel motion is reduced by cos(θ) compared to the aligned case.
-    There should be zero horizontal (x) sensor motion.
-    """
-    theta = np.radians(5.0)
-    # Rotate the side-view camera about lab +x by θ:
-    # optical_axis → [0, cos θ, -sin θ] (still points mostly +y)
-    # sensor_y_axis → [0, sin θ,  cos θ] (still mostly +z)
-    tilted_cam = CameraGeometry(
-        optical_axis=np.array([0.0, np.cos(theta), -np.sin(theta)]),
-        sensor_x_axis=np.array([1.0, 0.0, 0.0]),
-        sensor_y_axis=np.array([0.0, np.sin(theta), np.cos(theta)]),
+V_R = recoil_velocity(SIDE_VIEW_CFG)
+
+
+# ── CameraGeometry (Gram-Schmidt) ─────────────────────────────────────────────
+
+
+def test_geometry_orthonormalises_hand_entered_tilts():
+    """Near-miss axes (operator tilt tweaks) are normalised, not rejected."""
+    cam = CameraGeometry(
+        optical_axis=np.array([0.02, 0.999, 0.0]),  # slightly tilted, not unit
+        sensor_x_axis=np.array([1.0, 0.01, 0.0]),  # not orthogonal to optical
+        sensor_y_axis=np.array([0.0, 0.01, 1.01]),
         centre_pixel=CENTRE_PIXEL,
         pixel_size_m=PIXEL_SIZE_M,
-        magnification=MAGNIFICATION,
     )
-    tilted_cfg = BallisticConfig(
-        mass_kg=SR87_MASS_KG,
-        gravity_vec_m_per_s2=np.array([0.0, 0.0, -GRAVITY]),
-        clock_beam_direction=np.array([0.0, 0.0, 1.0]),
-        clock_wavelength_m=CLOCK_WAVELENGTH_M,
-        camera=tilted_cam,
-    )
-
-    t = 20e-3
-    x_pix_tilted, y_pix_tilted = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=tilted_cfg,
-        state="ground",
-    )
-    x_pix_aligned, y_pix_aligned = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-
-    # Vertical (y sensor) motion is reduced by cos(θ)
-    dy_aligned = y_pix_aligned - CENTRE_PIXEL[1]
-    dy_tilted = y_pix_tilted - CENTRE_PIXEL[1]
-    assert dy_tilted == pytest.approx(dy_aligned * np.cos(theta), rel=1e-6)
-
-    # No horizontal (x sensor) motion from pure vertical gravity
-    assert x_pix_tilted == pytest.approx(CENTRE_PIXEL[0], abs=1e-9)
+    for v in (cam.optical_axis, cam.sensor_x_axis, cam.sensor_y_axis):
+        assert np.isclose(np.linalg.norm(v), 1.0)
+    assert np.isclose(np.dot(cam.optical_axis, cam.sensor_x_axis), 0.0, atol=1e-12)
+    assert np.isclose(np.dot(cam.optical_axis, cam.sensor_y_axis), 0.0, atol=1e-12)
+    assert np.isclose(np.dot(cam.sensor_x_axis, cam.sensor_y_axis), 0.0, atol=1e-12)
 
 
-def test_upward_kick_partially_cancels_gravity():
-    """
-    is_up=True pulse at t=0 on ground atoms (side-view camera): the branch is
-    transferred to the excited state with a +z kick, so the excited port's
-    sensor_y increases by +v_r * t relative to free fall. The ground port is
-    the branch that missed the (only) transfer, i.e. pure free fall.
-    """
-    t = 20e-3
-    v_r = recoil_velocity(SIDE_VIEW_CFG)
-
-    x_free, y_free = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    x_kick, y_kick = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[0.0],
-        pulse_is_up=[True],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="excited",
-    )
-    _, y_missed = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[0.0],
-        pulse_is_up=[True],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-
-    expected_dy_kick = v_r * t * _scale()
-    assert y_kick == pytest.approx(y_free + expected_dy_kick, rel=1e-6)
-    assert x_kick == pytest.approx(x_free, abs=1e-9)
-    assert y_missed == pytest.approx(y_free, abs=1e-9)
-
-
-def test_downward_kick_adds_to_fall():
-    """
-    is_up=False pulse at t=0. The −z kick means sensor_y decreases faster.
-    """
-    t = 20e-3
-    v_r = recoil_velocity(SIDE_VIEW_CFG)
-
-    _, y_free = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    _, y_kick = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[0.0],
-        pulse_is_up=[False],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="excited",
-    )
-
-    expected_dy_kick = -v_r * t * _scale()
-    assert y_kick == pytest.approx(y_free + expected_dy_kick, rel=1e-6)
-
-
-def test_two_up_pulses_kick_then_unkick():
-    """
-    Two up-beam pulses on ground atoms: the first transfers g→e with +ℏk,
-    the second transfers e→g with −ℏk (stimulated emission into the same
-    beam). Net Δv = 0 but a residual displacement v_r*(t₂−t₁) remains along
-    the clock direction. The excited port missed the second transfer and
-    keeps the full +ℏk velocity.
-    """
-    t = 30e-3
-    t1 = 5e-3
-    t2 = 15e-3
-    v_r = recoil_velocity(SIDE_VIEW_CFG)
-
-    _, y_free = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    _, y_ground = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[t1, t2],
-        pulse_is_up=[True, True],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    _, y_excited = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[t1, t2],
-        pulse_is_up=[True, True],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="excited",
-    )
-
-    # Tracked branch ends in the ground state with displacement v_r*(t2−t1)
-    assert y_ground == pytest.approx(y_free + v_r * (t2 - t1) * _scale(), rel=1e-6)
-    # The excited port missed the second transfer: still moving at +v_r
-    assert y_excited == pytest.approx(y_free + v_r * (t - t1) * _scale(), rel=1e-6)
-
-
-def test_alternating_ladder_kicks_all_up():
-    """
-    An alternating up/down ladder on ground atoms transfers +ℏk on every
-    pulse (absorb up, emit into down, absorb up, ...) - the launch. The old
-    (broken) model applied kick signs from the beam direction alone, which
-    would wrongly cancel alternate kicks.
-    """
-    t = 30e-3
-    times = [2e-3, 6e-3, 10e-3, 14e-3]
-    beams = [True, False, True, False]  # up, down, up, down
-    v_r = recoil_velocity(SIDE_VIEW_CFG)
-
-    _, y_free = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    # The tracked branch ends in the ground state (4 transfers from ground)
-    _, y_full = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=times,
-        pulse_is_up=beams,
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-
-    expected_dy = sum(v_r * (t - t_i) for t_i in times) * _scale()
-    assert y_full == pytest.approx(y_free + expected_dy, rel=1e-6)
-
-
-def test_initial_state_excited_down_pulse_kicks_up():
-    """A down-beam pulse on excited atoms (stimulated emission into the down
-    beam) kicks them upward - the first launch pulse after a slice."""
-    t = 20e-3
-    t1 = 1e-3
-    v_r = recoil_velocity(SIDE_VIEW_CFG)
-
-    _, y_free = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    _, y_kick = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[t1],
-        pulse_is_up=[False],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-        initial_state="excited",
-    )
-
-    assert y_kick == pytest.approx(y_free + v_r * (t - t1) * _scale(), rel=1e-6)
-
-
-def test_invalid_states_raise():
-    for kwargs in ({"state": "both"}, {"state": "ground", "initial_state": "x"}):
-        with pytest.raises(ValueError, match="ground"):
-            predict_position(
-                site_offset_m=np.zeros(3),
-                initial_velocity_m_per_s=np.zeros(3),
-                pulse_times_s=[],
-                pulse_is_up=[],
-                t_image_s=1e-3,
-                cfg=SIDE_VIEW_CFG,
-                **kwargs,
-            )
-
-
-def test_kick_along_optical_axis_invisible():
-    """
-    When the clock beam is parallel to the optical axis, a kick along that
-    direction should NOT change the projected pixel position at all.
-    """
-    # Clock beam = optical_axis of side-view camera = [0, 1, 0]
-    cfg_beam_along_axis = BallisticConfig(
-        mass_kg=SR87_MASS_KG,
-        gravity_vec_m_per_s2=np.array([0.0, 0.0, -GRAVITY]),
-        clock_beam_direction=np.array([0.0, 1.0, 0.0]),  # along optical_axis
-        clock_wavelength_m=CLOCK_WAVELENGTH_M,
-        camera=SIDE_VIEW_CAM,
-    )
-
-    t = 20e-3
-    xy_no_kick = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=cfg_beam_along_axis,
-        state="ground",
-    )
-    xy_kick = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[5e-3],
-        pulse_is_up=[True],
-        t_image_s=t,
-        cfg=cfg_beam_along_axis,
-        state="excited",
-    )
-
-    assert xy_kick[0] == pytest.approx(xy_no_kick[0], abs=1e-9)
-    assert xy_kick[1] == pytest.approx(xy_no_kick[1], abs=1e-9)
-
-
-def test_in_plane_drift():
-    """
-    Non-zero initial velocity in the sensor plane → linear pixel drift.
-    Same magnitude along the optical axis → zero pixel drift.
-    """
-    t = 20e-3
-    v_in = 0.01  # 1 cm/s
-
-    # Velocity along sensor_x_axis (lab +x) — should produce linear x-pixel drift
-    xy_in_plane = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.array([v_in, 0.0, 0.0]),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    expected_dx = v_in * t * _scale()
-    assert xy_in_plane[0] == pytest.approx(CENTRE_PIXEL[0] + expected_dx, rel=1e-6)
-
-    # Velocity along optical_axis (lab +y) — should produce zero pixel drift
-    xy_out_of_plane = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.array([0.0, v_in, 0.0]),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=t,
-        cfg=SIDE_VIEW_CFG,
-        state="ground",
-    )
-    # Only gravity contributes to y; x unchanged
-    assert xy_out_of_plane[0] == pytest.approx(CENTRE_PIXEL[0], abs=1e-9)
-
-
-def test_mu_wrapper_matches_seconds_version():
-    """predict_positions_from_mu must match predict_position for the same scenario."""
-    ref_period_s = 1e-9
-    t_zero_mu = 1_000_000_000  # 1 second offset (arbitrary)
-
-    t_pulse_start_s = 4e-3
-    t_pulse_duration_s = 2e-3
-    t_img1_s = 20e-3
-    t_img2_s = 23e-3
-
-    pulse_start_mu = np.array(
-        [t_zero_mu + round(t_pulse_start_s / ref_period_s)], dtype=np.int64
-    )
-    pulse_duration_mu = np.array(
-        [round(t_pulse_duration_s / ref_period_s)], dtype=np.int64
-    )
-    pulse_up = np.array([True])
-    img_mu = np.array(
-        [
-            t_zero_mu + round(t_img1_s / ref_period_s),
-            t_zero_mu + round(t_img2_s / ref_period_s),
-        ],
-        dtype=np.int64,
-    )
-
-    out = predict_positions_from_mu(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_start_times_mu=pulse_start_mu,
-        pulse_durations_mu=pulse_duration_mu,
-        pulse_is_up=pulse_up,
-        image_times_mu=img_mu,
-        t_zero_mu=t_zero_mu,
-        ref_period_s=ref_period_s,
-        cfg=SIDE_VIEW_CFG,
-    )
-
-    for i, (t_img_s, state) in enumerate(
-        [(t_img1_s, "ground"), (t_img1_s, "excited"), (t_img2_s, "excited")]
-    ):
-        if state == "ground":
-            xy_ref = predict_position(
-                np.zeros(3),
-                np.zeros(3),
-                [t_pulse_start_s],
-                [True],
-                t_img_s,
-                SIDE_VIEW_CFG,
-                "ground",
-                pulse_durations_s=[t_pulse_duration_s],
-            )
-            assert out["ground"][0, 0] == pytest.approx(xy_ref[0], rel=1e-6)
-            assert out["ground"][0, 1] == pytest.approx(xy_ref[1], rel=1e-6)
-        elif i == 1:
-            xy_ref = predict_position(
-                np.zeros(3),
-                np.zeros(3),
-                [t_pulse_start_s],
-                [True],
-                t_img_s,
-                SIDE_VIEW_CFG,
-                "excited",
-                pulse_durations_s=[t_pulse_duration_s],
-            )
-            assert out["excited"][0, 0] == pytest.approx(xy_ref[0], rel=1e-6)
-            assert out["excited"][0, 1] == pytest.approx(xy_ref[1], rel=1e-6)
-        else:
-            xy_ref = predict_position(
-                np.zeros(3),
-                np.zeros(3),
-                [t_pulse_start_s],
-                [True],
-                t_img2_s,
-                SIDE_VIEW_CFG,
-                "excited",
-                pulse_durations_s=[t_pulse_duration_s],
-            )
-            assert out["excited"][1, 0] == pytest.approx(xy_ref[0], rel=1e-6)
-            assert out["excited"][1, 1] == pytest.approx(xy_ref[1], rel=1e-6)
-
-
-def test_pulse_duration_shifts_effective_kick_time():
-    """Longer duration delays the effective kick when the pulse start time is fixed."""
-    t_image_s = 20e-3
-    pulse_start_s = 5e-3
-    short_duration_s = 0.0
-    long_duration_s = 4e-3
-    v_r = recoil_velocity(SIDE_VIEW_CFG)
-
-    _, y_short = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[pulse_start_s],
-        pulse_is_up=[True],
-        t_image_s=t_image_s,
-        cfg=SIDE_VIEW_CFG,
-        state="excited",
-        pulse_durations_s=[short_duration_s],
-    )
-    _, y_long = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[pulse_start_s],
-        pulse_is_up=[True],
-        t_image_s=t_image_s,
-        cfg=SIDE_VIEW_CFG,
-        state="excited",
-        pulse_durations_s=[long_duration_s],
-    )
-
-    expected_delta = -v_r * ((long_duration_s - short_duration_s) / 2) * _scale()
-    assert y_long == pytest.approx(y_short + expected_delta, rel=1e-6)
-
-
-def test_monotonic_pulse_times_enforced():
-    """Non-monotonic pulse_times_s must raise ValueError."""
-    with pytest.raises(ValueError, match="monotonically"):
-        predict_position(
-            site_offset_m=np.zeros(3),
-            initial_velocity_m_per_s=np.zeros(3),
-            pulse_times_s=[10e-3, 5e-3],  # backwards
-            pulse_is_up=[True, True],
-            t_image_s=20e-3,
-            cfg=SIDE_VIEW_CFG,
-            state="excited",
+def test_geometry_rejects_zero_axis():
+    with pytest.raises(ValueError, match="non-zero"):
+        CameraGeometry(
+            optical_axis=np.zeros(3),
+            sensor_x_axis=np.array([1.0, 0.0, 0.0]),
+            sensor_y_axis=np.array([0.0, 0.0, 1.0]),
+            centre_pixel=CENTRE_PIXEL,
+            pixel_size_m=PIXEL_SIZE_M,
         )
+
+
+def test_geometry_rejects_parallel_sensor_axis():
+    """A sensor axis parallel to the optical axis is degenerate, not fixable."""
+    with pytest.raises(ValueError):
+        CameraGeometry(
+            optical_axis=np.array([0.0, 1.0, 0.0]),
+            sensor_x_axis=np.array([0.0, 1.0, 0.0]),
+            sensor_y_axis=np.array([0.0, 0.0, 1.0]),
+            centre_pixel=CENTRE_PIXEL,
+            pixel_size_m=PIXEL_SIZE_M,
+        )
+
+
+# ── Free fall ─────────────────────────────────────────────────────────────────
+
+
+def test_free_fall_both_ports():
+    """Empty intent stream: both ports on the gravity parabola.
+
+    10 ms of free fall is ½g t² ≈ 0.49 mm ≈ 30.6 px downwards on the sensor.
+    """
+    t = 10e-3
+    out = predict_port_pixels([], t, t, SIDE_VIEW_CFG)
+    for port in ("ground", "excited"):
+        assert np.isclose(out[port].x_pixel, CENTRE_PIXEL[0])
+        assert np.isclose(out[port].y_pixel, _free_fall_y(t))
+    # The single initial branch is in the ground state
+    assert out["ground"].multiplicity == 1
+    assert out["excited"].multiplicity == 0
+    # Sanity: the displacement really is ~30.6 px
+    assert np.isclose(CENTRE_PIXEL[1] - out["ground"].y_pixel, 30.65, atol=0.1)
+
+
+def test_free_fall_different_image_times():
+    """The two FK shots are at different times: each port falls accordingly."""
+    t1, t2 = 10e-3, 13.5e-3
+    out = predict_port_pixels([], t1, t2, SIDE_VIEW_CFG)
+    assert np.isclose(out["ground"].y_pixel, _free_fall_y(t1))
+    assert np.isclose(out["excited"].y_pixel, _free_fall_y(t2))
+
+
+# ── Single pulses ─────────────────────────────────────────────────────────────
+
+
+def test_single_up_pulse_kicks_excited_port_up():
+    """An up pi pulse transfers the cloud to the excited port with +1 recoil
+    from the pulse centre onwards."""
+    t_pulse, duration, t_img = 2e-3, 380e-6, 15e-3
+    t_centre = t_pulse + duration / 2
+    out = predict_port_pixels(
+        [pulse_event(t_pulse, is_up=True, duration_s=duration)],
+        t_img,
+        t_img,
+        SIDE_VIEW_CFG,
+    )
+    expected = _free_fall_y(t_img) + V_R * (t_img - t_centre) * _scale()
+    assert np.isclose(out["excited"].y_pixel, expected)
+    assert out["excited"].multiplicity == 1
+    # Walker carries no lagging branch after a pi intent: the empty ground
+    # port points at the only real cloud.
+    assert out["ground"].multiplicity == 0
+    assert np.isclose(out["ground"].y_pixel, expected)
+    # The kick is ≥ 4 px at these timings (validation sanity number)
+    assert V_R * (t_img - t_centre) * _scale() > 4.0
+
+
+def test_single_down_pulse_kicks_down():
+    """A down-beam pulse from the ground state kicks −1 recoil."""
+    t_pulse, t_img = 2e-3, 15e-3
+    duration = 68e-6
+    t_centre = t_pulse + duration / 2
+    out = predict_port_pixels(
+        [pulse_event(t_pulse, is_up=False, duration_s=duration)],
+        t_img,
+        t_img,
+        SIDE_VIEW_CFG,
+    )
+    expected = _free_fall_y(t_img) - V_R * (t_img - t_centre) * _scale()
+    assert np.isclose(out["excited"].y_pixel, expected)
+
+
+def test_kick_scales_with_pulse_centre_time():
+    """Moving the pulse later reduces the displacement proportionally."""
+    t_img = 20e-3
+    displacements = []
+    for t_pulse in (2e-3, 8e-3):
+        out = predict_port_pixels(
+            [pulse_event(t_pulse, is_up=True, duration_s=100e-6)],
+            t_img,
+            t_img,
+            SIDE_VIEW_CFG,
+        )
+        displacements.append(out["excited"].y_pixel - _free_fall_y(t_img))
+    t_c1, t_c2 = 2e-3 + 50e-6, 8e-3 + 50e-6
+    assert np.isclose(
+        displacements[0] / displacements[1], (t_img - t_c1) / (t_img - t_c2)
+    )
+
+
+def test_pulse_after_image_time_ignored():
+    out = predict_port_pixels(
+        [pulse_event(12e-3, is_up=True)], 10e-3, 10e-3, SIDE_VIEW_CFG
+    )
+    assert np.isclose(out["ground"].y_pixel, _free_fall_y(10e-3))
+    assert out["ground"].multiplicity == 1
+
+
+# ── Slice → clearout → spectroscopy ──────────────────────────────────────────
+
+
+def test_slice_clearout_spec_ports():
+    """Velocity slice (up pi), clearout, then a spectroscopy pulse declared as
+    a split (superpose): the ground port holds the transferred atoms (+1 then
+    −1 recoil), the excited port the un-transferred slice (+1 recoil)."""
+    t_slice, d_slice = 0.5e-3, 380e-6
+    t_spec, d_spec = 3e-3, 55e-6
+    t_img = 15e-3
+    tc_slice = t_slice + d_slice / 2
+    tc_spec = t_spec + d_spec / 2
+
+    events = [
+        pulse_event(t_slice, is_up=True, duration_s=d_slice),
+        clearout_event(t_slice + d_slice + 100e-6),
+        pulse_event(
+            t_spec,
+            is_up=True,
+            duration_s=d_spec,
+            state_effect=pulse_intent.EFFECT_SUPERPOSE,
+        ),
+    ]
+    out = predict_port_pixels(events, t_img, t_img, SIDE_VIEW_CFG)
+
+    # Excited port: the slice kick only
+    y_excited = _free_fall_y(t_img) + V_R * (t_img - tc_slice) * _scale()
+    assert np.isclose(out["excited"].y_pixel, y_excited)
+    assert out["excited"].multiplicity == 1
+
+    # Ground port: +1 recoil from the slice, −1 from the spec transfer
+    y_ground = (
+        _free_fall_y(t_img)
+        + V_R * (t_img - tc_slice) * _scale()
+        - V_R * (t_img - tc_spec) * _scale()
+    )
+    assert np.isclose(out["ground"].y_pixel, y_ground)
+    assert out["ground"].multiplicity == 1
+
+
+def test_clearout_removes_ground_branch():
+    """A clearout right after a superpose pulse leaves only the excited
+    branch."""
+    events = [
+        pulse_event(1e-3, is_up=True, state_effect=pulse_intent.EFFECT_SUPERPOSE),
+        clearout_event(2e-3),
+    ]
+    branches = walk_intent_events(events, 5e-3, SIDE_VIEW_CFG)
+    assert len(branches) == 1
+    assert not branches[0].is_ground
+    assert branches[0].m == 1
+
+
+# ── Launch ladders ────────────────────────────────────────────────────────────
+
+
+def _ladder_events(t_slice, d_slice, t_first, spacing, n, duration=55e-6):
+    """Slice + clearout + alternating-beam ladder, as the declarative engine
+    would record it (explicit intent: each pulse addresses the followed
+    branch's pair and transfers +1 recoil)."""
+    events = [
+        pulse_event(t_slice, is_up=True, duration_s=d_slice),
+        clearout_event(t_slice + d_slice + 50e-6),
+    ]
+    # After the slice the cloud is |e, 1>. Ladder pulse j addresses m = 1 + j,
+    # beams alternating starting DOWN (down beam couples |g, m_g> <-> |e, m_g - 1>).
+    state_is_ground = False
+    m = 1
+    for j in range(n):
+        is_up = j % 2 == 1
+        delta = 1 if is_up else -1
+        events.append(
+            pulse_event(
+                t_first + j * spacing,
+                is_up=is_up,
+                duration_s=duration,
+                addressed_state=(
+                    pulse_intent.STATE_GROUND
+                    if state_is_ground
+                    else pulse_intent.STATE_EXCITED
+                ),
+                addressed_m=m,
+                delta_m=delta,
+            )
+        )
+        # Followed branch: transfer across the pair gains +1 recoil each time
+        m += delta if state_is_ground else -delta
+        state_is_ground = not state_is_ground
+    return events, m, state_is_ground
+
+
+@pytest.mark.parametrize("n", [2, 4, 8])
+def test_launch_ladder_accumulates_one_recoil_per_pulse(n):
+    t_slice, d_slice = 0.5e-3, 380e-6
+    t_first, spacing, duration = 2e-3, 200e-6, 55e-6
+    t_img = 20e-3
+
+    events, m_final, final_is_ground = _ladder_events(
+        t_slice, d_slice, t_first, spacing, n, duration
+    )
+    assert m_final == 1 + n  # one recoil per pulse, slice included
+
+    out = predict_port_pixels(events, t_img, t_img, SIDE_VIEW_CFG)
+
+    # Expected displacement: sum over kicks of v_r * (t_img - t_centre)
+    kick_centres = [t_slice + d_slice / 2] + [
+        t_first + j * spacing + duration / 2 for j in range(n)
+    ]
+    y_expected = _free_fall_y(t_img) + sum(
+        V_R * (t_img - tc) * _scale() for tc in kick_centres
+    )
+
+    followed_port = "ground" if final_is_ground else "excited"
+    other_port = "excited" if final_is_ground else "ground"
+    assert np.isclose(out[followed_port].y_pixel, y_expected)
+    assert out[followed_port].multiplicity == 1
+    # The lagging port is empty in the walker and points at the real cloud
+    assert out[other_port].multiplicity == 0
+    assert np.isclose(out[other_port].y_pixel, y_expected)
+
+
+# ── Splits / multi-branch ports ───────────────────────────────────────────────
+
+
+def test_double_split_flags_multiplicity():
+    """Two superpose pulses leave two ground branches: flagged, mean position."""
+    t1, t2, t_img = 1e-3, 3e-3, 15e-3
+    d = 55e-6
+    events = [
+        pulse_event(
+            t1, is_up=True, state_effect=pulse_intent.EFFECT_SUPERPOSE, duration_s=d
+        ),
+        pulse_event(
+            t2, is_up=True, state_effect=pulse_intent.EFFECT_SUPERPOSE, duration_s=d
+        ),
+    ]
+    out = predict_port_pixels(events, t_img, t_img, SIDE_VIEW_CFG)
+    # Branches: g0 (never moved), g0+kick1-kick2... walk it: after pulse 1:
+    # (g,0), (e,1). Pulse 2 (AUTO addressing) splits both:
+    # (g,0), (e,1) from the first; (e,1), (g,0) from the second branch's split
+    # — ground port = two branches at m=0 with different histories.
+    assert out["ground"].multiplicity == 2
+    assert out["excited"].multiplicity == 2
+
+
+def test_callback_applies_declared_effect():
+    """A callback (e.g. Jesse pulse) applies its declared delta_m to every
+    branch at its centre time."""
+    t_cb, d_cb, t_img = 2e-3, 200e-6, 15e-3
+    tc = t_cb + d_cb / 2
+    events = [
+        IntentEvent(
+            t_start_s=t_cb,
+            duration_s=d_cb,
+            kind=pulse_intent.KIND_CALLBACK,
+            state_effect=pulse_intent.EFFECT_FLIP,
+            addressed_state=pulse_intent.STATE_AUTO,
+            addressed_m=pulse_intent.M_AUTO,
+            delta_m=2,
+        )
+    ]
+    out = predict_port_pixels(events, t_img, t_img, SIDE_VIEW_CFG)
+    expected = _free_fall_y(t_img) + 2 * V_R * (t_img - tc) * _scale()
+    assert np.isclose(out["excited"].y_pixel, expected)
+    assert out["excited"].multiplicity == 1
+    assert out["ground"].multiplicity == 0
+
+
+# ── Error handling and decoding ───────────────────────────────────────────────
+
+
+def test_events_must_be_time_ordered():
+    events = [
+        pulse_event(5e-3, is_up=True),
+        pulse_event(1e-3, is_up=True),
+    ]
+    with pytest.raises(ValueError, match="time-ordered"):
+        predict_port_pixels(events, 10e-3, 10e-3, SIDE_VIEW_CFG)
+
+
+def test_unaddressed_pulse_warns_and_is_skipped(caplog):
+    """A pulse declaring a pair with no populated branch is skipped loudly."""
+    events = [
+        pulse_event(
+            1e-3,
+            is_up=True,
+            addressed_state=pulse_intent.STATE_EXCITED,
+            addressed_m=5,
+        )
+    ]
+    with caplog.at_level("WARNING"):
+        out = predict_port_pixels(events, 10e-3, 10e-3, SIDE_VIEW_CFG)
+    assert "no populated branch" in caplog.text
+    assert np.isclose(out["ground"].y_pixel, _free_fall_y(10e-3))
+
+
+def test_intent_event_validation():
+    with pytest.raises(ValueError, match="kind"):
+        IntentEvent(
+            0.0,
+            1e-6,
+            kind=99,
+            state_effect=0,
+            addressed_state=-1,
+            addressed_m=0,
+            delta_m=0,
+        )
+    with pytest.raises(ValueError, match="effect"):
+        IntentEvent(
+            0.0,
+            1e-6,
+            kind=0,
+            state_effect=99,
+            addressed_state=-1,
+            addressed_m=0,
+            delta_m=0,
+        )
+
+
+def test_intent_events_from_arrays_roundtrip_and_validation():
+    events = intent_events_from_arrays(
+        t_start_s=[1e-3, 2e-3],
+        duration_s=[55e-6, 50e-6],
+        kinds=[pulse_intent.KIND_PULSE, pulse_intent.KIND_CLEAROUT],
+        state_effects=[pulse_intent.EFFECT_FLIP, pulse_intent.EFFECT_NONE],
+        addressed_states=[pulse_intent.STATE_AUTO, pulse_intent.STATE_GROUND],
+        addressed_m=[pulse_intent.M_AUTO, pulse_intent.M_AUTO],
+        delta_m=[1, 0],
+    )
+    assert len(events) == 2
+    assert events[0].kind == pulse_intent.KIND_PULSE
+    assert np.isclose(events[0].t_centre_s, 1e-3 + 27.5e-6)
+
+    with pytest.raises(ValueError, match="equal lengths"):
+        intent_events_from_arrays(
+            t_start_s=[0.0],
+            duration_s=[],
+            kinds=[0],
+            state_effects=[0],
+            addressed_states=[-1],
+            addressed_m=[0],
+            delta_m=[0],
+        )
+
+
+def test_rebase_record_times_mu():
+    """Recorded (recording-relative) times rebased to seconds since release."""
+    ref_period = 1e-9
+    # Release at 1_000_000 mu, playback starts at 5_000_000 mu (live timeline);
+    # a pulse recorded 2_000_000 mu into the recording fires at
+    # 7_000_000 mu live = 6 ms... (6_000_000 mu = 6 ms after release at 1e-9)
+    out = rebase_record_times_mu(
+        [2_000_000],
+        t_playback_start_mu=5_000_000,
+        t_release_mu=1_000_000,
+        ref_period_s=ref_period,
+    )
+    assert np.isclose(out[0], 6_000_000 * ref_period)

@@ -1,24 +1,20 @@
 """
-Ballistic atom trajectory predictor
-====================================
+Ballistic-predictor geometry and physical configuration
+=======================================================
 
-Pure host-side (no ARTIQ) 3-D ballistic physics for predicting where an atom
-cloud will appear on a camera sensor at a given imaging time.
+Pure host-side (no ARTIQ) building blocks for predicting where an atom cloud
+appears on a camera sensor: an orthographic camera model
+(:class:`CameraGeometry`), the physical parameters
+(:class:`BallisticConfig`) and the photon-recoil speed
+(:func:`recoil_velocity`).
 
-The module models atoms subject to:
-- Gravity (configurable lab-frame vector, default [0, 0, -g]).
-- Discrete photon-recoil impulses from clock-light pulses, each contributing
-  ±ℏk/m along the configured clock-beam direction.
-
-Projection from 3-D lab coordinates to 2-D sensor pixels uses an orthographic
-camera model fully specified by three lab-frame unit vectors.
+The trajectory prediction itself - driven by the recorded pulse *intent*
+stream - lives in :mod:`repository.lib.physics.trajectory`.
 
 Usage example::
 
     from repository.lib import constants
-    from repository.lib.physics.ballistic import (
-        BallisticConfig, CameraGeometry, predict_position, recoil_velocity
-    )
+    from repository.lib.physics.ballistic import BallisticConfig, CameraGeometry
 
     camera = CameraGeometry(
         optical_axis=constants.ANDOR_OPTICAL_AXIS_DEFAULT,
@@ -35,23 +31,11 @@ Usage example::
         clock_wavelength_m=constants.CLOCK_WAVELENGTH_M,
         camera=camera,
     )
-    x_pix, y_pix = predict_position(
-        site_offset_m=np.zeros(3),
-        initial_velocity_m_per_s=np.zeros(3),
-        pulse_times_s=[],
-        pulse_is_up=[],
-        t_image_s=10e-3,
-        cfg=cfg,
-        state="ground",
-        pulse_durations_s=[],
-    )
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
-from typing import Sequence
 
 import numpy as np
 import scipy.constants
@@ -80,28 +64,30 @@ class CameraGeometry:
     magnification: float = 1.0
 
     def __post_init__(self):
-        # Normalise and validate each axis
-        for name in ("optical_axis", "sensor_x_axis", "sensor_y_axis"):
-            v = np.asarray(getattr(self, name), dtype=float)
+        # Normalise the axes and re-orthogonalise by Gram-Schmidt rather than
+        # rejecting near-miss inputs: the axis components are exposed as
+        # freely-editable ndscan parameters for small tilt corrections, and a
+        # hand-entered tilt (e.g. optical_axis_y = 0.999) must not blow up an
+        # experiment mid-shot. Genuinely degenerate inputs still raise.
+        def _unit(v: np.ndarray, name: str) -> np.ndarray:
             norm = np.linalg.norm(v)
             if norm < 1e-10:
                 raise ValueError(f"CameraGeometry.{name} must be non-zero")
-            if not np.isclose(norm, 1.0, atol=1e-6):
-                raise ValueError(
-                    f"CameraGeometry.{name} must be a unit vector (|v|={norm:.6f})"
-                )
-            object.__setattr__(self, name, v)
+            return v / norm
 
-        oa = self.optical_axis
-        sx = self.sensor_x_axis
-        sy = self.sensor_y_axis
+        oa = _unit(np.asarray(self.optical_axis, dtype=float), "optical_axis")
 
-        if not np.isclose(np.dot(oa, sx), 0.0, atol=1e-6):
-            raise ValueError("optical_axis and sensor_x_axis must be orthogonal")
-        if not np.isclose(np.dot(oa, sy), 0.0, atol=1e-6):
-            raise ValueError("optical_axis and sensor_y_axis must be orthogonal")
-        if not np.isclose(np.dot(sx, sy), 0.0, atol=1e-6):
-            raise ValueError("sensor_x_axis and sensor_y_axis must be orthogonal")
+        sx = np.asarray(self.sensor_x_axis, dtype=float)
+        sx = sx - np.dot(sx, oa) * oa
+        sx = _unit(sx, "sensor_x_axis (after projecting out the optical axis)")
+
+        sy = np.asarray(self.sensor_y_axis, dtype=float)
+        sy = sy - np.dot(sy, oa) * oa - np.dot(sy, sx) * sx
+        sy = _unit(sy, "sensor_y_axis (after projecting out the other axes)")
+
+        object.__setattr__(self, "optical_axis", oa)
+        object.__setattr__(self, "sensor_x_axis", sx)
+        object.__setattr__(self, "sensor_y_axis", sy)
 
     def project(self, pos_lab_m: np.ndarray) -> tuple[float, float]:
         """Project a 3-D lab position (metres) onto sensor pixel coordinates."""
@@ -138,177 +124,3 @@ class BallisticConfig:
 def recoil_velocity(cfg: BallisticConfig) -> float:
     """Single-photon recoil speed: v_r = h / (m * λ)  [m/s]."""
     return scipy.constants.h / (cfg.mass_kg * cfg.clock_wavelength_m)
-
-
-def predict_position(
-    site_offset_m: np.ndarray,
-    initial_velocity_m_per_s: np.ndarray,
-    pulse_times_s: Sequence[float],
-    pulse_is_up: Sequence[bool],
-    t_image_s: float,
-    cfg: BallisticConfig,
-    state: Literal["ground", "excited"],
-    pulse_durations_s: Sequence[float] | None = None,
-    initial_state: Literal["ground", "excited"] = "ground",
-) -> tuple[float, float]:
-    """3-D ballistic integration → sensor pixel coordinates.
-
-    t=0 is the moment atoms are released (trap turned off), starting in
-    ``initial_state`` (ground, for atoms dropped from the dipole trap).
-
-    The model tracks the main population branch assuming every recorded
-    pulse acts as a pi pulse on it (true for velocity-selection, launch and
-    LMT transfer ladders). Each transfer changes the branch's velocity by
-    one photon recoil whose direction depends on the transition direction,
-    not just the beam::
-
-        ground  --absorb-->  excited:  Δv = +v_r * beam_sign * direction
-        excited --emit---->  ground:   Δv = -v_r * beam_sign * direction
-
-    so e.g. an alternating up/down ladder kicks the branch the same way on
-    every pulse. Kicks are applied instantaneously at the pulse centre,
-    ``pulse_times_s[i] + pulse_durations_s[i] / 2``::
-
-        r(t) = r0 + v0*t + ½·g·t²  +  Σ_{t_i ≤ t} Δv_i·(t - t_i)
-
-    The two imaged output ports differ by exactly the final pulse's kick
-    (they are the two members of the last addressed pair): the port whose
-    internal state matches the tracked branch gets the full kick history,
-    while the other port is identical except that the last transfer did not
-    happen. For a closed interferometer this is exact; for sequences with
-    large mid-sequence arm separations it predicts the recombined mean
-    trajectory.
-
-    Returns ``(x_pixel, y_pixel)`` via orthographic projection.
-    """
-    if state not in ("ground", "excited"):
-        raise ValueError(f"state must be 'ground' or 'excited', got {state!r}")
-    if initial_state not in ("ground", "excited"):
-        raise ValueError(
-            f"initial_state must be 'ground' or 'excited', got {initial_state!r}"
-        )
-
-    pulse_times_s = list(pulse_times_s)
-    pulse_is_up = list(pulse_is_up)
-    if pulse_durations_s is None:
-        pulse_durations_s = [0.0] * len(pulse_times_s)
-    pulse_durations_s = list(pulse_durations_s)
-
-    if len(pulse_times_s) != len(pulse_is_up):
-        raise ValueError("pulse_times_s and pulse_is_up must have the same length")
-    if len(pulse_times_s) != len(pulse_durations_s):
-        raise ValueError(
-            "pulse_times_s and pulse_durations_s must have the same length"
-        )
-
-    if len(pulse_times_s) > 1:
-        for i in range(1, len(pulse_times_s)):
-            if pulse_times_s[i] < pulse_times_s[i - 1]:
-                raise ValueError(
-                    f"pulse_times_s must be monotonically non-decreasing "
-                    f"(got {pulse_times_s[i-1]} then {pulse_times_s[i]})"
-                )
-
-    r0 = np.asarray(site_offset_m, dtype=float)
-    v0 = np.asarray(initial_velocity_m_per_s, dtype=float)
-    g = cfg.gravity_vec_m_per_s2
-    t = t_image_s
-
-    # Free-fall position
-    r = r0 + v0 * t + 0.5 * g * t * t
-
-    # Walk the pulse record, transferring the tracked branch at each pulse
-    v_r = recoil_velocity(cfg)
-    tracked_is_ground = initial_state == "ground"
-    last_kick_contribution = np.zeros(3)
-    for start_i, duration_i, up_i in zip(pulse_times_s, pulse_durations_s, pulse_is_up):
-        t_i = start_i + duration_i / 2
-        if t_i > t:
-            break
-        # +ħk when absorbing from a beam or emitting into the opposite one
-        sign = 1.0 if bool(up_i) == tracked_is_ground else -1.0
-        delta_v = sign * v_r * cfg.clock_beam_direction
-        last_kick_contribution = delta_v * (t - t_i)
-        r = r + last_kick_contribution
-        tracked_is_ground = not tracked_is_ground
-
-    # The other output port of the final pulse missed the last transfer
-    requested_is_ground = state == "ground"
-    if requested_is_ground != tracked_is_ground:
-        r = r - last_kick_contribution
-
-    return cfg.camera.project(r)
-
-
-def predict_positions_from_mu(
-    site_offset_m: np.ndarray,
-    initial_velocity_m_per_s: np.ndarray,
-    pulse_start_times_mu: np.ndarray,
-    pulse_durations_mu: np.ndarray,
-    pulse_is_up: np.ndarray,
-    image_times_mu: np.ndarray,
-    t_zero_mu: int,
-    ref_period_s: float,
-    cfg: BallisticConfig,
-    initial_state: Literal["ground", "excited"] = "ground",
-) -> dict[str, np.ndarray]:
-    """RPC-friendly wrapper converting machine units → seconds then calling predict_position.
-
-    Parameters
-    ----------
-    pulse_start_times_mu:
-        1-D int64 array of pulse start timestamps in ARTIQ machine units.
-    pulse_durations_mu:
-        1-D int64 array of pulse durations in ARTIQ machine units.
-    pulse_is_up:
-        1-D bool array, same length as pulse_start_times_mu.
-    image_times_mu:
-        1-D int64 array of N imaging timestamps in machine units.
-    t_zero_mu:
-        Machine-unit timestamp of atom release (t=0 for the predictor).
-    ref_period_s:
-        ARTIQ core reference period in seconds (``core.ref_period``, typically 1e-9).
-
-    Returns
-    -------
-    dict with keys ``"ground"`` and ``"excited"``, each an (N, 2) float64 array
-    of (x_pixel, y_pixel) coordinates.
-    """
-    pulse_times_s = (
-        np.asarray(pulse_start_times_mu, dtype=np.int64) - t_zero_mu
-    ) * ref_period_s
-    pulse_durations_s = np.asarray(pulse_durations_mu, dtype=np.int64) * ref_period_s
-    pulse_is_up_list = list(bool(v) for v in pulse_is_up)
-    image_times_s = (
-        np.asarray(image_times_mu, dtype=np.int64) - t_zero_mu
-    ) * ref_period_s
-
-    n = len(image_times_s)
-    ground_pix = np.empty((n, 2), dtype=float)
-    excited_pix = np.empty((n, 2), dtype=float)
-
-    for i, t_img in enumerate(image_times_s):
-        ground_pix[i] = predict_position(
-            site_offset_m=site_offset_m,
-            initial_velocity_m_per_s=initial_velocity_m_per_s,
-            pulse_times_s=pulse_times_s,
-            pulse_is_up=pulse_is_up_list,
-            t_image_s=float(t_img),
-            cfg=cfg,
-            state="ground",
-            pulse_durations_s=pulse_durations_s,
-            initial_state=initial_state,
-        )
-        excited_pix[i] = predict_position(
-            site_offset_m=site_offset_m,
-            initial_velocity_m_per_s=initial_velocity_m_per_s,
-            pulse_times_s=pulse_times_s,
-            pulse_is_up=pulse_is_up_list,
-            t_image_s=float(t_img),
-            cfg=cfg,
-            state="excited",
-            pulse_durations_s=pulse_durations_s,
-            initial_state=initial_state,
-        )
-
-    return {"ground": ground_pix, "excited": excited_pix}

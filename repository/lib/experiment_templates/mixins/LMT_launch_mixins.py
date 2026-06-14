@@ -249,6 +249,7 @@ class LMTBase(
 
             # Clear out the ground state
             if pulse_type == "up":
+                self.register_clearout(duration_s=self.clearout_duration.get())
                 self.fluorescence_pulse.do_clearout_pulse(
                     duration=self.clearout_duration.get(),
                     ignore_final_shutters=True,
@@ -516,6 +517,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
+        self.register_clearout(duration_s=50e-6)
         self.fluorescence_pulse.do_clearout_pulse(
             duration=50e-6,  # self.clearout_duration.get(),
             ignore_final_shutters=True,
