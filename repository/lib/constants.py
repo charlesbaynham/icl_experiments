@@ -1547,6 +1547,20 @@ INTERFEROMETRY_SIGNAL_INJECTION_AMPLITUDE = 0.03  # volts
 # LMT stuff
 LMT_PULSE_CLEAROUT_DURATION = 50e-6
 DOWN_CLOCK_BEAM_PI_TIME = 68e-6
+
+# Slack pre-roll for the DMA-recorded LMT sequence when launched from the red
+# MOT. ``expansion_time`` defaults to 0, so without this the DMA playback of
+# the clock sequence starts with no RTIO slack (often negative, because the
+# real-time red-MOT tail lets the wall clock overtake the timeline cursor) and
+# the first scheduled clock event underflows. A fixed delay inserted just
+# before playback rebuilds the slack; it also adds time-of-flight, which the
+# gravity-Doppler reference accounts for (see
+# ``DeclarativeLMTRedMOTBase.get_doppler_t_ref_mu``). The default comfortably
+# covers the ~5.3 ms slack deficit observed in the lab; tune it down towards
+# the measured deficit once the sequence runs, to minimise the extra
+# time-of-flight before imaging (the fixed fast-kinetics readout frame only
+# catches the falling cloud out to ~14 ms TOF).
+LMT_DMA_PLAYBACK_PREROLL = 8e-3
 MOMENTUM_KICK_DETUNING = 9400
 LMT_OFFSET_DETUNING = 0.2e3
 LMT_DOWN_BEAM_SHIFT = 5.8e3  # 13.6e3

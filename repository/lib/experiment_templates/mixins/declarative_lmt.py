@@ -654,30 +654,77 @@ class DeclarativeLMTRedMOTBase(DeclarativeLMTCoreBase, RedMOTWithDMAExperimentBa
     release). The sequence runs inside the DMA-recorded
     ``actions_after_drop``, whose timeline cursor starts at zero at what
     will be the playback start - which run_once schedules ``expansion_time``
-    AFTER light-off. In the recording-relative timebase the release
-    therefore happened at ``-expansion_time``, which is what
+    AFTER light-off, plus the slack pre-roll added by this base (see below).
+    In the recording-relative timebase the release therefore happened at
+    ``-(expansion_time + lmt_dma_playback_preroll)``, which is what
     :meth:`get_doppler_t_ref_mu` returns (the ``pre_experiment_delay``
     between the post-drop actions and the experiment is *inside* the
     recording, so it needs no correction).
+
+    Playback slack pre-roll
+    -----------------------
+    ``expansion_time`` defaults to 0, so ``run_once``'s ``delay(expansion_time)``
+    builds no RTIO slack before the DMA playback. The real-time red-MOT tail
+    typically leaves the timeline cursor *behind* the wall clock by the time
+    playback starts, so the recorded clock sequence's first scheduled events
+    fire in the past -> ``RTIOUnderflow`` (observed ~ -5 ms at the first clock
+    event). The pure-drop sequence is immune because its recording emits no
+    time-critical events. :meth:`do_experiment_after_red_mot_hook` therefore
+    inserts a fixed ``lmt_dma_playback_preroll`` delay immediately before
+    playback to rebuild the slack. The delay is real free-fall time, but it is
+    folded into :meth:`get_doppler_t_ref_mu`, and the dynamic-ROI predictor
+    keys off the live ``get_t_release_mu`` / ``get_t_playback_start_mu`` anchors
+    (both stamped after the pre-roll), so the physics stays consistent.
 
     See :class:`DeclarativeLMTCoreBase` for the sequence language and engine.
 
     Kernel hooks used (multiple mixins cannot use the same hooks):
 
     * :meth:`~do_experiment_after_drop_hook`
+    * :meth:`~pre_playback_hook` (overridden to add the slack pre-roll before
+      the base plays the recording back)
     """
+
+    def build_fragment(self):
+        super().build_fragment()
+
+        self.setattr_param(
+            "lmt_dma_playback_preroll",
+            FloatParam,
+            "Slack pre-roll inserted before the DMA playback of the LMT "
+            "sequence from the red MOT (also adds time-of-flight; the "
+            "gravity-Doppler reference accounts for it)",
+            default=constants.LMT_DMA_PLAYBACK_PREROLL,
+            unit="ms",
+            min=0.0,
+        )
+        self.lmt_dma_playback_preroll: FloatParamHandle
 
     @portable
     def get_doppler_t_ref_mu(self) -> int64:
         """
         Release time in the recording-relative timebase the sequence runs in.
 
-        run_once: light-off (release) -> delay(expansion_time) -> playback
-        starts. The DMA recording's cursor starts at zero at the playback
-        start, so the release sits at ``-expansion_time`` in the recording
-        frame.
+        run_once: light-off (release) -> delay(expansion_time) ->
+        delay(lmt_dma_playback_preroll) -> playback starts. The DMA
+        recording's cursor starts at zero at the playback start, so the
+        release sits at ``-(expansion_time + lmt_dma_playback_preroll)`` in
+        the recording frame.
         """
-        return -self.core.seconds_to_mu(self.expansion_time.get())
+        return -self.core.seconds_to_mu(
+            self.expansion_time.get() + self.lmt_dma_playback_preroll.get()
+        )
+
+    @kernel
+    def pre_playback_hook(self):
+        # Rebuild RTIO slack before the base plays the recorded clock sequence
+        # back: with expansion_time == 0 the playback would otherwise start
+        # with no (or negative) slack and underflow on its first event. The
+        # cursor is at light-off + expansion_time here; advancing it by the
+        # pre-roll leaves that much slack once playback begins, and shifts
+        # t_playback_start_mu with it. get_doppler_t_ref_mu accounts for the
+        # extra time-of-flight.
+        delay(self.lmt_dma_playback_preroll.get())
 
     @kernel
     def do_experiment_after_drop_hook(self):

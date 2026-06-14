@@ -250,12 +250,26 @@ class RedMOTWithDMAExperimentBase(RedMOTWithExperimentBase):
         """
         Play back the pre-recorded :meth:`actions_after_drop`.
 
-        The playback start time is stamped first: it is the live-timeline
-        anchor for the recording-relative timestamps captured during the
-        recording (live time = ``t_playback_start_mu`` + recorded time).
+        :meth:`pre_playback_hook` runs first (live, with whatever slack the
+        post-expansion cursor carries) so a subclass can rebuild RTIO slack
+        before playback. The playback start time is stamped immediately after
+        it: it is the live-timeline anchor for the recording-relative
+        timestamps captured during the recording (live time =
+        ``t_playback_start_mu`` + recorded time).
         """
+        self.pre_playback_hook()
         self.t_playback_start_mu = now_mu()
         self.dma_recording_fragment.playback()
+
+    @kernel
+    def pre_playback_hook(self):
+        """
+        Live actions immediately before the DMA playback, while the timeline
+        cursor is still advancing freely. Any delay added here both rebuilds
+        RTIO slack for the playback and shifts ``t_playback_start_mu`` later
+        (so the recording-relative timebase moves with it). By default, do
+        nothing.
+        """
 
     @kernel
     def register_pulse(self, is_up: bool, duration_s: float):
