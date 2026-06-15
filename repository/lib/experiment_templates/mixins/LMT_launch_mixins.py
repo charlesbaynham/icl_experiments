@@ -830,6 +830,9 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         # re-set the AOM to default
         self.clock_default_setter._turn_on_ad9910s(light_enabled=False)
 
+    def get_N_launch(self):
+        return self.lmt_launch_pulses_number.get() + 4
+
 
 class LMTInterferometryMixin(
     LMTBase, ClockInterferometryBase, DipoleTrapWithExperimentBase
@@ -974,6 +977,8 @@ class LMTInterferometryMixin(
         N_launch = 20
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
+
+        print(self.get_N_launch())
 
         # frequencies
         first_freq = self.first_lmt_freq.get()
@@ -1324,6 +1329,10 @@ class LMTInterferometryMixin(
         self.clock_down_dds.sw.on()
         delay(d)
         self.clock_down_dds.sw.off()
+
+    @kernel
+    def get_N_launch(self):
+        return 0
 
     @kernel
     def post_sequence_cleanup_hook(self):
