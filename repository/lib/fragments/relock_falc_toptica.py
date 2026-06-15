@@ -132,12 +132,7 @@ class RelockFALCWithWavemeterFrag(Fragment):
             FloatParam,
             default=0.0,
             unit="MHz",
-            description=(
-                "Frequency offset to relock to, relative to the usual cavity "
-                "resonance. Leave at 0 normally; use it as a temporary workaround "
-                "if the wavemeter calibration has drifted (recalibrating the "
-                "wavemeter is the proper fix)."
-            ),
+            description="Offset from cavity resonance to relock to",
         )
         self.lock_offset: FloatParamHandle
 
