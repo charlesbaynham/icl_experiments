@@ -127,6 +127,20 @@ class RelockFALCWithWavemeterFrag(Fragment):
         )
         self.lock_detection_threshold: FloatParamHandle
 
+        self.setattr_param(
+            "lock_offset",
+            FloatParam,
+            default=0.0,
+            unit="MHz",
+            description=(
+                "Frequency offset to relock to, relative to the usual cavity "
+                "resonance. Leave at 0 normally; use it as a temporary workaround "
+                "if the wavemeter calibration has drifted (recalibrating the "
+                "wavemeter is the proper fix)."
+            ),
+        )
+        self.lock_offset: FloatParamHandle
+
         self.setattr_device("wand_server")
         self.wand_server: WANDControlInterface
 
@@ -156,7 +170,7 @@ class RelockFALCWithWavemeterFrag(Fragment):
             self.set_FALC(main=False, unlim=False)
 
             self.wand_steering.steer_wand(
-                laser=self.laser_name_wand, offset=0.0, timeout=20
+                laser=self.laser_name_wand, offset=self.lock_offset.get(), timeout=20
             )
 
             self.set_piezo_scan(
@@ -219,7 +233,10 @@ class RelockFALCWithWavemeterFrag(Fragment):
         if status != WLMMeasurementStatus.OKAY:
             raise RuntimeError("Wavemeter check failed")
 
-        locked = abs(actual_offset) < self.lock_detection_threshold.get()
+        locked = (
+            abs(actual_offset - self.lock_offset.get())
+            < self.lock_detection_threshold.get()
+        )
 
         logger.debug("Cavity lock status: %s", locked)
 
