@@ -90,7 +90,6 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
 
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
-    LMTLaunchDoubleTrapShapedPulseMixin,  # has to be called after interferometry to get N_launch in interferometry
     LMTInterferometryMixin,
     DoubleTrapImagingClockPulseNormalisedMixin,
     EMGainMixin,
@@ -101,6 +100,7 @@ class LMTInterferometryWithShapedDoubleLaunchFrag(
     ClockShelvingAndClearoutDipoleTrapMixin,
     AdiabaticCoolingWithPaintedQuadraticMixin,
     LoadSingleXODTWithPainterMixin,
+    LMTLaunchDoubleTrapShapedPulseMixin,
     DopplerCompensationForLMTMixin,
     DipoleTrapWithExperimentBase,
 ):
