@@ -43,7 +43,7 @@ class EMGainMixin(AndorImagingBase):
             "em_gain_enabled",
             BoolParam,
             description="Enable EM gain. Might blow up the camera",
-            default=False,
+            default=True,
         )
         self.em_gain_enabled: BoolParamHandle
 
