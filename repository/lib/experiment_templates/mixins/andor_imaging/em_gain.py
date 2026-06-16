@@ -24,8 +24,10 @@ class EMGainMixin(AndorImagingBase):
     """
     Adds EM gain control to the Andor camera
 
-    This mixin will default to turning the gain off unless the user checks a
-    box. DO NOT ADD THIS MIXIN TO AN EXPERIMENT UNLESS YOU ARE CERTAIN YOU KNOW
+    This mixin defaults to turning the gain ON, but it is always gated by the
+    safety interlock dataset (see :data:`EM_GAIN_DISABLE_DATASET`): if that
+    dataset forbids EM gain, the gain stays off regardless of the parameter.
+    DO NOT ADD THIS MIXIN TO AN EXPERIMENT UNLESS YOU ARE CERTAIN YOU KNOW
     WHAT YOU ARE DOING!!! If not, you might break a camera that cost >£30k.
 
     This is a mixin - see the documentation for :mod:`~.red_mot_experiment` for
@@ -43,7 +45,7 @@ class EMGainMixin(AndorImagingBase):
             "em_gain_enabled",
             BoolParam,
             description="Enable EM gain. Might blow up the camera",
-            default=False,
+            default=True,
         )
         self.em_gain_enabled: BoolParamHandle
 
@@ -82,25 +84,30 @@ class EMGainMixin(AndorImagingBase):
             persist=True,
             archive=False,
         )
+        self.disable_em_gain = disable_em_gain
 
-        # Safety check: prevent EM gain activation if interlock is enabled
-        if disable_em_gain and self.em_gain_enabled.get():
-            raise RuntimeError(
-                "EM gain is enabled in parameters but the safety interlock "
-                f"dataset '{EM_GAIN_DISABLE_DATASET}' is set to True. "
-                f"To use EM gain, set the dataset '{EM_GAIN_DISABLE_DATASET}' "
-                "to False using the ARTIQ dashboard dataset manager, then restart "
-                "the experiment."
-                "\nSomeone set this up for a reason - don't ignore it!"
-            )
-
-        # Log interlock status
+        # Safety interlock: if the dataset forbids EM gain it always wins, so EM
+        # gain is kept OFF even though the parameter defaults to (and may be set
+        # to) True. See _em_gain_active() for where this is enforced.
         if disable_em_gain:
-            logger.info(
-                "EM gain safety interlock is ENABLED (dataset '%s' = True). "
-                "EM gain cannot be activated unless this dataset is set to False.",
-                EM_GAIN_DISABLE_DATASET,
-            )
+            if self.em_gain_enabled.get():
+                logger.warning(
+                    "EM gain is enabled in parameters but the safety interlock "
+                    "dataset '%s' is set to True. EM gain will be kept DISABLED. "
+                    "To use EM gain, set the dataset '%s' to False using the "
+                    "ARTIQ dashboard dataset manager, then restart the "
+                    "experiment.\nSomeone set this up for a reason - don't "
+                    "ignore it!",
+                    EM_GAIN_DISABLE_DATASET,
+                    EM_GAIN_DISABLE_DATASET,
+                )
+            else:
+                logger.info(
+                    "EM gain safety interlock is ENABLED (dataset '%s' = True). "
+                    "EM gain cannot be activated unless this dataset is set to "
+                    "False.",
+                    EM_GAIN_DISABLE_DATASET,
+                )
 
     @kernel
     def _set_gain_if_changed(self):
@@ -130,9 +137,18 @@ class EMGainMixin(AndorImagingBase):
                 # Different error
                 raise e
 
+    @host_only
+    def _em_gain_active(self) -> bool:
+        """Whether EM gain should actually be applied.
+
+        EM gain is only active when the parameter requests it *and* the safety
+        interlock dataset does not forbid it. The interlock always wins.
+        """
+        return self.em_gain_enabled.get() and not self.disable_em_gain
+
     @rpc
     def _set_camera_em_gain(self):
-        if self.em_gain_enabled.get():
+        if self._em_gain_active():
             logger.warning("Setting EMCCD gain to %f. BEWARE!!!", self.em_gain.get())
             self._set_gain_guarded(self.em_gain.get())
         else:
@@ -141,6 +157,6 @@ class EMGainMixin(AndorImagingBase):
 
     def host_cleanup(self):
         self._set_gain_guarded(0)
-        if self.em_gain_enabled.get():
+        if self._em_gain_active():
             logger.info("EM gain turned off again")
         return super().host_cleanup()
