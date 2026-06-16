@@ -379,6 +379,14 @@ class AndorCameraControl(Fragment):
             if self.cam.get_status() == 20072:
                 logger.warning("Andor still acquiring, stopping acquisition")
                 self.cam.stop_acquisition()
+
+            # Default the camera to NO EM gain. If the EMGainMixin has been
+            # added to the experiment it will set the gain appropriately during
+            # device_setup (which runs after all host_setups); without it, we
+            # must ensure the camera does not retain EM gain that a previous
+            # experiment may have left set in the hardware.
+            self.cam.set_EMCCD_gain(0)
+
             self.set_roi()
             self.cam.set_baseline_clamp(self.baseline_clamp_mode.get())
 
