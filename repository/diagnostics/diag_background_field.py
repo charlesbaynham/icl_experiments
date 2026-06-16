@@ -2,23 +2,26 @@ r"""
 Diagnostic 1 - Background magnetic field (drift check).
 
 Measures the background B-field in the science chamber via the 689 nm
-¹S₀->³P₁ line, using the same approach as WS1's up-beam dipole-trap
-spectroscopy: the validated fast-kinetics excited-state readout with the
-compensation field set in-trap and held to settle (``bias_field_settling_time``),
-which removes the coil-settling artefact that nulled the earlier MOT-drop survey.
+¹S₀->³P₁ line, reusing the **proven** repumped XXODT spectroscopy readout
+(the same composition as ``RedSpectroscopyFromXXODTFrag``, "689 spectroscopy from
+dropped XXODT"). That path loads an XXODT, optically pumps / sets the field,
+fires the 689 up beam, then images the ground state, repumps (707) and images
+the excited state, and images once more for background - giving a
+*repumped, normalised* excitation readout (``excitation_fraction_forward``).
 
-The fragment composes exactly the same mixins as WS1's
-``SpectroscopyWithKineticsUpBeamDipoleTrapFrag`` (it is composed directly rather
-than imported because the WS1 experiment file is named with a leading digit and
-is not an importable module); only the *defaults* are tuned for a clean,
-default-runnable diagnostic.
+This deliberately does **not** use WS1's fast-kinetics dipole-trap composition
+(``TripleImageDipoleTrapFastKineticsMixin`` + ``LoadSingleXODTMixin``), which was
+found to image *nothing* without the 707 repump + cooling chain. The fragment is
+composed directly from the proven mixins (rather than importing
+``RedSpectroscopyFromXXODTFrag``) because that experiment file is named with a
+leading digit and is not an importable module.
 
 Default-runnable: submitting with ``arguments={}`` scans the up-beam AOM detuning
-across the ¹S₀->³P₁ line at the nominal (zero-boost) compensation field, with
-the validated working pulse / EM-gain parameters baked in. The baked-in
-Lorentzian ``OnlineFit`` returns the line centre on the AOM axis; the field is
-read out from that centre relative to the known nominal line position (see the
-analysis notebook).
+across the ¹S₀->³P₁ line at the nominal (zero-boost) compensation field, with the
+validated working pulse / EM-gain parameters baked in. The baked-in Lorentzian
+``OnlineFit`` returns the line centre on the AOM axis; the field is read out from
+that centre relative to the known nominal line position (see the analysis
+notebook).
 
 Geometry (up-beam k ∥ ẑ, linear polarisation; see CLAUDE.md): a field
 component ∥ k (vertical z) drives σ⁺/σ⁻ that split symmetrically about a fixed
@@ -28,7 +31,7 @@ the nominal compensation setting; per-coil sensitivity (and the full vector) is
 obtained by adding ``x_coil_boost`` / ``y_coil_boost`` / ``z_coil_boost`` as a
 second scan axis (still available via the dashboard).
 
-Working parameters baked in (validated, RID 74648 / WS1 2026-06-15 survey):
+Working parameters baked in (validated, WS1 2026-06-15 survey):
 
 * ``em_gain_enabled = True``, ``em_gain = 50`` - needed for the weak short-pulse
   signal. EM gain is enabled **only** via the experiment's own
@@ -49,41 +52,53 @@ from ndscan.experiment import OnlineFit
 
 from repository.lib.experiment_templates.default_scan import DefaultScanAxis
 from repository.lib.experiment_templates.default_scan import make_default_scan_exp
+from repository.lib.experiment_templates.dipole_trap_experiment import (
+    DipoleTrapWithExperimentBase,
+)
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (  # noqa: E501
+    DoubleTrapImagingRepumpedNormalisedMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
-from repository.lib.experiment_templates.mixins.andor_imaging.triple_imaging_fast_kinetics import (  # noqa: E501
-    TripleImageDipoleTrapFastKineticsMixin,
+from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
+)
+from repository.lib.experiment_templates.mixins.optical_pumping import (
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
 )
 from repository.lib.experiment_templates.mixins.red_spectroscopy import (
     RedSpectroscopyDipoleTrapMixin,
 )
-from repository.lib.experiment_templates.mixins.XODT_loading import LoadSingleXODTMixin
+from repository.lib.experiment_templates.mixins.XODT_loading import LoadXXODTMixin
 
 logger = logging.getLogger(__name__)
 
 
 class BackgroundFieldDiagnosticFrag(
     RedSpectroscopyDipoleTrapMixin,
-    TripleImageDipoleTrapFastKineticsMixin,
+    DoubleTrapImagingRepumpedNormalisedMixin,
     EMGainMixin,
-    LoadSingleXODTMixin,
+    FLIRBlueMOTMeasurementMixin,
+    LoadXXODTMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    DipoleTrapWithExperimentBase,
 ):
     """689 background-field diagnostic.
 
-    Same mixin composition as WS1's up-beam dipole-trap 689 spectroscopy
-    (``RedSpectroscopyDipoleTrapMixin`` + ``TripleImageDipoleTrapFastKineticsMixin``
-    + ``EMGainMixin`` + ``LoadSingleXODTMixin``): loads a single XODT, sets the
-    compensation field (FieldBoostMixin), holds in-trap so the field fully settles
-    (``bias_field_settling_time``), releases and fires the 689 up beam, and reads
-    the excited fraction with fast-kinetics triple imaging. Defaults tuned for a
+    Same mixin composition as the proven ``RedSpectroscopyFromXXODTFrag`` (689
+    spectroscopy from a dropped XXODT, with 707-repumped normalised imaging):
+    loads an XXODT, optically pumps / sets the compensation field
+    (FieldBoostMixin, with the in-trap ``bias_field_settling_time`` hold that
+    removes the coil-settling artefact), releases and fires the 689 up beam, then
+    images ground -> repump -> excited -> background. Defaults tuned for a
     default-runnable background-field check. See module docstring.
     """
 
     def build_fragment(self):
         super().build_fragment()
 
-        # Validated working readout (RID 74648 / WS1 survey). EM gain enabled only
-        # via the experiment's own flag; the DISABLE_EM_GAIN interlock is never
-        # touched (the EMGainMixin reads it and aborts safely if it forbids gain).
+        # Validated working readout. EM gain enabled only via the experiment's own
+        # flag; the DISABLE_EM_GAIN interlock is never touched (the EMGainMixin
+        # reads it and aborts safely if it forbids gain).
         self.override_param("em_gain_enabled", True)
         self.override_param("em_gain", 50.0)
 
@@ -99,7 +114,7 @@ class BackgroundFieldDiagnosticFrag(
                 "lorentzian",
                 data={
                     "x": self.spectroscopy_pulse_aom_detuning,
-                    "y": self.excitation_fraction,
+                    "y": self.excitation_fraction_forward,
                 },
             )
         ]
