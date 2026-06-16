@@ -993,7 +993,7 @@ class LMTInterferometryMixin(
 
         t_start_selective_pulse = now_mu() + self.core.seconds_to_mu(10e-6)
 
-        t_stark = now_mu()
+        now_mu()
 
         at_mu(t_start_selective_pulse)
 
@@ -1031,9 +1031,6 @@ class LMTInterferometryMixin(
 
         delay_mu(8)
         t_end_bs_mu = now_mu()
-
-        t_random = now_mu()
-        print(self.core.mu_to_seconds(t_random - t_stark))
 
         # dark time
         t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
