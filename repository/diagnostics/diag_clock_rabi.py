@@ -29,10 +29,18 @@ Beam selection (``CompensatedClockSpecMixin.use_down_beam``):
 * up beam   -> ``use_down_beam = False`` (diagnostic 3, the param default)
 
 Default pulse-time scan ranges are chosen to span ~2.5 expected pi-times so a
-full flop is captured and cleanly fittable:
+full flop is captured and cleanly fittable. They start at a small nonzero pulse
+time (5 us), not 0: the clock delivery setpoint is auto-scaled as
+``V = V_ref * (T_ref / T_clock)^2``, which divides by the pulse time, so a t=0
+point raises ZeroDivisionError on the core device (observed RID 74681).
 
-* up beam   (pi ~55 us): 0 -> 150 us, 31 points
-* down beam (pi ~68 us): 0 -> 180 us, 31 points
+* up beam   (pi ~55 us): 5 -> 150 us, 31 points
+* down beam (pi ~68 us): 5 -> 180 us, 31 points
+
+EM gain is enabled by default in the experiment (``em_gain_enabled = True``,
+``em_gain = 30``) so a default ``arguments={}`` run is self-sufficient. Gain is
+enabled only via the experiment's own flag; the ``DISABLE_EM_GAIN`` safety
+interlock is never touched.
 """
 
 import logging
@@ -67,6 +75,13 @@ class _ClockRabiDiagnosticBase(ClockSpecPulseRatioFrag):
         # Pick the clock beam for this diagnostic.
         self.override_param("use_down_beam", self._use_down_beam)
 
+        # EM gain on by default so the diagnostic is genuinely default-runnable
+        # (the normalised fast-kinetics clock readout needs it). Enabled only via
+        # the experiment's own flag; the DISABLE_EM_GAIN safety interlock is never
+        # touched (the EMGainMixin reads it and aborts safely if it forbids gain).
+        self.override_param("em_gain_enabled", True)
+        self.override_param("em_gain", 30.0)
+
     def get_default_analyses(self):
         # Excitation-fraction-from-zero Rabi flop; t_dead pinned to 0 (the WS1
         # 689-spectroscopy convention). pi_time annotation = t_max_transfer.
@@ -94,13 +109,20 @@ class ClockRabiUpBeamDiagnosticFrag(_ClockRabiDiagnosticBase):
     _use_down_beam = False
 
 
-# Diagnostic 2: down beam (pi ~68 us) -> scan 0..180 us.
+# NOTE: the scan MUST start at a nonzero pulse time. The clock delivery setpoint
+# is auto-scaled as V = V_ref * (T_ref / T_clock)^2 in
+# CompensatedClockSpecMixin.prepare_clock_delivery_aom, which divides by
+# spectroscopy_pulse_time - a t=0 first point raises ZeroDivisionError on the core
+# device and kills the run (observed RID 74681). Start at 5 us; the t=0 point
+# (trivially excitation=0) is not needed for the flop fit.
+
+# Diagnostic 2: down beam (pi ~68 us) -> scan 5..180 us.
 ClockRabiDownBeamDiagnostic = make_default_scan_exp(
     ClockRabiDownBeamDiagnosticFrag,
     default_axes=[
         DefaultScanAxis(
             param="spectroscopy_pulse_time",
-            start=0.0,
+            start=5e-6,
             stop=180e-6,
             num_points=31,
         ),
@@ -108,13 +130,13 @@ ClockRabiDownBeamDiagnostic = make_default_scan_exp(
     default_num_repeats=2,
 )
 
-# Diagnostic 3: up beam (pi ~55 us) -> scan 0..150 us.
+# Diagnostic 3: up beam (pi ~55 us) -> scan 5..150 us.
 ClockRabiUpBeamDiagnostic = make_default_scan_exp(
     ClockRabiUpBeamDiagnosticFrag,
     default_axes=[
         DefaultScanAxis(
             param="spectroscopy_pulse_time",
-            start=0.0,
+            start=5e-6,
             stop=150e-6,
             num_points=31,
         ),
