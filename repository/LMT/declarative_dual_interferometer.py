@@ -83,6 +83,13 @@ M_TOP = 1 + N_LAUNCH
 # (2 hbar k) to confirm closure + fringes; raise once contrast and timing allow.
 N_BS = 2
 
+# Dark time after the separation ladder, letting the two clouds physically
+# drift apart before the interferometers run. At ~6.6 mm/s per recoil and a
+# ~8-recoil velocity gap, ~10 ms drifts them ~33 um ~ 33 px apart - enough to
+# land in the distinct forward / backward camera ROIs. Scannable on the rig
+# (its spawned parameter is p<NN>_wait_separate_duration).
+SEPARATION_TIME = 10e-3
+
 
 # --- D3/D5 prefix helpers (copied verbatim from Agent-B's verified
 # declarative_interferometers.py so this experiment is self-contained) ---
@@ -184,6 +191,9 @@ def build_dual_lmt_interferometer(n_bs):
     parked = {("e", m_lo), ("e", m_hi)}
 
     seq = list(prefix)
+
+    # Let the two clouds drift apart spatially before the interferometers run.
+    seq.append(Wait(t=SEPARATION_TIME, label="separate"))
 
     def opposite(beam):
         return Beam.DOWN if beam is Beam.UP else Beam.UP
