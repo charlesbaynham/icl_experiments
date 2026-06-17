@@ -451,6 +451,10 @@ class SingleImageNormalisedBase(AndorImagingBase):
 
         self.fast_kinetics_setup_results()
 
+    @abc.abstractmethod
+    def fast_kinetics_setup_results(self):
+        pass
+
     def host_setup(self):
         super().host_setup()
 
@@ -724,6 +728,34 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         )
         self.andor_camera_config: SingleFKDoubleTrapConfig
         return f  # type: ignore
+
+    def host_setup(self):
+        super().host_setup()
+
+        ground_rois = np.array(
+            self.andor_camera_config.get_rois()[[0, 2, 4, 6, 8, 10]]
+        ).tolist()
+
+        fk_height = self.andor_camera_config.fast_kinetics_height
+        excited_rois = np.array(
+            self.andor_camera_config.get_rois()[[1, 3, 5, 7, 9, 11]]
+        ).tolist()
+        # Subtract the fast kinetics height from the y components
+        excited_rois = [
+            [roi[0], roi[1] - fk_height, roi[2], roi[3] - fk_height]
+            for roi in excited_rois
+        ]
+
+        self.ccb.issue(
+            "create_applet",
+            "Ground bg corrected",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_G_BG_CORR_DATASET} --dataset_prefix 'g_bg_corrected' --default_rois '{ground_rois}'",
+        )
+        self.ccb.issue(
+            "create_applet",
+            "Excited bg corrected",
+            f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{excited_rois}'",
+        )
 
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
