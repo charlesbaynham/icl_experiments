@@ -47,6 +47,7 @@ from artiq.coredevice.dma import CoreDMA
 from artiq.language import kernel
 from artiq.language import now_mu
 from artiq.language import portable
+from artiq.master.worker_impl import CCB
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import BoolParam
 from ndscan.experiment.parameters import BoolParamHandle
@@ -81,6 +82,10 @@ class PulseDMARecording(Fragment):
         self.setattr_device("core_dma")
         self.core_dma: CoreDMA
 
+        # Used to spawn the live LMT spacetime-trajectory applet in host_setup.
+        self.setattr_device("ccb")
+        self.ccb: CCB
+
         self.setattr_param(
             "enable_pulse_sequence_storage",
             BoolParam,
@@ -111,6 +116,13 @@ class PulseDMARecording(Fragment):
         # Create the broadcast dataset for live monitoring. archive=False avoids
         # h5py ragged-array errors; host_cleanup encodes it to flat arrays for archiving.
         self.set_dataset("pulse_record", [], broadcast=True, archive=False)
+
+        # Spawn the live spacetime-trajectory applet. It reads this broadcast
+        # dataset, infers the intended LMT trajectory of the most recent valid
+        # sequence and draws it (see repository/lib/applets/lmt_trajectory_applet.py).
+        cmd = "${python} -m repository.lib.applets.lmt_trajectory_applet pulse_record"
+        self.ccb.issue("create_applet", "LMT spacetime trajectory", cmd)
+
         super().host_setup()
 
     @kernel
