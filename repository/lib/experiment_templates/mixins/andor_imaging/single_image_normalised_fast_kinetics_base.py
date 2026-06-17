@@ -15,6 +15,7 @@ from artiq.language import now_mu
 from artiq.language import portable
 from artiq.language import rpc
 from artiq.master.scheduler import Scheduler
+from artiq.master.worker_impl import CCB
 from artiq_influx_generic import InfluxController
 from ndscan.experiment import FloatChannel
 from ndscan.experiment.parameters import FloatParam
@@ -757,6 +758,8 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
             f"${{python}} -m custom_artiq_applets.full_img_applet {ANDOR_FK_E_BG_CORR_DATASET} --dataset_prefix 'e_bg_corrected' --default_rois '{excited_rois}'",
         )
 
+        self.launch_ellipse_applet()
+
     def fast_kinetics_setup_results(self):
         self.setattr_result("excitation_fraction_forward", FloatChannel)
         self.setattr_result("atom_number_forward", FloatChannel)
@@ -776,6 +779,22 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
         self.atom_number_backward: FloatChannel
         self.atom_number_imbalance: FloatChannel
         self.atom_number_total: FloatChannel
+
+    @host_only
+    def launch_ellipse_applet(self):
+        # Reconstruct the ndscan dataset path
+        # This is a bit fragile, and ought to be based on NDScan functions
+
+        self.setattr_device("ccb")
+        self.ccb: CCB
+
+        rid = self.scheduler.rid  # noqa
+
+        dataset_path_x = f"ndscan.rid_{rid}.points.channel_excitation_fraction_forward"
+        dataset_path_y = f"ndscan.rid_{rid}.points.channel_excitation_fraction_backward"
+
+        cmd = f'${{artiq_applet}}plot_xy {dataset_path_y} --x {dataset_path_x} --title "RID {rid}"'
+        self.ccb.issue("create_applet", "Excitation Lissajous plot", cmd)
 
     @kernel
     def process_grabber_data_hook(self, sums, means):
