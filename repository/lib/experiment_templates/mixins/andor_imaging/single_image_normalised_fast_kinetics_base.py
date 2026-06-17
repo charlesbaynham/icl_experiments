@@ -265,8 +265,8 @@ class SingleFKDoubleTrapConfig(FastKineticsCameraConfig):
     num_grabber_readouts = 1
     fast_kinetics_num_shots = 2
 
-    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT
-    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET
+    fast_kinetics_height = constants.ANDOR_FAST_KINETICS_HEIGHT_DOUBLE_TRAP
+    fast_kinetics_offset = constants.ANDOR_FAST_KINETICS_OFFSET_DOUBLE_TRAP
 
     def build_fragment(
         self,
