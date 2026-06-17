@@ -172,6 +172,16 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         )
         self.spectroscopy_field_gradient: FloatParamHandle
 
+        self.setattr_param(
+            "pre_experiment_delay",
+            FloatParam,
+            "Delay between post-drop actions and the experiment sequence",
+            default=10e-6,
+            unit="us",
+            min=0.0,
+        )
+        self.pre_experiment_delay: FloatParamHandle
+
         self.red_mot.broadband_red_phase.bind_param(
             "bias_field_x_start", self.blue_3d_mot.chamber_2_bias_x
         )
@@ -523,21 +533,64 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
             self.spectroscopy_field_gradient.get()
         )
 
-    @abc.abstractmethod
+    @kernel
     def do_experiment_after_red_mot_hook(self):
         """
-        Hook for the implementation of the following cooling stages or
-        whatever pulses, executed after the programmed expansion time is
+        The experiment, executed after the programmed expansion time is
         completed.
+
+        The default runs the post-drop sequence (:meth:`actions_after_drop`)
+        live. :class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`
+        overrides this to record that sequence into DMA and play it back
+        instead; the dipole-trap base overrides it to load the trap first.
         """
-        raise NotImplementedError
+        self.actions_after_drop()
+
+    @kernel
+    def actions_after_drop(self):
+        """
+        Everything that happens after the atoms are released, factored out so
+        that :class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`
+        can pre-record it in DMA (for fast playback and known-in-advance
+        timings for camera-ROI prediction). When DMA-recorded, no RPCs are
+        allowed in here or in any hook it calls.
+        """
+        # Unconditional marker so a DMA recording is never empty even with all
+        # hooks left as defaults (core_dma cannot play back an empty recording).
+        delay(1e-6)
+        self.post_drop_hook()
+        self.launch_hook()
+        delay(self.pre_experiment_delay.get())
+        self.do_experiment_after_drop_hook()
+
+    @kernel
+    def post_drop_hook(self):
+        """
+        Hook for actions immediately after the atoms are released, e.g.
+        velocity slicing. By default, do nothing.
+        """
+
+    @kernel
+    def launch_hook(self):
+        """
+        Hook for implementation of launching (e.g. an LMT launch ladder). By
+        default, do nothing.
+        """
+
+    @kernel
+    def do_experiment_after_drop_hook(self):
+        """
+        Hook for the spectroscopy / interferometry / whatever sequence, fired
+        ``pre_experiment_delay`` after the post-drop and launch hooks. By
+        default, do nothing.
+        """
 
     @kernel
     def register_pulse(self, is_up: bool, duration_s: float):
         """
-        No-op base implementation. Overridden by bases with a pulse recorder
-        (DipoleTrapWithExperimentBase, RedMOTWithDMAExperimentBase) to record
-        the pulse for dynamic ROI positioning.
+        No-op base implementation. Overridden by DMAActionsAfterDropMixin (and
+        thus DipoleTrapWithExperimentBase) to record the pulse for dynamic ROI
+        positioning.
 
         Call this immediately before turning the clock AOM on, passing the full
         pulse duration. This will be used to record what sequence was run, and

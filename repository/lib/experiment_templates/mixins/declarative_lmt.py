@@ -14,7 +14,7 @@ prepared; two concrete bases bind it to a release mechanism:
   the dipole trap
   (:class:`~repository.lib.experiment_templates.dipole_trap_experiment.DipoleTrapWithExperimentBase`).
 * :class:`DeclarativeLMTRedMOTBase` - runs it directly from the red MOT
-  (:class:`~repository.lib.experiment_templates.red_mot_dma_experiment.RedMOTWithDMAExperimentBase`),
+  (:class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`),
   for when the dipole laser is unavailable.
 
 Principles
@@ -91,13 +91,15 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
+from repository.lib.experiment_templates.dma_actions_after_drop import (
+    DMAActionsAfterDropMixin,
+)
+from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
+    ClockOPLLTrackingMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
-from repository.lib.experiment_templates.red_mot_dma_experiment import (
-    RedMOTWithDMAExperimentBase,
-)
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.lmt_sequence import EVENT_CLEAROUT
 from repository.lib.lmt_sequence import EVENT_PULSE
 from repository.lib.lmt_sequence import EVENT_SETPOINT
@@ -113,7 +115,7 @@ start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 
-class DeclarativeLMTCoreBase(ClockSpectroscopyBase, abc.ABC):
+class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.ABC):
     """
     Engine that runs an LMT pulse sequence declared as a list of event
     dataclasses. Release-mechanism agnostic: use one of the concrete bases
@@ -165,9 +167,9 @@ class DeclarativeLMTCoreBase(ClockSpectroscopyBase, abc.ABC):
     def build_fragment(self):
         super().build_fragment()
 
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
+        # The clock OPLL device (_clock_opll) and the set_clock_opll /
+        # start_clock_opll_ramp / stop_clock_opll_ramp wrappers come from
+        # ClockOPLLTrackingMixin.
 
         # Required by ClockSpectroscopyBase.prepare_clock_delivery_aom
         if not hasattr(self, "spectroscopy_pulse_time"):
@@ -336,45 +338,9 @@ class DeclarativeLMTCoreBase(ClockSpectroscopyBase, abc.ABC):
                 )
             self._lmt_duration_handles[slot] = handle
 
-    # ------------------------------------------------------------------
-    # OPLL command wrappers. Thin wrappers around the clock_opll DDS /
-    # ramper that also update the frequency-tracking state read by
-    # PulseDMARecording.register_pulse, so call sites never have to track
-    # the OPLL frequency separately. (Local copies - this stack does not
-    # import from the legacy LMT mixins.)
-    # ------------------------------------------------------------------
-
-    @kernel
-    def set_clock_opll(self, freq: float):
-        """Set the OPLL offset DDS to a static frequency (and track it)."""
-        self.clock_opll.clock_OPLL_offset.set(freq)
-        self._tracked_opll_freq = freq
-        self._tracked_opll_ramp_active = False
-
-    @kernel
-    def start_clock_opll_ramp(
-        self,
-        rate: float,
-        freq_low: float,
-        freq_high: float,
-        wave_type: int32,
-    ):
-        """Start a DRG ramp on the OPLL offset DDS (and track it)."""
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            rate, freq_low, freq_high, wave_type=wave_type
-        )
-        self._tracked_opll_ramp_rate = rate
-        self._tracked_opll_ramp_low = freq_low
-        self._tracked_opll_ramp_high = freq_high
-        self._tracked_opll_ramp_wave = wave_type
-        self._tracked_opll_ramp_start_mu = now_mu()
-        self._tracked_opll_ramp_active = True
-
-    @kernel
-    def stop_clock_opll_ramp(self):
-        """Stop the OPLL DRG ramp (and track that it is no longer active)."""
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        self._tracked_opll_ramp_active = False
+    # set_clock_opll / start_clock_opll_ramp / stop_clock_opll_ramp come from
+    # ClockOPLLTrackingMixin (they drive _clock_opll and update the
+    # frequency-tracking state read by PulseDMARecording.register_pulse).
 
     # ------------------------------------------------------------------
     # Sequence execution
@@ -645,10 +611,10 @@ class DeclarativeLMTBase(DeclarativeLMTCoreBase, DipoleTrapWithExperimentBase):
         self.run_lmt_sequence()
 
 
-class DeclarativeLMTRedMOTBase(DeclarativeLMTCoreBase, RedMOTWithDMAExperimentBase):
+class DeclarativeLMTRedMOTBase(DeclarativeLMTCoreBase, DMAActionsAfterDropMixin):
     """
     Runs a declared LMT sequence directly from the red MOT (no dipole trap),
-    via :class:`~repository.lib.experiment_templates.red_mot_dma_experiment.RedMOTWithDMAExperimentBase`.
+    via :class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`.
     For when the 1064 nm dipole laser is unavailable.
 
     t=0 for the gravity Doppler is the red-MOT light-off (the atoms'

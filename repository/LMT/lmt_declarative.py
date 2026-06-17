@@ -107,7 +107,9 @@ class DeclarativeLMTMachZehnderFrag(
         Clearout(),
         # Launch: alternating pi pulses walking the atoms up the momentum
         # ladder from |e, 1> to m = M_TOP
-        *ladder(start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN),
+        *ladder(
+            start_m=1, n=N_LAUNCH, first_beam=Beam.DOWN
+        ),  # TODO: consider making N_LAUNCH scannable
         # Remove any ground-state population left behind by imperfect pulses
         Clearout(),
         # Mach-Zehnder on the pair |e, M_TOP> <-> |g, M_TOP + 1>.

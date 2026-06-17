@@ -7,7 +7,7 @@ against atoms released directly from the red MOT, for the period when the
 1064 nm dipole trap is unavailable. They are the red-MOT analogue of
 ``repository/LMT/lmt_declarative.py`` (the dipole reference), built on the
 red-MOT DMA base
-(:class:`~repository.lib.experiment_templates.red_mot_dma_experiment.RedMOTWithDMAExperimentBase`)
+(:class:`~repository.lib.experiment_templates.dma_actions_after_drop.DMAActionsAfterDropMixin`)
 instead of the dipole-trap base.
 
 The three experiments, in increasing complexity:
@@ -56,10 +56,10 @@ HOOK-COLLISION AUDIT (applies to all three)
 -------------------------------------------
 Consumed hooks and their owning parent:
 
-* ``DMA_record_hook``                    -> RedMOTWithDMAExperimentBase (base)
-* ``DMA_initialization_hook``            -> RedMOTWithDMAExperimentBase (base)
-* ``do_experiment_after_red_mot_hook``   -> RedMOTWithDMAExperimentBase (base)
-* ``pre_expansion_hook``                 -> RedMOTWithDMAExperimentBase (base)
+* ``DMA_record_hook``                    -> DMAActionsAfterDropMixin (base)
+* ``DMA_initialization_hook``            -> DMAActionsAfterDropMixin (base)
+* ``do_experiment_after_red_mot_hook``   -> DMAActionsAfterDropMixin (base)
+* ``pre_expansion_hook``                 -> DMAActionsAfterDropMixin (base)
 * ``do_experiment_after_drop_hook``      -> DeclarativeLMTRedMOTBase (exp 2/3 only;
                                             default no-op for exp 1)
 * ``do_imaging_hook_andor``              -> DynamicROIImagingMixin
@@ -72,7 +72,7 @@ Consumed hooks and their owning parent:
 ``EMGainMixin`` consumes *no* kernel hooks, so it never collides.
 
 ``DMA_initialization_hook`` collision: the base's default
-``RedMOTWithDMAExperimentBase.DMA_initialization_hook`` already chains the
+``DMAActionsAfterDropMixin.DMA_initialization_hook`` already chains the
 red-MOT default plus the DMA recording fragment's after-drop handle fetch, and
 no other parent in these stacks overrides it. So unlike the dipole reference
 (which had loading/molasses/evap mixins each contributing a DMA-init sub-hook),
@@ -84,15 +84,15 @@ from artiq.language import kernel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 
 from repository.lib import constants
+from repository.lib.experiment_templates.dma_actions_after_drop import (
+    DMAActionsAfterDropMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (  # noqa: E501
     DynamicROIImagingMixin,
 )
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTRedMOTBase,
-)
-from repository.lib.experiment_templates.red_mot_dma_experiment import (
-    RedMOTWithDMAExperimentBase,
 )
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Clearout
@@ -111,13 +111,13 @@ class RedMOTDropDynamicROIFrag(
     # the ordering of the dipole reference (DeclarativeLMTMachZehnderFrag).
     DynamicROIImagingMixin,
     EMGainMixin,
-    RedMOTWithDMAExperimentBase,
+    DMAActionsAfterDropMixin,
 ):
     """
     Pure free-fall drop from the red MOT with dynamic-ROI imaging.
 
     No declarative engine and no clock pulses: every post-drop hook is left at
-    its ``RedMOTWithDMAExperimentBase`` default, so ``actions_after_drop``
+    its default, so ``actions_after_drop``
     records only the unconditional 1 us marker (the DMA recording is therefore
     non-empty, which ``core_dma`` requires) and the intent stream stays empty.
     The trajectory predictor handles an empty intent stream as pure free fall,
@@ -129,7 +129,7 @@ class RedMOTDropDynamicROIFrag(
     --------------------
     Consumed hooks: ``DMA_record_hook`` / ``DMA_initialization_hook`` /
     ``do_experiment_after_red_mot_hook`` / ``pre_expansion_hook`` (all owned by
-    ``RedMOTWithDMAExperimentBase``); ``do_imaging_hook_andor`` /
+    ``DMAActionsAfterDropMixin``); ``do_imaging_hook_andor`` /
     ``get_andor_camera_config_hook`` (owned by ``DynamicROIImagingMixin``).
     ``EMGainMixin`` owns no hooks. The only multiply-claimed hook is
     ``post_sequence_cleanup_hook``, overridden below to chain the red-MOT/Andor
@@ -155,7 +155,7 @@ RedMOTDropDynamicROI = make_fragment_scan_exp(RedMOTDropDynamicROIFrag)
 
 
 class RedMOTSlicedSpecDynamicROIFrag(
-    # Declarative red-MOT engine (which brings RedMOTWithDMAExperimentBase via
+    # Declarative red-MOT engine (which brings DMAActionsAfterDropMixin via
     # its own bases), then the dynamic-ROI imaging mixin, then EMGain. The
     # experiment base is reached through DeclarativeLMTRedMOTBase, so it is not
     # listed again - the dipole reference lists the base explicitly only because
@@ -179,7 +179,7 @@ class RedMOTSlicedSpecDynamicROIFrag(
     --------------------
     Consumed hooks: ``DMA_record_hook`` / ``DMA_initialization_hook`` /
     ``do_experiment_after_red_mot_hook`` / ``pre_expansion_hook`` (owned by
-    ``RedMOTWithDMAExperimentBase``); ``do_experiment_after_drop_hook`` (owned by
+    ``DMAActionsAfterDropMixin``); ``do_experiment_after_drop_hook`` (owned by
     ``DeclarativeLMTRedMOTBase`` - runs the declared sequence); and
     ``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` (owned by
     ``DynamicROIImagingMixin``). ``EMGainMixin`` owns no hooks.
