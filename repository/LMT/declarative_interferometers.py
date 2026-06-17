@@ -31,6 +31,9 @@ from repository.lib import constants
 from repository.lib.experiment_templates.dipole_trap_experiment import (
     DipoleTrapWithExperimentBase,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.double_trap_imaging import (
+    DoubleTrapImagingClockPulseNormalisedMixin,
+)
 from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMGainMixin
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (
     NormalisedFastKineticsLMTCorrectedMixin,
@@ -68,6 +71,16 @@ from repository.LMT.lmt_declarative import N_LAUNCH
 # and timing allow (each extra recoil adds two pi pulses to the dark-time
 # ladders and tightens the RTIO programming budget).
 N_BS = 2
+
+# D4 dual interferometer: after the splitting pi/2 the two clouds differ by one
+# recoil only - far too close to resolve on camera. Drive them apart with N_SEP
+# extra recoils on the upper cloud and let them drift for SEPARATION_WAIT before
+# the two Mach-Zehnders, so they land in the forward / backward ROIs tens of
+# pixels apart. One recoil is ~6.6 mm/s; N_SEP=6 over ~20 ms gives ~50 px of
+# separation (ROI width 100 px), comfortably resolvable. Both are easily-raised
+# module constants.
+N_SEP = 6
+SEPARATION_WAIT = 20e-3
 
 
 def _slice_setpoint():
@@ -173,9 +186,78 @@ def build_single_lmt_interferometer(n_bs, m_top=M_TOP):
     return seq
 
 
+def build_dual_mach_zehnder(n_sep=N_SEP, separation_wait=SEPARATION_WAIT, m_top=M_TOP):
+    """Pulses for D4: split the launched cloud, drive the two clouds apart, then
+    run an independent 3-pulse Mach-Zehnder on each about a common mirror.
+
+    The splitting ``pi2`` (``split``) makes a lower cloud ``(e, m_top)`` and an
+    upper cloud ``(g, m_top + 1)``. ``n_sep`` further pi pulses (``sep``) ladder
+    the upper cloud up the momentum ladder so the clouds differ by ``n_sep + 1``
+    recoils; a ``separation_wait`` then lets them drift apart spatially (into the
+    forward / backward camera ROIs) before any interferometry. Each cloud then
+    gets its own beam splitter / mirror / recombiner (``*_lo`` for the lower,
+    ``*_hi`` for the upper) sharing the two dark times, so the two
+    interferometers are symmetric about a common mirror and close together. All
+    interferometer pulses carry ``state=`` because the split and separation
+    leave both internal states populated at neighbouring momentum classes.
+
+    The upper cloud's resolved ``(state, m)`` is tracked through
+    ``compile_sequence`` (the recoil sense depends on the internal state), so the
+    separation ladder follows the physical momentum walk. Returns a sequence that
+    closes to four ports - two per cloud.
+    """
+
+    def opposite(beam):
+        return Beam.DOWN if beam is Beam.UP else Beam.UP
+
+    probe_prefix = [_full_intensity_setpoint()]
+    parked_state = ("e", m_top)
+
+    def upper_cloud(seq_tail):
+        compiled = compile_sequence(
+            probe_prefix + seq_tail, initial_population={("e", m_top)}
+        )
+        others = [p for p in compiled.final_population if p != parked_state]
+        assert len(others) == 1, (
+            "dual build expected one upper cloud, got "
+            f"{sorted(compiled.final_population)}"
+        )
+        return others[0]
+
+    seq = [pi2(Beam.DOWN, m=m_top, label="split")]
+    arm = upper_cloud(seq)
+    beam = Beam.UP
+    for _ in range(int(n_sep)):
+        state, m = arm
+        seq.append(Pulse(1.0, beam, m, state=state, label="sep"))
+        arm = upper_cloud(seq)
+        beam = opposite(beam)
+
+    lower_m = m_top
+    upper_state, upper_m = arm
+    seq.append(Wait(t=separation_wait, label="separation"))
+
+    # 3-pulse Mach-Zehnder on each cloud, sharing the two dark times / mirror.
+    seq += [
+        pi2(Beam.UP, m=lower_m, state="e", label="bs1_lo"),
+        pi2(Beam.UP, m=upper_m, state=upper_state, label="bs1_hi"),
+        Wait(t=1e-3, label="dark1"),
+        pi(Beam.UP, m=lower_m, label="mir_lo"),
+        pi(Beam.UP, m=upper_m, label="mir_hi"),
+        Wait(t=1e-3, label="dark2"),
+        pi2(Beam.UP, m=lower_m, label="bs2_lo"),
+        pi2(Beam.UP, m=upper_m, label="bs2_hi"),
+    ]
+    return seq
+
+
 class DeclarativeLMTDualMachZehnderFrag(
     DeclarativeLMTBase,
-    NormalisedFastKineticsLMTCorrectedMixin,
+    # Two spatially-separated clouds: the static-config double-trap imaging mixin
+    # places a forward + backward ROI (8 scannable IntParams) and reads
+    # per-cloud excitation fractions and atom_number_imbalance. Replaces D3's
+    # single-cloud dynamic-ROI NormalisedFastKineticsLMTCorrectedMixin.
+    DoubleTrapImagingClockPulseNormalisedMixin,
     EMGainMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
@@ -184,44 +266,33 @@ class DeclarativeLMTDualMachZehnderFrag(
     DipoleTrapWithExperimentBase,
 ):
     """
-    D4: launch, split into two clouds, then a dual Mach-Zehnder.
+    D4: launch, split into two clouds, drive them apart, then a dual Mach-Zehnder.
 
     After the launch the cloud is excited at ``M_TOP``. A splitting ``pi2``
-    (``split``) makes two clouds at adjacent momentum classes: ``(e, M_TOP)``
-    and ``(g, M_TOP + 1)``. A momentum-selective ``pi2`` then opens an
-    independent Mach-Zehnder on *each* cloud (``bs1_lo`` / ``bs1_hi``), a shared
-    pair of pi pulses mirrors both (``mir_lo`` / ``mir_hi``), and a final pair
-    of ``pi2`` pulses recombines both (``bs2_lo`` / ``bs2_hi``). Every
-    interferometer pulse carries ``state=`` because the split leaves both
-    internal states populated at neighbouring m.
+    (``split``) makes a lower cloud ``(e, M_TOP)`` and an upper cloud
+    ``(g, M_TOP + 1)``; ``N_SEP`` further pi pulses (``sep``) ladder the upper
+    cloud up so the two clouds separate by ``N_SEP + 1`` recoils, and a
+    ``SEPARATION_WAIT`` lets them drift into the forward / backward camera ROIs
+    before any interferometry. An independent 3-pulse Mach-Zehnder then runs on
+    each cloud about a common pair of dark times / mirror (``*_lo`` lower,
+    ``*_hi`` upper); every interferometer pulse carries ``state=`` to pin which
+    population it addresses.
 
-    The two interferometers close to four distinct ports:
-    ``{(g, M_TOP - 1), (e, M_TOP)}`` (lower) and
-    ``{(g, M_TOP + 1), (e, M_TOP + 2)}`` (upper); the readout is the imbalance
-    between the two ports of each. No SetPoint/Clearout falls between the first
-    and last beam splitters and the two dark times are symmetric about the
-    mirror, so both interferometers satisfy the closure constraint.
+    The two interferometers close to four distinct ports (two per cloud); the
+    readout (``DoubleTrapImagingClockPulseNormalisedMixin``) is the per-cloud
+    excitation fraction and the forward/backward ``atom_number_imbalance``. No
+    SetPoint/Clearout falls between the first and last beam splitters and the two
+    dark times are symmetric about the mirror, so both interferometers close.
+    The 8 ROI IntParams default to the dipole double-trap positions and are
+    scanned/tuned onto the two clouds' fall positions from the first camera
+    frame.
     """
 
     lmt_initial_population = {("g", 0)}
 
     lmt_sequence = [
         *_slice_launch_prefix(),
-        # Splitting pi/2: makes two clouds {(e, M_TOP), (g, M_TOP + 1)}.
-        pi2(Beam.DOWN, m=M_TOP, label="split"),
-        # First beam splitter of each interferometer (momentum-selective).
-        #   lower cloud (e, M_TOP)     -> pair (g, M_TOP - 1) <-> (e, M_TOP)
-        #   upper cloud (g, M_TOP + 1) -> pair (g, M_TOP + 1) <-> (e, M_TOP + 2)
-        pi2(Beam.UP, m=M_TOP, state="e", label="bs1_lo"),
-        pi2(Beam.UP, m=M_TOP + 1, state="g", label="bs1_hi"),
-        Wait(t=1e-3, label="dark1"),
-        # Mirror each pair (swaps the populations of each interferometer).
-        pi(Beam.UP, m=M_TOP, label="mir_lo"),
-        pi(Beam.UP, m=M_TOP + 1, label="mir_hi"),
-        Wait(t=1e-3, label="dark2"),
-        # Recombiner of each interferometer.
-        pi2(Beam.UP, m=M_TOP, label="bs2_lo"),
-        pi2(Beam.UP, m=M_TOP + 1, label="bs2_hi"),
+        *build_dual_mach_zehnder(),
     ]
 
     @kernel

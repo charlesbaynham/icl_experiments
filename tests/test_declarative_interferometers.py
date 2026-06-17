@@ -27,18 +27,25 @@ def _compile(frag):
 
 
 def test_dual_mach_zehnder_closes_to_four_ports():
-    """D4: the two interferometers close to four distinct ports - two per
-    cloud (the lower cloud's pair and the upper cloud's pair)."""
+    """D4: after the split + separation the two clouds are far apart in momentum;
+    each runs its own Mach-Zehnder, so the sequence closes to four distinct ports
+    - two per cloud. The lower cloud's pair sits at (M_TOP-1, M_TOP); the upper
+    cloud's pair sits N_SEP recoils higher."""
+    from repository.LMT.declarative_interferometers import N_SEP
+
     compiled = _compile(DeclarativeLMTDualMachZehnderFrag)
-    expected = frozenset(
-        {
-            ("g", M_TOP - 1),
-            ("e", M_TOP),
-            ("g", M_TOP + 1),
-            ("e", M_TOP + 2),
-        }
-    )
-    assert compiled.final_population == expected
+    ports = compiled.final_population
+    # Exactly four ports, all at distinct momentum classes (spatially resolvable).
+    assert len(ports) == 4
+    assert len({m for _state, m in ports}) == 4
+    # Lower interferometer ports.
+    assert ("g", M_TOP - 1) in ports
+    assert ("e", M_TOP) in ports
+    # Upper interferometer is N_SEP recoils above; its two ports straddle the
+    # upper cloud's momentum class.
+    upper_ms = sorted(m for _state, m in ports if m > M_TOP)
+    assert upper_ms[-1] - upper_ms[0] == 1  # a g/e port pair
+    assert upper_ms[0] >= M_TOP + N_SEP  # genuinely separated from the lower cloud
 
 
 def test_single_lmt_interferometer_closes_to_two_ports():
