@@ -248,6 +248,8 @@ class Callback:
         label: Optional tag for documentation.
     """
 
+    # FIXME This needs to be more expressive
+
     callback_id: int
     delta_m: int = 0
     state_effect: str = "none"

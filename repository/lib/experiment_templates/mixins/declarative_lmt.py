@@ -210,6 +210,7 @@ class DeclarativeLMTBase(ClockSpectroscopyBase, DipoleTrapWithExperimentBase):
             default=0.0,
         )
         self.lmt_unused_pad: FloatParamHandle
+        self.override_param("lmt_unused_pad", initial_value=0.0)
 
         # Parallel per-event arrays read by the kernel. NB no bool lists:
         # the ARTIQ compiler quotes host lists of Python bools as integer
