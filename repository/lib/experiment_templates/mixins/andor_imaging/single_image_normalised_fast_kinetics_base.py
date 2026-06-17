@@ -921,7 +921,6 @@ class RepumpingWith679Mixin(SingleImageNormalisedBase):
 
 
 class RepumpingWithClockMixin(
-    SingleImageNormalisedSingleTrapBase,
     SingleImageNormalisedBase,
     ClockSpectroscopyBase,
 ):
