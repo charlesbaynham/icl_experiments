@@ -384,7 +384,7 @@ IJD_RELOCKER_DEFAULTS = {
         i_min=-2.5e-3,
         i_max=2.5e-3,
         n_steps=100,
-        window_frac=0.5,
+        window_frac=0.1,
         min_diff=0.1,
         v_low_threshold=1.3,
         v_rise_threshold=0.05,
@@ -790,7 +790,7 @@ SUSERVOED_BEAMS = [
     ),
     SUServoedBeam(
         "clock_delivery",
-        99.4762e6,
+        99.4717e6,
         9,
         "suservo_aom_698_clock_delivery",
         servo_enabled=True,
@@ -1165,7 +1165,7 @@ DELAY_BETWEEN_INTERFEROMETRY_PULSES = 50e-6
 CLOCK_DELIVERY_SPECTROSCOPY_DETUNING = (
     0.0e3  # Will need fine-tuning whenever velocity-selection pulse is changed
 )
-DURATION_OF_STARK_PULSE = 30e-6
+DURATION_OF_STARK_PULSE = 5e-6
 
 # %% Dipole trap settings
 

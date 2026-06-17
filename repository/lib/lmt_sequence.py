@@ -65,6 +65,7 @@ import math
 from dataclasses import dataclass
 from enum import Enum
 
+from repository.lib import pulse_intent
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
 from repository.lib.physics.lmt_resonance import opll_m_term_hz
@@ -82,6 +83,15 @@ EVENT_CALLBACK = 4
 
 class SequenceError(ValueError):
     """A declared LMT sequence is invalid."""
+
+
+# Mapping from the Callback declaration's state_effect strings to the integer
+# intent codes recorded at fire time (repository.lib.pulse_intent).
+_CALLBACK_STATE_EFFECT_CODES = {
+    "none": pulse_intent.EFFECT_NONE,
+    "flip": pulse_intent.EFFECT_FLIP,
+    "superpose": pulse_intent.EFFECT_SUPERPOSE,
+}
 
 
 class Beam(Enum):
@@ -306,6 +316,15 @@ class CompiledEvent:
     names an existing handle attribute to reuse for the duration slot.
     ``governing_setpoint_index`` points pulses at the sequence index of the
     :class:`SetPoint` event whose parameter governs their delivery set point.
+
+    ``state_effect``, ``addressed_state``, ``addressed_m`` and ``delta_m``
+    carry the event's *intent* - what it is meant to do to the atomic
+    populations - encoded with the integer codes of
+    :mod:`repository.lib.pulse_intent`. For pulses these are filled by
+    :func:`_compile_pulse` from the resolved transition (``EFFECT_FLIP`` for a
+    pi pulse, ``EFFECT_SUPERPOSE`` otherwise); for :class:`Callback` events
+    they come from the declaration. ``declared_duration_s`` is the
+    :class:`Callback`'s nominal duration (0.0 for everything else).
     """
 
     index: int
@@ -319,6 +338,11 @@ class CompiledEvent:
     duration_param_ref: str | None = None
     setpoint_param: ParamSpec | None = None
     addressed_pair: tuple | None = None
+    state_effect: int = pulse_intent.EFFECT_NONE
+    addressed_state: int = pulse_intent.STATE_AUTO
+    addressed_m: int = pulse_intent.M_AUTO
+    delta_m: int = 0
+    declared_duration_s: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -522,6 +546,9 @@ def compile_sequence(
                     index=index,
                     kind=EVENT_CALLBACK,
                     callback_id=event.callback_id,
+                    state_effect=_CALLBACK_STATE_EFFECT_CODES[event.state_effect],
+                    delta_m=event.delta_m,
+                    declared_duration_s=event.duration,
                 )
             )
         else:
@@ -634,6 +661,21 @@ def _compile_pulse(
         beam_sign=s,
         m_term_hz=m_term,
         governing_setpoint_index=setpoint_index,
+        # Intent: a pi pulse swaps the addressed pair's populations; any
+        # other area populates both sides. delta_m is the beam sign (recoils
+        # given in the ground->excited direction).
+        state_effect=(
+            pulse_intent.EFFECT_FLIP
+            if math.isclose(event.area, 1.0)
+            else pulse_intent.EFFECT_SUPERPOSE
+        ),
+        addressed_state=(
+            pulse_intent.STATE_GROUND
+            if input_state == GROUND
+            else pulse_intent.STATE_EXCITED
+        ),
+        addressed_m=event.m,
+        delta_m=s,
         offset_param=ParamSpec(
             attr_name=name + "_offset",
             description=(

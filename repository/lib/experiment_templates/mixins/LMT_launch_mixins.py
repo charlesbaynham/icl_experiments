@@ -9,8 +9,10 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
-from numpy import int32
 from numpy import int64
+from pyaion.fragments.toggle_beams_with_AOM_and_shutter import (
+    ControlBeamsWithoutCoolingAOM,
+)
 from pyaion.models import SUServoedBeam
 from pyaion.models import UrukuledBeam
 
@@ -21,13 +23,15 @@ from repository.lib.experiment_templates.dipole_trap_experiment import (
 from repository.lib.experiment_templates.mixins.clock_interferometry import (
     ClockInterferometryBase,
 )
+from repository.lib.experiment_templates.mixins.clock_opll_tracking import (
+    ClockOPLLTrackingMixin,
+)
 from repository.lib.experiment_templates.mixins.clock_spectroscopy import (
     ClockSpectroscopyBase,
 )
 from repository.lib.experiment_templates.red_mot_experiment import (
     RedMOTWithExperimentBase,
 )
-from repository.lib.fragments.clock_opll_controller import ClockOPLLController
 from repository.lib.fragments.pulse_shaping import JessePulseLMT
 
 CLOCK_UP_BEAM_INFO: UrukuledBeam = constants.URUKULED_BEAMS["clock_up"]
@@ -45,6 +49,7 @@ logger = logging.getLogger(__name__)
 
 
 class LMTBase(
+    ClockOPLLTrackingMixin,
     ClockSpectroscopyBase,
     RedMOTWithExperimentBase,
 ):
@@ -55,6 +60,16 @@ class LMTBase(
 
     def build_fragment(self):
         super().build_fragment()
+
+        self.setattr_fragment(
+            "repump_beam_setter",
+            ControlBeamsWithoutCoolingAOM,
+            beam_infos=[
+                constants.SUSERVOED_BEAMS["repump_679"],
+                constants.SUSERVOED_BEAMS["repump_707"],
+            ],
+        )
+        self.repump_beam_setter: ControlBeamsWithoutCoolingAOM
 
         self.setattr_param(
             "down_switch_detuning",
@@ -102,48 +117,13 @@ class LMTBase(
         )
         self.down_pulses_duration: FloatParamHandle
 
-        if not hasattr(self, "clock_opll"):
-            self.setattr_fragment("clock_opll", ClockOPLLController)
-            self.clock_opll: ClockOPLLController
-
     # ------------------------------------------------------------------
-    # OPLL command wrappers. Thin wrappers around the clock_opll DDS /
-    # ramper that also update the frequency-tracking state read by
-    # PulseDMARecording.register_pulse, so call sites never have to track
-    # the OPLL frequency separately.
+    # OPLL command wrappers (set_clock_opll / start_clock_opll_ramp /
+    # stop_clock_opll_ramp) are provided by ClockOPLLTrackingMixin so that
+    # they can be shared with non-LMT clock experiments (e.g. the clock
+    # shelving pulse). They update the frequency-tracking state read by
+    # PulseDMARecording.register_pulse.
     # ------------------------------------------------------------------
-
-    @kernel
-    def set_clock_opll(self, freq: float):
-        """Set the OPLL offset DDS to a static frequency (and track it)."""
-        self.clock_opll.clock_OPLL_offset.set(freq)
-        self._tracked_opll_freq = freq
-        self._tracked_opll_ramp_active = False
-
-    @kernel
-    def start_clock_opll_ramp(
-        self,
-        rate: float,
-        freq_low: float,
-        freq_high: float,
-        wave_type: int32,
-    ):
-        """Start a DRG ramp on the OPLL offset DDS (and track it)."""
-        self.clock_opll.clock_frequency_ramper.start_ramp(
-            rate, freq_low, freq_high, wave_type=wave_type
-        )
-        self._tracked_opll_ramp_rate = rate
-        self._tracked_opll_ramp_low = freq_low
-        self._tracked_opll_ramp_high = freq_high
-        self._tracked_opll_ramp_wave = wave_type
-        self._tracked_opll_ramp_start_mu = now_mu()
-        self._tracked_opll_ramp_active = True
-
-    @kernel
-    def stop_clock_opll_ramp(self):
-        """Stop the OPLL DRG ramp (and track that it is no longer active)."""
-        self.clock_opll.clock_frequency_ramper.stop_ramp()
-        self._tracked_opll_ramp_active = False
 
     @kernel
     def down_pulse(self, N_previous_pulses):
@@ -203,6 +183,14 @@ class LMTBase(
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
+            # if pulse_type == "up":
+            #     # Clear out the ground state after up pulses
+            #     self.fluorescence_pulse.do_clearout_pulse(
+            #         duration=50e-6,
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
+
     @kernel
     def launch_series(self, offset_det, N_previous_pulses, N):
 
@@ -229,14 +217,6 @@ class LMTBase(
 
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
-
-            # Clear out the ground state
-            # if pulse_type == "up":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
 
     # use if we start in the ground state
     @kernel
@@ -268,12 +248,13 @@ class LMTBase(
             self.fire_lmt_pulse(f_i, pulse_type, t_start_lmt_pulse_mu)
 
             # Clear out the ground state
-            # if pulse_type == "down":
-            #     self.fluorescence_pulse.do_imaging_pulse(
-            #         duration=self.clearout_duration.get(),
-            #         ignore_final_shutters=True,
-            #     )
-            #     delay(8e-9)
+            if pulse_type == "up":
+                self.register_clearout(duration_s=self.clearout_duration.get())
+                self.fluorescence_pulse.do_clearout_pulse(
+                    duration=self.clearout_duration.get(),
+                    ignore_final_shutters=True,
+                )
+                delay(8e-9)
 
     @kernel
     def lmt_series_start_down_launch_down(self, offset_det, N_previous_pulses, N):
@@ -303,6 +284,14 @@ class LMTBase(
 
             # fire the pulse
             self.fire_lmt_pulse(f_i, pulse_type, t_start=t_start_lmt_2_pulse_mu)
+
+            # if pulse_type == "down":
+            #     # Clear out the ground state after up pulses
+            #     self.fluorescence_pulse.do_clearout_pulse(
+            #         duration=50e-6,
+            #         ignore_final_shutters=True,
+            #     )
+            #     delay(8e-9)
 
     @kernel
     def lmt_series_start_up_launch_down(self, offset_det, N_previous_pulses, N):
@@ -343,7 +332,7 @@ class LMTBase(
         if type == "down":
             at_mu(t_start)
             # ramp the offset downwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            # self.start_clock_opll_ramp(
             #     ramp_rate,
             #     start_freq - 1e6,
             #     start_freq,
@@ -361,7 +350,7 @@ class LMTBase(
         if type == "up":
             at_mu(t_start)
             # ramp the offset upwards
-            # self.clock_opll.clock_frequency_ramper.start_ramp(
+            # self.start_clock_opll_ramp(
             #     ramp_rate,
             #     start_freq,
             #     start_freq + 2e6,
@@ -489,7 +478,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
             "lmt_launch_pulses_number",
             IntParam,
             "Number of pulses for LMT launch",
-            default=10,
+            default=8,
         )
         self.lmt_launch_pulses_number: IntParamHandle
 
@@ -528,6 +517,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
 
         self.launch_series(start_detuning, N_previous_pulses=1, N=lmt_number)
         # Clear out the ground state
+        self.register_clearout(duration_s=50e-6)
         self.fluorescence_pulse.do_clearout_pulse(
             duration=50e-6,  # self.clearout_duration.get(),
             ignore_final_shutters=True,
@@ -535,7 +525,7 @@ class LMTLaunchMixin(LMTBase, DipoleTrapWithExperimentBase):
         delay_mu(8)
 
         # delay_mu(8)
-        # self.clock_opll.clock_frequency_ramper.start_ramp(
+        # self.start_clock_opll_ramp(
         #     ramp_rate,
         #     80e6 - 1e6,
         #     80e6,
@@ -684,7 +674,7 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
 
         # LMT sequence on upper trap
 
-        self.lmt_series(lmt_detuning, N_previous_pulses=3, N=N_launch)
+        self.launch_series(lmt_detuning, N_previous_pulses=3, N=N_launch)
 
         delay(self.delay_between_launches.get())
 
@@ -692,14 +682,6 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.lmt_series_start_up(
             lower_selective_det, N_previous_pulses=0, N=N_launch + 2
         )
-
-        self.set_clock_up_dds(
-            frequency=self.clock_switch_frequency_handle.get()
-            + self.up_switch_detuning_lower_intensity.get(),
-            amplitude=self.clock_switch_amplitude_handle.get(),
-        )
-
-        delay_mu(8)
 
         delay(8e-9)
 
@@ -729,14 +711,29 @@ class LMTLaunchDoubleTrapShapedPulseMixin(LMTLaunchMixin, DipoleTrapWithExperime
         self.clock_up_dds.sw.on()
         delay(d)
         self.clock_up_dds.sw.off()
-        self.stop_clock_opll_ramp()
-        self.set_clock_opll(80e6)
 
         delay(1e-6)
 
         # Clear out the ground state
         self.fluorescence_pulse.do_clearout_pulse(
             duration=200e-6,
+            ignore_final_shutters=True,
+        )
+
+        # clear out the excited state ladder
+        self.down_pulse(N_previous_pulses=N_launch + 3)
+
+        self.repump_beam_setter.turn_beams_on(ignore_shutters=True)
+        delay(500e-6)
+        self.repump_beam_setter.turn_beams_off(ignore_shutters=True)
+
+        delay(1e-6)
+
+        self.up_pulse(N_previous_pulses=N_launch + 4)
+
+        # Clear out the ground state
+        self.fluorescence_pulse.do_clearout_pulse(
+            duration=self.clearout_duration.get(),
             ignore_final_shutters=True,
         )
 
@@ -822,7 +819,7 @@ class LMTInterferometryMixin(
             "lmt_pulses_number",
             IntParam,
             "Number of pulses for LMT interferometry",
-            default=41,
+            default=19,
         )
         self.lmt_pulses_number: IntParamHandle
 
@@ -943,7 +940,7 @@ class LMTInterferometryMixin(
     @kernel
     def do_clock_interferometry(self):
         N = self.lmt_pulses_number.get()
-        N_launch = 12
+        N_launch = 20
         t_pi_down = self.down_pulses_duration.get()
         t_first_pi = self.first_lmt_duration.get()
 
@@ -965,8 +962,7 @@ class LMTInterferometryMixin(
 
         t_start_selective_pulse = now_mu() + self.core.seconds_to_mu(10e-6)
 
-        # Do a Stark shifting pulse in the first dark time
-        self.stark_shifter.do_stark_pulse()
+        t_stark = now_mu()
 
         at_mu(t_start_selective_pulse)
 
@@ -1005,10 +1001,16 @@ class LMTInterferometryMixin(
         delay_mu(8)
         t_end_bs_mu = now_mu()
 
+        t_random = now_mu()
+        print(self.core.mu_to_seconds(t_random - t_stark))
+
         # dark time
         t_start_lmt_mirror_mu = t_end_bs_mu + self.core.seconds_to_mu(
             self.delay_between_interferometry_pulses.get()
         )
+
+        # Do a Stark shifting pulse in the first dark time
+        self.stark_shifter.do_stark_pulse()
 
         at_mu(t_start_lmt_mirror_mu)
         # LMT sequence on upper arm, momentum downwards
@@ -1268,7 +1270,7 @@ class LMTInterferometryMixin(
 
         at_mu(t_start_last_pulse_mu)
         delay_mu(8)
-        self.clock_opll.clock_frequency_ramper.start_ramp(
+        self.start_clock_opll_ramp(
             ramp_rate,
             start_opll_offset
             + self.calculate_frequency_for_first_pi_by_2_pulse(
