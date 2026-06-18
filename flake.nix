@@ -3,7 +3,9 @@
   inputs.nixpkgs.follows = "pyaion/nixpkgs";
 
   # TODO: Go back to pyaion artiq. This needs an ARTIQ update - see MR
-  inputs.alt_artiq.url = "git+https://gitlab.com/aion-physics/code/artiq/forks/artiq_fork.git?ref=make-event-spreading-optional";
+  # Pinned to the make-event-spreading-optional base plus the "WORKING"
+  # working-tree-rev feature, rebased onto that base in the GitHub fork.
+  inputs.alt_artiq.url = "git+https://github.com/charlesbaynham/artiq.git?ref=feature/working-tree-rev";
   inputs.alt_artiq.inputs.nixpkgs.follows = "nixpkgs";
   inputs.pyaion.inputs.artiq.follows = "alt_artiq";
 
