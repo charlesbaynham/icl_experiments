@@ -6,6 +6,7 @@ from artiq.coredevice.ttl import TTLOut
 from artiq.language import delay
 from artiq.language import host_only
 from artiq.language import kernel
+from artiq.language import now_mu
 from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import OpaqueChannel
@@ -112,14 +113,15 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("ACQ:POIN", 10e3)
         # Setup a single shot
         self.rtb.write_str("TRIG:A:MODE NORM")
+        self.enable_single_shot()
 
     @kernel
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
         logger.warning("Begin the pulse")
-        self.enable_single_shot()
         self.core.break_realtime()
         self.ttl.pulse(100e-3)
+        t = now_mu()
         self.core.break_realtime()
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
@@ -127,6 +129,7 @@ class TestRTBSetupFrag(ExpFragment):
         # delay(5.0)
         logger.warning("done")
         # Get the data from the scope and save it in the results channel
+        self.core.wait_until_mu(t)
         self.get_data_from_scope()
         logger.warning("I've gotten data!")
 
