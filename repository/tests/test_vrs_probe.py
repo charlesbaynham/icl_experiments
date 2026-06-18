@@ -135,7 +135,7 @@ class TestRTBSetupFrag(ExpFragment):
 
         logger.warning("Query")
         # self.rtb.write_str("CHAN1:DATA:POINT MAX")
-        self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
+        # self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
         self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
         data = "1,2,3,"
         logger.warning(data)
