@@ -58,6 +58,10 @@ class TestVRSProbeRamperFrag(ExpFragment):
         # self.device_setup_subfragments()
         self.device_setup_subfragments()
 
+    @host_only
+    def host_setup(self):
+        return super().host_setup()
+
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
