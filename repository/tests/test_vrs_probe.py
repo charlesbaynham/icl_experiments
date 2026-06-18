@@ -60,6 +60,8 @@ class TestVRSProbeRamperFrag(ExpFragment):
 
         delay(10.0)
         self.probe_ramper.stop()
+        self.core.break_realtime()
+
         logger.info("Probe ramp: %f", self.probe_ramper.dF_dt.get())
         logger.info("Probe max frequency: %f", self.probe_ramper.max_f.get())
         logger.info("Probe min frequency: %f", self.probe_ramper.min_f.get())
