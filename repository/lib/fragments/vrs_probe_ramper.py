@@ -56,9 +56,9 @@ class VRS_Probe_Ramper(Fragment):
 
     @kernel
     def device_setup(self) -> None:
-        self.core.break_realtime()
+        # self.core.break_realtime()
 
-        # self.device_setup_subfragments()
+        self.device_setup_subfragments()
 
         # Now we want to set the parameters of the AD9910 Ramper manually
         self.probe_ramper.set_ramp_limits(
