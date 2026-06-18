@@ -103,7 +103,7 @@ class TestRTBSetupFrag(ExpFragment):
         rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
         rtb.write_str("TRIG:A:TYPE EDGE")
-        write_str("TRIG:A:EDGE:SLOP POS")
+        rtb.write_str("TRIG:A:EDGE:SLOP POS")
         # Set the trigger height to be 1 V
         rtb.write_str("TRIG:A:LEV5 1")
 
