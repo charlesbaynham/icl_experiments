@@ -155,7 +155,7 @@ class TestRTBSetupFrag(ExpFragment):
 
         self.scope_data.push(data)
         logger.warning("Pushed")
-        # self.set_dataset("scope_data", data, broadcast=True, archive=False)
+        self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
