@@ -116,7 +116,7 @@ class TestRTBSetupFrag(ExpFragment):
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
         self.core.break_realtime()
-        self.ttl.pulse(1e-5)
+        self.ttl.pulse(1e-3)
         self.core.break_realtime()
         delay(self.acquisition_time.get())
 
@@ -132,7 +132,9 @@ class TestRTBSetupFrag(ExpFragment):
         # data = self.rtb.query_bin_or_ascii_float_list(
         #     "FORM ASC;:CHAN1:DATA:POINT MAX;:CHAN1:DATA?"
         # )
-        data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
+        data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
+
+        # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
         self.core.break_realtime()
         self.scope_data.push(data)
         # self.set_dataset("scope_data", data, broadcast=True, archive=False)
