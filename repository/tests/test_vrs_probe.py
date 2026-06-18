@@ -50,7 +50,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
     @kernel
     def device_setup(self) -> None:
         self.core.break_realtime()
-        self.core.reset()  # FIXME Ideally don't do this - ndscan does it for you and it can erase previous work. Here it's fine, but it's a bad habit
+        # self.core.reset()  # FIXME Ideally don't do this - ndscan does it for you and it can erase previous work. Here it's fine, but it's a bad habit
         delay(200e-3)
 
         self.dds.init()
