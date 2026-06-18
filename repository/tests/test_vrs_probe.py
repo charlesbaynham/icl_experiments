@@ -113,9 +113,11 @@ class TestRTBSetupFrag(ExpFragment):
         # Setup a single shot
         self.rtb.write_str("TRIG:A:MODE NORM")
 
-    @kernel
+    # @kernel
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
+        self.rtb.write_str("SING")
+
         logger.warning("Begin the pulse")
         self.core.break_realtime()
         self.ttl.pulse(100e-3)
@@ -139,7 +141,6 @@ class TestRTBSetupFrag(ExpFragment):
         logger.warning("Query")
         # self.rtb.write_str("CHAN1:DATA:POIN MAX")
         # self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
-        self.rtb.write_str("SING")
         data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
         logger.warning(len(data))
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
