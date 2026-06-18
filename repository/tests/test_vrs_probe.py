@@ -110,7 +110,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("ACQ:POIN", 20e6)
         # Setup a single shot
         self.rtb.write_str("TRIG:A:MODE NORM")
-        self.rtb.write_str_with_opc("SING")
+        self.rtb.write_str("SING")
 
     @kernel
     def run_once(self) -> None:
