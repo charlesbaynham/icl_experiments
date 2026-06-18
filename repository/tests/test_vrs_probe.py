@@ -118,6 +118,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.core.break_realtime()
         self.ttl.pulse(1e-3)
         self.core.break_realtime()
+        logger.info("start the wait")
         delay(self.acquisition_time.get())
 
         # Get the data from the scope and save it in the results channel
