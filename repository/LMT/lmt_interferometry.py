@@ -15,7 +15,7 @@ from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_ki
     NormalisedFastKineticsClockPulseMixin,
 )
 from repository.lib.experiment_templates.mixins.andor_imaging.single_image_normalised_fast_kinetics import (
-    SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
+    SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin,
 )
 from repository.lib.experiment_templates.mixins.clock_shelving import (
     ClockShelvingAndClearoutDipoleTrapMixin,
@@ -56,15 +56,16 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
 
 class LMTInterferometryWithDoubleLaunchSingleImageFrag(
     LMTInterferometryMixin,
-    LMTLaunchDoubleTrapShapedPulseMixin,
-    SingleImageNormalisedDoubleTrapRepumpedInterferometryMixin,
+    SingleImageNormalisedDoubleTrapClockPulseInterferometryMixin,
     EMGainMixin,
     # FLIRBlueMOTMeasurementMixin,
-    LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
     FieldOnlyRampInEvapMixin,
     ClockShelvingAndClearoutDipoleTrapMixin,
+    AdiabaticCoolingWithPaintedQuadraticMixin,
+    LoadSingleXODTWithPainterMixin,
+    LMTLaunchDoubleTrapShapedPulseMixin,
     DopplerCompensationForLMTMixin,
     DipoleTrapWithExperimentBase,
 ):
@@ -80,6 +81,8 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
         self.DMA_initialization_hook_xodt_molasses()
         self.DMA_initialization_hook_evap_with_field_ramp()
+        self.DMA_initialization_hook_painter_on()
+        self.DMA_initialization_hook_adiabatic_cooling()
 
     @kernel
     def post_sequence_cleanup_hook(self):
@@ -87,6 +90,7 @@ class LMTInterferometryWithDoubleLaunchSingleImageFrag(
         self.post_sequence_cleanup_hook_andor()
         self.post_sequence_cleanup_hook_shelving()
         self.post_sequence_cleanup_hook_lmt()
+        self.post_sequence_cleanup_hook_loading()
 
 
 class LMTInterferometryWithShapedDoubleLaunchFrag(
