@@ -66,6 +66,7 @@ class VRS_Probe_Ramper(Fragment):
         self.probe_ramper.set_ramp_limits(
             frequency_low=self.min_f.get(), frequency_high=self.max_f.get()
         )
+        self.core.break_realtime()
 
         # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
         M_factor = (
@@ -82,6 +83,8 @@ class VRS_Probe_Ramper(Fragment):
             neg_freq_step_mu=freq_step_mu,
             neg_delay_mu=delay_mu,
         )
+
+        self.core.break_realtime()
 
         # The main difference compared with the pyaion is that the probe ramper has the no-dwell modes on low
         # and is not triggered
