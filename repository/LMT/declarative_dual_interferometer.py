@@ -307,14 +307,14 @@ class DeclarativeLMTDualInterferometerFrag(
         *_DUAL_SEQUENCE,
     ]
 
-    def build_fragment(self):
-        super().build_fragment()
-        # Run with conventional (non-EM) gain. The DISABLE_EM_GAIN camera
-        # safety interlock is set on the live master, so em_gain_enabled must
-        # be False; EMGainMixin otherwise defaults it True and its host_setup
-        # interlock check raises. This only overrides the parameter default
-        # (still scannable); it never reads, writes or bypasses DISABLE_EM_GAIN.
-        self.override_param("em_gain_enabled", False)
+    # EM gain is left at the EMGainMixin default (em_gain_enabled=True, em_gain=30)
+    # - the real operating config, matching D3's stack verbatim. The mixin's
+    # host_setup interlock still gates it on the DISABLE_EM_GAIN dataset (which
+    # is False on the live master); this experiment never reads, writes or
+    # bypasses that interlock. NB test_compile_all builds with a fresh dataset
+    # store where DISABLE_EM_GAIN defaults True, so the interlock raises there -
+    # the same pre-existing behaviour as every other declarative LMT fragment
+    # (D3/D4/D5); it is not specific to D6.
 
     @kernel
     def DMA_initialization_hook(self):
