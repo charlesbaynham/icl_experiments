@@ -37,6 +37,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
 
         # Fragments
         self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, URUKUL)
+        # self.setattr_fragment("probe_ramper", AD9910Ramper, URUKUL)
         self.probe_ramper: VRS_Probe_Ramper
 
         # Variable
@@ -66,10 +67,11 @@ class TestVRSProbeRamperFrag(ExpFragment):
     def run_once(self) -> None:
         self.core.break_realtime()
 
-        self.probe_ramper.trigger()
-
-        delay(1.0)
-        self.probe_ramper.stop()
+        self.probe_ramper.probe_ramper.start_ramp(
+            self.probe_ramper.dF_dt, self.probe_ramper.min_f, self.probe_ramper.max_f
+        )
+        delay(10.0)
+        self.probe_ramper.probe_ramper.stop_ramp()
 
         logger.warning("Probe ramp: %f", self.probe_ramper.dF_dt.get())
         logger.warning("Probe max frequency: %f", self.probe_ramper.max_f.get())
