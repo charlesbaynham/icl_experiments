@@ -95,6 +95,8 @@ class TestRTBSetupFrag(ExpFragment):
         # Set the trigger to an external signal
         # Long timeout for visa
         self.rtb.visa_timeout = 50000
+        self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
+        self.enable_single_shot()
         self.rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
         self.rtb.write_str("TRIG:A:TYPE EDGE")
@@ -110,10 +112,8 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
         self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float("ACQ:POIN", 10e3)
+        self.rtb.write_float_with_opc("ACQ:POIN", 10e3)
         # Setup a single shot
-        self.rtb.write_str("TRIG:A:MODE NORM")
-        self.enable_single_shot()
 
     @kernel
     def run_once(self) -> None:
@@ -136,7 +136,7 @@ class TestRTBSetupFrag(ExpFragment):
 
     @rpc
     def enable_single_shot(self) -> None:
-        self.rtb.write_str_with_opc("SING")
+        self.rtb.write_str("SING")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
