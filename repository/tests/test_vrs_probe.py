@@ -112,7 +112,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
         self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float_with_opc("ACQ:POIN", 10e3)
+        self.rtb.write_float("ACQ:POIN", 10e3)
         # Setup a single shot
 
     @kernel
