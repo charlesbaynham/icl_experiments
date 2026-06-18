@@ -8,6 +8,8 @@ from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import rpc
 from ndscan.experiment import ExpFragment
+from ndscan.experiment import OpaqueChannel
+from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -76,8 +78,8 @@ class TestRTBSetupFrag(ExpFragment):
         )
         self.acquisition_time: FloatParamHandle
 
-        # self.setattr_result("scope_data", OpaqueChannel)
-        # self.scope_data: OpaqueChannel
+        self.setattr_result("scope_data", OpaqueChannel)
+        self.scope_data: ResultChannel
 
         # setup the TTL
         self.ttl = self.get_device("ttl_vrs_scope_trigger")
@@ -115,7 +117,7 @@ class TestRTBSetupFrag(ExpFragment):
         delay(self.acquisition_time.get())
 
         # Get the data from the scope and save it in the results channel
-        # self.get_data_from_scope()
+        self.get_data_from_scope()
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
