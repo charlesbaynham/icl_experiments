@@ -1,8 +1,8 @@
 from artiq.coredevice.core import Core
 from artiq.language import kernel
+from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment import Fragment
 from numpy import ceil
 from numpy import int32
 from pyaion.fragments.ad9910_ramper import AD9910Ramper
@@ -56,6 +56,8 @@ class VRS_Probe_Ramper(Fragment):
 
     @kernel
     def device_setup(self) -> None:
+        self.core.break_realtime()
+
         self.device_setup_subfragments()
 
         self.core.break_realtime()
