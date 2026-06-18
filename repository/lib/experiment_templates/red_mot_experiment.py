@@ -157,7 +157,7 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
             "delay_after_experiment",
             FloatParam,
             "Delay after experiment before imaging",
-            default=3900e-6,
+            default=2000e-6,
             unit="us",
         )
         self.delay_after_experiment: FloatParamHandle
@@ -199,16 +199,13 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
     def device_setup(self) -> None:
         self.device_setup_subfragments()
 
-        self.core.break_realtime()
-
-        self.DMA_initialization_hook()
-
     @kernel
     def DMA_initialization_hook(self):
         """
-        Preload phases' handles. These have to be grouped together, instead of
-        handled in separate subfragment setups, otherwise only the last-compiled
-        dma handle is valid.
+        Fetch DMA handles for all pre-recorded sequences. Called from run_once
+        after DMA_record_hook so that all core_dma.record() calls have already
+        happened (ARTIQ invalidates handles on any subsequent record/erase).
+        Only fetch handles here — never record.
         """
         self.DMA_initialization_hook_redmot_default()
 
@@ -222,6 +219,12 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
     @kernel
     def run_once(self):
         self.core.break_realtime()
+
+        self.DMA_record_hook()
+
+        self.core.break_realtime()
+
+        self.DMA_initialization_hook()
 
         self.before_start_hook()
 
@@ -392,6 +395,17 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         self.red_mot.red_beam_controller.all_beam_default_setter.turn_on_all(
             light_enabled=False
         )
+
+    @kernel
+    def DMA_record_hook(self):
+        """
+        Record any DMA sequences needed for this shot. Called at the start of
+        run_once, after device_setup (so all parameter-derived state such as
+        shaped-pulse step durations is valid) and before DMA_initialization_hook
+        (which fetches handles). Every core_dma.record() call must precede every
+        get_handle() call — ARTIQ invalidates handles on any later record/erase.
+        By default, do nothing.
+        """
 
     @kernel
     def before_start_hook(self):

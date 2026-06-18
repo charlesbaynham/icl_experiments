@@ -121,13 +121,14 @@
     in {
       inherit (overriddenOutputs) formatter;
 
-      # Add pre-commit hooks and WSL display fix to the default shell
+      # Add pre-commit hooks and WSL display fix to the default shell. The
+      # pre-commit / git-hooks machinery lives in ./nix/precommit.nix.
       devShells = let
-        preCommitPkg = pkgs.pre-commit;
-        preCommitWrapper = pkgs.writeShellScriptBin "pre-commit" ''
-          unset PYTHONPATH
-          exec ${preCommitPkg}/bin/pre-commit "$@"
-        '';
+        precommit = import ./nix/precommit.nix {
+          inherit pkgs;
+          patchedPreCommit = git-hooks.packages.${system}.pre-commit;
+          preCommitCheck = self.checks.${system}.pre-commit-check;
+        };
 
         newDefaultShell =
           overriddenOutputs.devShells.default.overrideAttrs
@@ -135,9 +136,9 @@
             shellHook =
               ''
                 source ${self}/scripts/wsl_display_fix.sh
-                export PATH="${preCommitWrapper}/bin:${pkgs.lib.makeBinPath self.checks.${system}.pre-commit-check.enabledPackages}:$PATH"
+                source ${self}/scripts/gitlab_ssh_rewrite.sh
               ''
-              + self.checks.${system}.pre-commit-check.shellHook;
+              + precommit.shellHook;
           });
       in
         overriddenOutputs.devShells // {default = newDefaultShell;};

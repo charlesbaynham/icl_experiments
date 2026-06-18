@@ -114,19 +114,10 @@ class DipoleTrapWithExperimentBase(
             "dipole_pre_experiment_delay",
             FloatParam,
             "Time to delay experiment after dipole trap or launch",
-            default=0.0e-6,
+            default=925e-6,
             unit="us",
         )
         self.dipole_pre_experiment_delay: FloatParamHandle
-
-        self.setattr_param(
-            "before_launch_delay",
-            FloatParam,
-            "Time to wait after launch",
-            default=0.0,
-            unit="us",
-        )
-        self.before_launch_delay: FloatParamHandle
 
         # %% Fragments
 
@@ -163,6 +154,10 @@ class DipoleTrapWithExperimentBase(
         self._tracked_delivery_aom_setpoint = 0.0  # V, delivery AOM SUServo setpoint
 
     @kernel
+    def DMA_record_hook(self):
+        self.dma_recording_fragment.record_pulse_sequence()
+
+    @kernel
     def DMA_initialization_hook(self):
         self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_dipole_trap_default()
@@ -184,7 +179,6 @@ class DipoleTrapWithExperimentBase(
         """
 
         self.post_dipole_trap_hook()
-        delay(self.before_launch_delay.get())
         self.launch_hook()
         delay(self.dipole_pre_experiment_delay.get())
         self.do_experiment_after_dipole_trap_hook()
