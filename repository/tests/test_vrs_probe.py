@@ -92,28 +92,30 @@ class TestRTBSetupFrag(ExpFragment):
     @host_only
     def host_setup(self):
         self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
+        self.startup_commands(self.rtb)
+
+    def startup_commands(self, rtb):
         # Set the trigger to an external signal
         # Long timeout for visa
-        self.rtb.visa_timeout = 50000
-        self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
-        self.rtb.write_str("SING")
-        self.rtb.write_str("TRIG:A:SOUR EXT")
+        rtb.visa_timeout = 50000
+        rtb.write_str_with_opc("TRIG:A:MODE NORM")
+        rtb.write_str("SING")
+        rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
-        self.rtb.write_str("TRIG:A:TYPE EDGE")
-        self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
+        rtb.write_str("TRIG:A:TYPE EDGE")
+        write_str("TRIG:A:EDGE:SLOP POS")
         # Set the trigger height to be 1 V
-        self.rtb.write_str("TRIG:A:LEV5 1")
+        rtb.write_str("TRIG:A:LEV5 1")
 
         # Set the acquisition settings CH1 is the PMT signal
-        self.rtb.write_float(
+        rtb.write_float(
             "TIM:ACQT", self.acquisition_time.get()
         )  # Scope Acquisition time
-        self.rtb.write_float("CHAN1:RANG", 5.0)  # Total Vertical range 5V (0.5V/div)
-        self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
-        self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
+        rtb.write_float("CHAN1:RANG", 5.0)  # Total Vertical range 5V (0.5V/div)
+        rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
+        rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float("ACQ:POIN", 10e3)
-        # Setup a single shot
+        rtb.write_float("ACQ:POIN", 10e3)
 
     @kernel
     def run_once(self) -> None:
@@ -161,7 +163,7 @@ class TestRTBSetupFrag(ExpFragment):
 
     @rpc
     def close_connection(self) -> None:
-        self.rtb.close()
+        self.startup_commands(self.rtb)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
