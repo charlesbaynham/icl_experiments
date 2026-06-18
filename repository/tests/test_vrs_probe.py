@@ -109,6 +109,7 @@ class TestRTBSetupFrag(ExpFragment):
         # Sample Data, we want the max of 20 MSa per segment
         self.rtb.write_float("ACQ:POIN", 20e6)
         # Setup a single shot
+        self.rtb.write_str("TRIG:A:MODE NORM")
         self.rtb.write_str_with_opc("SING", 10000)
 
     @kernel
