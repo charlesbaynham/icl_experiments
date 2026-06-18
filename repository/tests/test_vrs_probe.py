@@ -122,6 +122,7 @@ class TestRTBSetupFrag(ExpFragment):
 
         # Get the data from the scope and save it in the results channel
         self.get_data_from_scope()
+        logger.info("I've gotten data!")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
