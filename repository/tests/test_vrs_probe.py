@@ -21,7 +21,7 @@ from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
 logger = logging.getLogger(__name__)
 
-URUKUL = "urukul_squeezing_probe"
+URUKUL = "urukul9910_squeezing_probe"
 
 
 class TestVRSProbeRamperFrag(ExpFragment):
@@ -68,7 +68,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
 
         self.probe_ramper.trigger()
 
-        delay(10.0)
+        delay(1.0)
         self.probe_ramper.stop()
 
         logger.warning("Probe ramp: %f", self.probe_ramper.dF_dt.get())
