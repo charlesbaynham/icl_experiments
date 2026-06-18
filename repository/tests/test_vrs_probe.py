@@ -138,6 +138,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_str("FORM ASC")
         # self.rtb.write_str("CHAN1:DATA:POINT MAX")
         data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA?")
+        logger.warning(data)
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
         self.core.break_realtime()
         logger.warning("Data Here")
