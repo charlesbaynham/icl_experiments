@@ -112,7 +112,6 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("ACQ:POIN", 10e3)
         # Setup a single shot
         self.rtb.write_str("TRIG:A:MODE NORM")
-        # self.rtb.write_str("SING")
 
     @kernel
     def run_once(self) -> None:
@@ -140,6 +139,7 @@ class TestRTBSetupFrag(ExpFragment):
         logger.warning("Query")
         # self.rtb.write_str("CHAN1:DATA:POIN MAX")
         # self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
+        self.rtb.write_str("SING")
         data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
         logger.warning(len(data))
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
