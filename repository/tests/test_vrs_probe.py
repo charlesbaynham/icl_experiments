@@ -115,16 +115,16 @@ class TestRTBSetupFrag(ExpFragment):
     @kernel
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
-        logger.info("Begin the pulse")
+        logger.warning("Begin the pulse")
         self.core.break_realtime()
         self.ttl.pulse(1e-3)
         self.core.break_realtime()
-        logger.info("start the wait")
+        logger.warning("start the wait")
         delay(self.acquisition_time.get())
 
         # Get the data from the scope and save it in the results channel
         self.get_data_from_scope()
-        logger.info("I've gotten data!")
+        logger.warning("I've gotten data!")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
@@ -135,15 +135,15 @@ class TestRTBSetupFrag(ExpFragment):
         # data = self.rtb.query_bin_or_ascii_float_list(
         #     "FORM ASC;:CHAN1:DATA:POINT MAX;:CHAN1:DATA?"
         # )
-        logger.info("Query")
+        logger.warning("Query")
         data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
 
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
         self.core.break_realtime()
-        logger.info("Data Here")
+        logger.warning("Data Here")
 
         self.scope_data.push(data)
-        logger.info("Pushed")
+        logger.warning("Pushed")
         # self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
 
