@@ -50,7 +50,6 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.core.break_realtime()
         # self.core.reset()  # FIXME Ideally don't do this - ndscan does it for you and it can erase previous work. Here it's fine, but it's a bad habit
         delay(200e-3)
-
         self.dds.init()
         delay(1e-3)
         self.core.break_realtime()

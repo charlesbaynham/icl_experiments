@@ -58,7 +58,7 @@ class VRS_Probe_Ramper(Fragment):
     def device_setup(self) -> None:
         self.core.break_realtime()
 
-        self.device_setup_subfragments()
+        # self.device_setup_subfragments()
 
         # Now we want to set the parameters of the AD9910 Ramper manually
         self.probe_ramper.set_ramp_limits(
@@ -80,8 +80,6 @@ class VRS_Probe_Ramper(Fragment):
             neg_freq_step_mu=freq_step_mu,
             neg_delay_mu=delay_mu,
         )
-
-        self.core.break_realtime()
 
         # The main difference compared with the pyaion is that the probe ramper has the no-dwell modes on low
         # and is not triggered
