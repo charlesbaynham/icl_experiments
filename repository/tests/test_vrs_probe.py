@@ -79,7 +79,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
         logger.warning("Probe max frequency: %f", self.probe_ramper.max_f.get())
         logger.warning("Probe min frequency: %f", self.probe_ramper.min_f.get())
 
-        delay(20.0)
+        self.core.wait_until_mu(now_mu)
 
 
 class TestRTBSetupFrag(ExpFragment):
