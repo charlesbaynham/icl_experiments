@@ -121,7 +121,7 @@ class TestRTBSetupFrag(ExpFragment):
         # self.core.break_realtime()
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
-        delay(1000)
+        delay(3.0)
 
         # Get the data from the scope and save it in the results channel
         self.get_data_from_scope()
