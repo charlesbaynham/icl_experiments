@@ -10,6 +10,7 @@ from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment import ResultChannel
+from ndscan.experiment import delay
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -109,11 +110,14 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("ACQ:POIN", 20e6)
         # Setup a single shot
         self.rtb.write_str("SING")
+        self.rtb.query("*OPC?")
 
     @kernel
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
-        self.ttl.pulse(10e-3)
+        self.core.break_realtime()
+        self.ttl.pulse(1e-5)
+        self.core.break_realtime()
         delay(self.acquisition_time.get())
 
         # Get the data from the scope and save it in the results channel
@@ -128,6 +132,7 @@ class TestRTBSetupFrag(ExpFragment):
         data = self.rtb.query_bin_or_ascii_float_list(
             "FORM ASC;:CHAN1:DATA:POINT MAX;:CHAN1:DATA?"
         )
+        self.core.break_realtime()
         self.scope_data.push(data)
         self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
