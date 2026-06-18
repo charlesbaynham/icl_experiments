@@ -48,13 +48,15 @@ class TestVRSProbeRamperFrag(ExpFragment):
         super().build_fragment()
 
     @kernel
-    def run_once(self) -> None:
+    def device_setup(self) -> None:
         self.core.break_realtime()
         self.core.reset()
         delay(200e-3)
-        self.dds.init()
-        delay(1.0)
 
+        self.dds.init()
+
+    @kernel
+    def run_once(self) -> None:
         self.core.break_realtime()
 
         self.probe_ramper.trigger()
