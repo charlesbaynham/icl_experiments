@@ -336,14 +336,14 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
 # priority) and human experiments (>= 0). A user can still override this in the
 # dashboard to take the rig.
 class DisplaySingleSUServoMonitor(
-        make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)):
+    make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
+):
     def build(self):
         super().build()
         self.set_default_scheduling(priority=-40)
 
 
-class DisplayAllSUServoMonitors(
-        make_fragment_scan_exp(DisplayAllSUServoMonitorsFrag)):
+class DisplayAllSUServoMonitors(make_fragment_scan_exp(DisplayAllSUServoMonitorsFrag)):
     def build(self):
         super().build()
         self.set_default_scheduling(priority=-40)
