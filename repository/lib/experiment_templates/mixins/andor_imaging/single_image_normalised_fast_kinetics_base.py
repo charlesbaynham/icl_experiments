@@ -725,7 +725,7 @@ class SingleImageNormalisedDoubleTrapBase(SingleImageNormalisedBase):
             bwd_x1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_X1,
             bwd_y1=constants.ANDOR_ROI_DIPOLE_TRAP_BACKWARD_Y1,
             bg_width=constants.ANDOR_SINGLE_FAST_KINETICS_BACKGROUND_ROI_WIDTH,
-            excited_shift=29,  # self.calculate_gravitational_drop(),
+            excited_shift=35,  # self.calculate_gravitational_drop(),
         )
         self.andor_camera_config: SingleFKDoubleTrapConfig
         return f  # type: ignore

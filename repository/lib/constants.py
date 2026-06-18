@@ -509,11 +509,11 @@ SLACK_FOR_GRAVITY = 25
 
 _ANDOR_DIPOLE_TRAP_BACKWARD_X = 193
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 237
+_ANDOR_DIPOLE_TRAP_BACKWARD_Y = 227
 
 _ANDOR_DIPOLE_TRAP_FORWARD_X = 196
 # ~3 pixels below the center of the dipole trap to include falling atoms
-_ANDOR_DIPOLE_TRAP_FORWARD_Y = 266
+_ANDOR_DIPOLE_TRAP_FORWARD_Y = 254
 
 ANDOR_ROI_DIPOLE_TRAP_FORWARD_X0 = round(
     _ANDOR_DIPOLE_TRAP_FORWARD_X - _ANDOR_ROI_DIPOLE_WIDTH / 2
