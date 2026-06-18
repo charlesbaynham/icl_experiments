@@ -497,6 +497,15 @@ else:
     ANDOR_ROI_Y0 = y - height / 2
     ANDOR_ROI_Y1 = y + height / 2
 
+# Dipole-trap anchor for dynamic-ROI prediction: the pixel coordinates of the
+# dipole-trap cloud centre on the Andor sensor at t=0. This is the single source
+# of truth for the trap_x_pixel / trap_y_pixel ndscan param defaults used by the
+# ballistic ROI predictor. It is tuned on the rig and lives here (not as a
+# per-experiment ndscan override) so a freshly-commissioned value propagates to
+# every experiment that uses the imaging mixin.
+ANDOR_TRAP_CENTRE_X_PIXEL = int((ANDOR_ROI_X0 + ANDOR_ROI_X1) // 2)
+ANDOR_TRAP_CENTRE_Y_PIXEL = int((ANDOR_ROI_Y0 + ANDOR_ROI_Y1) // 2)
+
 _ANDOR_ROI_DIPOLE_HEIGHT_ABOVE = 11
 _ANDOR_ROI_DIPOLE_HEIGHT_BELOW = 11
 _ANDOR_ROI_DIPOLE_WIDTH = 80
