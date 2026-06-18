@@ -133,11 +133,15 @@ class TestRTBSetupFrag(ExpFragment):
         # data = self.rtb.query_bin_or_ascii_float_list(
         #     "FORM ASC;:CHAN1:DATA:POINT MAX;:CHAN1:DATA?"
         # )
+        logger.info("Query")
         data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
 
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
         self.core.break_realtime()
+        logger.info("Data Here")
+
         self.scope_data.push(data)
+        logger.info("Pushed")
         # self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
 
