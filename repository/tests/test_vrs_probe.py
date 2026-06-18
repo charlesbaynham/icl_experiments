@@ -112,31 +112,28 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
         self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float("ACQ:POIN", 2e6)
+        self.rtb.write_float("ACQ:POIN", 10e3)
         # Setup a single shot
 
     @kernel
     def run_once(self) -> None:
-        # Pulse the TTL for 10 ms
+
         logger.warning("Begin the pulse")
         self.core.break_realtime()
-        delay(3.0)
+        # Ok Delay for a bit of time to let the rest of the OPC commands finish
+        delay(1.0)
+        # Pulse the TTL for 10 ms
         self.ttl.pulse(10e-3)
-        self.core.break_realtime()
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
         t = now_mu()
         logger.warning("wait")
         # delay(5.0)
         logger.warning("done")
-        # Get the data from the scope and save it in the results channel
+        # Get the data from the scope and save it in the results channel after we get to this part of the timeline
         self.core.wait_until_mu(t)
         self.get_data_from_scope()
         logger.warning("I've gotten data!")
-
-    @rpc
-    def enable_single_shot(self) -> None:
-        self.rtb.write_str("SING")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
