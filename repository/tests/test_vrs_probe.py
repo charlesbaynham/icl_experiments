@@ -90,7 +90,7 @@ class TestRTBSetupFrag(ExpFragment):
 
     @host_only
     def host_setup(self):
-        self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
+        self.rtb = RsInstrument("TCPIP::scope2.lan::INSTR", id_query=True, reset=True)
         # Set the trigger to an external signal
         self.rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
@@ -134,7 +134,7 @@ class TestRTBSetupFrag(ExpFragment):
         )
         self.core.break_realtime()
         self.scope_data.push(data)
-        self.set_dataset("scope_data", data, broadcast=True, archive=False)
+        # self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
