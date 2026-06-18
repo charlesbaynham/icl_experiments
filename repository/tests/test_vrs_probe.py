@@ -129,6 +129,7 @@ class TestRTBSetupFrag(ExpFragment):
             "FORM ASC;:CHAN1:DATA:POINT MAX;:CHAN1:DATA?"
         )
         self.scope_data.push(data)
+        self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
