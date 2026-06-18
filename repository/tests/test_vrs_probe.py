@@ -92,36 +92,34 @@ class TestRTBSetupFrag(ExpFragment):
     @host_only
     def host_setup(self):
         self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
-        self.startup_commands(self.rtb)
-
-    def startup_commands(self, rtb):
         # Set the trigger to an external signal
         # Long timeout for visa
-        rtb.visa_timeout = 50000
-        rtb.write_str_with_opc("TRIG:A:MODE NORM")
-        rtb.write_str("SING")
-        rtb.write_str("TRIG:A:SOUR EXT")
+        self.rtb.visa_timeout = 50000
+        self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
+        self.rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
-        rtb.write_str("TRIG:A:TYPE EDGE")
-        rtb.write_str("TRIG:A:EDGE:SLOP POS")
+        self.rtb.write_str("TRIG:A:TYPE EDGE")
+        self.rtb.write_str("TRIG:A:EDGE:SLOP POS")
         # Set the trigger height to be 1 V
-        rtb.write_str("TRIG:A:LEV5 1")
+        self.rtb.write_str("TRIG:A:LEV5 1")
 
         # Set the acquisition settings CH1 is the PMT signal
-        rtb.write_float(
+        self.rtb.write_float(
             "TIM:ACQT", self.acquisition_time.get()
         )  # Scope Acquisition time
-        rtb.write_float("CHAN1:RANG", 5.0)  # Total Vertical range 5V (0.5V/div)
-        rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
-        rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
+        self.rtb.write_float("CHAN1:RANG", 5.0)  # Total Vertical range 5V (0.5V/div)
+        self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
+        self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        rtb.write_float("ACQ:POIN", 10e3)
+        self.rtb.write_float("ACQ:POIN", 10e3)
+        # Setup a single shot
 
     @kernel
     def run_once(self) -> None:
 
         logger.warning("Begin the pulse")
         self.core.break_realtime()
+        self.start_single()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
         delay(1.5)
         # Pulse the TTL for 10 ms
@@ -137,7 +135,6 @@ class TestRTBSetupFrag(ExpFragment):
         self.get_data_from_scope()
         self.core.break_realtime()
         delay_mu(4)
-        # self.close_connection()
         logger.warning("I've gotten data!")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
@@ -162,8 +159,8 @@ class TestRTBSetupFrag(ExpFragment):
         self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
     @rpc
-    def close_connection(self) -> None:
-        self.startup_commands(self.rtb)
+    def start_single(self) -> None:
+        self.rtb.write_str("SING")
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
