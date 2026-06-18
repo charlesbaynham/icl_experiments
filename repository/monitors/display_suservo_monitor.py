@@ -331,18 +331,19 @@ class DisplayAllSUServoMonitorsFrag(ExpFragment):
             self.last_influx_write_time = current_time
 
 
-DisplaySingleSUServoMonitor = make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)
-DisplayAllSUServoMonitors = make_fragment_scan_exp(DisplayAllSUServoMonitorsFrag)
-
-# Default dashboard submission priority for the SUServo monitors (see
+# Submit the SUServo display monitors at a low default priority (see
 # display_injection_monitors for the rationale): below agent scans (negative
-# priority) and human experiments (>= 0). A user can still submit at >= 0 from
-# the dashboard to take the rig.
-DisplaySingleSUServoMonitor.scheduler_defaults = {
-    **getattr(DisplaySingleSUServoMonitor, "scheduler_defaults", {}),
-    "priority": -40,
-}
-DisplayAllSUServoMonitors.scheduler_defaults = {
-    **getattr(DisplayAllSUServoMonitors, "scheduler_defaults", {}),
-    "priority": -40,
-}
+# priority) and human experiments (>= 0). A user can still override this in the
+# dashboard to take the rig.
+class DisplaySingleSUServoMonitor(
+        make_fragment_scan_exp(DisplaySingleSUServoMonitorFrag)):
+    def build(self):
+        super().build()
+        self.set_default_scheduling(priority=-40)
+
+
+class DisplayAllSUServoMonitors(
+        make_fragment_scan_exp(DisplayAllSUServoMonitorsFrag)):
+    def build(self):
+        super().build()
+        self.set_default_scheduling(priority=-40)
