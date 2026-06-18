@@ -54,6 +54,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
         delay(100e-3)
         self.core.break_realtime()
         self.dds.init()
+        delay(10e-3)
 
         self.core.break_realtime()
 
