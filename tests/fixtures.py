@@ -62,7 +62,20 @@ def dataset_db():
 
 @fixture
 def dataset_mgr(dataset_db):
-    return DatasetManager(dataset_db)
+    mgr = DatasetManager(dataset_db)
+
+    # Set the EM gain interlock to enabled, for testing only (i.e. not for real
+    # code, only for the unit tests)
+    mgr.set(
+        key="DISABLE_EM_GAIN",
+        value=False,
+        metadata={},
+        broadcast=True,
+        persist=False,
+        archive=False,
+    )
+
+    return mgr
 
 
 @fixture
