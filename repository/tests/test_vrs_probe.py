@@ -129,14 +129,12 @@ class TestRTBSetupFrag(ExpFragment):
     # Also this is quite a large data set...
     # We can save this data on the scope internally and rerun the experiment
     @rpc
-    def get_data_from_scope(self):
+    def get_data_from_scope(self) -> None:
         # Save the data in ascii format and save
 
         logger.warning("Query")
-        # data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
-        self.rtb.write_str("FORM ASC")
         # self.rtb.write_str("CHAN1:DATA:POINT MAX")
-        data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA?")
+        data = self.rtb.query_bin_or_ascii_float_list_with_opc("FORM ASC;:CHAN1:DATA?")
         logger.warning(data)
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
         self.core.break_realtime()
