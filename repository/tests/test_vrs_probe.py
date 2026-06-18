@@ -137,7 +137,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.get_data_from_scope()
         self.core.break_realtime()
         delay_mu(4)
-        self.close_connection()
+        # self.close_connection()
         logger.warning("I've gotten data!")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
