@@ -152,7 +152,6 @@ class TestRTBSetupFrag(ExpFragment):
         data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
         logger.warning(len(data))
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
-        self.core.break_realtime()
         logger.warning("Data Here")
 
         self.scope_data.push(data)
