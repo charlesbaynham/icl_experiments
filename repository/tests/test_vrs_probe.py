@@ -146,9 +146,11 @@ class TestRTBSetupFrag(ExpFragment):
         # Save the data in ascii format and save
 
         logger.warning("Query")
-        # self.rtb.write_str("CHAN1:DATA:POIN MAX")
+        # self.rtb.write_str("")
         # self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
-        data = self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
+        data = self.rtb.query_bin_or_ascii_float_list(
+            "FORM ASC;:CHAN1:DATA:POIN MAX;:CHAN1:DATA?"
+        )
         logger.warning(len(data))
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
         logger.warning("Data Here")
