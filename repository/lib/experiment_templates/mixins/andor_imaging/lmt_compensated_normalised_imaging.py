@@ -152,7 +152,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             "trap_x_pixel",
             IntParam,
             "Pixel x coordinate of the trap centre",
-            default=int((constants.ANDOR_ROI_X0 + constants.ANDOR_ROI_X1) // 2),
+            default=constants.ANDOR_TRAP_CENTRE_X_PIXEL,
             min=0,
             max=constants.ANDOR_CAMERA_FACTS["sensor_width"],
         )
@@ -162,7 +162,7 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             "trap_y_pixel",
             IntParam,
             "Pixel y coordinate of the trap centre",
-            default=int((constants.ANDOR_ROI_Y0 + constants.ANDOR_ROI_Y1) // 2),
+            default=constants.ANDOR_TRAP_CENTRE_Y_PIXEL,
             min=0,
             max=constants.ANDOR_CAMERA_FACTS["sensor_height"],
         )
