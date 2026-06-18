@@ -45,6 +45,8 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("dds")
 
+        super().build_fragment()
+
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
