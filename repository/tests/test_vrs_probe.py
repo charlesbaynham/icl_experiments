@@ -68,7 +68,9 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.core.break_realtime()
 
         self.probe_ramper.probe_ramper.start_ramp(
-            self.probe_ramper.dF_dt, self.probe_ramper.min_f, self.probe_ramper.max_f
+            self.probe_ramper.dF_dt.get(),
+            self.probe_ramper.min_f.get(),
+            self.probe_ramper.max_f.get(),
         )
         delay(10.0)
         self.probe_ramper.probe_ramper.stop_ramp()
