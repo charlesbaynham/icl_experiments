@@ -48,7 +48,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
-        self.core.reset()
+        # self.core.reset()
         delay(100e-3)
         self.core.break_realtime()
         self.dds.init()
@@ -62,9 +62,9 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.probe_ramper.stop()
         self.core.break_realtime()
 
-        logger.info("Probe ramp: %f", self.probe_ramper.dF_dt.get())
-        logger.info("Probe max frequency: %f", self.probe_ramper.max_f.get())
-        logger.info("Probe min frequency: %f", self.probe_ramper.min_f.get())
+        logger.warning("Probe ramp: %f", self.probe_ramper.dF_dt.get())
+        logger.warning("Probe max frequency: %f", self.probe_ramper.max_f.get())
+        logger.warning("Probe min frequency: %f", self.probe_ramper.min_f.get())
 
 
 class TestRTBSetupFrag(ExpFragment):
