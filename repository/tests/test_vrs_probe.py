@@ -107,7 +107,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
         self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float("ACQ:POIN", 20e6)
+        self.rtb.write_float("ACQ:POIN", 500e3)
         # Setup a single shot
         self.rtb.write_str("TRIG:A:MODE NORM")
         self.rtb.write_str_with_opc("SING")
@@ -135,7 +135,7 @@ class TestRTBSetupFrag(ExpFragment):
         # Save the data in ascii format and save
 
         logger.warning("Query")
-        # self.rtb.write_str("CHAN1:DATA:POINT MAX")
+        # self.rtb.write_str("CHAN1:DATA:POIN MAX")
         self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
         self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
 
