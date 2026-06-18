@@ -96,7 +96,7 @@ class TestRTBSetupFrag(ExpFragment):
         # Long timeout for visa
         self.rtb.visa_timeout = 50000
         self.rtb.write_str_with_opc("TRIG:A:MODE NORM")
-        self.enable_single_shot()
+        self.rtb.write_str("SING")
         self.rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
         self.rtb.write_str("TRIG:A:TYPE EDGE")
@@ -120,7 +120,7 @@ class TestRTBSetupFrag(ExpFragment):
         # Pulse the TTL for 10 ms
         logger.warning("Begin the pulse")
         self.core.break_realtime()
-        delay(10.0)
+        delay(3.0)
         self.ttl.pulse(10e-3)
         self.core.break_realtime()
         logger.warning("start the wait")
