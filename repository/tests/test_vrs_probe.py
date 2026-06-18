@@ -90,7 +90,7 @@ class TestRTBSetupFrag(ExpFragment):
 
     @host_only
     def host_setup(self):
-        self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=False, reset=True)
+        self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
         # Set the trigger to an external signal
         self.rtb.write_str_with_opc("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
