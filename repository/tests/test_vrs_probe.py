@@ -50,8 +50,8 @@ class TestVRSProbeRamperFrag(ExpFragment):
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
-        # self.core.reset()
-        delay(100e-3)
+        self.core.reset()
+        delay(200e-3)
         self.core.break_realtime()
         self.dds.init()
         delay(10e-3)
