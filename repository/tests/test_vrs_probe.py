@@ -113,7 +113,7 @@ class TestRTBSetupFrag(ExpFragment):
         # Setup a single shot
         self.rtb.write_str("TRIG:A:MODE NORM")
 
-    # @kernel
+    @kernel
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
         logger.warning("Begin the pulse")
