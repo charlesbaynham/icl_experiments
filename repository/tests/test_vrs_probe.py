@@ -92,6 +92,8 @@ class TestRTBSetupFrag(ExpFragment):
     def host_setup(self):
         self.rtb = RsInstrument("TCPIP::10.137.1.19::INSTR", id_query=True, reset=True)
         # Set the trigger to an external signal
+        # Long timeout for visa
+        self.rtb.visa_timeout = 50000
         self.rtb.write_str("TRIG:A:SOUR EXT")
         # Set the trigger to be the positive edge
         self.rtb.write_str("TRIG:A:TYPE EDGE")
