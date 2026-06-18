@@ -118,7 +118,7 @@ class TestRTBSetupFrag(ExpFragment):
         logger.warning("Begin the pulse")
         self.core.break_realtime()
         self.ttl.pulse(1e-3)
-        self.core.break_realtime()
+        # self.core.break_realtime()
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
 
@@ -135,7 +135,7 @@ class TestRTBSetupFrag(ExpFragment):
 
         logger.warning("Query")
         # self.rtb.write_str("CHAN1:DATA:POINT MAX")
-        # self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
+        self.rtb.write_bool("CHAN2:STAT", True)  # Switch Channel 1 ON
         self.rtb.query_bin_or_ascii_float_list("FORM ASC;:CHAN1:DATA?")
         data = "1,2,3,"
         logger.warning(data)
