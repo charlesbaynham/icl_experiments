@@ -122,7 +122,7 @@ class TestRTBSetupFrag(ExpFragment):
 
         logger.warning("Begin the pulse")
         self.core.break_realtime()
-        self.ttl.pulse(100e-3)
+        # self.ttl.pulse(100e-3)
         self.core.break_realtime()
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
