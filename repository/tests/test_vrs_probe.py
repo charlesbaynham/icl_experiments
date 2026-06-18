@@ -125,7 +125,6 @@ class TestRTBSetupFrag(ExpFragment):
         self.core.break_realtime()
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
-        delay(10.0)
         t = now_mu()
         logger.warning("wait")
         # delay(5.0)
@@ -154,7 +153,7 @@ class TestRTBSetupFrag(ExpFragment):
         # data = self.rtb.query_bin_or_ascii_float_list("CHAN1:DATA:HEADer?")
         logger.warning("Data Here")
 
-        self.scope_data.push(data)
+        # self.scope_data.push(data)
         logger.warning("Pushed")
         # self.set_dataset("scope_data", data, broadcast=True, archive=False)
 
