@@ -60,13 +60,10 @@ class VRS_Probe_Ramper(Fragment):
 
         self.device_setup_subfragments()
 
-        self.core.break_realtime()
-
         # Now we want to set the parameters of the AD9910 Ramper manually
         self.probe_ramper.set_ramp_limits(
             frequency_low=self.min_f.get(), frequency_high=self.max_f.get()
         )
-        self.core.break_realtime()
 
         # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
         M_factor = (

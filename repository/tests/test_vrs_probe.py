@@ -59,6 +59,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
 
         # FIXME You have fallen for the classic ndscan gotcha. You need:
         # self.device_setup_subfragments()
+        self.device_setup_subfragments()
 
     @kernel
     def run_once(self) -> None:
