@@ -124,7 +124,7 @@ class TestRTBSetupFrag(ExpFragment):
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
         logger.warning("wait")
-        delay(10.0)
+        delay(5.0)
         logger.warning("done")
         # Get the data from the scope and save it in the results channel
         self.get_data_from_scope()
