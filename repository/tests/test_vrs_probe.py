@@ -120,10 +120,11 @@ class TestRTBSetupFrag(ExpFragment):
         # Pulse the TTL for 10 ms
         logger.warning("Begin the pulse")
         self.core.break_realtime()
-        self.ttl.pulse(100e-3)
+        self.ttl.pulse(10e-3)
         self.core.break_realtime()
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
+        delay(10.0)
         t = now_mu()
         logger.warning("wait")
         # delay(5.0)
