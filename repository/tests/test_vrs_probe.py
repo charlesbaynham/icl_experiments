@@ -1,19 +1,17 @@
 import logging
 
-from RsInstrument import *
 from artiq.coredevice.ad9910 import AD9910
-from artiq.coredevice.ttl import TTLOut
 from artiq.coredevice.core import Core
+from artiq.coredevice.ttl import TTLOut
 from artiq.language import delay
-from artiq.language import kernel
 from artiq.language import host_only
+from artiq.language import kernel
 from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from ndscan.experiment import ResultChannel
-from typing import List
+from RsInstrument import RsInstrument
 
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
 
@@ -78,12 +76,11 @@ class TestRTBSetupFrag(ExpFragment):
         )
         self.acquisition_time: FloatParamHandle
 
-        self.setattr_result("scope_data", ResultChannel)
-        self.scope_data: ResultChannel
+        # self.setattr_result("scope_data", OpaqueChannel)
+        # self.scope_data: OpaqueChannel
 
         # setup the TTL
-        # FILL IN WITH THE CORRECT NAME!
-        self.ttl = self.get_device("ttl_shutter_repump_707")
+        self.ttl = self.get_device("ttl_vrs_scope_trigger")
         self.ttl: TTLOut
 
         ### This stuff should not be done in build fragment but probably somewhere later... needs to be done from the computer
@@ -118,7 +115,7 @@ class TestRTBSetupFrag(ExpFragment):
         delay(self.acquisition_time.get())
 
         # Get the data from the scope and save it in the results channel
-        self.get_data_from_scope()
+        # self.get_data_from_scope()
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...

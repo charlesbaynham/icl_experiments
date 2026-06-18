@@ -60,7 +60,6 @@ aliases = {
     "urukul_squeezing_probe": "urukul8_ch3",
     # %% TTLs
     # ttl0-3 bank set to In/Out
-    "ttl_vrs_scope_trigger": "ttl0",
     "ttl_50hz_trigger": "ttl1",
     # other TTLs are all set to Output:
     "ttl_camera_trigger_andor": "ttl4",
@@ -83,6 +82,7 @@ aliases = {
     "ttl_shutter_red_axial_spin_pol": "ttl23",
     "ttl_shutter_red_wavemeter_689_master": "ttl24",
     "ttl_shutter_red_wavemeter_689_from_1379": "ttl25",
+    "ttl_vrs_scope_trigger": "ttl26",
     # %% Mirny
     "mirny_eom_waveguide_1379": "mirny0_ch0",
     "mirny_eom_707_sideband_A": "mirny0_ch1",
