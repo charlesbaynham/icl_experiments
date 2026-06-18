@@ -116,6 +116,8 @@ class TestRTBSetupFrag(ExpFragment):
     # @kernel
     def run_once(self) -> None:
         # Pulse the TTL for 10 ms
+        self.core.break_realtime()
+
         self.rtb.write_str("SING")
 
         logger.warning("Begin the pulse")
