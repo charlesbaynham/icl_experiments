@@ -4,6 +4,7 @@ from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
 from artiq.language import delay
+from artiq.language import delay_mu
 from artiq.language import host_only
 from artiq.language import kernel
 from artiq.language import now_mu
@@ -11,7 +12,6 @@ from artiq.language import rpc
 from ndscan.experiment import ExpFragment
 from ndscan.experiment import OpaqueChannel
 from ndscan.experiment import ResultChannel
-from ndscan.experiment import delay
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
@@ -121,7 +121,7 @@ class TestRTBSetupFrag(ExpFragment):
         logger.warning("Begin the pulse")
         self.core.break_realtime()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
-        delay(1.0)
+        delay(1.5)
         # Pulse the TTL for 10 ms
         self.ttl.pulse(10e-3)
         logger.warning("start the wait")
@@ -133,6 +133,9 @@ class TestRTBSetupFrag(ExpFragment):
         # Get the data from the scope and save it in the results channel after we get to this part of the timeline
         self.core.wait_until_mu(t)
         self.get_data_from_scope()
+        self.core.break_realtime()
+        delay_mu(4)
+        self.close_connection()
         logger.warning("I've gotten data!")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
@@ -155,6 +158,10 @@ class TestRTBSetupFrag(ExpFragment):
         self.scope_data.push(data)
         logger.warning("Pushed")
         self.set_dataset("scope_data", data, broadcast=True, archive=False)
+
+    @rpc
+    def close_connection(self) -> None:
+        self.rtb.close()
 
 
 TestVRSProbeRamper = make_fragment_scan_exp(
