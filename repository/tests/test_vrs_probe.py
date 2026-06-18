@@ -136,7 +136,7 @@ class TestRTBSetupFrag(ExpFragment):
 
     @rpc
     def enable_single_shot(self) -> None:
-        self.rtb.write_str("SING")
+        self.rtb.write_str_with_opc("SING")
 
     # Does this need to be done on the PC?, how else would it manage to save the data
     # Also this is quite a large data set...
