@@ -210,7 +210,19 @@ RoiCheckDown = _make(sign=-1, n=N_RECOILS)
 RoiCheckDown.__name__ = "RoiCheckDown"
 RoiCheckDown.__qualname__ = "RoiCheckDown"
 
+# Small-N upward variants for gentle launches (n must stay even for a clean
+# ground-state branch; n=2 is the minimal clean kick).
+RoiCheckUp2 = _make(sign=+1, n=2)
+RoiCheckUp2.__name__ = "RoiCheckUp2"
+RoiCheckUp2.__qualname__ = "RoiCheckUp2"
+
+RoiCheckUp8 = _make(sign=+1, n=8)
+RoiCheckUp8.__name__ = "RoiCheckUp8"
+RoiCheckUp8.__qualname__ = "RoiCheckUp8"
+
 # ndscan scan experiments (both the Frag and the scan-exp are module globals).
 RoiCheckFallExp = make_fragment_scan_exp(RoiCheckFall)
 RoiCheckUpExp = make_fragment_scan_exp(RoiCheckUp)
 RoiCheckDownExp = make_fragment_scan_exp(RoiCheckDown)
+RoiCheckUp2Exp = make_fragment_scan_exp(RoiCheckUp2)
+RoiCheckUp8Exp = make_fragment_scan_exp(RoiCheckUp8)
