@@ -59,32 +59,15 @@ class TestVRSProbeRamperFrag(ExpFragment):
         # self.device_setup_subfragments()
         self.device_setup_subfragments()
 
-    @host_only
-    def host_setup(self):
-        return super().host_setup()
-
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
 
-        self.probe_ramper.trigger()
-        # self.probe_ramper.probe_ramper.start_ramp(
-        #     self.probe_ramper.dF_dt.get(),
-        #     self.probe_ramper.min_f.get(),
-        #     self.probe_ramper.max_f.get(),
-        # )
-        # max_f = self.probe_ramper.max_f.get()
-        # min_f = self.probe_ramper.min_f.get()
-        # df_dt = self.probe_ramper.dF_dt.get()
-        # # self.probe_ramper.trigger()
-        # delay((max_f - min_f) / df_dt)
-        # # Does my custom function work?
-        # self.probe_ramper.stop()
+        self.probe_ramper.trigger_single_sweep()
 
         logger.warning("Probe ramp: %f", self.probe_ramper.dF_dt.get())
         logger.warning("Probe max frequency: %f", self.probe_ramper.max_f.get())
         logger.warning("Probe min frequency: %f", self.probe_ramper.min_f.get())
-        self.core.wait_until_mu(now_mu())
 
 
 class TestRTBSetupFrag(ExpFragment):

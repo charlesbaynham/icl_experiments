@@ -54,43 +54,10 @@ class VRS_Probe_Ramper(Fragment):
         self.max_f: FloatParamHandle
         self.min_f: FloatParamHandle
 
-    # @kernel
-    # def device_setup(self) -> None:
-    #     # self.core.break_realtime()
-
-    #     self.device_setup_subfragments()
-
-    #     # Now we want to set the parameters of the AD9910 Ramper manually
-    #     self.probe_ramper.set_ramp_limits(
-    #         frequency_low=self.min_f.get(), frequency_high=self.max_f.get()
-    #     )
-
-    #     # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
-    #     M_factor = (
-    #         (4.0 * (2.0**32.0)) * self.dF_dt.get() / self.probe_ramper.dds.sysclk**2.0
-    #     )
-
-    #     # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
-    #     freq_step_mu = int32(max(ceil(M_factor), 1000.0))
-    #     delay_mu = int32(round(freq_step_mu / M_factor))
-
-    #     self.probe_ramper.set_ramp_parameters_mu(
-    #         pos_freq_step_mu=freq_step_mu,
-    #         pos_delay_mu=delay_mu,
-    #         neg_freq_step_mu=freq_step_mu,
-    #         neg_delay_mu=delay_mu,
-    #     )
-
-    #     # The main difference compared with the pyaion is that the probe ramper has the no-dwell modes on low
-    #     # and is not triggered
-    #     self.probe_ramper._extended_set_cfr2(
-    #         drg_enable=1, no_dwell_low=0, no_dwell_high=0
-    #     )
-
     @kernel
-    def trigger(self):
+    def trigger_single_sweep(self):
         """
-        Trigger the ramp
+        Trigger a single sweep of the pulse
         """
 
         T = (self.max_f.get() - self.min_f.get()) / self.dF_dt.get()
