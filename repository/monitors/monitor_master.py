@@ -2,6 +2,7 @@ import logging
 
 from artiq_influx_generic import InfluxController
 from qbutler.monitoring import make_monitor_controller
+
 from repository.database_monitors.monitor_heartbeat import MonitorHeartbeat
 from repository.database_monitors.monitor_ijd_relockers import MonitorBlueIJDRelocker
 from repository.database_monitors.monitor_ijd_relockers import MonitorRedIJDRelocker
