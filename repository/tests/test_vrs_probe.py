@@ -141,17 +141,15 @@ class TestRTBSetupFrag(ExpFragment):
         self.core.break_realtime()
         self.start_single()
         # Ok Delay for a bit of time to let the rest of the OPC commands finish
-        delay(1.5)
+        # delay(1.5)
+        self.core.wait_until_mu(now_mu())
+
         # Pulse the TTL for 10 ms
         self.ttl.pulse(10e-3)
         logger.warning("start the wait")
         delay(self.acquisition_time.get())
-        t = now_mu()
-        logger.warning("wait")
-        # delay(5.0)
-        logger.warning("done")
         # Get the data from the scope and save it in the results channel after we get to this part of the timeline
-        self.core.wait_until_mu(t)
+        self.core.wait_until_mu(now_mu())
         self.get_data_from_scope()
         self.core.break_realtime()
         delay_mu(4)
