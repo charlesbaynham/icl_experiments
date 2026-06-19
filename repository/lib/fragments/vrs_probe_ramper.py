@@ -1,10 +1,10 @@
 from artiq.coredevice.core import Core
+from artiq.language import delay
 from artiq.language import kernel
+from artiq.language import now_mu
 from ndscan.experiment import Fragment
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
-from numpy import ceil
-from numpy import int32
 from pyaion.fragments.ad9910_ramper import AD9910Ramper
 
 
@@ -54,49 +54,53 @@ class VRS_Probe_Ramper(Fragment):
         self.max_f: FloatParamHandle
         self.min_f: FloatParamHandle
 
-    @kernel
-    def device_setup(self) -> None:
-        # self.core.break_realtime()
+    # @kernel
+    # def device_setup(self) -> None:
+    #     # self.core.break_realtime()
 
-        self.device_setup_subfragments()
+    #     self.device_setup_subfragments()
 
-        # Now we want to set the parameters of the AD9910 Ramper manually
-        self.probe_ramper.set_ramp_limits(
-            frequency_low=self.min_f.get(), frequency_high=self.max_f.get()
-        )
+    #     # Now we want to set the parameters of the AD9910 Ramper manually
+    #     self.probe_ramper.set_ramp_limits(
+    #         frequency_low=self.min_f.get(), frequency_high=self.max_f.get()
+    #     )
 
-        # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
-        M_factor = (
-            (4.0 * (2.0**32.0)) * self.dF_dt.get() / self.probe_ramper.dds.sysclk**2.0
-        )
+    #     # As defined in the Datasheet this is the smallest value of M possible, i.e. with P = 1
+    #     M_factor = (
+    #         (4.0 * (2.0**32.0)) * self.dF_dt.get() / self.probe_ramper.dds.sysclk**2.0
+    #     )
 
-        # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
-        freq_step_mu = int32(max(ceil(M_factor), 1000.0))
-        delay_mu = int32(round(freq_step_mu / M_factor))
+    #     # Don't allow steps smaller than 1000 LSBs otherwise we'll be very coarse in our frequency setting
+    #     freq_step_mu = int32(max(ceil(M_factor), 1000.0))
+    #     delay_mu = int32(round(freq_step_mu / M_factor))
 
-        self.probe_ramper.set_ramp_parameters_mu(
-            pos_freq_step_mu=freq_step_mu,
-            pos_delay_mu=delay_mu,
-            neg_freq_step_mu=freq_step_mu,
-            neg_delay_mu=delay_mu,
-        )
+    #     self.probe_ramper.set_ramp_parameters_mu(
+    #         pos_freq_step_mu=freq_step_mu,
+    #         pos_delay_mu=delay_mu,
+    #         neg_freq_step_mu=freq_step_mu,
+    #         neg_delay_mu=delay_mu,
+    #     )
 
-        # The main difference compared with the pyaion is that the probe ramper has the no-dwell modes on low
-        # and is not triggered
-        self.probe_ramper._extended_set_cfr2(
-            drg_enable=1, no_dwell_low=0, no_dwell_high=0
-        )
+    #     # The main difference compared with the pyaion is that the probe ramper has the no-dwell modes on low
+    #     # and is not triggered
+    #     self.probe_ramper._extended_set_cfr2(
+    #         drg_enable=1, no_dwell_low=0, no_dwell_high=0
+    #     )
 
     @kernel
     def trigger(self):
         """
         Trigger the ramp
         """
-        self.probe_ramper._pulse_io_update()
 
-    @kernel
-    def stop(self):
-        """
-        Stop the ramp
-        """
+        T = (self.max_f.get() - self.min_f.get()) / self.dF_dt.get()
+        self.probe_ramper.start_ramp(
+            self.dF_dt.get(),
+            self.min_f.get(),
+            self.max_f.get(),
+        )
+        # Wait until we do one pulse
+        delay(T)
         self.probe_ramper.stop_ramp()
+        # also wait until this operation is complete
+        self.core.wait_until_mu(now_mu())
