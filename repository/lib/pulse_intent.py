@@ -28,22 +28,22 @@ field               type     meaning
 ==================  =======  ====================================================
 ``t_start_mu``      int64    timeline position when the event starts
 ``duration_mu``     int64    event duration
-``kind``            int32    :data:`KIND_PULSE`, :data:`KIND_CLEAROUT` or
-                             :data:`KIND_CALLBACK`
-``state_effect``    int32    :data:`EFFECT_FLIP` (pi-like full transfer),
-                             :data:`EFFECT_SUPERPOSE` (pi/2-like split: both
-                             pair members populated) or :data:`EFFECT_NONE`
+``kind``            int32    ``Kind.PULSE``, ``Kind.CLEAROUT`` or
+                             ``Kind.CALLBACK``
+``state_effect``    int32    ``StateEffect.FLIP`` (pi-like full transfer),
+                             ``StateEffect.SUPERPOSE`` (pi/2-like split: both
+                             pair members populated) or ``StateEffect.NONE``
 ``addressed_state`` int32    internal state of the population the event
-                             addresses: :data:`STATE_GROUND`,
-                             :data:`STATE_EXCITED` or :data:`STATE_AUTO`
+                             addresses: ``AddressedState.GROUND``,
+                             ``AddressedState.EXCITED`` or ``AddressedState.AUTO``
                              (resolve from the population walk)
 ``addressed_m``     int32    momentum class of the addressed population, or
                              :data:`M_AUTO`
 ``delta_m``         int32    recoils given to the transferred component in the
                              ground->excited direction (the excited->ground
                              direction gets the negative). For
-                             :data:`KIND_CALLBACK` with ``state_effect``
-                             :data:`EFFECT_NONE`, applied to every populated
+                             ``Kind.CALLBACK`` with ``state_effect``
+                             ``StateEffect.NONE``, applied to every populated
                              branch as-is.
 ==================  =======  ====================================================
 
@@ -56,22 +56,30 @@ ground-state population and carry no momentum fields.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import Sequence
 
+
 # ── Event kinds ───────────────────────────────────────────────────────────────
-KIND_PULSE = 0
-KIND_CLEAROUT = 1
-KIND_CALLBACK = 2
+class Kind(IntEnum):
+    PULSE = 0
+    CLEAROUT = 1
+    CALLBACK = 2
+
 
 # ── State effects ─────────────────────────────────────────────────────────────
-EFFECT_FLIP = 0  # pi-like: the addressed pair's population swaps sides
-EFFECT_SUPERPOSE = 1  # pi/2-like: both members of the addressed pair populated
-EFFECT_NONE = 2  # internal states unchanged
+class StateEffect(IntEnum):
+    FLIP = 0  # pi-like: the addressed pair's population swaps sides
+    SUPERPOSE = 1  # pi/2-like: both members of the addressed pair populated
+    NONE = 2  # internal states unchanged
+
 
 # ── Addressed internal state ──────────────────────────────────────────────────
-STATE_AUTO = -1  # resolve from the population walk
-STATE_GROUND = 0
-STATE_EXCITED = 1
+class AddressedState(IntEnum):
+    AUTO = -1  # resolve from the population walk
+    GROUND = 0
+    EXCITED = 1
+
 
 # ── Momentum-class sentinel ───────────────────────────────────────────────────
 #: "Resolve the addressed momentum class from the population walk". Far outside
@@ -85,13 +93,18 @@ class IntentEvent:
 
     Times are in whatever frame the caller rebased them to (the trajectory
     predictor expects seconds since atom release).
+
+    ``kind``/``state_effect``/``addressed_state`` may be given as raw ints or as
+    enum members; ``__post_init__`` coerces them to the enums, which also
+    validates them (the enum constructor raises ``ValueError`` on an unknown
+    code).
     """
 
     t_start_s: float
     duration_s: float
-    kind: int
-    state_effect: int
-    addressed_state: int
+    kind: Kind
+    state_effect: StateEffect
+    addressed_state: AddressedState
     addressed_m: int
     delta_m: int
 
@@ -101,12 +114,50 @@ class IntentEvent:
         return self.t_start_s + self.duration_s / 2.0
 
     def __post_init__(self):
-        if self.kind not in (KIND_PULSE, KIND_CLEAROUT, KIND_CALLBACK):
-            raise ValueError(f"Unknown intent event kind {self.kind!r}")
-        if self.state_effect not in (EFFECT_FLIP, EFFECT_SUPERPOSE, EFFECT_NONE):
-            raise ValueError(f"Unknown intent state effect {self.state_effect!r}")
-        if self.addressed_state not in (STATE_AUTO, STATE_GROUND, STATE_EXCITED):
-            raise ValueError(f"Unknown addressed state {self.addressed_state!r}")
+        # Coerce to the enums; an unknown code raises ValueError here. Frozen
+        # dataclass, so assign through object.__setattr__.
+        object.__setattr__(self, "kind", Kind(self.kind))
+        object.__setattr__(self, "state_effect", StateEffect(self.state_effect))
+        object.__setattr__(
+            self, "addressed_state", AddressedState(self.addressed_state)
+        )
+
+    def addresses_pair(self, is_ground: bool, m: int) -> bool:
+        """Is the population ``(is_ground, m)`` addressed by this event?
+
+        Shared by the dynamic-ROI predictor
+        (:mod:`repository.lib.physics.trajectory`) and the spacetime diagram
+        (:mod:`repository.lib.physics.lmt_spacetime`) so they always agree on
+        which branches a pulse touches.
+
+        ``AddressedState.AUTO``/``M_AUTO`` (the legacy ``register_pulse``
+        default) address every populated branch through the pulse's own
+        coupling - correct for the single-chain sequences legacy code fires. An
+        explicitly declared pair ``|g, m_g> <-> |e, m_g + delta_m>`` (the
+        declarative engine) addresses only its two members, leaving e.g. a
+        parked interferometer arm untouched.
+        """
+        state_auto = self.addressed_state == AddressedState.AUTO
+        m_auto = self.addressed_m == M_AUTO
+
+        if state_auto and m_auto:
+            return True
+        if m_auto:
+            # State declared, momentum class automatic: every branch in that state
+            return is_ground == (self.addressed_state == AddressedState.GROUND)
+        if state_auto:
+            # Momentum class declared, state automatic: every branch at that m
+            return m == self.addressed_m
+
+        # Both declared: the addressed pair is |g, m_g> <-> |e, m_g + delta_m>,
+        # and population on either side of the pair participates.
+        if self.addressed_state == AddressedState.GROUND:
+            m_g = self.addressed_m
+        else:
+            m_g = self.addressed_m - self.delta_m
+        if is_ground:
+            return m == m_g
+        return m == m_g + self.delta_m
 
 
 def intent_events_from_arrays(

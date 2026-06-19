@@ -127,16 +127,10 @@ class RedMOTDropDynamicROIFrag(
 
     HOOK-COLLISION AUDIT
     --------------------
-    Consumed hooks: ``DMA_record_hook`` / ``DMA_initialization_hook`` /
-    ``do_experiment_after_red_mot_hook`` / ``pre_expansion_hook`` (all owned by
-    ``DMAActionsAfterDropMixin``); ``do_imaging_hook_andor`` /
-    ``get_andor_camera_config_hook`` (owned by ``DynamicROIImagingMixin``).
-    ``EMGainMixin`` owns no hooks. The only multiply-claimed hook is
-    ``post_sequence_cleanup_hook``, overridden below to chain the red-MOT/Andor
-    base cleanups (there is no declarative engine here, so no ``_declarative_lmt``
-    sub-hook). ``DMA_initialization_hook`` is left at the base default (the
-    red-MOT default plus the DMA fragment's after-drop handle fetch); no other
-    parent contributes a DMA-init sub-hook.
+    See the module-level audit. Delta for this experiment: no declarative engine,
+    so ``post_sequence_cleanup_hook`` (overridden below) chains only the
+    red-MOT/Andor base cleanups - no ``_declarative_lmt`` sub-hook - and
+    ``do_experiment_after_drop_hook`` is left at its default no-op.
 
     EM gain is left as the inherited parameter (default off); enable it per run
     via the ``em_gain_enabled`` submit argument.
@@ -177,15 +171,10 @@ class RedMOTSlicedSpecDynamicROIFrag(
 
     HOOK-COLLISION AUDIT
     --------------------
-    Consumed hooks: ``DMA_record_hook`` / ``DMA_initialization_hook`` /
-    ``do_experiment_after_red_mot_hook`` / ``pre_expansion_hook`` (owned by
-    ``DMAActionsAfterDropMixin``); ``do_experiment_after_drop_hook`` (owned by
-    ``DeclarativeLMTRedMOTBase`` - runs the declared sequence); and
-    ``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` (owned by
-    ``DynamicROIImagingMixin``). ``EMGainMixin`` owns no hooks.
-    ``post_sequence_cleanup_hook`` is multiply-claimed (red-MOT base, Andor base,
-    declarative engine) and is overridden below to chain all three sub-hooks.
-    ``DMA_initialization_hook`` is left at the base default.
+    See the module-level audit. This experiment exercises the full stack:
+    ``DeclarativeLMTRedMOTBase`` owns ``do_experiment_after_drop_hook`` (runs the
+    declared sequence), so ``post_sequence_cleanup_hook`` (overridden below)
+    chains all three ``_base`` / ``_andor`` / ``_declarative_lmt`` sub-hooks.
     """
 
     # Atoms are released from the red MOT in the ground state with no kicks
@@ -255,13 +244,8 @@ def _make_launch_frag(n):
             "sequence language; the dynamic ROIs track the launched cloud. EM "
             "gain is left as the inherited parameter (default off; enable per "
             "run). Composition, imaging-mixin choice and HOOK-COLLISION AUDIT as "
-            "for RedMOTSlicedSpecDynamicROIFrag: the base owns DMA_record_hook / "
-            "DMA_initialization_hook / do_experiment_after_red_mot_hook / "
-            "pre_expansion_hook; DeclarativeLMTRedMOTBase owns "
-            "do_experiment_after_drop_hook; DynamicROIImagingMixin owns "
-            "do_imaging_hook_andor / get_andor_camera_config_hook; EMGainMixin "
-            "owns none; post_sequence_cleanup_hook is overridden to chain "
-            "_base / _andor / _declarative_lmt."
+            "for RedMOTSlicedSpecDynamicROIFrag (full declarative stack); see "
+            "that class and the module-level audit."
         )
 
         lmt_initial_population = {("g", 0)}

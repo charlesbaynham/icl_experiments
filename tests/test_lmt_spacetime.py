@@ -36,7 +36,7 @@ def _record(events):
 
 def _pulse(t_start, duration, effect, state, m, delta_m):
     return {
-        "kind": pi.KIND_PULSE,
+        "kind": pi.Kind.PULSE,
         "t_start_s": t_start,
         "duration_s": duration,
         "state_effect": effect,
@@ -46,12 +46,12 @@ def _pulse(t_start, duration, effect, state, m, delta_m):
     }
 
 
-def _clearout(t_start, duration, state=pi.STATE_GROUND):
+def _clearout(t_start, duration, state=pi.AddressedState.GROUND):
     return {
-        "kind": pi.KIND_CLEAROUT,
+        "kind": pi.Kind.CLEAROUT,
         "t_start_s": t_start,
         "duration_s": duration,
-        "state_effect": pi.EFFECT_NONE,
+        "state_effect": pi.StateEffect.NONE,
         "addressed_state": state,
         "addressed_m": pi.M_AUTO,
         "delta_m": 0,
@@ -63,14 +63,18 @@ def _mach_zehnder_events():
     t_pulse = 30e-6
     T = 1e-3
     return [
-        _pulse(0.0, t_pulse, pi.EFFECT_SUPERPOSE, pi.STATE_GROUND, 0, +1),
-        _pulse(T, t_pulse, pi.EFFECT_FLIP, pi.STATE_GROUND, 0, +1),
-        _pulse(2 * T, t_pulse, pi.EFFECT_SUPERPOSE, pi.STATE_GROUND, 0, +1),
+        _pulse(0.0, t_pulse, pi.StateEffect.SUPERPOSE, pi.AddressedState.GROUND, 0, +1),
+        _pulse(T, t_pulse, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1),
+        _pulse(
+            2 * T, t_pulse, pi.StateEffect.SUPERPOSE, pi.AddressedState.GROUND, 0, +1
+        ),
     ]
 
 
 def test_most_recent_valid_record_skips_sentinels():
-    real_a = _record([_pulse(0.0, 30e-6, pi.EFFECT_FLIP, pi.STATE_GROUND, 0, +1)])
+    real_a = _record(
+        [_pulse(0.0, 30e-6, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1)]
+    )
     real_b = _record(_mach_zehnder_events())
     same_as_last = [[st.INTENT_RECORD_SAME_AS_LAST_SENTINEL]]
     disabled = [[st.INTENT_RECORD_DISABLED_SENTINEL]]
@@ -89,7 +93,18 @@ def test_most_recent_valid_record_none_when_only_sentinels():
 
 def test_pi2_superpose_splits_ground_into_two_branches():
     events = st.intent_events_from_record(
-        _record([_pulse(0.0, 30e-6, pi.EFFECT_SUPERPOSE, pi.STATE_GROUND, 0, +1)])
+        _record(
+            [
+                _pulse(
+                    0.0,
+                    30e-6,
+                    pi.StateEffect.SUPERPOSE,
+                    pi.AddressedState.GROUND,
+                    0,
+                    +1,
+                )
+            ]
+        )
     )
     sequence, clouds, clearout_times = st.walk_intent_to_trajectory(events)
     assert clearout_times.size == 0
@@ -128,8 +143,15 @@ def test_clearout_kills_ground_and_records_time():
         _record(
             [
                 # split into |g,0> + |e,1>, then clear the ground port.
-                _pulse(0.0, 30e-6, pi.EFFECT_SUPERPOSE, pi.STATE_GROUND, 0, +1),
-                _clearout(1e-3, 5e-6, state=pi.STATE_GROUND),
+                _pulse(
+                    0.0,
+                    30e-6,
+                    pi.StateEffect.SUPERPOSE,
+                    pi.AddressedState.GROUND,
+                    0,
+                    +1,
+                ),
+                _clearout(1e-3, 5e-6, state=pi.AddressedState.GROUND),
             ]
         )
     )
@@ -146,8 +168,12 @@ def test_gap_inserts_drift_event():
     events = st.intent_events_from_record(
         _record(
             [
-                _pulse(0.0, 30e-6, pi.EFFECT_FLIP, pi.STATE_GROUND, 0, +1),
-                _pulse(1e-3, 30e-6, pi.EFFECT_FLIP, pi.STATE_GROUND, 0, +1),
+                _pulse(
+                    0.0, 30e-6, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1
+                ),
+                _pulse(
+                    1e-3, 30e-6, pi.StateEffect.FLIP, pi.AddressedState.GROUND, 0, +1
+                ),
             ]
         )
     )

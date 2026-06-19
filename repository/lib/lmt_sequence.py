@@ -65,10 +65,12 @@ import math
 from dataclasses import dataclass
 from enum import Enum
 
-from repository.lib import pulse_intent
 from repository.lib.physics.lmt_resonance import EXCITED
 from repository.lib.physics.lmt_resonance import GROUND
 from repository.lib.physics.lmt_resonance import opll_m_term_hz
+from repository.lib.pulse_intent import M_AUTO
+from repository.lib.pulse_intent import AddressedState
+from repository.lib.pulse_intent import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -88,9 +90,9 @@ class SequenceError(ValueError):
 # Mapping from the Callback declaration's state_effect strings to the integer
 # intent codes recorded at fire time (repository.lib.pulse_intent).
 _CALLBACK_STATE_EFFECT_CODES = {
-    "none": pulse_intent.EFFECT_NONE,
-    "flip": pulse_intent.EFFECT_FLIP,
-    "superpose": pulse_intent.EFFECT_SUPERPOSE,
+    "none": StateEffect.NONE,
+    "flip": StateEffect.FLIP,
+    "superpose": StateEffect.SUPERPOSE,
 }
 
 
@@ -325,9 +327,9 @@ class CompiledEvent:
     duration_param_ref: str | None = None
     setpoint_param: ParamSpec | None = None
     addressed_pair: tuple | None = None
-    state_effect: int = pulse_intent.EFFECT_NONE
-    addressed_state: int = pulse_intent.STATE_AUTO
-    addressed_m: int = pulse_intent.M_AUTO
+    state_effect: StateEffect = StateEffect.NONE
+    addressed_state: AddressedState = AddressedState.AUTO
+    addressed_m: int = M_AUTO
     delta_m: int = 0
     declared_duration_s: float = 0.0
 
@@ -652,14 +654,10 @@ def _compile_pulse(
         # other area populates both sides. delta_m is the beam sign (recoils
         # given in the ground->excited direction).
         state_effect=(
-            pulse_intent.EFFECT_FLIP
-            if math.isclose(event.area, 1.0)
-            else pulse_intent.EFFECT_SUPERPOSE
+            StateEffect.FLIP if math.isclose(event.area, 1.0) else StateEffect.SUPERPOSE
         ),
         addressed_state=(
-            pulse_intent.STATE_GROUND
-            if input_state == GROUND
-            else pulse_intent.STATE_EXCITED
+            AddressedState.GROUND if input_state == GROUND else AddressedState.EXCITED
         ),
         addressed_m=event.m,
         delta_m=s,

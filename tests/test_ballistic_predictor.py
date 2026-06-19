@@ -65,8 +65,8 @@ def pulse_event(
     t_start_s: float,
     is_up: bool,
     duration_s: float = 55e-6,
-    state_effect: int = pulse_intent.EFFECT_FLIP,
-    addressed_state: int = pulse_intent.STATE_AUTO,
+    state_effect: int = pulse_intent.StateEffect.FLIP,
+    addressed_state: int = pulse_intent.AddressedState.AUTO,
     addressed_m: int = pulse_intent.M_AUTO,
     delta_m: "int | None" = None,
 ) -> IntentEvent:
@@ -74,7 +74,7 @@ def pulse_event(
     return IntentEvent(
         t_start_s=t_start_s,
         duration_s=duration_s,
-        kind=pulse_intent.KIND_PULSE,
+        kind=pulse_intent.Kind.PULSE,
         state_effect=state_effect,
         addressed_state=addressed_state,
         addressed_m=addressed_m,
@@ -86,9 +86,9 @@ def clearout_event(t_start_s: float, duration_s: float = 50e-6) -> IntentEvent:
     return IntentEvent(
         t_start_s=t_start_s,
         duration_s=duration_s,
-        kind=pulse_intent.KIND_CLEAROUT,
-        state_effect=pulse_intent.EFFECT_NONE,
-        addressed_state=pulse_intent.STATE_GROUND,
+        kind=pulse_intent.Kind.CLEAROUT,
+        state_effect=pulse_intent.StateEffect.NONE,
+        addressed_state=pulse_intent.AddressedState.GROUND,
         addressed_m=pulse_intent.M_AUTO,
         delta_m=0,
     )
@@ -253,7 +253,7 @@ def test_slice_clearout_spec_ports():
             t_spec,
             is_up=True,
             duration_s=d_spec,
-            state_effect=pulse_intent.EFFECT_SUPERPOSE,
+            state_effect=pulse_intent.StateEffect.SUPERPOSE,
         ),
     ]
     out = predict_port_pixels(events, t_img, t_img, SIDE_VIEW_CFG)
@@ -277,7 +277,7 @@ def test_clearout_removes_ground_branch():
     """A clearout right after a superpose pulse leaves only the excited
     branch."""
     events = [
-        pulse_event(1e-3, is_up=True, state_effect=pulse_intent.EFFECT_SUPERPOSE),
+        pulse_event(1e-3, is_up=True, state_effect=pulse_intent.StateEffect.SUPERPOSE),
         clearout_event(2e-3),
     ]
     branches = walk_intent_events(events, 5e-3, SIDE_VIEW_CFG)
@@ -310,9 +310,9 @@ def _ladder_events(t_slice, d_slice, t_first, spacing, n, duration=55e-6):
                 is_up=is_up,
                 duration_s=duration,
                 addressed_state=(
-                    pulse_intent.STATE_GROUND
+                    pulse_intent.AddressedState.GROUND
                     if state_is_ground
-                    else pulse_intent.STATE_EXCITED
+                    else pulse_intent.AddressedState.EXCITED
                 ),
                 addressed_m=m,
                 delta_m=delta,
@@ -363,10 +363,16 @@ def test_double_split_flags_multiplicity():
     d = 55e-6
     events = [
         pulse_event(
-            t1, is_up=True, state_effect=pulse_intent.EFFECT_SUPERPOSE, duration_s=d
+            t1,
+            is_up=True,
+            state_effect=pulse_intent.StateEffect.SUPERPOSE,
+            duration_s=d,
         ),
         pulse_event(
-            t2, is_up=True, state_effect=pulse_intent.EFFECT_SUPERPOSE, duration_s=d
+            t2,
+            is_up=True,
+            state_effect=pulse_intent.StateEffect.SUPERPOSE,
+            duration_s=d,
         ),
     ]
     out = predict_port_pixels(events, t_img, t_img, SIDE_VIEW_CFG)
@@ -387,9 +393,9 @@ def test_callback_applies_declared_effect():
         IntentEvent(
             t_start_s=t_cb,
             duration_s=d_cb,
-            kind=pulse_intent.KIND_CALLBACK,
-            state_effect=pulse_intent.EFFECT_FLIP,
-            addressed_state=pulse_intent.STATE_AUTO,
+            kind=pulse_intent.Kind.CALLBACK,
+            state_effect=pulse_intent.StateEffect.FLIP,
+            addressed_state=pulse_intent.AddressedState.AUTO,
             addressed_m=pulse_intent.M_AUTO,
             delta_m=2,
         )
@@ -419,7 +425,7 @@ def test_unaddressed_pulse_warns_and_is_skipped(caplog):
         pulse_event(
             1e-3,
             is_up=True,
-            addressed_state=pulse_intent.STATE_EXCITED,
+            addressed_state=pulse_intent.AddressedState.EXCITED,
             addressed_m=5,
         )
     ]
@@ -430,7 +436,9 @@ def test_unaddressed_pulse_warns_and_is_skipped(caplog):
 
 
 def test_intent_event_validation():
-    with pytest.raises(ValueError, match="kind"):
+    # The enum constructors validate: an unknown code raises ValueError naming
+    # the offending enum (e.g. "99 is not a valid Kind").
+    with pytest.raises(ValueError, match="Kind"):
         IntentEvent(
             0.0,
             1e-6,
@@ -440,7 +448,7 @@ def test_intent_event_validation():
             addressed_m=0,
             delta_m=0,
         )
-    with pytest.raises(ValueError, match="effect"):
+    with pytest.raises(ValueError, match="StateEffect"):
         IntentEvent(
             0.0,
             1e-6,
@@ -456,14 +464,17 @@ def test_intent_events_from_arrays_roundtrip_and_validation():
     events = intent_events_from_arrays(
         t_start_s=[1e-3, 2e-3],
         duration_s=[55e-6, 50e-6],
-        kinds=[pulse_intent.KIND_PULSE, pulse_intent.KIND_CLEAROUT],
-        state_effects=[pulse_intent.EFFECT_FLIP, pulse_intent.EFFECT_NONE],
-        addressed_states=[pulse_intent.STATE_AUTO, pulse_intent.STATE_GROUND],
+        kinds=[pulse_intent.Kind.PULSE, pulse_intent.Kind.CLEAROUT],
+        state_effects=[pulse_intent.StateEffect.FLIP, pulse_intent.StateEffect.NONE],
+        addressed_states=[
+            pulse_intent.AddressedState.AUTO,
+            pulse_intent.AddressedState.GROUND,
+        ],
         addressed_m=[pulse_intent.M_AUTO, pulse_intent.M_AUTO],
         delta_m=[1, 0],
     )
     assert len(events) == 2
-    assert events[0].kind == pulse_intent.KIND_PULSE
+    assert events[0].kind == pulse_intent.Kind.PULSE
     assert np.isclose(events[0].t_centre_s, 1e-3 + 27.5e-6)
 
     with pytest.raises(ValueError, match="equal lengths"):

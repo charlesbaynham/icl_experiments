@@ -53,26 +53,20 @@ from ndscan.experiment.parameters import BoolParamHandle
 from numpy import int32
 from numpy import int64
 
-from repository.lib import pulse_intent
+from repository.lib.pulse_intent import M_AUTO
+from repository.lib.pulse_intent import AddressedState
+from repository.lib.pulse_intent import Kind
+from repository.lib.pulse_intent import StateEffect
 from repository.lib.utils import FastIntChecksum
 
 logger = logging.getLogger(__name__)
 
 BUFFER_DEPTH = 300
 
-# Intent-record codes, re-bound locally so kernel code can reference them as
-# compile-time integer constants. The vocabulary (and the archive schema) is
-# defined in repository.lib.pulse_intent.
-INTENT_KIND_PULSE = pulse_intent.KIND_PULSE
-INTENT_KIND_CLEAROUT = pulse_intent.KIND_CLEAROUT
-INTENT_KIND_CALLBACK = pulse_intent.KIND_CALLBACK
-INTENT_EFFECT_FLIP = pulse_intent.EFFECT_FLIP
-INTENT_EFFECT_SUPERPOSE = pulse_intent.EFFECT_SUPERPOSE
-INTENT_EFFECT_NONE = pulse_intent.EFFECT_NONE
-INTENT_STATE_AUTO = pulse_intent.STATE_AUTO
-INTENT_STATE_GROUND = pulse_intent.STATE_GROUND
-INTENT_STATE_EXCITED = pulse_intent.STATE_EXCITED
-INTENT_M_AUTO = pulse_intent.M_AUTO
+# The intent vocabulary (and the archive schema) is defined in
+# repository.lib.pulse_intent. The Kind/StateEffect/AddressedState IntEnum
+# members are int-valued, so the kernel compiler inlines them as compile-time
+# integer constants (see tests/test_intenum_kernel_compile.py).
 
 # The pulse record stores physical quantities as floats: times in s,
 # frequencies in Hz and the delivery setpoint in V (plus the integer-valued
@@ -325,9 +319,9 @@ class PulseDMARecording(Fragment):
         self.register_pulse_with_intent(
             is_up=is_up,
             duration_s=duration_s,
-            state_effect=INTENT_EFFECT_FLIP,
-            addressed_state=INTENT_STATE_AUTO,
-            addressed_m=INTENT_M_AUTO,
+            state_effect=StateEffect.FLIP,
+            addressed_state=AddressedState.AUTO,
+            addressed_m=M_AUTO,
             delta_m=1 if is_up else -1,
         )
 
@@ -385,7 +379,7 @@ class PulseDMARecording(Fragment):
         self._append_intent(
             t_start_mu=t_now_mu,
             duration_mu=duration_mu,
-            kind=INTENT_KIND_PULSE,
+            kind=Kind.PULSE,
             state_effect=state_effect,
             addressed_state=addressed_state,
             addressed_m=addressed_m,
@@ -404,10 +398,10 @@ class PulseDMARecording(Fragment):
         self._append_intent(
             t_start_mu=now_mu(),
             duration_mu=self.core.seconds_to_mu(duration_s),
-            kind=INTENT_KIND_CLEAROUT,
-            state_effect=INTENT_EFFECT_NONE,
-            addressed_state=INTENT_STATE_GROUND,
-            addressed_m=INTENT_M_AUTO,
+            kind=Kind.CLEAROUT,
+            state_effect=StateEffect.NONE,
+            addressed_state=AddressedState.GROUND,
+            addressed_m=M_AUTO,
             delta_m=0,
         )
 
@@ -429,10 +423,10 @@ class PulseDMARecording(Fragment):
         self._append_intent(
             t_start_mu=now_mu(),
             duration_mu=self.core.seconds_to_mu(duration_s),
-            kind=INTENT_KIND_CALLBACK,
+            kind=Kind.CALLBACK,
             state_effect=state_effect,
-            addressed_state=INTENT_STATE_AUTO,
-            addressed_m=INTENT_M_AUTO,
+            addressed_state=AddressedState.AUTO,
+            addressed_m=M_AUTO,
             delta_m=delta_m,
         )
 

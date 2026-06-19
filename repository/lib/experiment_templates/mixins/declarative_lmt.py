@@ -216,9 +216,13 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             sorted(compiled.final_population),
         )
 
-        # Dummy parameter used to pad handle-list slots for events that do
-        # not own that kind of parameter (the kernel lists must stay
-        # homogeneous and non-sparse).
+        # The kernel cannot iterate a list of heterogeneous event objects (no
+        # dataclasses/sum types across the host->kernel boundary), so each event
+        # is shipped as a slot in several parallel, same-length, same-type
+        # arrays instead. Events that do not own a given parameter still need a
+        # slot in that array, so they get this dummy "pad" handle. Do not try to
+        # "tidy" this into a list of per-event objects - the ARTIQ compiler
+        # cannot consume that.
         pad_handle = self.setattr_param(
             "lmt_unused_pad",
             FloatParam,

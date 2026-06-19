@@ -264,22 +264,22 @@ def test_compiled_pulse_intent_fields():
         initial_population={("g", 0)},
     )
     pi_event = compiled.events[1]
-    assert pi_event.state_effect == pulse_intent.EFFECT_FLIP
-    assert pi_event.addressed_state == pulse_intent.STATE_GROUND
+    assert pi_event.state_effect == pulse_intent.StateEffect.FLIP
+    assert pi_event.addressed_state == pulse_intent.AddressedState.GROUND
     assert pi_event.addressed_m == 0
     assert pi_event.delta_m == 1
 
     # After the pi the population is {(e, 1)}; the down-beam pi/2 addresses it
     pi2_event = compiled.events[2]
-    assert pi2_event.state_effect == pulse_intent.EFFECT_SUPERPOSE
-    assert pi2_event.addressed_state == pulse_intent.STATE_EXCITED
+    assert pi2_event.state_effect == pulse_intent.StateEffect.SUPERPOSE
+    assert pi2_event.addressed_state == pulse_intent.AddressedState.EXCITED
     assert pi2_event.addressed_m == 1
     assert pi2_event.delta_m == -1
 
     # Non-pulse events keep the inert defaults
     setpoint_event = compiled.events[0]
-    assert setpoint_event.state_effect == pulse_intent.EFFECT_NONE
-    assert setpoint_event.addressed_state == pulse_intent.STATE_AUTO
+    assert setpoint_event.state_effect == pulse_intent.StateEffect.NONE
+    assert setpoint_event.addressed_state == pulse_intent.AddressedState.AUTO
     assert setpoint_event.addressed_m == pulse_intent.M_AUTO
     assert setpoint_event.delta_m == 0
     assert setpoint_event.declared_duration_s == 0.0
@@ -299,12 +299,12 @@ def test_compiled_callback_intent_fields():
     )
     flip = compiled.events[1]
     assert flip.kind == EVENT_CALLBACK
-    assert flip.state_effect == pulse_intent.EFFECT_FLIP
+    assert flip.state_effect == pulse_intent.StateEffect.FLIP
     assert flip.delta_m == 2
     assert flip.declared_duration_s == pytest.approx(1.5e-3)
 
-    assert compiled.events[2].state_effect == pulse_intent.EFFECT_SUPERPOSE
-    assert compiled.events[3].state_effect == pulse_intent.EFFECT_NONE
+    assert compiled.events[2].state_effect == pulse_intent.StateEffect.SUPERPOSE
+    assert compiled.events[3].state_effect == pulse_intent.StateEffect.NONE
     assert compiled.events[3].delta_m == 0
     assert compiled.events[3].declared_duration_s == 0.0
 

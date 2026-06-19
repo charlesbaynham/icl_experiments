@@ -35,7 +35,10 @@ import scipy.constants as _const
 
 from repository.lib import constants
 from repository.lib import pulse_intent
+from repository.lib.pulse_intent import AddressedState
 from repository.lib.pulse_intent import IntentEvent
+from repository.lib.pulse_intent import Kind
+from repository.lib.pulse_intent import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -130,38 +133,6 @@ class Cloud:
         )
 
 
-# --- Intent addressing (mirrors physics.trajectory._branch_is_addressed) ----
-
-
-def _addresses(cloud: Cloud, event: IntentEvent) -> bool:
-    """Is this branch one of the two members of the pulse's addressed pair?
-
-    Mirrors :func:`repository.lib.physics.trajectory._branch_is_addressed` so the
-    spacetime diagram and the live ROI predictor agree on which branches a pulse
-    touches. ``STATE_AUTO``/``M_AUTO`` (the legacy ``register_pulse`` default)
-    address every populated branch; an explicitly declared pair only its members.
-    """
-    state_auto = event.addressed_state == pulse_intent.STATE_AUTO
-    m_auto = event.addressed_m == pulse_intent.M_AUTO
-    is_ground = cloud.is_ground[-1]
-    m = cloud.m[-1]
-
-    if state_auto and m_auto:
-        return True
-    if m_auto:
-        return is_ground == (event.addressed_state == pulse_intent.STATE_GROUND)
-    if state_auto:
-        return m == event.addressed_m
-
-    if event.addressed_state == pulse_intent.STATE_GROUND:
-        m_g = event.addressed_m
-    else:
-        m_g = event.addressed_m - event.delta_m
-    if is_ground:
-        return m == m_g
-    return m == m_g + event.delta_m
-
-
 # --- Walk the intent stream into a drawing sequence + cloud histories --------
 
 
@@ -227,11 +198,11 @@ def walk_intent_to_trajectory(events):
             sequence.append(Drift(duration=gap))
             drift_all(gap, "drift")
 
-        if event.kind == pulse_intent.KIND_CLEAROUT:
+        if event.kind == Kind.CLEAROUT:
             sequence.append(Clearout(duration=dt))
             drift_all(dt, "clearout")
             clearout_times.append(t_cursor)
-            clear_ground = event.addressed_state != pulse_intent.STATE_EXCITED
+            clear_ground = event.addressed_state != AddressedState.EXCITED
             for cloud in clouds:
                 if cloud.alive and cloud.is_ground[-1] == clear_ground:
                     cloud.alive = False
@@ -241,7 +212,7 @@ def walk_intent_to_trajectory(events):
         t_cursor += dt
         k = -1 if event.delta_m < 0 else +1
 
-        if event.kind == pulse_intent.KIND_CALLBACK:
+        if event.kind == Kind.CALLBACK:
             new_clouds, band = _apply_callback(clouds, event, t_cursor, dt)
             clouds = new_clouds
             sequence.append(
@@ -250,8 +221,12 @@ def walk_intent_to_trajectory(events):
             # callbacks never fork, so no colour bookkeeping is needed
             continue
 
-        addressed = [c for c in clouds if c.alive and _addresses(c, event)]
-        if not addressed and event.state_effect != pulse_intent.EFFECT_NONE:
+        addressed = [
+            c
+            for c in clouds
+            if c.alive and event.addresses_pair(c.is_ground[-1], c.m[-1])
+        ]
+        if not addressed and event.state_effect != StateEffect.NONE:
             logger.warning(
                 "Intent pulse at t=%.6f s addresses (state=%s, m=%s) but no live "
                 "branch matches - drawing it as a no-op",
@@ -270,11 +245,11 @@ def walk_intent_to_trajectory(events):
                 continue
 
             m_involved.append(cloud.m[-1])
-            if event.state_effect == pulse_intent.EFFECT_FLIP:
+            if event.state_effect == StateEffect.FLIP:
                 _append_transfer(cloud, t_cursor, dt, event.delta_m, "pulse")
                 m_involved.append(cloud.m[-1])
                 new_clouds.append(cloud)
-            elif event.state_effect == pulse_intent.EFFECT_SUPERPOSE:
+            elif event.state_effect == StateEffect.SUPERPOSE:
                 drifter = cloud._fork()
                 flipper = cloud._fork()
                 flipper.fork_index = len(cloud.times)
@@ -315,9 +290,9 @@ def _apply_callback(clouds, event: IntentEvent, t: float, dt: float):
         cloud.times.append(t)
         cloud.z.append(cloud.z[-1] + new_m * RECOIL_VELOCITY * dt)
         cloud.m.append(new_m)
-        if event.state_effect == pulse_intent.EFFECT_FLIP:
+        if event.state_effect == StateEffect.FLIP:
             cloud.is_ground.append(not cloud.is_ground[-1])
-        else:  # EFFECT_NONE or EFFECT_SUPERPOSE collapse to a single drawn arm
+        else:  # NONE or SUPERPOSE collapse to a single drawn arm
             cloud.is_ground.append(cloud.is_ground[-1])
         cloud.labels.append("callback")
         m_involved.append(new_m)

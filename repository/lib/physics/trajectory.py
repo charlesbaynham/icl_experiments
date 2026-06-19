@@ -52,10 +52,12 @@ from typing import Sequence
 
 import numpy as np
 
-from repository.lib import pulse_intent
 from repository.lib.physics.ballistic import BallisticConfig
 from repository.lib.physics.ballistic import recoil_velocity
+from repository.lib.pulse_intent import AddressedState
 from repository.lib.pulse_intent import IntentEvent
+from repository.lib.pulse_intent import Kind
+from repository.lib.pulse_intent import StateEffect
 
 logger = logging.getLogger(__name__)
 
@@ -123,48 +125,16 @@ def walk_intent_events(
         if t_c > up_to_t_s:
             break
 
-        if event.kind == pulse_intent.KIND_PULSE:
+        if event.kind == Kind.PULSE:
             branches = _apply_pulse(branches, event, t_c, v_r, direction)
-        elif event.kind == pulse_intent.KIND_CLEAROUT:
+        elif event.kind == Kind.CLEAROUT:
             branches = _apply_clearout(branches, event)
-        elif event.kind == pulse_intent.KIND_CALLBACK:
+        elif event.kind == Kind.CALLBACK:
             branches = _apply_callback(branches, event, t_c, v_r, direction)
         else:  # pragma: no cover - IntentEvent already validates
             raise ValueError(f"Unknown intent event kind {event.kind!r}")
 
     return [b.advanced(up_to_t_s, v_r, direction) for b in branches]
-
-
-def _branch_is_addressed(branch: _Branch, event: IntentEvent) -> bool:
-    """Is this branch one of the two members of the pulse's addressed pair?
-
-    With ``STATE_AUTO``/``M_AUTO`` (the legacy ``register_pulse`` default) the
-    pulse addresses every populated branch through its own coupling - correct
-    for the single-chain sequences legacy code fires. An explicitly declared
-    pair (the declarative engine) only addresses matching branches, leaving
-    e.g. a parked interferometer arm untouched.
-    """
-    state_auto = event.addressed_state == pulse_intent.STATE_AUTO
-    m_auto = event.addressed_m == pulse_intent.M_AUTO
-
-    if state_auto and m_auto:
-        return True
-    if m_auto:
-        # State declared, momentum class automatic: every branch in that state
-        return branch.is_ground == (event.addressed_state == pulse_intent.STATE_GROUND)
-    if state_auto:
-        # Momentum class declared, state automatic: every branch at that m
-        return branch.m == event.addressed_m
-
-    # Both declared: the addressed pair is |g, m_g> <-> |e, m_g + delta_m>,
-    # and population on either side of the pair participates.
-    if event.addressed_state == pulse_intent.STATE_GROUND:
-        m_g = event.addressed_m
-    else:
-        m_g = event.addressed_m - event.delta_m
-    if branch.is_ground:
-        return branch.m == m_g
-    return branch.m == m_g + event.delta_m
 
 
 def _transferred(
@@ -190,8 +160,8 @@ def _apply_pulse(
 ) -> list[_Branch]:
     # Compare by identity: _Branch carries an ndarray, so value equality is
     # both meaningless here and unsafe in `in` checks.
-    addressed_ids = {id(b) for b in branches if _branch_is_addressed(b, event)}
-    if not addressed_ids and event.state_effect != pulse_intent.EFFECT_NONE:
+    addressed_ids = {id(b) for b in branches if event.addresses_pair(b.is_ground, b.m)}
+    if not addressed_ids and event.state_effect != StateEffect.NONE:
         logger.warning(
             "Intent pulse at t=%.6f s addresses (state=%s, m=%s) but no "
             "populated branch matches - skipping it",
@@ -203,13 +173,10 @@ def _apply_pulse(
 
     out: list[_Branch] = []
     for branch in branches:
-        if (
-            id(branch) not in addressed_ids
-            or event.state_effect == pulse_intent.EFFECT_NONE
-        ):
+        if id(branch) not in addressed_ids or event.state_effect == StateEffect.NONE:
             out.append(branch)
             continue
-        if event.state_effect == pulse_intent.EFFECT_FLIP:
+        if event.state_effect == StateEffect.FLIP:
             out.append(_transferred(branch, event, t_c, v_r, direction))
         else:  # EFFECT_SUPERPOSE: both members of the pair populated
             out.append(branch.advanced(t_c, v_r, direction))
@@ -218,7 +185,7 @@ def _apply_pulse(
 
 
 def _apply_clearout(branches: list[_Branch], event: IntentEvent) -> list[_Branch]:
-    clear_ground = event.addressed_state != pulse_intent.STATE_EXCITED
+    clear_ground = event.addressed_state != AddressedState.EXCITED
     survivors = [b for b in branches if b.is_ground != clear_ground]
     if not survivors:
         logger.warning(
@@ -244,9 +211,9 @@ def _apply_callback(
     for branch in branches:
         advanced = branch.advanced(t_c, v_r, direction)
         m_new = advanced.m + event.delta_m
-        if event.state_effect == pulse_intent.EFFECT_NONE:
+        if event.state_effect == StateEffect.NONE:
             out.append(_Branch(advanced.is_ground, m_new, advanced.displacement_m, t_c))
-        elif event.state_effect == pulse_intent.EFFECT_FLIP:
+        elif event.state_effect == StateEffect.FLIP:
             out.append(
                 _Branch(not advanced.is_ground, m_new, advanced.displacement_m, t_c)
             )
