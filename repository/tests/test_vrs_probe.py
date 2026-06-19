@@ -73,7 +73,8 @@ class TestVRSProbeRamperFrag(ExpFragment):
             self.probe_ramper.max_f.get(),
         )
         delay(10.0)
-        self.probe_ramper.probe_ramper.stop_ramp()
+        # Does my custom function work?
+        self.probe_ramper.stop()
 
         logger.warning("Probe ramp: %f", self.probe_ramper.dF_dt.get())
         logger.warning("Probe max frequency: %f", self.probe_ramper.max_f.get())
