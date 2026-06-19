@@ -60,6 +60,22 @@ def test_sliced_ends_at_plus_two_ground():
     assert _final_population(rpc.RoiCheckUp2Sliced) == [("g", 2)]
 
 
+def test_sliced_baseline_ends_at_zero_ground():
+    # The no-net-launch baseline: slice pi (+1 recoil) then return pi (-1)
+    # leaves a single clean ground branch at 0 - the matched zero-momentum
+    # control for the 2-recoil launch.
+    assert _final_population(rpc.RoiCheckSlicedBaseline) == [("g", 0)]
+
+
+def test_sliced_baseline_matches_launch_pulse_count():
+    # The baseline must have the SAME number of declared events as the launch
+    # variant so the two sequences have matched duration; differencing them
+    # isolates exactly the launch recoils.
+    assert len(rpc.RoiCheckSlicedBaseline.lmt_sequence) == len(
+        rpc.RoiCheckUp2Sliced.lmt_sequence
+    )
+
+
 # ── Structural build: construct each fragment with mocked managers ────────────
 # init_params() runs build_fragment + parameter wiring but never host_setup, so
 # the EM-gain interlock dataset is never read or written here.
@@ -67,7 +83,13 @@ def test_sliced_ends_at_plus_two_ground():
 
 @pytest.mark.parametrize(
     "frag_cls",
-    [rpc.RoiCheckFall, rpc.RoiCheckUp, rpc.RoiCheckDown, rpc.RoiCheckUp2Sliced],
+    [
+        rpc.RoiCheckFall,
+        rpc.RoiCheckUp,
+        rpc.RoiCheckDown,
+        rpc.RoiCheckUp2Sliced,
+        rpc.RoiCheckSlicedBaseline,
+    ],
 )
 def test_fragment_builds_and_exposes_flight_time(fragment_factory, frag_cls):
     frag = fragment_factory(frag_cls)
@@ -101,5 +123,7 @@ def test_scan_exps_are_module_globals():
         "RoiCheckDownExp",
         "RoiCheckUp2Sliced",
         "RoiCheckUp2SlicedExp",
+        "RoiCheckSlicedBaseline",
+        "RoiCheckSlicedBaselineExp",
     ):
         assert hasattr(rpc, name), name

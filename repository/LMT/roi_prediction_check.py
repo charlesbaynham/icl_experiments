@@ -269,6 +269,56 @@ def _make_sliced():
     return _build_roicheck_frag(sequence)
 
 
+def _make_sliced_baseline():
+    """Build the SLICED no-net-launch baseline ROI-check fragment class.
+
+    The matched CONTROL for :func:`_make_sliced`. It is identical up to and
+    including the slice + clearout, but the final pi *returns* the selected
+    velocity class to the imageable ground state |g,0> with ZERO net momentum
+    instead of launching it to |g,+2>:
+
+    1. ``SetPoint`` at the reduced slice set point (long pi time).
+    2. ``pi(Beam.UP, m=0, label="slice")`` shelves a narrow class
+       |g,0> -> |e,+1> (+1 recoil).
+    3. ``SetPoint`` back to full delivery intensity.
+    4. ``Clearout()`` blasts away the un-sliced ground-state atoms (leaves
+       |e,+1> only).
+    5. ``pi(Beam.UP, m=1, label="return")`` flips |e,+1> -> |g,0>: addressing
+       the EXCITED population at m=1 with the UP beam (sign +1) resolves the
+       pair |g,0> <-> |e,+1>, so the pi de-shelves to |g,0>, *removing* the
+       slice recoil rather than adding a second one. (Verified with
+       ``compile_sequence``: the sign of the imparted recoil depends on which
+       internal state is addressed - here UP returns, whereas DOWN would launch
+       to |g,+2>.)
+
+    The result is the SAME slice-selected velocity class and the SAME pulse
+    count and sequence duration as the |g,+2> launch variant, but ending at
+    rest (|g,0>). Differencing the two trajectories therefore isolates exactly
+    the launch recoils, with the slice-selection velocity and the sequence
+    duration cancelling between the two.
+    """
+    sequence = [
+        # Reduced-intensity, long velocity-selective slice set point.
+        _slice_setpoint(),
+        # Slice pi on m=0: shelves a narrow velocity class |g,0> -> |e,+1>.
+        pi(Beam.UP, m=0, label="slice"),
+        # Restore full delivery intensity for the return pi and imaging set
+        # point (matched, position for position, to the launch variant).
+        _full_intensity_setpoint(),
+        # Blast away the un-sliced ground-state atoms (leaves |e,+1> only).
+        Clearout(),
+        # Full-Rabi RETURN pi: de-shelves |e,+1> -> |g,0> (UP beam, addressing
+        # the excited m=1 population), undoing the slice recoil so the cloud
+        # ends at rest with zero net momentum - the no-net-launch baseline.
+        pi(Beam.UP, m=1, label="return"),
+        # Scannable dark time before imaging. Reuses the fragment's own
+        # 'flight_time' FloatParam so the scan axis has a clean, stable FQN:
+        # <class>.flight_time.
+        Wait(param="flight_time", label="flight"),
+    ]
+    return _build_roicheck_frag(sequence)
+
+
 # -- Three variants: free fall, upward (+N), downward (-N) --------------------
 
 RoiCheckFall = _make(sign=0, n=0)
@@ -301,6 +351,15 @@ RoiCheckUp2Sliced = _make_sliced()
 RoiCheckUp2Sliced.__name__ = "RoiCheckUp2Sliced"
 RoiCheckUp2Sliced.__qualname__ = "RoiCheckUp2Sliced"
 
+# Velocity-SLICED no-net-launch BASELINE: identical slice + clearout to
+# RoiCheckUp2Sliced, but the final pi RETURNS the selected class to |g,0>
+# (zero net momentum) instead of launching it to |g,+2>. Same pulse count and
+# sequence duration as RoiCheckUp2Sliced, so differencing the two trajectories
+# isolates exactly the launch recoils (slice velocity + duration cancel).
+RoiCheckSlicedBaseline = _make_sliced_baseline()
+RoiCheckSlicedBaseline.__name__ = "RoiCheckSlicedBaseline"
+RoiCheckSlicedBaseline.__qualname__ = "RoiCheckSlicedBaseline"
+
 # ndscan scan experiments (both the Frag and the scan-exp are module globals).
 RoiCheckFallExp = make_fragment_scan_exp(RoiCheckFall)
 RoiCheckUpExp = make_fragment_scan_exp(RoiCheckUp)
@@ -308,3 +367,4 @@ RoiCheckDownExp = make_fragment_scan_exp(RoiCheckDown)
 RoiCheckUp2Exp = make_fragment_scan_exp(RoiCheckUp2)
 RoiCheckUp8Exp = make_fragment_scan_exp(RoiCheckUp8)
 RoiCheckUp2SlicedExp = make_fragment_scan_exp(RoiCheckUp2Sliced)
+RoiCheckSlicedBaselineExp = make_fragment_scan_exp(RoiCheckSlicedBaseline)
