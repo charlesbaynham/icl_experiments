@@ -127,6 +127,7 @@ sync_to_rds() {
     sshpass -f "$SSH_PASSWORD_FILE" \
         ssh "${SSH_USER}@${SSH_RDS_HOST}" "mkdir -p '${RDS_BACKUP_PATH}'" || return 1
 
+
     sshpass -f "$SSH_PASSWORD_FILE" \
         rsync \
             --recursive \
@@ -140,15 +141,15 @@ sync_to_rds() {
 echo "Grafana backup monitor started - will backup at midnight nightly"
 
 while true; do {
-    # Wait until midnight
-    sleep $(( $(date -f - +%s- <<< "tomorrow 00:00"$'\nnow') 0 ))
+   # Wait until midnight
+   sleep $(( $(date -f - +%s- <<< "tomorrow 00:00"$'\nnow') 0 ))
 
-    if backup_grafana; then
-        prune_grafana
-        if sync_to_rds; then
-            echo "Grafana backup mirrored to RDS at $(date +"%Y%m%d-%H%M%S")"
-        else
-            echo "Grafana backup saved locally but RDS sync failed at $(date +"%Y%m%d-%H%M%S")"
-        fi
-    fi
+   if backup_grafana; then
+       prune_grafana
+       if sync_to_rds; then
+           echo "Grafana backup mirrored to RDS at $(date +"%Y%m%d-%H%M%S")"
+       else
+           echo "Grafana backup saved locally but RDS sync failed at $(date +"%Y%m%d-%H%M%S")"
+       fi
+   fi
 }; done
