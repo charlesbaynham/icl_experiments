@@ -74,6 +74,83 @@ RECOIL_FREQUENCY_HZ = scipy.constants.h / (
 #: ``constants.MOMENTUM_KICK_DETUNING`` (9.4 kHz); the two agree to < 0.1 %.
 DOPPLER_PER_KICK_HZ = 2 * RECOIL_FREQUENCY_HZ
 
+#: Default initial (release) z-velocity along the clock axis, in m/s. The
+#: velocity slice selects a class that is NOT at rest in the lab frame; this is
+#: the residual z-velocity of that class at the release. Positive in the launch
+#: (upward) direction, matching the sim's ``initial_velocity_z``. The value
+#: ~14 mm/s (~2.1 recoils) was inferred from the measured down-launch resonance
+#: offset of -20 kHz (RID 75323, 2026-06-19). Calibratable; override per-shot.
+DEFAULT_INITIAL_VELOCITY_M_S = 14e-3
+
+#: Default probe (AC-Stark) shift coefficient alpha, in Hz*s^2 (i.e. 1/Hz). The
+#: light shift is ``alpha * rabi**2`` Hz. Value from the lab even-Omega^2 fit of
+#: 2026-06-09 (alpha_up ~3.25e-7, alpha_down ~3.24e-7). Calibratable.
+DEFAULT_PROBE_STARK_ALPHA_HZ_S2 = 3.24e-7
+
+
+def v0_doppler_term_hz(
+    beam_sign: int,
+    initial_velocity_m_s: float = DEFAULT_INITIAL_VELOCITY_M_S,
+    wavelength_m: float = constants.CLOCK_WAVELENGTH_M,
+) -> float:
+    """OPLL-frequency correction for the atom's initial (release) velocity.
+
+    The sim carries the initial-velocity Doppler in the atom-frame effective
+    detuning as ``+ beam_sign * (-v0 / lambda)`` (see
+    ``LMT_sim_scratch/lmt_sim/lmt_sequence.py``: ``up_beam_doppler_hz``
+    contains ``-initial_velocity_z / lambda`` and is multiplied by
+    ``beam_sign``). The gravity Doppler enters the experiment's OPLL formula
+    with the SAME sign as it does the sim's effective detuning
+    (``+ beam_sign * D(t)``), so the v0 piece maps onto the OPLL frequency with
+    the same sign too:
+
+        f_opll += beam_sign * (-v0 / lambda) = - beam_sign * v0 / lambda
+
+    With the default ``v0 = +14 mm/s`` this adds ``+v0/lambda ~ +20 kHz`` to the
+    DOWN beam (``beam_sign = -1``) and ``-20 kHz`` to the UP beam, exactly
+    absorbing the empirical -20 kHz down-launch offset so the down launch lands
+    at user-offset ~0. The term is opposite-signed up vs down, which is why it
+    surfaced as a down-specific offset (the velocity slice self-references the
+    up beam, hiding it there).
+
+    Args:
+        beam_sign: Beam direction, +1 (up) or -1 (down).
+        initial_velocity_m_s: Initial z-velocity v0 in m/s, positive upward.
+        wavelength_m: Clock-transition wavelength in metres.
+
+    Returns:
+        Frequency correction in Hz to ADD to the OPLL centre frequency.
+    """
+    if beam_sign not in (1, -1):
+        raise ValueError(f"beam_sign must be +1 or -1, got {beam_sign!r}")
+    return -beam_sign * initial_velocity_m_s / wavelength_m
+
+
+def probe_stark_term_hz(
+    rabi_hz: float,
+    alpha_hz_s2: float = DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
+) -> float:
+    """OPLL-frequency correction for the probe (AC-Stark) light shift.
+
+    The sim reduces the atom-frame effective detuning by ``alpha * rabi**2``
+    (``_effective_detuning_hz = detuning_hz - alpha * rabi**2`` in
+    ``lmt_simulation.py``): the resonance sits ``alpha * rabi**2`` above the
+    bare transition, so to stay resonant the addressed detuning must be raised
+    by that amount. Because the OPLL offset carries minus the addressed
+    atom-frame detuning (the static m-term enters the kernel formula as
+    ``- m_term``), the OPLL correction is
+
+        f_opll += - alpha * rabi**2
+
+    Args:
+        rabi_hz: Rabi frequency of the pulse in Hz (sets the intensity).
+        alpha_hz_s2: Probe-shift coefficient alpha in Hz*s^2 (1/Hz).
+
+    Returns:
+        Frequency correction in Hz to ADD to the OPLL centre frequency.
+    """
+    return -alpha_hz_s2 * rabi_hz * rabi_hz
+
 
 def transition_detuning_hz(
     m_ground: int,
