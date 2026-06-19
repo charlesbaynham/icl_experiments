@@ -3,6 +3,7 @@ import logging
 from artiq.coredevice.ad9910 import AD9910
 from artiq.coredevice.core import Core
 from artiq.coredevice.ttl import TTLOut
+from artiq.coredevice.urukul import CPLD
 from artiq.language import delay
 from artiq.language import delay_mu
 from artiq.language import host_only
@@ -39,19 +40,25 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, URUKUL)
         self.probe_ramper: VRS_Probe_Ramper
 
+        # Set the CPLD
+        self.cpld: CPLD = self.dds.cpld
+
         # Variable
 
         # Invariants
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("dds")
+        self.kernel_invariants.add("cpld")
 
     @kernel
     def device_setup(self) -> None:
         self.core.break_realtime()
         # self.core.reset()  # FIXME Ideally don't do this - ndscan does it for you and it can erase previous work. Here it's fine, but it's a bad habit
         delay(200e-3)
-        # self.dds.init()
+        self.cpld.init()
+        self.dds.init()
         delay(1e-3)
+        self.dds.sw.set_o(True)
         self.core.break_realtime()
 
         # FIXME You have fallen for the classic ndscan gotcha. You need:
