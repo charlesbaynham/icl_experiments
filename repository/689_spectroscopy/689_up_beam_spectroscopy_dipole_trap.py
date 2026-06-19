@@ -68,6 +68,17 @@ class SpectroscopyWithKineticsUpBeamDipoleTrapFrag(
         self.DMA_initialization_hook_loading_xodt_mot()
 
     @kernel
+    def set_postnarrowband_fields_hook(self):
+        # Do NOT touch the fields here. RedSpectroscopyDipoleTrapMixin's version
+        # calls set_fields_default() -> set_mot_gradient(0), which zeroes the MOT
+        # quadrupole gradient right after the narrowband red MOT and BEFORE the
+        # XODT transfer (MOTInSingleXODT has no field ramp of its own and relies
+        # on the gradient left in place) -> the trap loads no atoms. Suppress it,
+        # exactly as LoadSingleXODTWithPainterMixin does. The compensation boost is
+        # still applied later in post_dipole_trap_hook via field_boost().
+        pass
+
+    @kernel
     def post_sequence_cleanup_hook(self):
         self.post_sequence_cleanup_hook_base()
         self.post_sequence_cleanup_hook_andor()
@@ -124,6 +135,13 @@ class SpectroscopyUpBeamDipoleTrapImagedFrag(
         self.DMA_initialization_hook_redmot_default()
         self.DMA_initialization_hook_dipole_trap_default()
         self.DMA_initialization_hook_loading_xodt_mot()
+
+    @kernel
+    def set_postnarrowband_fields_hook(self):
+        # See SpectroscopyWithKineticsUpBeamDipoleTrapFrag: suppress the
+        # RedSpectroscopyDipoleTrapMixin default that zeroes the MOT gradient
+        # before the XODT transfer (which otherwise loads no atoms).
+        pass
 
     def get_default_analyses(self):
         return [
