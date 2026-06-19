@@ -36,6 +36,7 @@ import pyqtgraph as pg
 from artiq.applets.simple import TitleApplet
 from pyqtgraph.Qt import QtCore
 from pyqtgraph.Qt import QtWidgets
+from scipy.constants import g as GRAVITY_M_PER_S2
 
 from repository.lib.physics import lmt_spacetime as st
 
@@ -54,6 +55,10 @@ class LMTTrajectoryPlot(pg.GraphicsLayoutWidget):
     def __init__(self, args, req):
         super().__init__()
         self.args = args
+        # When True, add the ½gt² free-fall parabola to the z positions (lab
+        # frame); otherwise plot in the freely-falling frame (arm separation
+        # only), as the simulator does.
+        self.include_gravity = bool(getattr(args, "include_gravity", False))
         self.setWindowTitle("LMT spacetime trajectory")
         self.setBackground("k")
 
@@ -103,6 +108,11 @@ class LMTTrajectoryPlot(pg.GraphicsLayoutWidget):
             color = st.TAB10_RGB[cloud.color_index % len(st.TAB10_RGB)]
             t_z, z, t_m, m, ground, m_ground = st.build_plot_trace(sequence, cloud)
             all_m.extend(m.tolist())
+
+            if self.include_gravity:
+                # Lab frame: superimpose free fall (down) on the recoil
+                # displacement. Momentum (recoils) is unaffected.
+                z = z - 0.5 * GRAVITY_M_PER_S2 * t_z**2
 
             t_z_us = t_z * 1e6
             z_mm = z * 1e3
@@ -177,7 +187,11 @@ class LMTTrajectoryPlot(pg.GraphicsLayoutWidget):
                     rect.setBrush(pg.mkBrush(r, g, b, 70))
                     rect.setPen(pg.mkPen(r, g, b, 130, width=1))
                     rect.setZValue(-5)
-                    self.ax_m.getViewBox().addItem(rect, ignoreBounds=True)
+                    # Add through the PlotItem (not getViewBox()) so it lands in
+                    # PlotItem.items and is removed by ax_m.clear() on the next
+                    # update; a raw getViewBox().addItem bypasses clear() and the
+                    # bands accumulate across dataset updates.
+                    self.ax_m.addItem(rect, ignoreBounds=True)
             t_event += event.duration
 
     def _draw_clearouts(self, clearout_times):
@@ -191,6 +205,10 @@ class LMTTrajectoryPlot(pg.GraphicsLayoutWidget):
 
     def _add_legend(self):
         legend = self.ax_z.addLegend(offset=(10, 10))
+        # addLegend() returns the existing legend on repeat calls, and
+        # PlotItem.clear() in data_changed does not remove it - so without this
+        # reset every dataset update would stack another four legend rows.
+        legend.clear()
         legend.addItem(
             pg.PlotDataItem(pen=pg.mkPen("w", width=2)), "|g⟩ ground (solid)"
         )
@@ -259,6 +277,12 @@ def main():
     applet.add_dataset(
         "pulse_intent_record",
         "Broadcast pulse-intent-record dataset (from PulseDMARecording)",
+    )
+    applet.argparser.add_argument(
+        "--include-gravity",
+        action="store_true",
+        help="Add the free-fall (½gt²) parabola to the z positions (lab frame) "
+        "instead of plotting in the freely-falling frame.",
     )
     applet.run()
 
