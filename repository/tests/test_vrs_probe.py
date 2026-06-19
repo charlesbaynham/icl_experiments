@@ -53,7 +53,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
             min=0,
             max=30,
             default=30,
-            units="dB",
+            unit="dB",
         )
         self.attenuation: IntParamHandle
 
