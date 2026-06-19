@@ -210,6 +210,27 @@
             program = "${script}/bin/run";
           };
 
+          backup_grafana = let
+            script = pkgs.writeShellScriptBin "run" ''
+              export PATH=${
+                pkgs.lib.makeBinPath [
+                  pkgs.sqlite
+                  pkgs.gnutar
+                  pkgs.gzip
+                  pkgs.coreutils
+                  pkgs.rsync
+                  pkgs.sshpass
+                  pkgs.openssh
+                ]
+              }:$PATH
+
+              exec ${self}/scripts/backup_grafana.sh
+            '';
+          in {
+            type = "app";
+            program = "${script}/bin/run";
+          };
+
           check_for_fixme = let
             script = pkgs.writeShellScriptBin "run" ''
               export PATH=${pkgs.lib.makeBinPath [pkgs.ripgrep]}:$PATH
@@ -296,6 +317,7 @@
           full_stack = let
             backup_database = "nix run .#backup_database";
             backup_datasets = "nix run .#backup_datasets";
+            backup_grafana = "nix run .#backup_grafana";
 
             # This is an extra instance of ctlmgr which searches for controllers assigned to
             # bind_settings.connection_ip instead of "::1". This is only relevant for moninj
@@ -314,6 +336,7 @@
                     inherit
                       backup_database
                       backup_datasets
+                      backup_grafana
                       moninj_proxy_ctlmgr
                       monitor_launcher
                       ;
