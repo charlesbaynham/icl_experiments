@@ -803,7 +803,7 @@ SUSERVOED_BEAMS = [
         attenuation=0.0,
         suservo_device="suservo_aom_singlepass_1379_cavity_input",
         servo_enabled=True,
-        setpoint=5.5,
+        setpoint=6,
     ),
     SUServoedBeam(
         "down_813",
