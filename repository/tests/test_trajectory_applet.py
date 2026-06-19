@@ -22,7 +22,9 @@ The sequence is built from the submit arguments (see :func:`_build_sequence`):
   cloud into two spatially separated clouds of the same velocity class,
 * an optional launch ladder of ``n_launch`` alternating-beam pi pulses (the
   large-momentum-transfer kicks), and
-* a pi/2 - pi - pi/2 Mach-Zehnder interferometer (always),
+* an ``n_lmt``-recoil Mach-Zehnder interferometer (always; ``n_lmt = 1`` is a
+  normal MZ), with ``interferometer_type`` selecting asymmetric (parallelogram)
+  or symmetric (diamond) LMT geometry,
 
 so one can dial up exactly the branch forking, solid/dotted state styling,
 shaded pulses and clearout markers the applet should draw. ``include_gravity``
@@ -32,6 +34,7 @@ adds the free-fall parabola to the drawn positions.
 import logging
 
 from artiq.experiment import BooleanValue
+from artiq.experiment import EnumerationValue
 from artiq.experiment import EnvExperiment
 from artiq.experiment import NumberValue
 from artiq.master.worker_impl import CCB
@@ -132,7 +135,71 @@ def _append_recombine(sequence):
     sequence.append(Clearout(label="recombine-blast"))
 
 
-def _build_sequence(*, do_split, n_split, do_launch, n_launch, pulse_duration):
+def _raise_pulse(state, m):
+    """A pi pulse raising a single arm by one recoil; returns (pulse, state, m)."""
+    if state == "g":
+        return pi(Beam.UP, m=m), "e", m + 1
+    return pi(Beam.DOWN, m=m), "g", m + 1
+
+
+def _lower_pulse(state, m):
+    """A pi pulse lowering a single arm by one recoil; returns (pulse, state, m)."""
+    if state == "g":
+        return pi(Beam.DOWN, m=m), "e", m - 1
+    return pi(Beam.UP, m=m), "g", m - 1
+
+
+def _append_interferometer(sequence, *, state, m, n_lmt, symmetric):
+    """Append a closing ``n_lmt``-recoil Mach-Zehnder on the pair at ``(state, m)``.
+
+    The two arms are only ever addressed together as a clean one-recoil pair (for
+    the mirror and recombiner). During each dark time an augment ladder widens the
+    arms to ``n_lmt`` recoils and then collapses them back to the pair, so the
+    interferometer always closes regardless of ``n_lmt``. ``n_lmt = 1`` is the
+    ordinary pi/2 - pi - pi/2 MZ. ``symmetric=False`` (asymmetric) widens only the
+    upper arm (a parallelogram); ``symmetric=True`` widens both arms in opposite
+    directions (a diamond).
+    """
+    if n_lmt < 1:
+        raise ValueError(
+            f"N_LMT must be >= 1 (got {n_lmt}); 0 is not an interferometer"
+        )
+
+    beam = Beam.DOWN if state == "e" else Beam.UP
+    sequence.append(pi2(beam, m=m, label="bs1"))
+    # bs1 forks (state, m) into a lower arm a and an upper arm b one recoil up.
+    a = [state, m]
+    b = ["g" if state == "e" else "e", m + 1]
+
+    def widen(label):
+        for _ in range(n_lmt - 1):
+            p, b[0], b[1] = _raise_pulse(b[0], b[1])
+            sequence.append(p)
+        if symmetric:
+            for _ in range(n_lmt - 1):
+                p, a[0], a[1] = _lower_pulse(a[0], a[1])
+                sequence.append(p)
+        sequence.append(Wait(t=_DARK_TIME_PLACEHOLDER, label=label))
+        for _ in range(n_lmt - 1):
+            p, b[0], b[1] = _lower_pulse(b[0], b[1])
+            sequence.append(p)
+        if symmetric:
+            for _ in range(n_lmt - 1):
+                p, a[0], a[1] = _raise_pulse(a[0], a[1])
+                sequence.append(p)
+
+    widen("dark1")
+    sequence.append(pi(beam, m=m, label="mirror"))
+    a[:], b[:] = b[:], a[:]  # the mirror swaps the two arms' (state, m)
+    if a[1] > b[1]:
+        a[:], b[:] = b[:], a[:]  # keep b as the upper arm for the second dark
+    widen("dark2")
+    sequence.append(pi2(beam, m=m, label="bs2"))
+
+
+def _build_sequence(
+    *, do_split, n_split, do_launch, n_launch, n_lmt, symmetric, pulse_duration
+):
     """The declarative LMT sequence for the requested knobs.
 
     Structure, in firing order (mirrors the real experiment):
@@ -145,8 +212,10 @@ def _build_sequence(*, do_split, n_split, do_launch, n_launch, pulse_duration):
        ground clearout reconverges both arms onto one momentum class while they
        stay spatially apart (see :func:`_append_recombine`).
     3. Optional launch: an LMT ladder accelerates the cloud(s) up together.
-    4. Interferometer (always): a pi/2 - dark - pi - dark - pi/2 Mach-Zehnder on
-       the resulting pair.
+    4. Interferometer (always): an ``n_lmt``-recoil Mach-Zehnder on the resulting
+       pair (``n_lmt = 1`` is the ordinary pi/2 - pi - pi/2 MZ); ``symmetric``
+       selects the diamond vs parallelogram geometry. See
+       :func:`_append_interferometer`.
 
     Returns the event list ready for :func:`compile_sequence`.
     """
@@ -178,16 +247,10 @@ def _build_sequence(*, do_split, n_split, do_launch, n_launch, pulse_duration):
         sequence += ladder(start_m=m_now, n=n_launch, first_beam=first_beam)
         state, m_now = _top_pair(sequence)
 
-    # 4. Interferometer (always): pi/2 - pi - pi/2 on the populated pair, with
-    #    the beam chosen so the opened arm goes up.
-    beam = Beam.UP if state == "g" else Beam.DOWN
-    sequence += [
-        pi2(beam, m=m_now, label="bs1"),
-        Wait(t=_DARK_TIME_PLACEHOLDER, label="dark1"),
-        pi(beam, m=m_now, label="mirror"),
-        Wait(t=_DARK_TIME_PLACEHOLDER, label="dark2"),
-        pi2(beam, m=m_now, label="bs2"),
-    ]
+    # 4. Interferometer (always): an n_lmt-recoil Mach-Zehnder on the pair.
+    _append_interferometer(
+        sequence, state=state, m=m_now, n_lmt=n_lmt, symmetric=symmetric
+    )
 
     return sequence
 
@@ -259,6 +322,20 @@ class TestTrajectoryApplet(EnvExperiment):
         )
         self.n_launch: int
 
+        # Interferometer: number of LMT recoils (n_lmt=1 is a normal MZ; 0 is an
+        # error), and the LMT geometry.
+        self.setattr_argument(
+            "n_lmt",
+            NumberValue(default=1, precision=0, step=1, min=1, max=20, type="int"),
+        )
+        self.n_lmt: int
+
+        self.setattr_argument(
+            "interferometer_type",
+            EnumerationValue(["asymmetric", "symmetric"], default="asymmetric"),
+        )
+        self.interferometer_type: str
+
         self.setattr_argument(
             "pulse_duration",
             NumberValue(default=30e-6, precision=1, type="float", unit="us"),
@@ -283,6 +360,8 @@ class TestTrajectoryApplet(EnvExperiment):
             n_split=int(self.n_split),
             do_launch=self.do_launch,
             n_launch=int(self.n_launch),
+            n_lmt=int(self.n_lmt),
+            symmetric=self.interferometer_type == "symmetric",
             pulse_duration=self.pulse_duration,
         )
         compiled = compile_sequence(sequence, initial_population=_INITIAL_POPULATION)
