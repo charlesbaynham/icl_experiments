@@ -58,8 +58,6 @@ pulse durations - durations are independent parameters.
     costs exactly the same time.
 """
 
-from __future__ import annotations
-
 import logging
 import math
 from dataclasses import dataclass

@@ -25,8 +25,6 @@ This module is pure host code (no ARTIQ); the drawing lives in
 ``repository.lib.applets.lmt_trajectory_applet``.
 """
 
-from __future__ import annotations
-
 import logging
 from dataclasses import dataclass
 

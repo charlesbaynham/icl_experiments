@@ -53,8 +53,6 @@ exactly the momentum bookkeeping of a resonant pi pulse. Clearouts remove all
 ground-state population and carry no momentum fields.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import Sequence

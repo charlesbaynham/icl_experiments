@@ -44,8 +44,6 @@ port's position with multiplicity 0 - the only real cloud is the best place
 to point an ROI - or on the plain free-fall trajectory if both are empty.
 """
 
-from __future__ import annotations
-
 import logging
 from dataclasses import dataclass
 from typing import Sequence
