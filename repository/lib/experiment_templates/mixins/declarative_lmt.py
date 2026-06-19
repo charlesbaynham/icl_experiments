@@ -37,8 +37,12 @@ Principles
   makes (see
   :class:`~repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging.NormalisedFastKineticsLMTCorrectedMixin`,
   which reads the same release timestamp as its trajectory t=0).
-- The switch AOMs stay at their nominal frequency and amplitude; they only
-  gate pulses on and off.
+- The switch AOMs hold a fixed per-beam launch frequency and amplitude; they
+  only gate pulses on and off. Each switch carries a small constant detuning
+  relative to the nominal switch frequency (``down_switch_detuning`` on the
+  down arm, ``up_switch_detuning_higher_intensity`` on the up arm, mirroring
+  the legacy launch stack) so both launch arms land on resonance; these are
+  programmed once at setup, not per pulse.
 - All frequency control happens on the OPLL offset DDS. Every pulse is fired
   at ``f = START + s * D(t) - m_term + offset`` where ``D(t)`` is the gravity
   Doppler (evaluated at the pulse centre) and ``m_term`` is the
@@ -191,6 +195,49 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             min=0.0,
         )
         self.clearout_duration: FloatParamHandle
+
+        # Per-beam clock switch-AOM detunings, mirroring the legacy launch
+        # stack (LMT_launch_mixins). The two switch AOMs sit at slightly
+        # different RF frequencies so that the up and down launch arms are
+        # both on the atomic resonance; firing both switches at the bare
+        # nominal frequency leaves the down arm ~13-20 kHz off resonance
+        # (measured -20 kHz at RID 75323), collapsing down-launch transfer.
+        # These are set ONCE in _prepare_switch_dds_nominal() (the up and
+        # down switches are separate DDS channels), so they add no per-pulse
+        # RTIO operations.
+        self.setattr_param(
+            "down_switch_detuning",
+            FloatParam,
+            "Detuning on the down switch AOM",
+            default=constants.LMT_DOWN_BEAM_SHIFT,
+            unit="kHz",
+        )
+        self.down_switch_detuning: FloatParamHandle
+
+        self.setattr_param(
+            "up_switch_detuning_higher_intensity",
+            FloatParam,
+            "Detuning on the up switch AOM during lmt pulses",
+            default=1.5e3,
+            unit="kHz",
+        )
+        self.up_switch_detuning_higher_intensity: FloatParamHandle
+
+        # Mirrors the legacy low-intensity (velocity-selective) up-beam switch
+        # detuning. In the declarative engine intensity is set via the
+        # delivery-AOM SUServo set point, not switch-AOM attenuation, so the
+        # up switch DDS holds a single frequency and this knob is NOT applied
+        # per pulse (doing so would add per-pulse RTIO ops). Exposed so the
+        # value can be dialled in / scanned for parity with legacy.
+        self.setattr_param(
+            "up_switch_detuning_lower_intensity",
+            FloatParam,
+            "Detuning on the up switch AOM during selective pulse "
+            "(not applied per-pulse in the declarative engine)",
+            default=0.5e3,
+            unit="kHz",
+        )
+        self.up_switch_detuning_lower_intensity: FloatParamHandle
 
         if not self.lmt_sequence:
             raise TypeError(
@@ -368,18 +415,27 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
 
     @kernel
     def _prepare_switch_dds_nominal(self):
-        """Set both switch DDSes to nominal frequency and amplitude.
+        """Set both switch DDSes to their per-beam launch frequency.
 
-        The switches only gate pulses on and off; all frequency control
-        happens on the OPLL.
+        The switches only gate pulses on and off; all *pulse* frequency
+        control happens on the OPLL. The switch AOMs, however, carry a small
+        fixed per-beam detuning relative to the nominal switch frequency
+        (mirroring the legacy launch stack): the down arm is offset by
+        ``down_switch_detuning`` and the up arm by
+        ``up_switch_detuning_higher_intensity`` so both launch arms land on
+        the atomic resonance. These are set once here - the up and down
+        switches are separate DDS channels - so no per-pulse RTIO operations
+        are added.
         """
         self.set_clock_up_dds(
-            frequency=self.clock_switch_frequency_handle.get(),
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.up_switch_detuning_higher_intensity.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
         )
         delay_mu(8)
         self.set_clock_down_dds(
-            frequency=self.clock_switch_frequency_handle.get(),
+            frequency=self.clock_switch_frequency_handle.get()
+            + self.down_switch_detuning.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
         )
         delay_mu(8)
