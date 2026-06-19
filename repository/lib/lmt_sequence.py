@@ -105,19 +105,6 @@ class Beam(Enum):
         """+1 for the up beam, -1 for the down beam."""
         return 1 if self is Beam.UP else -1
 
-    @classmethod
-    def coerce(cls, value: "Beam | str") -> "Beam":
-        """Convert ``"u"``/``"up"``/``"d"``/``"down"`` (or a Beam) to a Beam."""
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, str):
-            lowered = value.lower()
-            if lowered in ("u", "up"):
-                return cls.UP
-            if lowered in ("d", "down"):
-                return cls.DOWN
-        raise ValueError(f"Cannot interpret {value!r} as a beam direction")
-
 
 @dataclass(frozen=True)
 class Pulse:
@@ -125,7 +112,7 @@ class Pulse:
 
     Args:
         area: Pulse area in units of pi (1.0 = pi pulse, 0.5 = pi/2 pulse).
-        beam: Beam direction (``Beam`` or ``"u"``/``"d"``).
+        beam: Beam direction.
         m: Momentum class of the populated state this pulse addresses.
         state: Internal state (``"g"`` or ``"e"``) of that population. Only
             needed when both internal states are populated at the same ``m``.
@@ -139,7 +126,6 @@ class Pulse:
     label: str = ""
 
     def __post_init__(self):
-        object.__setattr__(self, "beam", Beam.coerce(self.beam))
         if self.area <= 0:
             raise ValueError(f"Pulse area must be positive, got {self.area}")
         if self.state not in (None, GROUND, EXCITED):
@@ -274,26 +260,27 @@ class Callback:
             )
 
 
-def pi(beam: "Beam | str", m: int, state: str | None = None, label: str = "") -> Pulse:
+def pi(beam: Beam, m: int, state: str | None = None, label: str = "") -> Pulse:
     """A pi pulse addressing momentum class ``m``."""
     return Pulse(area=1.0, beam=beam, m=m, state=state, label=label)
 
 
-def pi2(beam: "Beam | str", m: int, state: str | None = None, label: str = "") -> Pulse:
+def pi2(beam: Beam, m: int, state: str | None = None, label: str = "") -> Pulse:
     """A pi/2 pulse addressing momentum class ``m``."""
     return Pulse(area=0.5, beam=beam, m=m, state=state, label=label)
 
 
-def ladder(start_m: int, n: int, first_beam: "Beam | str") -> list[Pulse]:
+def ladder(start_m: int, n: int, first_beam: Beam) -> list[Pulse]:
     """An alternating-beam ladder of ``n`` pi pulses.
 
     Pulse ``j`` addresses momentum class ``start_m + j`` with the beams
     alternating from ``first_beam``, transferring one recoil per pulse - the
     standard LMT launch / beam-splitter ladder.
     """
-    first = Beam.coerce(first_beam)
-    second = Beam.DOWN if first is Beam.UP else Beam.UP
-    return [pi(first if j % 2 == 0 else second, m=start_m + j) for j in range(int(n))]
+    second = Beam.DOWN if first_beam is Beam.UP else Beam.UP
+    return [
+        pi(first_beam if j % 2 == 0 else second, m=start_m + j) for j in range(int(n))
+    ]
 
 
 @dataclass(frozen=True)

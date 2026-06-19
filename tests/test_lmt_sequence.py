@@ -13,7 +13,6 @@ from repository.lib.lmt_sequence import EVENT_WAIT
 from repository.lib.lmt_sequence import Beam
 from repository.lib.lmt_sequence import Callback
 from repository.lib.lmt_sequence import Clearout
-from repository.lib.lmt_sequence import Pulse
 from repository.lib.lmt_sequence import SequenceError
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
@@ -28,13 +27,9 @@ def setpoints(rabi_up=9e3, rabi_down=7e3):
     return [SetPoint(setpoint=2.6, rabi_up=rabi_up, rabi_down=rabi_down)]
 
 
-def test_beam_coercion():
-    assert Pulse(1.0, "u", 0).beam is Beam.UP
-    assert Pulse(1.0, "down", 0).beam is Beam.DOWN
+def test_beam_sign():
     assert Beam.UP.sign == 1
     assert Beam.DOWN.sign == -1
-    with pytest.raises(ValueError):
-        Pulse(1.0, "sideways", 0)
 
 
 def test_setpoint_validation():
@@ -47,7 +42,7 @@ def test_setpoint_validation():
 
 
 def test_ladder_helper():
-    rungs = ladder(start_m=3, n=4, first_beam="d")
+    rungs = ladder(start_m=3, n=4, first_beam=Beam.DOWN)
     assert [p.m for p in rungs] == [3, 4, 5, 6]
     assert [p.beam for p in rungs] == [Beam.DOWN, Beam.UP, Beam.DOWN, Beam.UP]
     assert all(p.area == 1.0 for p in rungs)
