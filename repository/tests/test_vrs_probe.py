@@ -71,7 +71,7 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.dds.init()
         delay(1e-3)
         self.dds.sw.set_o(True)
-        self.dds.set_att(self.attenuation.get())
+        self.dds.set_att(float(self.attenuation.get()))
         self.core.break_realtime()
 
         # FIXME You have fallen for the classic ndscan gotcha. You need:
