@@ -1058,6 +1058,7 @@ WAND_SETPOINTS_87 = {
     # "689_doubled1379": (_default_689, False),
     "641": (_default_641, True),
     "Sirah": (_default_698 + _clock_laser_offset, False),
+    "698": (_default_698, False),
 }
 
 TOPTICA_461_ANALOG_SCALE = (
