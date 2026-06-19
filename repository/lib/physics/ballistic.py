@@ -47,8 +47,6 @@ Usage example::
     )
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Literal
 from typing import Sequence
