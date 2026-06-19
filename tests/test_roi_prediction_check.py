@@ -54,13 +54,20 @@ def test_single_branch_at_imaging_for_all_variants():
         assert len(_final_population(frag_cls)) == 1
 
 
+def test_sliced_ends_at_plus_two_ground():
+    # The velocity-sliced variant: slice pi (+1 recoil) then launch pi (+1)
+    # leaves a single clean ground branch at +2 - a clean 2-recoil launch.
+    assert _final_population(rpc.RoiCheckUp2Sliced) == [("g", 2)]
+
+
 # ── Structural build: construct each fragment with mocked managers ────────────
 # init_params() runs build_fragment + parameter wiring but never host_setup, so
 # the EM-gain interlock dataset is never read or written here.
 
 
 @pytest.mark.parametrize(
-    "frag_cls", [rpc.RoiCheckFall, rpc.RoiCheckUp, rpc.RoiCheckDown]
+    "frag_cls",
+    [rpc.RoiCheckFall, rpc.RoiCheckUp, rpc.RoiCheckDown, rpc.RoiCheckUp2Sliced],
 )
 def test_fragment_builds_and_exposes_flight_time(fragment_factory, frag_cls):
     frag = fragment_factory(frag_cls)
@@ -92,5 +99,7 @@ def test_scan_exps_are_module_globals():
         "RoiCheckFallExp",
         "RoiCheckUpExp",
         "RoiCheckDownExp",
+        "RoiCheckUp2Sliced",
+        "RoiCheckUp2SlicedExp",
     ):
         assert hasattr(rpc, name), name

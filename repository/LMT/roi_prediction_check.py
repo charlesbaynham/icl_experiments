@@ -68,6 +68,7 @@ from repository.lib.experiment_templates.mixins.XODT_molasses import (
     XODTSingleMolassesPlusDipoleRampMixin,
 )
 from repository.lib.lmt_sequence import Beam
+from repository.lib.lmt_sequence import Clearout
 from repository.lib.lmt_sequence import SetPoint
 from repository.lib.lmt_sequence import Wait
 from repository.lib.lmt_sequence import pi
@@ -118,32 +119,30 @@ def _full_intensity_setpoint() -> SetPoint:
     )
 
 
-def _make(sign: int, n: int):
-    """Build one ROI-check fragment class.
+def _slice_setpoint() -> SetPoint:
+    """The reduced-intensity, long velocity-selective "slice" set point.
 
-    Args:
-        sign: ``0`` for free fall (no kick), ``+1`` for an upward ladder to
-            ``+n``, ``-1`` for a downward ladder to ``-n``.
-        n: Number of recoils to impart (ignored when ``sign == 0``).
+    Replicates the production slice in
+    :class:`~repository.LMT.lmt_declarative.DeclarativeLMTMachZehnderFrag`: a
+    low delivery set point (``constants.CLOCK_SHELVING_PULSE_SETPOINT`` = 0.012
+    V) giving a reduced up-beam Rabi, so the declared pi time is the long
+    ``constants.CLOCK_SHELVING_PULSE_TIME`` (380 us). At ~1 uK this selects a
+    narrow velocity class (~9.5 kHz line).
     """
-    if sign == 0:
-        kick: list = []
-    elif sign > 0:
-        kick = _up_ladder(n)
-    else:
-        kick = _down_ladder(n)
+    return SetPoint(
+        setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+        rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+        label="slice",
+    )
 
-    sequence = [
-        # Full delivery intensity for the launch (and so the imaging set point
-        # is well defined). No reduced-intensity "slice" pulse is needed here:
-        # this is a position diagnostic, not spectroscopy.
-        _full_intensity_setpoint(),
-        *kick,
-        # Scannable dark time between the kick and imaging. Reuses the
-        # fragment's own 'flight_time' FloatParam (resolved in host_setup) so
-        # the scan axis has a clean, stable FQN: <class>.flight_time.
-        Wait(param="flight_time", label="flight"),
-    ]
+
+def _build_roicheck_frag(sequence: list):
+    """Build a ROI-check fragment class wrapping a declared ``lmt_sequence``.
+
+    The class body (mixins, hooks, the reused scannable ``flight_time``
+    FloatParam) is identical for every variant; only the declared
+    ``lmt_sequence`` differs, so it is passed in.
+    """
 
     class _RoiCheckFrag(
         DeclarativeLMTBase,
@@ -196,6 +195,80 @@ def _make(sign: int, n: int):
     return _RoiCheckFrag
 
 
+def _make(sign: int, n: int):
+    """Build one ROI-check fragment class.
+
+    Args:
+        sign: ``0`` for free fall (no kick), ``+1`` for an upward ladder to
+            ``+n``, ``-1`` for a downward ladder to ``-n``.
+        n: Number of recoils to impart (ignored when ``sign == 0``).
+    """
+    if sign == 0:
+        kick: list = []
+    elif sign > 0:
+        kick = _up_ladder(n)
+    else:
+        kick = _down_ladder(n)
+
+    sequence = [
+        # Full delivery intensity for the launch (and so the imaging set point
+        # is well defined). No reduced-intensity "slice" pulse is needed here:
+        # this is a position diagnostic, not spectroscopy.
+        _full_intensity_setpoint(),
+        *kick,
+        # Scannable dark time between the kick and imaging. Reuses the
+        # fragment's own 'flight_time' FloatParam (resolved in host_setup) so
+        # the scan axis has a clean, stable FQN: <class>.flight_time.
+        Wait(param="flight_time", label="flight"),
+    ]
+    return _build_roicheck_frag(sequence)
+
+
+def _make_sliced():
+    """Build the velocity-SLICED 2-recoil ROI-check fragment class.
+
+    Unlike :func:`_make` (which launches the whole thermal cloud straight from
+    a full-Rabi ladder), this variant first applies a weak, long,
+    velocity-selective "slice" pi pulse on m=0 at the reduced slice set point -
+    replicating the production slice + clearout in
+    :class:`~repository.LMT.lmt_declarative.DeclarativeLMTMachZehnderFrag`:
+
+    1. ``SetPoint`` at the reduced slice set point (long pi time) -> the slice
+       pi addresses only a narrow velocity class.
+    2. ``pi(Beam.UP, m=0, label="slice")`` shelves that class |g,0> -> |e,+1>,
+       imparting +1 recoil.
+    3. ``SetPoint`` back to full delivery intensity (so the launch pi and the
+       imaging set point are well defined).
+    4. ``Clearout()`` blasts away the un-sliced ground-state atoms (the
+       declared population is already |e,+1>, so the compiler removes nothing;
+       physically it removes the unselected ground cloud).
+    5. ``pi(Beam.DOWN, m=1, label="launch")`` flips |e,+1> -> |g,+2>, adding a
+       second recoil.
+
+    The result is a clean, ground-state, imageable |g,+2> launch of a single
+    narrow velocity class - a clean confirmation that 2 photon recoils were
+    imparted.
+    """
+    sequence = [
+        # Reduced-intensity, long velocity-selective slice set point.
+        _slice_setpoint(),
+        # Slice pi on m=0: shelves a narrow velocity class |g,0> -> |e,+1>.
+        pi(Beam.UP, m=0, label="slice"),
+        # Restore full delivery intensity for the launch and imaging set point.
+        _full_intensity_setpoint(),
+        # Blast away the un-sliced ground-state atoms (leaves |e,+1> only).
+        Clearout(),
+        # Full-Rabi launch pi: flips |e,+1> -> |g,+2> (the second recoil),
+        # ending at the imageable ground state |g,+2>.
+        pi(Beam.DOWN, m=1, label="launch"),
+        # Scannable dark time between the launch and imaging. Reuses the
+        # fragment's own 'flight_time' FloatParam so the scan axis has a clean,
+        # stable FQN: <class>.flight_time.
+        Wait(param="flight_time", label="flight"),
+    ]
+    return _build_roicheck_frag(sequence)
+
+
 # -- Three variants: free fall, upward (+N), downward (-N) --------------------
 
 RoiCheckFall = _make(sign=0, n=0)
@@ -220,9 +293,18 @@ RoiCheckUp8 = _make(sign=+1, n=8)
 RoiCheckUp8.__name__ = "RoiCheckUp8"
 RoiCheckUp8.__qualname__ = "RoiCheckUp8"
 
+# Velocity-SLICED 2-recoil variant: a weak/long velocity-selective slice pi on
+# m=0 (+1 recoil) -> clearout of the un-sliced atoms -> full-Rabi launch pi
+# (+1 recoil), ending at the imageable ground state |g,+2>. A clean
+# confirmation that 2 photon recoils were imparted to a narrow velocity class.
+RoiCheckUp2Sliced = _make_sliced()
+RoiCheckUp2Sliced.__name__ = "RoiCheckUp2Sliced"
+RoiCheckUp2Sliced.__qualname__ = "RoiCheckUp2Sliced"
+
 # ndscan scan experiments (both the Frag and the scan-exp are module globals).
 RoiCheckFallExp = make_fragment_scan_exp(RoiCheckFall)
 RoiCheckUpExp = make_fragment_scan_exp(RoiCheckUp)
 RoiCheckDownExp = make_fragment_scan_exp(RoiCheckDown)
 RoiCheckUp2Exp = make_fragment_scan_exp(RoiCheckUp2)
 RoiCheckUp8Exp = make_fragment_scan_exp(RoiCheckUp8)
+RoiCheckUp2SlicedExp = make_fragment_scan_exp(RoiCheckUp2Sliced)
