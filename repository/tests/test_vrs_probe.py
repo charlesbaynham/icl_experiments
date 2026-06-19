@@ -42,9 +42,6 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, URUKUL)
         self.probe_ramper: VRS_Probe_Ramper
 
-        # Set the CPLD
-        self.cpld: CPLD = self.dds.cpld
-
         # Variable
         self.setattr_param(
             "attenuation",
@@ -60,7 +57,11 @@ class TestVRSProbeRamperFrag(ExpFragment):
         # Invariants
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
         self.kernel_invariants.add("dds")
-        self.kernel_invariants.add("cpld")
+
+    def prepare(self) -> None:
+
+        # Set the CPLD
+        self.cpld: CPLD = self.dds.cpld
 
     @kernel
     def device_setup(self) -> None:
