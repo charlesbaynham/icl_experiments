@@ -37,7 +37,6 @@ class TestVRSProbeRamperFrag(ExpFragment):
 
         # Fragments
         self.setattr_fragment("probe_ramper", VRS_Probe_Ramper, URUKUL)
-        # self.setattr_fragment("probe_ramper", AD9910Ramper, URUKUL)
         self.probe_ramper: VRS_Probe_Ramper
 
         # Variable
@@ -120,7 +119,7 @@ class TestRTBSetupFrag(ExpFragment):
         self.rtb.write_float("CHAN1:OFFS", 0.0)  # Offset 0
         self.rtb.write_bool("CHAN1:STAT", True)  # Switch Channel 1 ON
         # Sample Data, we want the max of 20 MSa per segment
-        self.rtb.write_float("ACQ:POIN", 1e6)
+        self.rtb.write_float("ACQ:POIN", 20e6)
         # Setup a single shot
 
     @kernel
