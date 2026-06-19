@@ -16,6 +16,8 @@ from ndscan.experiment import ResultChannel
 from ndscan.experiment.entry_point import make_fragment_scan_exp
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
+from ndscan.experiment.parameters import IntParam
+from ndscan.experiment.parameters import IntParamHandle
 from RsInstrument import RsInstrument
 
 from repository.lib.fragments.vrs_probe_ramper import VRS_Probe_Ramper
@@ -44,6 +46,16 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.cpld: CPLD = self.dds.cpld
 
         # Variable
+        self.setattr_param(
+            "attenuation",
+            IntParam,
+            "DDS attenuation",
+            min=0,
+            max=30,
+            default=30,
+            units="dB",
+        )
+        self.attenuation: IntParamHandle
 
         # Invariants
         self.kernel_invariants = getattr(self, "kernel_invariants", set())
@@ -59,21 +71,16 @@ class TestVRSProbeRamperFrag(ExpFragment):
         self.dds.init()
         delay(1e-3)
         self.dds.sw.set_o(True)
+        self.dds.set_att(self.attenuation.get())
         self.core.break_realtime()
 
         # FIXME You have fallen for the classic ndscan gotcha. You need:
-        # self.device_setup_subfragments()
         self.device_setup_subfragments()
 
     @kernel
     def run_once(self) -> None:
         self.core.break_realtime()
-
         self.probe_ramper.trigger_single_sweep()
-
-        logger.warning("Probe ramp: %f", self.probe_ramper.dF_dt.get())
-        logger.warning("Probe max frequency: %f", self.probe_ramper.max_f.get())
-        logger.warning("Probe min frequency: %f", self.probe_ramper.min_f.get())
 
 
 class TestRTBSetupFrag(ExpFragment):
