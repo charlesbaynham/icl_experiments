@@ -24,6 +24,8 @@ from artiq.language import now_mu
 from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
+from ndscan.experiment.parameters import BoolParam
+from ndscan.experiment.parameters import BoolParamHandle
 from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
@@ -572,13 +574,32 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.setattr_param_rebind("roi_height", self.andor_camera_config, "roi_height")
 
         self.setattr_param(
+            "enable_dynamic_roi",
+            BoolParam,
+            "Reposition the camera ROIs along the predicted trajectory each "
+            "shot. When False, image on the static default ROIs and skip the "
+            "intent-prediction RPC + mid-shot grabber reprogram entirely (a "
+            "robust, underflow-free fallback for launch ladders, since transfer "
+            "is re-extracted from the raw frames anyway).",
+            default=True,
+        )
+        self.enable_dynamic_roi: BoolParamHandle
+
+        self.setattr_param(
             "roi_prediction_budget",
             FloatParam,
-            "Timeline slack reserved for the ROI prediction RPC",
-            # The RPC is warmed up (off-budget) before the timed call, so a few
-            # ms is ample. Kept small to minimise the added time-of-flight: the
-            # cloud falls during this budget before the first image.
-            default=5e-3,
+            "Timeline slack reserved for the ROI prediction RPC + grabber "
+            "reprogram (the time-of-flight added before the first image)",
+            # Sized to comfortably exceed the blocking prediction RPC + grabber
+            # reprogram wall-clock cost, which grows with the launch-ladder
+            # pulse count (the intent stream the RPC marshals scales with it).
+            # The earlier 5 ms underflowed at n=3 (RID 75342, slack -3.7 ms);
+            # the spec-path validation needed ~9 ms. 12 ms holds the reprogram
+            # burst in positive slack up to the n~10-12 target with margin. The
+            # cloud falls during this budget before the first image, but the
+            # predictor is told the true (budgeted) image time, so the ROI still
+            # tracks the cloud - the only cost is a slightly longer fixed flight.
+            default=12e-3,
             unit="ms",
             min=0,
         )
@@ -652,21 +673,47 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
     @kernel
     def do_imaging_hook_andor(self):
-        # Warm up the prediction RPC path with generous slack BEFORE the timed
-        # section. The first prediction call on a fresh ARTIQ worker is slow
-        # (host-side imports/JIT and the kernel<->host round-trip the first
-        # time), which would otherwise have to be covered by - and so inflate -
-        # roi_prediction_budget (and hence the time-of-flight). Running one
-        # throwaway prediction here, bracketed by break_realtime so its latency
-        # cannot underflow, makes the real timed call below fast. The throwaway
-        # result is immediately overwritten by the real call.
-        self.core.break_realtime()
-        self._predict_atom_positions(now_mu(), now_mu())
-        self.core.break_realtime()
+        if not self.enable_dynamic_roi.get():
+            # Static-ROI path: skip the intent-prediction RPC and the mid-shot
+            # grabber reprogram entirely, imaging on the default ROIs already
+            # programmed in AndorCameraControl.device_setup(). This is the
+            # robust fallback for launch ladders - the dynamic ROI mis-places by
+            # ~100 px and transfer is re-extracted from the RAW frames anyway -
+            # and it sidesteps the post-launch reprogram burst that underflows
+            # at high pulse counts. Time-of-flight (release -> first image) is
+            # held equal to the dynamic path's deterministic budget so the two
+            # paths image at the same instant after release.
+            t_image_mu = now_mu() + self.core.seconds_to_mu(
+                self.roi_prediction_budget.get()
+            )
+            # Diagnostics still get pushed exactly once per shot (every
+            # ResultChannel must be). The trap centre stands in for the
+            # (un-predicted) port positions.
+            self.predicted_gnd_x.push(float(self.andor_camera_config.gnd_x))
+            self.predicted_gnd_y.push(float(self.andor_camera_config.gnd_y))
+            self.predicted_excited_x.push(float(self.andor_camera_config.excited_x))
+            self.predicted_excited_y.push(float(self.andor_camera_config.excited_y))
+            self.gnd_port_multiplicity.push(0.0)
+            self.excited_port_multiplicity.push(0.0)
+            self.roi_clipped.push(0.0)
+            self.prediction_slack_before.push(
+                self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu())
+            )
+            self.prediction_slack_after.push(
+                self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu())
+            )
+            at_mu(t_image_mu)
+            self.do_imaging_hook_andor_default()
+            return
 
-        # Pin the first imaging time now, so the wall-clock duration of the
-        # prediction RPC cannot shift it: everything below runs inside the
-        # slack reserved by roi_prediction_budget.
+        # Pin the first imaging time from the cursor on ENTRY, before any
+        # break_realtime or RPC. The time-of-flight (release -> first image) is
+        # therefore exactly (entry cursor - release) + roi_prediction_budget,
+        # fully deterministic and independent of the prediction RPC's wall-clock
+        # duration. Anchoring here (rather than after the warm-up break_realtime,
+        # as the old code did) is what lets us recover slack with break_realtime
+        # after the RPC without shifting the imaging instant: t_image_mu is a
+        # fixed live-timeline target the predictor and the camera trigger share.
         t_image_mu = now_mu() + self.core.seconds_to_mu(
             self.roi_prediction_budget.get()
         )
@@ -674,18 +721,47 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
             self.andor_camera_config.fast_kinetics_time_between_shots.get()
         )
 
+        # Warm up the prediction RPC path with generous slack BEFORE the timed
+        # section. The first prediction call on a fresh ARTIQ worker is slow
+        # (host-side imports/JIT and the kernel<->host round-trip the first
+        # time). Running one throwaway prediction here, bracketed by
+        # break_realtime so its latency cannot underflow, makes the real call
+        # below fast. The throwaway result is immediately overwritten.
+        self.core.break_realtime()
+        self._predict_atom_positions(now_mu(), now_mu())
+        self.core.break_realtime()
+
         self.prediction_slack_before.push(
             self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu())
         )
 
+        # The real, position-determining prediction. This is a BLOCKING host
+        # RPC: the RTIO counter keeps advancing during it while now_mu() does
+        # not, so it silently eats timeline slack. After a launch ladder (which
+        # already consumed the standing slack) and with the intent stream that
+        # the RPC marshals scaling with pulse count, this is exactly where the
+        # slack ran out and the grabber reprogram below underflowed (RID 75342,
+        # slack -3.7 ms at n=3).
         self._predict_atom_positions(t_image_mu, t2_mu)
 
         self.prediction_slack_after.push(
             self.core.mu_to_seconds(now_mu() - self.core.get_rtio_counter_mu())
         )
 
-        # Reprogram the grabber with the freshly predicted ROIs. The writes
-        # land in the remaining budget, before the first camera frame.
+        # Recover slack BEFORE the grabber reprogram burst so its writes always
+        # have positive slack, however slow the RPC was. break_realtime only
+        # moves the cursor (the wall clock has already passed), and t_image_mu
+        # was pinned on entry, so this does NOT shift the imaging instant: it
+        # just guarantees the cursor sits behind t_image_mu with room for the
+        # writes. Provided roi_prediction_budget exceeds the RPC + reprogram
+        # cost (a few ms; see below), the cursor stays before t_image_mu and the
+        # final at_mu(t_image_mu) is reachable. If the budget is ever too small
+        # the failure is now a clean, diagnosable at_mu underflow rather than a
+        # mid-burst grabber underflow.
+        self.core.break_realtime()
+
+        # Reprogram the grabber with the freshly predicted ROIs. The writes land
+        # in the recovered slack, before the first camera frame at t_image_mu.
         self.andor_camera_control.reprogram_rois()
 
         self.predicted_gnd_x.push(float(self.andor_camera_config.gnd_x))
