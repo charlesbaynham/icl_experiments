@@ -121,8 +121,14 @@ from repository.lib.experiment_templates.mixins.andor_imaging.em_gain import EMG
 from repository.lib.experiment_templates.mixins.andor_imaging.lmt_compensated_normalised_imaging import (  # noqa: E501
     DynamicROIImagingMixin,
 )
+from repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base import (  # noqa: E501
+    NormalisedFastKineticsRepumpedMixin,
+)
 from repository.lib.experiment_templates.mixins.declarative_lmt import (
     DeclarativeLMTBase,
+)
+from repository.lib.experiment_templates.mixins.flir_blue_mot_measurement import (
+    FLIRBlueMOTMeasurementMixin,
 )
 from repository.lib.experiment_templates.mixins.evaporation_mixin import (
     FieldOnlyRampInEvapMixin,
@@ -143,6 +149,31 @@ from repository.lib.lmt_sequence import pi
 logger = logging.getLogger(__name__)
 
 CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
+
+
+class DynamicROIRepumpedImagingMixin(
+    NormalisedFastKineticsRepumpedMixin, DynamicROIImagingMixin
+):
+    """
+    :class:`~.DynamicROIImagingMixin` combined with the 679/707 REPUMP readout
+    of :class:`~.NormalisedFastKineticsRepumpedMixin`.
+
+    Mirrors the proven ``NormalisedFastKineticsLMTCorrectedMixin`` pattern (which
+    pairs ``DynamicROIImagingMixin`` with the *clock-pulse de-shelve* readout),
+    but swaps in the *repump* readout instead: the repump mixin's
+    ``do_first_pulse`` (fire ground frame, then turn on the 679/707 repumpers)
+    wins the MRO, while ``DynamicROIImagingMixin`` still wins
+    ``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` /
+    ``before_start_hook`` so the dynamic-ROI prediction is preserved.
+
+    Required because atoms ending in the shelved excited clock state ³P₀ (an
+    even-n LMT launch ends |e, n+1>; a velocity slice + clearout leaves |e,1>)
+    are dark to the 461 fast-kinetics imaging and must be repumped back to the
+    ground cycling transition before the second frame can image them. The plain
+    ``DynamicROIImagingMixin`` does NOT repump, so excited-ending sequences image
+    a full-frame null. The host fragment must also pull in a ``blue_3d_mot``
+    provider (``FLIRBlueMOTMeasurementMixin``) for ``turn_on_repumpers``.
+    """
 
 
 # %% Experiment 1: pure drop
@@ -225,8 +256,9 @@ DeclarativeLMTDropValidation = make_fragment_scan_exp(DeclarativeLMTDropValidati
 
 class DeclarativeLMTClockPiValidationFrag(
     DeclarativeLMTBase,
-    DynamicROIImagingMixin,
+    DynamicROIRepumpedImagingMixin,
     EMGainMixin,
+    FLIRBlueMOTMeasurementMixin,
     LoadSingleXODTMixin,
     XODTSingleMolassesPlusDipoleRampMixin,
     OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -320,8 +352,9 @@ def _make_launch_frag(n: int):
 
     class _LaunchFrag(
         DeclarativeLMTBase,
-        DynamicROIImagingMixin,
+        DynamicROIRepumpedImagingMixin,
         EMGainMixin,
+        FLIRBlueMOTMeasurementMixin,
         LoadSingleXODTMixin,
         XODTSingleMolassesPlusDipoleRampMixin,
         OpticalPumpingWithFieldSettingDipoleTrapMixin,
@@ -419,8 +452,9 @@ def _make_prep_frag(with_clearout: bool):
 
     class _PrepFrag(
         DeclarativeLMTBase,
-        DynamicROIImagingMixin,
+        DynamicROIRepumpedImagingMixin,
         EMGainMixin,
+        FLIRBlueMOTMeasurementMixin,
         LoadSingleXODTMixin,
         XODTSingleMolassesPlusDipoleRampMixin,
         OpticalPumpingWithFieldSettingDipoleTrapMixin,
