@@ -457,6 +457,41 @@ RoiCheckSlicedLaunch3 = _make_sliced_launch(n=3)
 RoiCheckSlicedLaunch3.__name__ = "RoiCheckSlicedLaunch3"
 RoiCheckSlicedLaunch3.__qualname__ = "RoiCheckSlicedLaunch3"
 
+# n=4: ... -> UP m=4 -> |e,+5> (four launch pulses; even n -> EXCITED end state).
+RoiCheckSlicedLaunch4 = _make_sliced_launch(n=4)
+RoiCheckSlicedLaunch4.__name__ = "RoiCheckSlicedLaunch4"
+RoiCheckSlicedLaunch4.__qualname__ = "RoiCheckSlicedLaunch4"
+
+# n=5: ... -> DOWN m=5 -> |g,+6> (five launch pulses; odd n -> GROUND end state).
+RoiCheckSlicedLaunch5 = _make_sliced_launch(n=5)
+RoiCheckSlicedLaunch5.__name__ = "RoiCheckSlicedLaunch5"
+RoiCheckSlicedLaunch5.__qualname__ = "RoiCheckSlicedLaunch5"
+
+# n=6: ... -> UP m=6 -> |e,+7> (six launch pulses; EXCITED end state).
+RoiCheckSlicedLaunch6 = _make_sliced_launch(n=6)
+RoiCheckSlicedLaunch6.__name__ = "RoiCheckSlicedLaunch6"
+RoiCheckSlicedLaunch6.__qualname__ = "RoiCheckSlicedLaunch6"
+
+# n=7: ... -> DOWN m=7 -> |g,+8> (seven launch pulses; GROUND end state).
+RoiCheckSlicedLaunch7 = _make_sliced_launch(n=7)
+RoiCheckSlicedLaunch7.__name__ = "RoiCheckSlicedLaunch7"
+RoiCheckSlicedLaunch7.__qualname__ = "RoiCheckSlicedLaunch7"
+
+# n=8: ... -> UP m=8 -> |e,+9> (eight launch pulses; EXCITED end state).
+RoiCheckSlicedLaunch8 = _make_sliced_launch(n=8)
+RoiCheckSlicedLaunch8.__name__ = "RoiCheckSlicedLaunch8"
+RoiCheckSlicedLaunch8.__qualname__ = "RoiCheckSlicedLaunch8"
+
+# n=9: ... -> DOWN m=9 -> |g,+10> (nine launch pulses; GROUND end state).
+RoiCheckSlicedLaunch9 = _make_sliced_launch(n=9)
+RoiCheckSlicedLaunch9.__name__ = "RoiCheckSlicedLaunch9"
+RoiCheckSlicedLaunch9.__qualname__ = "RoiCheckSlicedLaunch9"
+
+# n=10: ... -> UP m=10 -> |e,+11> (ten launch pulses; EXCITED end state).
+RoiCheckSlicedLaunch10 = _make_sliced_launch(n=10)
+RoiCheckSlicedLaunch10.__name__ = "RoiCheckSlicedLaunch10"
+RoiCheckSlicedLaunch10.__qualname__ = "RoiCheckSlicedLaunch10"
+
 # ndscan scan experiments (both the Frag and the scan-exp are module globals).
 RoiCheckFallExp = make_fragment_scan_exp(RoiCheckFall)
 RoiCheckUpExp = make_fragment_scan_exp(RoiCheckUp)
@@ -468,3 +503,10 @@ RoiCheckSlicedBaselineExp = make_fragment_scan_exp(RoiCheckSlicedBaseline)
 RoiCheckSlicedLaunch1Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch1)
 RoiCheckSlicedLaunch2Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch2)
 RoiCheckSlicedLaunch3Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch3)
+RoiCheckSlicedLaunch4Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch4)
+RoiCheckSlicedLaunch5Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch5)
+RoiCheckSlicedLaunch6Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch6)
+RoiCheckSlicedLaunch7Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch7)
+RoiCheckSlicedLaunch8Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch8)
+RoiCheckSlicedLaunch9Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch9)
+RoiCheckSlicedLaunch10Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch10)
