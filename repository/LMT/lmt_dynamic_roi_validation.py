@@ -220,6 +220,78 @@ class DeclarativeLMTDropValidationFrag(
 DeclarativeLMTDropValidation = make_fragment_scan_exp(DeclarativeLMTDropValidationFrag)
 
 
+# %% Experiment 1b: full-intensity clock pi readout / clock-spectroscopy probe
+
+
+class DeclarativeLMTClockPiValidationFrag(
+    DeclarativeLMTBase,
+    DynamicROIImagingMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """
+    Full-intensity clock pi on the whole released cloud, then dynamic-ROI imaging.
+
+    A single full-delivery ``pi(Beam.UP, m=0)`` (NO velocity slice, NO clearout,
+    NO ladder) drives a broad-linewidth clock excitation of a large fraction of
+    the cloud: |g,0> -> |e,1>. Two diagnostic uses, both robust to the open
+    questions blocking the launch validation:
+
+    * **Clock spectroscopy / resonance:** scanning the pulse's frequency offset
+      traces the clock line via the GROUND-port depletion (the ground cloud is
+      bright, SNR ~900, so a ~half-cloud pi gives a large, easily-fit dip even if
+      the predicted ROI anchor is slightly off and the excited readout is
+      suspect). Finds where the clock is actually resonant on this code path.
+    * **Excited-port readout validation:** a large, known excited population.
+      If the ground depletes on resonance but the EXCITED port stays dark, the
+      excited-port readout is broken (the M0 "excited-readout UNVALIDATED" item);
+      if both respond, the readout works and the thin velocity slice was simply
+      off-resonance / sub-threshold.
+
+    Run with ``lmt_initial_velocity=0`` (the cloud is at rest at release; the v0
+    Doppler term should not enter this un-sliced pulse). Composition,
+    imaging-mixin choice and HOOK-COLLISION AUDIT identical to
+    :class:`DeclarativeLMTDropValidationFrag`; see that class and the
+    module-level audit.
+    """
+
+    lmt_initial_population = {("g", 0)}
+
+    lmt_sequence = [
+        # Full clock delivery intensity (broad, whole-cloud pi).
+        SetPoint(
+            setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+            rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+            rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+        ),
+        # Single full-intensity up-beam pi on the whole cloud.
+        pi(Beam.UP, m=0),
+    ]
+
+    @kernel
+    def DMA_initialization_hook(self):
+        self.DMA_initialization_hook_redmot_default()
+        self.DMA_initialization_hook_dipole_trap_default()
+        self.DMA_initialization_hook_loading_xodt_mot()
+        self.DMA_initialization_hook_xodt_molasses()
+        self.DMA_initialization_hook_evap_with_field_ramp()
+
+    @kernel
+    def post_sequence_cleanup_hook(self):
+        self.post_sequence_cleanup_hook_base()
+        self.post_sequence_cleanup_hook_andor()
+        self.post_sequence_cleanup_hook_declarative_lmt()
+
+
+DeclarativeLMTClockPiValidation = make_fragment_scan_exp(
+    DeclarativeLMTClockPiValidationFrag
+)
+
+
 # %% Experiments 2 & 3: sliced LMT launch (N = 2, 4) via a factory
 
 
