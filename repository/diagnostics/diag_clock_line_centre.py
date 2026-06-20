@@ -109,9 +109,12 @@ class _ClockLineCentreDiagnosticBase(ClockSpecPulseRatioFrag):
         # Pick the clock beam for this diagnostic.
         self.override_param("use_down_beam", self._use_down_beam)
 
-        # Centre the scanned detuning on the (gravity-compensated) clock line;
-        # extra_clock_detuning is the scan axis.
-        self.override_param("extra_clock_detuning", 0.0)
+        # NB: do NOT override_param("extra_clock_detuning", ...) here - it is the
+        # default scan axis, so it must stay a *free* parameter. Overriding it
+        # fixes its value and removes it from the free set, which makes
+        # default_scan's FQN resolver raise "Default scan axis parameter
+        # 'extra_clock_detuning' not found as a free parameter". Its parent
+        # default is already 0.0 (centred on the line), so no override is needed.
 
         # Pulse duration sets the Fourier-limited linewidth; the area is fixed at
         # pulse_area_fraction * pi by the setpoint scaling regardless of duration.
