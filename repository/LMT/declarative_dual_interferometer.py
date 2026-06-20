@@ -444,3 +444,25 @@ DeclarativeLMTSplitOnlyWideFrag = _make_split_only(
     n_launch=4, sep=11, separation_time=2e-3
 )
 DeclarativeLMTSplitOnlyWide = make_fragment_scan_exp(DeclarativeLMTSplitOnlyWideFrag)
+
+# RESOLVED-PAIR variants. RID 75382 (sep=11, 2 ms) showed atoms back in-frame but
+# as ONE elongated feature (~30 px x-FWHM): the ~9 px split was smaller than the
+# cloud width, so the two classes blended. The cloud landed at z~19 (top of the
+# 154 px window) with plenty of downward room, so a longer wait is safe here. To
+# RESOLVE two clouds the x-separation must exceed the ~30 px cloud width. With a
+# 20-recoil gap (sep=19) at ~0.41 px/ms/recoil: 4 ms -> ~33 px, 6 ms -> ~49 px.
+# Wait is baked in (the spawned wait-override FQN on these factory classes is
+# awkward to address remotely; bake distinct variants instead).
+DeclarativeLMTSplitResolved4msFrag = _make_split_only(
+    n_launch=4, sep=19, separation_time=4e-3
+)
+DeclarativeLMTSplitResolved4ms = make_fragment_scan_exp(
+    DeclarativeLMTSplitResolved4msFrag
+)
+
+DeclarativeLMTSplitResolved6msFrag = _make_split_only(
+    n_launch=4, sep=19, separation_time=6e-3
+)
+DeclarativeLMTSplitResolved6ms = make_fragment_scan_exp(
+    DeclarativeLMTSplitResolved6msFrag
+)
