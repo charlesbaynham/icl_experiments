@@ -75,6 +75,35 @@ RECOIL_FREQUENCY_HZ = scipy.constants.h / (
 DOPPLER_PER_KICK_HZ = 2 * RECOIL_FREQUENCY_HZ
 
 
+def v0_doppler_term_hz(
+    beam_sign: int,
+    initial_velocity_m_s: float = constants.DEFAULT_INITIAL_VELOCITY_M_S,
+    wavelength_m: float = constants.CLOCK_WAVELENGTH_M,
+) -> float:
+    """OPLL correction (Hz) for the atom's initial-velocity Doppler shift.
+
+    ``beam_sign`` is +1 (up) or -1 (down); the correction is opposite-signed up
+    versus down.
+    """
+    if beam_sign not in (1, -1):
+        raise ValueError(f"beam_sign must be +1 or -1, got {beam_sign!r}")
+    return -beam_sign * initial_velocity_m_s / wavelength_m
+
+
+def probe_stark_term_hz(
+    rabi_hz: float,
+    alpha_hz_s2: float = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
+) -> float:
+    """OPLL correction (Hz) for the probe AC-Stark light shift.
+
+    The light shift raises the resonance by ``alpha * rabi**2``, so to stay
+    resonant the OPLL centre is moved with it: the correction added to the OPLL
+    frequency is ``-alpha * rabi**2``. (``alpha`` is our convention for the
+    light shift per unit ``rabi**2``.)
+    """
+    return -alpha_hz_s2 * rabi_hz * rabi_hz
+
+
 def transition_detuning_hz(
     m_ground: int,
     k_sign: int,

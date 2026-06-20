@@ -318,6 +318,7 @@ class CompiledEvent:
     kind: int
     beam_sign: int = 0
     m_term_hz: float = 0.0
+    rabi_hz: float = 0.0
     callback_id: int = -1
     governing_setpoint_index: int = -1
     offset_param: ParamSpec | None = None
@@ -647,6 +648,7 @@ def _compile_pulse(
         kind=EVENT_PULSE,
         beam_sign=s,
         m_term_hz=m_term,
+        rabi_hz=rabi_frequency,
         governing_setpoint_index=setpoint_index,
         # Intent: a pi pulse swaps the addressed pair's populations; any
         # other area populates both sides. delta_m is the beam sign (recoils

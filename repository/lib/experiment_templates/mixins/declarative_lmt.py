@@ -114,6 +114,8 @@ CLOCK_OPLL_BEAM_INFO = constants.URUKULED_BEAMS["698_clock_OPLL_offset"]
 start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
+inverse_clock_wavelength = 1.0 / constants.CLOCK_WAVELENGTH_M
+
 
 class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.ABC):
     """
@@ -192,6 +194,29 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         )
         self.clearout_duration: FloatParamHandle
 
+        self.setattr_param(
+            "lmt_initial_velocity",
+            FloatParam,
+            "Initial (release) z-velocity v0 of the velocity-selected class, "
+            "positive upward. Adds -beam_sign*v0/lambda to each pulse's OPLL "
+            "centre frequency (opposite sign up vs down).",
+            default=constants.DEFAULT_INITIAL_VELOCITY_M_S,
+            unit="mm/s",
+            scale=1e-3,
+        )
+        self.lmt_initial_velocity: FloatParamHandle
+
+        self.setattr_param(
+            "lmt_probe_stark_alpha",
+            FloatParam,
+            "Probe (AC-Stark) shift coefficient alpha. Each pulse's OPLL centre "
+            "frequency is shifted by -alpha*rabi**2 (rabi = declared Rabi at the "
+            "governing set point).",
+            default=constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
+            unit="",
+        )
+        self.lmt_probe_stark_alpha: FloatParamHandle
+
         if not self.lmt_sequence:
             raise TypeError(
                 f"{type(self).__name__} must declare a non-empty 'lmt_sequence' "
@@ -240,6 +265,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_event_kind = []
         self._lmt_beam_sign = []
         self._lmt_m_term_hz = []
+        self._lmt_rabi_hz = []
         self._lmt_callback_id = []
         self._lmt_offset_handles = []
         self._lmt_duration_handles = []
@@ -261,6 +287,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self._lmt_event_kind.append(int32(event.kind))
             self._lmt_beam_sign.append(float(event.beam_sign))
             self._lmt_m_term_hz.append(float(event.m_term_hz))
+            self._lmt_rabi_hz.append(float(event.rabi_hz))
             self._lmt_callback_id.append(int32(event.callback_id))
             self._lmt_intent_state_effect.append(int32(event.state_effect))
             self._lmt_intent_addressed_state.append(int32(event.addressed_state))
@@ -318,6 +345,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_event_kind",
             "_lmt_beam_sign",
             "_lmt_m_term_hz",
+            "_lmt_rabi_hz",
             "_lmt_callback_id",
             "_lmt_intent_state_effect",
             "_lmt_intent_addressed_state",
@@ -505,10 +533,19 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # Gravity Doppler evaluated at the pulse centre, accumulated
                 # since the release
                 t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
+                v0_doppler = (
+                    -self._lmt_beam_sign[i]
+                    * self.lmt_initial_velocity.get()
+                    * inverse_clock_wavelength
+                )
+                rabi = self._lmt_rabi_hz[i]
+                stark = -self.lmt_probe_stark_alpha.get() * rabi * rabi
                 freq_centre = (
                     start_opll_offset
                     + self._lmt_beam_sign[i] * t_fall * ramp_rate
                     - self._lmt_m_term_hz[i]
+                    + v0_doppler
+                    + stark
                     + self._lmt_offset_handles[i].get()
                 )
                 self._fire_pulse(

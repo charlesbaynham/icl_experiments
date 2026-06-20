@@ -175,6 +175,44 @@ def test_single_pulses_match_legacy_helpers():
         assert f_new == pytest.approx(legacy_down_pulse(doppler, n) + KICK / 2.0)
 
 
+def test_v0_doppler_term_sign_and_magnitude():
+    """The v0 Doppler term is opposite-signed up vs down and absorbs the
+    measured -20 kHz down-launch offset with the default v0.
+
+    Down launch (beam_sign = -1) must gain ~ +20 kHz so the empirical -20 kHz
+    offset becomes user-offset 0; the up beam must gain the opposite.
+    """
+    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
+    lam = constants.CLOCK_WAVELENGTH_M
+    down = lmt_resonance.v0_doppler_term_hz(-1, v0, lam)
+    up = lmt_resonance.v0_doppler_term_hz(+1, v0, lam)
+    assert down == pytest.approx(+v0 / lam)
+    assert up == pytest.approx(-v0 / lam)
+    assert down == pytest.approx(-up)
+    # ~ +20 kHz for the default v0 ~ 14 mm/s
+    assert down == pytest.approx(20.0e3, abs=0.2e3)
+
+
+def test_v0_doppler_term_invalid_beam_sign():
+    with pytest.raises(ValueError):
+        lmt_resonance.v0_doppler_term_hz(0)
+
+
+def test_probe_stark_term_sign_and_scaling():
+    """The Stark term is -alpha*rabi**2: negative, intensity-scaling."""
+    alpha = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2
+    rabi = 9.1e3
+    assert lmt_resonance.probe_stark_term_hz(rabi, alpha) == pytest.approx(
+        -alpha * rabi**2
+    )
+    # Quadrupling the Rabi (4x intensity) scales the shift by 4
+    assert lmt_resonance.probe_stark_term_hz(2 * rabi, alpha) == pytest.approx(
+        4 * lmt_resonance.probe_stark_term_hz(rabi, alpha)
+    )
+    # Always reduces the OPLL centre frequency (negative)
+    assert lmt_resonance.probe_stark_term_hz(rabi) < 0.0
+
+
 def test_first_beam_splitter_anchor():
     """The legacy interferometer beam splitter (down beam, after an N-pulse
     launch from the single shelving kick) used an OPLL m-term of
