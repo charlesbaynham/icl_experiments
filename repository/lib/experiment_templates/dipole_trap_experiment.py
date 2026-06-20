@@ -244,6 +244,19 @@ class DipoleTrapWithExperimentBase(
         """
         return self.t_playback_start_mu + self.t_dipole_beams_off
 
+    @portable
+    def get_t_release_minus_playback_mu(self) -> int64:
+        """Release time relative to the DMA playback origin, in machine units.
+
+        Equals ``t_release_mu - t_playback_start_mu``. The dynamic-ROI
+        predictor needs only this difference (the absolute playback cursor
+        cancels), so it can run in ``before_start_hook`` before either live
+        timestamp is stamped. For the dipole path the drop is stamped inside
+        the recording, so the offset is simply ``+t_dipole_beams_off``
+        (available after the DMA recording completes).
+        """
+        return self.t_dipole_beams_off
+
     @kernel
     def post_dipole_trap_hook_default(self):
         """

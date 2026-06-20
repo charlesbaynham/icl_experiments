@@ -62,6 +62,10 @@ Consumed hooks and their owning parent:
 * ``pre_expansion_hook``                 -> DMAActionsAfterDropMixin (base)
 * ``do_experiment_after_drop_hook``      -> DeclarativeLMTRedMOTBase (exp 2/3 only;
                                             default no-op for exp 1)
+* ``before_start_hook``                  -> DynamicROIImagingMixin (predicts the
+                                            cloud positions + programs the ROIs
+                                            off the time-critical timeline;
+                                            chains ``before_start_hook_default``)
 * ``do_imaging_hook_andor``              -> DynamicROIImagingMixin
 * ``get_andor_camera_config_hook``       -> DynamicROIImagingMixin
 * ``post_sequence_cleanup_hook``         -> contributed by *several* parents
