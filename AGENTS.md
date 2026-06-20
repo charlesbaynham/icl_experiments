@@ -101,6 +101,20 @@ TODO: Describe how hooks and mixins are used with the main experiments.
 - Use `pre-commit install` for automatic formatting on commits
 - All style rules are enforced by CI
 
+### Comments and self-documenting code
+
+- **Write self-documenting code; do not over-comment.** The people reading this
+  are PhD-level physicists - do not explain standard physics (a Doppler shift, a
+  π pulse, a light shift). Prefer a good name over a comment: a variable
+  `doppler_shift_hz` needs no comment, and an expression that is obviously a
+  Doppler shift needs at most `# Doppler shift` - usually nothing.
+- **Comment only what is genuinely surprising**: a non-obvious mechanism, a
+  convention we have invented, a sign or edge case that bites. Everything else
+  should read straight from the code.
+- Over-commenting bloats diffs and hides the code, and every comment is a second
+  thing to keep in sync - a stale comment is a latent bug. A one-line bug is far
+  easier to spot than one buried under fifty lines of explanation.
+
 ### ARTIQ-Specific Patterns
 
 #### Experiment Classes
