@@ -492,6 +492,160 @@ RoiCheckSlicedLaunch10 = _make_sliced_launch(n=10)
 RoiCheckSlicedLaunch10.__name__ = "RoiCheckSlicedLaunch10"
 RoiCheckSlicedLaunch10.__qualname__ = "RoiCheckSlicedLaunch10"
 
+# -- Quantized-momentum test: duration-equalized launch + matched free-fall ---
+#
+# Purpose-built test that the launched cloud gains EXACTLY ~1 photon recoil of
+# velocity per launch pulse (v_recoil ~ 6.6 mm/s, quantized). All earlier
+# flight-slope tests were confounded by (a) gravity common-mode drift
+# (~110 mm/s) swamping the 6.6 mm/s/recoil signal, (b) differing sequence
+# durations across n, and (c) the launched and free-fall clouds clipping the
+# fast-kinetics (FK) readout frame at different z positions. This family fixes
+# all three:
+#
+# 1. DURATION EQUALIZATION. Every compared class (launched-n AND its matched
+#    free-fall control) is padded with a fixed Wait so the slice->image timeline
+#    is IDENTICAL across all of them. Then any sequence-duration-dependent drift
+#    is common-mode and cancels in the launched-freefall difference.
+#
+# 2. MATCHED FREE-FALL CONTROL. For each launched-n we build a control that
+#    shares the SAME slice + clearout (so the slice-SELECTED velocity class -
+#    the real origin of the -20 kHz "v0", see the night's root-cause analysis -
+#    cancels), then RETURNS the selected class to rest |g,0> instead of climbing
+#    the momentum ladder. Launched and control therefore differ ONLY in net
+#    momentum; gravity, slice velocity and total duration all cancel in their
+#    difference.
+#
+# 3. The measurement. At a fixed flight_time t, the launched-minus-freefall
+#    z-separation = N * v_recoil * t, where N = n+1 is the launched momentum
+#    class (slice +1, then n launch pulses). The SLOPE of that separation vs
+#    n (or vs N) is the recoils-per-pulse; the quantization claim is that it
+#    equals 1.0. Differencing at matched t cancels gravity exactly.
+#
+# Framing: both clouds are anchored mid-FK-frame via the rebound trap_y_pixel
+# (override at submit time) so NEITHER clips the z~0-15 bottom nor the z~90 top
+# edge across the flight-time grid - the validity crux. Confirm by RAW-frame
+# overlay every point.
+
+# Default pi durations for the launch ladder (see SetPoint Rabi declarations:
+# duration = area / (2 * rabi)). DOWN pulses use DOWN_CLOCK_BEAM_PI_TIME, UP
+# pulses CLOCK_PI_TIME. The pulse OFFSET/DURATION params are independent and
+# scannable, but these defaults set the nominal ladder length used to size the
+# duration-equalizing pad.
+_PI_TIME_DOWN_S = constants.DOWN_CLOCK_BEAM_PI_TIME
+_PI_TIME_UP_S = constants.CLOCK_PI_TIME
+
+# Momentum classes compared in the quantized-momentum test. n launch pulses ->
+# launched momentum class N = n + 1. {3, 6, 10} span a good lever arm while the
+# n=3-10 build-up showed clouds staying in-frame (z~43-77).
+MOMENTUM_TEST_NS = (3, 6, 10)
+
+
+def _sliced_launch_ladder_duration_s(n: int) -> float:
+    """Nominal total duration of the ``n``-pulse sliced launch ladder.
+
+    Launch pulse ``k`` (1-indexed) is DOWN for odd ``k`` and UP for even ``k``
+    (see :func:`_sliced_launch_ladder`), so the ladder duration is the sum of
+    the corresponding default pi times.
+    """
+    total = 0.0
+    for k in range(1, n + 1):
+        total += _PI_TIME_DOWN_S if (k % 2 == 1) else _PI_TIME_UP_S
+    return total
+
+
+# Common launch-window duration that every compared class is padded UP to: the
+# longest compared ladder plus a small fixed margin so all pads are >= 0 and the
+# equalization is robust to small per-pulse duration tweaks. The matched control
+# fires a single UP return pulse (CLOCK_PI_TIME), so its launch content is
+# shorter and gets the larger pad.
+_MOMENTUM_LAUNCH_WINDOW_S = (
+    _sliced_launch_ladder_duration_s(max(MOMENTUM_TEST_NS)) + 50e-6
+)
+
+
+def _make_momentum_launch(n: int):
+    """Duration-equalized SLICED launch to momentum class ``N = n + 1``.
+
+    Identical to :func:`_make_sliced_launch` but pads the post-slice launch
+    window with a fixed Wait so that EVERY compared class (this and the matched
+    free-fall control) has the same slice->image timeline. The padded Wait sits
+    immediately after the launch ladder and before the scannable ``flight_time``
+    Wait, so it does not affect the flight-time scan but equalizes the
+    sequence-duration-dependent drift across n.
+    """
+    pad_s = _MOMENTUM_LAUNCH_WINDOW_S - _sliced_launch_ladder_duration_s(n)
+    if pad_s < 0:
+        raise ValueError(f"negative pad for n={n}: window too small")
+    sequence = [
+        _slice_setpoint(),
+        pi(Beam.UP, m=0, label="slice"),
+        _full_intensity_setpoint(),
+        Clearout(),
+        # n launch pi pulses, one LMT at a time (never skipping a class).
+        *_sliced_launch_ladder(n),
+        # Fixed pad equalizing the slice->image launch window across all n.
+        Wait(t=pad_s, label="duration_pad"),
+        # Scannable dark time before imaging (shared FQN <class>.flight_time).
+        Wait(param="flight_time", label="flight"),
+    ]
+    return _build_roicheck_frag(sequence)
+
+
+def _make_momentum_freefall(n: int):
+    """Duration-matched free-fall control for :func:`_make_momentum_launch`.
+
+    Shares the SAME slice + clearout as the launched class (so the
+    slice-selected velocity class cancels in the launched-freefall difference),
+    but the single full-Rabi RETURN pi de-shelves the selected class
+    ``|e,+1> -> |g,0>`` (UP beam addressing the excited m=1 population, as in
+    :func:`_make_sliced_baseline`), leaving it at REST with zero net momentum.
+
+    The launch window is padded to the SAME ``_MOMENTUM_LAUNCH_WINDOW_S`` as
+    every launched class, so the control's slice->image timeline is identical to
+    the launched-n it pairs with. ``n`` is accepted for naming symmetry but the
+    control trajectory is independent of it (it is the common free-fall
+    reference); the pad is sized off the single return pulse.
+    """
+    pad_s = _MOMENTUM_LAUNCH_WINDOW_S - _PI_TIME_UP_S
+    if pad_s < 0:
+        raise ValueError("negative pad for free-fall control")
+    sequence = [
+        _slice_setpoint(),
+        pi(Beam.UP, m=0, label="slice"),
+        _full_intensity_setpoint(),
+        Clearout(),
+        # RETURN pi: de-shelves |e,+1> -> |g,0> (UP beam, excited m=1) -> rest.
+        pi(Beam.UP, m=1, label="return"),
+        # Fixed pad equalizing the launch window to the launched classes.
+        Wait(t=pad_s, label="duration_pad"),
+        # Scannable dark time before imaging (shared FQN <class>.flight_time).
+        Wait(param="flight_time", label="flight"),
+    ]
+    return _build_roicheck_frag(sequence)
+
+
+# Duration-equalized launched classes (momentum class N = n+1) and ONE matched
+# free-fall control (same slice+clearout, returns to rest, same total timeline).
+# The free-fall control is identical for every n (it is the common reference),
+# so a single class suffices; it is named without an n suffix.
+RoiCheckMomLaunch3 = _make_momentum_launch(n=3)
+RoiCheckMomLaunch3.__name__ = "RoiCheckMomLaunch3"
+RoiCheckMomLaunch3.__qualname__ = "RoiCheckMomLaunch3"
+
+RoiCheckMomLaunch6 = _make_momentum_launch(n=6)
+RoiCheckMomLaunch6.__name__ = "RoiCheckMomLaunch6"
+RoiCheckMomLaunch6.__qualname__ = "RoiCheckMomLaunch6"
+
+RoiCheckMomLaunch10 = _make_momentum_launch(n=10)
+RoiCheckMomLaunch10.__name__ = "RoiCheckMomLaunch10"
+RoiCheckMomLaunch10.__qualname__ = "RoiCheckMomLaunch10"
+
+# Matched free-fall control: slice -> clearout -> return-to-rest, duration-
+# equalized to the launched classes. The common reference for differencing.
+RoiCheckMomFreefall = _make_momentum_freefall(n=0)
+RoiCheckMomFreefall.__name__ = "RoiCheckMomFreefall"
+RoiCheckMomFreefall.__qualname__ = "RoiCheckMomFreefall"
+
 # ndscan scan experiments (both the Frag and the scan-exp are module globals).
 RoiCheckFallExp = make_fragment_scan_exp(RoiCheckFall)
 RoiCheckUpExp = make_fragment_scan_exp(RoiCheckUp)
@@ -510,3 +664,7 @@ RoiCheckSlicedLaunch7Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch7)
 RoiCheckSlicedLaunch8Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch8)
 RoiCheckSlicedLaunch9Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch9)
 RoiCheckSlicedLaunch10Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch10)
+RoiCheckMomLaunch3Exp = make_fragment_scan_exp(RoiCheckMomLaunch3)
+RoiCheckMomLaunch6Exp = make_fragment_scan_exp(RoiCheckMomLaunch6)
+RoiCheckMomLaunch10Exp = make_fragment_scan_exp(RoiCheckMomLaunch10)
+RoiCheckMomFreefallExp = make_fragment_scan_exp(RoiCheckMomFreefall)
