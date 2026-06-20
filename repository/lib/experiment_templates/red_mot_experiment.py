@@ -423,9 +423,17 @@ class RedMOTWithExperimentBase(ExpFragment, abc.ABC):
         """
         Hook for core actions before the start of the atomics sequence.
 
+        Runs after DMA recording + handle init, before MOT loading. Overrides
+        MUST call :meth:`before_start_hook_default` by name (ARTIQ kernels do
+        not support ``super()``) so base behaviour and other mixins still run.
         Feel free to use break_realtime - it will be called again before the MOT
         is loaded.
         """
+        self.before_start_hook_default()
+
+    @kernel
+    def before_start_hook_default(self):
+        """Default :meth:`before_start_hook` behaviour: nothing."""
 
     @kernel
     def pre_sequence_hook(self):

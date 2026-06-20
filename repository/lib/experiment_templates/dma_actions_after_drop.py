@@ -233,6 +233,20 @@ class DMAActionsAfterDropMixin(RedMOTWithExperimentBase):
         """
         return self.t_playback_start_mu
 
+    @portable
+    def get_t_release_minus_playback_mu(self) -> int64:
+        """Release time relative to the DMA playback origin, in machine units.
+
+        Equals ``t_release_mu - t_playback_start_mu``. The dynamic-ROI
+        predictor needs only this difference (the absolute playback cursor
+        cancels), so it can run in ``before_start_hook`` before either live
+        timestamp is stamped. For the red-MOT DMA path the atoms are released
+        (light-off) and playback starts ``expansion_time`` later (``run_once``:
+        ``at_mu(t_light_off); delay(expansion_time); play_actions_after_drop``),
+        so the offset is ``-seconds_to_mu(expansion_time)``.
+        """
+        return -self.core.seconds_to_mu(self.expansion_time.get())
+
     # ------------------------------------------------------------------
     # Clock-frequency tracking state lives here (read by
     # PulseDMARecording.register_pulse via a typed outer_self), but the
