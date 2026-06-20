@@ -425,6 +425,43 @@ RoiCheckDown1 = _make(sign=-1, n=1)
 RoiCheckDown1.__name__ = "RoiCheckDown1"
 RoiCheckDown1.__qualname__ = "RoiCheckDown1"
 
+
+def _make_up_prep_clearout_down():
+    """Un-sliced excited-state DOWN-transition spectroscopy: tests whether the
+    -20 kHz sliced-down-launch offset is a static |e>-addressed DOWN m_term
+    bookkeeping error rather than a velocity slice artifact or a cloud v0.
+
+    Sequence (NO velocity slice): full-intensity SetPoint -> full-Rabi UP pi on
+    m=0 (|g,0> -> |e,+1>, prepares the excited population on the WHOLE cloud) ->
+    Clearout (blast residual |g,0>, leaving |e,+1> dark) -> DOWN pi addressing
+    the excited m=1 population (|e,+1> -> |g,+2>, scanned offset) -> flight ->
+    image. Ends GROUND (|g,+2>), so on the ground-fluorescence readout the
+    resonance is an APPEARANCE PEAK.
+
+    This drives the EXACT same |e,+1> -> |g,+2> DOWN transition as the sliced
+    launch in RoiCheckUp2Sliced, but WITHOUT the weak/long velocity slice, so it
+    isolates the addressed-transition (m_term) offset from any slice-pulse
+    effect. If the DOWN pi still peaks at ~ -20 kHz, the offset is a static
+    excited-state DOWN m_term bookkeeping error; if it peaks at ~0, the slice was
+    responsible. The scan knob is RoiCheckUp1ClrDown.p03_pi_d_m1_launch_offset.
+    """
+    sequence = [
+        _full_intensity_setpoint(),
+        # UP prep on the whole cloud: |g,0> -> |e,+1>.
+        pi(Beam.UP, m=0, label="launch"),
+        # Remove the residual un-transferred |g,0> so the image is clean.
+        Clearout(),
+        # DOWN pi addressing the excited m=1 population: |e,+1> -> |g,+2>.
+        pi(Beam.DOWN, m=1, label="launch"),
+        Wait(param="flight_time", label="flight"),
+    ]
+    return _build_roicheck_frag(sequence)
+
+
+RoiCheckUp1ClrDown = _make_up_prep_clearout_down()
+RoiCheckUp1ClrDown.__name__ = "RoiCheckUp1ClrDown"
+RoiCheckUp1ClrDown.__qualname__ = "RoiCheckUp1ClrDown"
+
 # Velocity-SLICED 2-recoil variant: a weak/long velocity-selective slice pi on
 # m=0 (+1 recoil) -> clearout of the un-sliced atoms -> full-Rabi launch pi
 # (+1 recoil), ending at the imageable ground state |g,+2>. A clean
@@ -485,6 +522,7 @@ RoiCheckUp2Exp = make_fragment_scan_exp(RoiCheckUp2)
 RoiCheckUp8Exp = make_fragment_scan_exp(RoiCheckUp8)
 RoiCheckUp1Exp = make_fragment_scan_exp(RoiCheckUp1)
 RoiCheckDown1Exp = make_fragment_scan_exp(RoiCheckDown1)
+RoiCheckUp1ClrDownExp = make_fragment_scan_exp(RoiCheckUp1ClrDown)
 RoiCheckUp2SlicedExp = make_fragment_scan_exp(RoiCheckUp2Sliced)
 RoiCheckSlicedBaselineExp = make_fragment_scan_exp(RoiCheckSlicedBaseline)
 RoiCheckSlicedLaunch1Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch1)
