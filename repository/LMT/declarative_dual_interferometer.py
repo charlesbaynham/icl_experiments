@@ -334,3 +334,100 @@ class DeclarativeLMTDualInterferometerFrag(
 DeclarativeLMTDualInterferometer = make_fragment_scan_exp(
     DeclarativeLMTDualInterferometerFrag
 )
+
+
+# --- D6 headline: split-only demo (no Mach-Zehnder) ---
+#
+# The full D6 cathedral (launch to M_TOP=13 -> split -> separate -> dual wide-arm
+# MZ, ~30 clock pulses) loses every atom before readout once per-pulse transfer
+# efficiency softens past n~10 (RID 75378: zero atoms in all four FK frames). For
+# the headline deliverable - "two spatially separated clouds imaged in two ROIs" -
+# we strip the interferometer down to just: shallow launch -> pi/2 split ->
+# short separation ladder -> wait -> image. No mirror, no recombiner. The point
+# is a photograph of two clouds, not phase closure.
+#
+# Both parked arms end EXCITED (sep odd), so both clouds appear in the excited-
+# port FK frames; inspect both ground and excited raw frames and overlay both
+# ROIs (the split-state bookkeeping can leave one cloud in either port).
+
+
+def _split_only_prefix(n_launch):
+    """Slice -> full SetPoint -> Clearout -> shallow launch ladder -> Clearout.
+
+    Like ``_slice_launch_prefix`` but with a configurable (shallow) launch depth
+    so the atoms survive to readout. Ends excited at ``m = 1 + n_launch``.
+    """
+    return [
+        _slice_setpoint(),
+        pi(Beam.UP, m=0, label="slice"),
+        _full_intensity_setpoint(),
+        Clearout(),
+        *ladder(start_m=1, n=n_launch, first_beam=Beam.DOWN),
+        Clearout(),
+    ]
+
+
+def _build_split_only(n_launch, sep, separation_time):
+    """Shallow launch, split, separation ladder, wait - and stop.
+
+    Returns ``(sequence, m_lo, m_hi)``. The lower cloud is parked at
+    ``(e, m_top)`` and the upper at ``(e, m_top + 1 + sep)`` after the separation
+    ladder; a ``Wait`` then drifts them apart spatially before imaging.
+    """
+    assert sep % 2 == 1, "separation must be odd so both parked arms end excited"
+    m_top = 1 + n_launch
+    seq = list(_split_only_prefix(n_launch))
+    # Split: pi/2 on the parked excited arm leaves (e, m_top) + (g, m_top + 1).
+    seq.append(pi2(Beam.DOWN, m=m_top, state="e", label="split"))
+    m = m_top + 1
+    state = "g"
+    for j in range(sep):
+        if state == "g":
+            seq.append(pi(Beam.UP, m=m, state="g", label=f"sep{j}"))
+            state = "e"
+        else:
+            seq.append(pi(Beam.DOWN, m=m, state="e", label=f"sep{j}"))
+            state = "g"
+        m += 1
+    seq.append(Wait(t=separation_time, label="separate"))
+    return seq, m_top, m_top + 1 + sep
+
+
+def _make_split_only(n_launch, sep, separation_time=SEPARATION_TIME):
+    """Build a split-only headline experiment class for the given launch depth."""
+
+    sequence, m_lo, m_hi = _build_split_only(n_launch, sep, separation_time)
+
+    # Host-side closure check: two parked excited clouds (no MZ ports).
+    expected = frozenset({("e", m_lo), ("e", m_hi)})
+    compiled = compile_sequence(sequence, initial_population={("g", 0)})
+    assert compiled.final_population == expected, (
+        "split-only demo does not end as two parked excited clouds: "
+        f"got {sorted(compiled.final_population)}, want {sorted(expected)}"
+    )
+
+    class _SplitOnlyFrag(DeclarativeLMTDualInterferometerFrag):
+        f"""Split-only headline: shallow launch (M_TOP={m_lo}), pi/2 split,
+        {sep}-recoil separation ladder, {separation_time * 1e3:.0f} ms wait, image.
+        Two clouds parked excited at m={m_lo} and m={m_hi}."""
+
+        lmt_initial_population = {("g", 0)}
+        lmt_sequence = sequence
+
+    return _SplitOnlyFrag
+
+
+# Shallow split-only variants for the headline two-cloud photo. M_TOP = 1 +
+# n_launch. n_launch must be EVEN so the launch ladder ends EXCITED at M_TOP (the
+# trailing Clearout keeps only the excited class, and the pi/2 split addresses the
+# excited arm) - matching the original D6 (N_LAUNCH=12). sep = recoils of velocity
+# gap between the two clouds (odd); 7 recoils over 10 ms ~ 29 px separation.
+DeclarativeLMTSplitOnlyShallowFrag = _make_split_only(n_launch=4, sep=7)
+DeclarativeLMTSplitOnlyShallow = make_fragment_scan_exp(
+    DeclarativeLMTSplitOnlyShallowFrag
+)
+
+DeclarativeLMTSplitOnlyMinimalFrag = _make_split_only(n_launch=2, sep=5)
+DeclarativeLMTSplitOnlyMinimal = make_fragment_scan_exp(
+    DeclarativeLMTSplitOnlyMinimalFrag
+)
