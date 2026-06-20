@@ -405,6 +405,26 @@ RoiCheckUp8 = _make(sign=+1, n=8)
 RoiCheckUp8.__name__ = "RoiCheckUp8"
 RoiCheckUp8.__qualname__ = "RoiCheckUp8"
 
+# Slice-LESS single-pulse spectroscopy pair (no slice, no clearout): release ->
+# full-intensity set point -> ONE clock pi at offset (scanned) -> flight ->
+# image. RoiCheckUp1 fires UP (|g,0> -> |e,+1>), RoiCheckDown1 fires DOWN
+# (|g,0> -> |e,-1>); both end EXCITED, so on the ground-fluorescence readout the
+# resonance is a depletion DIP. Because there is NO velocity slice, these pulses
+# are NOT self-referenced, so the v0 Doppler term does NOT cancel: comparing the
+# UP-first and DOWN-first residual resonance centres (with lmt_initial_velocity
+# = 0 and switches nominal) is the clean discriminator between a genuine
+# opposite-signed initial-velocity v0 (UP and DOWN shift antisymmetrically,
+# R_up ~ -R_down) and a per-beam frequency-bookkeeping error (DOWN-specific
+# R_down large, R_up ~ 0). The scan knob is the single pulse's offset:
+# RoiCheckUp1.p01_pi_u_m0_launch_offset / RoiCheckDown1.p01_pi_d_m0_launch_offset.
+RoiCheckUp1 = _make(sign=+1, n=1)
+RoiCheckUp1.__name__ = "RoiCheckUp1"
+RoiCheckUp1.__qualname__ = "RoiCheckUp1"
+
+RoiCheckDown1 = _make(sign=-1, n=1)
+RoiCheckDown1.__name__ = "RoiCheckDown1"
+RoiCheckDown1.__qualname__ = "RoiCheckDown1"
+
 # Velocity-SLICED 2-recoil variant: a weak/long velocity-selective slice pi on
 # m=0 (+1 recoil) -> clearout of the un-sliced atoms -> full-Rabi launch pi
 # (+1 recoil), ending at the imageable ground state |g,+2>. A clean
@@ -463,6 +483,8 @@ RoiCheckUpExp = make_fragment_scan_exp(RoiCheckUp)
 RoiCheckDownExp = make_fragment_scan_exp(RoiCheckDown)
 RoiCheckUp2Exp = make_fragment_scan_exp(RoiCheckUp2)
 RoiCheckUp8Exp = make_fragment_scan_exp(RoiCheckUp8)
+RoiCheckUp1Exp = make_fragment_scan_exp(RoiCheckUp1)
+RoiCheckDown1Exp = make_fragment_scan_exp(RoiCheckDown1)
 RoiCheckUp2SlicedExp = make_fragment_scan_exp(RoiCheckUp2Sliced)
 RoiCheckSlicedBaselineExp = make_fragment_scan_exp(RoiCheckSlicedBaseline)
 RoiCheckSlicedLaunch1Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch1)
