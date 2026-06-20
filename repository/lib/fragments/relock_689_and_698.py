@@ -28,7 +28,7 @@ class Relock698Frag(RelockFALCWithWavemeterFrag, ExpFragment):
     For the 698, this is straightforward
     """
 
-    laser_name_wand = "698"
+    laser_name_wand = "Sirah"
     laser_name_devicedb = "toptica_698"
 
     def run_once(self) -> None:
