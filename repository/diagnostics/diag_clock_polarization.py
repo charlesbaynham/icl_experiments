@@ -168,7 +168,9 @@ class ClockPolarizationDiagnosticFrag(ClockSpecPulseRatioFrag):
         # Rotate the quantization field for this angle, settle, then run the
         # standard clock shelving + spectroscopy sequence.
         self._set_rotated_field()
-        super().do_experiment_after_dipole_trap_hook()
+        # Explicit (not zero-arg ``super()``) base call: the ARTIQ kernel compiler
+        # cannot resolve zero-arg ``super()`` inside a ``@kernel`` method.
+        ClockSpecPulseRatioFrag.do_experiment_after_dipole_trap_hook(self)
 
     def get_default_analyses(self):
         # Excitation vs field angle. A Cartesian trace; the polar figure-of-eight
