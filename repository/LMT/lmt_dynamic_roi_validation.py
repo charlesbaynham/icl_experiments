@@ -314,14 +314,116 @@ def _make_launch_frag(n: int):
     return _LaunchFrag
 
 
-# Generate the two launch Frags as distinct module-level names, and wrap each
-# with make_fragment_scan_exp (test_compile_all discovers classes by name, so
-# both the Frag and its scan-exp must be importable module globals).
+def _make_prep_frag(with_clearout: bool):
+    """
+    Build a slice-prep diagnostic Frag: velocity slice with NO launch ladder.
+
+    Used to bisect launch atom-loss (the M0 launch legs imaged no in-band cloud).
+    ``with_clearout=False`` images the sliced class plus the unselected ground
+    atoms - a bright reference confirming the slice machinery preserves atoms;
+    ``with_clearout=True`` images only the sliced velocity class that survives the
+    clearout, confirming the slice selects a real sub-population. If both show
+    atoms but a launch does not, the loss is in the ladder; if the clearout
+    variant is null, the slice/clearout is the culprit. Composition,
+    imaging-mixin choice and HOOK-COLLISION AUDIT identical to
+    :class:`DeclarativeLMTDropValidationFrag`; see that class and the
+    module-level audit.
+
+    Args:
+        with_clearout: Whether to blast the unselected ground atoms after the
+            slice (leaving only the velocity-selected class).
+
+    Returns:
+        A fresh ``ExpFragment`` class for the slice-prep diagnostic.
+    """
+
+    class _PrepFrag(
+        DeclarativeLMTBase,
+        DynamicROIImagingMixin,
+        EMGainMixin,
+        LoadSingleXODTMixin,
+        XODTSingleMolassesPlusDipoleRampMixin,
+        OpticalPumpingWithFieldSettingDipoleTrapMixin,
+        FieldOnlyRampInEvapMixin,
+        DipoleTrapWithExperimentBase,
+    ):
+        __doc__ = (
+            "Slice-prep diagnostic"
+            + (" with clearout" if with_clearout else "")
+            + " (no launch ladder) for bisecting launch atom-loss. Composition, "
+            "imaging-mixin choice and HOOK-COLLISION AUDIT as for "
+            "DeclarativeLMTDropValidationFrag; see that class and the "
+            "module-level audit."
+        )
+
+        lmt_initial_population = {("g", 0)}
+
+        lmt_sequence = [
+            # Velocity slice: long pulse at reduced delivery set point.
+            SetPoint(
+                setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
+                rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
+                label="slice",
+            ),
+            pi(Beam.UP, m=0, label="slice"),
+            # Back to full intensity (no launch follows).
+            SetPoint(
+                setpoint=CLOCK_BEAM_DELIVERY_INFO.setpoint,
+                rabi_up=1 / (2 * constants.CLOCK_PI_TIME),
+                rabi_down=1 / (2 * constants.DOWN_CLOCK_BEAM_PI_TIME),
+            ),
+        ] + ([Clearout()] if with_clearout else [])
+
+        @kernel
+        def DMA_initialization_hook(self):
+            self.DMA_initialization_hook_redmot_default()
+            self.DMA_initialization_hook_dipole_trap_default()
+            self.DMA_initialization_hook_loading_xodt_mot()
+            self.DMA_initialization_hook_xodt_molasses()
+            self.DMA_initialization_hook_evap_with_field_ramp()
+
+        @kernel
+        def post_sequence_cleanup_hook(self):
+            self.post_sequence_cleanup_hook_base()
+            self.post_sequence_cleanup_hook_andor()
+            self.post_sequence_cleanup_hook_declarative_lmt()
+
+    name = (
+        "DeclarativeLMTSliceClearoutValidationFrag"
+        if with_clearout
+        else "DeclarativeLMTSliceOnlyValidationFrag"
+    )
+    _PrepFrag.__name__ = name
+    _PrepFrag.__qualname__ = name
+    return _PrepFrag
+
+
+# Generate every Frag as a distinct module-level name, and wrap each with
+# make_fragment_scan_exp (test_compile_all discovers classes by name, so both
+# the Frag and its scan-exp must be importable module globals). Slice-prep
+# diagnostics (no ladder) bisect launch atom-loss; launches n = 1..4 build the
+# ladder up one rung at a time.
+DeclarativeLMTSliceOnlyValidationFrag = _make_prep_frag(with_clearout=False)
+DeclarativeLMTSliceClearoutValidationFrag = _make_prep_frag(with_clearout=True)
+DeclarativeLMTLaunch1ValidationFrag = _make_launch_frag(1)
 DeclarativeLMTLaunch2ValidationFrag = _make_launch_frag(2)
+DeclarativeLMTLaunch3ValidationFrag = _make_launch_frag(3)
 DeclarativeLMTLaunch4ValidationFrag = _make_launch_frag(4)
 
+DeclarativeLMTSliceOnlyValidation = make_fragment_scan_exp(
+    DeclarativeLMTSliceOnlyValidationFrag
+)
+DeclarativeLMTSliceClearoutValidation = make_fragment_scan_exp(
+    DeclarativeLMTSliceClearoutValidationFrag
+)
+DeclarativeLMTLaunch1Validation = make_fragment_scan_exp(
+    DeclarativeLMTLaunch1ValidationFrag
+)
 DeclarativeLMTLaunch2Validation = make_fragment_scan_exp(
     DeclarativeLMTLaunch2ValidationFrag
+)
+DeclarativeLMTLaunch3Validation = make_fragment_scan_exp(
+    DeclarativeLMTLaunch3ValidationFrag
 )
 DeclarativeLMTLaunch4Validation = make_fragment_scan_exp(
     DeclarativeLMTLaunch4ValidationFrag
