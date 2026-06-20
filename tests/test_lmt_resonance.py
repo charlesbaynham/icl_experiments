@@ -198,6 +198,53 @@ def test_v0_doppler_term_invalid_beam_sign():
         lmt_resonance.v0_doppler_term_hz(0)
 
 
+def test_beam_carrier_offset_is_per_beam_not_opposite_signed():
+    """The down-launch fix is a PER-BEAM carrier offset, applied to DOWN
+    pulses only - NOT a single opposite-signed term.
+
+    This is the correctness-critical convention: the DOWN beam carries the
+    measured carrier offset (default ~+20 kHz, nulling the -20.6 kHz
+    down-launch resonance) while the UP beam is left at its own offset
+    (default 0). Crucially the UP pulse must NOT pick up the down correction
+    or its negative - that was the bug in the v0-based fix.
+    """
+    down = lmt_resonance.beam_carrier_offset_hz(-1)
+    up = lmt_resonance.beam_carrier_offset_hz(+1)
+
+    # DOWN gets the empirical null (~+20 kHz); UP gets 0 at default.
+    assert down == pytest.approx(lmt_resonance.DEFAULT_DOWN_BEAM_OFFSET_HZ)
+    assert down == pytest.approx(20.0e3, abs=0.1e3)
+    assert up == pytest.approx(lmt_resonance.DEFAULT_UP_BEAM_OFFSET_HZ)
+    assert up == pytest.approx(0.0)
+
+    # NOT opposite-signed: the UP offset is independent of the DOWN offset,
+    # so changing the DOWN knob must leave the UP pulse untouched.
+    assert lmt_resonance.beam_carrier_offset_hz(+1, down_offset_hz=50.0e3) == 0.0
+    # ... and the DOWN pulse picks up exactly the down knob.
+    assert lmt_resonance.beam_carrier_offset_hz(-1, down_offset_hz=50.0e3) == 50.0e3
+    # A non-zero UP offset only affects UP pulses.
+    assert lmt_resonance.beam_carrier_offset_hz(+1, up_offset_hz=3.0e3) == 3.0e3
+    assert (
+        lmt_resonance.beam_carrier_offset_hz(-1, up_offset_hz=3.0e3)
+        == lmt_resonance.DEFAULT_DOWN_BEAM_OFFSET_HZ
+    )
+
+
+def test_beam_carrier_offset_invalid_beam_sign():
+    with pytest.raises(ValueError):
+        lmt_resonance.beam_carrier_offset_hz(0)
+
+
+def test_initial_velocity_default_is_zero():
+    """v0 defaults to 0: it is NOT the down-launch fix and must not
+    contaminate the UP beam at default params (the down fix is the per-beam
+    carrier offset above)."""
+    assert lmt_resonance.beam_carrier_offset_hz(+1) == 0.0
+    # The v0 term vanishes at v0=0 for both beams.
+    assert lmt_resonance.v0_doppler_term_hz(+1, 0.0) == 0.0
+    assert lmt_resonance.v0_doppler_term_hz(-1, 0.0) == 0.0
+
+
 def test_probe_stark_term_sign_and_scaling():
     """The Stark term is -alpha*rabi**2: negative, intensity-scaling."""
     alpha = lmt_resonance.DEFAULT_PROBE_STARK_ALPHA_HZ_S2

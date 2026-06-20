@@ -116,10 +116,13 @@ start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
 # Doppler shift per unit initial velocity along the clock axis (1/lambda, in
-# Hz per m/s). The v0 Doppler correction added to each pulse's OPLL centre
-# frequency is -beam_sign * v0 * inverse_clock_wavelength (see run_lmt_sequence
-# and repository.lib.physics.lmt_resonance.v0_doppler_term_hz for the sign
-# derivation against the LMT_sim reference).
+# Hz per m/s). The optional v0 Doppler correction added to each pulse's OPLL
+# centre frequency is -beam_sign * v0 * inverse_clock_wavelength (see
+# run_lmt_sequence and repository.lib.physics.lmt_resonance.v0_doppler_term_hz
+# for the sign derivation against the LMT_sim reference). This is NOT the
+# down-launch resonance fix - that is a per-beam DOWN carrier offset
+# (lmt_down_beam_offset; cf. constants.LMT_DOWN_BEAM_SHIFT) applied to DOWN
+# pulses only - and defaults to v0=0.
 inverse_clock_wavelength = 1.0 / constants.CLOCK_WAVELENGTH_M
 
 
@@ -200,18 +203,61 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         )
         self.clearout_duration: FloatParamHandle
 
-        # Initial-velocity (v0) Doppler and probe (AC-Stark) shift corrections,
-        # both applied to the OPLL centre frequency of every pulse (see
-        # run_lmt_sequence). These are calibratable physics constants the model
-        # previously dropped relative to the LMT_sim reference; defaults are the
-        # calibrated values but fully overridable / scannable.
+        # Per-beam carrier offsets, probe (AC-Stark) shift, and an optional
+        # initial-velocity (v0) Doppler term, all applied to the OPLL centre
+        # frequency of every pulse (see run_lmt_sequence).
+        #
+        # The DOWN carrier offset is the real fix for the down-launch resonance
+        # offset measured on 2026-06-19 (RID 75323: down launch resonant at
+        # ~-20.6 kHz user-offset). The legacy launch + imaging code carries a
+        # per-beam DOWN carrier constant (constants.LMT_DOWN_BEAM_SHIFT, applied
+        # to the DOWN switch AOM in LMT_launch_mixins.py and the imaging
+        # normalised_fast_kinetics_base.py) that the declarative engine dropped.
+        # We carry the same correction here as a per-beam OPLL carrier offset
+        # (switch DDS stays nominal), NOT a single opposite-signed term: the UP
+        # beam showed ~zero offset, so it must NOT receive the down correction.
+        #
+        # Default = empirical null (~+20 kHz). NB. this EXCEEDS the stale
+        # constants.LMT_DOWN_BEAM_SHIFT (5.8 / 13.6 kHz), so we default to the
+        # measured value rather than the bare constant. Fully scannable so the
+        # rig can refine the null.
+        self.setattr_param(
+            "lmt_down_beam_offset",
+            FloatParam,
+            "Per-beam carrier offset added to the OPLL centre frequency of "
+            "every DOWN-beam pulse only (UP pulses unaffected). Compensates the "
+            "measured down-launch resonance offset (the missing per-beam down "
+            "carrier shift, cf. constants.LMT_DOWN_BEAM_SHIFT). Default is the "
+            "empirical null (~+20 kHz, RID 75323); calibratable / scannable.",
+            default=lmt_resonance.DEFAULT_DOWN_BEAM_OFFSET_HZ,
+            unit="kHz",
+        )
+        self.lmt_down_beam_offset: FloatParamHandle
+
+        self.setattr_param(
+            "lmt_up_beam_offset",
+            FloatParam,
+            "Per-beam carrier offset added to the OPLL centre frequency of "
+            "every UP-beam pulse only (DOWN pulses unaffected). The UP beam "
+            "showed ~zero offset, so this defaults to 0 and must NOT receive the "
+            "down correction. Calibratable / scannable.",
+            default=lmt_resonance.DEFAULT_UP_BEAM_OFFSET_HZ,
+            unit="kHz",
+        )
+        self.lmt_up_beam_offset: FloatParamHandle
+
+        # Optional initial-velocity (v0) Doppler term, kept for genuine
+        # kinematic use. Adds -beam_sign*v0/lambda (opposite sign up vs down).
+        # This is NOT the down-launch fix knob (that is lmt_down_beam_offset
+        # above) and defaults to 0 so it never contaminates the UP beam.
         self.setattr_param(
             "lmt_initial_velocity",
             FloatParam,
             "Initial (release) z-velocity v0 of the velocity-selected class, "
             "positive upward. Adds -beam_sign*v0/lambda to each pulse's OPLL "
-            "centre frequency (opposite sign up vs down).",
-            default=lmt_resonance.DEFAULT_INITIAL_VELOCITY_M_S,
+            "centre frequency (opposite sign up vs down). Defaults to 0; this is "
+            "NOT the down-launch fix (use lmt_down_beam_offset for that).",
+            default=0.0,
             unit="mm/s",
             scale=1e-3,
         )
@@ -547,11 +593,23 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # Gravity Doppler evaluated at the pulse centre, accumulated
                 # since the release
                 t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
+                # Per-beam carrier offset: the missing per-beam DOWN carrier
+                # shift that the legacy launch/imaging code carries
+                # (constants.LMT_DOWN_BEAM_SHIFT) but the declarative engine
+                # dropped. Applied to DOWN pulses only; UP pulses get their own
+                # (default-0) offset. This is selected per-beam (NOT a single
+                # opposite-signed term) so the down correction never leaks onto
+                # the UP beam. The down default moves the down-launch resonance
+                # from the measured -20.6 kHz user-offset toward 0.
+                if self._lmt_beam_sign[i] > 0.0:
+                    beam_carrier_offset = self.lmt_up_beam_offset.get()
+                else:
+                    beam_carrier_offset = self.lmt_down_beam_offset.get()
                 # Initial-velocity (v0) Doppler: opposite-signed up vs down,
                 # the same sign as the gravity Doppler carries it (the OPLL
                 # frequency picks up +beam_sign*(-v0/lambda); see
-                # lmt_resonance.v0_doppler_term_hz). The gravity term assumes
-                # v=0 at release, so this is the missing static piece.
+                # lmt_resonance.v0_doppler_term_hz). Defaults to 0 (v0=0); kept
+                # for genuine kinematic use, NOT the down-launch fix.
                 v0_doppler = (
                     -self._lmt_beam_sign[i]
                     * self.lmt_initial_velocity.get()
@@ -565,6 +623,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     start_opll_offset
                     + self._lmt_beam_sign[i] * t_fall * ramp_rate
                     - self._lmt_m_term_hz[i]
+                    + beam_carrier_offset
                     + v0_doppler
                     + stark
                     + self._lmt_offset_handles[i].get()

@@ -126,6 +126,54 @@ def v0_doppler_term_hz(
     return -beam_sign * initial_velocity_m_s / wavelength_m
 
 
+#: Default per-beam DOWN carrier offset, in Hz, added to the OPLL centre
+#: frequency of DOWN-beam pulses only. This is the missing per-beam down
+#: carrier shift the legacy launch/imaging code carries
+#: (``constants.LMT_DOWN_BEAM_SHIFT``, applied to the DOWN switch AOM) but the
+#: declarative engine dropped. The DOWN launch was measured resonant at a
+#: -20.6 kHz user-offset (RID 75323, 2026-06-19); adding ~+20 kHz to the DOWN
+#: carrier moves it back to ~0. NB. this EXCEEDS the stale
+#: ``constants.LMT_DOWN_BEAM_SHIFT`` (5.8 / 13.6 kHz), so we default to the
+#: empirical null, not the bare constant. Calibratable / scannable per shot.
+DEFAULT_DOWN_BEAM_OFFSET_HZ = 20.0e3
+
+#: Default per-beam UP carrier offset, in Hz. The UP beam showed ~zero offset,
+#: so it must NOT receive the down correction. Calibratable / scannable.
+DEFAULT_UP_BEAM_OFFSET_HZ = 0.0
+
+
+def beam_carrier_offset_hz(
+    beam_sign: int,
+    down_offset_hz: float = DEFAULT_DOWN_BEAM_OFFSET_HZ,
+    up_offset_hz: float = DEFAULT_UP_BEAM_OFFSET_HZ,
+) -> float:
+    """Per-beam carrier offset added to the OPLL centre frequency of a pulse.
+
+    Unlike the v0 Doppler term (opposite-signed up vs down from a single
+    knob), this is selected *independently per beam*: the DOWN beam gets
+    ``down_offset_hz`` and the UP beam gets ``up_offset_hz``. This is the
+    correctness-critical distinction - the measured down-launch offset is a
+    per-beam carrier shift (the missing ``constants.LMT_DOWN_BEAM_SHIFT``),
+    NOT a kinematic v0, so applying it as a single opposite-signed term would
+    cosmetically null the DOWN launch while breaking every UP pulse.
+
+    With the defaults this adds ~+20 kHz to the DOWN beam (moving the measured
+    -20.6 kHz down-launch resonance toward user-offset 0) and 0 to the UP beam
+    (which showed no offset).
+
+    Args:
+        beam_sign: Beam direction, +1 (up) or -1 (down).
+        down_offset_hz: Carrier offset for DOWN-beam pulses.
+        up_offset_hz: Carrier offset for UP-beam pulses.
+
+    Returns:
+        Frequency correction in Hz to ADD to the OPLL centre frequency.
+    """
+    if beam_sign not in (1, -1):
+        raise ValueError(f"beam_sign must be +1 or -1, got {beam_sign!r}")
+    return up_offset_hz if beam_sign > 0 else down_offset_hz
+
+
 def probe_stark_term_hz(
     rabi_hz: float,
     alpha_hz_s2: float = DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
