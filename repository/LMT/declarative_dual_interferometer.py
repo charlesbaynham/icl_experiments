@@ -431,3 +431,16 @@ DeclarativeLMTSplitOnlyMinimalFrag = _make_split_only(n_launch=2, sep=5)
 DeclarativeLMTSplitOnlyMinimal = make_fragment_scan_exp(
     DeclarativeLMTSplitOnlyMinimalFrag
 )
+
+# Wide-separation, SHORT-WAIT variant. A 10 ms separation wait drops the clouds
+# out of the ~154 px fast-kinetics z (gravity) window before readout (atoms fall
+# off-frame by ~6 ms - RID 75378/75379 imaged empty vacuum despite the rig making
+# 5e6 atoms in RoiCheckFall). The two clouds separate along the LAUNCH/x axis (the
+# long 512 px axis, plenty of room), not gravity, so a short wait suffices. With
+# sep=11 (~11 recoil velocity gap) at ~0.41 px/ms/recoil: 2 ms -> ~9 px, 3 ms ->
+# ~14 px, 4 ms -> ~18 px x-separation. Default wait dropped to 2 ms; scan
+# p25_wait_separate_duration on the rig to dial in z-margin vs x-separation.
+DeclarativeLMTSplitOnlyWideFrag = _make_split_only(
+    n_launch=4, sep=11, separation_time=2e-3
+)
+DeclarativeLMTSplitOnlyWide = make_fragment_scan_exp(DeclarativeLMTSplitOnlyWideFrag)
