@@ -535,9 +535,14 @@ _PI_TIME_DOWN_S = constants.DOWN_CLOCK_BEAM_PI_TIME
 _PI_TIME_UP_S = constants.CLOCK_PI_TIME
 
 # Momentum classes compared in the quantized-momentum test. n launch pulses ->
-# launched momentum class N = n + 1. {3, 6, 10} span a good lever arm while the
-# n=3-10 build-up showed clouds staying in-frame (z~43-77).
-MOMENTUM_TEST_NS = (3, 6, 10)
+# launched momentum class N = n + 1. ONLY ODD n are used: odd n leaves the
+# launched branch in the GROUND state (|g, n+1>), so it is bright in the
+# ground-port FK readout. Even n ends EXCITED (|e, n+1>), which is dark in the
+# ground port (the excited-port readout is unreliable), so even-n launched
+# clouds are invisible there and cannot be centroided - confirmed empirically
+# (RIDs 75372/75373, n=10/6, showed NO ground-port cloud). Odd n = {3,5,7,9}
+# gives ground-state launched classes N = 4,6,8,10 spanning a clean lever arm.
+MOMENTUM_TEST_NS = (3, 5, 7, 9)
 
 
 def _sliced_launch_ladder_duration_s(n: int) -> float:
@@ -553,14 +558,14 @@ def _sliced_launch_ladder_duration_s(n: int) -> float:
     return total
 
 
-# Common launch-window duration that every compared class is padded UP to: the
-# longest compared ladder plus a small fixed margin so all pads are >= 0 and the
-# equalization is robust to small per-pulse duration tweaks. The matched control
-# fires a single UP return pulse (CLOCK_PI_TIME), so its launch content is
-# shorter and gets the larger pad.
-_MOMENTUM_LAUNCH_WINDOW_S = (
-    _sliced_launch_ladder_duration_s(max(MOMENTUM_TEST_NS)) + 50e-6
-)
+# Common launch-window duration that every compared class is padded UP to. Sized
+# off a 10-pulse ladder (the deepest launch the build-up reached) plus a small
+# fixed margin so all pads are >= 0 and the equalization is robust to small
+# per-pulse duration tweaks. Held FIXED (not recomputed from MOMENTUM_TEST_NS) so
+# that ALL momentum classes - and the single shared free-fall control - keep an
+# identical slice->image timeline even as the compared n set changes. The matched
+# control fires a single UP return pulse (CLOCK_PI_TIME) and gets the larger pad.
+_MOMENTUM_LAUNCH_WINDOW_S = _sliced_launch_ladder_duration_s(10) + 50e-6
 
 
 def _make_momentum_launch(n: int):
@@ -632,9 +637,21 @@ RoiCheckMomLaunch3 = _make_momentum_launch(n=3)
 RoiCheckMomLaunch3.__name__ = "RoiCheckMomLaunch3"
 RoiCheckMomLaunch3.__qualname__ = "RoiCheckMomLaunch3"
 
+RoiCheckMomLaunch5 = _make_momentum_launch(n=5)
+RoiCheckMomLaunch5.__name__ = "RoiCheckMomLaunch5"
+RoiCheckMomLaunch5.__qualname__ = "RoiCheckMomLaunch5"
+
 RoiCheckMomLaunch6 = _make_momentum_launch(n=6)
 RoiCheckMomLaunch6.__name__ = "RoiCheckMomLaunch6"
 RoiCheckMomLaunch6.__qualname__ = "RoiCheckMomLaunch6"
+
+RoiCheckMomLaunch7 = _make_momentum_launch(n=7)
+RoiCheckMomLaunch7.__name__ = "RoiCheckMomLaunch7"
+RoiCheckMomLaunch7.__qualname__ = "RoiCheckMomLaunch7"
+
+RoiCheckMomLaunch9 = _make_momentum_launch(n=9)
+RoiCheckMomLaunch9.__name__ = "RoiCheckMomLaunch9"
+RoiCheckMomLaunch9.__qualname__ = "RoiCheckMomLaunch9"
 
 RoiCheckMomLaunch10 = _make_momentum_launch(n=10)
 RoiCheckMomLaunch10.__name__ = "RoiCheckMomLaunch10"
@@ -665,6 +682,9 @@ RoiCheckSlicedLaunch8Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch8)
 RoiCheckSlicedLaunch9Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch9)
 RoiCheckSlicedLaunch10Exp = make_fragment_scan_exp(RoiCheckSlicedLaunch10)
 RoiCheckMomLaunch3Exp = make_fragment_scan_exp(RoiCheckMomLaunch3)
+RoiCheckMomLaunch5Exp = make_fragment_scan_exp(RoiCheckMomLaunch5)
 RoiCheckMomLaunch6Exp = make_fragment_scan_exp(RoiCheckMomLaunch6)
+RoiCheckMomLaunch7Exp = make_fragment_scan_exp(RoiCheckMomLaunch7)
+RoiCheckMomLaunch9Exp = make_fragment_scan_exp(RoiCheckMomLaunch9)
 RoiCheckMomLaunch10Exp = make_fragment_scan_exp(RoiCheckMomLaunch10)
 RoiCheckMomFreefallExp = make_fragment_scan_exp(RoiCheckMomFreefall)
