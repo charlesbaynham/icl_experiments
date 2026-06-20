@@ -318,9 +318,6 @@ class CompiledEvent:
     kind: int
     beam_sign: int = 0
     m_term_hz: float = 0.0
-    #: Declared Rabi frequency (Hz) of this pulse at its governing delivery set
-    #: point, used by the execution engine for the probe (AC-Stark) shift
-    #: ``alpha * rabi**2``. 0.0 for non-pulse events.
     rabi_hz: float = 0.0
     callback_id: int = -1
     governing_setpoint_index: int = -1
@@ -651,11 +648,6 @@ def _compile_pulse(
         kind=EVENT_PULSE,
         beam_sign=s,
         m_term_hz=m_term,
-        # Intensity-derived Rabi frequency declared for this beam at the
-        # governing set point; the execution engine uses it for the probe
-        # (AC-Stark) shift. Scanning the pulse duration does NOT change this,
-        # because the light shift tracks the delivery intensity (the set
-        # point), not the pulse length.
         rabi_hz=rabi_frequency,
         governing_setpoint_index=setpoint_index,
         # Intent: a pi pulse swaps the addressed pair's populations; any

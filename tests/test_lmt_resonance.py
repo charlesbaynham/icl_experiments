@@ -182,7 +182,7 @@ def test_v0_doppler_term_sign_and_magnitude():
     Down launch (beam_sign = -1) must gain ~ +20 kHz so the empirical -20 kHz
     offset becomes user-offset 0; the up beam must gain the opposite.
     """
-    v0 = lmt_resonance.DEFAULT_INITIAL_VELOCITY_M_S
+    v0 = constants.DEFAULT_INITIAL_VELOCITY_M_S
     lam = constants.CLOCK_WAVELENGTH_M
     down = lmt_resonance.v0_doppler_term_hz(-1, v0, lam)
     up = lmt_resonance.v0_doppler_term_hz(+1, v0, lam)
@@ -200,7 +200,7 @@ def test_v0_doppler_term_invalid_beam_sign():
 
 def test_probe_stark_term_sign_and_scaling():
     """The Stark term is -alpha*rabi**2: negative, intensity-scaling."""
-    alpha = lmt_resonance.DEFAULT_PROBE_STARK_ALPHA_HZ_S2
+    alpha = constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2
     rabi = 9.1e3
     assert lmt_resonance.probe_stark_term_hz(rabi, alpha) == pytest.approx(
         -alpha * rabi**2

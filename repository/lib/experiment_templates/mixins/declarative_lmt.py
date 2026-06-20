@@ -106,7 +106,6 @@ from repository.lib.lmt_sequence import EVENT_SETPOINT
 from repository.lib.lmt_sequence import EVENT_WAIT
 from repository.lib.lmt_sequence import CompiledSequence
 from repository.lib.lmt_sequence import compile_sequence
-from repository.lib.physics import lmt_resonance
 
 logger = logging.getLogger(__name__)
 
@@ -115,11 +114,6 @@ CLOCK_OPLL_BEAM_INFO = constants.URUKULED_BEAMS["698_clock_OPLL_offset"]
 start_opll_offset = CLOCK_OPLL_BEAM_INFO.frequency
 ramp_rate = constants.GRAVITY_DOPPLER_PER_SEC_CLOCK
 
-# Doppler shift per unit initial velocity along the clock axis (1/lambda, in
-# Hz per m/s). The v0 Doppler correction added to each pulse's OPLL centre
-# frequency is -beam_sign * v0 * inverse_clock_wavelength (see run_lmt_sequence
-# and repository.lib.physics.lmt_resonance.v0_doppler_term_hz for the sign
-# derivation against the LMT_sim reference).
 inverse_clock_wavelength = 1.0 / constants.CLOCK_WAVELENGTH_M
 
 
@@ -200,18 +194,13 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         )
         self.clearout_duration: FloatParamHandle
 
-        # Initial-velocity (v0) Doppler and probe (AC-Stark) shift corrections,
-        # both applied to the OPLL centre frequency of every pulse (see
-        # run_lmt_sequence). These are calibratable physics constants the model
-        # previously dropped relative to the LMT_sim reference; defaults are the
-        # calibrated values but fully overridable / scannable.
         self.setattr_param(
             "lmt_initial_velocity",
             FloatParam,
             "Initial (release) z-velocity v0 of the velocity-selected class, "
             "positive upward. Adds -beam_sign*v0/lambda to each pulse's OPLL "
             "centre frequency (opposite sign up vs down).",
-            default=lmt_resonance.DEFAULT_INITIAL_VELOCITY_M_S,
+            default=constants.DEFAULT_INITIAL_VELOCITY_M_S,
             unit="mm/s",
             scale=1e-3,
         )
@@ -223,7 +212,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "Probe (AC-Stark) shift coefficient alpha. Each pulse's OPLL centre "
             "frequency is shifted by -alpha*rabi**2 (rabi = declared Rabi at the "
             "governing set point).",
-            default=lmt_resonance.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
+            default=constants.DEFAULT_PROBE_STARK_ALPHA_HZ_S2,
             unit="",
         )
         self.lmt_probe_stark_alpha: FloatParamHandle
@@ -276,9 +265,6 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_event_kind = []
         self._lmt_beam_sign = []
         self._lmt_m_term_hz = []
-        # Declared Rabi frequency (Hz) per pulse at its governing set point,
-        # used by the kernel for the probe (AC-Stark) shift. 0.0 for non-pulse
-        # events.
         self._lmt_rabi_hz = []
         self._lmt_callback_id = []
         self._lmt_offset_handles = []
@@ -547,18 +533,11 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 # Gravity Doppler evaluated at the pulse centre, accumulated
                 # since the release
                 t_fall = self.core.mu_to_seconds(t_centre_mu - t_ref_mu)
-                # Initial-velocity (v0) Doppler: opposite-signed up vs down,
-                # the same sign as the gravity Doppler carries it (the OPLL
-                # frequency picks up +beam_sign*(-v0/lambda); see
-                # lmt_resonance.v0_doppler_term_hz). The gravity term assumes
-                # v=0 at release, so this is the missing static piece.
                 v0_doppler = (
                     -self._lmt_beam_sign[i]
                     * self.lmt_initial_velocity.get()
                     * inverse_clock_wavelength
                 )
-                # Probe (AC-Stark) shift: -alpha * rabi**2, with rabi the
-                # declared intensity-derived value at the governing set point.
                 rabi = self._lmt_rabi_hz[i]
                 stark = -self.lmt_probe_stark_alpha.get() * rabi * rabi
                 freq_centre = (

@@ -71,6 +71,14 @@ ANDOR_SENSOR_Y_AXIS_DEFAULT = np.array([0.0, 0.0, 1.0])
 # Clock beam direction: +is_up kick is in the +z (up) direction.
 CLOCK_UP_BEAM_DIRECTION = np.array([0.0, 0.0, 1.0])
 
+# Initial (release) z-velocity of the velocity-selected class along the clock
+# axis (positive = up), inferred from the down-launch resonance offset.
+# TODO(charles): consider deriving this from the drop time instead of a constant.
+DEFAULT_INITIAL_VELOCITY_M_S = 14e-3
+
+# Probe AC-Stark shift coefficient: the clock light shift is alpha * rabi**2 (Hz).
+DEFAULT_PROBE_STARK_ALPHA_HZ_S2 = 3.24e-7
+
 # Default ROI dimensions for dynamic-ROI imaging (pixels). Sized to enclose a
 # single fast-kinetics cloud with a little margin. The box must stay well inside
 # one FK sub-frame band: an over-large box (e.g. the old 100x100) overflows the
