@@ -291,9 +291,17 @@ def _make_launch_frag(n: int):
             Clearout(),
             # Launch ladder: n recoils, starting from m=1 (the sliced class).
             *ladder(start_m=1, n=n, first_beam=Beam.DOWN),
-            # Remove ground-state population left behind by imperfect pulses.
-            Clearout(),
-        ]
+        ] + (
+            # Final clearout removes residual GROUND population left by imperfect
+            # pulses. Clearout is state-selective (removes the |g> manifold, all
+            # m), so it is only valid when the LAUNCHED atoms are excited: the
+            # slice pi(UP, m=0) puts the selected class in |e,1>, and the
+            # alternating ladder leaves even-n launches in |e, n+1> (survive the
+            # clearout) but odd-n launches in |g, n+1> (a clearout would remove
+            # the launch itself). For odd n the clearout is omitted; the
+            # un-launched residual sits at low m, outside the dynamic ROI.
+            [Clearout()] if n % 2 == 0 else []
+        )
 
         @kernel
         def DMA_initialization_hook(self):
