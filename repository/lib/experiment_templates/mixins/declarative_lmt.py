@@ -381,12 +381,14 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     @abc.abstractmethod
     def get_doppler_t_ref_mu(self) -> int64:
         """
-        Timeline position of the atoms' release - t=0 for the gravity
-        Doppler of every pulse in the declared sequence.
+        Timestamp at which the atoms were released and had zero velocity
 
-        Implemented by the concrete bases as a ``@portable`` method, in the
-        same timebase that ``now_mu()`` reads when the sequence fires (for
-        DMA-recorded sequences that is the recording-relative timebase).
+        Referenced to the DMA recording timestamps. This is used to calculate
+        the Doppler shift of the transition due to gravity.
+
+        TODO: Merge with ROI tracking?
+
+        Must be implemented by concrete classes
         """
         raise NotImplementedError
 
@@ -409,12 +411,12 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             frequency=self.clock_switch_frequency_handle.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
         )
-        delay_mu(8)
+        delay_mu(int64(self.core.ref_multiplier))
         self.set_clock_down_dds(
             frequency=self.clock_switch_frequency_handle.get(),
             amplitude=self.clock_switch_amplitude_handle.get(),
         )
-        delay_mu(8)
+        delay_mu(int64(self.core.ref_multiplier))
 
     @kernel
     def _fire_pulse(
@@ -441,14 +443,14 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         pulse recorder alongside the pulse facts.
         """
         self.stop_clock_opll_ramp()
-        delay_mu(8)
+        delay_mu(int64(self.core.ref_multiplier))
+        # Start the OPLL ramp
         if is_up:
-            # The resonance drifts upwards for the up beam
+            # Gravity blue-shift the up beam
             f_on = freq_centre - ramp_rate * duration / 2
             self.start_clock_opll_ramp(ramp_rate, f_on, f_on + 2e6, wave_type=1)
         else:
-            # ... and downwards for the down beam (wave_type 2 ramps down
-            # from freq_high)
+            # ... and red-shifts the down beam
             f_on = freq_centre + ramp_rate * duration / 2
             self.start_clock_opll_ramp(ramp_rate, f_on - 2e6, f_on, wave_type=2)
 
@@ -469,7 +471,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             self.clock_down_dds.sw.on()
             delay(duration)
             self.clock_down_dds.sw.off()
-        delay_mu(8)
+        delay_mu(int64(self.core.ref_multiplier))
         self.stop_clock_opll_ramp()
         delay(10e-6)
 
