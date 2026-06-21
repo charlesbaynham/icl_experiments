@@ -605,6 +605,14 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         # trigger share one anchor.
         self._image_tof_s = 0.0
 
+        # The base flow (red_mot_experiment.run_once) does
+        # delay(delay_after_experiment) between the sequence and do_imaging_hook.
+        # We own the post-sequence delay (image_delay_after_sequence) and place
+        # the image by absolute at_mu, so the base delay would only double-count
+        # and push now_mu past our target. Zero it; this mixin's delay is the
+        # single post-sequence delay (cf. midway_imaging).
+        self.override_param("delay_after_experiment", 0.0)
+
         self.setattr_result(
             "predicted_gnd_x", FloatChannel, display_hints={"priority": -1}
         )
