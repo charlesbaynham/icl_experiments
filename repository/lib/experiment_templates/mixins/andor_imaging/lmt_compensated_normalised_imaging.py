@@ -29,6 +29,7 @@ from ndscan.experiment.parameters import FloatParam
 from ndscan.experiment.parameters import FloatParamHandle
 from ndscan.experiment.parameters import IntParam
 from ndscan.experiment.parameters import IntParamHandle
+from numpy import int64
 
 from repository.lib import constants
 from repository.lib import pulse_intent
@@ -538,7 +539,8 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
       playback by ``expansion_time``).
     * ``get_t_release_mu() -> TInt64`` (``@portable``): the *live-timeline*
       machine-unit timestamp of the atom release. Used at imaging time to pin
-      the first fast-kinetics image at ``t_release + image_tof``.
+      the first fast-kinetics image at ``t_release + (sequence end since
+      release) + image_delay_after_sequence``.
 
     The prediction + ROI programming runs once per shot in
     :meth:`before_start_hook` - after the DMA recording has populated the
@@ -585,19 +587,23 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         self.setattr_param_rebind("roi_height", self.andor_camera_config, "roi_height")
 
         self.setattr_param(
-            "image_tof",
+            "image_delay_after_sequence",
             FloatParam,
-            "Time of flight from atom release to the first fast-kinetics image",
-            # Matches the legacy hand-written launch's effective drop->image
-            # time (delay_after_experiment, default 2 ms) plus a sub-ms launch
-            # ladder. Scannable; must exceed the post-release sequence duration
-            # (see the guard in do_imaging_hook_andor) and keep the cloud in
-            # the short fast-kinetics z-window.
+            "Delay from the end of the LMT sequence to the first fast-kinetics image",
+            # Measured from the end of the declared sequence (not the drop), so
+            # the post-sequence drop is constant as the sequence grows.
+            # Scannable; keeps the cloud in the short fast-kinetics z-window.
             default=2e-3,
             unit="ms",
             min=0,
         )
-        self.image_tof: FloatParamHandle
+        self.image_delay_after_sequence: FloatParamHandle
+
+        # release -> first image, in seconds. Filled per shot in
+        # before_start_hook (= sequence end since release + the delay above) and
+        # read back at imaging time, so the predicted ROIs and the live camera
+        # trigger share one anchor.
+        self._image_tof_s = 0.0
 
         self.setattr_result(
             "predicted_gnd_x", FloatChannel, display_hints={"priority": -1}
@@ -659,6 +665,30 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         )
 
     @kernel
+    def _sequence_end_since_release_mu(
+        self,
+    ) -> TInt64:  # pyright: ignore[reportInvalidTypeForm]
+        """End of the last atom-affecting event of the recorded sequence,
+        relative to release, in machine units.
+
+        Reads the DMA-recorded intent stream (populated before release), whose
+        timings relative to release equal the live (DMA-replayed) timeline's.
+        Returns 0 for an empty stream (a plain drop -> anchor at release).
+        """
+        rec = self.dma_recording_fragment
+        t_release_minus_playback_mu = self.get_t_release_minus_playback_mu()
+        end_max = int64(0)
+        for i in range(rec._intent_record_num_events):
+            end = (
+                rec._intent_record_start_times_mu[i]
+                + rec._intent_record_durations_mu[i]
+                - t_release_minus_playback_mu
+            )
+            if end > end_max:
+                end_max = end
+        return end_max
+
+    @kernel
     def before_start_hook(self):
         # Predict the cloud positions and program the grabber ROIs here, off
         # the time-critical timeline. This runs after the DMA recording has
@@ -673,7 +703,9 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
         self.core.break_realtime()
 
-        tof_ground = self.image_tof.get()
+        t_seq_end_s = self.core.mu_to_seconds(self._sequence_end_since_release_mu())
+        self._image_tof_s = t_seq_end_s + self.image_delay_after_sequence.get()
+        tof_ground = self._image_tof_s
         tof_excited = (
             tof_ground + self.andor_camera_config.fast_kinetics_time_between_shots.get()
         )
@@ -704,20 +736,21 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
     @kernel
     def do_imaging_hook_andor(self):
-        # ROIs were already predicted and programmed in before_start_hook. Just
-        # place the first fast-kinetics image at the chosen time of flight from
-        # release; the second image follows by fast_kinetics_time_between_shots
-        # (handled by the base imaging series).
+        # ROIs were already predicted and programmed in before_start_hook, which
+        # also stamped _image_tof_s (= sequence end since release + the chosen
+        # post-sequence delay). Place the first fast-kinetics image there; the
+        # second follows by fast_kinetics_time_between_shots (handled by the base
+        # imaging series).
         t_image_mu = self.get_t_release_mu() + self.core.seconds_to_mu(
-            self.image_tof.get()
+            self._image_tof_s
         )
         if t_image_mu < now_mu():
-            # image_tof is shorter than the post-release sequence: at_mu would
-            # move the cursor backwards -> RTIOUnderflow. Fail with a clear
-            # message instead of a cryptic underflow.
+            # image_delay_after_sequence is too short to clear the trailing
+            # post-sequence cleanup: at_mu would move the cursor backwards ->
+            # RTIOUnderflow. Fail with a clear message instead.
             raise ValueError(
-                "image_tof too short: imaging time precedes the end of the "
-                "post-release sequence"
+                "image_delay_after_sequence too short: imaging time precedes "
+                "the end of the post-release sequence"
             )
         at_mu(t_image_mu)
         # ARTIQ kernels do not support super(); call the base implementation

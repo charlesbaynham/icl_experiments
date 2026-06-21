@@ -56,10 +56,6 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 # Even, so the launch ends excited and exercises the repumped readout.
 _DEMO_LAUNCH_RECOILS = 2
 
-# A launch needs a longer time-of-flight than the inherited 2 ms default, which
-# aborts (the post-release launch sequence outlasts it).
-_DEMO_IMAGE_TOF = 4.7e-3
-
 
 class DynamicROIRepumpedImagingMixin(
     NormalisedFastKineticsRepumpedMixin, DynamicROIImagingMixin
@@ -104,12 +100,6 @@ class DemoDeclarativeLMTFrag(
         *ladder(start_m=1, n=_DEMO_LAUNCH_RECOILS, first_beam=Beam.DOWN),
         Clearout(),  # clears |g> residual from imperfect pulses (launch is in |e>)
     ]
-
-    def build_fragment(self):
-        super().build_fragment()
-        # image_tof's inherited 2 ms default aborts a launch; re-default it so the
-        # experiment runs with no overrides. EM gain already defaults on.
-        self.override_param("image_tof", _DEMO_IMAGE_TOF)
 
     @kernel
     def DMA_initialization_hook(self):
