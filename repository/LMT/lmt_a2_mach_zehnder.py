@@ -190,6 +190,32 @@ class A2MachZehnderLaunch2Frag(
     ]
 
 
+class A2RamseyFrag(
+    _A2MachZehnderHooks,
+    DeclarativeLMTBase,
+    NormalisedFastKineticsLMTCorrectedMixin,
+    EMGainMixin,
+    LoadSingleXODTMixin,
+    XODTSingleMolassesPlusDipoleRampMixin,
+    OpticalPumpingWithFieldSettingDipoleTrapMixin,
+    FieldOnlyRampInEvapMixin,
+    DipoleTrapWithExperimentBase,
+):
+    """Ramsey (pi/2 - dark - pi/2) on |g, 0> <-> |e, 1>, no mirror, no launch.
+
+    The minimal coherence / phase-knob test: scan the final pi/2's laser phase
+    ``p03_pi2_u_m0_bs2_phase`` from 0 to 2*pi and read the ground-port fringe.
+    """
+
+    lmt_initial_population = {("g", 0)}
+    lmt_sequence = [
+        _full_intensity_setpoint(),
+        pi2(Beam.UP, m=0, label="bs1"),
+        Wait(t=MZ_DARK_TIME, label="dark"),
+        pi2(Beam.UP, m=0, label="bs2"),
+    ]
+
+
 class A2ClockLineCentreFrag(
     _A2MachZehnderHooks,
     DeclarativeLMTBase,
@@ -220,3 +246,4 @@ A2MachZehnderDrop = make_fragment_scan_exp(A2MachZehnderDropFrag)
 A2MachZehnderSliced = make_fragment_scan_exp(A2MachZehnderSlicedFrag)
 A2MachZehnderLaunch2 = make_fragment_scan_exp(A2MachZehnderLaunch2Frag)
 A2ClockLineCentre = make_fragment_scan_exp(A2ClockLineCentreFrag)
+A2Ramsey = make_fragment_scan_exp(A2RamseyFrag)

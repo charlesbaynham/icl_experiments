@@ -117,6 +117,10 @@ class Pulse:
         state: Internal state (``"g"`` or ``"e"``) of that population. Only
             needed when both internal states are populated at the same ``m``.
         label: Optional tag appended to the generated parameter names.
+        phase: Laser phase of this pulse in radians (the default of the spawned
+            scannable ``..._phase`` parameter). Scan the final pulse's phase to
+            read out an interferometer fringe; the per-pulse frequency offset is
+            a detuning, not a phase, and does not produce a clean fringe.
     """
 
     area: float
@@ -124,6 +128,7 @@ class Pulse:
     m: int
     state: str | None = None
     label: str = ""
+    phase: float = 0.0
 
     def __post_init__(self):
         if self.area <= 0:
@@ -325,6 +330,7 @@ class CompiledEvent:
     duration_param: ParamSpec | None = None
     duration_param_ref: str | None = None
     setpoint_param: ParamSpec | None = None
+    phase_param: ParamSpec | None = None
     addressed_pair: tuple | None = None
     state_effect: StateEffect = StateEffect.NONE
     addressed_state: AddressedState = AddressedState.AUTO
@@ -676,6 +682,12 @@ def _compile_pulse(
             default=duration_default,
             unit="us",
             min=0.0,
+        ),
+        phase_param=ParamSpec(
+            attr_name=name + "_phase",
+            description=f"{_event_prefix(index, event.label)}: {human} - laser phase",
+            default=event.phase,
+            unit="rad",
         ),
         addressed_pair=(ground, excited),
     )

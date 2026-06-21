@@ -270,6 +270,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         self._lmt_offset_handles = []
         self._lmt_duration_handles = []
         self._lmt_setpoint_handles = []
+        self._lmt_phase_handles = []
         # Build-time intent shipped to the kernel and registered with the
         # pulse recorder as each event fires (integer codes from
         # repository.lib.pulse_intent, filled in by the sequence compiler)
@@ -306,6 +307,19 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                 self._lmt_offset_handles.append(handle)
             else:
                 self._lmt_offset_handles.append(pad_handle)
+
+            if event.phase_param is not None:
+                spec = event.phase_param
+                handle = self.setattr_param(
+                    spec.attr_name,
+                    FloatParam,
+                    spec.description,
+                    default=spec.default,
+                    unit=spec.unit,
+                )
+                self._lmt_phase_handles.append(handle)
+            else:
+                self._lmt_phase_handles.append(pad_handle)
 
             if event.duration_param is not None:
                 spec = event.duration_param
@@ -526,6 +540,24 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
 
             if kind == EVENT_PULSE:
                 duration = self._lmt_duration_handles[i].get()
+                is_up = self._lmt_beam_sign[i] > 0.0
+                # Interferometer phase knob: latch this pulse's laser phase on
+                # the (static-frequency) switch AOM. Done before the t_start
+                # margin below so the DDS write does not eat the OPLL-ramp slack.
+                phase = self._lmt_phase_handles[i].get()
+                if is_up:
+                    self.set_clock_up_dds(
+                        frequency=self.clock_switch_frequency_handle.get(),
+                        amplitude=self.clock_switch_amplitude_handle.get(),
+                        phase=phase,
+                    )
+                else:
+                    self.set_clock_down_dds(
+                        frequency=self.clock_switch_frequency_handle.get(),
+                        amplitude=self.clock_switch_amplitude_handle.get(),
+                        phase=phase,
+                    )
+                delay_mu(8)
                 # Margin for programming the OPLL ramp before the switch opens
                 t_start = now_mu() + self.core.seconds_to_mu(10e-6)
                 t_centre_mu = t_start + self.core.seconds_to_mu(duration / 2)
