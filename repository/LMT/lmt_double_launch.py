@@ -63,8 +63,8 @@ CLOCK_BEAM_DELIVERY_INFO = constants.SUSERVOED_BEAMS["clock_delivery"]
 
 # Top momentum order reached by the leading (excited) arm; the trailing
 # (ground) arm is launched to N_TOP - 1, and the recombiner mixes the two.
-# Kept small for first validation; bump once the workflow is confirmed.
-N_TOP = 3
+# Modest order so both arms stay in the fast-kinetics imaging window.
+N_TOP = 6
 
 # Dark time between the two launches.
 BETWEEN_LAUNCH_WAIT = 0.5e-3
