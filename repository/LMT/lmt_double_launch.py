@@ -78,7 +78,7 @@ def _full_intensity_setpoint() -> SetPoint:
     )
 
 
-def _double_launch_sequence(n_top: int) -> list:
+def _double_launch_sequence(n_top: int, clear_ground_port: bool = True) -> list:
     """Declare the single-cloud double-launch interferometer.
 
     After the slice, ``|e, 1>`` is the only populated class. The opening pi/2
@@ -88,9 +88,15 @@ def _double_launch_sequence(n_top: int) -> list:
     recombiner beam: the two arms end as a single ``g <-> e`` pair one recoil
     apart, addressable by an UP pi/2 when ``n_top`` is odd and a DOWN pi/2 when
     it is even.
+
+    With ``clear_ground_port`` the closing 461 clearout removes the ground port
+    so the FK readout images the excited port (the recipe). Without it the
+    ground port survives and is imaged directly in FK frame 0 - the diagnostic
+    that shows the launch landed atoms at the predicted order without relying on
+    the excited-state de-shelve.
     """
     recombiner_beam = Beam.UP if n_top % 2 == 1 else Beam.DOWN
-    return [
+    sequence = [
         SetPoint(
             setpoint=constants.CLOCK_SHELVING_PULSE_SETPOINT,
             rabi_up=1 / (2 * constants.CLOCK_SHELVING_PULSE_TIME),
@@ -104,8 +110,10 @@ def _double_launch_sequence(n_top: int) -> list:
         Wait(t=BETWEEN_LAUNCH_WAIT, label="between"),
         *ladder(start_m=0, n=n_top - 1, first_beam=Beam.UP),
         pi2(recombiner_beam, m=n_top, label="bs2"),
-        Clearout(),
     ]
+    if clear_ground_port:
+        sequence.append(Clearout())
+    return sequence
 
 
 class DeclarativeDoubleLaunchFrag(
@@ -138,4 +146,19 @@ class DeclarativeDoubleLaunchFrag(
         self.post_sequence_cleanup_hook_declarative_lmt()
 
 
+class DeclarativeDoubleLaunchGroundReadoutFrag(DeclarativeDoubleLaunchFrag):
+    """Double launch read out on the ground port (no closing clearout).
+
+    Diagnostic twin of :class:`DeclarativeDoubleLaunchFrag`: it skips the final
+    ground clearout so the launched ground arm at order ``N_TOP - 1`` survives
+    into FK frame 0, making the launch visible without the (currently
+    unreliable) excited-state de-shelve.
+    """
+
+    lmt_sequence = _double_launch_sequence(N_TOP, clear_ground_port=False)
+
+
 DeclarativeDoubleLaunch = make_fragment_scan_exp(DeclarativeDoubleLaunchFrag)
+DeclarativeDoubleLaunchGroundReadout = make_fragment_scan_exp(
+    DeclarativeDoubleLaunchGroundReadoutFrag
+)
