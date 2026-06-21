@@ -1,14 +1,10 @@
 """
 Dynamic-ROI normalised fast-kinetics imaging.
 
-The camera ROIs are repositioned every shot along the trajectory predicted
-from the recorded pulse *intent* stream (see
-:mod:`repository.lib.pulse_intent` and
-:mod:`repository.lib.physics.trajectory`): just before imaging, the kernel
-RPCs the recorded intent events to the host predictor, which walks the
-declared population branches and returns the expected sensor positions of
-the ground and excited detection ports at the two fast-kinetics shot times.
-The grabber ROIs are then reprogrammed mid-shot to track the falling clouds.
+The camera ROIs are repositioned every shot from the recorded pulse-intent
+trajectory: the kernel RPCs the intent stream to a host predictor that returns
+the ground/excited port pixels at the two fast-kinetics shot times, and the
+grabber ROIs are reprogrammed to track the falling clouds.
 """
 
 import logging
@@ -61,15 +57,11 @@ def _fill_clamped_roi(
     frame_width,
     frame_height,
 ) -> TInt32:  # pyright: ignore[reportInvalidTypeForm]
-    """Write one ROI centred on a predicted position into a preallocated buffer.
+    """Write one ROI centred on a predicted position into ``roi_buffer``.
 
-    The ROI is clamped to the readout frame ``[0, frame_width] x
-    [0, frame_height]``. After clamping, ordering is enforced (``x1 >= x0``,
-    ``y1 >= y0``) so a fully off-frame prediction yields a degenerate-but-valid
-    ROI, never one with negative area.
-
-    Returns:
-        1 if any coordinate had to be clamped, else 0.
+    Clamped to the readout frame, then ordering is enforced (``x1 >= x0``,
+    ``y1 >= y0``) so a fully off-frame prediction is degenerate-but-valid, never
+    negative-area. Returns 1 if any coordinate had to be clamped, else 0.
     """
     x0 = centre_x - half_width
     y0 = centre_y_frame - half_height
@@ -100,18 +92,14 @@ def _fill_clamped_roi(
 
 class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
     """
-    Andor camera configuration that dynamically repositions ROIs based on
-    the trajectory of the atom clouds predicted from the recorded pulse
-    intent stream.
+    Andor config that repositions ROIs from the predicted cloud trajectory.
 
-    Call :meth:`calculate_atom_positions` once between DMA playback and the
-    first fluorescence pulse. It RPC-calls the host-side intent-driven
-    predictor (:func:`repository.lib.physics.trajectory.predict_port_pixels`)
-    which fills ``gnd_x/y``, ``excited_x/y`` and the port multiplicities;
-    :meth:`get_rois` then builds ROIs centred on those pixel positions.
-
-    Camera geometry is fully configurable via ndscan parameters so that
-    small unknown tilts can be corrected without code changes.
+    :meth:`calculate_atom_positions` RPCs the host predictor
+    (:func:`repository.lib.physics.trajectory.predict_port_pixels`) to fill
+    ``gnd_x/y``, ``excited_x/y`` and the port multiplicities; :meth:`get_rois`
+    then builds ROIs centred on those pixels. The camera geometry is fixed in
+    :mod:`repository.lib.constants`; only the trap pixel and ROI size are
+    tunable params (per-source commissioning).
     """
 
     num_andor_images = 4
@@ -169,59 +157,6 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         )
         self.trap_y_pixel: IntParamHandle
 
-        # Camera orientation — three lab-frame unit vectors
-        # Defaults from constants; operators can fine-tune tilts from the ndscan UI.
-        ax, ay, az = constants.ANDOR_OPTICAL_AXIS_DEFAULT
-        self.setattr_param(
-            "optical_axis_x",
-            FloatParam,
-            "Optical axis x (lab frame)",
-            default=float(ax),
-        )
-        self.optical_axis_x: FloatParamHandle
-        self.setattr_param(
-            "optical_axis_y",
-            FloatParam,
-            "Optical axis y (lab frame)",
-            default=float(ay),
-        )
-        self.optical_axis_y: FloatParamHandle
-        self.setattr_param(
-            "optical_axis_z",
-            FloatParam,
-            "Optical axis z (lab frame)",
-            default=float(az),
-        )
-        self.optical_axis_z: FloatParamHandle
-
-        sx, sy, sz = constants.ANDOR_SENSOR_X_AXIS_DEFAULT
-        self.setattr_param(
-            "sensor_x_x", FloatParam, "Sensor +x axis x (lab frame)", default=float(sx)
-        )
-        self.sensor_x_x: FloatParamHandle
-        self.setattr_param(
-            "sensor_x_y", FloatParam, "Sensor +x axis y (lab frame)", default=float(sy)
-        )
-        self.sensor_x_y: FloatParamHandle
-        self.setattr_param(
-            "sensor_x_z", FloatParam, "Sensor +x axis z (lab frame)", default=float(sz)
-        )
-        self.sensor_x_z: FloatParamHandle
-
-        yx, yy, yz = constants.ANDOR_SENSOR_Y_AXIS_DEFAULT
-        self.setattr_param(
-            "sensor_y_x", FloatParam, "Sensor +y axis x (lab frame)", default=float(yx)
-        )
-        self.sensor_y_x: FloatParamHandle
-        self.setattr_param(
-            "sensor_y_y", FloatParam, "Sensor +y axis y (lab frame)", default=float(yy)
-        )
-        self.sensor_y_y: FloatParamHandle
-        self.setattr_param(
-            "sensor_y_z", FloatParam, "Sensor +y axis z (lab frame)", default=float(yz)
-        )
-        self.sensor_y_z: FloatParamHandle
-
         # Kernel variables — pixel positions (sensor coordinates) and port
         # multiplicities filled by calculate_atom_positions
         self.gnd_x = 0
@@ -250,18 +185,11 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
     def get_rois(self) -> TArray(TInt32, 2):  # pyright: ignore[reportInvalidTypeForm]
         """Build the two grabber ROIs centred on the predicted port positions.
 
-        The grabber sees the fast-kinetics *readout frame*, not raw sensor
-        coordinates. Following the convention of
-        :class:`~repository.lib.experiment_templates.mixins.andor_imaging.normalised_fast_kinetics_base.NormalisedFKConfig`:
-        the first shot (ground port) lands at sensor y minus
-        ``fast_kinetics_offset``, and the second shot (excited port) is
-        shifted a further ``fast_kinetics_height`` down the readout frame by
-        the inter-shot row shift. The *physical* inter-shot motion of the
-        cloud is already in the predicted ``excited_y``, so no additional
-        shift is applied here.
-
-        Each ROI is clamped to the readout frame, recorded in
-        ``roi_clipped``, and degenerate-but-valid if fully off frame.
+        The grabber sees the fast-kinetics *readout frame*: the first shot
+        (ground port) lands at sensor y minus ``fast_kinetics_offset``, the
+        second (excited port) a further ``fast_kinetics_height`` down the frame.
+        Physical inter-shot motion is already in the predicted ``excited_y``, so
+        no extra shift is applied. Clamping is recorded in ``roi_clipped``.
         """
         half_width = self.roi_width.get() // 2
         half_height = self.roi_height.get() // 2
@@ -334,46 +262,20 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         num_events: TInt32,
         t_release_minus_playback_mu: TInt64,
     ) -> None:
-        """
-        Predict the cloud pixel positions at the imaging times and store them
-        in ``gnd_x/y``, ``excited_x/y``, ``gnd_multiplicity`` and
-        ``excited_multiplicity``.
+        """Predict cloud pixels at the two imaging times of flight and store
+        them in ``gnd_x/y``, ``excited_x/y`` and the multiplicities.
 
-        The prediction is a deterministic function of the recorded intent
-        stream and build-time constants, so it can run in ``before_start_hook``
-        (before the atoms are released). The image times enter only as
-        time-of-flight (seconds since release) and the recorded event times
-        only relative to the release; the absolute playback cursor cancels.
+        Deterministic in the recorded intent stream and build-time constants,
+        so it can run in ``before_start_hook`` (before release): image times
+        enter only as time-of-flight, recorded events only relative to release,
+        and the absolute playback cursor cancels.
 
-        Args:
-            t_image_ground_s: Time of flight from release to the ground-port
-                (first fast-kinetics) image, in seconds.
-            t_image_excited_s: Time of flight from release to the excited-port
-                (second fast-kinetics) image, in seconds.
-            intent_start_times_mu: Recorded intent event start times,
-                *recording-relative* machine units (``core_dma.record``
-                resets the timeline cursor to zero).
-            intent_durations_mu: Recorded intent event durations in machine
-                units.
-            intent_kinds: Intent event kinds
-                (:mod:`repository.lib.pulse_intent`).
-            intent_state_effects: Intent state effects.
-            intent_addressed_states: Addressed internal states.
-            intent_addressed_m: Addressed momentum classes.
-            intent_delta_m: Recoils given to the transferred component.
-            num_events: Number of valid entries at the start of the intent
-                arrays.
-            t_release_minus_playback_mu: Release time relative to the DMA
-                playback origin (``t_release_mu - t_playback_start_mu``), in
-                machine units. The recorded events fire at
-                ``t_playback_start + t_recorded``, so their time since release
-                is ``t_recorded - t_release_minus_playback``.
+        ``t_release_minus_playback_mu`` is ``t_release_mu - t_playback_start_mu``
+        (mu); recorded events fire at ``t_playback_start + t_recorded``, so their
+        time since release is ``t_recorded - t_release_minus_playback``.
         """
-        # Slice to the populated entries BEFORE the RPC: the intent buffers are
-        # BUFFER_DEPTH (300) long, and marshalling all of them kernel->host on
-        # every call costs timeline slack. Only num_events entries are valid,
-        # so send just those - typically 0 (a plain drop) to a few tens (a
-        # launch ladder).
+        # Slice to num_events BEFORE the RPC: the buffers are BUFFER_DEPTH (300)
+        # long and marshalling all of them kernel->host costs timeline slack.
         packed = self._calculate_positions_host(
             t_image_ground_s,
             t_image_excited_s,
@@ -414,27 +316,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         """Host-side predictor: returns ``[gnd_x, gnd_y, exc_x, exc_y,
         gnd_multiplicity, exc_multiplicity]`` as int32."""
         camera = CameraGeometry(
-            optical_axis=np.array(
-                [
-                    self.optical_axis_x.get(),
-                    self.optical_axis_y.get(),
-                    self.optical_axis_z.get(),
-                ]
-            ),
-            sensor_x_axis=np.array(
-                [
-                    self.sensor_x_x.get(),
-                    self.sensor_x_y.get(),
-                    self.sensor_x_z.get(),
-                ]
-            ),
-            sensor_y_axis=np.array(
-                [
-                    self.sensor_y_x.get(),
-                    self.sensor_y_y.get(),
-                    self.sensor_y_z.get(),
-                ]
-            ),
+            optical_axis=constants.ANDOR_OPTICAL_AXIS,
+            sensor_x_axis=constants.ANDOR_SENSOR_X_AXIS,
+            sensor_y_axis=constants.ANDOR_SENSOR_Y_AXIS,
             centre_pixel=(
                 float(self.trap_x_pixel.get()),
                 float(self.trap_y_pixel.get()),
@@ -450,13 +334,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
             camera=camera,
         )
 
-        # The recorded intent timestamps are recording-relative; during
-        # playback they fire at t_playback_start + t_recorded. Rebase them to
-        # seconds since release. Only the difference (t_release - t_playback)
-        # is needed (the absolute playback cursor cancels), so feed it as the
-        # release time with a zero playback origin:
-        #   rebase(times, 0, t_release - t_playback)
-        #     == rebase(times, t_playback, t_release).
+        # Rebase recording-relative timestamps to seconds since release. Only
+        # the difference (t_release - t_playback) is needed, so feed it as the
+        # release time with a zero playback origin.
         t_start_s = trajectory.rebase_record_times_mu(
             intent_start_times_mu[:num_events],
             0,
@@ -490,14 +370,9 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
         gnd = out["ground"]
         exc = out["excited"]
 
-        # NB: no logging in this path. Predicted positions and multiplicities
-        # are published on the diagnostics result channels instead
-        # (predicted_*_x/y, *_port_multiplicity), keeping host log handlers off
-        # the per-shot call. A
-        # multiplicity of 0 (empty port -> centred on the other port's cloud)
-        # or >1 (open interferometer -> centred on the branch mean) is visible
-        # there; the ROIs are still placed sensibly in both cases.
-
+        # No logging in this per-shot path: positions and multiplicities are
+        # published on the diagnostics result channels instead. Multiplicity 0
+        # (empty port) or >1 (open interferometer) still yields sensible ROIs.
         return np.array(
             [
                 int(round(gnd.x_pixel)),
@@ -516,10 +391,8 @@ class LMTCompensatedCameraConfig(FastKineticsCameraConfig):
 
 class DynamicROIImagingMixin(NormalisedFastKineticsBase):
     """
-    Variant of :class:`~.NormalisedFastKineticsBase` that uses
-    :class:`~LMTCompensatedCameraConfig` to dynamically reposition the camera
-    ROIs based on the trajectory of the atom clouds predicted from the
-    recorded pulse intent stream.
+    :class:`~.NormalisedFastKineticsBase` using :class:`~LMTCompensatedCameraConfig`
+    to reposition the ROIs from the predicted cloud trajectory.
 
     Contract — the experiment base combined with this mixin must provide:
 
@@ -540,25 +413,14 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
       machine-unit timestamp of the atom release. Used at imaging time to pin
       the first fast-kinetics image at ``t_release + image_tof``.
 
-    The prediction + ROI programming runs once per shot in
-    :meth:`before_start_hook` - after the DMA recording has populated the
-    intent buffers, before the atoms are released - where there is ample
-    ``break_realtime`` slack and no atoms are in flight, so the blocking RPC
-    and the grabber ROI writes cannot underflow. The grabber holds the ROI
-    config until re-gated, so the ROIs persist through playback to imaging.
-    ``device_setup`` programs trap-centre ROIs at shot start; the
-    ``before_start_hook`` reprogram overwrites them before any camera frame and
-    is authoritative.
+    Prediction + ROI programming runs once per shot in :meth:`before_start_hook`
+    (off the RT timeline, no atoms in flight, so the blocking RPC and grabber
+    writes cannot underflow), overwriting the trap-centre ROIs ``device_setup``
+    programs at shot start. Diagnostics channels (predicted positions, port
+    multiplicities, ROI clamp flag) are pushed once per shot there.
 
-    Diagnostics result channels (pushed exactly once per shot, in
-    ``before_start_hook``): the predicted port positions, the port
-    multiplicities, and whether any ROI had to be clamped to the readout frame.
-
-    Kernel hooks overridden:
-
-    * :meth:`~get_andor_camera_config_hook`
-    * :meth:`~before_start_hook`
-    * :meth:`~do_imaging_hook_andor`
+    Overrides :meth:`get_andor_camera_config_hook`, :meth:`before_start_hook`
+    and :meth:`do_imaging_hook_andor`.
     """
 
     def get_andor_camera_config_hook(self) -> AndorCameraConfig:
@@ -570,11 +432,9 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         super().build_fragment()
 
         # Re-expose the camera-config tuning params at the experiment level so
-        # they can be set/scanned from the dashboard and the submit API (the
-        # sub-fragment params are otherwise only reachable at a nested override
-        # path). The trap pixel position in particular is source-specific (the
-        # red MOT and dipole trap sit at different sensor positions) and needs
-        # commissioning per source.
+        # they can be set/scanned directly (otherwise only reachable at a nested
+        # override path). The trap pixel is source-specific (red MOT vs dipole
+        # trap sit at different sensor positions) and commissioned per source.
         self.setattr_param_rebind(
             "trap_x_pixel", self.andor_camera_config, "trap_x_pixel"
         )
@@ -630,11 +490,9 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
     def _predict_atom_positions(
         self, t_image_ground_s: TFloat, t_image_excited_s: TFloat
     ):
-        """Run the host-side ROI prediction for the two imaging times of flight.
-
-        Reads the DMA-recorded intent buffers and the recording-relative
-        release offset, so it can run in :meth:`before_start_hook` before the
-        atoms are released.
+        """Run the ROI prediction from the DMA-recorded intent buffers and the
+        recording-relative release offset, so it can run in
+        :meth:`before_start_hook` before the atoms are released.
         """
         self.andor_camera_config.calculate_atom_positions(
             t_image_ground_s=t_image_ground_s,
@@ -660,15 +518,10 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
     @kernel
     def before_start_hook(self):
-        # Predict the cloud positions and program the grabber ROIs here, off
-        # the time-critical timeline. This runs after the DMA recording has
-        # populated the intent buffers and before the atoms are released, so
-        # the blocking prediction RPC + the grabber ROI writes sit in ample
-        # break_realtime slack with no atoms in flight - eliminating the
-        # RTIOUnderflow that the old inline (post-launch) placement caused.
-        # The recorded sequence is identical every shot within a scan point, so
-        # programming once here is sufficient; the grabber holds the ROI config
-        # until re-gated, so it persists through playback to imaging.
+        # Predict and program the ROIs here: after the DMA recording populates
+        # the intent buffers, before release, so the blocking RPC + grabber
+        # writes sit in break_realtime slack with no atoms in flight. The
+        # grabber holds the ROIs until re-gated, so they persist to imaging.
         self.before_start_hook_default()
 
         self.core.break_realtime()
@@ -679,11 +532,9 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         )
         self._predict_atom_positions(tof_ground, tof_excited)
 
-        # The blocking prediction RPC advanced the RTIO counter while the
-        # timeline cursor did not. Re-establish slack before the grabber ROI
-        # writes (reprogram_rois does not break_realtime itself). Harmless
-        # here: no atoms are in flight, so losing timeline determinism does
-        # not matter.
+        # The blocking RPC advanced the RTIO counter but not the cursor;
+        # re-establish slack before the grabber writes (reprogram_rois does not
+        # break_realtime itself).
         self.core.break_realtime()
         self.andor_camera_control.reprogram_rois()
 
@@ -704,17 +555,15 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
 
     @kernel
     def do_imaging_hook_andor(self):
-        # ROIs were already predicted and programmed in before_start_hook. Just
-        # place the first fast-kinetics image at the chosen time of flight from
-        # release; the second image follows by fast_kinetics_time_between_shots
-        # (handled by the base imaging series).
+        # ROIs were already programmed in before_start_hook; just place the
+        # first image at the chosen time of flight from release (the second
+        # follows by fast_kinetics_time_between_shots in the base series).
         t_image_mu = self.get_t_release_mu() + self.core.seconds_to_mu(
             self.image_tof.get()
         )
         if t_image_mu < now_mu():
-            # image_tof is shorter than the post-release sequence: at_mu would
-            # move the cursor backwards -> RTIOUnderflow. Fail with a clear
-            # message instead of a cryptic underflow.
+            # image_tof shorter than the post-release sequence: at_mu would move
+            # the cursor backwards -> RTIOUnderflow. Fail clearly instead.
             raise ValueError(
                 "image_tof too short: imaging time precedes the end of the "
                 "post-release sequence"
@@ -729,15 +578,8 @@ class NormalisedFastKineticsLMTCorrectedMixin(
     NormalisedFastKineticsClockPulseMixin, DynamicROIImagingMixin
 ):
     """
-    :class:`~.DynamicROIImagingMixin` combined with the clock-pulse readout
-    of :class:`~.NormalisedFastKineticsClockPulseMixin`.
-
-    This preserves the behaviour existing users (e.g.
-    ``repository/LMT/lmt_declarative.py``) relied on from the old
-    ``NormalisedFastKineticsLMTCorrectedMixin``: dynamic ROIs from
-    :class:`~.DynamicROIImagingMixin` (which wins
+    Dynamic ROIs from :class:`~.DynamicROIImagingMixin` (which wins
     ``do_imaging_hook_andor`` / ``get_andor_camera_config_hook`` in the MRO)
-    plus the clock pi pulse after the first fluorescence pulse (the clock
-    mixin's ``do_first_pulse``). See :class:`~.DynamicROIImagingMixin` for
-    the timebase-accessor contract the experiment base must satisfy.
+    plus the clock pi pulse of :class:`~.NormalisedFastKineticsClockPulseMixin`.
+    See :class:`~.DynamicROIImagingMixin` for the timebase-accessor contract.
     """
