@@ -76,6 +76,7 @@ Principles
 import abc
 import logging
 
+from artiq.coredevice.ad9910 import PHASE_MODE_ABSOLUTE
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import delay_mu
@@ -659,18 +660,25 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             if kind == EVENT_PULSE:
                 duration = self._lmt_duration_handles[i].get()
                 is_up = self._lmt_beam_sign[i] > 0.0
+                # PHASE_MODE_ABSOLUTE resets the switch-AOM phase accumulator and
+                # loads the commanded phase each pulse, so the per-pulse phase
+                # parameter is a deterministic interferometer phase knob. In the
+                # default continuous mode a POW write does not imprint a clean
+                # phase step (RIDs 75445-75449 were flat at every phase).
                 phase = self._lmt_phase_handles[i].get()
                 if is_up:
                     self.set_clock_up_dds(
                         frequency=self.clock_switch_frequency_handle.get(),
                         amplitude=self.clock_switch_amplitude_handle.get(),
                         phase=phase,
+                        phase_mode=PHASE_MODE_ABSOLUTE,
                     )
                 else:
                     self.set_clock_down_dds(
                         frequency=self.clock_switch_frequency_handle.get(),
                         amplitude=self.clock_switch_amplitude_handle.get(),
                         phase=phase,
+                        phase_mode=PHASE_MODE_ABSOLUTE,
                     )
                 delay_mu(8)
 

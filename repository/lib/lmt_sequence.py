@@ -117,10 +117,11 @@ class Pulse:
         state: Internal state (``"g"`` or ``"e"``) of that population. Only
             needed when both internal states are populated at the same ``m``.
         label: Optional tag appended to the generated parameter names.
-        phase: Laser phase of this pulse in radians (the default of the spawned
-            scannable ``..._phase`` parameter). Scan the final pulse's phase to
-            read out an interferometer fringe; the per-pulse frequency offset is
-            a detuning, not a phase, and does not produce a clean fringe.
+        phase: Laser phase of this pulse in turns (AD9910 convention; 1 turn =
+            2*pi), the default of the spawned scannable ``..._phase`` parameter.
+            Scan the final pulse's phase 0->1 to read out an interferometer
+            fringe; the per-pulse frequency offset is a detuning, not a phase,
+            and does not produce a clean fringe.
     """
 
     area: float
@@ -686,7 +687,7 @@ def _compile_pulse(
         phase_param=ParamSpec(
             attr_name=name + "_phase",
             description=f"{_event_prefix(index, event.label)}: {human} - laser "
-            "phase in radians",
+            "phase in turns (1 turn = 2*pi)",
             default=event.phase,
             unit="",
         ),

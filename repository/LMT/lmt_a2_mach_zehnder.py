@@ -207,7 +207,7 @@ class A2RamseyFrag(
     """Ramsey (pi/2 - dark - pi/2) on |g, 0> <-> |e, 1>, no mirror, no launch.
 
     The minimal coherence / phase-knob test: scan the final pi/2's laser phase
-    ``p03_pi2_u_m0_bs2_phase`` from 0 to 2*pi and read the ground-port fringe.
+    ``p03_pi2_u_m0_bs2_phase`` from 0 to 1 turn and read the ground-port fringe.
     """
 
     # Continuous OPLL chirp across both pulses (one transition, UP m=0) so the

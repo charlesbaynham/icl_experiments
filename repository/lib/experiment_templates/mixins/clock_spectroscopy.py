@@ -1,6 +1,7 @@
 import logging
 
 from artiq.coredevice.ad9910 import AD9910
+from artiq.coredevice.ad9910 import PHASE_MODE_CONTINUOUS
 from artiq.language import at_mu
 from artiq.language import delay
 from artiq.language import kernel
@@ -202,27 +203,53 @@ class ClockSpectroscopyBase(ExponentialDecayMixin, RedMOTWithExperimentBase):
         return param_handles
 
     @portable
-    def set_clock_up_dds(self, frequency: float, amplitude: float, phase: float = 0.0):
+    def set_clock_up_dds(
+        self,
+        frequency: float,
+        amplitude: float,
+        phase: float = 0.0,
+        phase_mode: int = PHASE_MODE_CONTINUOUS,
+    ):
         """
         Set the up-beam switch DDS and record the commanded frequency.
 
         Thin wrapper around ``clock_up_dds.set`` that also updates the
         frequency-tracking state read by PulseDMARecording.register_pulse,
         so call sites never have to track the frequency separately.
+
+        ``phase`` is in turns (AD9910 convention). ``phase_mode`` defaults to
+        the channel's continuous mode; pass ``PHASE_MODE_ABSOLUTE`` to make the
+        phase deterministic per pulse (needed to use ``phase`` as an
+        interferometer phase knob - continuous mode does not imprint a clean
+        phase step).
         """
-        self.clock_up_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
+        self.clock_up_dds.set(
+            frequency=frequency,
+            amplitude=amplitude,
+            phase=phase,
+            phase_mode=phase_mode,
+        )
         self._tracked_up_switch_freq = frequency
 
     @portable
     def set_clock_down_dds(
-        self, frequency: float, amplitude: float, phase: float = 0.0
+        self,
+        frequency: float,
+        amplitude: float,
+        phase: float = 0.0,
+        phase_mode: int = PHASE_MODE_CONTINUOUS,
     ):
         """
         Set the down-beam switch DDS and record the commanded frequency.
 
         See :meth:`set_clock_up_dds`.
         """
-        self.clock_down_dds.set(frequency=frequency, amplitude=amplitude, phase=phase)
+        self.clock_down_dds.set(
+            frequency=frequency,
+            amplitude=amplitude,
+            phase=phase,
+            phase_mode=phase_mode,
+        )
         self._tracked_down_switch_freq = frequency
 
     @kernel
