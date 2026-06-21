@@ -21,7 +21,6 @@ from artiq.language import TInt64
 from artiq.language import TList
 from artiq.language import at_mu
 from artiq.language import kernel
-from artiq.language import now_mu
 from artiq.language import portable
 from artiq.language import rpc
 from ndscan.experiment import FloatChannel
@@ -590,10 +589,10 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
             "image_delay_after_sequence",
             FloatParam,
             "Delay from the end of the LMT sequence to the first fast-kinetics image",
-            # Measured from the end of the declared sequence (not the drop), so
-            # the post-sequence drop is constant as the sequence grows.
+            # Measured from the end of the declared sequence, so the post-sequence
+            # drop is constant as the sequence grows.
             # Scannable; keeps the cloud in the short fast-kinetics z-window.
-            default=2e-3,
+            default=500e-6,
             unit="ms",
             min=0,
         )
@@ -752,14 +751,6 @@ class DynamicROIImagingMixin(NormalisedFastKineticsBase):
         t_image_mu = self.get_t_release_mu() + self.core.seconds_to_mu(
             self._image_tof_s
         )
-        if t_image_mu < now_mu():
-            # image_delay_after_sequence is too short to clear the trailing
-            # post-sequence cleanup: at_mu would move the cursor backwards ->
-            # RTIOUnderflow. Fail with a clear message instead.
-            raise ValueError(
-                "image_delay_after_sequence too short: imaging time precedes "
-                "the end of the post-release sequence"
-            )
         at_mu(t_image_mu)
         # ARTIQ kernels do not support super(); call the base implementation
         # by name instead
