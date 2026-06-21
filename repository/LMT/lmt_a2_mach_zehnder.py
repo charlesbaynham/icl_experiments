@@ -137,6 +137,9 @@ class A2MachZehnderDropFrag(
 ):
     """Single-order MZ on |g, 0> <-> |e, 1> straight from the trap."""
 
+    # All pulses share one transition (UP, m=0) -> one continuous OPLL chirp
+    # keeps the optical phase coherent across the interferometer.
+    lmt_continuous_opll = True
     lmt_initial_population = {("g", 0)}
     lmt_sequence = [
         _full_intensity_setpoint(),
@@ -207,6 +210,10 @@ class A2RamseyFrag(
     ``p03_pi2_u_m0_bs2_phase`` from 0 to 2*pi and read the ground-port fringe.
     """
 
+    # Continuous OPLL chirp across both pulses (one transition, UP m=0) so the
+    # optical phase stays coherent - the per-pulse OPLL restart otherwise kills
+    # the fringe (RIDs 75445/75446 were flat with the per-pulse restart).
+    lmt_continuous_opll = True
     lmt_initial_population = {("g", 0)}
     lmt_sequence = [
         _full_intensity_setpoint(),

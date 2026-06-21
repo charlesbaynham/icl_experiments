@@ -165,6 +165,15 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
     lmt_sequence: list = None
     lmt_initial_population: set = None
     lmt_strict_validation: bool = True
+    # Coherent-interferometry firing mode: run ONE continuous OPLL chirp across
+    # the whole sequence (gating only the switch AOM per pulse) instead of
+    # stopping/restarting the OPLL ramp around every pulse. The per-pulse restart
+    # does not carry the optical phase forward, which destroys interferometric
+    # coherence (no Ramsey/MZ fringe). Continuous mode keeps the optical phase
+    # continuous, so the per-pulse phase parameter becomes a usable fringe knob.
+    # Only valid when every pulse shares one beam/transition/offset (a
+    # single-beam Ramsey/MZ): the one chirp tracks that single resonance line.
+    lmt_continuous_opll: bool = False
 
     def build_fragment(self):
         super().build_fragment()
@@ -366,6 +375,7 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
             "_lmt_intent_addressed_m",
             "_lmt_intent_delta_m",
             "_lmt_intent_duration_s",
+            "lmt_continuous_opll",
         }
 
     def host_setup(self):
@@ -535,6 +545,10 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
         """
         t_ref_mu = self.get_doppler_t_ref_mu()
 
+        if self.lmt_continuous_opll:
+            self._run_lmt_sequence_continuous_opll(t_ref_mu)
+            return
+
         for i in range(self._lmt_n_events):
             kind = self._lmt_event_kind[i]
 
@@ -623,6 +637,120 @@ class DeclarativeLMTCoreBase(ClockOPLLTrackingMixin, ClockSpectroscopyBase, abc.
                     delta_m=self._lmt_intent_delta_m[i],
                 )
                 self.lmt_sequence_callback(self._lmt_callback_id[i])
+
+    @kernel
+    def _run_lmt_sequence_continuous_opll(self, t_ref_mu: int64):
+        """Coherent-interferometry firing (see ``lmt_continuous_opll``).
+
+        One continuous OPLL chirp tracks the single clock resonance line across
+        the whole sequence - started lazily at the first pulse from that pulse's
+        model frequency and never stopped until the end - while each pulse only
+        gates the switch AOM (with its phase). Because the OPLL is never
+        restarted between pulses, the optical phase stays continuous and the
+        per-pulse phase parameter is a true interferometer phase knob.
+
+        Assumes every pulse shares one beam/transition/offset; the chirp tracks
+        the first pulse's resonance line (slope ``+/- ramp_rate``).
+        """
+        ramp_started = False
+        for i in range(self._lmt_n_events):
+            kind = self._lmt_event_kind[i]
+
+            if kind == EVENT_PULSE:
+                duration = self._lmt_duration_handles[i].get()
+                is_up = self._lmt_beam_sign[i] > 0.0
+                phase = self._lmt_phase_handles[i].get()
+                if is_up:
+                    self.set_clock_up_dds(
+                        frequency=self.clock_switch_frequency_handle.get(),
+                        amplitude=self.clock_switch_amplitude_handle.get(),
+                        phase=phase,
+                    )
+                else:
+                    self.set_clock_down_dds(
+                        frequency=self.clock_switch_frequency_handle.get(),
+                        amplitude=self.clock_switch_amplitude_handle.get(),
+                        phase=phase,
+                    )
+                delay_mu(8)
+
+                if not ramp_started:
+                    # Start the single chirp on this pulse's resonance line. It
+                    # rises (up beam) / falls (down beam) at the gravity rate, so
+                    # it stays on resonance for every later same-transition pulse.
+                    t_fall = self.core.mu_to_seconds(now_mu() - t_ref_mu)
+                    v0_doppler = (
+                        -self._lmt_beam_sign[i]
+                        * self.lmt_initial_velocity.get()
+                        * inverse_clock_wavelength
+                    )
+                    rabi = self._lmt_rabi_hz[i]
+                    stark = -self.lmt_probe_stark_alpha.get() * rabi * rabi
+                    f_now = (
+                        start_opll_offset
+                        + self._lmt_beam_sign[i] * t_fall * ramp_rate
+                        - self._lmt_m_term_hz[i]
+                        + v0_doppler
+                        + stark
+                        + self._lmt_offset_handles[i].get()
+                    )
+                    if is_up:
+                        self.start_clock_opll_ramp(
+                            ramp_rate, f_now, f_now + 2e6, wave_type=1
+                        )
+                    else:
+                        self.start_clock_opll_ramp(
+                            ramp_rate, f_now - 2e6, f_now, wave_type=2
+                        )
+                    ramp_started = True
+
+                t_start = now_mu() + self.core.seconds_to_mu(10e-6)
+                at_mu(t_start)
+                self.register_pulse_with_intent(
+                    is_up=is_up,
+                    duration_s=duration,
+                    state_effect=self._lmt_intent_state_effect[i],
+                    addressed_state=self._lmt_intent_addressed_state[i],
+                    addressed_m=self._lmt_intent_addressed_m[i],
+                    delta_m=self._lmt_intent_delta_m[i],
+                )
+                if is_up:
+                    self.clock_up_dds.sw.on()
+                    delay(duration)
+                    self.clock_up_dds.sw.off()
+                else:
+                    self.clock_down_dds.sw.on()
+                    delay(duration)
+                    self.clock_down_dds.sw.off()
+                delay_mu(8)
+
+            elif kind == EVENT_WAIT:
+                delay(self._lmt_duration_handles[i].get())
+
+            elif kind == EVENT_CLEAROUT:
+                clearout_duration = self._lmt_duration_handles[i].get()
+                self.register_clearout(duration_s=clearout_duration)
+                self.fluorescence_pulse.do_clearout_pulse(
+                    duration=clearout_duration,
+                    ignore_final_shutters=True,
+                )
+                delay(8e-9)
+
+            elif kind == EVENT_SETPOINT:
+                self._set_delivery_setpoint(self._lmt_setpoint_handles[i].get())
+                delay(self.clock_delivery_preempt_time.get())
+
+            else:  # EVENT_CALLBACK
+                self.register_intent_callback(
+                    duration_s=self._lmt_intent_duration_s[i],
+                    state_effect=self._lmt_intent_state_effect[i],
+                    delta_m=self._lmt_intent_delta_m[i],
+                )
+                self.lmt_sequence_callback(self._lmt_callback_id[i])
+
+        if ramp_started:
+            self.stop_clock_opll_ramp()
+        self.set_clock_opll(start_opll_offset)
 
     @kernel
     def post_sequence_cleanup_hook_declarative_lmt(self):
