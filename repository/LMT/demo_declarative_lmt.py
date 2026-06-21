@@ -98,7 +98,10 @@ class DemoDeclarativeLMTFrag(
         ),
         Clearout(),  # clears the unselected atoms, still in |g>
         *ladder(start_m=1, n=_DEMO_LAUNCH_RECOILS, first_beam=Beam.DOWN),
-        Clearout(),  # clears |g> residual from imperfect pulses (launch is in |e>)
+        # FIXME: final |g>-residual clearout disabled to expose the ground
+        # population for a final-pulse frequency scan (spectroscopy lineshape).
+        # Restore before merging.
+        # Clearout(),  # clears |g> residual from imperfect pulses (launch is in |e>)
     ]
 
     @kernel
